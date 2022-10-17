@@ -1,5 +1,5 @@
 Adapter Subsystem
-========
+=================
 
 .. automodule:: fedot.core.adapter.adapt_registry
    :members:
