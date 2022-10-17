@@ -25,7 +25,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
     def restore_func(self, fun: Callable) -> Callable:
         """Wraps native function so that it could accept domain graphs as arguments.
 
-        Behavior: `restore( f(OptGraph)->OptGraph ) => f'(DomainGraph)->DomainGraph`
+        Behavior: ``restore( f(OptGraph)->OptGraph ) => f'(DomainGraph)->DomainGraph``
 
         Implementation details.
         The method wraps callable into a function that transforms its args & return value.
@@ -45,7 +45,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         as arguments. If the function was registered as native, it is returned as-is.
         ``AdaptRegistry`` is responsible for function registration.
 
-        Behavior: `adapt( f(DomainGraph)->DomainGraph ) => f'(OptGraph)->OptGraph`
+        Behavior: ``adapt( f(DomainGraph)->DomainGraph ) => f'(OptGraph)->OptGraph``
 
         Implementation details.
         The method wraps callable into a function that transforms its args & return value.

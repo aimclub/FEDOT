@@ -7,13 +7,14 @@ from fedot.core.utilities.singleton_meta import SingletonMeta
 
 class AdaptRegistry(metaclass=SingletonMeta):
     """Registry of callables that require adaptation of argument/return values.
-    AdaptRegistry together with :class:``BaseOptimizationAdapter`` enables
-    automatic transformation between internal and domain graph representations.
+    AdaptRegistry together with :py:class:`fedot.core.adapter.adapter.BaseOptimizationAdapter`
+    enables automatic transformation between internal and domain graph representations.
 
     **Short description of the use-case.**
 
     Operators & verification rules that operate on internal representation
-    of graphs must be marked as native with ``register_native`` decorator.
+    of graphs must be marked as native with decorator
+    :py:func:`fedot.core.adapter.adapt_registry.register_native`.
 
     Usually this is the case when users of the framework provide custom
     operators for internal optimization graphs. When custom operators
