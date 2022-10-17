@@ -39,7 +39,7 @@ def test_parallel_cache_files():
     cpus = multiprocessing.cpu_count()
     try:
         with multiprocessing.Pool(processes=cpus) as pool:
-            pool.map(run_example, tasks)
+            list(pool.imap(run_example, tasks))
     except sqlite3.OperationalError:
         assert False, 'DBs collides'
 
