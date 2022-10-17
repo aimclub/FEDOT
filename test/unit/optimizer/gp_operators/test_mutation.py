@@ -3,25 +3,25 @@ from copy import deepcopy
 import pytest
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
-from fedot.core.optimisers.optimizer import GraphGenerationParams
-
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import Mutation, MutationStrengthEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.dag.test_graph_utils import find_first
 from test.unit.optimizer.test_gp_operators import _get_requirements_and_params_for_task, file_data, \
     get_mutation_operator
+from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
 
 
@@ -220,9 +220,9 @@ def test_edge_mutation_for_graph():
 
     graph_without_edge = get_simple_linear_graph()
     mutation = get_mutation_obj()
-    graph_without_edge = mutation._single_edge_mutation(graph_without_edge)
+    graph_with_edge = mutation._single_edge_mutation(graph_without_edge)
     # 0-rf
-    assert graph_without_edge.nodes[0].nodes_from == graph_without_edge.nodes[1:]
+    assert graph_with_edge.nodes[0].nodes_from == graph_with_edge.nodes[1:]
 
 
 def test_replace_mutation_for_linear_graph():
@@ -292,3 +292,42 @@ def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: Pi
     new_pipeline = boosting_mutation(new_pipeline, requirements, params)
     assert new_pipeline.descriptive_id != pipeline.descriptive_id
     assert 'class_decompose' in new_pipeline.descriptive_id or 'decompose' in new_pipeline.descriptive_id
+
+
+def test_mutation_with_single_node():
+    adapter = PipelineAdapter()
+    graph = adapter.adapt(PipelineBuilder().add_node('rf').to_pipeline())
+    new_graph = deepcopy(graph)
+    mutation = get_mutation_obj()
+    new_graph = mutation._reduce_mutation(new_graph)
+
+    assert graph == new_graph
+    new_graph = mutation._single_drop_mutation(new_graph)
+    assert graph == new_graph
+
+
+def test_mutation_with_zero_prob():
+    adapter = PipelineAdapter()
+    ind = Individual(adapter.adapt(pipeline_first()))
+    task = Task(TaskTypesEnum.classification)
+    primary_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
+    composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
+                                                         secondary=secondary_model_types)
+    for mutation_type in MutationTypesEnum:
+        mutation = get_mutation_operator([mutation_type], composer_requirements, mutation_prob=0)
+        new_ind = mutation(ind)
+        assert new_ind.graph == ind.graph
+        ind = Individual(adapter.adapt(pipeline_fifth()))
+        new_ind = mutation(ind)
+        assert new_ind.graph == ind.graph
+
+
+def test_no_opt_or_graph_nodes_after_mutation():
+    adapter = PipelineAdapter()
+    graph = get_simple_linear_graph()
+    mutation = get_mutation_obj()
+    new_graph, _ = mutation._adapt_and_apply_mutations(new_graph=graph, num_mut=1)
+    new_pipeline = adapter.restore(new_graph)
+
+    assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))

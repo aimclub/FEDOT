@@ -1,6 +1,6 @@
 import datetime
-from copy import deepcopy
 from pathlib import Path
+
 from typing import Sequence, Optional
 
 import numpy as np
@@ -17,7 +17,6 @@ from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitnes
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -25,22 +24,17 @@ from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import to_numerical
-from test.unit.dag.test_graph_utils import find_first
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
-from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
-from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.tasks.test_regression import get_synthetic_regression_data
+from test.unit.pipelines.test_node_cache import pipeline_fourth
 
 
 def get_mutation_operator(mutation_types: Sequence[MutationTypesEnum],
@@ -190,140 +184,3 @@ def test_filter_duplicates():
     assert len(filtered_archive) == 1
     assert filtered_archive[0].fitness.values[0] == -0.80001
     assert filtered_archive[0].fitness.values[1] == 0.25
-
-
-def test_crossover():
-    adapter = PipelineAdapter()
-    graph_example_first = adapter.adapt(pipeline_first())
-    graph_example_second = adapter.adapt(pipeline_second())
-
-    requirements = PipelineComposerRequirements()
-    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.none], crossover_prob=1)
-    crossover = Crossover(opt_parameters, requirements, get_pipeline_generation_params())
-    new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
-    assert new_graphs[0].graph == graph_example_first
-    assert new_graphs[1].graph == graph_example_second
-
-    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=0)
-    crossover = Crossover(opt_parameters, requirements, get_pipeline_generation_params())
-    new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
-    assert new_graphs[0].graph == graph_example_first
-    assert new_graphs[1].graph == graph_example_second
-
-
-def test_mutation_with_zero_prob():
-    adapter = PipelineAdapter()
-    ind = Individual(adapter.adapt(pipeline_first()))
-    task = Task(TaskTypesEnum.classification)
-    primary_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-    secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
-    composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
-                                                         secondary=secondary_model_types)
-    for mutation_type in MutationTypesEnum:
-        mutation = get_mutation_operator([mutation_type], composer_requirements, mutation_prob=0)
-        new_ind = mutation(ind)
-        assert new_ind.graph == ind.graph
-        ind = Individual(adapter.adapt(pipeline_fifth()))
-        new_ind = mutation(ind)
-        assert new_ind.graph == ind.graph
-
-
-def test_pipeline_adapters_params_correct():
-    """ Checking the correct conversion of hyperparameters in nodes when nodes
-    are passing through adapter
-    """
-    init_alpha = 12.1
-    pipeline = pipeline_with_custom_parameters(init_alpha)
-
-    # Convert into OptGraph object
-    adapter = PipelineAdapter()
-    opt_graph = adapter.adapt(pipeline)
-    # Get Pipeline object back
-    restored_pipeline = adapter.restore(opt_graph)
-    # Get hyperparameter value after pipeline restoration
-    restored_alpha = restored_pipeline.root_node.parameters['alpha']
-    assert np.isclose(init_alpha, restored_alpha)
-
-
-def test_preds_before_and_after_convert_equal():
-    """ Check if the pipeline predictions change before and after conversion
-    through the adapter
-    """
-    init_alpha = 12.1
-    pipeline = pipeline_with_custom_parameters(init_alpha)
-
-    # Generate data
-    input_data = get_synthetic_regression_data(n_samples=10, n_features=2,
-                                               random_state=2021)
-    # Init fit
-    pipeline.fit(input_data)
-    init_preds = pipeline.predict(input_data)
-
-    # Convert into OptGraph object
-    adapter = PipelineAdapter()
-    opt_graph = adapter.adapt(pipeline)
-    restored_pipeline = adapter.restore(opt_graph)
-
-    # Restored pipeline fit
-    restored_pipeline.fit(input_data)
-    restored_preds = restored_pipeline.predict(input_data)
-
-    assert np.array_equal(init_preds.predict, restored_preds.predict)
-
-
-def test_crossover_with_single_node():
-    adapter = PipelineAdapter()
-    graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
-    graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
-
-    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
-    requirements = PipelineComposerRequirements()
-
-    for crossover_type in CrossoverTypesEnum:
-        opt_parameters = GPGraphOptimizerParameters(crossover_types=[crossover_type], crossover_prob=1)
-        crossover = Crossover(opt_parameters, requirements, graph_params)
-        new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
-
-        assert new_graphs[0].graph == graph_example_first
-        assert new_graphs[1].graph == graph_example_second
-
-
-def test_mutation_with_single_node():
-    adapter = PipelineAdapter()
-    individual = Individual(adapter.adapt(generate_pipeline_with_single_node()))
-    task = Task(TaskTypesEnum.classification)
-    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                         secondary=available_model_types)
-
-    mutation = get_mutation_operator([MutationTypesEnum.reduce], composer_requirements, task=task)
-    new_individual = mutation(individual)
-    assert individual.graph == new_individual.graph
-
-    mutation = get_mutation_operator([MutationTypesEnum.single_drop], composer_requirements, task=task)
-    new_individual = mutation(individual)
-    assert individual.graph == new_individual.graph
-
-
-def test_no_opt_or_graph_nodes_after_mutation():
-    adapter = PipelineAdapter()
-    graph = adapter.adapt(generate_pipeline_with_single_node())
-    task = Task(TaskTypesEnum.classification)
-
-    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                         secondary=available_model_types)
-
-    mutation = get_mutation_operator([MutationTypesEnum.growth], composer_requirements, task=task)
-    new_graph, _ = mutation._adapt_and_apply_mutations(new_graph=graph, num_mut=1)
-    new_pipeline = adapter.restore(new_graph)
-
-    assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
-
-
-def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
-    adapter = PipelineAdapter()
-    pipeline = generate_so_complex_pipeline()
-    adapter.adapt(pipeline)
-
-    assert not find_first(pipeline, lambda n: type(n) in (GraphNode, OptNode))
