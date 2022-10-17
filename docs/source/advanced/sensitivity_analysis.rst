@@ -153,13 +153,13 @@ What if to replace original model(in red) to the certain one
 
 |id_0| |id_1|
 
-.. |DeletionAnalysis| image:: img_sensitivity/NodeDeletionAnalyze.jpg
+.. |DeletionAnalysis| image:: img/NodeDeletionAnalyze.jpg
    :width: 45%
-.. |ReplacementAnalysis| image:: img_sensitivity/NodeReplaceModelAnalyze.jpg
+.. |ReplacementAnalysis| image:: img/NodeReplaceModelAnalyze.jpg
    :width: 45%
-.. |id_0| image:: img_sensitivity/knn_id_0_replacement.jpg
+.. |id_0| image:: img/knn_id_0_replacement.jpg
    :width: 45%
-.. |id_1| image:: img_sensitivity/qda_id_1_replacement.jpg
+.. |id_1| image:: img/qda_id_1_replacement.jpg
    :width: 45%
 
 
