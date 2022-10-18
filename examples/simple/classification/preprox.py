@@ -23,7 +23,7 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 base_path = Path('../../data/openml')
-base_path_my = Path('../../data/openml/npy')
+base_path_npy = Path('../../data/openml/npy')
 
 
 def run_classification_example(
@@ -73,7 +73,7 @@ def run_classification_example(
 
 
 def get_preprocessed_data_folds(nfolds=(0, 1), stage='train',
-                                npy_path = base_path / 'datasets',
+                                npy_path = base_path_npy,
                                 basename = 'credit-g',
                                 ):
     def load_npy(ifold: int, stage='train'):
@@ -109,7 +109,7 @@ def _transform_targets(targets: np.ndarray):
     return new_targets
 
 
-def get_preprocessed_data(nfolds=(0, 1), npy_path=base_path_my):
+def get_preprocessed_data(nfolds=(0, 1), npy_path=base_path_npy):
     train_set = get_preprocessed_data_folds(nfolds=nfolds, stage='train', npy_path=npy_path)
     test_set = get_preprocessed_data_folds(nfolds=nfolds, stage='test', npy_path=npy_path)
     return train_set, test_set
