@@ -54,7 +54,9 @@ class LinkedGraphNode(GraphNode):
             raise ValueError('Unknown content in the node: expected content[`name`], got None')
         params = self.content.get('params')
         # TODO: possibly unify with __repr__ & don't duplicate Operation.description
-        if isinstance(node_operation, str):
+        if not params :
+            node_label = f'n_{node_operation}'
+        elif isinstance(node_operation, str):
             # If there is a string: name of operation (as in json repository)
             node_label = f'n_{node_operation}_{params}'
         else:
