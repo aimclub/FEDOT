@@ -42,7 +42,6 @@ def run_classification_example(
                   early_stopping_generations=50,
                   cv_folds=10,
 
-                  seed=42,
                   n_jobs=8,
                   logging_level=logging.INFO,
                   )
@@ -143,8 +142,8 @@ def try_predefined(folds=None):
     ppl_path = amlb_path_18
     # pipeline = Pipeline.from_serialized(source=str(ppl_path))
 
-    pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
-    # pipeline = PipelineBuilder().add_branch('scaling', 'fast_ica').join_branches('rf').to_pipeline()
+    # pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
+    pipeline = PipelineBuilder().add_branch('scaling', 'fast_ica').join_branches('rf').to_pipeline()
 
     # pipeline.show()
 
@@ -155,10 +154,16 @@ def try_predefined(folds=None):
     print(f'raw data: {metris_raw}')
     print(f'prx data: {metris_prx}')
 
-    for i in range(0, 10):
-        train_test_pro_amb = get_preprocessed_data(nfolds=(i, i+1))
+    metris_amb_all_rocauc = []
+    # for i in range(0, 10):
+    for i in [0] * 10:
+        train_test_pro_amb = get_preprocessed_data(nfolds=(i, i+1), npy_path=base_path / 'datasets')
+        # train_test_pro_amb = get_preprocessed_data(nfolds=(i, i+1), npy_path=base_path_npy)
         metris_amb = run_classification_example(*train_test_pro_amb, predefined_model=deepcopy(pipeline))
+        metris_amb_all_rocauc.append(metris_amb["roc_auc"])
         print(f'amb data (fold {i}): {metris_amb}')
+    avg_metri = np.mean(metris_amb_all_rocauc)
+    print(f'amb data, mean metric on 10 folds: {avg_metri}')
 
 
 def try_duplicates():
@@ -218,13 +223,13 @@ def try_evolution(kind='raw', shuffle=False):
 
 
 if __name__ == '__main__':
-    random.seed(44)
-    np.random.seed(44)
+    random.seed(444)
+    np.random.seed(444)
 
     # try_duplicates()
-    # try_predefined()
+    try_predefined()
 
-    mamb = try_evolution(kind='amb', shuffle=True)
-    mraw = try_evolution(kind='raw', shuffle=True)
-    print('amb:', mamb)
-    print('raw:', mraw)
+    # mamb = try_evolution(kind='amb', shuffle=True)
+    # mraw = try_evolution(kind='raw', shuffle=True)
+    # print('amb:', mamb)
+    # print('raw:', mraw)
