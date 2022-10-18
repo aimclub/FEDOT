@@ -215,16 +215,16 @@
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
 			"presets": ["fast_train", "*tree"],
-			"tags": ["affects_target", "linear", "filtering", "correct_params", "non_applicable_for_ts"]
+			"tags": ["affects_target", "linear", "filtering", "correct_params", "non_applicable_for_ts", "non-default"]
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
 			"presets": ["fast_train", "*tree"],
-			"tags": ["affects_target", "non_linear", "filtering", "correct_params", "non_applicable_for_ts"]
+			"tags": ["affects_target", "non_linear", "filtering", "correct_params", "non_applicable_for_ts", "non-default"]
 		},
 		"isolation_forest_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "filtering"]
+			"tags": ["non_linear", "filtering", "non-default"]
 		},
 		"isolation_forest_class": {
 			"meta": "classification_preprocessing",
