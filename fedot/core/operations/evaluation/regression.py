@@ -43,7 +43,7 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
         'rfe_lin_reg': LinearRegFSImplementation,
         'rfe_non_lin_reg': NonLinearRegFSImplementation,
         'decompose': DecomposerRegImplementation,
-        'isolation_forest_reg': IsolationForestRegImplementation
+        # 'isolation_forest_reg': IsolationForestRegImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
