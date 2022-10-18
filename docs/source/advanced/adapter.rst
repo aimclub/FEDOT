@@ -4,7 +4,8 @@ Adaptation of Graphs
 Domain Graphs & Optimization Graphs
 ************************************
 
-Problem domains usually work with their own graph representations that are suitable for specific needs. For example, in the case of AutoML problem (as in Fedot framework) this is a pipeline of ML operations (a tree or a directed acyclic graph); in 3D tasks graphs are polygonal meshes (as in Gefest framework), and so on.
+Problem domains usually work with their own graph representations that are suitable for specific needs. For example, in the case of AutoML problem (as in FEDOT framework) this is a pipeline of ML operations (a tree or a directed acyclic graph);
+in Bayesian optimization this is a graph of variables and their conditional dependencies (as in BAMT framework), in the task of neural architecture search (NAS) the domain graph is a neural network implemented in some deep learning framework, and so on.
 
 Universal graph optimizer abstracts from these details and works with internal graph representation (also called *optimization graph*). This design brings the following benefits:
 
