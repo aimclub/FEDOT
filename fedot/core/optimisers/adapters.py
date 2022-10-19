@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
-from fedot.core.dag.graph_utils import map_nodes
+from fedot.core.dag.graph_utils import map_dag_nodes
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
 from fedot.core.pipelines.pipeline import Pipeline
@@ -38,11 +38,11 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
             return SecondaryNode(operation_type=content['name'], content=content)
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:
-        adapted_nodes = map_nodes(self._transform_to_opt_node, adaptee.nodes)
+        adapted_nodes = map_dag_nodes(self._transform_to_opt_node, adaptee.nodes)
         return OptGraph(adapted_nodes)
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
-        restored_nodes = map_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
+        restored_nodes = map_dag_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
         pipeline = Pipeline(restored_nodes)
 
         metadata = metadata or {}

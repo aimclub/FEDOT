@@ -116,12 +116,15 @@ def node_depth(node: GraphNode) -> int:
         return 1 + max(node_depth(next_node) for next_node in node.nodes_from)
 
 
-def map_nodes(transform: Callable, nodes: Sequence) -> Sequence:
+def map_dag_nodes(transform: Callable, nodes: Sequence) -> Sequence:
     """Maps nodes in dfs-order while respecting node edges.
 
-    :param transform: node transform function (maps node to node)
-    :param nodes: sequence of nodes for mapping
-    :return: sequence of transformed links with preserved relations
+    Args:
+        transform: node transform function (maps node to node)
+        nodes: sequence of nodes for mapping
+
+    Returns:
+        Sequence: sequence of transformed links with preserved relations
     """
     mapped_nodes = {}
 
