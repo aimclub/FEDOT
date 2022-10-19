@@ -2,7 +2,7 @@ from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.graph_node import map_nodes
+from fedot.core.dag.graph_utils import map_nodes
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
 from fedot.core.pipelines.pipeline import Pipeline

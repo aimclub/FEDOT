@@ -1,4 +1,4 @@
-from typing import Union, Sequence, List, TYPE_CHECKING
+from typing import Union, Sequence, List, TYPE_CHECKING, Callable
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -114,3 +114,27 @@ def node_depth(node: GraphNode) -> int:
         return 1
     else:
         return 1 + max(node_depth(next_node) for next_node in node.nodes_from)
+
+
+def map_nodes(transform: Callable, nodes: Sequence) -> Sequence:
+    """Maps nodes in dfs-order while respecting node edges.
+
+    :param transform: node transform function (maps node to node)
+    :param nodes: sequence of nodes for mapping
+    :return: sequence of transformed links with preserved relations
+    """
+    mapped_nodes = {}
+
+    def map_impl(node):
+        already_mapped = mapped_nodes.get(id(node))
+        if already_mapped:
+            return already_mapped
+        # map node itself
+        mapped_node = transform(node)
+        # remember it to avoid recursion
+        mapped_nodes[id(node)] = mapped_node
+        # map its children
+        mapped_node.nodes_from = list(map(map_impl, node.nodes_from))
+        return mapped_node
+
+    return list(map(map_impl, nodes))
