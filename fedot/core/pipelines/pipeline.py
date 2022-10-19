@@ -8,7 +8,9 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.linked_graph import LinkedGraph
+
+from fedot.core.dag.graph_utils import distance_to_primary_level
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -267,20 +269,6 @@ class Pipeline(GraphDelegate, Serializable):
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
-    def __str__(self) -> str:
-        """Returns compact information about class instance
-
-        Returns:
-            formatted string representation of the class instance
-        """
-
-        description = {
-            'depth': self.depth,
-            'length': self.length,
-            'nodes': self.nodes,
-        }
-        return f'{description}'
-
     @property
     def root_node(self) -> Optional[Node]:
         """Finds pipelines sink-node
@@ -311,9 +299,9 @@ class Pipeline(GraphDelegate, Serializable):
         for node in self.nodes:
             if (task_type in node.operation.acceptable_task_types and
                     isinstance(node.operation, Model) and
-                    node.distance_to_primary_level >= max_distance):
+                    distance_to_primary_level(node) >= max_distance):
                 side_root_node = node
-                max_distance = node.distance_to_primary_level
+                max_distance = distance_to_primary_level(node)
 
         pipeline = Pipeline(side_root_node)
         pipeline.preprocessor = self.preprocessor
@@ -384,7 +372,7 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     return list(appropriate_nodes)
 
 
-def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node]):
+def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):
     """
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type

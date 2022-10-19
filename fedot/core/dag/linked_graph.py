@@ -5,18 +5,21 @@ from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy, node_depth
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, Copyable, remove_items
 from fedot.core.utils import copy_doc
 
 NodePostprocessCallable = Callable[[Graph, Sequence[GraphNode]], Any]
 
 
-class GraphOperator(Graph, Copyable):
-    """_summary_
+class LinkedGraph(Graph, Copyable):
+    """Graph implementation based on linked graph node
+    that directly stores its parent nodes.
 
-    :param nodes: nodes of the Graph
-    :param postprocess_nodes: nodes postprocessor after their modification
+    Args:
+        nodes: nodes of the Graph
+        postprocess_nodes: nodes postprocessing function used after their modification
     """
 
     def __init__(self, nodes: Union[GraphNode, Sequence[GraphNode]] = (),
@@ -26,7 +29,8 @@ class GraphOperator(Graph, Copyable):
             self.add_node(node)
         self._postprocess_nodes = postprocess_nodes or self._empty_postprocess
 
-    def _empty_postprocess(self, *args):
+    @staticmethod
+    def _empty_postprocess(*args):
         pass
 
     @copy_doc(Graph)
@@ -46,7 +50,7 @@ class GraphOperator(Graph, Copyable):
 
     @copy_doc(Graph)
     def delete_subtree(self, subtree: GraphNode):
-        subtree_nodes = subtree.ordered_subnodes_hierarchy()
+        subtree_nodes = ordered_subnodes_hierarchy(subtree)
         self._nodes = remove_items(self._nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
         for subtree in self._nodes:
@@ -55,13 +59,7 @@ class GraphOperator(Graph, Copyable):
     @copy_doc(Graph)
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
-        if old_node.nodes_from:
-            if new_node.nodes_from:
-                # extend sources of new_node with sources of old node
-                new_node.nodes_from.extend(old_node.nodes_from)
-            else:
-                # just assign old sources as sources for the new node
-                new_node.nodes_from = old_node.nodes_from
+        new_node.nodes_from.extend(old_node.nodes_from)
         self._nodes.remove(old_node)
         self._nodes.append(new_node)
         self.sort_nodes()
@@ -79,49 +77,8 @@ class GraphOperator(Graph, Copyable):
     def add_node(self, node: GraphNode):
         if node not in self._nodes:
             self._nodes.append(node)
-            if node.nodes_from:
-                for new_parent_node in node.nodes_from:
-                    self.add_node(new_parent_node)
-
-    @copy_doc(Graph)
-    def distance_to_root_level(self, node: GraphNode) -> int:
-
-        def recursive_child_height(parent_node: GraphNode) -> int:
-            """Recursively dives into ``parent_node`` children to get the bottom height
-
-            :param node: search starting point
-            """
-            node_child = self.node_children(parent_node)
-            if node_child:
-                height = recursive_child_height(node_child[0]) + 1
-                return height
-            return 0
-
-        height = recursive_child_height(node)
-        return height
-
-    @copy_doc(Graph)
-    def nodes_from_layer(self, layer_number: int) -> List[Any]:
-
-        def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
-            """Gets all the parent nodes of ``node``
-
-            :param node: node to get all subnodes from
-            :param current_height: current diving step depth
-
-            :return: all parent nodes of ``node``
-            """
-            nodes = []
-            if current_height == layer_number:
-                nodes.append(node)
-            else:
-                if node.nodes_from:
-                    for child in node.nodes_from:
-                        nodes.extend(get_nodes(child, current_height + 1))
-            return nodes
-
-        nodes = get_nodes(self.root_node, current_height=0)
-        return nodes
+            for n in node.nodes_from:
+                self.add_node(n)
 
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
         """Changes parent of ``old_node`` children to ``new_node``
@@ -137,7 +94,7 @@ class GraphOperator(Graph, Copyable):
     def sort_nodes(self):
         """ Layer by layer sorting """
         if not isinstance(self.root_node, Sequence):
-            self._nodes = self.root_node.ordered_subnodes_hierarchy()
+            self._nodes = ordered_subnodes_hierarchy(self.root_node)
 
     @copy_doc(Graph)
     def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
@@ -149,14 +106,7 @@ class GraphOperator(Graph, Copyable):
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
         if child in self.node_children(parent):
             return
-        # if not already connected
-        if child.nodes_from:
-            child.nodes_from.append(parent)
-        else:
-            # add parent to initial node
-            new_child = GraphNode(nodes_from=[], content=child.content)
-            new_child.nodes_from.append(parent)
-            self.update_node(child, new_child)
+        child.nodes_from.append(parent)
 
     def _clean_up_leftovers(self, node: GraphNode):
         """Removes nodes and edges that do not affect the result of the pipeline.
@@ -168,25 +118,19 @@ class GraphOperator(Graph, Copyable):
 
         if not self.node_children(node):
             self._nodes.remove(node)
-            if node.nodes_from:
-                for node in node.nodes_from:
-                    self._clean_up_leftovers(node)
+            for node in node.nodes_from:
+                self._clean_up_leftovers(node)
 
     @copy_doc(Graph)
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          clean_up_leftovers: bool = True):
-        if not node_child.nodes_from or node_parent not in node_child.nodes_from:
+        if node_parent not in node_child.nodes_from:
             return
-        elif node_parent not in self._nodes or node_child not in self._nodes:
+        if node_parent not in self._nodes or node_child not in self._nodes:
             return
-        elif len(node_child.nodes_from) == 1:
-            node_child.nodes_from = None
-        else:
-            node_child.nodes_from.remove(node_parent)
-
+        node_child.nodes_from.remove(node_parent)
         if clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
-
         self._postprocess_nodes(self, self._nodes)
 
     def root_nodes(self) -> Sequence[GraphNode]:
@@ -214,32 +158,7 @@ class GraphOperator(Graph, Copyable):
     @copy_doc(Graph)
     @property
     def depth(self) -> int:
-        if not self._nodes:
-            return 0
-
-        def _depth_recursive(node: GraphNode) -> int:
-            """Gets this graph depth from the provided ``node`` to the graph source node
-
-            :param node: where to start diving from
-
-            :return: length of a path from the provided ``node`` to the farthest primary node
-            """
-            if node is None:  # is it real situation to have None in `node.nodes_from`?
-                return 0
-            if not node.nodes_from:
-                return 1
-            else:
-                return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
-
-        root = ensure_wrapped_in_sequence(self.root_node)
-        return max(_depth_recursive(n) for n in root)
-
-    @copy_doc(Graph)
-    def get_nodes_degrees(self) -> Sequence[int]:
-        graph, _ = graph_structure_as_nx_graph(self)
-        index_degree_pairs = graph.degree
-        node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
-        return node_degrees
+        return 0 if not self._nodes else max(map(node_depth, self.root_nodes()))
 
     @copy_doc(Graph)
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:

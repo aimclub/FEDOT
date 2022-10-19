@@ -3,20 +3,30 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.optimisers.fitness.fitness import Fitness
-from fedot.core.pipelines.node import NodeMetadata
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.pipelines.node import NodeMetadata
 
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
+
+# Mapping between class paths for backward compatibility for renamed/moved classes
 LEGACY_CLASS_PATHS = {
     'fedot.core.optimisers.gp_comp.individual/Individual':
-        f'fedot.core.optimisers.opt_history_objects.individual/Individual',
+        'fedot.core.optimisers.opt_history_objects.individual/Individual',
     'fedot.core.optimisers.gp_comp.individual/ParentOperator':
-        f'fedot.core.optimisers.opt_history_objects.parent_operator/ParentOperator',
+        'fedot.core.optimisers.opt_history_objects.parent_operator/ParentOperator',
     'fedot.core.optimisers.opt_history/OptHistory':
-        f'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
+        'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
+
+    'fedot.core.dag.graph_node/GraphNode':
+        'fedot.core.dag.linked_graph_node/LinkedGraphNode',
+    'fedot.core.dag.graph_operator/GraphOperator':
+        'fedot.core.dag.linked_graph/LinkedGraph',
+    'fedot.core.dag.graph_operator/GraphOperator._empty_postprocess':
+        'fedot.core.dag.linked_graph/LinkedGraph._empty_postprocess',
 }
 
 
@@ -37,7 +47,6 @@ class Serializer(JSONEncoder, JSONDecoder):
             from uuid import UUID
 
             from fedot.core.dag.graph import Graph
-            from fedot.core.dag.graph_node import GraphNode
             from fedot.core.operations.operation import Operation
             from fedot.core.optimisers.opt_history_objects.individual import Individual
             from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
@@ -69,7 +78,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 Fitness: basic_serialization,
                 Individual: basic_serialization,
                 NodeMetadata: basic_serialization,
-                GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
+                LinkedGraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: any_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
                 OptHistory: {_to_json: opt_history_to_json, _from_json: opt_history_from_json},
@@ -78,7 +87,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
             }
             Serializer.CODERS_BY_TYPE.update({
-                OptNode: Serializer.CODERS_BY_TYPE[GraphNode],
+                OptNode: Serializer.CODERS_BY_TYPE[LinkedGraphNode],
                 OptGraph: Serializer.CODERS_BY_TYPE[Graph],
             })
 
@@ -147,7 +156,7 @@ class Serializer(JSONEncoder, JSONDecoder):
 
         :return: class, function or method type
         """
-        class_path = LEGACY_CLASS_PATHS.get(class_path) or class_path
+        class_path = LEGACY_CLASS_PATHS.get(class_path, class_path)
         module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
         obj_cls = import_module(module_name)
         for sub in class_name.split('.'):

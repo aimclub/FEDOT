@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.adapter import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
@@ -29,7 +29,7 @@ class CustomModel(GraphDelegate):
         return 0
 
 
-class CustomNode(GraphNode):
+class CustomNode(LinkedGraphNode):
     def __str__(self):
         return f'custom_{str(self.content["name"])}'
 

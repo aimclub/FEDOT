@@ -5,7 +5,7 @@ from typing import List, Optional, Type
 import numpy as np
 from matplotlib import pyplot as plt
 
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_utils import get_nodes_degrees
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
@@ -112,7 +112,7 @@ class NodesAnalysis:
             self.log.info(f'Pipeline Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
-        nodes_degrees = self.pipeline.operator.get_nodes_degrees()  # pipeline.operator is GraphOperator
+        nodes_degrees = get_nodes_degrees(self.pipeline)
         gathered_results = self._extract_result_values(results)
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))

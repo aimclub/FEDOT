@@ -7,6 +7,7 @@ from fedot.core.operations.hyperparameters_preprocessing import HyperparametersP
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Operation:

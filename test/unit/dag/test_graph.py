@@ -6,8 +6,8 @@ import pytest
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
+from fedot.core.dag.linked_graph import LinkedGraph
 from test.unit.dag.test_graph_utils import find_same_node, nodes_same
 from test.unit.pipelines.tuning.test_pipeline_tuning import classification_dataset
 
@@ -16,11 +16,12 @@ np.random.seed(1)
 
 tmp = classification_dataset
 
-GraphImpl = GraphOperator
+GraphImpl = LinkedGraph
+GraphNode = LinkedGraphNode
 
 
 def test_graph_id():
-    right_id = '((/n1;)/n2;;(/n1;)/n3;)/n4'
+    right_id = '((/n_n1;)/n_n2;;(/n_n1;)/n_n3;)/n_n4'
     first = GraphNode(content='n1')
     second = GraphNode(content='n2', nodes_from=[first])
     third = GraphNode(content='n3', nodes_from=[first])

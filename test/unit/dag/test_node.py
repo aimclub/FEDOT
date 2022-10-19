@@ -1,3 +1,4 @@
+from fedot.core.dag.graph_utils import distance_to_primary_level
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 
 
@@ -10,21 +11,10 @@ def get_nodes():
     return [root, third_node, first_node, second_node]
 
 
-def test_node_operator_ordered_subnodes_hierarchy():
+def test_distance_to_primary_level():
     # given
     root = get_nodes()[0]
 
-    # when
-    ordered_nodes = root.ordered_subnodes_hierarchy()
-
-    # then
-    assert len(ordered_nodes) == 4
-
-
-def test_node_operator_distance_to_primary_level():
-    # given
-    root = get_nodes()[0]
-
-    distance = root.distance_to_primary_level
+    distance = distance_to_primary_level(root)
 
     assert distance == 2

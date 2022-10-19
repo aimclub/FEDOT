@@ -8,6 +8,7 @@ import pytest
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_utils import nodes_from_layer
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -140,7 +141,7 @@ def _get_requirements_and_params_for_task(task: TaskTypesEnum):
 
 def test_nodes_from_height():
     graph = graph_example()
-    found_nodes = graph.nodes_from_layer(1)
+    found_nodes = nodes_from_layer(graph, 1)
     true_nodes = [node for node in graph.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])

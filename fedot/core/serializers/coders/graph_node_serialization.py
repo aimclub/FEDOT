@@ -1,10 +1,10 @@
 from typing import Any, Dict
 
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from . import any_to_json
 
 
-def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
+def graph_node_to_json(obj: LinkedGraphNode) -> Dict[str, Any]:
     """
     Uses regular serialization but excludes "_operator" field to rid of circular references
     """

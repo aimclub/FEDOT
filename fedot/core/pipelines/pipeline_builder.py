@@ -1,8 +1,7 @@
 from copy import deepcopy
 from typing import List, Union, Optional, Tuple, Dict
 
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.linked_graph import LinkedGraph
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -179,7 +178,7 @@ def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilde
         return following
 
     lhs_nodes_final = previous.to_nodes()
-    rhs_tmp_graph = GraphOperator(following.to_nodes())
+    rhs_tmp_graph = LinkedGraph(following.to_nodes())
     rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
 
     # If merging one-to-one or one-to-many

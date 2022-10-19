@@ -3,7 +3,7 @@ from typing import Union, Sequence, List, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.linked_graph import LinkedGraph
 
 
 class GraphDelegate(Graph):
@@ -15,7 +15,7 @@ class GraphDelegate(Graph):
     - hide Graph implementation details from inheritors.
     """
 
-    def __init__(self, *args, delegate_cls: Type[Graph] = GraphOperator, **kwargs):
+    def __init__(self, *args, delegate_cls: Type[Graph] = LinkedGraph, **kwargs):
         self.operator = delegate_cls(*args, **kwargs)
 
     def add_node(self, node: GraphNode):
@@ -33,12 +33,6 @@ class GraphDelegate(Graph):
     def delete_subtree(self, subroot: GraphNode):
         self.operator.delete_subtree(subroot)
 
-    def distance_to_root_level(self, node: GraphNode) -> int:
-        return self.operator.distance_to_root_level(node=node)
-
-    def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
-        return self.operator.nodes_from_layer(layer_number=layer_number)
-
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         return self.operator.node_children(node=node)
 
@@ -48,9 +42,6 @@ class GraphDelegate(Graph):
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          clean_up_leftovers: bool = True):
         self.operator.disconnect_nodes(node_parent, node_child, clean_up_leftovers)
-
-    def get_nodes_degrees(self):
-        return self.operator.get_nodes_degrees()
 
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         return self.operator.get_edges()

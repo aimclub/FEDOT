@@ -1,11 +1,11 @@
 from typing import List, Union
 
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.log import default_log
 
+OptNode = LinkedGraphNode
 
-OptNode = GraphNode
 
 class OptGraph(GraphDelegate):
     """Base class used for optimized structure
