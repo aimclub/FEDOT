@@ -3,7 +3,6 @@ from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.utilities.data_structures import UniqueList
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class LinkedGraphNode(GraphNode):
@@ -30,6 +29,8 @@ class LinkedGraphNode(GraphNode):
         self.content = content
         self._nodes_from = UniqueList(nodes_from or ())
         self.uid = str(uuid4())
+
+        super().__init__()
 
     @property
     def nodes_from(self) -> List['LinkedGraphNode']:
