@@ -144,7 +144,7 @@ class FitnessLine(HistoryVisualization):
         :param per_time: defines whether to show time grid if it is available in history.
         """
 
-        ax = plt.gca()
+        fig, ax = plt.subplots(figsize=(6.4, 4.8), facecolor='w')
         if per_time:
             xlabel = 'Time, s'
             plot_fitness_line_per_time(ax, self.history.individuals)
@@ -152,7 +152,7 @@ class FitnessLine(HistoryVisualization):
             xlabel = 'Generation'
             plot_fitness_line_per_generations(ax, self.history.individuals)
         setup_fitness_plot(ax, xlabel)
-        show_or_save_figure(plt.gcf(), save_path, dpi)
+        show_or_save_figure(fig, save_path, dpi)
 
 
 class FitnessLineInteractive(HistoryVisualization):

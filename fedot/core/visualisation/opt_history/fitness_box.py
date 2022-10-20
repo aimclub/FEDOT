@@ -27,11 +27,10 @@ class FitnessBox(HistoryVisualization):
         fitness = (fitness - min(fitness)) / (max(fitness) - min(fitness))
         colormap = sns.color_palette('YlOrRd', as_cmap=True)
 
-        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap))
-        fig = plot.figure
+        fig, ax = plt.subplots(figsize=(6.4, 4.8), facecolor='w')
+        sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap), ax=ax)
         fig.set_dpi(dpi)
         fig.set_facecolor('w')
-        ax = plt.gca()
 
         ax.set_title('Fitness by generations')
         ax.set_xlabel('Generation')
