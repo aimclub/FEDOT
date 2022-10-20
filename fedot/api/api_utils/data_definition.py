@@ -5,11 +5,13 @@ from typing import Union, Optional
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils.api_data import FeaturesType
 from fedot.core.data.data import InputData, array_to_input_data
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict, tuple]
+TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 
 class DataDefiner:
