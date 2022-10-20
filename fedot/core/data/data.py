@@ -327,11 +327,15 @@ class InputData(Data):
 
     @property
     def num_classes(self) -> Optional[int]:
+        """Returns number of classes that are present in the target.
+        NB: if some labels are not present in this data, then
+        number of classes can be less than in the full dataset!"""
         unique_values = self.class_labels
         return len(unique_values) if unique_values is not None else None
 
     @property
     def class_labels(self) -> Optional[int]:
+        """Returns unique class labels that are present in the target"""
         if self.task.task_type == TaskTypesEnum.classification and self.target is not None:
             return np.unique(self.target)
         else:
