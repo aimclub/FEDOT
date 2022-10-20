@@ -69,9 +69,8 @@ class ApiDataProcessor:
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]) -> OutputData:
         """ Prepare predictions """
         if self.task.task_type == TaskTypesEnum.classification:
-            output_prediction = current_pipeline.predict(test_data, output_mode='labels')
             # Prediction should be converted into source labels
-            output_prediction.predict = self.preprocessor.apply_inverse_target_encoding(output_prediction.predict)
+            output_prediction = current_pipeline.predict(test_data, output_mode='labels')
 
         elif self.task.task_type == TaskTypesEnum.ts_forecasting:
             # Convert forecast into one-dimensional array
