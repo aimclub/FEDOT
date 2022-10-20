@@ -13,7 +13,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
-FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict]
+FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict, tuple]
 TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 

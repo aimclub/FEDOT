@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
 
+from fedot.api.api_utils.api_data import FeaturesType
 from fedot.core.data.data import InputData, array_to_input_data
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -24,9 +25,9 @@ class DataDefiner:
     def strategy(self, strategy) -> None:
         self._strategy = strategy
 
-    def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
+    def define_data(self, features: FeaturesType,
                     ml_task: Task,
-                    target: str = None,
+                    target: Optional[str] = None,
                     is_predict: bool = False) -> None:
         return self._strategy.define_data(features,
                                           ml_task,
@@ -77,7 +78,7 @@ class PandasStrategy(StrategyDefineData):
 
         if isinstance(target, str) and target in features.columns:
             target_array = features[target]
-            del features[target]
+            features = features.drop(columns=[target])
         else:
             target_array = target
 
@@ -90,15 +91,15 @@ class PandasStrategy(StrategyDefineData):
 class NumpyStrategy(StrategyDefineData):
     def define_data(self, features: np.ndarray,
                     ml_task: Task,
-                    target: str = None,
+                    target: Optional[int] = None,
                     is_predict: bool = False) -> InputData:
         # numpy format for input data
         if target is None:
             target = np.array([])
 
-        if isinstance(target, str):
+        if isinstance(target, int):
             target_array = features[target]
-            del features[target]
+            features = np.delete(features, target, axis=1)
         else:
             target_array = target
 
