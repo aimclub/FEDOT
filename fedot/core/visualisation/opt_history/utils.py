@@ -93,17 +93,30 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
 
     def format_wrapped_text(wrapped_text: List[str], part_to_format: str, latex_format_tag: str = 'it') -> List[str]:
 
-        long_text = ''.join(wrapped_text)
+        long_text = ' '.join(wrapped_text)
         first_tag_pos = long_text.find(part_to_format)
         second_tag_pos = first_tag_pos + len(part_to_format)
+        if first_tag_pos == -1:
+            return wrapped_text
 
-        line_len = len(wrapped_text[0])
+        first_tag_line, first_tag_char, second_tag_line, second_tag_char = (-1,) * 4
 
-        first_tag_line = first_tag_pos // line_len
-        first_tag_char = first_tag_pos % line_len
+        line_start = 0
+        for line_num, line in enumerate(wrapped_text):
+            line_end = line_start + len(line)
 
-        second_tag_line = second_tag_pos // line_len
-        second_tag_char = second_tag_pos % line_len
+            if line_start <= first_tag_pos < line_end:
+                first_tag_line = line_num
+                first_tag_char = first_tag_pos - line_start
+
+            if line_start <= second_tag_pos < line_end:
+                second_tag_line = line_num
+                second_tag_char = second_tag_pos - line_start
+
+            line_start = line_end
+
+        if any(val == -1 for val in (first_tag_line, first_tag_char, second_tag_line, second_tag_char)):
+            return wrapped_text
 
         if first_tag_line == second_tag_line:
             wrapped_text[first_tag_line] = (
