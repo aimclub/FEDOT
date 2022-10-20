@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,9 @@ from fedot.core.data.data import InputData, array_to_input_data
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict, tuple]
+TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 
 class DataDefiner:
@@ -24,9 +27,9 @@ class DataDefiner:
     def strategy(self, strategy) -> None:
         self._strategy = strategy
 
-    def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
+    def define_data(self, features: FeaturesType,
                     ml_task: Task,
-                    target: str = None,
+                    target: Optional[str] = None,
                     is_predict: bool = False) -> None:
         return self._strategy.define_data(features,
                                           ml_task,
@@ -77,7 +80,7 @@ class PandasStrategy(StrategyDefineData):
 
         if isinstance(target, str) and target in features.columns:
             target_array = features[target]
-            del features[target]
+            features = features.drop(columns=[target])
         else:
             target_array = target
 
@@ -90,15 +93,15 @@ class PandasStrategy(StrategyDefineData):
 class NumpyStrategy(StrategyDefineData):
     def define_data(self, features: np.ndarray,
                     ml_task: Task,
-                    target: str = None,
+                    target: Optional[int] = None,
                     is_predict: bool = False) -> InputData:
         # numpy format for input data
         if target is None:
             target = np.array([])
 
-        if isinstance(target, str):
+        if isinstance(target, int):
             target_array = features[target]
-            del features[target]
+            features = np.delete(features, target, axis=1)
         else:
             target_array = target
 
@@ -163,13 +166,15 @@ class MultimodalStrategy(StrategyDefineData):
 
 def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
     data_type = type(features)
-    strategy_dict = {InputData: FedotStrategy(),
-                     MultiModalData: FedotStrategy(),
-                     tuple: TupleStrategy(),
-                     pd.DataFrame: PandasStrategy(),
-                     np.ndarray: NumpyStrategy(),
-                     str: CsvStrategy(),
-                     dict: MultimodalStrategy()}
 
-    data = DataDefiner(strategy_dict[data_type])
+    data = DataDefiner(_strategy_dispatch[data_type]())
     return data.define_data(features, ml_task, target, is_predict)
+
+
+_strategy_dispatch = {InputData: FedotStrategy,
+                      MultiModalData: FedotStrategy,
+                      tuple: TupleStrategy,
+                      pd.DataFrame: PandasStrategy,
+                      np.ndarray: NumpyStrategy,
+                      str: CsvStrategy,
+                      dict: MultimodalStrategy}

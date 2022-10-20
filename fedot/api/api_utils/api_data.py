@@ -2,9 +2,8 @@ from typing import Dict, Union
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 
-from fedot.api.api_utils.data_definition import data_strategy_selector
+from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
@@ -35,8 +34,8 @@ class ApiDataProcessor:
                                 'label_encoded': self.preprocessor.label_encoding_for_fit}
 
     def define_data(self,
-                    features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-                    target: Union[str, np.ndarray, pd.Series] = None,
+                    features: FeaturesType,
+                    target: Optional[TargetType] = None,
                     is_predict=False):
         """ Prepare data for FEDOT pipeline composing.
         Obligatory preprocessing steps are applying also. If features is dictionary

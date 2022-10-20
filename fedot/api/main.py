@@ -7,6 +7,7 @@ import pandas as pd
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
+from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
@@ -29,9 +30,6 @@ from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
-
-FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict]
-TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 
 class Fedot:
@@ -142,7 +140,7 @@ class Fedot:
         self.history: Optional[OptHistory] = None
 
     def fit(self,
-            features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
+            features: FeaturesType,
             target: TargetType = 'target',
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
         """Fits the graph with a predefined structure or compose and fit the new graph
