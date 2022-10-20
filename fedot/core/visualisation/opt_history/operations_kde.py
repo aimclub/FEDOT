@@ -70,6 +70,7 @@ class OperationsKDE(HistoryVisualization):
         fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
+        ax.set_xticks(range(len(self.history.individuals)))
         str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
