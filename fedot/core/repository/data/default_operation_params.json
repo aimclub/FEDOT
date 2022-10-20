@@ -140,5 +140,8 @@
   "tfidf": {
     "min_df": 0.1,
     "max_df": 0.9
+  },
+  "fast_ica": {
+    "whiten": "arbitrary-variance"
   }
 }
