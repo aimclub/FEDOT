@@ -12,7 +12,7 @@ from fedot.core.visualisation.opt_history.utils import get_history_dataframe, ge
 
 class OperationsKDE(HistoryVisualization):
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 300, best_fraction: Optional[float] = None, use_tags: bool = True,
+                  dpi: int = 100, best_fraction: Optional[float] = None, use_tags: bool = True,
                   tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 

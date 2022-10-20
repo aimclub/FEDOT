@@ -14,7 +14,7 @@ from fedot.core.visualisation.opt_history.utils import get_history_dataframe, ge
 
 
 class OperationsAnimatedBar(HistoryVisualization):
-    def visualize(self, save_path: Union[os.PathLike, str] = 'history_animated_bars.gif', dpi: int = 300,
+    def visualize(self, save_path: Union[os.PathLike, str] = 'history_animated_bars.gif', dpi: int = 100,
                   best_fraction: Optional[float] = None, show_fitness: bool = True, use_tags: bool = True,
                   tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.

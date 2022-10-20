@@ -10,7 +10,7 @@ from fedot.core.visualisation.opt_history.history_visualization import HistoryVi
 
 class FitnessBox(HistoryVisualization):
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 300, best_fraction: Optional[float] = None):
+                  dpi: int = 100, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param save_path: path to save the visualization. If set, then the image will be saved, and if not,

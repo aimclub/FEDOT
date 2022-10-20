@@ -148,7 +148,7 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
     return description
 
 
-def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
+def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 100):
     if not save_path:
         plt.show()
     else:

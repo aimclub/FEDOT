@@ -166,7 +166,7 @@ class Graph(ABC):
         return len(self.nodes)
 
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
-             node_color: Optional[NodeColorType] = None, dpi: int = 300,
+             node_color: Optional[NodeColorType] = None, dpi: int = 100,
              node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
 
