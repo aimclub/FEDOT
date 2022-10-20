@@ -43,13 +43,16 @@ class OperationsKDE(HistoryVisualization):
         df_history = df_history.rename({'generation': generation_column_name,
                                         column_for_operation: operation_column_name}, axis='columns')
         operations_found = df_history[operation_column_name].unique()
+        operations_found = [t for t in tags_all if t in operations_found]  # Sort and filter.
         if use_tags:
-            operations_found = [t for t in tags_all if t in operations_found]
             nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
-            legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in operations_found]
+            legend_per_tag = {tag: get_description_of_operations_by_tag(tag, nodes_per_tag[tag])
+                              for tag in operations_found}
+            df_history[operation_column_name] = df_history[operation_column_name].map(legend_per_tag)
+            operations_found = map(legend_per_tag.get, operations_found)
             palette = get_palette_based_on_default_tags()
+            palette = {legend_per_tag.get(tag): palette.get(tag) for tag in legend_per_tag}
         else:
-            legend = operations_found
             palette = sns.color_palette('tab10', n_colors=len(operations_found))
 
         plot = sns.displot(
@@ -62,9 +65,6 @@ class OperationsKDE(HistoryVisualization):
             multiple='fill',
             palette=palette
         )
-
-        for text, new_text in zip(plot.legend.texts, legend):
-            text.set_text(new_text)
 
         fig = plot.figure
         fig.set_dpi(dpi)
