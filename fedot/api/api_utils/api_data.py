@@ -13,6 +13,10 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
+FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict]
+TargetType = Union[str, np.ndarray, pd.Series, dict]
+
+
 class ApiDataProcessor:
     """
     Class for selecting optimal data processing strategies based on type of data.
@@ -35,8 +39,8 @@ class ApiDataProcessor:
                                 'label_encoded': self.preprocessor.label_encoding_for_fit}
 
     def define_data(self,
-                    features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-                    target: Union[str, np.ndarray, pd.Series] = None,
+                    features: FeaturesType,
+                    target: Optional[TargetType] = None,
                     is_predict=False):
         """ Prepare data for FEDOT pipeline composing.
         Obligatory preprocessing steps are applying also. If features is dictionary

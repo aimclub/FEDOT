@@ -163,13 +163,15 @@ class MultimodalStrategy(StrategyDefineData):
 
 def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
     data_type = type(features)
-    strategy_dict = {InputData: FedotStrategy(),
-                     MultiModalData: FedotStrategy(),
-                     tuple: TupleStrategy(),
-                     pd.DataFrame: PandasStrategy(),
-                     np.ndarray: NumpyStrategy(),
-                     str: CsvStrategy(),
-                     dict: MultimodalStrategy()}
 
-    data = DataDefiner(strategy_dict[data_type])
+    data = DataDefiner(_strategy_dispatch[data_type]())
     return data.define_data(features, ml_task, target, is_predict)
+
+
+_strategy_dispatch = {InputData: FedotStrategy,
+                      MultiModalData: FedotStrategy,
+                      tuple: TupleStrategy,
+                      pd.DataFrame: PandasStrategy,
+                      np.ndarray: NumpyStrategy,
+                      str: CsvStrategy,
+                      dict: MultimodalStrategy}
