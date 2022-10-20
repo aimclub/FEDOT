@@ -70,14 +70,6 @@ def test_nemo_multiple_points_example():
                          is_boxplot_visualize=False)
 
 
-def test_log_example():
-    pth = Path(default_fedot_data_dir(), 'log.log')
-    with pth.open() as f:
-        lines_before = len(f.readlines())
-    run_log_example(pth.name)
-    with pth.open() as f:
-        lines_after = len(f.readlines())
-    assert lines_after > lines_before
 
 
 def test_pipeline_tuning_example():
