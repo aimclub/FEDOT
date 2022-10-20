@@ -1,13 +1,7 @@
 import datetime
 from pathlib import Path
-
 from typing import Sequence, Optional
 
-import numpy as np
-import pytest
-
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
-from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import nodes_from_layer
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -56,7 +50,7 @@ def get_mutation_operator(mutation_types: Sequence[MutationTypesEnum],
 
 
 def file_data():
-    test_file_path = Path(__file__).parents[2].joinpath('data', 'simple_classification.csv')
+    test_file_path = Path(__file__).parents[3].joinpath('data', 'simple_classification.csv')
     input_data = InputData.from_csv(test_file_path)
     input_data.idx = to_numerical(categorical_ids=input_data.idx)
     return input_data
@@ -115,7 +109,7 @@ def pipeline_with_custom_parameters(alpha_value):
     return pipeline
 
 
-def _get_requirements_and_params_for_task(task: TaskTypesEnum):
+def get_requirements_and_params_for_task(task: TaskTypesEnum):
     ops = get_operations_for_task(Task(task))
     return (PipelineComposerRequirements(primary=ops, secondary=ops, max_depth=2),
             get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES, task=Task(task)))

@@ -1,9 +1,9 @@
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from test.unit.optimizer.gp_operators.test_gp_operators import generate_pipeline_with_single_node
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second

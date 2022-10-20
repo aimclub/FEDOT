@@ -7,10 +7,10 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -19,7 +19,7 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.dag.test_graph_utils import find_first
-from test.unit.optimizer.gp_operators.test_gp_operators import _get_requirements_and_params_for_task, file_data, \
+from test.unit.optimizer.gp_operators.test_gp_operators import get_requirements_and_params_for_task, file_data, \
     get_mutation_operator
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -282,9 +282,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
 
 @pytest.mark.parametrize('pipeline, requirements, params',
                          [(PipelineBuilder().add_node('scaling').add_node('rf').to_pipeline(),
-                           *_get_requirements_and_params_for_task(TaskTypesEnum.classification)),
+                           *get_requirements_and_params_for_task(TaskTypesEnum.classification)),
                           (PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline(),
-                           *_get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
+                           *get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
                           ])
 def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
                                             params: GraphGenerationParams):
