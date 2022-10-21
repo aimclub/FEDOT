@@ -11,8 +11,9 @@ from fedot.core.pipelines.pipeline import Pipeline
 class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
     """Optimization adapter for Pipeline<->OptGraph translation.
     It does 2 things:
-    - on restore: build Pipeline Nodes from information stored in OptNodes
-    - on adapt: clear OptGraph from metadata and 'heavy' data (like fitted models)
+    - on restore: recreate Pipeline Nodes from information stored in OptNodes
+    - on adapt: create light-weight OptGraph (without 'heavy' data like
+        fitted models) that can be used for reconstructing Pipelines.
     """
 
     def __init__(self):
