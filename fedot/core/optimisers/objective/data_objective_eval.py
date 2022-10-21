@@ -41,8 +41,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
-                 eval_n_jobs: int = 1,
-                 do_unfit: bool = True):
+                 eval_n_jobs: int = 1):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
@@ -50,7 +49,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._pipelines_cache = pipelines_cache
         self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
-        self._do_unfit = do_unfit
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
@@ -83,8 +81,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                     raise ValueError(f'Fitness {evaluated_fitness} is not valid')
                 else:
                     continue
-            if self._do_unfit:
-                graph.unfit()
+            graph.unfit()
         if folds_metrics:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')

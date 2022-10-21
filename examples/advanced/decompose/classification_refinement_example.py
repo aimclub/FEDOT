@@ -74,6 +74,9 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
         no_decompose_c = tuner.tune(no_decompose_c)
         decompose_c = tuner.tune(decompose_c)
 
+        no_decompose_c.fit(test_dataset)
+        decompose_c.fit(test_dataset)
+
         display_roc_auc(no_decompose_c, test_dataset, 'Non decomposition pipeline after tuning')
         display_roc_auc(decompose_c, test_dataset, 'With decomposition pipeline after tuning')
 

@@ -77,7 +77,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
             .with_iterations(100) \
             .build(train_data)
         pipeline = tuner.tune(pipeline)
-
+        pipeline.fit(train_data)
         prediction_after = pipeline.predict(test_data)
         predict_after = np.ravel(np.array(prediction_after.predict))
 

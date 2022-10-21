@@ -109,7 +109,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
                                   data_type=DataTypesEnum.table)
 
         # Fit it
-        pipeline.fit_from_scratch(train_input)
+        pipeline.fit(train_input)
 
         # Predict
         predicted_labels = pipeline.predict(predict_input)
@@ -125,6 +125,9 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
                 .with_iterations(50)\
                 .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+            # Fit it
+            pipeline.fit(train_input)
 
             # Predict
             print('predict')

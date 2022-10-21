@@ -89,7 +89,7 @@ def run_experiment(pipeline, tuner):
                                   data_type=DataTypesEnum.table)
 
         # Fit it
-        pipeline.fit_from_scratch(train_input)
+        pipeline.fit(train_input)
 
         # Predict
         predicted_values = pipeline.predict(predict_input)
@@ -108,6 +108,9 @@ def run_experiment(pipeline, tuner):
                 .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
+            # Fit it
+            tuned_pipeline.fit(train_input)
+
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict
@@ -116,6 +119,8 @@ def run_experiment(pipeline, tuner):
 
             print('Obtained metrics after tuning:')
             print(f'MAE - {mae_value:.4f}\n')
+
+        pipeline.unfit()
 
 
 # Script for testing is pipeline can process different datasets for regression task

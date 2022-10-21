@@ -86,8 +86,8 @@ def test_tuner_cv_correct():
         .with_tuner(PipelineTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(folds) \
-        .with_validation_blocks(validation_blocks).\
-        with_iterations(1) \
+        .with_validation_blocks(validation_blocks)\
+        .with_iterations(1) \
         .with_timeout(datetime.timedelta(minutes=1))\
         .build(time_series)
     _ = tuner.tune(simple_pipeline)

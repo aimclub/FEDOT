@@ -7,11 +7,14 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -57,7 +60,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types,
-        timeout=timeout
+        timeout=timeout,
+        num_of_generations=20
     )
     params = GPGraphOptimizerParameters(
         selection_types=[SelectionTypesEnum.spea2],
@@ -80,10 +84,18 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         results_visualization(composed_pipelines=pipelines_evo_composed, history=composer.history)
 
     pipelines_roc_auc = []
+
     for pipeline_num, pipeline_evo_composed in enumerate(pipelines_evo_composed):
 
-        pipeline_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
-                                                      iterations=50)
+        tuner = TunerBuilder(task)\
+            .with_tuner(SequentialTuner)\
+            .with_iterations(50)\
+            .with_metric(metrics[0])\
+            .build(dataset_to_compose)
+        nodes = pipeline_evo_composed.nodes
+        for node_index, node in enumerate(nodes):
+            if isinstance(node, PrimaryNode):
+                pipeline_evo_composed = tuner.tune_node(pipeline_evo_composed, node_index)
 
         pipeline_evo_composed.fit(input_data=dataset_to_compose)
 
