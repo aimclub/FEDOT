@@ -108,6 +108,9 @@ def run_experiment(pipeline, tuner):
                 .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
+            # Fit it
+            tuned_pipeline.fit_from_scratch(train_input)
+
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict

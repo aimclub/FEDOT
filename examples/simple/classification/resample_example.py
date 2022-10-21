@@ -91,7 +91,8 @@ def run_resample_example(path_to_data=None, tune=False):
             .with_timeout(timedelta(minutes=1))\
             .build(train_input)
         tuned_pipeline = tuner.tune(pipeline)
-
+        # Fit
+        pipeline.fit_from_scratch(train_input)
         # Predict
         predicted_values_tuned = tuned_pipeline.predict(predict_input)
         preds_tuned = predicted_values_tuned.predict

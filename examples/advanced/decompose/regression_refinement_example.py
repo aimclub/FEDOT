@@ -95,10 +95,6 @@ def run_river_experiment(file_path, with_tuning=False):
     r_pipeline = get_refinement_pipeline()
     non_pipeline = get_non_refinement_pipeline()
 
-    # Fit it
-    r_pipeline.fit(train_input)
-    non_pipeline.fit(train_input)
-
     if with_tuning:
         tuner = TunerBuilder(task)\
             .with_tuner(PipelineTuner)\
@@ -107,6 +103,10 @@ def run_river_experiment(file_path, with_tuning=False):
             .build(train_input)
         r_pipeline = tuner.tune(r_pipeline)
         non_pipeline = tuner.tune(non_pipeline)
+
+    # Fit it
+    r_pipeline.fit(train_input)
+    non_pipeline.fit(train_input)
 
     # Predict
     predicted_values = r_pipeline.predict(predict_input)

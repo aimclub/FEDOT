@@ -126,6 +126,9 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
                 .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
+            # Fit it
+            pipeline.fit_from_scratch(train_input)
+
             # Predict
             print('predict')
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
