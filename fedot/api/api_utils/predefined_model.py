@@ -6,6 +6,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.verification import verify_pipeline, verifier_for_task
 
 
 class PredefinedModel:
@@ -15,7 +16,7 @@ class PredefinedModel:
         self.log = log
         self.pipeline = self._get_pipeline()
 
-    def _get_pipeline(self):
+    def _get_pipeline(self) -> Pipeline:
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
@@ -26,6 +27,8 @@ class PredefinedModel:
             pipelines = Pipeline(model)
         else:
             raise ValueError(f'{type(self.predefined_model)} is not supported as Fedot model')
+
+        verify_pipeline(pipelines, task_type=self.data.task.task_type, raise_on_failure=True)
 
         return pipelines
 

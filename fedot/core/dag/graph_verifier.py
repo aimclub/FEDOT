@@ -8,12 +8,18 @@ from fedot.core.log import default_log
 VerifierRuleType = Callable[..., bool]
 
 
+class VerificationError(ValueError):
+    pass
+
+
 class GraphVerifier:
     def __init__(self, rules: Sequence[VerifierRuleType] = (),
-                 adapter: Optional[BaseOptimizationAdapter] = None):
+                 adapter: Optional[BaseOptimizationAdapter] = None,
+                 raise_on_failure: bool = False):
         self._adapter = adapter or DirectAdapter()
         self._rules = rules
         self._log = default_log(self)
+        self._raise = raise_on_failure
 
     def __call__(self, graph: Graph) -> bool:
         return self.verify(graph)
@@ -26,7 +32,11 @@ class GraphVerifier:
                 if adapt(rule)(graph) is False:
                     return False
             except ValueError as err:
-                self._log.debug(f'Graph verification failed with error <{err}> '
-                                f'for rule={rule} on graph={graph.descriptive_id}.')
-                return False
+                msg = f'Graph verification failed with error <{err}> '\
+                      f'for rule={rule} on graph={graph.descriptive_id}.'
+                if self._raise:
+                    raise VerificationError(msg)
+                else:
+                    self._log.debug(msg)
+                    return False
         return True

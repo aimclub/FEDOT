@@ -1,3 +1,5 @@
+from functools import partial
+from inspect import signature
 from typing import Callable, List, Sequence, Optional, Union
 
 from fedot.core.adapter import BaseOptimizationAdapter
@@ -14,7 +16,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
     has_correct_data_sources,
-    has_correct_operation_positions,
+    has_correct_operations_for_task,
     has_final_operation_as_model,
     has_no_conflicts_after_class_decompose,
     has_no_conflicts_during_multitask,
@@ -32,7 +34,7 @@ common_rules = [has_one_root,
                 has_no_self_cycled_nodes,
                 has_no_isolated_nodes,
                 has_primary_nodes,
-                has_correct_operation_positions,
+                has_correct_operations_for_task,
                 has_final_operation_as_model,
                 has_no_conflicts_with_data_flow,
                 has_no_conflicts_in_decompose,
@@ -56,7 +58,13 @@ def rules_by_task(task_type: Optional[TaskTypesEnum],
                   rules: Sequence[VerifierRuleType] = ()) -> Sequence[VerifierRuleType]:
     tmp_rules = []
 
-    tmp_rules.extend(rules or common_rules)
+    # provide additional args if necessary
+    # somewhat hack-y, made for `has_correct_operations_for_task`
+    for rule in (rules or common_rules):
+        if 'task_type' in signature(rule).parameters:
+            tmp_rules.append(partial(rule, task_type=task_type))
+        else:
+            tmp_rules.append(rule)
 
     if task_type is TaskTypesEnum.ts_forecasting:
         tmp_rules.extend(ts_rules)
@@ -68,8 +76,10 @@ def rules_by_task(task_type: Optional[TaskTypesEnum],
 
 def verify_pipeline(graph: Union[Graph, OptGraph],
                     rules: List[Callable] = None,
-                    task_type: Optional[TaskTypesEnum] = None):
+                    task_type: Optional[TaskTypesEnum] = None,
+                    raise_on_failure: bool = False):
     """Method for validation of graphs with default rules.
     NB: It is preserved for simplicity, use graph checker instead."""
-    adapter = PipelineAdapter()
-    return GraphVerifier(rules_by_task(task_type, rules), adapter).verify(graph)
+    return GraphVerifier(rules_by_task(task_type, rules),
+                         PipelineAdapter(),
+                         raise_on_failure).verify(graph)

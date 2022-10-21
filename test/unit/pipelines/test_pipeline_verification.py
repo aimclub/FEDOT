@@ -5,7 +5,7 @@ from fedot.core.dag.verification_rules import has_no_cycle, has_no_isolated_comp
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import (verify_pipeline)
-from fedot.core.pipelines.verification_rules import has_correct_operation_positions, has_final_operation_as_model, \
+from fedot.core.pipelines.verification_rules import has_correct_operations_for_task, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
     has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
     has_correct_data_sources, has_parent_contain_single_resample, has_no_conflicts_during_multitask, \
@@ -324,7 +324,7 @@ def test_pipeline_with_isolated_components_raise_exception():
 def test_pipeline_with_incorrect_task_type_raise_exception():
     pipeline, task = pipeline_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:
-        assert has_correct_operation_positions(pipeline, task)
+        assert has_correct_operations_for_task(pipeline, task.task_type)
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect operations positions'
 
 
