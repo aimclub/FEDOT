@@ -44,7 +44,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         current_pipeline = copy(pipeline)
 
         # Fit it
-        current_pipeline.fit_from_scratch(train_input)
+        current_pipeline.fit(train_input)
 
         # Predict
         predicted_values = current_pipeline.predict(predict_input)
@@ -69,7 +69,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
             tuned_pipeline = pipeline_tuner.tune(current_pipeline)
 
             # Fit it
-            tuned_pipeline.fit_from_scratch(train_input)
+            tuned_pipeline.fit(train_input)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

@@ -74,7 +74,7 @@ def run_resample_example(path_to_data=None, tune=False):
 
     print('Begin fit Pipeline with balancing')
     # pipeline.fit(train_input)
-    pipeline.fit_from_scratch(train_input)
+    pipeline.fit(train_input)
 
     # Predict
     predict_labels = pipeline.predict(predict_input)
@@ -92,7 +92,7 @@ def run_resample_example(path_to_data=None, tune=False):
             .build(train_input)
         tuned_pipeline = tuner.tune(pipeline)
         # Fit
-        pipeline.fit_from_scratch(train_input)
+        pipeline.fit(train_input)
         # Predict
         predicted_values_tuned = tuned_pipeline.predict(predict_input)
         preds_tuned = predicted_values_tuned.predict
