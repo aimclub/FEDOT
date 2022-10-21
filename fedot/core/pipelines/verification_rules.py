@@ -145,7 +145,13 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                          'gaussian_filter': ['lagged', 'sparse_lagged'],
                          'diff_filter': ['lagged', 'sparse_lagged'],
                          'smoothing': ['lagged', 'sparse_lagged'],
-                         'cut': ['lagged', 'sparse_lagged']}
+                         'cut': ['lagged', 'sparse_lagged'],
+                         'ts_naive_average': ['lagged', 'sparse_lagged'],
+                         'locf': ['lagged', 'sparse_lagged'],
+                         'ets':  ['lagged', 'sparse_lagged'],
+                         'polyfit': ['lagged', 'sparse_lagged'],
+                         'clstm': ['lagged', 'sparse_lagged']
+                         }
 
     for node in pipeline.nodes:
         # Operation name in the current node
