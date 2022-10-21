@@ -56,6 +56,13 @@ def get_split_data():
     return task_type, x_train, x_test, y_train, y_test
 
 
+def get_cholesterol_dataset():
+    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data = InputData.from_csv(data_path, task=Task(TaskTypesEnum.regression))
+    train, test = train_test_data_setup(data)
+    return train, test
+
+
 def get_dataset(task_type: str):
     if task_type == 'regression':
         data = get_synthetic_regression_data(n_samples=50, n_features=5)

@@ -2,6 +2,8 @@ import logging
 import random
 from copy import deepcopy
 
+import pytest
+
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -11,7 +13,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import get_dataset
+from test.unit.api.test_main_api import get_dataset, get_cholesterol_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
 
 
@@ -65,6 +67,20 @@ def test_predefined_initial_assumption():
 
     assert model.params.api_params['initial_assumption'] is not None
     assert len(old_params.api_params) == len(model.params.api_params)
+
+
+@pytest.mark.parametrize('train_input', [
+    get_dataset(task_type='regression')[0],
+    get_cholesterol_dataset()[0],
+])
+def test_predefined_model_task_mismatch_is_caught(train_input):
+    # task is regression, but model is for classification
+    problem = 'regression'
+    predefined_model = 'logit'
+    model = Fedot(problem=problem)
+
+    with pytest.raises(ValueError):
+        model.fit(features=train_input, predefined_model=predefined_model)
 
 
 def test_the_formation_of_initial_assumption():
