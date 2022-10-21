@@ -30,8 +30,8 @@ class GraphDelegate(Graph):
     def delete_node(self, node: GraphNode):
         self.operator.delete_node(node)
 
-    def delete_subtree(self, subroot: GraphNode):
-        self.operator.delete_subtree(subroot)
+    def delete_subtree(self, subtree: GraphNode):
+        self.operator.delete_subtree(subtree)
 
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         return self.operator.node_children(node=node)
