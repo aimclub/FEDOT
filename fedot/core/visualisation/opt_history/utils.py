@@ -81,7 +81,7 @@ def get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] =
     return df_history
 
 
-def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str], max_line_length: int = 22,
+def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str], max_line_length: int,
                                          format_tag: str = 'it'):
     def make_text_fancy(text: str):
         return text.replace('_', ' ')
@@ -91,38 +91,18 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         formatted_text = formatted_text.replace(' ', '\\;')
         return formatted_text
 
-    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, latex_format_tag: str = 'it') -> List[str]:
+    def format_wrapped_text_from_beginning(wrapped_text: List[str], part_to_format: str, latex_format_tag: str = 'it') \
+            -> List[str]:
+        for line_num, line in enumerate(wrapped_text):
+            if part_to_format in line:
+                # The line contains the whole part_to_format.
+                wrapped_text[line_num] = line.replace(part_to_format, format_text(part_to_format, latex_format_tag))
+                break
+            if part_to_format.startswith(line):
+                # The whole line should be formatted.
+                wrapped_text[line_num] = format_text(line, latex_format_tag)
+                part_to_format = part_to_format[len(line):].strip()
 
-        long_text = ''.join(wrapped_text)
-        first_tag_pos = long_text.find(part_to_format)
-        second_tag_pos = first_tag_pos + len(part_to_format)
-
-        line_len = len(wrapped_text[0])
-
-        first_tag_line = first_tag_pos // line_len
-        first_tag_char = first_tag_pos % line_len
-
-        second_tag_line = second_tag_pos // line_len
-        second_tag_char = second_tag_pos % line_len
-
-        if first_tag_line == second_tag_line:
-            wrapped_text[first_tag_line] = (
-                wrapped_text[first_tag_line][:first_tag_char] +
-                format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], latex_format_tag) +
-                wrapped_text[first_tag_line][second_tag_char:]
-            )
-        else:
-            for line in range(first_tag_line + 1, second_tag_line):
-                wrapped_text[line] = format_text(wrapped_text[line], latex_format_tag)
-
-            wrapped_text[first_tag_line] = (
-                wrapped_text[first_tag_line][:first_tag_char] +
-                format_text(wrapped_text[first_tag_line][first_tag_char:], latex_format_tag)
-            )
-            wrapped_text[second_tag_line] = (
-                format_text(wrapped_text[second_tag_line][:second_tag_char], latex_format_tag) +
-                wrapped_text[second_tag_line][second_tag_char:]
-            )
         return wrapped_text
 
     tag = make_text_fancy(tag)
@@ -130,12 +110,12 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
     description = f'{tag}: {operations_by_tag}.'
     description = make_text_fancy(description)
     description = wrap(description, max_line_length)
-    description = format_wrapped_text(description, tag, format_tag)
+    description = format_wrapped_text_from_beginning(description, tag, format_tag)
     description = '\n'.join(description)
     return description
 
 
-def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
+def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 100):
     if not save_path:
         plt.show()
     else:

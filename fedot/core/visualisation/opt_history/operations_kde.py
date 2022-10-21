@@ -12,7 +12,7 @@ from fedot.core.visualisation.opt_history.utils import get_history_dataframe, ge
 
 class OperationsKDE(HistoryVisualization):
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 300, best_fraction: Optional[float] = None, use_tags: bool = True,
+                  dpi: int = 100, best_fraction: Optional[float] = None, use_tags: bool = True,
                   tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
@@ -43,13 +43,16 @@ class OperationsKDE(HistoryVisualization):
         df_history = df_history.rename({'generation': generation_column_name,
                                         column_for_operation: operation_column_name}, axis='columns')
         operations_found = df_history[operation_column_name].unique()
+        operations_found = [t for t in tags_all if t in operations_found]  # Sort and filter.
         if use_tags:
-            operations_found = [t for t in tags_all if t in operations_found]
             nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
-            legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in operations_found]
+            legend_per_tag = {tag: get_description_of_operations_by_tag(tag, nodes_per_tag[tag], 22)
+                              for tag in operations_found}
+            df_history[operation_column_name] = df_history[operation_column_name].map(legend_per_tag)
+            operations_found = map(legend_per_tag.get, operations_found)
             palette = get_palette_based_on_default_tags()
+            palette = {legend_per_tag.get(tag): palette.get(tag) for tag in legend_per_tag}
         else:
-            legend = operations_found
             palette = sns.color_palette('tab10', n_colors=len(operations_found))
 
         plot = sns.displot(
@@ -63,13 +66,12 @@ class OperationsKDE(HistoryVisualization):
             palette=palette
         )
 
-        for text, new_text in zip(plot.legend.texts, legend):
-            text.set_text(new_text)
-
         fig = plot.figure
         fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
+        ax.set_xticks(range(len(self.history.individuals)))
+        ax.locator_params(nbins=10)
         str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 

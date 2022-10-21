@@ -130,12 +130,14 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
         best_generations.append(len(generations) - 1)
 
     axis.step(best_generations, best_fitnesses, where='post', label=label)
+    axis.set_xticks(range(len(generations)))
+    axis.locator_params(nbins=10)
     return best_individuals
 
 
 class FitnessLine(HistoryVisualization):
-    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-                  per_time: bool = True):
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 100,
+                  per_time: bool = False):
         """ Visualizes the best fitness values during the evolution in the form of line.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
@@ -143,7 +145,7 @@ class FitnessLine(HistoryVisualization):
         :param per_time: defines whether to show time grid if it is available in history.
         """
 
-        ax = plt.gca()
+        fig, ax = plt.subplots(figsize=(6.4, 4.8), facecolor='w')
         if per_time:
             xlabel = 'Time, s'
             plot_fitness_line_per_time(ax, self.history.individuals)
@@ -151,14 +153,14 @@ class FitnessLine(HistoryVisualization):
             xlabel = 'Generation'
             plot_fitness_line_per_generations(ax, self.history.individuals)
         setup_fitness_plot(ax, xlabel)
-        show_or_save_figure(plt.gcf(), save_path, dpi)
+        show_or_save_figure(fig, save_path, dpi)
 
 
 class FitnessLineInteractive(HistoryVisualization):
 
     @with_alternate_matplotlib_backend
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 300, per_time: bool = True, use_tags: bool = True):
+                  dpi: int = 100, per_time: bool = False, use_tags: bool = True):
         """ Visualizes the best fitness values during the evolution in the form of line.
         Additionally, shows the structure of the best individuals and the moment of their discovering.
         :param save_path: path to save the visualization. If set, then the image will be saved, and if not,

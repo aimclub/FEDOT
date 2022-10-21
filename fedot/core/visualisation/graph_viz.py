@@ -40,7 +40,7 @@ class GraphVisualiser:
 
     def visualise(self, graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
                   engine: str = 'matplotlib', node_color: Optional[NodeColorType] = None,
-                  dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
+                  dpi: int = 100, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
                   edge_curvature_scale: float = 1.0):
         if not graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
@@ -77,7 +77,7 @@ class GraphVisualiser:
 
     @staticmethod
     def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                             node_color=__get_colors_by_tags.__func__, dpi=300):
+                             node_color=__get_colors_by_tags.__func__, dpi=100):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
         if callable(node_color):
@@ -150,7 +150,7 @@ class GraphVisualiser:
 
     def __draw_with_networkx(self, graph: GraphType, save_path=None,
                              node_color: Optional[NodeColorType] = None,
-                             dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
+                             dpi: int = 100, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
                              edge_curvature_scale: float = 1.0,
                              in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots(figsize=(7, 7))
