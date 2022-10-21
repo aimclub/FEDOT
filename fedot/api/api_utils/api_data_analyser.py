@@ -19,7 +19,7 @@ class DataAnalyser:
 
     def __init__(self, safe_mode: bool):
         self.safe_mode = safe_mode
-        self.max_size = 600000
+        self.max_size = 50000000
         self.max_cat_cardinality = 50
 
     # TODO implement correct logic to process multimodal data

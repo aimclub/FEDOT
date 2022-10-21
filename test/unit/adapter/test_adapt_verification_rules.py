@@ -6,7 +6,7 @@ from fedot.core.pipelines.verification_rules import *
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 SOME_PIPELINE_RULES = (
-    has_correct_operation_positions,
+    has_correct_operations_for_task,
     has_primary_nodes,
     has_no_conflicts_with_data_flow,
     has_correct_data_connections,
