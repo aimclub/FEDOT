@@ -131,6 +131,7 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
 
     axis.step(best_generations, best_fitnesses, where='post', label=label)
     axis.set_xticks(range(len(generations)))
+    axis.locator_params(nbins=10)
     return best_individuals
 
 
