@@ -167,17 +167,17 @@ def run_pipeline_tuner(train_data,
                        iterations=1,
                        early_stopping_rounds=None):
     # Pipeline tuning
-    pipeline_tuner = TunerBuilder(train_data.task)\
-        .with_tuner(PipelineTuner)\
-        .with_metric(loss_function)\
-        .with_cv_folds(cv)\
-        .with_iterations(iterations)\
-        .with_early_stopping_rounds(early_stopping_rounds)\
-        .with_search_space(search_space)\
-        .with_algo(algo)\
+    pipeline_tuner = TunerBuilder(train_data.task) \
+        .with_tuner(PipelineTuner) \
+        .with_metric(loss_function) \
+        .with_cv_folds(cv) \
+        .with_iterations(iterations) \
+        .with_early_stopping_rounds(early_stopping_rounds) \
+        .with_search_space(search_space) \
+        .with_algo(algo) \
         .build(train_data)
-    _ = pipeline_tuner.tune(pipeline)
-    return pipeline_tuner
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+    return pipeline_tuner, tuned_pipeline
 
 
 def run_sequential_tuner(train_data,
@@ -189,17 +189,17 @@ def run_sequential_tuner(train_data,
                          iterations=1,
                          early_stopping_rounds=None):
     # Pipeline tuning
-    sequential_tuner = TunerBuilder(train_data.task)\
-        .with_tuner(SequentialTuner)\
-        .with_metric(loss_function)\
-        .with_cv_folds(cv)\
-        .with_iterations(iterations)\
-        .with_early_stopping_rounds(early_stopping_rounds)\
-        .with_search_space(search_space)\
-        .with_algo(algo)\
+    sequential_tuner = TunerBuilder(train_data.task) \
+        .with_tuner(SequentialTuner) \
+        .with_metric(loss_function) \
+        .with_cv_folds(cv) \
+        .with_iterations(iterations) \
+        .with_early_stopping_rounds(early_stopping_rounds) \
+        .with_search_space(search_space) \
+        .with_algo(algo) \
         .build(train_data)
-    _ = sequential_tuner.tune(pipeline)
-    return sequential_tuner
+    tuned_pipeline = sequential_tuner.tune(pipeline)
+    return sequential_tuner, tuned_pipeline
 
 
 def run_node_tuner(train_data,
@@ -212,17 +212,17 @@ def run_node_tuner(train_data,
                    iterations=1,
                    early_stopping_rounds=None):
     # Pipeline tuning
-    node_tuner = TunerBuilder(train_data.task)\
-        .with_tuner(SequentialTuner)\
-        .with_metric(loss_function)\
-        .with_cv_folds(cv)\
-        .with_iterations(iterations)\
-        .with_algo(algo)\
-        .with_search_space(search_space)\
-        .with_early_stopping_rounds(early_stopping_rounds)\
+    node_tuner = TunerBuilder(train_data.task) \
+        .with_tuner(SequentialTuner) \
+        .with_metric(loss_function) \
+        .with_cv_folds(cv) \
+        .with_iterations(iterations) \
+        .with_algo(algo) \
+        .with_search_space(search_space) \
+        .with_early_stopping_rounds(early_stopping_rounds) \
         .build(train_data)
-    _ = node_tuner.tune_node(pipeline, node_index)
-    return node_tuner
+    tuned_pipeline = node_tuner.tune_node(pipeline, node_index)
+    return node_tuner, tuned_pipeline
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -251,11 +251,12 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                pipeline_tuner = run_pipeline_tuner(train_data=data,
-                                                    pipeline=pipeline,
-                                                    loss_function=loss_function,
-                                                    cv=cv)
+                pipeline_tuner, tuned_pipeline = run_pipeline_tuner(train_data=data,
+                                                                    pipeline=pipeline,
+                                                                    loss_function=loss_function,
+                                                                    cv=cv)
                 assert pipeline_tuner.obtained_metric is not None
+                assert not tuned_pipeline.is_fitted
 
     is_tuning_finished = True
 
@@ -273,10 +274,10 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_f
     search_spaces = [SearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
-        pipeline_tuner = run_pipeline_tuner(train_data=train_data,
-                                            pipeline=pipelines[0],
-                                            loss_function=loss_functions[0],
-                                            search_space=search_space)
+        pipeline_tuner, _ = run_pipeline_tuner(train_data=train_data,
+                                               pipeline=pipelines[0],
+                                               loss_function=loss_functions[0],
+                                               search_space=search_space)
         assert pipeline_tuner.obtained_metric is not None
 
     is_tuning_finished = True
@@ -296,11 +297,12 @@ def test_sequential_tuner_correct(data_fixture, pipelines, loss_functions, reque
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                sequential_tuner = run_sequential_tuner(train_data=data,
-                                                        pipeline=pipeline,
-                                                        loss_function=loss_function,
-                                                        cv=cv)
+                sequential_tuner, tuned_pipeline = run_sequential_tuner(train_data=data,
+                                                                        pipeline=pipeline,
+                                                                        loss_function=loss_function,
+                                                                        cv=cv)
                 assert sequential_tuner.obtained_metric is not None
+                assert not tuned_pipeline.is_fitted
 
     is_tuning_finished = True
 
@@ -318,10 +320,10 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
     search_spaces = [SearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
-        sequential_tuner = run_sequential_tuner(train_data=train_data,
-                                                pipeline=pipelines[0],
-                                                loss_function=loss_functions[0],
-                                                search_space=search_space)
+        sequential_tuner, _ = run_sequential_tuner(train_data=train_data,
+                                                   pipeline=pipelines[0],
+                                                   loss_function=loss_functions[0],
+                                                   search_space=search_space)
         assert sequential_tuner.obtained_metric is not None
 
     is_tuning_finished = True
@@ -341,11 +343,12 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, re
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                node_tuner = run_node_tuner(train_data=data,
-                                            pipeline=pipeline,
-                                            loss_function=loss_function,
-                                            cv=cv)
+                node_tuner, tuned_pipeline = run_node_tuner(train_data=data,
+                                                            pipeline=pipeline,
+                                                            loss_function=loss_function,
+                                                            cv=cv)
                 assert node_tuner.obtained_metric is not None
+                assert not tuned_pipeline.is_fitted
 
     is_tuning_finished = True
 
@@ -363,10 +366,10 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
     search_spaces = [SearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
-        node_tuner = run_node_tuner(train_data=train_data,
-                                    pipeline=pipelines[0],
-                                    loss_function=loss_functions[0],
-                                    search_space=search_space)
+        node_tuner, _ = run_node_tuner(train_data=train_data,
+                                       pipeline=pipelines[0],
+                                       loss_function=loss_functions[0],
+                                       search_space=search_space)
         assert node_tuner.obtained_metric is not None
 
     is_tuning_finished = True
@@ -383,9 +386,9 @@ def test_ts_pipeline_with_stats_model(n_steps):
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
         # Tune AR model
-        tuner_ar = TunerBuilder(train_data.task)\
-            .with_tuner(PipelineTuner)\
-            .with_metric(RegressionMetricsEnum.MSE)\
+        tuner_ar = TunerBuilder(train_data.task) \
+            .with_tuner(PipelineTuner) \
+            .with_metric(RegressionMetricsEnum.MSE) \
             .with_iterations(3) \
             .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
         _ = tuner_ar.tune(ar_pipeline)
@@ -482,9 +485,9 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].parameters
-    tuner = TunerBuilder(train_data.task)\
-        .with_tuner(PipelineTuner)\
-        .with_metric(RegressionMetricsEnum.MSE)\
+    tuner = TunerBuilder(train_data.task) \
+        .with_tuner(PipelineTuner) \
+        .with_metric(RegressionMetricsEnum.MSE) \
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].parameters
