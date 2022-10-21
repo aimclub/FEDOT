@@ -42,9 +42,9 @@ from examples.composite_model import CompositeModel
 from examples.composite_node import CompositeNode
 import bamt.Networks as Nets
 from scipy.stats import norm
-# from scipy.stats import variation
 from numpy import std, mean
 from sklearn.metrics import mean_squared_error
+import itertools
 
 
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
@@ -54,12 +54,16 @@ def composite_metric(graph: CompositeModel, data: pd.DataFrame):
         if node.nodes_from == None or node.nodes_from == []:
             if node.content['type'] == 'disc' or node.content['type'] == 'disc_num':
                 count = data[node.content['name']].value_counts().values
-                frequency  =  count / len_data
-                score += np.log(np.dot(count, frequency))
+                frequency  = np.log(count / len_data)
+                # s = score
+                score += np.dot(count, frequency)
+                # print('1', score-s)
             if node.content['type'] == 'cont':
                 mu = mean(data[node.content['name']])
                 sigma = std(data[node.content['name']])
+                # s = score
                 score += norm.logpdf(data[node.content['name']], loc=mu, scale=sigma).sum()
+                # print('2', score-s)
         else:
             model = node.content['parent_model']
             columns = [n.content['name'] for n in node.nodes_from]
@@ -78,11 +82,18 @@ def composite_metric(graph: CompositeModel, data: pd.DataFrame):
                 predict = fitted_model.predict(train.features)
                 mu = mean(predict)
                 mse = mean_squared_error(target, predict,squared=False)
+                # s = score
+                # print(norm.pdf(predict, loc=mu, scale=mse))
                 score += norm.logpdf(predict, loc=mu, scale=mse).sum()
+                # print('3', score-s)
 
             elif node.content['type'] == 'disc' or node.content['type'] == 'disc_num':
                 predict_proba = fitted_model.predict_proba(features)
-                score += sum([predict_proba[i][target[i]] for i in idx])
+                # s = score
+                # print(predict_proba)
+                # print([predict_proba[i][target[i]] for i in idx])
+                score += sum([np.log(predict_proba[i][target[i]]) for i in idx])
+                # print('4', score-s)
     return [-score]
 
 
@@ -149,6 +160,61 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
         print(ex)
     return new_graph_first, new_graph_second
 
+def custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth):
+    
+    def find_node(graph: OptGraph, node):
+        return graph.nodes[dir_of_nodes[node.content['name']]]
+    
+    num_cros = 100
+    try:
+        for _ in range(num_cros):
+            old_edges1 = []
+            old_edges2 = []
+            new_graph_first=deepcopy(graph_first)
+            new_graph_second=deepcopy(graph_second)
+
+            edges = new_graph_second.operator.get_edges()
+            flatten_edges = list(itertools.chain(*edges))
+            nodes_with_parent_or_child=list(set(flatten_edges))
+            if nodes_with_parent_or_child!=[]:
+                
+                selected_node2=random.choice(nodes_with_parent_or_child)
+                parents2=selected_node2.nodes_from
+
+                selected_node1=find_node(new_graph_first, selected_node2)
+                parents1=selected_node1.nodes_from
+                
+                selected_node1.nodes_from=[]
+                selected_node2.nodes_from=[]
+                old_edges1 = new_graph_first.operator.get_edges()
+                old_edges2 = new_graph_second.operator.get_edges()
+
+                if parents2!=[] and parents2!=None:
+                    parents_in_first_graph=[find_node(new_graph_first, i) for i in parents2]
+                    for parent in parents_in_first_graph:
+                        if [parent, selected_node1] not in old_edges1:
+                            new_graph_first.operator.connect_nodes(parent, selected_node1)
+
+                if parents1!=[] and parents1!=None:
+                    parents_in_second_graph=[find_node(new_graph_second, i) for i in parents1]
+                    for parent in parents_in_second_graph:
+                        if [parent, selected_node2] not in old_edges2:
+                            new_graph_second.operator.connect_nodes(parent, selected_node2)            
+
+
+            if old_edges1 != new_graph_first.operator.get_edges() or old_edges2 != new_graph_second.operator.get_edges():
+                break    
+        
+        # если не получилось добавить новых родителей, тогда оставить изначальный вариант графа
+        if old_edges1 == new_graph_first.operator.get_edges() and parents2!=[] and parents2!=None:
+            new_graph_first = deepcopy(graph_first)                
+        if old_edges2 == new_graph_second.operator.get_edges() and parents1!=[] and parents1!=None:
+            new_graph_second = deepcopy(graph_second)       
+
+    except Exception as ex:
+        print(ex)
+    
+    return new_graph_first, new_graph_second
 
 # Структурные мутации
 # задаем три варианта мутации: добавление узла, удаление узла, разворот узла
@@ -322,70 +388,83 @@ def run_example():
                                                             'parent_model': None}) 
                                                     for vertex in vertices])] 
     init = initial[0]
-
+    # добавим для начального графа три ребра
+    init = custom_mutation_add_structure(custom_mutation_add_structure(custom_mutation_add_structure(init)))
 
     # найдет сеть по K2
-    types=list(p.info['types'].values())
-    if 'cont' in types and ('disc' in types or 'disc_num' in types):
-        bn = Nets.HybridBN(has_logit=False, use_mixture=False)
-        rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
-    elif 'disc' in types or 'disc_num' in types:
-        bn = Nets.DiscreteBN()
-        rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
-    elif 'cont' in types:
-        bn = Nets.ContinuousBN(use_mixture=False)
-        rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
+    # types=list(p.info['types'].values())
+    # if 'cont' in types and ('disc' in types or 'disc_num' in types):
+    #     bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    #     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
+    # elif 'disc' in types or 'disc_num' in types:
+    #     bn = Nets.DiscreteBN()
+    #     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
+    # elif 'cont' in types:
+    #     bn = Nets.ContinuousBN(use_mixture=False)
+    #     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
-    bn.add_nodes(p.info)
-    bn.add_edges(discretized_data2, scoring_function=('K2', K2Score))
+    # bn.add_nodes(p.info)
+    # bn.add_edges(discretized_data2, scoring_function=('K2', K2Score))
 
-    # def structure_to_opt_graph(fdt, structure):
+    def structure_to_opt_graph(fdt, structure):
 
-    #     encoder = preprocessing.LabelEncoder()
-    #     # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
-    #     p = pp.Preprocessor([('encoder', encoder)])
-    #     discretized_data, est = p.apply(data)
+        encoder = preprocessing.LabelEncoder()
+        # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+        p = pp.Preprocessor([('encoder', encoder)])
+        discretized_data, est = p.apply(data)
 
-    #     bn = []
-    #     if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
-    #         bn = Nets.HybridBN(has_logit=False, use_mixture=False)
-    #     elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
-    #         bn = Nets.DiscreteBN()
-    #     elif 'cont' in p.info['types'].values():
-    #         bn = Nets.ContinuousBN(use_mixture=False)  
+        bn = []
+        if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+            bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+        elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+            bn = Nets.DiscreteBN()
+        elif 'cont' in p.info['types'].values():
+            bn = Nets.ContinuousBN(use_mixture=False)  
 
-    #     bn.add_nodes(p.info)
-    #     bn.set_structure(edges=structure)
+        bn.add_nodes(p.info)
+        bn.set_structure(edges=structure)
         
-    #     for node in fdt.nodes: 
-    #         parents = []
-    #         for n in bn.nodes:
-    #             if str(node) == str(n):
-    #                 parents = n.cont_parents + n.disc_parents
-    #                 break
-    #         for n2 in fdt.nodes:
-    #             if str(n2) in parents:
-    #                 node.nodes_from.append(n2)        
+        for node in fdt.nodes: 
+            parents = []
+            for n in bn.nodes:
+                if str(node) == str(n):
+                    parents = n.cont_parents + n.disc_parents
+                    break
+            for n2 in fdt.nodes:
+                if str(n2) in parents:
+                    node.nodes_from.append(n2)        
         
-    #     return fdt    
+        return fdt    
 
-    # init = structure_to_opt_graph(init, [('D','A'),('D','T'),('H','C'),('A','O')])
+
     # заполнить пустую сети CompositeModel
-    for node in init.nodes: 
-        parents = []
-        for n in bn.nodes:
-            if str(node) == str(n):
-                parents = n.cont_parents + n.disc_parents
-                break
-        for n2 in init.nodes:
-            if str(n2) in parents:
-                node.nodes_from.append(n2)
+    # for node in init.nodes: 
+    #     parents = []
+    #     for n in bn.nodes:
+    #         if str(node) == str(n):
+    #             parents = n.cont_parents + n.disc_parents
+    #             break
+    #     for n2 in init.nodes:
+    #         if str(n2) in parents:
+    #             node.nodes_from.append(n2)
     
 # назначить parent_model узлам с родителями    
     for node in init.nodes:
         if not (node.nodes_from == None or node.nodes_from == []):
             node.content['parent_model'] = random_choice_model(node.content['type'])   
 
+    
+#     # score true and bamt
+#     init = structure_to_opt_graph(init, [('Pollution', 'Cancer'), ('Smoker', 'Cancer'), ('Cancer', 'Xray'), ('Cancer', 'Dyspnoea')]
+#     )
+# для эталонной структуры и bamt    
+    # for node in init.nodes:
+    #     if not (node.nodes_from == None or node.nodes_from == []):
+    #         if node.content['type'] == 'cont':
+    #             node.content['parent_model'] = SkLearnEvaluationStrategy('linear')
+    #         else:
+    #             node.content['parent_model'] = SkLearnEvaluationStrategy('logit')       
+#     print('score_true', composite_metric(init, discretized_data))
     
     def f(m):
         if m == None:
@@ -401,6 +480,7 @@ def run_example():
     # вывод parent_model по узлам
     for node in init.nodes:
         print(node.content['name'], node.content['type'], f(node.content['parent_model']))
+    # print('score_true', composite_metric(init, discretized_data))
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -427,7 +507,7 @@ def run_example():
         mutation_set3
         ],
 
-        crossover_types = [custom_crossover_exchange_edges]
+        crossover_types = [custom_crossover_exchange_parents_both]
     )
 
     graph_generation_params = GraphGenerationParams(
@@ -499,7 +579,7 @@ def run_example():
 if __name__ == '__main__':
 
     # файл с исходными данными (должен лежать в 'examples/data/')
-    file = 'healthcare'     
+    file = 'asia'     
     # размер популяции
     pop_size = 20
     # количество поколений
@@ -508,5 +588,5 @@ if __name__ == '__main__':
     crossover_probability = 0.8
     # вероятность мутации
     mutation_probability = 0.9
-    time_m = 40
+    time_m = 100
     run_example() 

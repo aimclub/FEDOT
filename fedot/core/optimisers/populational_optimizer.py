@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from tqdm import tqdm
@@ -15,10 +16,52 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimize
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
-
+from fpdf import FPDF
+import numpy as np
+pdf = FPDF()
 if TYPE_CHECKING:
     pass
 
+
+def child_dict(net: list):
+    res_dict = dict()
+    for e0, e1 in net:
+        if e1 in res_dict:
+            res_dict[e1].append(e0)
+        else:
+            res_dict[e1] = [e0]
+    return res_dict
+
+def precision_recall(pred, true_net: list, decimal = 2):
+
+    edges= pred.graph.operator.get_edges()
+    struct = []
+    for s in edges:
+        struct.append((s[0].content['name'], s[1].content['name']))
+
+    pred_net = deepcopy(struct)
+
+    pred_dict = child_dict(pred_net)
+    true_dict = child_dict(true_net)
+    corr_undir = 0
+    corr_dir = 0
+    for e0, e1 in pred_net:
+        flag = True
+        if e1 in true_dict:
+            if e0 in true_dict[e1]:
+                corr_undir += 1
+                corr_dir += 1
+                flag = False
+        if (e0 in true_dict) and flag:
+            if e1 in true_dict[e0]:
+                corr_undir += 1
+    pred_len = len(pred_net)
+    true_len = len(true_net)
+    shd = pred_len + true_len - corr_undir - corr_dir
+    return {
+    'SHD': shd}
+
+true_net = [('asia', 'tub'), ('tub', 'either'), ('smoke', 'lung'), ('smoke', 'bronc'), ('lung', 'either'), ('bronc', 'dysp'), ('either', 'xray'), ('either', 'dysp')]
 
 class PopulationalOptimizer(GraphOptimizer):
     """
@@ -91,6 +134,27 @@ class PopulationalOptimizer(GraphOptimizer):
                 # Adding of new population to history
                 self._update_population(new_population)
 
+                # b = min(self.population, key = lambda x: x.fitness.value[0])
+                best = self.generations.best_individuals[0]
+                SHD = precision_recall(best, true_net)['SHD']
+                print(SHD)
+                OF = best.fitness.value[0]
+                # print('!', self.generations.best_individuals.archive.items.fitness.values)
+                structure = best.graph.get_edges()
+                best.graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png'))
+                pdf.add_page()
+                pdf.set_font("Arial", size = 14)
+                pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')   
+                pdf.cell(150, 5, txt = str(SHD), ln = 1, align = 'C')   
+                pdf.image('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png',w=165, h=165)        
+                pdf.multi_cell(180, 5, txt = 'structure = ' + str(structure))  
+                for node in best.graph.nodes:
+                    if node.content['parent_model'] == None: 
+                        pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(None))
+                    else:
+                        pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
+
+        pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/1asia_correct_score_cross_both" +".pdf")
         return self.best_graphs
 
     @property
