@@ -46,7 +46,7 @@ class OperationsKDE(HistoryVisualization):
         operations_found = [t for t in tags_all if t in operations_found]  # Sort and filter.
         if use_tags:
             nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
-            legend_per_tag = {tag: get_description_of_operations_by_tag(tag, nodes_per_tag[tag])
+            legend_per_tag = {tag: get_description_of_operations_by_tag(tag, nodes_per_tag[tag], 22)
                               for tag in operations_found}
             df_history[operation_column_name] = df_history[operation_column_name].map(legend_per_tag)
             operations_found = map(legend_per_tag.get, operations_found)
