@@ -211,15 +211,17 @@ class Mutation(Operator):
     @register_native
     def _add_as_child(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as child
+        old_node_children = graph.node_children(node_to_mutate)
+        new_node_child = choice(old_node_children) if old_node_children else None
         new_node = self.graph_generation_params.node_factory.get_node(is_primary=False)
         if not new_node:
             return graph
-        parents_node_to_mutate = node_to_mutate.nodes_from or []
-        graph.update_node(old_node=node_to_mutate, new_node=new_node)
-        graph.add_node(node_to_mutate)
+        graph.add_node(new_node)
         graph.connect_nodes(node_parent=node_to_mutate, node_child=new_node)
-        for node_parent in parents_node_to_mutate:
-            graph.disconnect_nodes(node_parent=node_parent, node_child=new_node)
+        if new_node_child:
+            graph.connect_nodes(node_parent=new_node, node_child=new_node_child)
+            graph.disconnect_nodes(node_parent=node_to_mutate, node_child=new_node_child)
+
         return graph
 
     @register_native
