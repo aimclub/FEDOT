@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -8,6 +9,7 @@ from uuid import uuid4
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.serializers.serializer import default_load, default_save
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
@@ -96,6 +98,13 @@ class Individual:
 
         operators.reverse()
         return operators
+
+    def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
+        return default_save(obj=self, json_file_path=json_file_path)
+
+    @staticmethod
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'Individual':
+        return default_load(json_str_or_file_path)
 
     def __repr__(self):
         return (f'<Individual {self.uid} | fitness: {self.fitness} | native_generation: {self.native_generation} '

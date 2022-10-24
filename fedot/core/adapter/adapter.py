@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, TypeVar, Generic, Type, Optional, Dict, Any, C
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.adapter.adapt_registry import AdaptRegistry
 
 if TYPE_CHECKING:
+    from fedot.core.optimisers.opt_history_objects.individual import Individual
     from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 
 DomainStructureType = TypeVar('DomainStructureType')
@@ -81,7 +81,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         else:
             return item
 
-    def restore(self, item: Union[OptGraph, Individual, PopulationT]) \
+    def restore(self, item: Union[OptGraph, 'Individual', PopulationT]) \
             -> Union[DomainStructureType, Sequence[DomainStructureType]]:
         """Maps graphs from internal representation to domain graphs.
         Performs mapping only if argument has a type of internal representation.
@@ -94,9 +94,9 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         """
         if type(item) is self.opt_graph_class:
             return self._restore(item)
-        elif isinstance(item, Individual):
+        elif type(item).__name__ == 'Individual':
             return self._restore(item.graph, item.metadata)
-        elif isinstance(item, Sequence) and type(item[0]) is Individual:
+        elif isinstance(item, Sequence) and type(item[0]).__name__ == 'Individual':
             return [self._restore(ind.graph, ind.metadata) for ind in item]
         else:
             return item
