@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.fitness import SingleObjFitness
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -61,7 +62,6 @@ def test_prepare_for_visualisation(generate_history):
     generations_quantity = 2
     pop_size = 10
     history = generate_history
-    assert len(history.historical_pipelines) == pop_size * generations_quantity
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
 
     leaderboard = history.get_leaderboard()

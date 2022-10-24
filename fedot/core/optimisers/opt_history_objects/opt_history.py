@@ -3,18 +3,16 @@ from __future__ import annotations
 import csv
 import io
 import itertools
-import json
 import os
 import shutil
 from copy import copy
 from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
+from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
@@ -28,7 +26,7 @@ if TYPE_CHECKING:
 
 class OptHistory:
     """
-    Contains optimization history, convert Pipeline to PipelineTemplate, save history to csv.
+    Contains optimization history, save history to csv.
 
     :param objective: contains information about metrics used during optimization.
     """
@@ -137,14 +135,6 @@ class OptHistory:
         else:
             all_historical_quality = self.all_historical_fitness
         return all_historical_quality
-
-    @property
-    def historical_pipelines(self):
-        adapter = PipelineAdapter()
-        return [
-            PipelineTemplate(adapter.restore(ind))
-            for ind in list(itertools.chain(*self.individuals))
-        ]
 
     @property
     def show(self):

@@ -9,6 +9,7 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -161,7 +162,7 @@ class ComposerBuilder:
         history = None
         if self._keep_history:
             # Clean results of the previous run
-            history = OptHistory(objective)
+            history = OptHistory(objective=objective)
             history.clean_results(self._full_history_dir)
             history_callback = partial(log_to_history, history=history, save_dir=self._full_history_dir)
             optimiser.set_optimisation_callback(history_callback)

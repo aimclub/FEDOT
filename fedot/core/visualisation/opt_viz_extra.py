@@ -12,6 +12,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
@@ -120,7 +121,9 @@ class OptHistoryExtraVisualizer:
         try:
             self._clean(with_gif=True)
             all_historical_fitness = history.all_historical_quality
-            self._visualise_pipelines(history.historical_pipelines, all_historical_fitness)
+            historical_pipelines = [PipelineAdapter().restore(ind)
+                                    for ind in list(itertools.chain(history.individuals))]
+            self._visualise_pipelines(historical_pipelines, all_historical_fitness)
             self._visualise_convergence(all_historical_fitness)
             self._merge_images()
             self._combine_gifs()
