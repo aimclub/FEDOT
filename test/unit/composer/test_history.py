@@ -33,6 +33,7 @@ from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
+from test.unit.visualization.test_composing_history import generate_history, create_mock_graph_individual
 
 
 def scaling_logit_rf_pipeline():
@@ -73,6 +74,17 @@ def _test_individuals_in_history(history: OptHistory):
             ids.update({id(i) for i in parent_operator.parent_individuals})
 
     assert len(uids) == len(ids)
+
+
+@pytest.mark.parametrize('generate_history', [[2, 10, create_mock_graph_individual]], indirect=True)
+def test_history_properties(generate_history):
+    generations_quantity = 2
+    pop_size = 10
+    history = generate_history
+    assert len(history.all_historical_quality) == pop_size * generations_quantity
+    assert len(history.historical_fitness) == generations_quantity
+    assert len(history.historical_fitness[0]) == pop_size
+    assert len(history.all_historical_fitness) == pop_size * generations_quantity
 
 
 def test_parent_operator():

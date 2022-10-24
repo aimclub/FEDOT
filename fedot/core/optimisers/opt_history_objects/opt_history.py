@@ -9,7 +9,6 @@ from copy import copy
 from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
-from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.log import default_log
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position

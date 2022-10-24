@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from uuid import uuid4
 
+from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
@@ -23,7 +24,7 @@ INDIVIDUAL_COPY_RESTRICTION_MESSAGE = ('`Individual` instance was copied.\n'
 
 @dataclass(frozen=True)
 class Individual:
-    graph: OptGraph
+    graph: Graph
     parent_operator: Optional[ParentOperator] = field(default=None)
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
