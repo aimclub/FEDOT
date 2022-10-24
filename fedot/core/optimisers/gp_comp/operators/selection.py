@@ -71,7 +71,7 @@ def tournament_selection(individuals: PopulationT, pop_size: int, fraction: floa
     for _ in range(iterations_limit):
         if len(chosen) >= pop_size:
             break
-        group = sample(individuals, group_size)
+        group = sample(individuals, min(group_size, len(individuals)))
         best = max(group, key=lambda ind: ind.fitness)
         individuals.remove(best)
         chosen.append(best)
