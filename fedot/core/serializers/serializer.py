@@ -51,7 +51,6 @@ class Serializer(JSONEncoder, JSONDecoder):
             from fedot.core.optimisers.opt_history_objects.individual import Individual
             from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
             from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
-            from fedot.core.optimisers.graph import OptGraph, OptNode
             from fedot.core.utilities.data_structures import ComparableEnum
 
             from .coders import (
@@ -86,10 +85,6 @@ class Serializer(JSONEncoder, JSONDecoder):
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
             }
-            Serializer.CODERS_BY_TYPE.update({
-                OptNode: Serializer.CODERS_BY_TYPE[LinkedGraphNode],
-                OptGraph: Serializer.CODERS_BY_TYPE[Graph],
-            })
 
     @staticmethod
     def _get_field_checker(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Callable[..., bool]:

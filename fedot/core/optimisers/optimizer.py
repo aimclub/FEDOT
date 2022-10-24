@@ -2,7 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Sequence
 
-from fedot.core.adapter import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.adapter import BaseOptimizationAdapter, IdentityAdapter
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
@@ -60,7 +60,7 @@ class GraphGenerationParams:
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
                  advisor: Optional[DefaultChangeAdvisor] = None,
                  node_factory: Optional[OptNodeFactory] = None):
-        self.adapter = adapter or DirectAdapter()
+        self.adapter = adapter or IdentityAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
         self.node_factory = node_factory or DefaultOptNodeFactory()

@@ -51,7 +51,7 @@ class Graph(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_subtree(self, subroot: GraphNode):
+    def delete_subtree(self, subtree: GraphNode):
         """Deletes given node with all its parents.
         Deletes all edges from removed nodes to remaining graph nodes
 

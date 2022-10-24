@@ -103,10 +103,10 @@ class LinkedGraph(Graph, Copyable):
                 node in other_node.nodes_from]
 
     @copy_doc(Graph)
-    def connect_nodes(self, parent: GraphNode, child: GraphNode):
-        if child in self.node_children(parent):
+    def connect_nodes(self, node_parent: GraphNode, node_child: GraphNode):
+        if node_child in self.node_children(node_parent):
             return
-        child.nodes_from.append(parent)
+        node_child.nodes_from.append(node_parent)
 
     def _clean_up_leftovers(self, node: GraphNode):
         """Removes nodes and edges that do not affect the result of the pipeline.

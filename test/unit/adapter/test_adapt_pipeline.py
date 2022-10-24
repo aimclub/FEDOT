@@ -1,3 +1,6 @@
+from copy import deepcopy
+from random import choice
+
 import pytest
 
 from fedot.core.dag.graph_verifier import GraphVerifier
@@ -55,14 +58,59 @@ def test_pipelines_adapt_properly(pipeline):
 
 
 @pytest.mark.parametrize('pipeline', get_pipelines())
+def test_adapted_has_same_structure(pipeline):
+    adapter = PipelineAdapter()
+
+    opt_graph = adapter.adapt(pipeline)
+
+    # assert graph structures are same
+    assert pipeline.descriptive_id == opt_graph.descriptive_id
+
+
+@pytest.mark.parametrize('pipeline', get_pipelines())
 def test_adapted_and_restored_are_equal(pipeline):
     adapter = PipelineAdapter()
 
     opt_graph = adapter.adapt(pipeline)
     restored_pipeline = adapter.restore(opt_graph)
 
+    # assert 2-way mapping doesn't change the structure
     assert pipeline.descriptive_id == restored_pipeline.descriptive_id
+    # assert that new pipeline is a different object
     assert id(pipeline) != id(restored_pipeline)
+
+
+@pytest.mark.parametrize('pipeline', get_pipelines())
+def test_changes_to_transformed_dont_affect_origin(pipeline):
+    adapter = PipelineAdapter()
+
+    original_pipeline = deepcopy(pipeline)
+    opt_graph = adapter.adapt(pipeline)
+
+    # before change they're equal
+    assert pipeline.descriptive_id == opt_graph.descriptive_id
+
+    changed_node = choice(opt_graph.nodes)
+    changed_node.content['name'] = 'another_operation'
+    changed_node.content['params'].update({'new_hyperparam': 39})
+
+    # assert that changes to the adapted pipeline don't affect original graph
+    assert pipeline.descriptive_id != opt_graph.descriptive_id
+    assert pipeline.descriptive_id == original_pipeline.descriptive_id
+
+    original_opt_graph = deepcopy(opt_graph)
+    restored_pipeline = adapter.restore(opt_graph)
+
+    # before change they're equal
+    assert opt_graph.descriptive_id == restored_pipeline.descriptive_id
+
+    changed_node = choice(restored_pipeline.nodes)
+    changed_node.content['name'] = 'yet_another_operation'
+    changed_node.content['params'].update({'new_hyperparam': 4242})
+
+    # assert that changes to the restored graph don't affect original graph
+    assert opt_graph.descriptive_id != restored_pipeline.descriptive_id
+    assert opt_graph.descriptive_id == original_opt_graph.descriptive_id
 
 
 def _check_nodes_references_correct(graph):
