@@ -196,7 +196,9 @@ class Fedot:
     def predict(self,
                 features: FeaturesType,
                 save_predictions: bool = False) -> np.ndarray:
-        """Predicts new target using already fitted model
+        """Predicts new target using already fitted model.
+
+        For time-series performs in-sample forecast if length of idx of InputData is bigger than forecast length.
 
         Args:
             features: the array with features of test data
@@ -309,15 +311,18 @@ class Fedot:
                          objectives_names=metric_names,
                          show=True)
 
-    def plot_prediction(self, target: Optional[Any] = None):
+    def plot_prediction(self, in_sample: bool = False, target: Optional[Any] = None):
         """Plots the prediction obtained from graph
 
         Args:
+            in_sample: if current prediction is in_sample (for time-series forecasting).
+            Plots predictions as future values
             target: user-specified name of target variable for :obj:`MultiModalData`
+
         """
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(self.test_data, self.prediction, target)
+                plot_forecast(self.test_data, self.prediction, in_sample, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:

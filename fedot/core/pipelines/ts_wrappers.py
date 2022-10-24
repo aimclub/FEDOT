@@ -313,13 +313,17 @@ def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData
     Args:
         pre_history_data: data which was used for prediction
         forecast: array with predicted values
-        idx: array with idx values. If None sets next idx after `pre_history_data` with length of forecast.
+        idx: array with idx values. If None sets next idx after `pre_history_data` with length of forecast for InputData
+        and idx from 0 to forecast length for MultimodalData.
     """
     features = pre_history_data.features if isinstance(pre_history_data, InputData) else None
     if forecast.ndim > 1:
         forecast = np.squeeze(forecast)
     if idx is None:
-        idx = pre_history_data.idx
+        if features is not None:
+            idx = np.arange(len(features), len(features) + len(forecast))
+        else:
+            idx = np.arange(len(forecast))
     prediction = OutputData(idx=idx,
                             features=features,
                             predict=forecast,

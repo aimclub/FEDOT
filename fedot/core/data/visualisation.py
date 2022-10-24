@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -6,14 +8,17 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 
 
-def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, target: None):
+def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_sample: bool = False,
+                  target: Optional[Any] = None):
     """
     Function for drawing plot with time series forecast. If data.target is None function plot prediction
     as future values. If not - we use last data features as validation.
 
-    :param data: the InputData or MultiModalData with actual time series as features
-    :param prediction: the OutputData with predictions
-    :param target: user-specified name of target variable for MultiModalData
+    Args:
+        data: the InputData or MultiModalData with actual time series as features
+        prediction: the OutputData with predictions
+        in_sample: if obtained prediction was in sample. Plots predictions as future values.
+        target: user-specified name of target variable for MultiModalData
     """
     if isinstance(data, MultiModalData):
         if not target:
@@ -23,9 +28,10 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
     predict = prediction.predict
     actual_time_series = data.features
     pred_start = len(actual_time_series)
-    if target is not None:
-        actual_time_series = np.concatenate([actual_time_series, target], axis=0)
+    if in_sample:
         pred_start = len(actual_time_series) - len(predict)
+    elif target is not None:
+        actual_time_series = np.concatenate([actual_time_series, target], axis=0)
 
     padding = min(len(actual_time_series), 72)
 

@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -63,7 +64,7 @@ def get_cholesterol_dataset():
     return train, test
 
 
-def get_dataset(task_type: str):
+def get_dataset(task_type: str, validation_blocks: Optional[int] = None):
     if task_type == 'regression':
         data = get_synthetic_regression_data(n_samples=50, n_features=5)
         train_data, test_data = train_test_data_setup(data)
@@ -77,7 +78,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=5)
+        train_data, test_data = get_ts_data(forecast_length=5, validation_blocks=validation_blocks)
         threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -144,10 +145,11 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
-def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_forecast_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type)
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
@@ -155,8 +157,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     ts_forecast = model.predict(features=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
-    assert len(ts_forecast) == forecast_length
-    assert metric['rmse'] >= 0
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
 
 
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
