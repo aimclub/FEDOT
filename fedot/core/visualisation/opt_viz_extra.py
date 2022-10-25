@@ -1,9 +1,9 @@
 import itertools
 import os
 from copy import deepcopy
+from datetime import datetime
 from glob import glob
 from os import remove
-from time import time
 from typing import Any, List, Sequence, Tuple
 
 import numpy as np
@@ -11,12 +11,10 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -67,14 +65,13 @@ class OptHistoryExtraVisualizer:
         for file in files:
             os.remove(file)
 
-    def _visualise_pipelines(self, pipelines, fitnesses):
+    def _visualise_graphs(self, graphs: List[Graph], fitnesses: List[float]):
         fitnesses = deepcopy(fitnesses)
-        last_best_pipeline = pipelines[0]
+        last_best_pipeline = graphs[0]
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
-        for ch_id, pipeline in enumerate(pipelines):
-            self.graph_visualizer.draw_nx_dag(pipeline,
-                                              in_graph_converter_function=pipeline_template_as_nx_graph)
+        for ch_id, graph in enumerate(graphs):
+            self.graph_visualizer.draw_nx_dag(graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.pipelines_imgs.append(img)
@@ -82,11 +79,10 @@ class OptHistoryExtraVisualizer:
             if fitnesses[ch_id] > prev_fit:
                 fitnesses[ch_id] = prev_fit
             else:
-                last_best_pipeline = pipeline
+                last_best_pipeline = graph
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self.graph_visualizer.draw_nx_dag(last_best_pipeline,
-                                              in_graph_converter_function=pipeline_template_as_nx_graph)
+            self.graph_visualizer.draw_nx_dag(last_best_pipeline)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_pipelines_imgs.append(img)
@@ -102,7 +98,7 @@ class OptHistoryExtraVisualizer:
             prev_fit = fitness_history[fit_id]
         ts_set = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {'ts': ts_set, 'fitness': [-f.value for f in fitness_history]})
+            {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
 
         fig = plt.figure(figsize=(10, 10))
         plt.rcParams['axes.titlesize'] = 20
@@ -123,9 +119,9 @@ class OptHistoryExtraVisualizer:
         try:
             self._clean(with_gif=True)
             all_historical_fitness = history.all_historical_quality
-            historical_pipelines = [PipelineTemplate(PipelineAdapter().restore(ind))
-                                    for ind in list(itertools.chain(*history.individuals))]
-            self._visualise_pipelines(historical_pipelines, all_historical_fitness)
+            historical_graphs = [ind.graph
+                                 for ind in list(itertools.chain(*history.individuals))]
+            self._visualise_graphs(historical_graphs, all_historical_fitness)
             self._visualise_convergence(all_historical_fitness)
             self._merge_images()
             self._combine_gifs()
@@ -145,10 +141,12 @@ class OptHistoryExtraVisualizer:
             self.merged_imgs.append(Image.fromarray(np.uint8(merged)))
 
     def _combine_gifs(self):
-        path = f'{self.temp_path}final_{str(time())}.gif'
+        date_time = datetime.now().strftime('%B-%d-%Y,%H-%M-%S,%p')
+        save_path = f'{self.temp_path}\\final_{date_time}.gif'
         imgs = self.merged_imgs[1:]
-        self.merged_imgs[0].save(path, save_all=True, append_images=imgs,
+        self.merged_imgs[0].save(save_path, save_all=True, append_images=imgs,
                                  optimize=False, duration=0.5, loop=0)
+        self.log.info(f"Visualizations were saved to {save_path}")
 
     def _clean(self, with_gif=False):
         files = glob(f'{self.temp_path}*.png')

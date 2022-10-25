@@ -118,7 +118,7 @@ class OptHistory:
         return historical_fitness
 
     @property
-    def all_historical_fitness(self):
+    def all_historical_fitness(self) -> List[float]:
         historical_fitness = self.historical_fitness
         if self._objective.is_multi_objective:
             all_historical_fitness = []
@@ -129,7 +129,7 @@ class OptHistory:
         return all_historical_fitness
 
     @property
-    def all_historical_quality(self):
+    def all_historical_quality(self) -> List[float]:
         if self._objective.is_multi_objective:
             metric_position = get_metric_position(self._objective.metrics, QualityMetricsEnum)
             all_historical_quality = self.all_historical_fitness[metric_position]
