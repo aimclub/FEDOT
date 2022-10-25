@@ -54,3 +54,9 @@ def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = 
                                weights=[-1] * len(metric_values))
     else:
         return SingleObjFitness(*metric_values)
+
+
+def get_metric_position(metrics, metric_type):
+    for num, metric in enumerate(metrics):
+        if isinstance(metric, metric_type):
+            return num
