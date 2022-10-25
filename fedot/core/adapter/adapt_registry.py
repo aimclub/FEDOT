@@ -10,7 +10,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
     AdaptRegistry together with :py:class:`fedot.core.adapter.adapter.BaseOptimizationAdapter`
     enables automatic transformation between internal and domain graph representations.
 
-    **Short description of the use-case.**
+    **Short description of the use-case**
 
     Operators & verification rules that operate on internal representation
     of graphs must be marked as native with decorator
@@ -20,7 +20,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
     operators for internal optimization graphs. When custom operators
     operate on domain graphs, nothing is required.
 
-    **Extended description.**
+    **Extended description**
 
     Optimiser operates with generic graph representation.
     Because of this any domain function requires adaptation
@@ -32,19 +32,23 @@ class AdaptRegistry(metaclass=SingletonMeta):
     * 'Domain' functions operate with domain-specific graphs.
     * 'Native' functions operate with generic graphs used by optimiser.
     * 'External' functions are functions defined by users of optimiser.
-    (most notably, custom mutations and custom verifier rules).
+
+        Most notably, custom mutations and custom verifier rules.
+
     * 'Internal' functions are those defined by graph optimiser.
-    (most notably, the default set of mutations and verifier rules).
-    All internal functions are native.
+
+        Most notably, the default set of mutations and verifier rules.
+        All internal functions are native.
 
     Adaptation registry usage and behavior:
 
     * Domain functions are adapted by default.
     * Native functions don't require adaptation of their arguments.
     * External functions are considered 'domain' functions by default.
-    Hence, they're their arguments are adapted, unless users of optimiser
-    exclude them from the process of automatic adaptation. It can be done
-    by registering them as 'native'.
+
+        Hence, their arguments are adapted, unless users of optimiser
+        exclude them from the process of automatic adaptation.
+        It can be done by registering them as 'native'.
 
     AdaptRegistry can be safely used with multiprocessing
     insofar as all relevant functions are registered as native
