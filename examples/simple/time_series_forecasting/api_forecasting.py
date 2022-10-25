@@ -38,7 +38,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
-    train_data, test_data = train_test_data_setup(train_input)
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=validation_blocks)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
@@ -51,7 +51,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     pipeline = model.fit(train_data)
 
     # use model to obtain in-sample forecast
-    forecast = model.predict(test_data)
+    model.predict(test_data)
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
     # plot forecasting result
