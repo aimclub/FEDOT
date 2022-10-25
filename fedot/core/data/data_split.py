@@ -220,13 +220,14 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
                                                                  Union[InputData, MultiModalData]]:
     """ Function for train and test split for both InputData and MultiModalData
 
-    :param data: data for train and test splitting
-    :param split_ratio: threshold for partitioning
-    :param shuffle_flag: is data needed to be shuffled or not
-    :param kwargs: additional optional parameters such as number of validation blocks
+    Args:
+        data: data for train and test splitting
+        split_ratio: threshold for partitioning
+        shuffle_flag: is data needed to be shuffled or not
+        kwargs: additional optional parameters such as number of validation blocks
 
-    :return train_data: data for train
-    :return test_data: data for validation
+    Returns:
+        data for train, data for validation
     """
     if isinstance(data, InputData):
         train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag, **kwargs)

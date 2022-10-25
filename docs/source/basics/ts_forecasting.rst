@@ -1,9 +1,10 @@
 Time Series Forecasting
 =======================
 
-FEDOT allows you to automate machine learning pipeline design for time series forecasting.
+FEDOT allows you to automate machine learning pipeline design for time-series forecasting.
 To extract features FEDOT uses lagged transformation (windowing method) which allows to represent time-series as
-trajectory matrix. Therefore not only specific models for time series forecasting (such as
+trajectory matrix and apply regression methods for forecasting.
+Therefore not only specific models for time series forecasting (such as
 ARIMA and AR) can be used but also any machine learning method (knn, decision tree, etc.).
 Time-series specific preprocessing methods,
 like moving average smoothing or Gaussian smoothing are used as well.
@@ -94,6 +95,43 @@ a time-series into ``cv_folds`` number of folds and applying in-sample forecast 
 .. |ts_cv| image:: img_utilities/ts_cross_val.png
    :width: 80%
 
+Train test split
+~~~~~~~~~~~~~~~~
+
+To split InputData use ``train_test_data_setup`` method.
+``split_ratio`` and ``shuffle_flag`` are ignored for time-series forecasting.
+
+.. automethod:: fedot.core.data.data_split.train_test_data_setup
+
+The method uses ``forecast_length`` specified in the ``data.task``.
+In these case:
+
+- ``train_data.features = data.features[:-forecast_length]``
+- ``train_data.target = data.target[:-forecast_length]``
+- ``test_data.features = data.features[:-forecast_length]``
+- ``train_data.target = data.target[-forecast_length:]``
+
+|train_test_split|
+
+.. |train_test_split| image:: img_utilities/train_test_split.png
+   :width: 80%
+
+If you pass keyword argument ``validation_blocks`` train data will be prepared for in-sample
+validation with ``validation_blocks`` number of steps. In these case:
+
+- ``train_data.features = data.features[:-forecast_length * validation_blocks]``
+- ``train_data.target = data.target[:-forecast_length * validation_blocks]``
+- ``test_data.features = data.features``
+- ``train_data.target = data.target[-forecast_length * validation_blocks:]``
+
+|train_test_split_val|
+
+.. |train_test_split_val| image:: img_utilities/train_test_split_val.png
+   :width: 80%
+
+Prediction
+~~~~~~~~~~
+
 Multiple time-series forecasting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -102,9 +140,6 @@ Gap-filling
 
 Fitted values
 ~~~~~~~~~~~~~
-
-Prediction
-~~~~~~~~~~
 
 Examples
 ~~~~~~~~
