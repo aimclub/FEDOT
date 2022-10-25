@@ -6,9 +6,8 @@ from typing import Callable
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective import DataSourceSplitter, Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
 

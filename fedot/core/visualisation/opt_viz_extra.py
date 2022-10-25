@@ -14,7 +14,9 @@ from matplotlib import pyplot as plt
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
+from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -117,12 +119,12 @@ class OptHistoryExtraVisualizer:
             plt.clf()
         plt.close('all')
 
-    def visualise_history(self, history):
+    def visualise_history(self, history: OptHistory):
         try:
             self._clean(with_gif=True)
             all_historical_fitness = history.all_historical_quality
-            historical_pipelines = [PipelineAdapter().restore(ind)
-                                    for ind in list(itertools.chain(history.individuals))]
+            historical_pipelines = [PipelineTemplate(PipelineAdapter().restore(ind))
+                                    for ind in list(itertools.chain(*history.individuals))]
             self._visualise_pipelines(historical_pipelines, all_historical_fitness)
             self._visualise_convergence(all_historical_fitness)
             self._merge_images()

@@ -5,7 +5,8 @@ from hyperopt import tpe
 
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
-from fedot.core.optimisers.objective import DataSourceSplitter, Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner

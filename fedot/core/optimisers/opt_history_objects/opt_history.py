@@ -79,7 +79,7 @@ class OptHistory:
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
             for individual, ind_fitness in zip(last_gen, last_gen_history):
-                ind_path = Path(save_dir, str(last_gen_id))
+                ind_path = Path(save_dir, str(last_gen_id), str(individual.uid))
                 if not os.path.isdir(ind_path):
                     os.makedirs(ind_path)
                 individual.save(json_file_path=Path(ind_path, f'{str(individual.uid)}.json'))
@@ -90,7 +90,7 @@ class OptHistory:
         return default_save(obj=self, json_file_path=json_file_path)
 
     @staticmethod
-    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> OptHistory:
         return default_load(json_str_or_file_path)
 
     @staticmethod

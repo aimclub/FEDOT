@@ -104,7 +104,7 @@ class Individual:
         return default_save(obj=self, json_file_path=json_file_path)
 
     @staticmethod
-    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'Individual':
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Individual:
         return default_load(json_str_or_file_path)
 
     def __repr__(self):

@@ -10,7 +10,8 @@ from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.fitness import SingleObjFitness
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate, DataSourceSplitter
+from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
