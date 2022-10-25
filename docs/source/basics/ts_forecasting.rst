@@ -14,8 +14,11 @@ like moving average smoothing or Gaussian smoothing are used as well.
 .. |windowing| image:: img_utilities/windowing_method.png
    :width: 80%
 
-Simple example
-~~~~~~~~~~~~~~
+Simple examples
+~~~~~~~~~~~~~~~
+
+Automated
+---------
 
 .. code-block:: python
 
@@ -25,18 +28,15 @@ Simple example
     from fedot.core.data.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-    validation_blocks = 2
-
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=4))
+                TsForecastingParams(forecast_length=10))
 
     train_input = InputData.from_csv_time_series(task=task,
                                                  file_path='time_series.csv',
                                                  delimiter=',',
                                                  target_column = 'value')
 
-    train_data, test_data = train_test_data_setup(train_input,
-                                                  validation_blocks=validation_blocks)
+    train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
@@ -44,7 +44,7 @@ Simple example
                   timeout=10,
                   n_jobs=-1,
                   cv_folds=2,
-                  validation_blocks=validation_blocks,
+                  validation_blocks=2,
                   preset='fast_train')
 
     # run AutoML model design
@@ -58,6 +58,19 @@ Simple example
 
     # plot forecasting result
     model.plot_prediction()
+
+Sample output:
+
+|sample_forecast|
+
+.. |sample_forecast| image:: img_utilities/sample_forecast.png
+   :width: 80%
+
+
+Manual
+------
+
+
 
 Time-series validation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -132,14 +145,18 @@ validation with ``validation_blocks`` number of steps. In these case:
 Prediction
 ~~~~~~~~~~
 
+You can use two methods for time-series forecasting:
+
+- ``Fedot.predict`` allows you to obtain forecast of future values with depth of ``forecast_length`` specified in the task parameters.
+
+- ``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon.
+
+See `FEDOT API`_ for more details.
+
 Multiple time-series forecasting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Gap-filling
-~~~~~~~~~~~
-
-Fitted values
-~~~~~~~~~~~~~
+FEDOT
 
 Examples
 ~~~~~~~~
@@ -165,4 +182,4 @@ Examples
 * `Case: river level forecasting with composer <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
 * `Case: river level forecasting (manual) <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
 
-
+.. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
