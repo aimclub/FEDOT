@@ -4,7 +4,7 @@ from typing import Optional, Any
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
+from fedot.core.repository.graph_operation_repository import GraphOperationRepository
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 
 

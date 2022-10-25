@@ -4,7 +4,7 @@ from typing import List, Optional, Dict
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
+from fedot.core.repository.graph_operation_repository import GraphOperationRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
