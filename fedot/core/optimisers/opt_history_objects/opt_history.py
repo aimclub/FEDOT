@@ -26,8 +26,10 @@ if TYPE_CHECKING:
 class OptHistory:
     """
     Contains optimization history, save history to csv.
+    Can be used for any type of graph that is serializable with Serializer.
 
-    :param objective: contains information about metrics used during optimization.
+    Args:
+        objective: contains information about metrics used during optimization.
     """
 
     def __init__(self, objective: Objective = None):
