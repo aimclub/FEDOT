@@ -26,6 +26,7 @@ class TextDataDetector(DataDetector):
     """
     Class for detecting text data during its import.
     """
+
     def define_text_columns(self, data_frame: pd.DataFrame) -> List[str]:
         """
         :param data_frame: pandas dataframe with data
@@ -113,12 +114,9 @@ class TimeSeriesDataDetector(DataDetector):
         multi_modal_ts_data = {}
         for column_name in columns:
             feature_ts = np.array(dataframe[column_name])
-            idx = list(dataframe['datetime'])
 
             # Will be the same
             multi_modal_ts_data.update({column_name: feature_ts})
-
-        multi_modal_ts_data['idx'] = np.asarray(idx)
 
         return multi_modal_ts_data
 

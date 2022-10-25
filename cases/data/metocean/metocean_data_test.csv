@@ -1,4 +1,4 @@
-time_index,wind_speed,sea_height
+datetime,wind_speed,sea_height
 201008076 ,6.7 ,91
 201008077 ,6.7 ,86
 201008078 ,6.6 ,86

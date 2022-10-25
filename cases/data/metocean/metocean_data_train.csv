@@ -1,4 +1,4 @@
-time_index,wind_speed,sea_height
+datetime,wind_speed,sea_height
 200906172,3.7,85
 200906173,3.6,82
 200906174,3.7,82

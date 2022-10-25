@@ -29,7 +29,8 @@ class RemoteTaskParams:
     :param task_type: string representation of Task class for FEDOT
     :param train_data_idx: indices to subset dataset for fitting
     :param is_multi_modal: is train data multi-modal?
-    :param var_names: variable names for fitting?
+    :param var_names: variable names for features
+    :param target: variable name for target
     :param max_parallel maximal number of parallel remote task
     """
     mode: str = 'local'

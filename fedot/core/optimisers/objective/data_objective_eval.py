@@ -60,7 +60,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            if RemoteEvaluator().use_remote:
+            if RemoteEvaluator().use_remote and graph.is_fitted:
                 prepared_pipeline = graph
             else:
                 try:
