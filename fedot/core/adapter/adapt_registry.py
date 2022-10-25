@@ -28,18 +28,20 @@ class AdaptRegistry(metaclass=SingletonMeta):
     arguments to generic form in such cases.
 
     Important notions:
-    - 'Domain' functions operate with domain-specific graphs.
-    - 'Native' functions operate with generic graphs used by optimiser.
-    - 'External' functions are functions defined by users of optimiser.
+
+    * 'Domain' functions operate with domain-specific graphs.
+    * 'Native' functions operate with generic graphs used by optimiser.
+    * 'External' functions are functions defined by users of optimiser.
     (most notably, custom mutations and custom verifier rules).
-    - 'Internal' functions are those defined by graph optimiser.
+    * 'Internal' functions are those defined by graph optimiser.
     (most notably, the default set of mutations and verifier rules).
     All internal functions are native.
 
     Adaptation registry usage and behavior:
-    - Domain functions are adapted by default.
-    - Native functions don't require adaptation of their arguments.
-    - External functions are considered 'domain' functions by default.
+
+    * Domain functions are adapted by default.
+    * Native functions don't require adaptation of their arguments.
+    * External functions are considered 'domain' functions by default.
     Hence, they're their arguments are adapted, unless users of optimiser
     exclude them from the process of automatic adaptation. It can be done
     by registering them as 'native'.

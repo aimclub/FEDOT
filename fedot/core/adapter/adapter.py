@@ -148,9 +148,12 @@ class DirectAdapter(BaseOptimizationAdapter[DomainStructureType]):
 
 
 def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
-    """Transforms input function in the following way:
+    """Wraps function by transforming its arguments and return value:
      ``f_args`` is called on each of the function arguments,
      ``f_ret`` is called on the return value of original function.
+
+     This is a helper function used for adaption of callables by
+     :py:class:`fedot.core.adapter.adapter.BaseOptimizationAdapter`.
 
     Args:
         fun: function to be transformed
