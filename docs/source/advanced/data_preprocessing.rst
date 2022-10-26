@@ -108,20 +108,20 @@ For example, converting column to numerical if the number of unique values is gr
 After this preprocessing with this pipeline will be performed according to the specified conditions.
 
 
-.. |gap filling| image:: img_utilities/gap_filling.jpg
+.. |gap filling| image:: img_preprocessing/gap_filling.jpg
    :width: 25%
 
-.. |nans| image:: img_utilities/nans.jpg
+.. |nans| image:: img_preprocessing/nans.jpg
    :width: 25%
 
-.. |failed ratio| image:: img_utilities/failed_ratio.jpg
+.. |failed ratio| image:: img_preprocessing/failed_ratio.jpg
    :width: 25%
 
-.. |one type| image:: img_utilities/cast_to_one_type.jpg
+.. |one type| image:: img_preprocessing/cast_to_one_type.jpg
    :width: 25%
 
-.. |binary| image:: img_utilities/binary.jpg
+.. |binary| image:: img_preprocessing/binary.jpg
    :width: 25%
 
-.. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
+.. |Block diagram| image:: img_preprocessing/fedot_preprocessing_tabular.png
    :width: 70%
