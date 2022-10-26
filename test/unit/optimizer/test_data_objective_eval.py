@@ -15,7 +15,8 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
 from test.unit.models.test_model import classification_dataset
@@ -156,7 +157,7 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
 def test_pipeline_objective_evaluate_for_timeseries_cv(folds, actual_value):
     forecast_len, validation_blocks, time_series = configure_experiment()
-    objective = Objective(MSE.get_value)
+    objective = Objective(RegressionMetricsEnum.MSE)
     data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
     simple_pipeline = get_simple_ts_pipeline()
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)

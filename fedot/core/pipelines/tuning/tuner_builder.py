@@ -21,7 +21,7 @@ class TunerBuilder:
         self.cv_folds = None
         self.validation_blocks = None
         self.n_jobs = -1
-        self.metric: MetricsEnum = MetricByTask(task.task_type).get_default_quality_metrics()[0]
+        self.metric: MetricsEnum = MetricByTask.get_default_quality_metrics(task.task_type)[0]
         self.iterations = 100
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)

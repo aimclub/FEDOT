@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from os import makedirs
 from os.path import exists, join
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Type, Union, Callable
 
 import matplotlib.pyplot as plt
 
@@ -14,6 +14,7 @@ from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.sa_requirements import ReplacementAnalysisMetaParams, SensitivityAnalysisRequirements
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -163,7 +164,8 @@ class NodeAnalyzeApproach(ABC):
         pass
 
     def _compare_with_origin_by_metric(self, changed_pipeline: Pipeline) -> float:
-        metric = MetricByTask(self._train_data.task.task_type)
+        metric_id = MetricByTask.get_default_quality_metrics(self._train_data.task.task_type)[0]
+        metric = MetricsRepository.metric_by_id(metric_id)
 
         if not self._origin_metric:
             self._origin_metric = self._get_metric_value(pipeline=self._pipeline, metric=metric)
@@ -172,11 +174,11 @@ class NodeAnalyzeApproach(ABC):
 
         return changed_pipeline_metric / self._origin_metric
 
-    def _get_metric_value(self, pipeline: Pipeline, metric: MetricByTask) -> float:
+    def _get_metric_value(self, pipeline: Pipeline, metric: Callable) -> float:
         pipeline.fit(self._train_data)
         predicted = pipeline.predict(self._test_data)
-        metric_value = metric.get_value(true=self._test_data,
-                                        predicted=predicted)
+        metric_value = metric(true=self._test_data,
+                              predicted=predicted)
 
         return metric_value
 

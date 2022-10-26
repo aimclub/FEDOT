@@ -41,7 +41,7 @@ class ComposerBuilder:
         self.log: LoggerAdapter = default_log(self)
 
         self.task: Task = task
-        self.metrics: Sequence[MetricsEnum] = MetricByTask(task.task_type).get_default_quality_metrics()
+        self.metrics: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
 
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
