@@ -10,14 +10,20 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class PipelineOperationRepository(GraphOperationRepository):
-    """ Repository in order to extract suitable operations for pipelines
-    from specific files/configs etc.
+    """Repository in order to extract suitable operations by keys
+     for pipelines during graph composition. Defines 2 keys:
+     `primary` and `secondary` for distinguishing operations suitable
+     for, respectively, primary and secondary nodes.
 
-    :param operations_by_keys: available operations already splitted by keys """
-    def __init__(self, operations_by_keys: Optional[Dict[str, List[str]]] = None,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.operations_by_keys = operations_by_keys
+     Designed to work in cooperation with
+     :py:class:`fedot.core.optimisers.opt_node_factory.OptNodeFactory`
+
+     Args:
+        operations_by_keys: available operations already splitted by keys
+     """
+    def __init__(self, operations_by_keys: Optional[Dict[str, List[str]]] = None):
+        super().__init__()
+        self.operations_by_keys = operations_by_keys or dict()
 
     def from_available_operations(self, task: Task, preset: str,
                                   available_operations: List[str]):
