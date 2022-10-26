@@ -2,10 +2,12 @@ Time Series Forecasting
 =======================
 
 FEDOT allows you to automate machine learning pipeline design for time-series forecasting.
+
 To extract features FEDOT uses lagged transformation (windowing method) which allows to represent time-series as
 trajectory matrix and apply regression methods for forecasting.
 Therefore not only specific models for time series forecasting (such as
 ARIMA and AR) can be used but also any machine learning method (knn, decision tree, etc.).
+
 Time-series specific preprocessing methods,
 like moving average smoothing or Gaussian smoothing are used as well.
 
@@ -61,6 +63,10 @@ Automated
 
 Sample output:
 
+.. code-block:: python
+
+    {'rmse': 8.484610509589182, 'mae': 6.903720676906173, 'mape': 0.04867517104664435}
+
 |sample_forecast|
 
 .. |sample_forecast| image:: img_utilities/sample_forecast.png
@@ -70,7 +76,61 @@ Sample output:
 Manual
 ------
 
+Examples of time-series pipelines can be found `here`_.
 
+.. code-block:: python
+
+    import numpy as np
+    from fedot.api.main import Fedot
+    from fedot.core.data.data import InputData
+    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+    pipeline = PipelineBuilder() \
+        .add_sequence('locf', branch_idx=0) \
+        .add_sequence('lagged', branch_idx=1) \
+        .join_branches('ridge') \
+        .to_pipeline()
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10))
+
+    train_input = InputData.from_csv_time_series(task=task,
+                                                 file_path='time_series.csv',
+                                                 delimiter=',',
+                                                 target_column='value')
+
+    train_data, test_data = train_test_data_setup(train_input)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting',
+                  task_params=task.task_params,
+                  timeout=10,
+                  n_jobs=-1,
+                  cv_folds=2,
+                  validation_blocks=2)
+
+    model.fit(train_data, predefined_model=pipeline)
+
+    # use model to obtain forecast
+    forecast = model.predict(test_data)
+    target = np.ravel(test_data.target)
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+
+    # plot forecasting result
+    model.plot_prediction()
+
+Sample output:
+
+.. code-block:: python
+
+    {'rmse': 2.6591575431482206, 'mae': 2.1415227340013323, 'mape': 0.09970880013852462}
+
+|manual_sample_forecast|
+
+.. |manual_sample_forecast| image:: img_utilities/manual_sample_forecast.png
+   :width: 80%
 
 Time-series validation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -116,8 +176,7 @@ To split InputData use ``train_test_data_setup`` method.
 
 .. automethod:: fedot.core.data.data_split.train_test_data_setup
 
-The method uses ``forecast_length`` specified in the ``data.task``.
-In these case:
+The method uses ``forecast_length`` specified in the ``data.task``. The resulting split:
 
 - ``train_data.features = data.features[:-forecast_length]``
 - ``train_data.target = data.target[:-forecast_length]``
@@ -153,10 +212,53 @@ You can use two methods for time-series forecasting:
 
 See `FEDOT API`_ for more details.
 
-Multiple time-series forecasting
+Multivariate time-series forecasting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-FEDOT
+.. code-block:: python
+
+    import numpy as np
+    from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
+    from fedot.api.main import Fedot
+    from fedot.core.data.data import InputData
+    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+    target = 'col_3'
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10))
+    data = InputData.from_csv_multi_time_series(
+            file_path='time_series.csv',
+            task=task,
+            target_column=target,
+            columns_to_use=['col_1', 'col_2', 'col_3', ..., 'col_n'])
+    train_data, test_data = train_test_data_setup(data)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting',
+                  task_params=task.task_params,
+                  timeout=0.5,
+                  n_jobs=-1,
+                  cv_folds=2,
+                  validation_blocks=2,
+                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
+                                        'ridge', 'lasso', 'linear', 'cut'])
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+    pipeline.show()
+
+    # use model to obtain forecast
+    forecast = model.predict(test_data)
+    target = np.ravel(test_data.target)
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+
+Sample output:
+
+.. code-block:: python
+
+    {'rmse': 0.1050271953774521, 'mae': 0.08713287228369834, 'mape': 0.46942204814978494}
 
 Examples
 ~~~~~~~~
@@ -183,3 +285,4 @@ Examples
 * `Case: river level forecasting (manual) <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
 
 .. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
+.. _here: https://fedot.readthedocs.io/en/latest/examples/ts_pipelines.html
