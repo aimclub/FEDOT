@@ -213,7 +213,7 @@ You can use two methods for time-series forecasting:
 See `FEDOT API`_ for more details.
 
 Multivariate time-series forecasting
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
