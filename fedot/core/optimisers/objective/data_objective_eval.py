@@ -11,7 +11,6 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
@@ -60,7 +59,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            if RemoteEvaluator().use_remote and graph.is_fitted:
+            if graph.is_fitted:
+                # the expected behaviour for the remote evaluation
                 prepared_pipeline = graph
             else:
                 try:
