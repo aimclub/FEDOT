@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from random import choice
 from typing import Optional, Any
 
-from fedot.core.composer.advisor import DefaultChangeAdvisor
+from fedot.core.optimisers.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.graph_operation_repository import GraphOperationRepository
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository

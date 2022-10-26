@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.adapter import BaseOptimizationAdapter, IdentityAdapter
-from fedot.core.composer.advisor import DefaultChangeAdvisor
+from fedot.core.optimisers.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import default_log
