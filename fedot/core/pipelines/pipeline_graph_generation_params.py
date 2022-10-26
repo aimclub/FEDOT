@@ -2,7 +2,7 @@ from typing import Any, Optional, Sequence
 
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.dag.graph_verifier import VerifierRuleType
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.repository.tasks import Task

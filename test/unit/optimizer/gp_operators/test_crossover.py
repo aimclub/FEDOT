@@ -1,5 +1,5 @@
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements

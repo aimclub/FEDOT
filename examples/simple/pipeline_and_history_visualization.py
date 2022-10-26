@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
 

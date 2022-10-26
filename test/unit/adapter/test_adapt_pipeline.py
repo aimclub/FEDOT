@@ -5,7 +5,7 @@ import pytest
 
 from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import Node, SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline

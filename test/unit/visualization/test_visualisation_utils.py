@@ -1,5 +1,5 @@
 from fedot.core.dag.graph_utils import distance_to_primary_level
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph, pipeline_template_as_nx_graph

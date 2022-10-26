@@ -5,7 +5,7 @@ from typing import Sequence, Optional
 from fedot.core.dag.graph_utils import nodes_from_layer
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import ParetoFront
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher

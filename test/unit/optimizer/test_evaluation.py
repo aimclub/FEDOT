@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import Fitness, null_fitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SimpleDispatcher, \
     ObjectiveEvaluationDispatcher
