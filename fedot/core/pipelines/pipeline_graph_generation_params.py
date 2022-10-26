@@ -1,6 +1,6 @@
 from typing import Any, Optional, Sequence
 
-from fedot.core.optimisers.advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.dag.graph_verifier import VerifierRuleType
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.optimizer import GraphGenerationParams
