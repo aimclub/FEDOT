@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING,  Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, Optional, Sequence
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -8,7 +8,7 @@ from fedot.core.optimisers.opt_history_objects.individual import Individual
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphOptimizerParameters
 
-PopulationT = List[Individual]  # TODO: provisional EvaluationOperator = Callable[[PopulationT], PopulationT]
+PopulationT = Sequence[Individual]
 EvaluationOperator = Callable[[PopulationT], PopulationT]
 
 
