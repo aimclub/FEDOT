@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import List, Optional, TYPE_CHECKING, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB

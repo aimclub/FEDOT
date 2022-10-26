@@ -1,8 +1,9 @@
 from __future__ import annotations
+
+import os
 from functools import partial
 from typing import List, Optional, Union
 
-import os
 import numpy as np
 import pandas as pd
 
@@ -101,14 +102,15 @@ class MultiModalData(dict):
                              delimiter=',',
                              is_predict=False,
                              var_names=None,
-                             target_column: Optional[str] = '') -> MultiModalData:
+                             target_column: Optional[str] = '',
+                             idx_column: Optional[str] = 'datetime') -> MultiModalData:
         ts_data_detector = TimeSeriesDataDetector()
         df = pd.read_csv(file_path, sep=delimiter)
-        idx = get_indices_from_file(df, file_path)
+        idx = get_indices_from_file(df, file_path, idx_column)
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
         if not var_names:
-            var_names = list(set(df.columns) - set('datetime'))
+            var_names = list(set(df.columns) - set(idx_column))
 
         if is_predict:
             raise NotImplementedError(

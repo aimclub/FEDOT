@@ -7,8 +7,8 @@ import pandas as pd
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
@@ -441,7 +441,7 @@ class Fedot:
             remote.remote_task_params.task_type = task_str
             remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
 
-            if isinstance(self.target, str):
+            if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target
 
     def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):

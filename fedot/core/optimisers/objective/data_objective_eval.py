@@ -11,8 +11,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.debug import is_test_session, is_recording_mode
-from fedot.utilities.debug import save_debug_info_for_pipeline
+from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -60,16 +59,21 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-            except Exception as ex:
-                self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
-                if is_test_session() and not isinstance(ex, TimeoutError):
-                    stack_trace = traceback.format_exc()
-                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode():
-                        raise ex
-                continue
+            if graph.is_fitted:
+                # the expected behaviour for the remote evaluation
+                prepared_pipeline = graph
+            else:
+                try:
+                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                except Exception as ex:
+                    self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
+                    if is_test_session() and not isinstance(ex, TimeoutError):
+                        stack_trace = traceback.format_exc()
+                        save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                        if not is_recording_mode():
+                            raise ex
+                    continue
+
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
                                                 validation_blocks=self._validation_blocks)
@@ -98,7 +102,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
+
         graph.unfit()
+
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(

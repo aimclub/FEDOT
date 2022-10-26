@@ -519,11 +519,11 @@ def data_type_is_image(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.image
 
 
-def get_indices_from_file(data_frame, file_path):
-    if 'datetime' in data_frame.columns:
+def get_indices_from_file(data_frame, file_path, idx_column='datetime'):
+    if idx_column in data_frame.columns:
         df = pd.read_csv(file_path,
-                         parse_dates=['datetime'])
-        idx = [str(d) for d in df['datetime']]
+                         parse_dates=[idx_column])
+        idx = [str(d) for d in df[idx_column]]
         return idx
     return np.arange(0, len(data_frame))
 
