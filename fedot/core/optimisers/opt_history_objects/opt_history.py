@@ -194,3 +194,19 @@ class OptHistory:
                                   f'{positional_id}',
                                   f'{individual.graph.descriptive_id}']), file=output)
         return output.getvalue()
+
+    @property
+    def initial_assumptions(self) -> Optional[Generation]:
+        if not self.individuals:
+            return None
+        for gen in self.individuals:
+            if gen.label == 'initial_assumptions':
+                return gen
+
+    @property
+    def final_choices(self) -> Optional[Generation]:
+        if not self.individuals:
+            return None
+        for gen in reversed(self.individuals):
+            if gen.label == 'final_choices':
+                return gen

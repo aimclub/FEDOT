@@ -88,13 +88,18 @@ class PopulationalOptimizer(GraphOptimizer):
                     return self.best_graphs
                 # Adding of new population to history
                 self._update_population(new_population)
-
+        final_choices = Generation(self.best_individuals, self.current_generation_num, 'final_choices')
+        self._update_population(final_choices)
         return self.best_graphs
 
     @property
     def best_graphs(self):
-        all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
+        all_best_graphs = [ind.graph for ind in self.best_individuals]
         return all_best_graphs
+
+    @property
+    def best_individuals(self):
+        return self.generations.best_individuals
 
     @abstractmethod
     def _initial_population(self, evaluator: EvaluationOperator):
