@@ -5,7 +5,6 @@ import io
 import itertools
 import os
 import shutil
-from copy import copy
 from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
@@ -18,8 +17,6 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.archive import GenerationKeeper
-    from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
     from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 

@@ -145,7 +145,6 @@ def test_composition_time(data_fixture, request):
     params = GPGraphOptimizerParameters(pop_size=2)
 
     builder = ComposerBuilder(task) \
-        .with_history() \
         .with_requirements(req_terminated_evolution) \
         .with_optimizer_params(params) \
         .with_metrics(metric_function)

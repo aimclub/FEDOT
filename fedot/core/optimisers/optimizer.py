@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.adapter import BaseOptimizationAdapter, IdentityAdapter
@@ -94,13 +93,14 @@ class GraphOptimizer:
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None):
         self.log = default_log(self)
-        self.history = OptHistory(objective, requirements.history_dir) if requirements.keep_history else None
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
+        self.history = OptHistory(objective, requirements.history_dir) \
+            if requirements and requirements.keep_history else None
 
     @property
     def objective(self) -> Objective:
