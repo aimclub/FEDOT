@@ -6,7 +6,7 @@ from tqdm import tqdm
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
@@ -78,11 +78,11 @@ class PopulationalOptimizer(GraphOptimizer):
 
         with self.timer, self._progressbar:
 
-            self._initial_population(evaluator=evaluator)
+            self._initial_population(evaluator)
 
             while not self.stop_optimization():
                 try:
-                    new_population = self._evolve_population(evaluator=evaluator)
+                    new_population = self._evolve_population(evaluator)
                 except EvaluationAttemptsError as ex:
                     self.log.warning(f'Composition process was stopped due to: {ex}')
                     return self.best_graphs
@@ -97,12 +97,12 @@ class PopulationalOptimizer(GraphOptimizer):
         return all_best_graphs
 
     @abstractmethod
-    def _initial_population(self, *args, **kwargs):
+    def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """
         raise NotImplementedError()
 
     @abstractmethod
-    def _evolve_population(self, *args, **kwargs) -> PopulationT:
+    def _evolve_population(self, evaluator: EvaluationOperator) -> PopulationT:
         """ Method realizing full evolution cycle """
         raise NotImplementedError()
 
