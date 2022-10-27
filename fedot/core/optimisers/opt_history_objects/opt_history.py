@@ -45,8 +45,8 @@ class OptHistory:
                 # if path is not absolute, treat it as relative to data dir
                 default_save_dir = Path(default_fedot_data_dir()) / default_save_dir
         else:
-            default_save_dir = Path(default_fedot_data_dir())
-        self._default_save_dir = default_save_dir
+            default_save_dir = default_fedot_data_dir()
+        self._default_save_dir = str(default_save_dir)
 
     def is_empty(self) -> bool:
         return not self.individuals
