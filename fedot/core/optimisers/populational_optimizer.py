@@ -47,7 +47,6 @@ class PopulationalOptimizer(GraphOptimizer):
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
         self.eval_dispatcher = MultiprocessingDispatcher(adapter=graph_generation_params.adapter,
-                                                         timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
@@ -77,7 +76,7 @@ class PopulationalOptimizer(GraphOptimizer):
     def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
 
         # eval_dispatcher defines how to evaluate objective on the whole population
-        evaluator = self.eval_dispatcher.dispatch(objective)
+        evaluator = self.eval_dispatcher.dispatch(objective, self.timer)
 
         with self.timer, self._progressbar:
 
