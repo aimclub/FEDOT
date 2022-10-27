@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.adapter import BaseOptimizationAdapter, IdentityAdapter
+from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.optimisers.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
@@ -60,7 +61,7 @@ class GraphGenerationParams:
     remote_evaluator: Optional[DelegateEvaluator] = None
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
-                 rules_for_constraint: Sequence[VerifierRuleType] = (),
+                 rules_for_constraint: Sequence[VerifierRuleType] = tuple(DEFAULT_DAG_RULES),
                  advisor: Optional[DefaultChangeAdvisor] = None,
                  node_factory: Optional[OptNodeFactory] = None,
                  remote_evaluator: Optional[DelegateEvaluator] = None,
