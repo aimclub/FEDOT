@@ -103,13 +103,6 @@ class ComposerBuilder:
         self.initial_population_generation_function = generation_function
         return self
 
-    def with_history(self, history_folder: Optional[str] = None):
-        self._keep_history = True
-        if history_folder:
-            history_folder = Path(default_fedot_data_dir(), history_folder)
-        self._full_history_dir = history_folder
-        return self
-
     def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
                    preprocessing_cache: Optional[PreprocessingCache] = None):
         self.pipelines_cache = pipelines_cache
