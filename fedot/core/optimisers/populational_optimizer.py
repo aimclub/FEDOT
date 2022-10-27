@@ -1,20 +1,24 @@
 from abc import abstractmethod
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
+from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     pass
@@ -41,7 +45,8 @@ class PopulationalOptimizer(GraphOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 graph_optimizer_params: Optional['GraphOptimizerParameters'] = None):
+                 graph_optimizer_params: Optional['GraphOptimizerParameters'] = None,
+                 ):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_params)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
@@ -113,6 +118,7 @@ class PopulationalOptimizer(GraphOptimizer):
         self._update_native_generation_numbers(next_population)
         self.generations.append(next_population)
         self._optimisation_callback(next_population, self.generations)
+        self._log_to_history(next_population)
         self.population = next_population
 
         self.log.info(f'Generation num: {self.current_generation_num}')
@@ -123,6 +129,12 @@ class PopulationalOptimizer(GraphOptimizer):
     def _update_native_generation_numbers(self, population: PopulationT):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
+
+    def _log_to_history(self, population: PopulationT):
+        self.history.add_to_history(population)
+        self.history.add_to_archive_history(self.generations.best_individuals)
+        if self.requirements.history_dir:
+            self.history.save_current_results()
 
     @property
     def _progressbar(self):

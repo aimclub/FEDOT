@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.adapter import BaseOptimizationAdapter, IdentityAdapter
@@ -12,6 +13,7 @@ from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory, OptNodeFactory
 from fedot.core.optimisers.gp_comp.evaluation import DelegateEvaluator
 
@@ -92,6 +94,7 @@ class GraphOptimizer:
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None):
         self.log = default_log(self)
+        self.history = OptHistory(objective, requirements.history_dir) if requirements.keep_history else None
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements

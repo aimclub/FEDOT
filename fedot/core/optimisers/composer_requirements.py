@@ -1,6 +1,8 @@
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
+
+from fedot.core.utils import default_fedot_data_dir
 
 
 @dataclass
@@ -21,6 +23,13 @@ class ComposerRequirements:
     :param show_progress: bool indicating whether to show progress using tqdm or not
     :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
 
+    History options:
+    :param keep_history: if True, then save generations to history; if False, don't keep history.
+    :param history_dir: directory for saving optimization history, optional.
+      If the path is relative, then save relative to `default_fedot_data_dir`.
+      If absolute -- then save directly by specified path.
+      If None -- do not save the history to disk and keep it only in-memory.
+
     Model validation options:
     :param cv_folds: number of cross-validation folds
     :param validation_blocks: number of validation blocks for time series validation
@@ -35,6 +44,9 @@ class ComposerRequirements:
     n_jobs: int = 1
     show_progress: bool = True
     collect_intermediate_metric: bool = False
+
+    keep_history: bool = True
+    history_dir: Optional[str] = field(default_factory=default_fedot_data_dir)
 
     cv_folds: Optional[int] = None
     validation_blocks: Optional[int] = None

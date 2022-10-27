@@ -9,7 +9,6 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -17,16 +16,15 @@ from fedot.core.pipelines.pipeline import Pipeline
 class GPComposer(Composer):
     """
     Genetic programming based composer
+
     :param optimizer: optimizer generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
-    :param history: optimization history
     :param pipelines_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
-                 history: Optional[OptHistory] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None):
         super().__init__(optimizer, composer_requirements)
@@ -34,7 +32,6 @@ class GPComposer(Composer):
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
 
-        self.history: Optional[OptHistory] = history
         self.best_models: Collection[Pipeline] = ()
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:

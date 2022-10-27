@@ -30,25 +30,38 @@ class OptHistory:
 
     Args:
         objective: contains information about metrics used during optimization.
+        default_save_dir: default directory used for saving history when not explicit path is provided.
     """
 
-    def __init__(self, objective: Objective = None):
+    def __init__(self,
+                 objective: Objective = None,
+                 default_save_dir: Optional[os.PathLike] = None):
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
         self._log = default_log(self)
 
+        # init default save directory
+        if default_save_dir:
+            default_save_dir = Path(default_save_dir)
+            if not default_save_dir.is_absolute():
+                # if path is not absolute, treat it as relative to data dir
+                default_save_dir = Path(default_fedot_data_dir()) / default_save_dir
+        else:
+            default_save_dir = Path(default_fedot_data_dir())
+        self._default_save_dir = default_save_dir
+
     def is_empty(self) -> bool:
         return not self.individuals
 
-    def add_to_history(self, individuals: List[Individual]):
-        self.individuals.append(copy(individuals))
+    def add_to_history(self, individuals: Sequence[Individual]):
+        self.individuals.append(list(individuals))
 
-    def add_to_archive_history(self, individuals: List[Individual]):
-        self.archive_history.append(copy(individuals))
+    def add_to_archive_history(self, individuals: Sequence[Individual]):
+        self.archive_history.append(list(individuals))
 
     def to_csv(self, save_dir: Optional[os.PathLike] = None, file: os.PathLike = 'history.csv'):
-        save_dir = save_dir or default_fedot_data_dir()
+        save_dir = save_dir or self._default_save_dir
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
 
@@ -70,8 +83,9 @@ class OptHistory:
                     writer.writerow(row)
                     idx += 1
 
-    def save_current_results(self, save_dir: os.PathLike):
+    def save_current_results(self, save_dir: Optional[os.PathLike] = None):
         # Create folder if it's not exists
+        save_dir = save_dir or self._default_save_dir
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
             self._log.info(f"Created directory for saving optimization history: {save_dir}")
@@ -176,20 +190,3 @@ class OptHistory:
                                   f'{positional_id}',
                                   f'{individual.graph.descriptive_id}']), file=output)
         return output.getvalue()
-
-
-def log_to_history(population: PopulationT,
-                   generations: GenerationKeeper,
-                   history: OptHistory,
-                   save_dir: Optional[os.PathLike] = None):
-    """
-    Default variant of callback that preserves optimisation history
-    :param history: OptHistory for logging
-    :param population: list of individuals obtained in last iteration
-    :param generations: keeper of the best individuals from all iterations
-    :param save_dir: directory for saving history to. None if saving to a file is not required.
-    """
-    history.add_to_history(population)
-    history.add_to_archive_history(generations.best_individuals)
-    if save_dir:
-        history.save_current_results(save_dir)
