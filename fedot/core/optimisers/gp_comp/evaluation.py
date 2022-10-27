@@ -19,6 +19,7 @@ from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
+from fedot.remote.base_remote_evaluator import BaseRemoteEvaluator
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 OptionalEvalResult = Optional[GraphEvalResult]
@@ -84,11 +85,13 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
                  adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  n_jobs: int = 1,
-                 graph_cleanup_fn: Optional[GraphFunction] = None):
+                 graph_cleanup_fn: Optional[GraphFunction] = None,
+                 remote_evaluator: Optional[BaseRemoteEvaluator] = None):
         self._adapter = adapter
         self._objective_eval = None
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
+        self._remote_evaluator = remote_evaluator
 
         self.timer = timer or get_forever_timer()
         self.logger = default_log(self)
@@ -169,12 +172,10 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
-        fitter = RemoteEvaluator()  # singleton
-        if fitter.use_remote:
+        if self._remote_evaluator:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore(population)
-            verifier = verifier_for_task(task_type=None, adapter=self._adapter)
-            computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
+            computed_pipelines = self._remote_evaluator.compute_graphs(restored_graphs)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
