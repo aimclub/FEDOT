@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, TypeVar, Generic, Type, Optional, Dict, Any, C
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.adapter.adapt_registry import AdaptRegistry
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -96,7 +96,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
             return self._restore(item)
         elif isinstance(item, Individual):
             return self._restore(item.graph, item.metadata)
-        elif isinstance(item, Sequence) and type(item[0]) is Individual:
+        elif isinstance(item, Sequence) and isinstance(item[0], Individual):
             return [self._restore(ind.graph, ind.metadata) for ind in item]
         else:
             return item

@@ -1,3 +1,5 @@
+import json
+import os
 from importlib import import_module
 from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
@@ -177,3 +179,29 @@ class Serializer(JSONEncoder, JSONDecoder):
                 return obj_cls
             raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')
         return json_obj
+
+
+def default_save(obj: Any, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
+    """ Default save to json using Serializer """
+    if json_file_path is None:
+        return json.dumps(obj, indent=4, cls=Serializer)
+    with open(json_file_path, mode='w') as json_file:
+        json.dump(obj, json_file, indent=4, cls=Serializer)
+
+
+def default_load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Any:
+    """ Default load from json using Serializer """
+    def load_as_file_path():
+        with open(json_str_or_file_path, mode='r') as json_file:
+            return json.load(json_file, cls=Serializer)
+
+    def load_as_json_str():
+        return json.loads(json_str_or_file_path, cls=Serializer)
+
+    if isinstance(json_str_or_file_path, os.PathLike):
+        return load_as_file_path()
+
+    try:
+        return load_as_json_str()
+    except json.JSONDecodeError:
+        return load_as_file_path()

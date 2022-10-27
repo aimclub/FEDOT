@@ -3,7 +3,6 @@ from __future__ import annotations
 import csv
 import io
 import itertools
-import json
 import os
 import shutil
 from copy import copy
@@ -11,12 +10,10 @@ from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
-from fedot.core.serializers import Serializer
+from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
@@ -28,9 +25,11 @@ if TYPE_CHECKING:
 
 class OptHistory:
     """
-    Contains optimization history, convert Pipeline to PipelineTemplate, save history to csv.
+    Contains optimization history, save history to csv.
+    Can be used for any type of graph that is serializable with Serializer.
 
-    :param objective: contains information about metrics used during optimization.
+    Args:
+        objective: contains information about metrics used during optimization.
     """
 
     def __init__(self, objective: Objective = None):
@@ -81,39 +80,20 @@ class OptHistory:
             last_gen_id = len(self.individuals) - 1
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
-            adapter = PipelineAdapter()
             for individual, ind_fitness in zip(last_gen, last_gen_history):
                 ind_path = Path(save_dir, str(last_gen_id), str(individual.uid))
-                additional_info = \
-                    {'fitness_name': self._objective.metric_names,
-                     'fitness_value': ind_fitness}
-                PipelineTemplate(adapter.restore(individual)).\
-                    export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
+                if not os.path.isdir(ind_path):
+                    os.makedirs(ind_path)
+                individual.save(json_file_path=Path(ind_path, f'{str(individual.uid)}.json'))
         except Exception as ex:
             self._log.exception(ex)
 
     def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
-        if json_file_path is None:
-            return json.dumps(self, indent=4, cls=Serializer)
-        with open(json_file_path, mode='w') as json_file:
-            json.dump(self, json_file, indent=4, cls=Serializer)
+        return default_save(obj=self, json_file_path=json_file_path)
 
     @staticmethod
-    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
-        def load_as_file_path():
-            with open(json_str_or_file_path, mode='r') as json_file:
-                return json.load(json_file, cls=Serializer)
-
-        def load_as_json_str():
-            return json.loads(json_str_or_file_path, cls=Serializer)
-
-        if isinstance(json_str_or_file_path, os.PathLike):
-            return load_as_file_path()
-
-        try:
-            return load_as_json_str()
-        except json.JSONDecodeError:
-            return load_as_file_path()
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> OptHistory:
+        return default_load(json_str_or_file_path)
 
     @staticmethod
     def clean_results(dir_path: Optional[str] = None):
@@ -138,7 +118,7 @@ class OptHistory:
         return historical_fitness
 
     @property
-    def all_historical_fitness(self):
+    def all_historical_fitness(self) -> List[float]:
         historical_fitness = self.historical_fitness
         if self._objective.is_multi_objective:
             all_historical_fitness = []
@@ -149,21 +129,13 @@ class OptHistory:
         return all_historical_fitness
 
     @property
-    def all_historical_quality(self):
+    def all_historical_quality(self) -> List[float]:
         if self._objective.is_multi_objective:
             metric_position = get_metric_position(self._objective.metrics, QualityMetricsEnum)
             all_historical_quality = self.all_historical_fitness[metric_position]
         else:
             all_historical_quality = self.all_historical_fitness
         return all_historical_quality
-
-    @property
-    def historical_pipelines(self):
-        adapter = PipelineAdapter()
-        return [
-            PipelineTemplate(adapter.restore(ind))
-            for ind in list(itertools.chain(*self.individuals))
-        ]
 
     @property
     def show(self):

@@ -1,4 +1,3 @@
-
 from typing import Union, Sequence, List, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph

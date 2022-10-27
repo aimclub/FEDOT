@@ -92,22 +92,18 @@ class PipelineTemplate:
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
     def export_pipeline(self, path: Optional[str] = None, root_node: Optional[Node] = None,
-                        additional_info: Optional[dict] = None,
                         datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
         Save JSON to path and return this JSON like object
 
         :param path: custom path to save JSON to
         :param root_node: root node of the exported pipeline
-        :param additional_info: dict with custom metadata that should be exported
         :param datetime_in_path: is it required to add the datetime timestamp to the path
 
         :return: <JSON representation of the pipeline structure>, <dict of paths to fitted models>
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
-        if additional_info is not None:
-            pipeline_template_dict['additional_info'] = additional_info
         fitted_ops = {}
         if path is None:
             fitted_ops = self._create_fitted_operations()
