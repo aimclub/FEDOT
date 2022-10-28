@@ -39,6 +39,7 @@ class ObjectiveEvaluationDispatcher(ABC):
 
         Args:
             objective: objective function that accepts single individual
+            timer: optional timer for stopping the evaluation process
 
         Returns:
             EvaluationOperator: objective function that accepts whole population
