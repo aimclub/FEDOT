@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import partial
 from random import choice
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List, TypeVar, Sequence
 
 from joblib import Parallel, delayed, cpu_count
 
@@ -18,11 +18,23 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
-from fedot.core.pipelines.verification import verifier_for_task
-from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.core.utilities.serializable import Serializable
 
 OptionalEvalResult = Optional[GraphEvalResult]
 EvalResultsList = List[OptionalEvalResult]
+G = TypeVar('G', bound=Serializable)
+
+
+class DelegateEvaluator:
+    """Interface for delegate evaluator of graphs."""
+    @property
+    @abstractmethod
+    def is_enabled(self) -> bool:
+        return False
+
+    @abstractmethod
+    def compute_graphs(self, graphs: Sequence[G]) -> Sequence[G]:
+        raise NotImplementedError()
 
 
 class ObjectiveEvaluationDispatcher(ABC):
@@ -33,13 +45,25 @@ class ObjectiveEvaluationDispatcher(ABC):
     """
 
     @abstractmethod
-    def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
-        """Return mapped objective function for evaluating population."""
+    def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
+        """Return mapped objective function for evaluating population.
+
+        Args:
+            objective: objective function that accepts single individual
+            timer: optional timer for stopping the evaluation process
+
+        Returns:
+            EvaluationOperator: objective function that accepts whole population
+        """
         raise NotImplementedError()
 
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         """Set or reset (with None) post-evaluation callback
-        that's called on each graph after its evaluation."""
+        that's called on each graph after its evaluation.
+
+        Args:
+            callback: callback to be called on each evaluated graph
+        """
         pass
 
     @staticmethod
@@ -76,29 +100,34 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     Usage: call `dispatch(objective_function)` to get evaluation function.
 
-    :param n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
-    :param graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
+    Args:
+        adapter: adapter for graphs
+        n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
+        graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
+        delegate_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
     """
 
     def __init__(self,
                  adapter: BaseOptimizationAdapter,
-                 timer: Timer = None,
                  n_jobs: int = 1,
-                 graph_cleanup_fn: Optional[GraphFunction] = None):
+                 graph_cleanup_fn: Optional[GraphFunction] = None,
+                 delegate_evaluator: Optional[DelegateEvaluator] = None):
         self._adapter = adapter
         self._objective_eval = None
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
+        self._delegate_evaluator = delegate_evaluator
 
-        self.timer = timer or get_forever_timer()
+        self.timer = None
         self.logger = default_log(self)
         self._n_jobs = n_jobs
         self._reset_eval_cache()
 
-    def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
+    def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
         """Return handler to this object that hides all details
         and allows only to evaluate population with provided objective."""
         self._objective_eval = objective
+        self.timer = timer or get_forever_timer()
         return self.evaluate_with_cache
 
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
@@ -169,12 +198,10 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
-        fitter = RemoteEvaluator()  # singleton
-        if fitter.use_remote:
+        if self._delegate_evaluator and self._delegate_evaluator.is_enabled:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore(population)
-            verifier = verifier_for_task(task_type=None, adapter=self._adapter)
-            computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
+            computed_pipelines = self._delegate_evaluator.compute_graphs(restored_graphs)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
@@ -182,19 +209,18 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population.
 
     Usage: call `dispatch(objective_function)` to get evaluation function.
-
-    :param timer: timer to set timeout for evaluation of population
     """
 
-    def __init__(self, adapter: BaseOptimizationAdapter, timer: Timer = None):
+    def __init__(self, adapter: BaseOptimizationAdapter):
         self._adapter = adapter
         self._objective_eval = None
-        self.timer = timer or get_forever_timer()
+        self.timer = None
 
-    def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
+    def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
         """Return handler to this object that hides all details
         and allows only to evaluate population with provided objective."""
         self._objective_eval = objective
+        self.timer = timer or get_forever_timer()
         return self.evaluate_population
 
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:

@@ -66,7 +66,7 @@ class DataSourceSplitter:
         split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
         train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
-        if RemoteEvaluator().use_remote:
+        if RemoteEvaluator().is_enabled:
             init_data_for_remote_execution(train_data)
 
         return partial(self._data_producer, train_data, test_data)

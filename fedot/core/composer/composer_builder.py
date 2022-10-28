@@ -29,6 +29,7 @@ from fedot.core.repository.quality_metrics_repository import (
 from fedot.core.repository.tasks import Task
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import default_fedot_data_dir
+from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 
@@ -144,6 +145,12 @@ class ComposerBuilder:
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()
+        if RemoteEvaluator().is_enabled:
+            # This explicit passing of singleton evaluator isolates optimizer
+            #  from knowing about it. Needed for separation of FEDOT from GOLEM.
+            #  Best solution would be to avoid singleton init & access altogether,
+            #  instead passing remote evaluator & its params explicitly through API.
+            self.graph_generation_params.remote_evaluator = RemoteEvaluator()
 
         objective = Objective(self.metrics, multi_objective)
 

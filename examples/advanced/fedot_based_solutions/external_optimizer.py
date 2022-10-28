@@ -35,8 +35,8 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
     def optimise(self, objective: ObjectiveFunction):
 
         timer = OptimisationTimer(timeout=self.requirements.timeout)
-        dispatcher = SimpleDispatcher(timer)
-        evaluator = dispatcher.dispatch(objective)
+        dispatcher = SimpleDispatcher(self.graph_generation_params.adapter)
+        evaluator = dispatcher.dispatch(objective, timer)
 
         num_iter = 0
 
