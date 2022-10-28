@@ -13,6 +13,7 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory, OptNodeFactory
+from fedot.remote.base_remote_evaluator import BaseRemoteEvaluator
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
@@ -55,15 +56,19 @@ class GraphGenerationParams:
     verifier: GraphVerifier
     advisor: DefaultChangeAdvisor
     node_factory: OptNodeFactory
+    remote_evaluator: Optional[BaseRemoteEvaluator] = None
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
                  advisor: Optional[DefaultChangeAdvisor] = None,
-                 node_factory: Optional[OptNodeFactory] = None):
+                 node_factory: Optional[OptNodeFactory] = None,
+                 remote_evaluator: Optional[BaseRemoteEvaluator] = None,
+                 ):
         self.adapter = adapter or IdentityAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
         self.node_factory = node_factory or DefaultOptNodeFactory()
+        self.remote_evaluator = remote_evaluator
 
 
 class GraphOptimizer:

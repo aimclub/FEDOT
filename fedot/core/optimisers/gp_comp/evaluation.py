@@ -186,7 +186,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
-        if self._remote_evaluator:
+        if self._remote_evaluator and self._remote_evaluator.use_remote:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore(population)
             computed_pipelines = self._remote_evaluator.compute_graphs(restored_graphs)
