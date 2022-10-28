@@ -10,8 +10,6 @@ from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.objective import Objective
-from fedot.core.optimisers.utils.population_utils import get_metric_position
-from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
@@ -26,14 +24,14 @@ class OptHistory:
     Can be used for any type of graph that is serializable with Serializer.
 
     Args:
-        objective: contains information about metrics used during optimization.
+        is_multi_objective: specifies if history is built for multi-objective optimization.
         default_save_dir: default directory used for saving history when not explicit path is provided.
     """
 
     def __init__(self,
-                 objective: Objective = None,
+                 is_multi_objective: bool = False,
                  default_save_dir: Optional[os.PathLike] = None):
-        self._objective = objective or Objective([])
+        self._is_multi_objective = is_multi_objective
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
         self._log = default_log(self)
@@ -67,7 +65,7 @@ class OptHistory:
 
             # Write header
             metric_str = 'metric'
-            if self._objective.is_multi_objective:
+            if self._is_multi_objective:
                 metric_str += 's'
             header_row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
             writer.writerow(header_row)
@@ -116,9 +114,9 @@ class OptHistory:
     @property
     def historical_fitness(self) -> Sequence[Sequence[Union[float, Sequence[float]]]]:
         """Return sequence of histories of generations per each metric"""
-        if self._objective.is_multi_objective:
+        if self._is_multi_objective:
             historical_fitness = []
-            num_metrics = len(self._objective.metrics)
+            num_metrics = len(self.individuals[0][0].fitness.values)
             for objective_num in range(num_metrics):
                 # history of specific objective for each generation
                 objective_history = [[ind.fitness.values[objective_num] for ind in generation]
@@ -131,7 +129,7 @@ class OptHistory:
     @property
     def all_historical_fitness(self) -> List[float]:
         historical_fitness = self.historical_fitness
-        if self._objective.is_multi_objective:
+        if self._is_multi_objective:
             all_historical_fitness = []
             for obj_num in range(len(historical_fitness)):
                 all_historical_fitness.append(list(itertools.chain(*historical_fitness[obj_num])))
@@ -139,10 +137,18 @@ class OptHistory:
             all_historical_fitness = list(itertools.chain(*historical_fitness))
         return all_historical_fitness
 
-    @property
-    def all_historical_quality(self) -> List[float]:
-        if self._objective.is_multi_objective:
-            metric_position = get_metric_position(self._objective.metrics, QualityMetricsEnum)
+    def all_historical_quality(self, metric_position: int = 0) -> List[float]:
+        """
+        Return fitness history of population for specified metric.
+
+        Args:
+            metric_position: Index of the metric for multi-objective optimization.
+             By default, choose first metric, assuming it is primary quality metric.
+
+        Returns:
+            List: all historical fitness
+        """
+        if self._is_multi_objective:
             all_historical_quality = self.all_historical_fitness[metric_position]
         else:
             all_historical_quality = self.all_historical_fitness

@@ -81,7 +81,7 @@ def test_history_properties(generate_history):
     generations_quantity = 2
     pop_size = 10
     history = generate_history
-    assert len(history.all_historical_quality) == pop_size * generations_quantity
+    assert len(history.all_historical_quality()) == pop_size * generations_quantity
     assert len(history.historical_fitness) == generations_quantity
     assert len(history.historical_fitness[0]) == pop_size
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
@@ -241,7 +241,6 @@ def test_history_backward_compatibility():
                for ind in chain(*history.individuals)
                for parent_op in ind.operators_from_prev_generation
                for parent_ind in parent_op.parent_individuals)
-    assert isinstance(history._objective, Objective)
     _test_individuals_in_history(history)
 
 
