@@ -142,7 +142,7 @@ def test_evaluate_individuals():
     timeout = datetime.timedelta(minutes=0.001)
     params = get_pipeline_generation_params()
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(params.adapter, timer=t).dispatch(objective_eval)
+        evaluator = MultiprocessingDispatcher(params.adapter).dispatch(objective_eval, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
@@ -152,7 +152,7 @@ def test_evaluate_individuals():
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(params.adapter, timer=t).dispatch(objective_eval)
+        evaluator = MultiprocessingDispatcher(params.adapter).dispatch(objective_eval, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 4
     assert all([ind.fitness.valid for ind in evaluated])
