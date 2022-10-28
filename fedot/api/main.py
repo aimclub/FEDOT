@@ -430,7 +430,7 @@ class Fedot:
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
-        if remote.use_remote and remote.remote_task_params is not None:
+        if remote.is_enabled and remote.remote_task_params is not None:
             task = self.params.api_params['task']
             if task.task_type is TaskTypesEnum.ts_forecasting:
                 task_str = \

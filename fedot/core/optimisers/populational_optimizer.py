@@ -49,7 +49,7 @@ class PopulationalOptimizer(GraphOptimizer):
         self.eval_dispatcher = MultiprocessingDispatcher(adapter=graph_generation_params.adapter,
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline,
-                                                         remote_evaluator=graph_generation_params.remote_evaluator)
+                                                         delegate_evaluator=graph_generation_params.remote_evaluator)
 
         # early_stopping_generations may be None, so use some obvious max number
         max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations

@@ -7,7 +7,7 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.utilities.serializable import Serializable
-from fedot.remote.base_remote_evaluator import BaseRemoteEvaluator
+from fedot.core.optimisers.gp_comp.evaluation import DelegateEvaluator
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton
 
@@ -45,7 +45,7 @@ G = TypeVar('G', bound=Serializable)
 
 
 @singleton
-class RemoteEvaluator(BaseRemoteEvaluator):
+class RemoteEvaluator(DelegateEvaluator):
     def __init__(self):
         """
         Class for the batch evaluation of pipelines using remote client
@@ -69,7 +69,7 @@ class RemoteEvaluator(BaseRemoteEvaluator):
         self.config_for_dump = get_config or _get_config
 
     @property
-    def use_remote(self):
+    def is_enabled(self):
         return self.remote_task_params is not None and self.remote_task_params.mode == 'remote'
 
     def compute_graphs(self, graphs: Sequence[G]) -> Sequence[G]:

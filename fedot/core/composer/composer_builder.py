@@ -145,7 +145,7 @@ class ComposerBuilder:
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()
-        if RemoteEvaluator().use_remote:
+        if RemoteEvaluator().is_enabled:
             # This explicit passing of singleton evaluator isolates optimizer
             #  from knowing about it. Needed for separation of FEDOT from GOLEM.
             #  Best solution would be to avoid singleton init & access altogether,

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import partial
 from random import choice
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List, TypeVar, Sequence
 
 from joblib import Parallel, delayed, cpu_count
 
@@ -18,12 +18,23 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
-from fedot.core.pipelines.verification import verifier_for_task
-from fedot.remote.base_remote_evaluator import BaseRemoteEvaluator
-from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.core.utilities.serializable import Serializable
 
 OptionalEvalResult = Optional[GraphEvalResult]
 EvalResultsList = List[OptionalEvalResult]
+G = TypeVar('G', bound=Serializable)
+
+
+class DelegateEvaluator:
+    """Interface for delegate evaluator of graphs."""
+    @property
+    @abstractmethod
+    def is_enabled(self) -> bool:
+        return False
+
+    @abstractmethod
+    def compute_graphs(self, graphs: Sequence[G]) -> Sequence[G]:
+        raise NotImplementedError()
 
 
 class ObjectiveEvaluationDispatcher(ABC):
@@ -93,19 +104,19 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         adapter: adapter for graphs
         n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
         graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
-        remote_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
+        delegate_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
     """
 
     def __init__(self,
                  adapter: BaseOptimizationAdapter,
                  n_jobs: int = 1,
                  graph_cleanup_fn: Optional[GraphFunction] = None,
-                 remote_evaluator: Optional[BaseRemoteEvaluator] = None):
+                 delegate_evaluator: Optional[DelegateEvaluator] = None):
         self._adapter = adapter
         self._objective_eval = None
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
-        self._remote_evaluator = remote_evaluator
+        self._delegate_evaluator = delegate_evaluator
 
         self.timer = None
         self.logger = default_log(self)
@@ -187,10 +198,10 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
-        if self._remote_evaluator and self._remote_evaluator.use_remote:
+        if self._delegate_evaluator and self._delegate_evaluator.is_enabled:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore(population)
-            computed_pipelines = self._remote_evaluator.compute_graphs(restored_graphs)
+            computed_pipelines = self._delegate_evaluator.compute_graphs(restored_graphs)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
