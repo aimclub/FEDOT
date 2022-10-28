@@ -1,24 +1,20 @@
 from abc import abstractmethod
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
-from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     pass
