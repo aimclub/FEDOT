@@ -99,7 +99,8 @@ class GraphOptimizer:
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
-        self.history = OptHistory(graph_optimizer_parameters.multi_objective, requirements.history_dir) \
+        mo = False if not graph_optimizer_parameters else graph_optimizer_parameters.multi_objective
+        self.history = OptHistory(mo, requirements.history_dir) \
             if requirements and requirements.keep_history else None
 
     @property
