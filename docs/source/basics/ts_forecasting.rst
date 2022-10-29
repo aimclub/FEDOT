@@ -22,6 +22,8 @@ Simple examples
 Automated
 ---------
 
+Use FEDOT in automated mode to get pipeline for time-series forecasting.
+
 .. code-block:: python
 
     import numpy as np
@@ -31,7 +33,7 @@ Automated
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10))
+                TsForecastingParams(forecast_length=10)) # forecast_length - required depth of forecast
 
     train_input = InputData.from_csv_time_series(task=task,
                                                  file_path='time_series.csv',
@@ -46,7 +48,7 @@ Automated
                   timeout=10,
                   n_jobs=-1,
                   cv_folds=2,
-                  validation_blocks=2,
+                  validation_blocks=2, # number of forecasting steps used during model validation
                   preset='fast_train')
 
     # run AutoML model design
@@ -55,8 +57,7 @@ Automated
 
     # use model to obtain forecast
     forecast = model.predict(test_data)
-    target = np.ravel(test_data.target)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
     # plot forecasting result
     model.plot_prediction()
@@ -65,7 +66,7 @@ Sample output:
 
 .. code-block:: python
 
-    {'rmse': 8.484610509589182, 'mae': 6.903720676906173, 'mape': 0.04867517104664435}
+    {'rmse': 8.485, 'mae': 6.904, 'mape': 0.049}
 
 |sample_forecast|
 
@@ -75,6 +76,8 @@ Sample output:
 
 Manual
 ------
+
+Use FEDOT in manual mode to fit your own pipeline for time-series forecasting.
 
 Examples of time-series pipelines can be found `here`_.
 
@@ -105,18 +108,13 @@ Examples of time-series pipelines can be found `here`_.
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
-                  task_params=task.task_params,
-                  timeout=10,
-                  n_jobs=-1,
-                  cv_folds=2,
-                  validation_blocks=2)
+                  task_params=task.task_params)
 
     model.fit(train_data, predefined_model=pipeline)
 
     # use model to obtain forecast
     forecast = model.predict(test_data)
-    target = np.ravel(test_data.target)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
     # plot forecasting result
     model.plot_prediction()
@@ -125,11 +123,18 @@ Sample output:
 
 .. code-block:: python
 
-    {'rmse': 2.6591575431482206, 'mae': 2.1415227340013323, 'mape': 0.09970880013852462}
+    {'rmse': 2.659, 'mae': 2.142, 'mape': 0.100}
 
 |manual_sample_forecast|
 
 .. |manual_sample_forecast| image:: img_utilities/manual_sample_forecast.png
+   :width: 80%
+
+Pipeline from the example:
+
+|ts_pipeline|
+
+.. |ts_pipeline| image:: img_utilities/ts_pipeline.png
    :width: 80%
 
 Time-series validation
