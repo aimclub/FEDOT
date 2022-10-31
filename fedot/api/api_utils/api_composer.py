@@ -121,6 +121,9 @@ class ApiComposer:
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
 
+            keep_history=True,
+            history_dir=composer_params.get('history_folder'),
+
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
         )
@@ -256,7 +259,6 @@ class ApiComposer:
             .with_optimizer_params(parameters=optimizer_params,
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_functions) \
-            .with_history(composer_params.get('history_folder')) \
             .with_cache(self.pipelines_cache, self.preprocessing_cache) \
             .with_graph_generation_param(graph_generation_params=graph_generation_params) \
             .build()
@@ -330,7 +332,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 early_stopping_generations=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None,
                                 initial_assumption=None, preset='auto',
-                                use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None)
+                                use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
+                                keep_history=True, history_dir=None,)
 
     tuner_params_dict = dict(with_tuning=False)
 

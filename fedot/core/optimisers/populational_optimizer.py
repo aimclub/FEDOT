@@ -41,7 +41,8 @@ class PopulationalOptimizer(GraphOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 graph_optimizer_params: Optional['GraphOptimizerParameters'] = None):
+                 graph_optimizer_params: Optional['GraphOptimizerParameters'] = None,
+                 ):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_params)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
@@ -113,6 +114,7 @@ class PopulationalOptimizer(GraphOptimizer):
         self._update_native_generation_numbers(next_population)
         self.generations.append(next_population)
         self._optimisation_callback(next_population, self.generations)
+        self._log_to_history(next_population)
         self.population = next_population
 
         self.log.info(f'Generation num: {self.current_generation_num}')
@@ -123,6 +125,12 @@ class PopulationalOptimizer(GraphOptimizer):
     def _update_native_generation_numbers(self, population: PopulationT):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
+
+    def _log_to_history(self, population: PopulationT):
+        self.history.add_to_history(population)
+        self.history.add_to_archive_history(self.generations.best_individuals)
+        if self.requirements.history_dir:
+            self.history.save_current_results()
 
     @property
     def _progressbar(self):

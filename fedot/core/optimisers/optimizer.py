@@ -12,6 +12,7 @@ from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory, OptNodeFactory
 from fedot.core.optimisers.gp_comp.evaluation import DelegateEvaluator
 
@@ -98,6 +99,9 @@ class GraphOptimizer:
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
+        mo = False if not graph_optimizer_parameters else graph_optimizer_parameters.multi_objective
+        self.history = OptHistory(mo, requirements.history_dir) \
+            if requirements and requirements.keep_history else None
 
     @property
     def objective(self) -> Objective:

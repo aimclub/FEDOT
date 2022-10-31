@@ -115,10 +115,10 @@ class OptHistoryExtraVisualizer:
             plt.clf()
         plt.close('all')
 
-    def visualise_history(self, history: OptHistory):
+    def visualise_history(self, history: OptHistory, metric_index: int = 0):
         try:
             self._clean(with_gif=True)
-            all_historical_fitness = history.all_historical_quality
+            all_historical_fitness = history.all_historical_quality(metric_index)
             historical_graphs = [ind.graph
                                  for ind in list(itertools.chain(*history.individuals))]
             self._visualise_graphs(historical_graphs, all_historical_fitness)

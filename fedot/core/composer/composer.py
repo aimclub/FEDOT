@@ -5,6 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -14,15 +15,18 @@ class Composer(ABC):
     Base class used for receiving composite operations via optimization
 
     Args:
-        optimiser: optimiser generated in :class:`~fedot.core.composer.ComposerBuilder`
+        optimizer: optimizer generated in :class:`~fedot.core.composer.ComposerBuilder`
         composer_requirements: requirements for composition process
-        initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
     def __init__(self, optimizer: GraphOptimizer, composer_requirements: Optional[ComposerRequirements] = None):
         self.composer_requirements = composer_requirements
         self.optimizer = optimizer
         self.log = default_log(self)
+
+    @property
+    def history(self) -> OptHistory:
+        return self.optimizer.history
 
     @abstractmethod
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:

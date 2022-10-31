@@ -98,7 +98,7 @@ def test_all_historical_quality(generate_history):
         for ind_num, individual in enumerate(population):
             fitness = MultiObjFitness(values=eval_fitness[ind_num], weights=weights)
             object.__setattr__(individual, 'fitness', fitness)
-    all_quality = history.all_historical_quality
+    all_quality = history.all_historical_quality()
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2
 
 

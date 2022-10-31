@@ -1,5 +1,4 @@
 import platform
-from functools import partial
 from multiprocessing import set_start_method
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Type, Union
@@ -9,13 +8,11 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory, log_to_history
 from fedot.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -28,7 +25,6 @@ from fedot.core.repository.quality_metrics_repository import (
 )
 from fedot.core.repository.tasks import Task
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.utils import default_fedot_data_dir
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -104,13 +100,6 @@ class ComposerBuilder:
         self.initial_population_generation_function = generation_function
         return self
 
-    def with_history(self, history_folder: Optional[str] = None):
-        self._keep_history = True
-        if history_folder:
-            history_folder = Path(default_fedot_data_dir(), history_folder)
-        self._full_history_dir = history_folder
-        return self
-
     def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
                    preprocessing_cache: Optional[PreprocessingCache] = None):
         self.pipelines_cache = pipelines_cache
@@ -166,17 +155,9 @@ class ComposerBuilder:
                                        graph_generation_params=self.graph_generation_params,
                                        graph_optimizer_params=self.optimizer_parameters,
                                        **self.optimizer_external_parameters)
-        history = None
-        if self._keep_history:
-            # Clean results of the previous run
-            history = OptHistory(objective=objective)
-            history.clean_results(self._full_history_dir)
-            history_callback = partial(log_to_history, history=history, save_dir=self._full_history_dir)
-            optimiser.set_optimisation_callback(history_callback)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     history,
                                      self.pipelines_cache,
                                      self.preprocessing_cache)
 
