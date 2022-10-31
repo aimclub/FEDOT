@@ -60,9 +60,9 @@ The ``.get_metrics()`` method estimates the quality of predictions according the
     The same way FEDOT can be used to ``regression`` problem. Only it is required to change params according the problem
     in main class object:
 
-.. code-block:: python
+    .. code-block:: python
 
-    model = Fedot(problem='regression', metric='rmse')
+        model = Fedot(problem='regression', metric='rmse')
 
 Examples
 ~~~~~~~~
