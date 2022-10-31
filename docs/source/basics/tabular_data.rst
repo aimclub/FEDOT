@@ -28,6 +28,11 @@ Initialize the Fedot object and define the type of modeling problem. In this cas
 
     model = Fedot(problem='classification', metric='roc_auc')
 
+.. note::
+
+    Class ``Fedot()`` has more than two params, e.g., ``timeout`` for setting time limits or
+    ``n_jobs`` for parallelization. For more details, see the `FEDOT API <https://fedot.readthedocs.io/en/latest/api/api.html>`_ section in our documentation.
+
 The ``.fit()`` method begins the optimization and returns the resulting composite pipeline.
 
 .. code-block:: python
@@ -40,14 +45,20 @@ The ``.predict()`` method, which uses an already fitted pipeline, returns values
 
     prediction = model.predict(features=test)
 
+.. hint::
+
+    If you want to predict target probability use ``.predict_proba()`` method.
+
 The ``.get_metrics()`` method estimates the quality of predictions according the selected metrics.
 
 .. code-block:: python
 
     prediction = model.get_metrics()
 
-The same way FEDOT can be used to ``regression`` problem. Only it is required to change params according the problem
-in main class object:
+.. note::
+
+    The same way FEDOT can be used to ``regression`` problem. Only it is required to change params according the problem
+    in main class object:
 
 .. code-block:: python
 
