@@ -2,52 +2,49 @@ Tabular data prediction
 ==============================================
 
 As common AutoML frameworks, FEDOT solves problems with data that are represented as tables.
-FEDOT allows you to automate machine learning pipeline design for tabular data in `classification` and `regression`
+FEDOT allows you to automate machine learning pipeline design for tabular data in ``classification`` and ``regression``
 problem.
 
 Also, it provides a high-level API that enables you to use common fit/predict interface. To use API it is required
 to import certain object:
 
-``` code-block:: python
+.. code-block:: python
 from fedot.api.main import Fedot
-```
 
-Loading training and test data from a CSV file as a Pandas dataframe `pd.DataFrame()`.
+Loading training and test data from a CSV file as a Pandas dataframe ``pd.DataFrame()``.
 
-``` code-block:: python
+.. code-block:: python
 train = pd.DataFrame('train.csv')
 test = pd.DataFrame('test.csv')
-```
 
-Initialize the Fedot object and define the type of modeling problem. In this case, problem is `classification`.
+Initialize the Fedot object and define the type of modeling problem. In this case, problem is ``classification``.
 
-``` code-block:: python
+.. code-block:: python
 model = Fedot(problem='classification', metric='roc_auc')
-```
 
-The `.fit()` method begins the optimization and returns the resulting composite pipeline.
+The ``.fit()`` method begins the optimization and returns the resulting composite pipeline.
 
-``` code-block:: python
+.. code-block:: python
 model.fit(features=train, target='target')
-```
 
-The `.predict()` method, which uses an already fitted pipeline, returns values for the target.
 
-``` code-block:: python
+The ``.predict()`` method, which uses an already fitted pipeline, returns values for the target.
+
+.. code-block:: python
 prediction = model.predict(features=test)
-```
 
-The `.get_metrics()` method estimates the quality of predictions according the selected metrics.
 
-``` code-block:: python
+The ``.get_metrics()`` method estimates the quality of predictions according the selected metrics.
+
+.. code-block:: python
 prediction = model.get_metrics()
-```
 
-The same way FEDOT can be used to `regression` problem. Only it is required to change params according the problem
+The same way FEDOT can be used to ``regression`` problem. Only it is required to change params according the problem
 in main class object:
-``` code-block:: python
+
+.. code-block:: python
 model = Fedot(problem='regression', metric='rmse')
-```
+
 
 Examples
 ~~~~~~~~
