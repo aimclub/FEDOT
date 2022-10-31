@@ -5,8 +5,8 @@ from typing import Any, Optional, Union, Iterable, Callable, Sequence, TypeVar, 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import *
-from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository, QualityMetricsEnum, \
-    ComplexityMetricsEnum, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import \
+    MetricType, MetricsRepository, ComplexityMetricsEnum, MetricsEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 G = TypeVar('G', bound=Graph, covariant=True)
@@ -49,54 +49,26 @@ class Objective:
         return [str(metric_id) for metric_id, _ in self.metrics]
 
 
-class ObjectiveBuilder:
-    def __init__(self):
-        self.reset()
+class MetricsObjective(Objective):
+    def __init__(self,
+                 metrics: Union[MetricType, Iterable[MetricType]],
+                 is_multi_objective: bool = False):
+        quality_metrics = {}
+        complexity_metrics = {}
 
-    def reset(self):
-        self._is_multi_objective = False
-        self._quality_metrics = {}
-        self._complexity_metrics = {}
+        for metric in ensure_wrapped_in_sequence(metrics):
+            if isinstance(metric, MetricsEnum):
+                metric_func = MetricsRepository().metric_by_id(metric)
 
-    def build(self) -> Objective:
-        obj = Objective(quality_metrics=self._quality_metrics,
-                        complexity_metrics=self._complexity_metrics,
-                        is_multi_objective=self._is_multi_objective)
-        self.reset()
-        return obj
+                if isinstance(metric, ComplexityMetricsEnum):
+                    complexity_metrics[metric] = metric_func
+                else:
+                    quality_metrics[metric] = metric_func
+            elif isinstance(metric, Callable):
+                metric_id = getattr(metric, '__name__', str(metric))
+                quality_metrics[metric_id] = metric
 
-    def multi_objective(self, is_multi=True):
-        self._is_multi_objective = is_multi
-        return self
-
-    def with_quality_metric(self, metric: Callable, metric_id: Optional[Any] = None):
-        if not metric_id:
-            metric_id = f'quality_{len(self._quality_metrics)}'
-        self._quality_metrics[metric_id] = metric
-        return self
-
-    def with_complexity_metric(self, metric: Callable, metric_id: Optional[Any] = None):
-        if not metric_id:
-            metric_id = f'complexity_{len(self._complexity_metrics)}'
-        self._complexity_metrics[metric_id] = metric
-        return self
-
-
-def objective_from_metrics(metrics: Union[MetricType, Iterable[MetricType]],
-                           is_multi_objective: bool = False) -> Objective:
-    builder = ObjectiveBuilder()
-    for metric in ensure_wrapped_in_sequence(metrics):
-        if isinstance(metric, MetricsEnum):
-            metric_func = MetricsRepository().metric_by_id(metric)
-
-            if isinstance(metric, ComplexityMetricsEnum):
-                builder.with_complexity_metric(metric_func, metric_id=metric)
-            else:
-                builder.with_quality_metric(metric_func, metric_id=metric)
-        elif isinstance(metric, Callable):
-            metric_id = getattr(metric, '__name__', None)
-            builder.with_quality_metric(metric, metric_id)
-    return builder.multi_objective(is_multi_objective).build()
+        super().__init__(quality_metrics, complexity_metrics, is_multi_objective)
 
 
 def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = False) -> Fitness:
