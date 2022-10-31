@@ -11,8 +11,8 @@ jobs:
           action: ITMO-NSS-team/NSS-Ops/.github/workflows/mirror-repo.yml@master
           with: |
             GITLAB_URL: 'https://gitlab.actcognitive.org/itmo-nss-team/FEDOT.git'
-          secrets: |
-            GITLAB_USER: ${{ secrets.GITLAB_USER }}
-            GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }}
+            secrets: |
+              GITLAB_USER: ${{ secrets.GITLAB_USER }}
+              GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }}
           attempt_limit: 3
           attempt_delay: 2000
