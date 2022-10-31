@@ -141,12 +141,12 @@ class PopulationalOptimizer(GraphOptimizer):
                 OF = best.fitness.value[0]
                 # print('!', self.generations.best_individuals.archive.items.fitness.values)
                 structure = best.graph.get_edges()
-                best.graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png'))
+                # best.graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png'))
                 pdf.add_page()
                 pdf.set_font("Arial", size = 14)
                 pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')   
                 pdf.cell(150, 5, txt = str(SHD), ln = 1, align = 'C')   
-                pdf.image('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png',w=165, h=165)        
+                # pdf.image('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png',w=165, h=165)        
                 pdf.multi_cell(180, 5, txt = 'structure = ' + str(structure))  
                 for node in best.graph.nodes:
                     if node.content['parent_model'] == None: 
@@ -154,9 +154,9 @@ class PopulationalOptimizer(GraphOptimizer):
                     else:
                         pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
 
-        pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/1asia_correct_score_cross_both" +".pdf")
+        pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/_asia" +".pdf")
         return self.best_graphs
-
+# 3sachs_correct_score_cross_both_penalty_4
     @property
     def best_graphs(self):
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
