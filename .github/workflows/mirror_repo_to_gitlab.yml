@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: Wandalen/wretry.action@master
         with:
-          action: ITMO-NSS-team/NSS-Ops/.github/workflows/mirror-repo.yml@master
+          action: ITMO-NSS-team/NSS-Ops@master
           with: |
             GITLAB_URL: 'https://gitlab.actcognitive.org/itmo-nss-team/FEDOT.git'
             secrets: |
