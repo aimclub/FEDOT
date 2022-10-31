@@ -1,4 +1,3 @@
-import datetime
 import os
 import shutil
 
@@ -24,7 +23,7 @@ def create_func_delete_files(paths):
 
     def wrapper():
         for path in paths:
-            if os.path.isdir(path):
+            if os.path.isdir(path) or path.endswith('.log'):
                 shutil.rmtree(path)
 
     return wrapper

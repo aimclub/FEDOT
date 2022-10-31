@@ -1,28 +1,23 @@
 import os
 from datetime import timedelta
-from pathlib import Path
 
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error
 
-from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.advanced.multimodal_text_num_example import run_multi_modal_example
 from examples.advanced.multiobj_optimisation import run_classification_multiobj_example
+from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
 from examples.advanced.time_series_forecasting.multistep import run_multistep
 from examples.advanced.time_series_forecasting.nemo_multiple import run_multiple_example
 from examples.simple.classification.api_classification import run_classification_example
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.classification.multiclass_prediction import get_model
 from examples.simple.interpretable.api_explain import run_api_explain_example
-from examples.simple.pipeline_log import run_log_example
 from examples.simple.pipeline_tune import get_case_train_test_data, pipeline_tuning
-from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
 from examples.simple.time_series_forecasting.api_forecasting import run_ts_forecasting_example
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
-
-from fedot.core.utils import fedot_project_root, default_fedot_data_dir
+from fedot.core.utils import fedot_project_root
 
 
 def test_multiclass_example():
@@ -68,8 +63,6 @@ def test_nemo_multiple_points_example():
                          out_path=None,
                          len_forecast=30,
                          is_boxplot_visualize=False)
-
-
 
 
 def test_pipeline_tuning_example():
