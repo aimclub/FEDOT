@@ -1,2 +1,2 @@
-Classification and regression for tabular data
+Tabular data in classification and regression task
 ==============================================
