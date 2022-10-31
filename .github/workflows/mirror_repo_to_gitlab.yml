@@ -6,7 +6,7 @@ jobs:
   call-nss-ops-mirror-workflow:
     runs-on: ubuntu-latest
     steps:
-      - uses: Wandalen/wretry.action@v1.0.36
+      - uses: Wandalen/wretry.action@master
         with:
           action: ITMO-NSS-team/NSS-Ops/.github/workflows/mirror-repo.yml@master
           with: |
