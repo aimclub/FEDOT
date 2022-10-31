@@ -5,8 +5,9 @@ from hyperopt import tpe
 
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -80,7 +81,7 @@ class TunerBuilder:
         return self
 
     def build(self, data: InputData) -> HyperoptTuner:
-        objective = Objective(self.metric)
+        objective = MetricsObjective(self.metric)
         data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
                                                        validation_blocks=self.validation_blocks,

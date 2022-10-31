@@ -103,7 +103,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
         rules_for_constraint=rules)
 
-    objective = Objective([custom_metric])
+    objective = Objective({'custom': custom_metric})
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,

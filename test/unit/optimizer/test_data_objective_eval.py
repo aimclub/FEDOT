@@ -12,6 +12,7 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -79,7 +80,7 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
         one_fold_split = OneFoldInputDataSplit()
         data_split = partial(one_fold_split.input_split, input_data=classification_dataset)
         check_pipeline = deepcopy(pipeline)
-        objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split)
+        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
         fitness = objective_eval(pipeline)
         act_fitness = actual_fitness(data_split, check_pipeline, metric)
         assert fitness.valid
@@ -93,7 +94,7 @@ def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset)
     data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
     with pytest.raises(AttributeError):
         objective_eval(pipeline)
 
@@ -104,7 +105,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     cv_fold = partial(tabular_cv_generator, classification_dataset, folds=5)
     metric = ClassificationMetricsEnum.logloss
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), cv_fold)
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
@@ -116,7 +117,7 @@ def test_pipeline_objective_evaluate_with_empty_datasource(classification_datase
     data_split = empty_datasource
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
 
@@ -128,12 +129,12 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
     time_constraint = datetime.timedelta(seconds=0.0001)
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=time_constraint)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split, time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
 
     time_constraint = datetime.timedelta(seconds=300)
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=time_constraint)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split, time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
@@ -149,7 +150,7 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
 
     data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metrics), data_split)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_split)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
 
@@ -157,7 +158,7 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
 def test_pipeline_objective_evaluate_for_timeseries_cv(folds, actual_value):
     forecast_len, validation_blocks, time_series = configure_experiment()
-    objective = Objective(RegressionMetricsEnum.MSE)
+    objective = MetricsObjective(RegressionMetricsEnum.MSE)
     data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
     simple_pipeline = get_simple_ts_pipeline()
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)

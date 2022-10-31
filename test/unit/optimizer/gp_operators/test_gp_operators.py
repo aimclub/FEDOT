@@ -16,7 +16,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -133,7 +133,7 @@ def test_evaluate_individuals():
                              pipeline_third(), pipeline_fourth()]
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective = Objective(metric_function)
+    objective = MetricsObjective(metric_function)
     data_source = DataSourceSplitter().build(dataset_to_compose)
     objective_eval = PipelineObjectiveEvaluate(objective, data_source)
     adapter = PipelineAdapter()

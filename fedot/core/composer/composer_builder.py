@@ -12,7 +12,7 @@ from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
-from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -141,7 +141,7 @@ class ComposerBuilder:
             #  instead passing remote evaluator & its params explicitly through API.
             self.graph_generation_params.remote_evaluator = RemoteEvaluator()
 
-        objective = Objective(self.metrics, multi_objective)
+        objective = MetricsObjective(self.metrics, multi_objective)
 
         initial_population = InitialPopulationGenerator(self.optimizer_parameters.pop_size,
                                                         self.graph_generation_params,

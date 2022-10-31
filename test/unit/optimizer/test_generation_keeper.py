@@ -4,7 +4,7 @@ from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective import Objective, MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, RegressionMetricsEnum
 
@@ -23,7 +23,7 @@ def create_population(fitness: Sequence[Fitness]) -> PopulationT:
 
 def generation_keeper(init_population=None, multi_objective=True):
     metrics = (RegressionMetricsEnum.RMSE, ComplexityMetricsEnum.structural)
-    objective = Objective(metrics, multi_objective)
+    objective = MetricsObjective(metrics, multi_objective)
     return GenerationKeeper(objective, initial_generation=init_population)
 
 

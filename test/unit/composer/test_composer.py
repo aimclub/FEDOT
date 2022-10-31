@@ -19,6 +19,7 @@ from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -72,7 +73,7 @@ def test_random_composer(data_fixture, request):
     available_model_types = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
-    objective = Objective(ClassificationMetricsEnum.ROCAUC)
+    objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types)
     optimiser = RandomSearchOptimizer(objective, RandomGraphFactory(req.primary, req.secondary), iter_num=2)
     random_composer = RandomSearchComposer(optimiser, composer_requirements=req)
@@ -279,7 +280,7 @@ def test_evaluation_saving_info_from_process(data_fixture, request):
     quality_metric = ClassificationMetricsEnum.ROCAUC
 
     data_source = DataSourceSplitter().build(data)
-    objective_evaluator = PipelineObjectiveEvaluate(Objective(quality_metric), data_source,
+    objective_evaluator = PipelineObjectiveEvaluate(MetricsObjective(quality_metric), data_source,
                                                     pipelines_cache=OperationsCache())
 
     objective_evaluator(pipeline_first())

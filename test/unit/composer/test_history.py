@@ -20,10 +20,10 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
+from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -33,7 +33,7 @@ from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
-from test.unit.visualization.test_composing_history import generate_history, create_mock_graph_individual
+from test.unit.visualization.test_composing_history import create_mock_graph_individual
 
 
 def scaling_logit_rf_pipeline():
@@ -193,7 +193,7 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     metrics = [metric]
 
     data_source = DataSourceSplitter().build(input_data)
-    objective_eval = PipelineObjectiveEvaluate(Objective(metrics), data_source)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_source)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
     dispatcher.set_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)
