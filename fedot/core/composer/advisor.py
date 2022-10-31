@@ -29,6 +29,9 @@ class DefaultChangeAdvisor:
     def propose_parent(self, node: OptNode, possible_operations: List[Any]) -> List[Any]:
         return possible_operations
 
+    def propose_child(self, node: OptNode, possible_operations: List[Any]) -> List[Any]:
+        return possible_operations
+
 
 class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task=None):
