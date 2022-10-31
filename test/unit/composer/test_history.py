@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.objective import MetricsObjective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator

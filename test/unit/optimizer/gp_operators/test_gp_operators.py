@@ -16,7 +16,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.objective import MetricsObjective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

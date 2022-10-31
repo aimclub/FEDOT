@@ -1,13 +1,10 @@
 import itertools
 from numbers import Real
-from typing import Any, Optional, Union, Iterable, Callable, Sequence, TypeVar, Dict, Tuple
+from typing import Any, Optional, Iterable, Callable, Sequence, TypeVar, Dict, Tuple
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import *
-from fedot.core.repository.quality_metrics_repository import \
-    MetricType, MetricsRepository, ComplexityMetricsEnum, MetricsEnum
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 G = TypeVar('G', bound=Graph, covariant=True)
 R = TypeVar('R', contravariant=True)
@@ -47,28 +44,6 @@ class Objective:
     @property
     def metric_names(self) -> Sequence[str]:
         return [str(metric_id) for metric_id, _ in self.metrics]
-
-
-class MetricsObjective(Objective):
-    def __init__(self,
-                 metrics: Union[MetricType, Iterable[MetricType]],
-                 is_multi_objective: bool = False):
-        quality_metrics = {}
-        complexity_metrics = {}
-
-        for metric in ensure_wrapped_in_sequence(metrics):
-            if isinstance(metric, MetricsEnum):
-                metric_func = MetricsRepository().metric_by_id(metric)
-
-                if isinstance(metric, ComplexityMetricsEnum):
-                    complexity_metrics[metric] = metric_func
-                else:
-                    quality_metrics[metric] = metric_func
-            elif isinstance(metric, Callable):
-                metric_id = getattr(metric, '__name__', str(metric))
-                quality_metrics[metric_id] = metric
-
-        super().__init__(quality_metrics, complexity_metrics, is_multi_objective)
 
 
 def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = False) -> Fitness:

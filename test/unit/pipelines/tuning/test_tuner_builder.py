@@ -8,7 +8,7 @@ from hyperopt import tpe, rand
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.objective.objective import MetricsObjective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder

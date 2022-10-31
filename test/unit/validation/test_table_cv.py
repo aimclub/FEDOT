@@ -14,7 +14,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
-from fedot.core.optimisers.objective.objective import MetricsObjective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder

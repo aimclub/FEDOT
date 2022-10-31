@@ -7,7 +7,7 @@ from fedot.core.optimisers.fitness import Fitness, null_fitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SimpleDispatcher, \
     ObjectiveEvaluationDispatcher
 from fedot.core.optimisers.objective import Objective
-from fedot.core.optimisers.objective.objective import MetricsObjective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
