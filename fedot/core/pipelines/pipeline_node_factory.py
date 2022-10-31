@@ -36,10 +36,16 @@ class PipelineOptNodeFactory(OptNodeFactory):
                                                  possible_operations=possible_operations)
         return self._return_node(candidates)
 
+    def get_child_node(self, node: OptNode,
+                 is_primary: bool):
+        #candidates = self.graph_model_repository.get_operations(is_primary=is_primary)
+        return self._return_node(candidates)
+
     def get_node(self,
                  is_primary: bool):
         candidates = self.graph_model_repository.get_operations(is_primary=is_primary)
         return self._return_node(candidates)
+
 
     @staticmethod
     def _return_node(candidates) -> Optional[OptNode]:

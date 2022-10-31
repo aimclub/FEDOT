@@ -30,6 +30,13 @@ class OptNodeFactory(ABC):
         pass
 
     @abstractmethod
+    def get_child_node(self, node: OptNode, **kwargs) -> Optional[OptNode]:
+        """
+        Returns new child node for current node
+        """
+        pass
+
+    @abstractmethod
     def get_node(self, **kwargs) -> Optional[OptNode]:
         """
         Returns new node based on the requirements for a node.
@@ -74,6 +81,9 @@ class DefaultOptNodeFactory(OptNodeFactory):
         :param is_primary: identifies whether to generate new parent node as separate primary node (if True)
         or to generate new intermediate secondary node between the current node and it's parent (if False)
         """
+        return self.get_node(is_primary=is_primary)
+
+    def get_child_node(self, node: OptNode, is_primary: bool) -> Optional[OptNode]:
         return self.get_node(is_primary=is_primary)
 
     def get_node(self, is_primary: bool) -> Optional[OptNode]:
