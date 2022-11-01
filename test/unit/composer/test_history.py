@@ -33,7 +33,7 @@ from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
-from test.unit.visualization.test_composing_history import create_mock_graph_individual
+from test.unit.visualization.test_composing_history import generate_history, create_mock_graph_individual
 
 
 def scaling_logit_rf_pipeline():
