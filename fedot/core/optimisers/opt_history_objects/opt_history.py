@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import Objective
 from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
