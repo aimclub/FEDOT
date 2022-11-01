@@ -6,7 +6,7 @@ Introduction
 
 As common AutoML frameworks, FEDOT solves problems with data that are represented as tables.
 FEDOT allows you to automate machine learning pipeline design for tabular data in ``classification`` and ``regression``
-problem.
+problems.
 
 Also, it provides a high-level API that enables you to use common fit/predict interface. To use API it is required
 to import certain object:
@@ -15,7 +15,7 @@ to import certain object:
 
     from fedot.api.main import Fedot
 
-Loading training and test data from a CSV file as a Pandas dataframe ``pd.DataFrame()``.
+Loading training and test data from a CSV file as a Pandas dataframe ``pd.DataFrame``.
 
 .. code-block:: python
 
@@ -30,16 +30,16 @@ Initialize the Fedot object and define the type of modeling problem. In this cas
 
 .. note::
 
-    Class ``Fedot()`` has more than two params, e.g., ``timeout`` for setting time limits or
-    ``n_jobs`` for parallelization. For more details, see the `FEDOT API <https://fedot.readthedocs.io/en/latest/api/api.html>`_ section in our documentation.
+    Class ``Fedot()`` has more than two params, e.g. ``timeout`` for setting time limits or
+    ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API <api>` section in our documentation.
 
-The ``.fit()`` method begins the optimization and returns the resulting composite pipeline.
+The ``fit()`` method begins the optimization and returns the resulting composite pipeline.
 
 .. code-block:: python
 
     model.fit(features=train, target='target')
 
-The ``.predict()`` method, which uses an already fitted pipeline, returns values for the target.
+The ``predict()`` method, which uses an already fitted pipeline, returns values for the target.
 
 .. code-block:: python
 
@@ -47,9 +47,9 @@ The ``.predict()`` method, which uses an already fitted pipeline, returns values
 
 .. hint::
 
-    If you want to predict target probability use ``.predict_proba()`` method.
+    If you want to predict target probability use ``predict_proba()`` method.
 
-The ``.get_metrics()`` method estimates the quality of predictions according the selected metrics.
+The ``get_metrics()`` method estimates the quality of predictions according the selected metrics.
 
 .. code-block:: python
 
@@ -57,7 +57,7 @@ The ``.get_metrics()`` method estimates the quality of predictions according the
 
 .. note::
 
-    The same way FEDOT can be used to ``regression`` problem. Only it is required to change params according the problem
+    The same way FEDOT can be used to ``regression`` problem. It is only required to change params according the problem
     in main class object:
 
     .. code-block:: python
@@ -66,6 +66,8 @@ The ``.get_metrics()`` method estimates the quality of predictions according the
 
 Examples
 ~~~~~~~~
+
+More details you can find in the follow links:
 
 **Simple**
 
