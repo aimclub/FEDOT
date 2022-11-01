@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Sequence, Type, Optional
+from typing import Dict, Iterable, Sequence, Type, Optional, Any
 
 import numpy as np
 
@@ -7,7 +7,6 @@ from fedot.core.optimisers.fitness import is_metric_worse
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, QualityMetricsEnum
 from .individuals_containers import HallOfFame, ParetoFront
 
 
@@ -61,7 +60,10 @@ class GenerationKeeper(ImprovementWatcher):
         self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
 
-        self._metrics_improvement = {metric_id: False for metric_id in objective.metric_names}
+        self._objective = objective
+        self._metrics_improvement: Dict[Any, bool] = {}
+        self._reset_metrics_improvement()
+
         self.archive = ParetoFront() if objective.is_multi_objective else HallOfFame(maxsize=keep_n_best)
 
         if initial_generation is not None:
@@ -84,31 +86,28 @@ class GenerationKeeper(ImprovementWatcher):
         return any(self._metrics_improvement.values())
 
     def is_metric_improved(self, metric_id) -> bool:
-        return self._metrics_improvement.get(metric_id, False)
+        return self._metrics_improvement[metric_id]
 
     @property
     def is_quality_improved(self) -> bool:
-        return self._is_metric_kind_improved(QualityMetricsEnum)
+        return any(self._metrics_improvement[metric_id]
+                   for metric_id in self._objective.quality_metrics)
 
     @property
     def is_complexity_improved(self) -> bool:
-        return self._is_metric_kind_improved(ComplexityMetricsEnum)
-
-    def _is_metric_kind_improved(self, metric_cls: Type[MetricsEnum]) -> bool:
-        """Check that any metric of the specified subtype of MetricsEnum has improved."""
-        return any(improved for metric, improved in self._metrics_improvement.items()
-                   if isinstance(metric, metric_cls))
+        return any(self._metrics_improvement[metric_id]
+                   for metric_id in self._objective.complexity_metrics)
 
     @property
-    def _metric_ids(self) -> Iterable[MetricsEnum]:
-        return self._metrics_improvement.keys()
+    def _metric_ids(self) -> Iterable[Any]:
+        return self._objective.metric_names
 
     def append(self, population: PopulationT):
         previous_archive_fitness = self._archive_fitness()
         self.archive.update(population)
         self._update_improvements(previous_archive_fitness)
 
-    def _archive_fitness(self) -> Dict[MetricsEnum, Sequence[float]]:
+    def _archive_fitness(self) -> Dict[Any, Sequence[float]]:
         archive_pop_metrics = (ind.fitness.values for ind in self.archive.items)
         archive_fitness_per_metric = zip(*archive_pop_metrics)  # transpose nested array
         archive_fitness_per_metric = dict(zip(self._metric_ids, archive_fitness_per_metric))
