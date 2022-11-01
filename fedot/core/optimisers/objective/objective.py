@@ -38,8 +38,8 @@ class Objective:
         return to_fitness(evaluated_metrics, self.is_multi_objective)
 
     @property
-    def metrics(self) -> Iterable[Tuple[Any, Callable]]:
-        return itertools.chain(self.quality_metrics.items(), self.complexity_metrics.items())
+    def metrics(self) -> Sequence[Tuple[Any, Callable]]:
+        return list(itertools.chain(self.quality_metrics.items(), self.complexity_metrics.items()))
 
     @property
     def metric_names(self) -> Sequence[str]:
