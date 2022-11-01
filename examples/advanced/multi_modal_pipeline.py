@@ -1,11 +1,10 @@
 import os
 from typing import Union
 
-from fedot.api.main import Fedot
-
 from sklearn.metrics import f1_score as f1
 
 from cases.dataset_preparation import unpack_archived_data
+from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -69,7 +68,7 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
+def run_multi_modal_pipeline(files_path: str, visualization=True) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
@@ -81,7 +80,7 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
     pipeline = automl_model.fit(features=fit_data,
                                 target=fit_data.target)
 
-    if is_visualise:
+    if visualization:
         pipeline.show()
 
     prediction = pipeline.predict(predict_data, output_mode='labels')
@@ -94,4 +93,4 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
 
 
 if __name__ == '__main__':
-    run_multi_modal_pipeline(files_path='examples/data/multimodal', is_visualise=True)
+    run_multi_modal_pipeline(files_path='examples/data/multimodal', visualization=True)

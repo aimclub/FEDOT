@@ -44,7 +44,7 @@ def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputDa
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                timeout: datetime.timedelta = datetime.timedelta(minutes=5),
-                               is_visualise=False):
+                               visualization=False):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -80,7 +80,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     composer.history.to_csv()
 
-    if is_visualise:
+    if visualization:
         results_visualization(composed_pipelines=pipelines_evo_composed, history=composer.history)
 
     pipelines_roc_auc = []
@@ -115,4 +115,4 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
 if __name__ == '__main__':
     full_path_train, full_path_test = get_scoring_data()
-    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True)
+    run_credit_scoring_problem(full_path_train, full_path_test, visualization=True)

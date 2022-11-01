@@ -424,7 +424,7 @@ class Fedot:
             data = self.data_processor.define_data(features=features,
                                                    is_predict=False)
         explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
-                                     visualize=visualize, **kwargs)
+                                     visualization=visualize, **kwargs)
 
         return explainer
 

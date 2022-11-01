@@ -1,12 +1,11 @@
 import numpy as np
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
-
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -79,7 +78,7 @@ def h2o_regression_pipeline_evaluation():
     print(f"RMSE {rmse_on_test}")
 
 
-def h2o_ts_pipeline_evaluation(visualize=False):
+def h2o_ts_pipeline_evaluation(visualization=False):
     train_data, test_data = get_ts_data(n_steps=500, forecast_length=3)
 
     pipeline = pipeline_h2o_ts()
@@ -101,7 +100,7 @@ def h2o_ts_pipeline_evaluation(visualize=False):
 
     metrics_info['Metrics'] = {'RMSE': round(rmse, 3),
                                'MAE': round(mae, 3)}
-    if visualize:
+    if visualization:
         visualise(plot_info)
     print(metrics_info)
 
@@ -112,4 +111,4 @@ if __name__ == '__main__':
     with OperationTypesRepository.init_automl_repository() as _:
         h2o_regression_pipeline_evaluation()
     with OperationTypesRepository.init_automl_repository() as _:
-        h2o_ts_pipeline_evaluation(visualize=True)
+        h2o_ts_pipeline_evaluation(visualization=True)

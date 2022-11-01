@@ -1,13 +1,12 @@
 from pathlib import Path
 
 from fedot.api.main import Fedot
-
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 
 
-def run_multi_modal_example(file_path: str, is_visualise=True) -> float:
+def run_multi_modal_example(file_path: str, visualization=True) -> float:
     """
     This is an example of FEDOT use on multimodal data.
     The data is taken and adapted from Wine Reviews dataset (winemag-data_first150k):
@@ -18,7 +17,7 @@ def run_multi_modal_example(file_path: str, is_visualise=True) -> float:
     The aim is to predict wine variety, so it's a classification task.
 
     :param file_path: path to the file with multimodal data
-    :param is_visualise: if True, then final pipeline will be visualised
+    :param visualization: if True, then final pipeline will be visualised
 
     :return: F1 metrics of the model
     """
@@ -34,7 +33,7 @@ def run_multi_modal_example(file_path: str, is_visualise=True) -> float:
     prediction = automl_model.predict(predict_data)
     metrics = automl_model.get_metrics()
 
-    if is_visualise:
+    if visualization:
         automl_model.current_pipeline.show()
 
     print(f'F1 for validation sample is {round(metrics["f1"], 3)}')
@@ -43,4 +42,4 @@ def run_multi_modal_example(file_path: str, is_visualise=True) -> float:
 
 
 if __name__ == '__main__':
-    run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', is_visualise=True)
+    run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', visualization=True)

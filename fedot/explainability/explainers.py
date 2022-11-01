@@ -1,5 +1,5 @@
-from fedot.explainability.surrogate_explainer import SurrogateExplainer
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.explainability.surrogate_explainer import SurrogateExplainer
 
 
 def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTypesEnum):
@@ -19,20 +19,20 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
 
 
 def explain_pipeline(pipeline: 'Pipeline', data: 'InputData', method: str = 'surrogate_dt',
-                     visualize: bool = True, **kwargs) -> 'Explainer':
+                     visualization: bool = True, **kwargs) -> 'Explainer':
     """Create explanation for the `pipeline` according to the selected `method`.
     An `Explainer` instance is returned.
 
     :param pipeline: pipeline to explain.
     :param data: samples to be explained.
     :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
-    :param visualize: print and plot the explanation simultaneously, defaults to True.
+    :param visualization: print and plot the explanation simultaneously, defaults to True.
         The explanation can be retrieved later by executing `explainer.visualize()`.
     """
     if not pipeline:
         raise AssertionError('The pipeline might be fit before explanation!')
 
     explainer = pick_pipeline_explainer(pipeline, method, data.task.task_type)
-    explainer.explain(data, visualize=visualize, **kwargs)
+    explainer.explain(data, visualization=visualization, **kwargs)
 
     return explainer

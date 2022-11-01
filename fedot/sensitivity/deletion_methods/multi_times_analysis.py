@@ -48,7 +48,7 @@ class MultiTimesAnalyze:
         self.approaches = [NodeDeletionAnalyze] if approaches is None else approaches
         self.log = default_log(self)
 
-    def analyze(self, is_visualize=False, meta_params: MTAMetaParams = None) -> float:
+    def analyze(self, visualization=False, meta_params: MTAMetaParams = None) -> float:
         """
         Algorithm:
         1. Analyze pipeline
@@ -59,7 +59,7 @@ class MultiTimesAnalyze:
         :param meta_params: limiting params for sensitivity index:
          MTAMetaParams(delta, worst_node_score)
          (defaults: 10e-3, 1.1 correspondingly).
-        :param is_visualize: boolean flag for pipeline structure visualization. Default: False
+        :param visualization: boolean flag for pipeline structure visualization. Default: False
 
         :return ratio of number of deleted nodes to overall Pipeline length
         """
@@ -74,7 +74,7 @@ class MultiTimesAnalyze:
             self.log.info('new iteration of MTA deletion analysis')
             iteration_result_path = join(self.path_to_save, f'iter_{iteration_index}')
             pipeline_analysis_result = self._pipeline_analysis(result_path=iteration_result_path,
-                                                               is_visualize=is_visualize)
+                                                               visualization=visualization)
 
             deletion_scores = [node['NodeDeletionAnalyze'] for node in pipeline_analysis_result.values()]
             worst_node_score = max(deletion_scores)
@@ -92,11 +92,11 @@ class MultiTimesAnalyze:
     def _length_reduction_ratio(self, number_of_deleted_nodes: int):
         return number_of_deleted_nodes / self.original_pipeline_len
 
-    def _pipeline_analysis(self, result_path, is_visualize=False):
+    def _pipeline_analysis(self, result_path, visualization=False):
         if not exists(result_path):
             makedirs(result_path)
 
-        if is_visualize:
+        if visualization:
             self._visualize(name=self.case_name, path=result_path)
 
         self.pipeline.fit_from_scratch(self.train_data)

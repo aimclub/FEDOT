@@ -46,7 +46,7 @@ class SurrogateExplainer(Explainer):
         self.surrogate_str = surrogate
         self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
 
-    def explain(self, data: InputData, visualize: bool = True, **kwargs):
+    def explain(self, data: InputData, visualization: bool = True, **kwargs):
         try:
             self.score = fit_naive_surrogate_model(self.model, self.surrogate, data)
 
@@ -58,7 +58,7 @@ class SurrogateExplainer(Explainer):
         if self.surrogate_str in ('dt', 'dtreg'):
             prune_duplicate_leaves(self.surrogate.root_node.fitted_operation)
 
-        if visualize:
+        if visualization:
             self.visualize(**kwargs)
 
     def visualize(self, dpi: int = 100, figsize=(48, 12), save_path: str = None, **kwargs):

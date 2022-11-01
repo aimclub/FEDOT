@@ -146,7 +146,7 @@ def compare_plot(predicted, real, forecast_length, model):
     plt.show()
 
 
-def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_visualise=False):
+def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visualization=False):
     errors_df = {}
 
     train_input, predict_input, train_input_exog, predict_input_exog, test_data = \
@@ -223,7 +223,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
         errors_df[model_name + '_MAE'] = mae_before
         errors_df[model_name + '_MAPE'] = mape_before
 
-        if is_visualise:
+        if visualization:
             compare_plot(predicted, test_data, len_forecast, model_name)
             print(model_name)
             print(f' MSE - {mse_before:.4f}')
@@ -245,7 +245,7 @@ def boxplot_visualize(df, label):
     plt.show()
 
 
-def run_single_example(len_forecast=40, is_visualise=True):
+def run_single_example(len_forecast=40, visualization=True):
     ts_name = 'sea_level'
     path_to_file = '../../cases/data/nemo/sea_surface_height.csv'
     path_to_exog_file = '../../cases/data/nemo/sea_surface_height_nemo.csv'
@@ -258,7 +258,7 @@ def run_single_example(len_forecast=40, is_visualise=True):
     run_nemo_based_forecasting(time_series=time_series,
                                exog_variable=exog_variable,
                                len_forecast=len_forecast,
-                               is_visualise=is_visualise)
+                               visualization=visualization)
 
 
 def create_errors_df():
@@ -299,7 +299,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
             errors = run_nemo_based_forecasting(time_series=time_series,
                                                 exog_variable=exog_variable,
                                                 len_forecast=len_forecast,
-                                                is_visualise=False)
+                                                visualization=False)
 
             mse_errors_df = add_data_to_errors_df(mse_errors_df, 'MSE', point, errors)
             mae_errors_df = add_data_to_errors_df(mae_errors_df, 'MAE', point, errors)
@@ -318,7 +318,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
 
 def run_prediction_examples(mode='single'):
     if mode == 'single':
-        run_single_example(len_forecast=40, is_visualise=True)
+        run_single_example(len_forecast=40, visualization=True)
     if mode == 'multiple':
         run_multiple_example(path_to_file='../../cases/data/nemo/SSH_points_grid.csv',
                              path_to_exog_file='../../cases/data/nemo/SSH_nemo_points_grid.csv',

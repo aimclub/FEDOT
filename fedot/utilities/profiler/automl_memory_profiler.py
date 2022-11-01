@@ -30,7 +30,8 @@ class MemoryProfiler:
         int max_depth: maximum depth of graph.
     """
 
-    def __init__(self, function, path: str, args=None, kwargs=None, roots=None, max_depth: int = 7, visualize=False):
+    def __init__(self, function, path: str, args=None, kwargs=None, roots=None, max_depth: int = 7,
+                 visualization=False):
         if args is None:
             args = []
 
@@ -45,7 +46,7 @@ class MemoryProfiler:
         if roots is None:
             roots = [Pipeline, Composer]
 
-        if visualize:
+        if visualization:
             # Create the plot of the memory time dependence.
             self._create_memory_plot(function, args, kwargs)
 
