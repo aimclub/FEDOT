@@ -1,12 +1,10 @@
 from fedot.core.dag.graph_utils import distance_to_primary_level
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph, pipeline_template_as_nx_graph
+from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.template import PipelineTemplate
-
 from fedot.core.visualisation.graph_viz import get_hierarchy_pos
 from fedot.core.visualisation.opt_viz_extra import extract_objectives
 
@@ -32,15 +30,6 @@ def pipeline_first():  # tested pipeline
 
     pipeline.add_node(root_of_tree)
     return pipeline
-
-
-def test_pipeline_template_as_nx_graph():
-    pipeline = pipeline_first()
-    pipeline_template = PipelineTemplate(pipeline)
-    graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
-
-    assert len(graph) == pipeline.length  # check node quantity
-    assert node_labels[0] == str(pipeline.root_node)  # check root node
 
 
 def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse):
