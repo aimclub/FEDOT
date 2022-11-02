@@ -100,9 +100,22 @@ class Serializer(JSONEncoder, JSONDecoder):
         })
 
     @staticmethod
-    def register_coder(cls: Type[S],
-                       to_json: Optional[EncodeCallable[S]] = None,
-                       from_json: Optional[DecodeCallable[S]] = None):
+    def register_coders(cls: Type[S],
+                        to_json: Optional[EncodeCallable[S]] = None,
+                        from_json: Optional[DecodeCallable[S]] = None) -> Type[S]:
+        """Registers classes as json-serializable so that they can be used
+        by framework Serialization subsystem. Can be used as a decorator.
+
+        Args:
+            cls: registered class
+            to_json: optional custom encoding function
+            from_json: optional custom decoding function
+
+        Returns:
+            cls: class that is registered in serializer
+        """
+        if cls is None:
+            raise ValueError('Class must not be None.')
         from .coders import any_from_json, any_to_json
 
         coders = {Serializer._to_json: to_json or any_to_json,
@@ -112,6 +125,8 @@ class Serializer(JSONEncoder, JSONDecoder):
             Serializer.CODERS_BY_TYPE[cls] = coders
         else:
             raise ValueError(f'Object {cls} already has serializer coders registered.')
+
+        return cls
 
     @staticmethod
     def _get_field_checker(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Callable[..., bool]:
@@ -230,3 +245,43 @@ def default_load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Any:
         return load_as_json_str()
     except json.JSONDecodeError:
         return load_as_file_path()
+
+
+def register_serializable(cls: Type[INSTANCE_OR_CALLABLE] = None,
+                          /, *,
+                          to_json: Optional[EncodeCallable] = None,
+                          from_json: Optional[DecodeCallable] = None,
+                          add_save_load: bool = False,
+                          ) -> Type[INSTANCE_OR_CALLABLE]:
+    """Decorator for registering classes as json-serializable.
+    Optionally adds `save` and `load` methods to the class for json (de)serialization.
+    Relies on :py:class:`fedot.core.serializers.serializer.Serializer.register_coders`.
+
+    Args:
+        cls: decorated class
+        to_json: optional custom encoding function
+        from_json: optional custom decoding function
+        add_save_load: if True, then `save` and `load` methods are added to the class
+
+    Returns:
+        cls: class that is registered in serializer
+    """
+    _save = 'save'
+    _load = 'load'
+
+    def make_serializable(cls):
+        Serializer.register_coders(cls, to_json, from_json)
+        if add_save_load:
+            if hasattr(cls, _save) or hasattr(cls, _load):
+                raise ValueError(f'Class {cls} already have `save` and/or `load` methods, can not overwrite them.')
+            setattr(cls, _save, default_save)
+            setattr(cls, _load, default_load)
+        return cls
+
+    # See if we're being called as @dataclass().
+    if cls is None:
+        # We're called with parens.
+        return make_serializable
+
+    # We're called as `@decorator` without parens.
+    return make_serializable(cls)
