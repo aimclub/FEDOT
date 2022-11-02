@@ -10,8 +10,13 @@ from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import NodeMetadata
 
-MODULE_X_NAME_DELIMITER = '/'
+S = TypeVar('S')
+EncodeCallable = Callable[[S], Dict[str, Any]]
+DecodeCallable = Callable[[Type[S], Dict[str, Any]], S]
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
+
+
+MODULE_X_NAME_DELIMITER = '/'
 CLASS_PATH_KEY = '_class_path'
 
 # Mapping between class paths for backward compatibility for renamed/moved classes
@@ -79,7 +84,8 @@ class Serializer(JSONEncoder, JSONDecoder):
         _to_json = Serializer._to_json
         _from_json = Serializer._from_json
         basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
-        Serializer.CODERS_BY_TYPE = {
+
+        Serializer.CODERS_BY_TYPE.update({
             Fitness: basic_serialization,
             Individual: basic_serialization,
             NodeMetadata: basic_serialization,
@@ -91,7 +97,21 @@ class Serializer(JSONEncoder, JSONDecoder):
             ParentOperator: {_to_json: parent_operator_to_json, _from_json: parent_operator_from_json},
             UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
             ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
-        }
+        })
+
+    @staticmethod
+    def register_coder(cls: Type[S],
+                       to_json: Optional[EncodeCallable[S]] = None,
+                       from_json: Optional[DecodeCallable[S]] = None):
+        from .coders import any_from_json, any_to_json
+
+        coders = {Serializer._to_json: to_json or any_to_json,
+                  Serializer._from_json: from_json or any_from_json}
+
+        if cls not in Serializer.CODERS_BY_TYPE:
+            Serializer.CODERS_BY_TYPE[cls] = coders
+        else:
+            raise ValueError(f'Object {cls} already has serializer coders registered.')
 
     @staticmethod
     def _get_field_checker(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Callable[..., bool]:
