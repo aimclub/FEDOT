@@ -31,7 +31,7 @@ Initialize the Fedot object and define the type of modeling problem. In this cas
 .. note::
 
     Class ``Fedot()`` has more than two params, e.g. ``timeout`` for setting time limits or
-    ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API <api>` section in our documentation.
+    ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API <api/api>` section in our documentation.
 
 The ``fit()`` method begins the optimization and returns the resulting composite pipeline.
 
