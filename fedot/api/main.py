@@ -200,16 +200,17 @@ class Fedot:
                 validation_blocks: Optional[int] = None) -> np.ndarray:
         """Predicts new target using already fitted model.
 
-        For time-series performs in-sample forecast if length of idx of InputData is bigger than forecast length.
+        For time-series performs forecast with depth ``forecast_length`` if ``in_sample=False``.
+        If ``in_sample=True`` performs in-sample forecast using features as sample.
 
         Args:
             features: the array with features of test data
             save_predictions: if ``True`` - save predictions as csv-file in working directory
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
-            features with number if iterations specified in ``validation_blocks``.
+                features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
-            If ``validation_blocks = None`` uses number of validation blocks set during model initialization
-            (default is 2).
+                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+                (default is 2).
 
 
         Returns:
@@ -357,11 +358,11 @@ class Fedot:
         Args:
             target: the array with target values of test data
             metric_names: the names of required metrics
-            in_sample: used for time-series forecasting. If True prediction will be obtained as
-            ``.predict(..., in_sample=True)``.
+            in_sample: used for time-series forecasting.
+                If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for in-sample forecast.
-            If ``validation_blocks = None`` uses number of validation blocks set during model initialization
-            (default is 2).
+                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+                (default is 2).
 
         Returns:
             the values of quality metrics
