@@ -4,7 +4,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 
 DEFAULT_SOURCE_NAME = 'default'
 

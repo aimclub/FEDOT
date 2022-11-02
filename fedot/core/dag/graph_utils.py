@@ -1,7 +1,7 @@
 from typing import Union, Sequence, List, TYPE_CHECKING, Callable
 
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph import Graph

@@ -16,7 +16,7 @@ from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGene
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 random.seed(1)
