@@ -195,7 +195,9 @@ class Fedot:
 
     def predict(self,
                 features: FeaturesType,
-                save_predictions: bool = False) -> np.ndarray:
+                save_predictions: bool = False,
+                in_sample: bool = False,
+                validation_blocks: Optional[int] = None) -> np.ndarray:
         """Predicts new target using already fitted model.
 
         For time-series performs in-sample forecast if length of idx of InputData is bigger than forecast length.
@@ -203,6 +205,12 @@ class Fedot:
         Args:
             features: the array with features of test data
             save_predictions: if ``True`` - save predictions as csv-file in working directory
+            in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
+            features with number if iterations specified in ``validation_blocks``.
+            validation_blocks: number of validation blocks for in-sample forecast.
+            If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+            (default is 2).
+
 
         Returns:
             the array with prediction values
@@ -212,8 +220,12 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
 
+        validation_blocks = validation_blocks or self.params.api_params.get('validation_blocks')
+
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
-                                                                 test_data=self.test_data)
+                                                                 test_data=self.test_data,
+                                                                 in_sample=in_sample,
+                                                                 validation_blocks=validation_blocks)
 
         if save_predictions:
             self.save_predict(self.prediction)
@@ -337,13 +349,19 @@ class Fedot:
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
-                    metric_names: Union[str, List[str]] = None) -> dict:
+                    metric_names: Union[str, List[str]] = None,
+                    in_sample: bool = False,
+                    validation_blocks: Optional[int] = None) -> dict:
         """Gets quality metrics for the fitted graph
 
         Args:
-
             target: the array with target values of test data
             metric_names: the names of required metrics
+            in_sample: used for time-series forecasting. If True prediction will be obtained as
+            ``.predict(..., in_sample=True)``.
+            validation_blocks: number of validation blocks for in-sample forecast.
+            If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+            (default is 2).
 
         Returns:
             the values of quality metrics
@@ -375,7 +393,8 @@ class Fedot:
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities
                     prediction.predict = self.predict_proba(self.test_data)
                 else:
-                    prediction.predict = self.predict(self.test_data)
+                    prediction.predict = self.predict(self.test_data, in_sample=in_sample,
+                                                      validation_blocks=validation_blocks)
                 real = deepcopy(self.test_data)
 
                 # Work inplace - correct predictions

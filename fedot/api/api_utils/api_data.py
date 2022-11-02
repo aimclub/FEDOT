@@ -67,19 +67,20 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
-    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]) -> OutputData:
+    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
+                           in_sample: bool = False, validation_blocks: int = None) -> OutputData:
         """ Prepare predictions """
         if self.task.task_type == TaskTypesEnum.classification:
             # Prediction should be converted into source labels
             output_prediction = current_pipeline.predict(test_data, output_mode='labels')
-
         elif self.task.task_type == TaskTypesEnum.ts_forecasting:
-            forecast_length = test_data.task.task_params.forecast_length
-            horizon = len(test_data.idx)
-            if horizon > forecast_length:
+            if in_sample:
+                forecast_length = test_data.task.task_params.forecast_length
+                validation_blocks = validation_blocks or 1
+                horizon = forecast_length * validation_blocks
                 forecast = in_sample_ts_forecast(current_pipeline, test_data, horizon)
-                prediction = convert_forecast_to_output(test_data, forecast,
-                                                        idx=test_data.idx)
+                idx = test_data.idx[-horizon:]
+                prediction = convert_forecast_to_output(test_data, forecast, idx=idx)
             else:
                 prediction = current_pipeline.predict(test_data)
                 # Convert forecast into one-dimensional array

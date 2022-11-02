@@ -145,17 +145,32 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
-@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
-def test_api_forecast_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+def test_api_simple_forecast_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
+    train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
     ts_forecast = model.predict(features=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
+
+    assert len(ts_forecast) == forecast_length
+
+
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_forecast_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+    # The forecast length must be equal to 5
+    forecast_length = 5
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=validation_blocks)
+
+    model.fit(features=train_data)
+    ts_forecast = model.predict(features=test_data, in_sample=True)
+    metric = model.get_metrics(target=test_data.target, metric_names='rmse', in_sample=True)
 
     assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
 

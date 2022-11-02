@@ -17,7 +17,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     Args:
         data: the InputData or MultiModalData with actual time series as features
         prediction: the OutputData with predictions
-        in_sample: if obtained prediction was in sample. Plots predictions as future values.
+        in_sample: if obtained prediction was in sample.
+        If ``False`` plots predictions as future values for test data features.
         target: user-specified name of target variable for MultiModalData
     """
     if isinstance(data, MultiModalData):

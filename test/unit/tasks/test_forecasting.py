@@ -40,6 +40,7 @@ def get_ts_data(n_steps: int = 80, forecast_length: int = 5, validation_blocks: 
 
     :param n_steps: number of elements in time series to take
     :param forecast_length: the length of forecast
+    :param validation_blocks: number of validation blocks
     """
     project_root_path = str(fedot_project_root())
     file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')

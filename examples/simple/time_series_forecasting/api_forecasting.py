@@ -50,23 +50,27 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
 
-    # use model to obtain in-sample forecast
-    model.predict(test_data)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
+    # use model to obtain two-step in-sample forecast
+    forecast = model.predict(test_data, in_sample=True)
+    print('Metrics for two-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'], in_sample=True))
 
     # plot forecasting result
     if visualization:
         pipeline.show()
-        model.plot_prediction()
+        model.plot_prediction(in_sample=True)
 
     # use model to obtain one-step forecast
     train_data, test_data = train_test_data_setup(train_input)
     forecast = model.predict(test_data)
+    print('Metrics for one-step forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
     if visualization:
         model.plot_prediction()
 
     # use model to obtain two-step out-of-sample forecast
     forecast = model.forecast(test_data, horizon=20)
+    # we can not calculate metrics because we do not have enough future values
     if visualization:
         model.plot_prediction()
 
