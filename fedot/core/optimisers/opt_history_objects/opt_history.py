@@ -5,9 +5,8 @@ import io
 import itertools
 import os
 import shutil
-from copy import copy
 from pathlib import Path
-from typing import List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.opt_history_objects.generation import Generation
@@ -50,8 +49,10 @@ class OptHistory:
     def is_empty(self) -> bool:
         return not self.individuals
 
-    def add_to_history(self, individuals: Generation):
-        self.individuals.append(copy(individuals))
+    def add_to_history(self, individuals: Sequence[Individual],generation_label: Optional[str] = None,
+                       generation_metadata: Optional[Dict[str, Any]] = None):
+        generation = Generation(individuals, self.generations_count, generation_label, generation_metadata)
+        self.individuals.append(generation)
 
     def add_to_archive_history(self, individuals: Sequence[Individual]):
         self.archive_history.append(list(individuals))
@@ -87,7 +88,7 @@ class OptHistory:
             self._log.info(f"Created directory for saving optimization history: {save_dir}")
 
         try:
-            last_gen_id = len(self.individuals) - 1
+            last_gen_id = self.generations_count - 1
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
             for individual, ind_fitness in zip(last_gen, last_gen_history):
@@ -210,3 +211,7 @@ class OptHistory:
         for gen in reversed(self.individuals):
             if gen.label == 'final_choices':
                 return gen
+
+    @property
+    def generations_count(self) -> int:
+        return len(self.individuals)

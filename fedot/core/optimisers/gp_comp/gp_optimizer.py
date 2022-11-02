@@ -62,12 +62,12 @@ class EvoGraphOptimizer(PopulationalOptimizer):
     def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """
         # Adding of initial assumptions to history as zero generation
-        self._update_population(evaluator(self.initial_individuals))
+        self._update_population(evaluator(self.initial_individuals), 'initial_assumptions')
 
         if len(self.initial_individuals) < self.graph_optimizer_params.pop_size:
             self.initial_individuals = self._extend_population(self.initial_individuals)
             # Adding of extended population to history
-            self._update_population(evaluator(self.initial_individuals))
+            self._update_population(evaluator(self.initial_individuals), 'extended_initial_assumptions')
 
     def _extend_population(self, initial_individuals: PopulationT) -> PopulationT:
         iter_num = 0

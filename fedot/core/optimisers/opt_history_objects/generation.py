@@ -16,10 +16,10 @@ class Generation(UserList):
     Responsible for setting generation-related info to the individuals.
     """
 
-    def __init__(self, iterable: Union[Iterable[Individual], Generation], generation_num: int, label: str = '',
-                 metadata: Optional[Dict[str, Any]] = None):
+    def __init__(self, iterable: Union[Iterable[Individual], Generation], generation_num: int,
+                 label: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None):
         self.generation_num = generation_num
-        self.label = label
+        self.label: str = label or ''
         self.metadata: Dict[str, Any] = metadata or {}
         super().__init__(iterable)
         self._set_native_generation(self.data)

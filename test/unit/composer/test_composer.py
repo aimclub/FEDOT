@@ -170,8 +170,8 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_pipeline(data=data)
 
-    assert len(gp_composer_terminated_evolution.history.individuals) == 1  # only the initial randomized population
-    assert len(gp_composer_completed_evolution.history.individuals) == 3
+    assert len(gp_composer_terminated_evolution.history.individuals) == 2  # initial randomized population &final choice
+    assert len(gp_composer_completed_evolution.history.individuals) == 4
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
