@@ -46,48 +46,52 @@ class Serializer(JSONEncoder, JSONDecoder):
             base_class.__init__(self, **base_kwargs)
 
         if not Serializer.CODERS_BY_TYPE:
-            from uuid import UUID
+            Serializer._register_default_coders()
 
-            from fedot.core.dag.graph import Graph
-            from fedot.core.operations.operation import Operation
-            from fedot.core.optimisers.opt_history_objects.individual import Individual
-            from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-            from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
-            from fedot.core.utilities.data_structures import ComparableEnum
+    @staticmethod
+    def _register_default_coders():
+        from uuid import UUID
 
-            from .coders import (
-                any_from_json,
-                any_to_json,
-                enum_from_json,
-                enum_to_json,
-                graph_from_json,
-                graph_node_to_json,
-                operation_to_json,
-                opt_history_from_json,
-                opt_history_to_json,
-                objective_from_json,
-                parent_operator_from_json,
-                parent_operator_to_json,
-                uuid_from_json,
-                uuid_to_json
-            )
+        from fedot.core.dag.graph import Graph
+        from fedot.core.operations.operation import Operation
+        from fedot.core.optimisers.opt_history_objects.individual import Individual
+        from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
+        from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
+        from fedot.core.utilities.data_structures import ComparableEnum
 
-            _to_json = Serializer._to_json
-            _from_json = Serializer._from_json
-            basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
-            Serializer.CODERS_BY_TYPE = {
-                Fitness: basic_serialization,
-                Individual: basic_serialization,
-                NodeMetadata: basic_serialization,
-                LinkedGraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
-                Graph: {_to_json: any_to_json, _from_json: graph_from_json},
-                Operation: {_to_json: operation_to_json, _from_json: any_from_json},
-                OptHistory: {_to_json: opt_history_to_json, _from_json: opt_history_from_json},
-                Objective: {_to_json: any_to_json, _from_json: objective_from_json},
-                ParentOperator: {_to_json: parent_operator_to_json, _from_json: parent_operator_from_json},
-                UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
-                ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
-            }
+        from .coders import (
+            any_from_json,
+            any_to_json,
+            enum_from_json,
+            enum_to_json,
+            graph_from_json,
+            graph_node_to_json,
+            operation_to_json,
+            opt_history_from_json,
+            opt_history_to_json,
+            objective_from_json,
+            parent_operator_from_json,
+            parent_operator_to_json,
+            uuid_from_json,
+            uuid_to_json
+        )
+
+        _to_json = Serializer._to_json
+        _from_json = Serializer._from_json
+        basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
+        Serializer.CODERS_BY_TYPE = {
+            Fitness: basic_serialization,
+            Individual: basic_serialization,
+            NodeMetadata: basic_serialization,
+            LinkedGraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
+            Graph: {_to_json: any_to_json, _from_json: graph_from_json},
+            Operation: {_to_json: operation_to_json, _from_json: any_from_json},
+            OptHistory: {_to_json: opt_history_to_json, _from_json: opt_history_from_json},
+            Objective: {_to_json: any_to_json, _from_json: objective_from_json},
+            ParentOperator: {_to_json: parent_operator_to_json, _from_json: parent_operator_from_json},
+            UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
+            ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
+        }
 
     @staticmethod
     def _get_field_checker(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Callable[..., bool]:
