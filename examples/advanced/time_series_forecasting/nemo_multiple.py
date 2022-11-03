@@ -280,7 +280,7 @@ def add_data_to_errors_df(df, error_name, point, errors):
     return df
 
 
-def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, visualization=True, len_forecast=40):
+def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, visualization=False, len_forecast=40):
     mse_errors_df = create_errors_df()
     mae_errors_df = create_errors_df()
     mape_errors_df = create_errors_df()

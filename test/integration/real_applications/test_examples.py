@@ -59,8 +59,7 @@ def test_nemo_multiple_points_example():
     run_multiple_example(path_to_file=path,
                          path_to_exog_file=exog_path,
                          out_path=None,
-                         len_forecast=30,
-                         visualization=False)
+                         len_forecast=30)
 
 
 def test_pipeline_tuning_example():
