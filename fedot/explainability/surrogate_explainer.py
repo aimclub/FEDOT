@@ -46,7 +46,7 @@ class SurrogateExplainer(Explainer):
         self.surrogate_str = surrogate
         self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
 
-    def explain(self, data: InputData, visualization: bool = True, **kwargs):
+    def explain(self, data: InputData, visualization: bool = False, **kwargs):
         try:
             self.score = fit_naive_surrogate_model(self.model, self.surrogate, data)
 

@@ -406,14 +406,14 @@ class Fedot:
         self.predict(self.test_data)
 
     def explain(self, features: FeaturesType = None,
-                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
+                method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> 'Explainer':
         """Creates explanation for *current_pipeline* according to the selected 'method'.
             An :obj:`Explainer` instance will return.
 
         Args:
             features: samples to be explained. If ``None``, ``train_data`` from last fit will be used.
             method: explanation method, defaults to ``surrogate_dt``
-            visualize: print and plot the explanation simultaneously, defaults to ``True``.
+            visualization: print and plot the explanation simultaneously, defaults to ``True``.
         Notes:
             The explanation can be retrieved later by executing :obj:`explainer.visualize()`
         """
@@ -424,7 +424,7 @@ class Fedot:
             data = self.data_processor.define_data(features=features,
                                                    is_predict=False)
         explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
-                                     visualization=visualize, **kwargs)
+                                     visualization=visualization, **kwargs)
 
         return explainer
 

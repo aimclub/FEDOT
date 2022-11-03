@@ -280,7 +280,7 @@ def add_data_to_errors_df(df, error_name, point, errors):
     return df
 
 
-def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxplot_visualize=True, len_forecast=40):
+def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, visualization=True, len_forecast=40):
     mse_errors_df = create_errors_df()
     mae_errors_df = create_errors_df()
     mape_errors_df = create_errors_df()
@@ -299,7 +299,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
             errors = run_nemo_based_forecasting(time_series=time_series,
                                                 exog_variable=exog_variable,
                                                 len_forecast=len_forecast,
-                                                visualization=False)
+                                                visualization=visualization)
 
             mse_errors_df = add_data_to_errors_df(mse_errors_df, 'MSE', point, errors)
             mae_errors_df = add_data_to_errors_df(mae_errors_df, 'MAE', point, errors)
@@ -310,22 +310,22 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
         mae_errors_df.to_csv(os.path.join(out_path, 'mae_errors.csv'), index=False)
         mape_errors_df.to_csv(os.path.join(out_path, 'mape_errors.csv'), index=False)
 
-    if is_boxplot_visualize:
+    if visualization:
         boxplot_visualize(mse_errors_df, 'MSE')
         boxplot_visualize(mae_errors_df, 'MAE')
         boxplot_visualize(mape_errors_df, 'MAPE')
 
 
-def run_prediction_examples(mode='single'):
+def run_prediction_examples(mode='single', visualization=False):
     if mode == 'single':
-        run_single_example(len_forecast=40, visualization=True)
+        run_single_example(len_forecast=40, visualization=visualization)
     if mode == 'multiple':
         run_multiple_example(path_to_file='../../cases/data/nemo/SSH_points_grid.csv',
                              path_to_exog_file='../../cases/data/nemo/SSH_nemo_points_grid.csv',
                              out_path=None,
                              len_forecast=30,
-                             is_boxplot_visualize=True)
+                             visualization=visualization)
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='multiple')
+    run_prediction_examples(mode='multiple', visualization=True)

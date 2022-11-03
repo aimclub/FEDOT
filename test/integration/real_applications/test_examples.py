@@ -49,8 +49,7 @@ def test_exogenous_ts_example():
     project_root_path = str(fedot_project_root())
     path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
     run_exogenous_experiment(path_to_file=path,
-                             len_forecast=50, with_exog=True,
-                             with_visualisation=False)
+                             len_forecast=50, with_exog=True)
 
 
 def test_nemo_multiple_points_example():
@@ -61,7 +60,7 @@ def test_nemo_multiple_points_example():
                          path_to_exog_file=exog_path,
                          out_path=None,
                          len_forecast=30,
-                         is_boxplot_visualize=False)
+                         visualization=False)
 
 
 def test_pipeline_tuning_example():
@@ -87,16 +86,16 @@ def test_api_example():
     prediction = run_classification_example(timeout=1)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(dataset='australia', timeout=1, visualization=False)
+    forecast = run_ts_forecasting_example(dataset='australia', timeout=1)
     assert forecast is not None
 
     pareto = run_classification_multiobj_example(timeout=1)
     assert pareto is not None
 
-    explainer = run_api_explain_example(visualization=False, timeout=1)
+    explainer = run_api_explain_example(timeout=1)
     assert explainer is not None
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', visualization=False)
+    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv')
     assert result > 0.5

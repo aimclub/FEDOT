@@ -19,7 +19,7 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
 
 
 def explain_pipeline(pipeline: 'Pipeline', data: 'InputData', method: str = 'surrogate_dt',
-                     visualization: bool = True, **kwargs) -> 'Explainer':
+                     visualization: bool = False, **kwargs) -> 'Explainer':
     """Create explanation for the `pipeline` according to the selected `method`.
     An `Explainer` instance is returned.
 

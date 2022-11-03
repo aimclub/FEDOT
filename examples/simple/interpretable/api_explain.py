@@ -4,7 +4,7 @@ from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
 
-def run_api_explain_example(visualization=True, timeout=None):
+def run_api_explain_example(visualization=False, timeout=None):
     train_data = pd.read_csv(f'{fedot_project_root()}/cases/data/cancer/cancer_train.csv', index_col=0)
     figure_path = 'api_explain_example.png'
 
@@ -30,4 +30,4 @@ def run_api_explain_example(visualization=True, timeout=None):
 
 
 if __name__ == '__main__':
-    run_api_explain_example()
+    run_api_explain_example(visualization=True)

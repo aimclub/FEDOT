@@ -1,6 +1,5 @@
 import os
 import random
-from datetime import timedelta
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -26,7 +25,7 @@ def test_credit_scoring_problem():
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=0.1, target='Y')
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y')
     assert roc_auc_test > 0.5
 
 

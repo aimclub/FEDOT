@@ -36,7 +36,7 @@ def test_time_profiler_correctly():
     profiler = TimeProfiler()
     full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train, full_path_test,
-                               timeout=1.5)
+                               timeout=5)
     path = os.path.abspath('time_profiler')
     profiler.profile(path=path, node_percent=0.5, edge_percent=0.1, open_web=False)
 

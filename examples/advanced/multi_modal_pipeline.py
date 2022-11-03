@@ -68,7 +68,7 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def run_multi_modal_pipeline(files_path: str, visualization=True) -> float:
+def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
