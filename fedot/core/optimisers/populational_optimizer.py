@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from asyncio import CancelledError
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Optional, Sequence
 
@@ -61,7 +62,7 @@ def precision_recall(pred, true_net: list, decimal = 2):
     return {
     'SHD': shd}
 
-true_net = [('asia', 'tub'), ('tub', 'either'), ('smoke', 'lung'), ('smoke', 'bronc'), ('lung', 'either'), ('bronc', 'dysp'), ('either', 'xray'), ('either', 'dysp')]
+true_net = [('A', 'C'), ('A', 'D'), ('A', 'H'), ('A', 'O'), ('C', 'I'), ('D', 'I'), ('H', 'D'), ('I', 'T'), ('O', 'T')]
 
 class PopulationalOptimizer(GraphOptimizer):
     """
@@ -124,6 +125,18 @@ class PopulationalOptimizer(GraphOptimizer):
         with self.timer, self._progressbar:
 
             self._initial_population(evaluator=evaluator)
+            
+            textfile = open("2_healthcare.txt", "w")
+            textfile.write('pop_size: ' + str(self.graph_optimizer_params.pop_size)+'\n')
+            textfile.write('num_of_generations: ' + str(self.requirements.num_of_generations)+'\n')
+            textfile.write('crossover_prob: ' + str(self.graph_optimizer_params.crossover_prob)+'\n')
+            textfile.write('mutation_prob: ' + str(self.graph_optimizer_params.mutation_prob)+'\n')
+            textfile.write('genetic_scheme_type: ' + str(self.graph_optimizer_params.genetic_scheme_type.name)+'\n')
+            textfile.write('selection_types: ' + str(self.graph_optimizer_params.selection_types[0].name)+'\n')
+            textfile.write('mutation_types: ' + str([i.__name__ for i in self.graph_optimizer_params.mutation_types])+'\n')
+            textfile.write('crossover_types: ' + str([i.__name__ for i in self.graph_optimizer_params.crossover_types])+'\n')
+            textfile.write('\n')        
+            
 
             while not self.stop_optimization():
                 try:
@@ -134,29 +147,41 @@ class PopulationalOptimizer(GraphOptimizer):
                 # Adding of new population to history
                 self._update_population(new_population)
 
-                # b = min(self.population, key = lambda x: x.fitness.value[0])
                 best = self.generations.best_individuals[0]
-                SHD = precision_recall(best, true_net)['SHD']
-                print(SHD)
-                OF = best.fitness.value[0]
-                # print('!', self.generations.best_individuals.archive.items.fitness.values)
                 structure = best.graph.get_edges()
-                # best.graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png'))
-                pdf.add_page()
-                pdf.set_font("Arial", size = 14)
-                pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')   
-                pdf.cell(150, 5, txt = str(SHD), ln = 1, align = 'C')   
-                # pdf.image('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/V' + str(self.current_generation_num)+'.png',w=165, h=165)        
-                pdf.multi_cell(180, 5, txt = 'structure = ' + str(structure))  
-                for node in best.graph.nodes:
-                    if node.content['parent_model'] == None: 
-                        pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(None))
-                    else:
-                        pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
+                score = best.fitness.value[0]
+                SHD = precision_recall(best, true_net)['SHD']
 
-        pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/_asia" +".pdf")
+                textfile.write('current_generation_num:' + str(self.current_generation_num)+'\n')
+                textfile.write('structure:' + str(structure)+'\n')
+                textfile.write('score:' + str(score)+'\n')
+                textfile.write('SHD:' + str(SHD)+'\n')
+                textfile.write('\n')
+
+        #         SHD = precision_recall(best, true_net)['SHD']
+        #         print(SHD)
+        #         OF = best.fitness.value[0]
+        #         pdf.add_page()
+        #         pdf.set_font("Arial", size = 14)
+        #         pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')   
+        #         pdf.cell(150, 5, txt = str(SHD), ln = 1, align = 'C')   
+        #         pdf.multi_cell(180, 5, txt = 'structure = ' + str(structure))  
+        #         for node in best.graph.nodes:
+        #             if node.content['parent_model'] == None: 
+        #                 pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(None))
+        #             else:
+        #                 pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
+        # pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/asia0" +".pdf")
+        textfile.write('time_min:' + str(round(self.timer.minutes_from_start, 1)) + '\n')
+        textfile.write(str('parent_model:') + '\n')
+        for node in best.graph.nodes:
+            if node.content['parent_model'] == None: 
+                textfile.write(str(node) + " -> " + str(None) + '\n')
+            else:
+                textfile.write(str(node) + " -> " + str(node.content['parent_model'].implementation_info) + '\n')
+                
+        textfile.close()
         return self.best_graphs
-# 3sachs_correct_score_cross_both_penalty_4
     @property
     def best_graphs(self):
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]

@@ -314,6 +314,8 @@ def custom_mutation_add_model(graph: OptGraph, **kwargs):
     try:
         all_nodes = graph.nodes
         nodes_with_parents = [node for node in all_nodes if (node.nodes_from!=[] and node.nodes_from!=None)]
+        if nodes_with_parents == []:
+            return graph
         node = choice(nodes_with_parents)
         node.content['parent_model'] = random_choice_model(node.content['type'])
     except Exception as ex:
@@ -409,7 +411,7 @@ def run_example():
                                                     for vertex in vertices])] 
     init = initial[0]
     # добавим для начального графа три ребра
-    init = custom_mutation_add_structure(custom_mutation_add_structure(custom_mutation_add_structure(init)))
+    # init = custom_mutation_add_structure(custom_mutation_add_structure(custom_mutation_add_structure(init)))
 
     def structure_to_opt_graph(fdt, structure):
 
@@ -647,7 +649,6 @@ def run_example():
         objective=objective)
 
 
-
     def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
             try:
@@ -704,8 +705,8 @@ def run_example():
 if __name__ == '__main__':
 
     # файл с исходными данными (должен лежать в 'examples/data/')
-    file = 'asia'
-    # размер популяции
+    file = 'healthcare'
+    # размер популяции 
     pop_size = 20
     # количество поколений
     n_generation = 100
