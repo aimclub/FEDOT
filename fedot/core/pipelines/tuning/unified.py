@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Tuple
 
 from hyperopt import fmin, space_eval
 
@@ -18,15 +19,19 @@ class PipelineTuner(HyperoptTuner):
         :param pipeline: Pipeline which hyperparameters will be tuned
         :param show_progress: shows progress of tuning if true
         """
-        parameters_dict = self._get_parameters_for_tune(pipeline)
+        parameters_dict, initial_params = self._get_parameters_for_tune(pipeline)
 
         # Check source metrics for data
         self.init_check(pipeline)
 
         pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
+        # trials = generate_trials_to_calculate([initial_params])
+
         best = fmin(partial(self._objective, pipeline=pipeline),
                     parameters_dict,
+                    points_to_evaluate=[initial_params],
+                    # trials=trials,
                     algo=self.algo,
                     max_evals=self.iterations,
                     show_progressbar=show_progress,
@@ -43,7 +48,7 @@ class PipelineTuner(HyperoptTuner):
 
         return final_pipeline
 
-    def _get_parameters_for_tune(self, pipeline: Pipeline) -> dict:
+    def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict]:
         """
         Function for defining the search space
 
@@ -51,6 +56,7 @@ class PipelineTuner(HyperoptTuner):
         """
 
         parameters_dict = {}
+        initial_parameters = {}
         for node_id, node in enumerate(pipeline.nodes):
             operation_name = node.operation.operation_type
 
@@ -59,9 +65,16 @@ class PipelineTuner(HyperoptTuner):
             node_params = self.search_space.get_node_params(node_id=node_id,
                                                             operation_name=operation_name)
 
-            parameters_dict.update({node_id: node_params})
+            if node_params is not None:
+                parameters_dict.update(node_params)
 
-        return parameters_dict
+            tunable_node_params = self.search_space.get_operation_parameter_range(operation_name)
+            tunable_initial_params = {f'{node_id} || {operation_name} | {p}':
+                                          node.parameters[p] for p in node.parameters if p in tunable_node_params}
+            if tunable_initial_params:
+                initial_parameters.update(tunable_initial_params)
+
+        return parameters_dict, initial_parameters
 
     def _objective(self, parameters_dict: dict, pipeline: Pipeline) \
             -> float:

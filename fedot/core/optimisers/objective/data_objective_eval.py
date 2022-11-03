@@ -89,6 +89,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
         else:
             folds_metrics = None
+
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
     def prepare_graph(self, graph: Pipeline, train_data: InputData,
