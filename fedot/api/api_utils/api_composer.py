@@ -32,6 +32,7 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 
@@ -54,11 +55,8 @@ class ApiComposer:
         if metric is None:
             metric = MetricByTask.get_default_quality_metrics(task.task_type)
 
-        if isinstance(metric, (str, Callable)):
-            metric = [metric]
-
         metric_functions = []
-        for specific_metric in metric:
+        for specific_metric in ensure_wrapped_in_sequence(metric):
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
             else:
