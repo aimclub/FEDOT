@@ -118,8 +118,9 @@ class Serializer(JSONEncoder, JSONDecoder):
             raise ValueError('Class must not be None.')
         from .coders import any_from_json, any_to_json
 
-        coders = {Serializer._to_json: to_json or any_to_json,
-                  Serializer._from_json: from_json or any_from_json}
+        # get provided coders or coders defined in the class itself or default universal coders
+        coders = {Serializer._to_json: to_json or getattr(cls, Serializer._to_json, any_to_json),
+                  Serializer._from_json: from_json or getattr(cls, Serializer._from_json, any_from_json)}
 
         if cls not in Serializer.CODERS_BY_TYPE:
             Serializer.CODERS_BY_TYPE[cls] = coders
