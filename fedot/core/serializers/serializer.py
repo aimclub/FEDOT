@@ -204,7 +204,12 @@ class Serializer(JSONEncoder, JSONDecoder):
             obj_cls = getattr(obj_cls, sub)
         return obj_cls
 
-    def object_hook(self, json_obj: Dict[str, Any]) -> Union[INSTANCE_OR_CALLABLE, dict]:
+    @staticmethod
+    def _is_bound_method(method: Callable) -> bool:
+        return hasattr(method, '__self__')
+
+    @staticmethod
+    def object_hook(json_obj: Dict[str, Any]) -> Union[INSTANCE_OR_CALLABLE, dict]:
         """
         Decodes every JSON-object to python class/func object or just returns dict
 
@@ -218,7 +223,12 @@ class Serializer(JSONEncoder, JSONDecoder):
             del json_obj[CLASS_PATH_KEY]
             base_type = Serializer._get_base_type(obj_cls)
             if isclass(obj_cls) and base_type is not None:
-                return Serializer._get_coder_by_type(base_type, Serializer._from_json)(obj_cls, json_obj)
+                coder = Serializer._get_coder_by_type(base_type, Serializer._from_json)
+                # call with a right num of arguments
+                if Serializer._is_bound_method(coder):
+                    return coder(json_obj)
+                else:
+                    return coder(obj_cls, json_obj)
             elif isfunction(obj_cls) or ismethod(obj_cls):
                 return obj_cls
             raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')

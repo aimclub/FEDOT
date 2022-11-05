@@ -45,8 +45,7 @@ class CustomSerializableWithMethods(DataEq):
     def to_json(self) -> Dict:
         return {custom_id: self.data}
 
-    # @classmethod
-    @staticmethod
+    @classmethod
     def from_json(cls, _dict):
         return CustomSerializableWithMethods(_dict[custom_id])
 
@@ -76,7 +75,7 @@ def test_serializable_with_class_methods(obj):
     dumped_srz = json.dumps(obj, cls=Serializer)
     dumped_self = obj.to_json()
 
-    decoded_self = obj.__class__.from_json(obj.__class__, dumped_self)
+    decoded_self = obj.from_json(dumped_self)
     decoded_srz = json.loads(dumped_srz, cls=Serializer)
 
     assert decoded_self == decoded_srz == deepcopy(obj)
