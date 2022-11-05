@@ -10,6 +10,8 @@ from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import NodeMetadata
 
+# NB: at the end of module init happens registration of default class coders
+
 S = TypeVar('S')
 EncodeCallable = Callable[[S], Dict[str, Any]]
 DecodeCallable = Callable[[Type[S], Dict[str, Any]], S]
@@ -44,14 +46,17 @@ class Serializer(JSONEncoder, JSONDecoder):
 
     CODERS_BY_TYPE = {}
 
+    __default_coders_initialized = False
+
     def __init__(self, *args, **kwargs):
         for base_class, coder_name in [(JSONEncoder, 'default'), (JSONDecoder, 'object_hook')]:
             base_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(base_class.__init__).parameters}
             base_kwargs[coder_name] = getattr(self, coder_name)
             base_class.__init__(self, **base_kwargs)
 
-        if not Serializer.CODERS_BY_TYPE:
+        if not self.__default_coders_initialized:
             Serializer._register_default_coders()
+            self.__default_coders_initialized = True
 
     @staticmethod
     def _register_default_coders():
@@ -85,7 +90,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         _from_json = Serializer._from_json
         basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
 
-        Serializer.CODERS_BY_TYPE.update({
+        default_coders = {
             Fitness: basic_serialization,
             Individual: basic_serialization,
             NodeMetadata: basic_serialization,
@@ -97,7 +102,8 @@ class Serializer(JSONEncoder, JSONDecoder):
             ParentOperator: {_to_json: parent_operator_to_json, _from_json: parent_operator_from_json},
             UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
             ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
-        })
+        }
+        Serializer.CODERS_BY_TYPE.update(default_coders)
 
     @staticmethod
     def register_coders(cls: Type[S],
