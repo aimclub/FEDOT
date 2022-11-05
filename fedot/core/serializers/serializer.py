@@ -181,7 +181,10 @@ class Serializer(JSONEncoder, JSONDecoder):
             return Serializer.dump_path_to_obj(obj)
         base_type = Serializer._get_base_type(obj)
         if base_type is not None:
-            return Serializer._get_coder_by_type(base_type, Serializer._to_json)(obj)
+            encoded = Serializer._get_coder_by_type(base_type, Serializer._to_json)(obj)
+            if CLASS_PATH_KEY not in encoded:
+                encoded.update(Serializer.dump_path_to_obj(obj))
+            return encoded
 
         return JSONEncoder.default(self, obj)
 
