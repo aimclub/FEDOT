@@ -5,11 +5,6 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
-from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.optimisers.fitness.fitness import Fitness
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.pipelines.node import NodeMetadata
-
 # NB: at the end of module init happens registration of default class coders
 
 S = TypeVar('S')
@@ -63,10 +58,14 @@ class Serializer(JSONEncoder, JSONDecoder):
         from uuid import UUID
 
         from fedot.core.dag.graph import Graph
+        from fedot.core.dag.linked_graph_node import LinkedGraphNode
+        from fedot.core.pipelines.node import NodeMetadata
         from fedot.core.operations.operation import Operation
         from fedot.core.optimisers.opt_history_objects.individual import Individual
         from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
         from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
+        from fedot.core.optimisers.fitness.fitness import Fitness
+        from fedot.core.optimisers.objective.objective import Objective
         from fedot.core.utilities.data_structures import ComparableEnum
 
         from .coders import (
