@@ -269,7 +269,6 @@ def default_load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Any:
 
 
 def register_serializable(cls: Type[INSTANCE_OR_CALLABLE] = None,
-                          /, *,
                           to_json: Optional[EncodeCallable] = None,
                           from_json: Optional[DecodeCallable] = None,
                           add_save_load: bool = False,
