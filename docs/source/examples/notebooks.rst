@@ -5,11 +5,22 @@ Notebooks are available in our additional repositories `Fedot examples <https://
 In this repository you can find following notebooks:
 
 * `Introduction to AutoML <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/1_intro_to_automl.ipynb>`_
+    Notebook shows the advantage of Automated Machine Learning and provides quickstart guide.
+
 * `Introduction to Fedot <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/2_intro_to_fedot.ipynb>`_
+    Notebook contains a FEDOT's description and more detailed tutorial with core-based examples.
+
 * `Introduction to Time Series Forecasting <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/3_intro_ts_forecasting.ipynb>`_
+    A gentle guide to Time Series Forecasting problem and its basic solutions using Fedot.
+
 * `Introduction to Automated Time Series Forecasting <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/4_auto_ts_forecasting.ipynb>`_
+    Advanced guide to configure FEDOT for a Time Series Forecasting problem.
+
 * `Specific cases in Time Series Forecasting <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/5_ts_specific_cases.ipynb>`_
+    Notebook contains examples of using the advanced FEDOT's functionality both for predicting time series and for filling in gaps in them.
+
 * `Using FEDOT for hybrid modeling with custom model tuning <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/6_hybrid_modelling.ipynb>`_
+    Notebook contains examples of custom model specification for Time Series Forecasting problem.
 
 Fedot can be used in cloud services, e.g. `VK Cloud's ML Platform <https://mcs.mail.ru/>`_. In the next `repository <https://github.com/stockblog/webinar_automl_fedot>`_
 you can find notebooks, where presented work of framework in JupyterLab with MLflow:
