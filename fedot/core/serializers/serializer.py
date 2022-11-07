@@ -109,13 +109,20 @@ class Serializer(JSONEncoder, JSONDecoder):
     def register_coders(cls: Type[S],
                         to_json: Optional[EncodeCallable[S]] = None,
                         from_json: Optional[DecodeCallable[S]] = None) -> Type[S]:
-        """Registers classes as json-serializable so that they can be used
-        by framework Serialization subsystem. Can be used as a decorator.
+        """Registers classes as json-serializable so that they can be used by `Serializer`.
+
+        Supports 3 alternative usages:
+
+        - Default serialization is used (functions `any_to_json` and `any_from_json`).
+        - Custom serialization functions `to_json` & `from_json` are provided explicitly as arguments.
+        - Custom serialization functions `to_json` & `from_json` are defined in the class.
 
         Args:
             cls: registered class
-            to_json: optional custom encoding function
-            from_json: optional custom decoding function
+            to_json: custom encoding function that returns json Dict.
+             Optional, if None then default is used.
+            from_json: custom decoding function that returns class given a Dict.
+             Optional, if None then default is used.
 
         Returns:
             cls: class that is registered in serializer
@@ -274,14 +281,18 @@ def register_serializable(cls: Type[INSTANCE_OR_CALLABLE] = None,
                           add_save_load: bool = False,
                           ) -> Type[INSTANCE_OR_CALLABLE]:
     """Decorator for registering classes as json-serializable.
-    Optionally adds `save` and `load` methods to the class for json (de)serialization.
     Relies on :py:class:`fedot.core.serializers.serializer.Serializer.register_coders`.
+    Optionally adds `save` and `load` methods to the class for json (de)serialization.
 
     Args:
         cls: decorated class
-        to_json: optional custom encoding function
-        from_json: optional custom decoding function
+        to_json: custom encoding function that returns json Dict.
+         Optional, if None then default is used.
+        from_json: custom decoding function that returns class given a Dict.
+         Optional, if None then default is used.
         add_save_load: if True, then `save` and `load` methods are added to the class
+         that (de)serialize the class (from)to the file using `Serializer`.
+         See `default_save` & `default_load` functions.
 
     Returns:
         cls: class that is registered in serializer
