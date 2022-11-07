@@ -245,7 +245,7 @@ def boxplot_visualize(df, label):
     plt.show()
 
 
-def run_single_example(len_forecast=40, visualization=True):
+def run_single_example(len_forecast=40, visualization=False):
     ts_name = 'sea_level'
     path_to_file = '../../cases/data/nemo/sea_surface_height.csv'
     path_to_exog_file = '../../cases/data/nemo/sea_surface_height_nemo.csv'

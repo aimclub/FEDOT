@@ -59,14 +59,14 @@ def make_forecast(pipeline, train: InputData, predict: InputData,
 
 
 def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
-                             visualisation=False) -> None:
+                             visualization=False) -> None:
     """ Function with example how time series forecasting can be made with using
     exogenous features
 
     :param path_to_file: path to the csv file with dataframe
     :param len_forecast: forecast length
     :param with_exog: is it needed to make prediction with exogenous time series
-    :param visualisation: is it needed to make visualisations
+    :param visualization: is it needed to make visualizations
     """
 
     df = pd.read_csv(path_to_file)
@@ -128,7 +128,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     print(f'RMSE - {mse_before:.4f}')
     print(f'MAE - {mae_before:.4f}\n')
 
-    if visualisation:
+    if visualization:
         plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
         plt.plot(range(len(train_input.target), len(time_series)), predicted, label='Forecast')
         plt.legend()
@@ -138,4 +138,4 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 if __name__ == '__main__':
     data_path = os.path.join(f'{fedot_project_root()}', 'examples/data/ts', 'ts_sea_level.csv')
-    run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True, visualisation=True)
+    run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True, visualization=True)
