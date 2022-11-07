@@ -83,7 +83,6 @@ Examples of time-series pipelines can be found `here`_.
 
 .. code-block:: python
 
-    import numpy as np
     from fedot.api.main import Fedot
     from fedot.core.data.data import InputData
     from fedot.core.data.data_split import train_test_data_setup
@@ -91,10 +90,8 @@ Examples of time-series pipelines can be found `here`_.
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
     pipeline = PipelineBuilder() \
-        .add_sequence('locf', branch_idx=0) \
-        .add_sequence('lagged', branch_idx=1) \
-        .join_branches('ridge') \
-        .to_pipeline()
+        .add_sequence('lagged', 'ridge', branch_idx=0) \
+        .add_sequence('glm', branch_idx=1).join_branches('ridge').to_pipeline()
 
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=10))
@@ -136,6 +133,8 @@ Pipeline from the example:
 
 .. |ts_pipeline| image:: img_utilities/ts_pipeline.png
    :width: 80%
+
+In this pipeline in the first branch
 
 Time-series validation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -179,7 +178,7 @@ Train test split
 To split InputData use ``train_test_data_setup`` method.
 ``split_ratio`` and ``shuffle_flag`` are ignored for time-series forecasting.
 
-.. automethod:: fedot.core.data.data_split.train_test_data_setup
+.. autofunction:: fedot.core.data.data_split.train_test_data_setup
 
 The method uses ``forecast_length`` specified in the ``data.task``. The resulting split:
 
