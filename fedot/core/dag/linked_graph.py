@@ -1,4 +1,5 @@
 from copy import deepcopy
+from os import PathLike
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 
 from networkx import graph_edit_distance, set_node_attributes
@@ -7,6 +8,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy, node_depth
 from fedot.core.dag.convert import graph_structure_as_nx_graph
+from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, Copyable, remove_items
 from fedot.core.utils import copy_doc
 
@@ -168,6 +170,24 @@ class LinkedGraph(Graph, Copyable):
                 for parent_node in node.nodes_from:
                     edges.append((parent_node, node))
         return edges
+
+    def show(self, save_path: Optional[Union[PathLike, str]] = None,
+             engine: str = 'matplotlib',
+             node_color: Optional[NodeColorType] = None, dpi: int = 100,
+             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
+        """Visualizes graph or saves its picture to the specified ``path``
+
+        Args:
+            save_path: optional, save location of the graph visualization image.
+            engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
+            node_color: color of nodes to use.
+            node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
+            font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
+            edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
+            dpi: DPI of the output image. Not supported for the engine 'pyvis'.
+        """
+        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
+                                    edge_curvature_scale)
 
 
 def get_distance_between(graph_1: Graph, graph_2: Graph) -> int:

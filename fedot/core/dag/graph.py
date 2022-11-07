@@ -3,7 +3,6 @@ from os import PathLike
 from typing import Tuple, Dict, List, Sequence, Union, TypeVar, Optional
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 
 NodeType = TypeVar('NodeType', bound=GraphNode, covariant=False, contravariant=False)
 
@@ -17,7 +16,7 @@ class Graph(ABC):
         """Adds new node to the graph together with its parent nodes.
 
         Args:
-            nodes: pipeline nodes
+            node: pipeline node
         """
         raise NotImplementedError()
 
@@ -25,8 +24,9 @@ class Graph(ABC):
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         """Replaces ``old_node`` node with ``new_node``
 
-        :param old_node: node to be replaced
-        :param new_node: node to be placed instead
+        Args:
+            old_node: node to be replaced
+            new_node: node to be placed instead
         """
         raise NotImplementedError()
 
@@ -165,22 +165,12 @@ class Graph(ABC):
 
         return len(self.nodes)
 
-    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
-             node_color: Optional[NodeColorType] = None, dpi: int = 100,
-             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, **kwargs):
         """Visualizes graph or saves its picture to the specified ``path``
 
         Args:
             save_path: optional, save location of the graph visualization image.
-            engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
-            node_color: color of nodes to use.
-            node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
-            font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
-            edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
-            dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
-        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
-                                    edge_curvature_scale)
 
     @property
     def graph_description(self) -> Dict:
