@@ -70,13 +70,14 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types = OperationTypesRepository().suitable_operation(
-        task_type=TaskTypesEnum.classification)
-
+    available_model_types = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.classification)
+    req = PipelineComposerRequirements(num_of_generations=3,
+                                       primary=available_model_types,
+                                       secondary=available_model_types)
     objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
-    req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types)
-    optimiser = RandomSearchOptimizer(objective, RandomGraphFactory(req.primary, req.secondary), iter_num=2)
-    random_composer = RandomSearchComposer(optimiser, composer_requirements=req)
+
+    optimiser = RandomSearchOptimizer(objective, req)
+    random_composer = RandomSearchComposer(optimiser)
 
     pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
     pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)
