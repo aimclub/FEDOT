@@ -7,9 +7,7 @@ from fedot.core.operations.hyperparameters_preprocessing import HyperparametersP
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-from fedot.core.serializers.coders import any_to_json
 from fedot.core.serializers.serializer import register_serializable
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @register_serializable
@@ -160,8 +158,8 @@ class Operation:
         """
         return {
             k: v
-            for k, v in any_to_json(self).items()
-            if k not in ['operations_repo', '_eval_strategy', 'fitted_operation']
+            for k, v in sorted(vars(self).items())
+            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation']
         }
 
 

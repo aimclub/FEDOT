@@ -66,9 +66,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         from fedot.core.optimisers.objective.objective import Objective
         from fedot.core.utilities.data_structures import ComparableEnum
 
+        from .any_serialization import any_from_json, any_to_json
+
         from .coders import (
-            any_from_json,
-            any_to_json,
             enum_from_json,
             enum_to_json,
             graph_from_json,
@@ -123,7 +123,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         """
         if cls is None:
             raise ValueError('Class must not be None.')
-        from .coders import any_from_json, any_to_json
+        from .any_serialization import any_from_json, any_to_json
 
         # get provided coders or coders defined in the class itself or default universal coders
         coders = {Serializer._to_json: to_json or getattr(cls, Serializer._to_json, any_to_json),

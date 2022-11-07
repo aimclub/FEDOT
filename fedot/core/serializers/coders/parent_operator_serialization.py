@@ -1,7 +1,7 @@
 from typing import Any, Dict, Type
 
 from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
-from . import any_from_json, any_to_json
+from .. import any_from_json, any_to_json
 
 
 def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:

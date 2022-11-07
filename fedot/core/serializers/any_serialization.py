@@ -1,8 +1,9 @@
 from copy import deepcopy
 from inspect import signature
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, TypeVar, Callable
 
-from .. import INSTANCE_OR_CALLABLE
+
+INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 
 
 def any_to_json(obj: INSTANCE_OR_CALLABLE) -> Dict[str, Any]:

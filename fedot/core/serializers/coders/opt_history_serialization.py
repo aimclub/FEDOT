@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Sequence, Type, Union
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-from . import any_from_json, any_to_json
+from .. import any_from_json, any_to_json
 
 MISSING_INDIVIDUAL_ARGS = {
     'metadata': {'MISSING_INDIVIDUAL': 'This individual could not be restored during `OptHistory.load()`'}

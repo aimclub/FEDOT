@@ -1,5 +1,4 @@
 # flake8: noqa
-from .any_serialization import any_from_json, any_to_json
 from .enum_serialization import enum_from_json, enum_to_json
 from .graph_node_serialization import graph_node_to_json
 from .graph_serialization import graph_from_json

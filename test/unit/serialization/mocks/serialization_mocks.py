@@ -10,6 +10,17 @@ class MockOperation:
         return self.operation_type == other.operation_type
 
 
+def operation_to_json(self):
+    """
+    Uses regular serialization but excludes "operations_repo" field cause it has no any important info about class
+    """
+    return {
+        k: v
+        for k, v in sorted(vars(self).items())
+        if k not in ['operations_repo']
+    }
+
+
 class MockNode:
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
