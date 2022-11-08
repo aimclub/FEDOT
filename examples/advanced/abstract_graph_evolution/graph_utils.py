@@ -1,6 +1,7 @@
 from collections.abc import Mapping
 
 import networkx as nx
+from typing import Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -20,15 +21,28 @@ def _optnode_from_dict(data: Mapping) -> OptNode:
 def nx_to_optgraph(graph: nx.DiGraph, node_adapt=_optnode_from_dict) -> OptGraph:
     # node parents (node.nodes_from) must be preserved inside nodes
     nodes = []
+    mapped_nodes = {}
+
+    def map_predecessors(node_id) -> Sequence[OptNode]:
+        predecessor_nodes = []
+        for pred_id in graph.predecessors(node_id):
+            pred_node = mapped_nodes.get(pred_id)
+            if pred_node is None:
+                node_data = graph.nodes[pred_id]
+                pred_node = node_adapt(node_data)
+                mapped_nodes[pred_id] = pred_node
+            predecessor_nodes.append(pred_node)
+        return predecessor_nodes
+
     for node_id, node_data in graph.nodes.items():
         # transform node
         node = node_adapt(node_data)
+        mapped_nodes[node_id] = node
         # append its parent edges
-        predecessor_nodes = [node_adapt(graph.nodes[pred_id])
-                             for pred_id in graph.predecessors(node_id)]
-        node.nodes_from = predecessor_nodes
+        node.nodes_from = map_predecessors(node_id)
         # append node
         nodes.append(node)
+
     return OptGraph(nodes)
 
 
