@@ -22,7 +22,7 @@ Loading training and test data from a CSV file as a Pandas dataframe ``pd.DataFr
     train = pd.DataFrame('train.csv')
     test = pd.DataFrame('test.csv')
 
-Initialize the Fedot object and define the type of modeling problem. In this case, problem is ``classification``.
+Initialize the FEDOT object and define the type of modeling problem. In this case, problem is ``classification``.
 
 .. code-block:: python
 
@@ -40,6 +40,8 @@ The ``fit()`` method begins the optimization and returns the resulting composite
     best_pipeline = model.fit(features=train, target='target')
 
 After the fitting is completed, you can look at the structure of the resulting pipeline.
+For example, let best pipeline consist of two nodes: resampling operation (resample) and Random Forest model (rf).
+Let see how it looks like.
 
 In text format:
 
