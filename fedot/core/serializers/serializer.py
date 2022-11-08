@@ -122,7 +122,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             cls: class that is registered in serializer
         """
         if cls is None:
-            raise ValueError('Class must not be None.')
+            raise TypeError('Class must not be None.')
         from .any_serialization import any_from_json, any_to_json
 
         # get provided coders or coders defined in the class itself or default universal coders
@@ -132,7 +132,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         if cls not in Serializer.CODERS_BY_TYPE:
             Serializer.CODERS_BY_TYPE[cls] = coders
         else:
-            raise ValueError(f'Object {cls} already has serializer coders registered.')
+            raise AttributeError(f'Object {cls} already has serializer coders registered.')
 
         return cls
 
