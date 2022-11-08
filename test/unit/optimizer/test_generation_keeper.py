@@ -44,13 +44,13 @@ def population2():
 
 def test_archive_no_improvement():
     archive = generation_keeper(population1())
-    assert archive.stagnation_duration == 0
+    assert archive.stagnation_iter_duration == 0
     assert archive.is_any_improved
     assert archive.is_quality_improved and archive.is_complexity_improved
     assert archive.generation_num == 1
 
     archive.append(population1())
-    assert archive.stagnation_duration == 1
+    assert archive.stagnation_iter_duration == 1
     assert not archive.is_any_improved
     assert not archive.is_quality_improved and not archive.is_complexity_improved
     assert archive.generation_num == 2
@@ -65,7 +65,7 @@ def test_archive_multiobj_one_improvement():
                for new_ind in population2())
     archive.append(population2())
 
-    assert archive.stagnation_duration == 0
+    assert archive.stagnation_iter_duration == 0
     assert archive.is_any_improved
     assert archive.generation_num == 2
     # plus one non-dominated individual

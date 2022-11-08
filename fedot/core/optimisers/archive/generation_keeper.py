@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Sequence, Type, Optional, Any
 
 import numpy as np
+import datetime
 
 from fedot.core.optimisers.fitness import is_metric_worse
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -14,7 +15,7 @@ class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
 
     @property
-    def stagnation_duration(self) -> int:
+    def stagnation_iter_duration(self) -> int:
         """Returns number of generations for which not any metrics has improved."""
         raise NotImplementedError()
 
@@ -59,6 +60,7 @@ class GenerationKeeper(ImprovementWatcher):
                  initial_generation: PopulationT = None):
         self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
+        self._stagnation_start_time = datetime.datetime.now()
 
         self._objective = objective
         self._metrics_improvement: Dict[Any, bool] = {}
@@ -78,7 +80,11 @@ class GenerationKeeper(ImprovementWatcher):
         return self._generation_num
 
     @property
-    def stagnation_duration(self) -> int:
+    def stagnation_iter_duration(self) -> int:
+        return self._stagnation_counter
+
+    @property
+    def stagnation_time_duration(self) -> float:
         return self._stagnation_counter
 
     @property
@@ -125,6 +131,8 @@ class GenerationKeeper(ImprovementWatcher):
                 self._metrics_improvement[metric] = True
 
         self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
+        self._stagnation_start_time = datetime.datetime.now() \
+            if self.is_any_improved else self._stagnation_start_time
         self._generation_num += 1  # becomes 1 on first population
 
     def _reset_metrics_improvement(self):
