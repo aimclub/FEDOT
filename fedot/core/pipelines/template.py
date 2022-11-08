@@ -185,8 +185,6 @@ class PipelineTemplate:
         """
 
         path = os.path.abspath(path)
-        if not os.path.exists(path):
-            os.makedirs(path)
 
         # explicitly specify where to save json, fitted_operation and ets will be saved in the same dir
         if path.endswith('.json'):
@@ -195,6 +193,9 @@ class PipelineTemplate:
                 os.makedirs(path_to_dir)
             path_to_json = path
             return path_to_dir, path_to_json
+
+        if not os.path.exists(path):
+            os.makedirs(path)
 
         if is_final:
             path_to_dir = path
@@ -210,8 +211,12 @@ class PipelineTemplate:
             max_pipeline_idx = -1
             for file in files_by_path:
                 if '_pipeline_saved':
-                    cur_pipeline_idx = int(file.split('_pipeline_saved')[0]) \
+                    cur_pipeline_idx = file.split('_pipeline_saved')[0] \
                         if '_' not in file.split('_pipeline_saved')[0] else 0
+                    try:
+                        cur_pipeline_idx = int(cur_pipeline_idx)
+                    except ValueError:
+                        continue
                     max_pipeline_idx = cur_pipeline_idx if cur_pipeline_idx > max_pipeline_idx else max_pipeline_idx
             folder_name = f"{max_pipeline_idx+1}_pipeline_saved"
 
