@@ -1,11 +1,19 @@
 import networkx as nx
 import pytest
 
-from examples.advanced.abstract_graph_evolution.graph_utils import optgraph_to_nx, nx_to_optgraph
+from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.dag.graph import Graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+
+
+def optgraph_to_nx(optgraph):
+    return BaseNetworkxAdapter().restore(optgraph)
+
+
+def nx_to_optgraph(digraph):
+    return BaseNetworkxAdapter().adapt(digraph)
 
 
 def get_pipelines():

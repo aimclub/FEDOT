@@ -4,11 +4,12 @@ from typing import Callable, Tuple
 import networkx as nx
 import numpy as np
 
+from fedot.core.dag.graph import Graph
+from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
+
 from examples.advanced.abstract_graph_evolution import mmd
-from examples.advanced.abstract_graph_evolution.graph_utils import optgraph_to_nx
 from examples.advanced.abstract_graph_evolution.mmd import compute_mmd
 from examples.advanced.abstract_graph_evolution.orbits_count_metric import motif_stats_graph
-from fedot.core.dag.graph import Graph
 
 
 def compute_all_stats(graph_prediction: Sequence[Graph],
@@ -44,6 +45,7 @@ def mmd_stats(stat_function: Callable[[nx.Graph], np.ndarray],
               graph_prediction: Sequence[Graph],
               graph_target: Sequence[Graph],
               **kwargs):
+    optgraph_to_nx = BaseNetworkxAdapter().restore
 
     def eval_stats(graph):
         nx_graph = optgraph_to_nx(graph)
