@@ -37,7 +37,34 @@ The ``fit()`` method begins the optimization and returns the resulting composite
 
 .. code-block:: python
 
-    model.fit(features=train, target='target')
+    best_pipeline = model.fit(features=train, target='target')
+
+After the fitting is completed, you can look at the structure of the resulting pipeline.
+
+In text format:
+
+.. code-block:: python
+
+    best_pipeline.print_structure()
+
+.. code-block:: text
+
+    Pipeline structure:
+    {'depth': 2, 'length': 2, 'nodes': [rf, resample]}
+    rf - {'n_jobs': -1, 'bootstrap': False, 'criterion': 'entropy', 'max_features': 0.2452946642710205, 'min_samples_leaf': 6, 'min_samples_split': 4, 'n_estimators': 100}
+    resample - {'balance': 'expand_minority', 'replace': False, 'balance_ratio': 0.5984630982827773}
+
+And in plot format:
+
+.. code-block:: python
+
+    best_pipeline.show()
+
+|pipeline_structure|
+
+.. |pipeline_structure| image:: img_utilities/pipeline_example.png
+   :width: 80%
+
 
 The ``predict()`` method, which uses an already fitted pipeline, returns values for the target.
 
