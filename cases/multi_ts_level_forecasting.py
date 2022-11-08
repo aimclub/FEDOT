@@ -35,20 +35,6 @@ def prepare_data(forecast_length, is_multi_ts):
     return train_data, test_data, task
 
 
-def visualize_result(train, test, target, forecast, is_multi_ts):
-    if is_multi_ts:
-        history = np.ravel(train.target[:, 0])
-    else:
-        history = np.ravel(train.target)
-    plt.plot(np.ravel(test.idx), target, label='test')
-    plt.plot(np.ravel(train.idx), history, label='history')
-    plt.plot(np.ravel(test.idx), forecast, label='prediction_after_tuning')
-    plt.xlabel('Time step')
-    plt.ylabel('Sea level')
-    plt.legend()
-    plt.show()
-
-
 def run_multi_ts_forecast(forecast_length, is_multi_ts):
     """
     Function for run experiment with use multi_ts data type (is_multi_ts=True) for train set extension
@@ -78,7 +64,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
     target = np.ravel(test_data.target)
 
     # visualize results
-    visualize_result(train_data, test_data, target, forecast, is_multi_ts)
+    model.plot_prediction()
 
     print(f'MAE: {mean_absolute_error(target, forecast)}')
     print(f'RMSE: {mean_squared_error(target, forecast)}')

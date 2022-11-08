@@ -6,6 +6,7 @@ import numpy as np
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_sample: bool = False,
@@ -25,9 +26,12 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
         data = data.extract_data_source(target)
+    if data.data_type == DataTypesEnum.multi_ts:
+        actual_time_series = data.features[:, 0]
+    else:
+        actual_time_series = data.features
     target = data.target
     predict = prediction.predict
-    actual_time_series = data.features
     pred_start = len(actual_time_series)
     if in_sample:
         pred_start = len(actual_time_series) - len(predict)

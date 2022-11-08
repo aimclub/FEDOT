@@ -33,9 +33,9 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: Union[InputData, M
     forecast_length = task.task_params.forecast_length
 
     final_forecast = []
-    if isinstance(input_data, MultiModalData):
+    if isinstance(input_data, MultiModalData) or input_data.data_type == DataTypesEnum.multi_ts:
         if forecast_length < horizon:
-            raise ValueError('In case of multi-modal time series '
+            raise ValueError('In case of multi-modal time-series and multi time-series'
                              'forecast horizon can not be bigger than forecast length model was fitted for.\n'
                              f'forecast_length = {forecast_length}\n'
                              f'horizon = {horizon}')
@@ -94,7 +94,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
         source_len = len(pre_history_ts)
         last_index_pre_history = source_len - 1
 
-        data = _update_input(pre_history_ts, scope_len, task)
+        data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
     else:
         # TODO simplify
 
@@ -106,7 +106,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
             source_len = len(pre_history_ts)
             last_index_pre_history = source_len - 1
 
-            local_data = _update_input(pre_history_ts, scope_len, task)
+            local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
             data[data_id] = local_data
 
     # Calculate intervals
@@ -126,7 +126,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
             # Add actual values to the historical data - update it
             pre_history_ts = time_series[:border + 1]
             # Prepare InputData for next iteration
-            data = _update_input(pre_history_ts, scope_len, task)
+            data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
         else:
             # TODO simplify
             data = MultiModalData()
@@ -134,7 +134,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
                 features = input_data[data_id].features
                 time_series = np.array(features)
                 pre_history_ts = time_series[:border + 1]
-                local_data = _update_input(pre_history_ts, scope_len, task)
+                local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
                 data[data_id] = local_data
 
     # Create output data
@@ -240,21 +240,24 @@ def _calculate_number_of_steps(scope_len, horizon):
     return amount_of_steps
 
 
-def _update_input(pre_history_ts, scope_len, task):
+def _update_input(pre_history_ts, scope_len, task, data_type: DataTypesEnum = DataTypesEnum.ts):
     """ Method make new InputData object based on the previous part of time
     series
 
-    :param pre_history_ts: time series
-    :param scope_len: how many elements to the future can algorithm forecast
-    :param task: time series forecasting task
+    Args:
+        pre_history_ts: time series
+        scope_len: how many elements to the future can algorithm forecast
+        task: time series forecasting task
+        data_type: type of data (ts or multi_ts
 
-    :return input_data: updated InputData
+    Returns:
+        input_data: updated InputData
     """
     start_forecast = len(pre_history_ts)
     end_forecast = start_forecast + scope_len
     input_data = InputData(idx=np.arange(start_forecast, end_forecast),
                            features=pre_history_ts, target=None,
-                           task=task, data_type=DataTypesEnum.ts)
+                           task=task, data_type=data_type)
 
     return input_data
 
