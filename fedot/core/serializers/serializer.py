@@ -7,10 +7,9 @@ from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
 # NB: at the end of module init happens registration of default class coders
 
-S = TypeVar('S')
-EncodeCallable = Callable[[S], Dict[str, Any]]
-DecodeCallable = Callable[[Type[S], Dict[str, Any]], S]
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
+EncodeCallable = Callable[[INSTANCE_OR_CALLABLE], Dict[str, Any]]
+DecodeCallable = Callable[[Type[INSTANCE_OR_CALLABLE], Dict[str, Any]], INSTANCE_OR_CALLABLE]
 
 
 MODULE_X_NAME_DELIMITER = '/'
@@ -100,9 +99,10 @@ class Serializer(JSONEncoder, JSONDecoder):
         Serializer.CODERS_BY_TYPE.update(default_coders)
 
     @staticmethod
-    def register_coders(cls: Type[S],
-                        to_json: Optional[EncodeCallable[S]] = None,
-                        from_json: Optional[DecodeCallable[S]] = None) -> Type[S]:
+    def register_coders(cls: Type[INSTANCE_OR_CALLABLE],
+                        to_json: Optional[EncodeCallable[INSTANCE_OR_CALLABLE]] = None,
+                        from_json: Optional[DecodeCallable[INSTANCE_OR_CALLABLE]] = None,
+                        ) -> Type[INSTANCE_OR_CALLABLE]:
         """Registers classes as json-serializable so that they can be used by `Serializer`.
 
         Supports 3 alternative usages:
@@ -242,15 +242,16 @@ class Serializer(JSONEncoder, JSONDecoder):
         return json_obj
 
 
-def default_save(obj: Any, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
+def default_save(obj: Any, json_file_path: Optional[Union[str, os.PathLike]] = None) -> Optional[str]:
     """ Default save to json using Serializer """
     if json_file_path is None:
         return json.dumps(obj, indent=4, cls=Serializer)
     with open(json_file_path, mode='w') as json_file:
         json.dump(obj, json_file, indent=4, cls=Serializer)
+        return None
 
 
-def default_load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Any:
+def default_load(json_str_or_file_path: Optional[Union[str, os.PathLike]] = None) -> Any:
     """ Default load from json using Serializer """
     def load_as_file_path():
         with open(json_str_or_file_path, mode='r') as json_file:
@@ -268,7 +269,7 @@ def default_load(json_str_or_file_path: Union[str, os.PathLike] = None) -> Any:
         return load_as_file_path()
 
 
-def register_serializable(cls: Type[INSTANCE_OR_CALLABLE] = None,
+def register_serializable(cls: Optional[Type[INSTANCE_OR_CALLABLE]] = None,
                           to_json: Optional[EncodeCallable] = None,
                           from_json: Optional[DecodeCallable] = None,
                           add_save_load: bool = False,
