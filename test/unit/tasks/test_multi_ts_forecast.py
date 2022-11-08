@@ -11,9 +11,9 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def get_multi_ts_data(validation_blocks: Optional[int] = None):
+def get_multi_ts_data(forecast_length: int = 5, validation_blocks: Optional[int] = None):
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=5))
+                TsForecastingParams(forecast_length=forecast_length))
     project_root_path = str(fedot_project_root())
     file_path = os.path.join(project_root_path, 'test/data/synthetic_multi_ts.csv')
     data = InputData.from_csv_multi_time_series(

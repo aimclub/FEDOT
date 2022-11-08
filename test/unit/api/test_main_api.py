@@ -29,6 +29,7 @@ from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 default_params = {
@@ -160,7 +161,7 @@ def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
 
 
 @pytest.mark.parametrize('validation_blocks', [None, 2, 3])
-def test_api_in_sample_ts_forecast_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
@@ -175,8 +176,25 @@ def test_api_in_sample_ts_forecast_correct(validation_blocks, task_type: str = '
     assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
 
 
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+    forecast_length = 2
+    train_data, test_data = get_multi_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=validation_blocks,
+                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
+                                        'ridge', 'lasso', 'linear', 'cut'])
+
+    model.fit(features=train_data)
+    ts_forecast = model.predict(features=test_data, in_sample=True)
+    _ = model.get_metrics(target=test_data.target, metric_names='rmse', in_sample=True)
+
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
+
+
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
-    forecast_length = 5
+    forecast_length = 2
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length))

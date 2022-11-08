@@ -7,6 +7,7 @@ from sklearn.model_selection._split import _BaseKFold
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class OneFoldInputDataSplit:
@@ -157,5 +158,9 @@ def _ts_data_by_index(train_ids, test_ids, data):
     """ Allow to get time series data by indexes of elements """
     features = data.features[train_ids]
     target = data.target[test_ids]
+
+    # Use only the first time-series as target for multi_ts
+    if data.data_type == DataTypesEnum.multi_ts:
+        target = target[:, 0]
 
     return features, target
