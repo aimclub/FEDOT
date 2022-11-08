@@ -238,7 +238,7 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def save(self, path: str = None, is_final_path: bool = True, datetime_in_path: bool = True) -> Tuple[str, dict]:
+    def save(self, path: str = None, is_final_path: bool = False, datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
         Saves the pipeline to JSON representation with pickled fitted operations
 
@@ -270,6 +270,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
+        return self
 
     @property
     def root_node(self) -> Optional[Node]:

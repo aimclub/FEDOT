@@ -173,42 +173,54 @@ class PipelineTemplate:
         dict_fitted_operations['preprocessing'] = preprocessing_path
         return dict_fitted_operations
 
-    def _prepare_paths(self, path: str, is_final: bool, with_time: bool = True) -> Tuple[str, str]:
+    @staticmethod
+    def _prepare_paths(path: str, is_final: bool, with_time: bool = True) -> Tuple[str, str]:
+        """ Constructs paths to pipeline folder and pipeline json
+        Args:
+            path: path to json object or to the folder
+            is_final: bool indicating whether to save pipeline in specified dir or create additional subdir
+            with_time: bool indicating whether to save with timestamp or not
+
+        :return: paths to pipeline dir and to pipeline json
+        """
+
+        path = os.path.abspath(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        # explicitly specify where to save json, fitted_operation and ets will be saved in the same dir
         if path.endswith('.json'):
-            path_to_dir = os.path.split(os.path.abspath(path))[0]
+            path_to_dir = os.path.split(path)[0]
             if not os.path.exists(path_to_dir):
                 os.makedirs(path_to_dir)
-            path_to_json = os.path.abspath(path)
+            path_to_json = path
             return path_to_dir, path_to_json
 
         if is_final:
-            path_to_dir = os.path.abspath(path)
-            if not os.path.exists(path_to_dir):
-                os.makedirs(path_to_dir)
+            path_to_dir = path
             folder_name = os.path.split(path_to_dir)[-1]
-            self.unique_pipeline_id = folder_name
             path_to_json = os.path.join(path_to_dir, f'{folder_name}.json')
             return path_to_dir, path_to_json
 
         if with_time:
             folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_pipeline_saved"
         else:
+            # get index for pipeline
             files_by_path = os.listdir(path)
-            max_pipeline_idx = 0
+            max_pipeline_idx = -1
             for file in files_by_path:
                 if '_pipeline_saved':
-                    cur_pipeline_idx = file.split('_pipeline_saved')[0] \
+                    cur_pipeline_idx = int(file.split('_pipeline_saved')[0]) \
                         if '_' not in file.split('_pipeline_saved')[0] else 0
                     max_pipeline_idx = cur_pipeline_idx if cur_pipeline_idx > max_pipeline_idx else max_pipeline_idx
             folder_name = f"{max_pipeline_idx+1}_pipeline_saved"
 
         path_to_dir = os.path.join(path, folder_name)
-        path_to_dir = os.path.abspath(path_to_dir)
+        path_to_dir = path_to_dir
         if not os.path.exists(path_to_dir):
             os.makedirs(path_to_dir)
 
         folder_name = os.path.split(path_to_dir)[-1]
-        self.unique_pipeline_id = folder_name
         path_to_json = os.path.join(path_to_dir, f'{folder_name}.json')
 
         return path_to_dir, path_to_json
@@ -222,16 +234,14 @@ class PipelineTemplate:
         Imports pipeline from source into the :attr:`link_to_empty_pipeline`
 
         :param source: where to load the pipeline from.
-            If path to dir specified -- pipeline loads with fitted_operations&preprocessing
-            If path to json specified -- pipeline loads only with its structure
         :param dict_fitted_operations: dictionary of the fitted operations
         """
-        path = None
+        path_to_json_pipe = None
 
         if source is None:
             raise ValueError('Cannot import pipeline: the source is None')
-        elif isinstance(path, str):
-            path = source
+        elif isinstance(source, str):
+            path = os.path.abspath(source)
             if os.path.isdir(path):
                 path_to_json_pipe = None
                 for file in os.listdir(path):
@@ -247,23 +257,11 @@ class PipelineTemplate:
                 self.log.debug(f'The pipeline was imported from the path: {path_to_json_pipe}.')
         else:
             json_object_pipeline = source
-            path_to_json_pipe = None
             self.log.debug('The pipeline was imported from dict.')
 
         self._extract_operations(json_object_pipeline, path_to_json_pipe)
         self.convert_to_pipeline(self.link_to_empty_pipeline, path_to_json_pipe, dict_fitted_operations)
         self.depth = self.link_to_empty_pipeline.depth
-
-    def _check_path_correct(self, path: str):
-        absolute_path = os.path.abspath(path)
-        name_of_file = os.path.basename(absolute_path)
-
-        if os.path.isfile(absolute_path):
-            self.unique_pipeline_id = os.path.splitext(name_of_file)[0]
-        else:
-            message = f'The path to load a pipeline is not correct: {absolute_path}.'
-            self.log.error(message)
-            raise FileNotFoundError(message)
 
     def _extract_operations(self, pipeline_json: dict, path: str):
         operation_objects = pipeline_json['nodes']

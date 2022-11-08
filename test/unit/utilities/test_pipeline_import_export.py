@@ -33,7 +33,9 @@ def preprocessing_files_before_and_after_tests(request):
              'test_absolute_relative_paths_correctly_no_exception', 'test_export_one_hot_encoding_operation',
              'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
              'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly',
-             'test_multimodal_pipeline_serialized_correctly', 'test_load_though_api_perform_correctly']
+             'test_multimodal_pipeline_serialized_correctly', 'test_load_though_api_perform_correctly',
+             'test_save_load_with_the_same_path', 'test_save_with_index', 'test_save_with_timestamp',
+             'test_save_with_final_dir']
 
     delete_files = create_func_delete_files(paths)
     delete_files()
@@ -488,3 +490,36 @@ def test_load_though_api_perform_correctly():
     loaded_predictions = loaded_model.predict(input_data)
 
     assert np.array_equal(predictions, loaded_predictions)
+
+
+def test_save_load_with_the_same_path():
+    pipeline = Pipeline(PrimaryNode('rf'))
+    relative_path = 'test_save_load_with_the_same_path'
+    pipeline.save(relative_path, is_final_path=True)
+    loaded_pipeline = Pipeline().load(source=relative_path)
+
+    assert loaded_pipeline == pipeline
+
+
+def test_save_options():
+    """ Test saving pipelines with different options:
+            - with index
+            - with timestamp
+            - in final directory """
+
+    pipeline = Pipeline(PrimaryNode('rf'))
+
+    path_0 = 'test_save_with_index'
+    pipeline.save(path=path_0, datetime_in_path=False)
+
+    assert '0_pipeline_saved' == os.listdir(os.path.abspath(path_0))[0]
+
+    path_1 = 'test_save_with_timestamp'
+    pipeline.save(path=path_1, datetime_in_path=True)
+
+    assert '_pipeline_saved' in os.listdir(os.path.abspath(path_1))[0]
+
+    path_2 = 'test_save_with_final_dir'
+    pipeline.save(path=path_2, is_final_path=True)
+
+    assert 'test_save_with_final_dir.json' in os.listdir(os.path.abspath(path_2))
