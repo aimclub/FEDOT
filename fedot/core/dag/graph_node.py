@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import List, Optional, Iterable
+from typing import List, Optional, Iterable, Hashable
 
 
 class GraphNode(ABC):
@@ -9,6 +9,11 @@ class GraphNode(ABC):
     Provides interface for getting and modifying the parent nodes
     and recursive description based on all preceding nodes.
     """
+
+    @property
+    @abstractmethod
+    def uid(self) -> Hashable:
+        pass
 
     @property
     @abstractmethod

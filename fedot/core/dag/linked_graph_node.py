@@ -1,4 +1,4 @@
-from typing import Union, Optional, Iterable, List
+from typing import Union, Optional, Iterable, List, Hashable
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
@@ -28,9 +28,13 @@ class LinkedGraphNode(GraphNode):
 
         self.content = content
         self._nodes_from = UniqueList(nodes_from or ())
-        self.uid = str(uuid4())
+        self._uid = str(uuid4())
 
         super().__init__()
+
+    @property
+    def uid(self) -> Hashable:
+        return self._uid
 
     @property
     def nodes_from(self) -> List['LinkedGraphNode']:
