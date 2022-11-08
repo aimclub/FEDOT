@@ -243,8 +243,9 @@ class Pipeline(GraphDelegate, Serializable):
         Saves the pipeline to JSON representation with pickled fitted operations
 
         Args:
-            path: custom path to dir where to save the JSON
-            is_final_path: if True -- save to the last dir in this path;
+            path: custom path to dir where to save JSON or name of json file where to save pipeline.
+            If only file name is specified, than absolute path to this file will be created.
+            is_final_path: if True -- save to the last dir in specified path;
                            if False -- create one more dir in the last dir
             datetime_in_path: is it required to add the datetime timestamp to the path
 

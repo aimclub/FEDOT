@@ -213,9 +213,9 @@ class PipelineTemplate:
                 if '_pipeline_saved':
                     cur_pipeline_idx = file.split('_pipeline_saved')[0] \
                         if '_' not in file.split('_pipeline_saved')[0] else 0
-                    try:
+                    if cur_pipeline_idx.isdigit():
                         cur_pipeline_idx = int(cur_pipeline_idx)
-                    except ValueError:
+                    else:
                         continue
                     max_pipeline_idx = cur_pipeline_idx if cur_pipeline_idx > max_pipeline_idx else max_pipeline_idx
             folder_name = f"{max_pipeline_idx+1}_pipeline_saved"
