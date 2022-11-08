@@ -80,8 +80,10 @@ class MetricsRepository:
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
-    def metric_by_id(self, metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
-        return self._metrics_implementations.get(metric_id, default_callable)
+    @staticmethod
+    def metric_by_id(metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
+        return MetricsRepository._metrics_implementations.get(metric_id, default_callable)
 
-    def metric_class_by_id(self, metric_id: MetricsEnum) -> Metric:
-        return self._metrics_implementations[metric_id].__self__()
+    @staticmethod
+    def metric_class_by_id(metric_id: MetricsEnum) -> Metric:
+        return MetricsRepository._metrics_implementations[metric_id].__self__()

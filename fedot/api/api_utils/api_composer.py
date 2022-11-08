@@ -32,6 +32,7 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 
@@ -49,24 +50,25 @@ class ApiComposer:
         # status flag indicating that tuner step was applied
         self.was_tuned = False
 
-    def obtain_metric(self, task: Task, metric: Union[str, Callable]) -> Sequence[MetricType]:
+    def obtain_metric(self, task: Task, metric: Union[str, MetricsEnum, Callable, Sequence]) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
         if metric is None:
-            metric = MetricByTask(task.task_type).get_default_quality_metrics()
-
-        if isinstance(metric, (str, Callable)):
-            metric = [metric]
+            metric = MetricByTask.get_default_quality_metrics(task.task_type)
 
         metric_functions = []
-        for specific_metric in metric:
+        for specific_metric in ensure_wrapped_in_sequence(metric):
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
             else:
-                # Composer metric was defined by name (str)
-                metric_id = self.metrics.get_metrics_mapping(metric_name=specific_metric)
-                if metric_id is None:
-                    raise ValueError(f'Incorrect metric {specific_metric}')
+                metric_id = None
+                if isinstance(specific_metric, str):
+                    # Composer metric was defined by name (str)
+                    metric_id = self.metrics.get_metrics_mapping(metric_name=specific_metric)
+                elif isinstance(specific_metric, MetricsEnum):
+                    metric_id = specific_metric
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
+            if specific_metric_function is None:
+                raise ValueError(f'Incorrect metric {specific_metric}')
             metric_functions.append(specific_metric_function)
         return metric_functions
 

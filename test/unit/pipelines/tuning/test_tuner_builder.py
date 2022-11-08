@@ -8,6 +8,7 @@ from hyperopt import tpe, rand
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -22,7 +23,7 @@ from test.unit.validation.test_table_cv import get_classification_data
 def get_objective_evaluate(metric: MetricType, data: InputData,
                            cv_folds: Optional[int] = None, validation_blocks: Optional[int] = None) \
         -> PipelineObjectiveEvaluate:
-    objective = Objective(metric)
+    objective = MetricsObjective(metric)
     data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     return objective_evaluate

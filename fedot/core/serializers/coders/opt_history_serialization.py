@@ -79,6 +79,11 @@ def _deserialize_parent_individuals(individuals: List[Individual],
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:
+    # backward compatibility with history._objective field
+    if '_objective' in json_obj:
+        json_obj['_is_multi_objective'] = json_obj['_objective'].is_multi_objective
+        del json_obj['_objective']
+
     deserialized_history = any_from_json(cls, json_obj)
     # Read all individuals from history.
     individuals_pool = deserialized_history.individuals_pool

@@ -6,6 +6,7 @@ from typing import List, Optional, Type
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeDeletionAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
@@ -117,9 +118,11 @@ class MultiTimesAnalyze:
 
     def get_metric(self):
         self.pipeline.fit(self.train_data)
-        metric = MetricByTask(self.valid_data.task.task_type)
         predicted = self.pipeline.predict(self.valid_data)
-        metric_value = metric.get_value(true=self.valid_data,
-                                        predicted=predicted)
+        metric_value = MetricByTask.compute_default_metric(
+            self.valid_data.task.task_type,
+            true=self.valid_data,
+            predicted=predicted
+        )
 
         return metric_value

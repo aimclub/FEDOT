@@ -14,7 +14,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
-from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -49,7 +49,7 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
-    objective_eval = PipelineObjectiveEvaluate(Objective(metrics), cv_folds)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), cv_folds)
     actual_values = objective_eval(pipeline).values
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 

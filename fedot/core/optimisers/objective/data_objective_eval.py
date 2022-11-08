@@ -59,20 +59,17 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            if graph.is_fitted:
-                # the expected behaviour for the remote evaluation
-                prepared_pipeline = graph
-            else:
-                try:
-                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-                except Exception as ex:
-                    self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
-                    if is_test_session() and not isinstance(ex, TimeoutError):
-                        stack_trace = traceback.format_exc()
-                        save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                        if not is_recording_mode():
-                            raise ex
-                    continue
+            try:
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+            except Exception as ex:
+                self._log.warning(f'Error on Pipeline fit during fitness evaluation. '
+                                  f'Skipping the Pipeline. Error <{ex}> on graph: {graph_id}')
+                if is_test_session() and not isinstance(ex, TimeoutError):
+                    stack_trace = traceback.format_exc()
+                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                    if not is_recording_mode():
+                        raise ex
+                continue
 
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
@@ -80,7 +77,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
-                self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
+                self._log.warning(f'Invalid fitness after objective evaluation. '
+                                  f'Skipping the graph: {graph_id}')
                 if is_test_session():
                     raise ValueError(f'Fitness {evaluated_fitness} is not valid')
                 else:
@@ -102,6 +100,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
+        if graph.is_fitted:
+            # the expected behaviour for the remote evaluation
+            return graph
 
         graph.unfit()
 
