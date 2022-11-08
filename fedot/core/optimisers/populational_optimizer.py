@@ -50,7 +50,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
         # early_stopping_iterations may be None, so use some obvious max number
         max_stagnation_length = requirements.early_stopping_iterations or requirements.num_of_generations
-        max_stagnation_time = requirements.early_stopping_timeout
+        max_stagnation_time = requirements.early_stopping_timeout or self.timer.timeout
         self.stop_optimization = \
             GroupedCondition(results_as_message=True).add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),
