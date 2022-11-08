@@ -20,7 +20,8 @@ def run_api_explain_example(visualization=False, timeout=None):
 
     # Current pipeline explaining
     explainer = model.explain(
-        method='surrogate_dt', visualize=visualization,  # The following parameters are only used if visualize == True:
+        method='surrogate_dt', visualization=visualization,
+        # The following parameters are only used if visualize == True:
         save_path=figure_path, dpi=200, feature_names=feature_names,
         class_names=class_names,
         precision=6
