@@ -74,7 +74,7 @@ class NodesAnalysis:
             nodes_results[f'id = {self.pipeline.nodes.index(node)}, ' \
                           f'operation = {node.content["name"].operation_type}'] = node_result
 
-        if self.requirements.is_visualize:
+        if self.requirements.visualization:
             self._visualize_result_per_approach(nodes_results, operation_types)
 
         if len(self.nodes_to_analyze) == len(self.pipeline.nodes):

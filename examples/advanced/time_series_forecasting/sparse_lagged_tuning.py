@@ -130,7 +130,7 @@ def visualize(tuned, no_tuned, time, method_name):
     plt.show()
 
 
-def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True):
+def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True):
     file_path = os.path.join(str(fedot_project_root()), 'cases/data/time_series/temperature.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
@@ -163,7 +163,7 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
             mae_no_tuning.append(mae_before)
             mae_tuning.append(mae_after)
 
-        if is_visualize:
+        if visualization:
             visualize(mae_tuning, mae_no_tuning, time_list, name)
 
         print(f'Mean time: {np.array(time_list).mean()}')
@@ -173,4 +173,4 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
 
 if __name__ == '__main__':
     # On large time series the speed of sparse_lagged increase (ts_size parameter)
-    run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True)
+    run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True)

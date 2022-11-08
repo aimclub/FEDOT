@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
@@ -28,7 +29,7 @@ def run_pipeline_explain():
     pipeline.fit(train_data)
 
     # Pipeline explaining
-    explainer = explain_pipeline(pipeline, data=train_data, method='surrogate_dt', visualize=False)
+    explainer = explain_pipeline(pipeline, data=train_data, method='surrogate_dt', visualization=True)
 
     # Visualizing explanation and saving the plot
     print(f'Built surrogate model: {explainer.surrogate_str}')

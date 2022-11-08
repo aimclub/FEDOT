@@ -16,7 +16,7 @@ from test.unit.composer.test_composer import to_numerical
 
 
 def get_regression_pipeline():
-    first = PrimaryNode(operation_type='rfe_lin_reg')
+    first = PrimaryNode(operation_type='scaling')
     final = SecondaryNode(operation_type='ridge',
                           nodes_from=[first])
 
@@ -33,7 +33,7 @@ def get_regression_data():
     return input_data
 
 
-def custom_metric_for_synt_data(pipeline, fit_data, predict_data, reference_data=None):
+def custom_metric_for_synt_data(pipeline, fit_data, predict_data, **kwargs):
     np.random.seed(42)
     random.seed(42)
 
@@ -88,13 +88,13 @@ def test_synthetic_regression_automl():
     auto_model = Fedot(problem='regression', logging_level=logging.ERROR, timeout=1,
                        metric=metric_func,
                        cv_folds=None,
-                       available_operations=['rfe_lin_reg',
-                                             'rfe_non_lin_reg',
+                       available_operations=['scaling',
+                                             'normalization',
+                                             'pca',
+                                             'knn',
                                              'ridge',
                                              'linear'],
                        preset='best_quality')
-    auto_model.fit(features=test_data.features, target=test_data.target)
+    auto_model.fit(train_data)
 
-    auto_model.current_pipeline.fit(train_data)
-
-    assert max(auto_model.history.historical_fitness[-1]) < 0.01
+    assert min(auto_model.history.historical_fitness[-1]) < 0.01

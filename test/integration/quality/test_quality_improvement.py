@@ -14,7 +14,7 @@ def test_classification_quality_improvement():
 
     problem = 'classification'
 
-    baseline_model = Fedot(problem=problem)
+    baseline_model = Fedot(problem=problem, seed=50)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     expected_baseline_quality = 0.823
 
@@ -23,15 +23,14 @@ def test_classification_quality_improvement():
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
-    timeout = 5.
-    composer_params = {'max_depth': 3,
-                       'max_arity': 3,
-                       'pop_size': 20,
+    timeout = 2
+    composer_params = {
                        'num_of_generations': 20,
-                       'with_tuning': True}
+                       'with_tuning': True,
+                       'preset': 'best_quality'}
 
-    auto_model = Fedot(problem=problem, timeout=timeout, seed=42, logging_level=logging.DEBUG,
-                       **composer_params)
+    auto_model = Fedot(problem=problem, timeout=timeout, seed=50, logging_level=logging.DEBUG,
+                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

@@ -33,7 +33,7 @@ def prepare_input_data(train_file_path, test_file_path, history_size: int = 1000
 
 
 def run_metocean_forecasting_problem(train_file_path, test_file_path,
-                                     forecast_length=1, is_visualise=False, timeout=5):
+                                     forecast_length=1, visualization=False, timeout=5):
     # Prepare data for train and test
     ssh_history, ws_history, ssh_obs = prepare_input_data(train_file_path, test_file_path)
 
@@ -47,10 +47,10 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
                   timeout=timeout, logging_level=logging.DEBUG)
 
     pipeline = fedot.fit(features=historical_data, target=ssh_history)
-    fedot.forecast(historical_data, forecast_length=forecast_length)
+    fedot.forecast(historical_data)
     metric = fedot.get_metrics(target=ssh_obs)
 
-    if is_visualise:
+    if visualization:
         pipeline.show()
         fedot.plot_prediction(target='ssh')
 
@@ -68,4 +68,4 @@ if __name__ == '__main__':
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
                                      forecast_length=12, timeout=10,
-                                     is_visualise=True)
+                                     visualization=True)

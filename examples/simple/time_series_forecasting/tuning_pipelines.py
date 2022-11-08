@@ -21,7 +21,7 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=True):
+def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=True, visualisalion=False):
     """ Example of ts forecasting using custom pipelines with optional tuning
     :param dataset: name of dataset
     :param pipeline: pipeline to use
@@ -92,9 +92,10 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
     print(metrics_info)
     # plot lines
-    visualise(plot_info)
-    pipeline.print_structure()
+    if visualisalion:
+        visualise(plot_info)
+        pipeline.print_structure()
 
 
 if __name__ == '__main__':
-    run_experiment('australia', ts_locf_ridge_pipeline(), len_forecast=50, tuning=True)
+    run_experiment('australia', ts_locf_ridge_pipeline(), len_forecast=50, tuning=True, visualisalion=True)

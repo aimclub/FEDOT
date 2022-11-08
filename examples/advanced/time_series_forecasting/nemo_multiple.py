@@ -41,7 +41,7 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
     predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
                                    features=exog_variable, target=time_series,
                                    task=task, data_type=DataTypesEnum.ts)
-    train_input_exog, _ = train_test_data_setup(predict_input_exog)
+    train_input_exog, predict_input_exog = train_test_data_setup(predict_input_exog)
 
     return train_input, predict_input, train_input_exog, predict_input_exog, predict_input.target
 
@@ -146,7 +146,7 @@ def compare_plot(predicted, real, forecast_length, model):
     plt.show()
 
 
-def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_visualise=False):
+def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visualization=False):
     errors_df = {}
 
     train_input, predict_input, train_input_exog, predict_input_exog, test_data = \
@@ -223,7 +223,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
         errors_df[model_name + '_MAE'] = mae_before
         errors_df[model_name + '_MAPE'] = mape_before
 
-        if is_visualise:
+        if visualization:
             compare_plot(predicted, test_data, len_forecast, model_name)
             print(model_name)
             print(f' MSE - {mse_before:.4f}')
@@ -245,7 +245,7 @@ def boxplot_visualize(df, label):
     plt.show()
 
 
-def run_single_example(len_forecast=40, is_visualise=True):
+def run_single_example(len_forecast=40, visualization=False):
     ts_name = 'sea_level'
     path_to_file = '../../cases/data/nemo/sea_surface_height.csv'
     path_to_exog_file = '../../cases/data/nemo/sea_surface_height_nemo.csv'
@@ -258,7 +258,7 @@ def run_single_example(len_forecast=40, is_visualise=True):
     run_nemo_based_forecasting(time_series=time_series,
                                exog_variable=exog_variable,
                                len_forecast=len_forecast,
-                               is_visualise=is_visualise)
+                               visualization=visualization)
 
 
 def create_errors_df():
@@ -280,7 +280,7 @@ def add_data_to_errors_df(df, error_name, point, errors):
     return df
 
 
-def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxplot_visualize=True, len_forecast=40):
+def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, visualization=False, len_forecast=40):
     mse_errors_df = create_errors_df()
     mae_errors_df = create_errors_df()
     mape_errors_df = create_errors_df()
@@ -299,7 +299,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
             errors = run_nemo_based_forecasting(time_series=time_series,
                                                 exog_variable=exog_variable,
                                                 len_forecast=len_forecast,
-                                                is_visualise=False)
+                                                visualization=visualization)
 
             mse_errors_df = add_data_to_errors_df(mse_errors_df, 'MSE', point, errors)
             mae_errors_df = add_data_to_errors_df(mae_errors_df, 'MAE', point, errors)
@@ -310,22 +310,22 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
         mae_errors_df.to_csv(os.path.join(out_path, 'mae_errors.csv'), index=False)
         mape_errors_df.to_csv(os.path.join(out_path, 'mape_errors.csv'), index=False)
 
-    if is_boxplot_visualize:
+    if visualization:
         boxplot_visualize(mse_errors_df, 'MSE')
         boxplot_visualize(mae_errors_df, 'MAE')
         boxplot_visualize(mape_errors_df, 'MAPE')
 
 
-def run_prediction_examples(mode='single'):
+def run_prediction_examples(mode='single', visualization=False):
     if mode == 'single':
-        run_single_example(len_forecast=40, is_visualise=True)
+        run_single_example(len_forecast=40, visualization=visualization)
     if mode == 'multiple':
         run_multiple_example(path_to_file='../../cases/data/nemo/SSH_points_grid.csv',
                              path_to_exog_file='../../cases/data/nemo/SSH_nemo_points_grid.csv',
                              out_path=None,
                              len_forecast=30,
-                             is_boxplot_visualize=True)
+                             visualization=visualization)
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='multiple')
+    run_prediction_examples(mode='multiple', visualization=True)

@@ -266,7 +266,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             new_node = sample_pipeline.nodes[node_id]
             new_nodes_types.append(new_node.operation.operation_type)
 
-        if self._requirements.is_visualize:
+        if self._requirements.visualization:
             self._visualize(x_values=new_nodes_types,
                             y_values=loss_values,
                             node_id=node_id)

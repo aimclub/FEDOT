@@ -28,12 +28,14 @@ datasets = {
     'test_sea': os.path.join(fedot_project_root(), 'test', 'data', 'simple_sea_level.csv')}
 
 
-def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5):
+def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5,
+                  visualisation=False):
     """ Example of out-of-sample ts forecasting using custom pipelines
     :param dataset: name of dataset
     :param pipeline: pipeline to use
     :param step_forecast: horizon to train model. Real horizon = step_forecast * future_steps
     :param future_steps: number of future steps
+    :param visualisation: is visualisation needed
     """
     # show initial pipeline
     pipeline.print_structure()
@@ -44,7 +46,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                 TsForecastingParams(forecast_length=step_forecast))
 
     idx = np.arange(len(time_series['idx'].values))
-    time_series = time_series['value'].values
+    time_series = time_series['Level'].values
     train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
@@ -69,8 +71,9 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                                       'gray')]
 
     # plot lines
-    visualise(plot_info)
+    if visualisation:
+        visualise(plot_info)
 
 
 if __name__ == '__main__':
-    run_multistep("australia", ts_ar_pipeline(), step_forecast=10)
+    run_multistep("australia", ts_ar_pipeline(), step_forecast=10, visualisation=True)

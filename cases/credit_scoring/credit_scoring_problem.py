@@ -26,7 +26,7 @@ def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputDa
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                timeout: float = 5.0,
-                               is_visualise=False,
+                               visualization=False,
                                with_tuning=False,
                                target='target'):
 
@@ -40,7 +40,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     if automl.history:
         print(automl.history.get_leaderboard())
 
-    if is_visualise:
+    if visualization:
         automl.current_pipeline.show()
 
     print(f'Composed ROC AUC is {round(metrics["roc_auc"], 3)}')
@@ -68,5 +68,5 @@ if __name__ == '__main__':
     run_credit_scoring_problem(full_path_train,
                                full_path_test,
                                timeout=5,
-                               is_visualise=True,
+                               visualization=True,
                                with_tuning=True)

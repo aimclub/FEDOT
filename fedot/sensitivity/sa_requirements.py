@@ -1,7 +1,7 @@
+from collections import namedtuple
 from typing import List, Optional
 
 from fedot.core.pipelines.node import Node
-from collections import namedtuple
 
 HyperparamsAnalysisMetaParams = namedtuple('HyperparamsAnalysisMetaParams', ['analyze_method',
                                                                              'sample_method',
@@ -21,7 +21,7 @@ class SensitivityAnalysisRequirements:
         replacement_nodes_to_replace_to: defines nodes which is used in replacement analysis.
         replacement_number_of_random_operations: if ``replacement_nodes_to_replace_to`` is not filled,
             define the number of randomly chosen operations used in replacement analysis.
-        is_visualize: defines whether the SA visualization needs to be saved to ``.png`` files.
+        visualization: defines whether the SA visualization needs to be saved to ``.png`` files.
         is_save_results_to_json: defines whether the SA indices needs to be saved to ``.json`` file.
         metric: metric used for validation. Default: see :obj:`MetricByTask`
     """
@@ -33,7 +33,7 @@ class SensitivityAnalysisRequirements:
                  hyperparams_analysis_samples_size: int = 100,
                  replacement_nodes_to_replace_to: Optional[List[Node]] = None,
                  replacement_number_of_random_operations: Optional[int] = None,
-                 is_visualize: bool = True,
+                 visualization: bool = True,
                  is_save_results_to_json: bool = True):
         self.metric = metric
         self.hp_analysis_meta = HyperparamsAnalysisMetaParams(hyperparams_analyze_method,
@@ -44,5 +44,5 @@ class SensitivityAnalysisRequirements:
         self.replacement_meta = ReplacementAnalysisMetaParams(replacement_nodes_to_replace_to,
                                                               replacement_number_of_random_operations)
 
-        self.is_visualize = is_visualize
+        self.visualization = visualization
         self.is_save = is_save_results_to_json
