@@ -2,7 +2,7 @@ Notebooks
 ======================
 
 Notebooks are available in our additional repositories `Fedot examples <https://github.com/ITMO-NSS-team/fedot-examples>`_.
-In this repository you can find following notebooks:
+This repository contains following notebooks:
 
 * `Introduction to AutoML <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/1_intro_to_automl.ipynb>`_
     Notebook shows the advantage of Automated Machine Learning and provides quickstart guide.
@@ -22,8 +22,8 @@ In this repository you can find following notebooks:
 * `Using FEDOT for hybrid modeling with custom model tuning <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/6_hybrid_modelling.ipynb>`_
     Notebook contains examples of custom model specification for Time Series Forecasting problem.
 
-Fedot can be used in cloud services, e.g. `VK Cloud's ML Platform <https://mcs.mail.ru/>`_. In the next `repository <https://github.com/stockblog/webinar_automl_fedot>`_
-you can find notebooks, where presented work of framework in JupyterLab with MLflow:
+Fedot can be used in cloud services, e.g. `VK Cloud's ML Platform <https://mcs.mail.ru/>`_. This `repository <https://github.com/stockblog/webinar_automl_fedot>`_
+contains examples of FEDOT usage with JupyterLab and MLflow:
 
 * `Amazon Employee Access Challenge - classification problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Classification.ipynb>`_
 * `Molhack AIRI - Regression problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Regression.ipynb>`_
