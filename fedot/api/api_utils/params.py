@@ -95,6 +95,11 @@ class ApiParams:
         if 'preset' not in input_params['composer_tuner_params']:
             self.api_params['preset'] = 'auto'
 
+        if 'early_stopping_iterations' not in input_params['composer_tuner_params']:
+            depending_on_timeout = int(input_params['timeout']/3)
+            self.api_params['early_stopping_iterations'] = \
+                depending_on_timeout if depending_on_timeout > 5 else 5
+
         specified_seed = input_params['seed']
         if specified_seed is not None:
             np.random.seed(specified_seed)
@@ -123,7 +128,7 @@ class ApiParams:
                   'with_tuning': True,
                   'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
-                  'early_stopping_generations': 30,
+                  'early_stopping_iterations': 30,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True,
                   'cache_folder': None}

@@ -48,8 +48,8 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          graph_cleanup_fn=_unfit_pipeline,
                                                          delegate_evaluator=graph_generation_params.remote_evaluator)
 
-        # early_stopping_generations may be None, so use some obvious max number
-        max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
+        # early_stopping_iterations may be None, so use some obvious max number
+        max_stagnation_length = requirements.early_stopping_iterations or requirements.num_of_generations
         self.stop_optimization = \
             GroupedCondition(results_as_message=True).add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),
