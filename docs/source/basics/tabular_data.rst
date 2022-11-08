@@ -40,7 +40,7 @@ The ``fit()`` method begins the optimization and returns the resulting composite
     best_pipeline = model.fit(features=train, target='target')
 
 After the fitting is completed, you can look at the structure of the resulting pipeline.
-For example, let best pipeline consist of two nodes: resampling operation (resample) and Random Forest model (rf).
+For example, let best pipeline consist of two nodes: resampling operation (*resample*) and Random Forest (*rf*).
 Let see how it looks like.
 
 In text format:
