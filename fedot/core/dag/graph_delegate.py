@@ -1,4 +1,3 @@
-from os import PathLike
 from typing import Union, Sequence, List, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph
@@ -81,6 +80,3 @@ class GraphDelegate(Graph):
     @property
     def depth(self) -> int:
         return self.operator.depth
-
-    def show(self, save_path: Optional[Union[PathLike, str]] = None, **kwargs):
-        return self.operator.show(save_path, **kwargs)
