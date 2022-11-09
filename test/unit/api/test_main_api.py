@@ -86,6 +86,23 @@ def get_dataset(task_type: str, validation_blocks: Optional[int] = None):
     return train_data, test_data, threshold
 
 
+def get_multimodal_ts_data(size=500):
+    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    target_history, add_history, _ = prepare_input_data(full_path_train, full_path_test,
+                                                        history_size=size)
+    historical_data = {
+        'ws': add_history,  # additional variable
+        'ssh': target_history,  # target variable
+    }
+    return historical_data, target_history
+
+
 def load_categorical_unimodal():
     dataset_path = 'test/data/classification_with_categorical.csv'
     full_path = os.path.join(str(fedot_project_root()), dataset_path)
@@ -190,6 +207,18 @@ def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: st
     ts_forecast = model.predict(features=test_data, in_sample=True)
     _ = model.get_metrics(target=test_data.target, metric_names='rmse', in_sample=True)
 
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
+
+
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_multimodal_ts_predict_correct(validation_blocks):
+    forecast_length = 5
+    historical_data, target = get_multimodal_ts_data()
+
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model.fit(features=historical_data, target=target, predefined_model='auto')
+    ts_forecast = model.predict(historical_data, in_sample=True, validation_blocks=validation_blocks)
     assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
 
 
@@ -563,24 +592,11 @@ def test_forecast_with_not_ts_problem():
 def test_forecast_with_multivariate_ts():
     forecast_length = 2
 
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
-                                                          history_size=500)
-
-    historical_data = {
-        'ws': add_history,  # additional variable
-        'ssh': target_history,  # target variable
-    }
+    historical_data, target = get_multimodal_ts_data()
 
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
-    model.fit(features=historical_data, target=target_history, predefined_model='auto')
+    model.fit(features=historical_data, target=target, predefined_model='auto')
     forecast = model.forecast()
     assert len(forecast) == forecast_length
     forecast = model.forecast(horizon=forecast_length - 1)

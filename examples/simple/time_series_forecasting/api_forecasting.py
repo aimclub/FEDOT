@@ -50,7 +50,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    forecast = model.predict(test_data, in_sample=True)
+    in_sample_forecast = model.predict(test_data, in_sample=True)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape'], in_sample=True))
 
@@ -61,19 +61,19 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
     # use model to obtain one-step forecast
     train_data, test_data = train_test_data_setup(train_input)
-    forecast = model.predict(test_data)
+    simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
     if visualization:
         model.plot_prediction()
 
     # use model to obtain two-step out-of-sample forecast
-    forecast = model.forecast(test_data, horizon=20)
+    out_of_sample_forecast = model.forecast(test_data, horizon=20)
     # we can not calculate metrics because we do not have enough future values
     if visualization:
         model.plot_prediction()
 
-    return forecast
+    return in_sample_forecast, simple_forecast, out_of_sample_forecast
 
 
 if __name__ == '__main__':
