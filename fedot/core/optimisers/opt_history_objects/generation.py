@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import UserList
+from copy import deepcopy, copy
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -27,6 +28,24 @@ class Generation(UserList):
     def __setitem__(self, index, item: Union[Individual, Iterable[Individual]]):
         super().__setitem__(index, item)
         self._set_native_generation(item)
+
+    def copy(self) -> Generation:
+        return copy(self)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result.data = copy(self.data)
+        return result
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            object.__setattr__(result, k, deepcopy(v, memo))
+        return result
 
     def _set_native_generation(self, individuals: Union[Individual, Iterable[Individual]]):
         individuals = ensure_wrapped_in_sequence(individuals)

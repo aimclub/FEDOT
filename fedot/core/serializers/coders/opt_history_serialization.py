@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Sequence, Type, Union
 
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.optimisers.opt_history_objects.generation import Generation
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from .. import any_from_json, any_to_json
 
@@ -27,7 +28,16 @@ def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[
     return individuals_pool
 
 
-def _generations_list_to_uids(generations_list: List[List[Individual]]) -> List[List[str]]:
+def _generations_list_to_uids(generations_list: List[Generation]) -> List[Generation]:
+    new_list = []
+    for generation in generations_list:
+        new_gen = generation.copy()
+        new_gen.data = [individual.uid for individual in generation]
+        new_list.append(new_gen)
+    return new_list
+
+
+def _archive_to_uids(generations_list: List[List[Individual]]) -> List[List[str]]:
     return [[individual.uid for individual in generation] for generation in generations_list]
 
 
@@ -35,7 +45,7 @@ def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
     serialized = any_to_json(obj)
     serialized['individuals_pool'] = _flatten_generations_list(serialized['individuals'])
     serialized['individuals'] = _generations_list_to_uids(serialized['individuals'])
-    serialized['archive_history'] = _generations_list_to_uids(serialized['archive_history'])
+    serialized['archive_history'] = _archive_to_uids(serialized['archive_history'])
     return serialized
 
 
@@ -51,12 +61,16 @@ def _uids_to_individuals(uid_sequence: Sequence[Union[str, Individual]],
     return list(map(uid_to_individual_mapper, uid_sequence))
 
 
-def _deserialize_generations_list(generations_list: List[List[Union[str, Individual]]],
+def _deserialize_generations_list(generations_list: List[Union[Generation, List[Union[str, Individual]]]],
                                   uid_to_individual_map: Dict[str, Individual]):
     """The operation is executed in-place"""
     for gen_num, generation in enumerate(generations_list):
-        generations_list[gen_num] = _uids_to_individuals(uid_sequence=generation,
-                                                         uid_to_individual_map=uid_to_individual_map)
+        individuals = _uids_to_individuals(uid_sequence=generation,
+                                           uid_to_individual_map=uid_to_individual_map)
+        if isinstance(generations_list[gen_num], Generation):
+            generations_list[gen_num].data = individuals
+        else:
+            generations_list[gen_num] = individuals
 
 
 def _deserialize_parent_individuals(individuals: List[Individual],
@@ -84,16 +98,19 @@ def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> Op
         json_obj['_is_multi_objective'] = json_obj['_objective'].is_multi_objective
         del json_obj['_objective']
 
-    deserialized_history = any_from_json(cls, json_obj)
+    history = any_from_json(cls, json_obj)
     # Read all individuals from history.
-    individuals_pool = deserialized_history.individuals_pool
+    individuals_pool = history.individuals_pool
     uid_to_individual_map = {ind.uid: ind for ind in individuals_pool}
     # The attributes `individuals` and `archive_history` at the moment contain uid strings that must be converted
     # to `Individual` instances.
-    _deserialize_generations_list(deserialized_history.individuals, uid_to_individual_map)
-    _deserialize_generations_list(deserialized_history.archive_history, uid_to_individual_map)
+    _deserialize_generations_list(history.individuals, uid_to_individual_map)
+    _deserialize_generations_list(history.archive_history, uid_to_individual_map)
+    # Process older histories to wrap generations into the new class.
+    if isinstance(history.individuals[0], list):
+        history.individuals = [Generation(gen, gen_num) for gen_num, gen in enumerate(history.individuals)]
     # Deserialize parents for all generations.
-    _deserialize_parent_individuals(list(chain(*deserialized_history.individuals)), uid_to_individual_map)
+    _deserialize_parent_individuals(list(chain(*history.individuals)), uid_to_individual_map)
     # The attribute is used only for serialization.
-    del deserialized_history.individuals_pool
-    return deserialized_history
+    del history.individuals_pool
+    return history
