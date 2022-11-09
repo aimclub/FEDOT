@@ -153,9 +153,7 @@ class Operation:
         return f'{self.operation_type}'
 
     def to_json(self) -> Dict[str, Any]:
-        """
-        Uses regular serialization but excludes "operations_repo" field cause it has no any important info about class
-        """
+        """Serializes object and ignores unrelevant fields."""
         return {
             k: v
             for k, v in sorted(vars(self).items())

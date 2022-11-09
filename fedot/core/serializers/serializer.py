@@ -102,6 +102,7 @@ class Serializer(JSONEncoder, JSONDecoder):
     def register_coders(cls: Type[INSTANCE_OR_CALLABLE],
                         to_json: Optional[EncodeCallable[INSTANCE_OR_CALLABLE]] = None,
                         from_json: Optional[DecodeCallable[INSTANCE_OR_CALLABLE]] = None,
+                        overwrite: bool = False,
                         ) -> Type[INSTANCE_OR_CALLABLE]:
         """Registers classes as json-serializable so that they can be used by `Serializer`.
 
@@ -117,6 +118,8 @@ class Serializer(JSONEncoder, JSONDecoder):
              Optional, if None then default is used.
             from_json: custom decoding function that returns class given a Dict.
              Optional, if None then default is used.
+            overwrite: flag that allows to overwrite existing registered coders.
+             False by default: method raises AttributeError in attempt to overwrite coders.
 
         Returns:
             cls: class that is registered in serializer
@@ -129,7 +132,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         coders = {Serializer._to_json: to_json or getattr(cls, Serializer._to_json, any_to_json),
                   Serializer._from_json: from_json or getattr(cls, Serializer._from_json, any_from_json)}
 
-        if cls not in Serializer.CODERS_BY_TYPE:
+        if cls not in Serializer.CODERS_BY_TYPE or overwrite:
             Serializer.CODERS_BY_TYPE[cls] = coders
         else:
             raise AttributeError(f'Object {cls} already has serializer coders registered.')
@@ -272,6 +275,7 @@ def default_load(json_str_or_file_path: Union[str, os.PathLike]) -> Any:
 def register_serializable(cls: Optional[Type[INSTANCE_OR_CALLABLE]] = None,
                           to_json: Optional[EncodeCallable] = None,
                           from_json: Optional[DecodeCallable] = None,
+                          overwrite: bool = False,
                           add_save_load: bool = False,
                           ) -> Type[INSTANCE_OR_CALLABLE]:
     """Decorator for registering classes as json-serializable.
@@ -284,6 +288,8 @@ def register_serializable(cls: Optional[Type[INSTANCE_OR_CALLABLE]] = None,
          Optional, if None then default is used.
         from_json: custom decoding function that returns class given a Dict.
          Optional, if None then default is used.
+        overwrite: flag that allows to overwrite existing registered coders.
+         False by default: method raises AttributeError in attempt to overwrite coders.
         add_save_load: if True, then `save` and `load` methods are added to the class
          that (de)serialize the class (from)to the file using `Serializer`.
          See `default_save` & `default_load` functions.
@@ -295,7 +301,7 @@ def register_serializable(cls: Optional[Type[INSTANCE_OR_CALLABLE]] = None,
     _load = 'load'
 
     def make_serializable(cls):
-        Serializer.register_coders(cls, to_json, from_json)
+        Serializer.register_coders(cls, to_json, from_json, overwrite)
         if add_save_load:
             if hasattr(cls, _save) or hasattr(cls, _load):
                 raise ValueError(f'Class {cls} already have `save` and/or `load` methods, can not overwrite them.')
@@ -303,7 +309,7 @@ def register_serializable(cls: Optional[Type[INSTANCE_OR_CALLABLE]] = None,
             setattr(cls, _load, default_load)
         return cls
 
-    # See if we're being called as @dataclass().
+    # See if we're being called as @decorator() (with parens).
     if cls is None:
         # We're called with parens.
         return make_serializable
