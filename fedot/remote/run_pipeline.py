@@ -75,8 +75,8 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
         test_data = InputData.from_csv(config.test_data_path)
         pipeline.predict(test_data)
 
-    pipeline.save(path=os.path.join(config.output_path, 'fitted_pipeline'), is_final_path=True,
-                  datetime_in_path=False)
+    pipeline.save(path=os.path.join(config.output_path, 'fitted_pipeline'), create_subdir=False,
+                  is_datetime_in_path=False)
 
     return True
 

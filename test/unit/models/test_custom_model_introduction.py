@@ -191,7 +191,7 @@ def test_save_pipeline_with_custom():
     pipeline = get_centered_pipeline()
     pipeline.fit_from_scratch(train_input)
 
-    pipeline.save(path='test_pipeline', is_final_path=True)
+    pipeline.save(path='test_pipeline', create_subdir=False)
     json_path_load = create_correct_path('test_pipeline')
     new_pipeline = Pipeline.from_serialized(json_path_load)
     predicted_output_after_export = new_pipeline.predict(predict_input)

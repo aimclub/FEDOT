@@ -110,7 +110,7 @@ def create_input_data():
 def test_save_load_atomized_pipeline_correctly():
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    json_actual, _ = pipeline.save('test_save_load_atomized_pipeline_correctly', is_final_path=True)
+    json_actual, _ = pipeline.save('test_save_load_atomized_pipeline_correctly', create_subdir=False)
 
     json_path_load = create_correct_path('test_save_load_atomized_pipeline_correctly')
 
@@ -130,13 +130,13 @@ def test_save_load_fitted_atomized_pipeline_correctly():
 
     pipeline.fit(train_data)
     before_save_predicted = pipeline.predict(test_data)
-    json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly', is_final_path=True)
+    json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly', create_subdir=False)
 
     json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
 
     pipeline_loaded = Pipeline.from_serialized(json_path_load)
     json_expected, _ = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded',
-                                            is_final_path=True)
+                                            create_subdir=False)
 
     assert pipeline.length == pipeline_loaded.length
     assert json_actual == json_expected
