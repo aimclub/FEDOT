@@ -89,7 +89,7 @@ DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
             'name': 'node1',
-            'nodes_from': [
+            '_nodes_from': [
                 MOCK_NODE_2,
                 MOCK_NODE_3
             ],

@@ -13,23 +13,8 @@ def any_to_json(obj: INSTANCE_OR_CALLABLE) -> Dict[str, Any]:
 
 
 def any_from_json(cls: Type[INSTANCE_OR_CALLABLE], json_obj: Dict[str, Any]) -> INSTANCE_OR_CALLABLE:
-    cls_parameters = signature(cls.__init__).parameters
-    if 'kwargs' not in cls_parameters:
-        init_data = {
-            k: v
-            for k, v in json_obj.items()
-            if k in cls_parameters
-        }
-        vars_data = {
-            k: json_obj[k]
-            for k in json_obj.keys() ^ init_data.keys()
-        }
-        obj = cls(**init_data)
-        vars(obj).update(vars_data)
-    else:
-        init_data = deepcopy(json_obj)
-        obj = cls(**init_data)
-        vars(obj).update(json_obj)
+    obj = cls.__new__(cls)
+    vars(obj).update(json_obj)
     return obj
 
 
