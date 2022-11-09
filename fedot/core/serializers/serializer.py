@@ -251,7 +251,7 @@ def default_save(obj: Any, json_file_path: Optional[Union[str, os.PathLike]] = N
         return None
 
 
-def default_load(json_str_or_file_path: Optional[Union[str, os.PathLike]] = None) -> Any:
+def default_load(json_str_or_file_path: Union[str, os.PathLike]) -> Any:
     """ Default load from json using Serializer """
     def load_as_file_path():
         with open(json_str_or_file_path, mode='r') as json_file:
