@@ -1,10 +1,11 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, TYPE_CHECKING
 from uuid import uuid4
 
 import networkx as nx
 
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.dag.graph_node import GraphNode
 
 
 def graph_structure_as_nx_graph(structural_graph: 'Graph') -> Tuple[nx.DiGraph, Dict[uuid4, 'GraphNode']]:
