@@ -2,7 +2,7 @@ from typing import Any, Dict, Type, Tuple
 
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.serializers.coders import any_from_json
+from fedot.core.serializers.any_serialization import any_from_json
 
 
 def objective_from_json(cls: Type[Objective], json_obj: Dict[str, Any]) -> Objective:
