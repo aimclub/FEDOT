@@ -9,6 +9,7 @@ Modules
    composer
    data
    eval_strategy
+   adapter
    graph
    graph_node
    optimizations
