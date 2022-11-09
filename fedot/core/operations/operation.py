@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
@@ -7,9 +7,10 @@ from fedot.core.operations.hyperparameters_preprocessing import HyperparametersP
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.serializers.serializer import register_serializable
 
 
+@register_serializable
 class Operation:
     """Base class for operations in nodes. Operations could be machine learning
     (or statistical) models or data operations
@@ -150,6 +151,14 @@ class Operation:
 
     def __str__(self):
         return f'{self.operation_type}'
+
+    def to_json(self) -> Dict[str, Any]:
+        """Serializes object and ignores unrelevant fields."""
+        return {
+            k: v
+            for k, v in sorted(vars(self).items())
+            if k not in ['log', 'operations_repo', '_eval_strategy', 'fitted_operation']
+        }
 
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,

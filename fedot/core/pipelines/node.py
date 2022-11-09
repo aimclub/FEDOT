@@ -13,9 +13,11 @@ from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.serializers.serializer import register_serializable
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
+@register_serializable
 @dataclass
 class NodeMetadata:
     """Dataclass. :class:`Node` metadata

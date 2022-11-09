@@ -2,19 +2,16 @@ from uuid import UUID
 
 import pytest
 
-from fedot.core.serializers import Serializer
+from fedot.core.serializers import Serializer, any_to_json, any_from_json
 from fedot.core.serializers.coders import (
-    any_from_json,
-    any_to_json,
     enum_from_json,
     enum_to_json,
     graph_from_json,
     graph_node_to_json,
-    operation_to_json,
     uuid_from_json,
     uuid_to_json
 )
-from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, operation_to_json
 from .shared_data import TestClass, TestEnum, TestSerializableClass
 
 
