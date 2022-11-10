@@ -5,6 +5,7 @@ from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
 class RemoveType(Enum):
+    """Defines allowed kinds of removals in Graph. Used by mutations."""
     node_only = 'node_only'
     with_direct_children = 'with_direct_children'
     with_parents = 'with_parents'
