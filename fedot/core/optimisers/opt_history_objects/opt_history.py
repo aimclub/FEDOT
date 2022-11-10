@@ -51,7 +51,7 @@ class OptHistory:
     def is_empty(self) -> bool:
         return not self.individuals
 
-    def add_to_history(self, individuals: Sequence[Individual],generation_label: Optional[str] = None,
+    def add_to_history(self, individuals: Sequence[Individual], generation_label: Optional[str] = None,
                        generation_metadata: Optional[Dict[str, Any]] = None):
         generation = Generation(individuals, self.generations_count, generation_label, generation_metadata)
         self.individuals.append(generation)
