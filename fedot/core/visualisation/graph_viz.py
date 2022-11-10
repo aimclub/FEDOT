@@ -46,10 +46,7 @@ class GraphVisualiser:
             raise ValueError('Empty graph can not be visualized.')
         # Define colors.
         if not node_color:
-            if type(graph).__name__ == 'Pipeline':  # This type check avoids circular imports.
-                node_color = self.__get_colors_by_tags
-            else:
-                node_color = self.__get_colors_by_labels
+            node_color = self.__get_colors_by_labels
         if engine == 'matplotlib':
             self.__draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
                                       edge_curvature_scale)
@@ -62,7 +59,7 @@ class GraphVisualiser:
                                       'Possible values: matplotlib, pyvis, graphviz.')
 
     @staticmethod
-    def __get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
+    def get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
         from fedot.core.visualisation.opt_history.utils import get_palette_based_on_default_tags
         from fedot.core.repository.operation_types_repository import get_opt_node_tag
 
@@ -77,7 +74,7 @@ class GraphVisualiser:
 
     @staticmethod
     def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                             node_color=__get_colors_by_tags.__func__, dpi=100):
+                             node_color=get_colors_by_tags.__func__, dpi=100):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
         if callable(node_color):
@@ -111,7 +108,7 @@ class GraphVisualiser:
 
     @staticmethod
     def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                          nodes_color=__get_colors_by_tags.__func__):
+                          nodes_color=get_colors_by_tags.__func__):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
