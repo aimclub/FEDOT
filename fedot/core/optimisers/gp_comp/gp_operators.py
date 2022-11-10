@@ -100,11 +100,11 @@ def replace_subtrees(graph_first: Any, graph_second: Any, node_from_first: Any, 
                      layer_in_first: int, layer_in_second: int, max_depth: int):
     node_from_graph_first_copy = deepcopy(node_from_first)
 
-    summary_depth = layer_in_first + distance_to_primary_level(node_from_second)
+    summary_depth = layer_in_first + distance_to_primary_level(node_from_second) + 1
     if summary_depth <= max_depth and summary_depth != 0:
         graph_first.update_subtree(node_from_first, node_from_second)
 
-    summary_depth = layer_in_second + distance_to_primary_level(node_from_first)
+    summary_depth = layer_in_second + distance_to_primary_level(node_from_first) + 1
     if summary_depth <= max_depth and summary_depth != 0:
         graph_second.update_subtree(node_from_second, node_from_graph_first_copy)
 
