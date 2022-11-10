@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Any, TYPE_CHECKING, Iterable
+from typing import Iterable
 
 import numpy as np
 import seaborn as sns
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_visualization_tags_map
-from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
 from fedot.core.visualisation.opt_history.utils import LabelsColorMapType
-
-if TYPE_CHECKING:
-    from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 
 
 def get_palette_based_on_default_tags() -> LabelsColorMapType:
@@ -23,18 +19,6 @@ def get_palette_based_on_default_tags() -> LabelsColorMapType:
     palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
     palette_map.update({None: 'mediumaquamarine'})
     return palette_map
-
-
-def tags_map_arg_checker(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
-    name = 'tags_map'
-    kwargs[name] = kwargs.get(name) or get_visualization_tags_map()
-    if 'palette' in kwargs and not kwargs['palette']:
-        kwargs['palette'] = get_palette_based_on_default_tags()
-    return kwargs
-
-
-PipelineArgConstraintWrapper = ArgConstraintWrapper
-PipelineArgConstraintWrapper.DEFAULT_CONSTRAINTS['tags_map'] = tags_map_arg_checker
 
 
 def get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
