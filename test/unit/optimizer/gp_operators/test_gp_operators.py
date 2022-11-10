@@ -189,7 +189,7 @@ def test_replace_subtree():
     # graph with depth = 2
     pipeline_2 = pipeline_third()
 
-    # choose the last layer of the first graph
+    # choose the first layer of the first graph
     layer_in_first = pipeline_1.depth - 1
     # choose the last layer of the second graph
     layer_in_second = 0
