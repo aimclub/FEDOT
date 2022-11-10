@@ -6,8 +6,7 @@ from typing import Callable, List, Union, Tuple, TYPE_CHECKING
 import numpy as np
 
 from fedot.core.adapter import register_native
-from fedot.core.composer.advisor import RemoveType
-from fedot.core.dag.graph import Graph
+from fedot.core.optimisers.advisor import RemoveType
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import distance_to_root_level, ordered_subnodes_hierarchy, distance_to_primary_level
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph

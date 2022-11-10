@@ -1,23 +1,19 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
-
-if TYPE_CHECKING:
-    pass
 
 
 class PopulationalOptimizer(GraphOptimizer):
@@ -26,14 +22,14 @@ class PopulationalOptimizer(GraphOptimizer):
     PopulationalOptimizer implements all basic methods for optimization not related to evolution process
     to experiment with other kinds of evolution optimization methods
     It allows to find the optimal solution using specified metric (one or several).
-    To implement the specific evolution strategy,
-    the abstract method '_evolution_process' should be re-defined in the ancestor class
+    To implement the specific evolution strategy, implement `_evolution_process`.
 
-    :param objective: objective for optimization
-    :param initial_graphs: graphs which were initialized outside the optimizer
-    :param requirements: implementation-independent requirements for graph optimizer
-    :param graph_generation_params: parameters for new graph generation
-    :param graph_optimizer_params: parameters for specific implementation of graph optimizer
+    Args:
+         objective: objective for optimization
+         initial_graphs: graphs which were initialized outside the optimizer
+         requirements: implementation-independent requirements for graph optimizer
+         graph_generation_params: parameters for new graph generation
+         graph_optimizer_params: parameters for specific implementation of graph optimizer
     """
 
     def __init__(self,
@@ -82,11 +78,11 @@ class PopulationalOptimizer(GraphOptimizer):
 
         with self.timer, self._progressbar:
 
-            self._initial_population(evaluator=evaluator)
+            self._initial_population(evaluator)
 
             while not self.stop_optimization():
                 try:
-                    new_population = self._evolve_population(evaluator=evaluator)
+                    new_population = self._evolve_population(evaluator)
                 except EvaluationAttemptsError as ex:
                     self.log.warning(f'Composition process was stopped due to: {ex}')
                     return self.best_graphs
@@ -101,12 +97,12 @@ class PopulationalOptimizer(GraphOptimizer):
         return all_best_graphs
 
     @abstractmethod
-    def _initial_population(self, *args, **kwargs):
+    def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """
         raise NotImplementedError()
 
     @abstractmethod
-    def _evolve_population(self, *args, **kwargs) -> PopulationT:
+    def _evolve_population(self, evaluator: EvaluationOperator) -> PopulationT:
         """ Method realizing full evolution cycle """
         raise NotImplementedError()
 
@@ -144,8 +140,9 @@ class PopulationalOptimizer(GraphOptimizer):
         return bar
 
 
+# TODO: remove this hack (e.g. provide smth like FitGraph with fit/unfit interface)
 def _unfit_pipeline(graph: Any):
-    if isinstance(graph, Pipeline):
+    if hasattr(graph, 'unfit'):
         graph.unfit()
 
 
@@ -161,13 +158,7 @@ class EvaluationAttemptsError(Exception):
     """ Number of evaluation attempts exceeded """
 
     def __init__(self, *args):
-        if args:
-            self.message = args[0]
-        else:
-            self.message = None
+        self.message = args[0] or None
 
     def __str__(self):
-        if self.message:
-            return self.message
-        else:
-            return 'Too many fitness evaluation errors.'
+        return self.message or 'Too many fitness evaluation errors.'

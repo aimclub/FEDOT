@@ -24,9 +24,5 @@ def test_default_node_factory():
 
     for primary_node in [changed_primary_node, new_primary_node, new_separate_parent_node]:
         assert primary_node is not None
-        assert primary_node.content['name'] in \
-               node_factory.graph_model_repository.get_operations(is_primary=True)
     for secondary_node in [changed_secondary_node, new_secondary_node, new_intermediate_parent_node]:
         assert secondary_node is not None
-        assert secondary_node.content['name'] in \
-               node_factory.graph_model_repository.get_operations(is_primary=False)

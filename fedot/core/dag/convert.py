@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import Tuple, Dict, TYPE_CHECKING
 from uuid import uuid4
 
 import networkx as nx
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph import Graph
-    from fedot.core.pipelines.template import PipelineTemplate
+    from fedot.core.dag.graph_node import GraphNode
 
 
 def graph_structure_as_nx_graph(structural_graph: 'Graph') -> Tuple[nx.DiGraph, Dict[uuid4, 'GraphNode']]:
@@ -27,21 +27,3 @@ def graph_structure_as_nx_graph(structural_graph: 'Graph') -> Tuple[nx.DiGraph, 
 
     add_edges(nx_graph, structural_graph, new_node_indices)
     return nx_graph, node_labels
-
-
-def pipeline_template_as_nx_graph(pipeline: 'PipelineTemplate'):
-    """ Convert pipeline template into networkx graph object """
-    graph = nx.DiGraph()
-    node_labels = {}
-    for operation in pipeline.operation_templates:
-        unique_id, label = operation.operation_id, operation.operation_type
-        node_labels[unique_id] = label
-        graph.add_node(unique_id)
-
-    def add_edges(graph, pipeline):
-        for operation in pipeline.operation_templates:
-            for child in operation.nodes_from:
-                graph.add_edge(child, operation.operation_id)
-
-    add_edges(graph, pipeline)
-    return graph, node_labels

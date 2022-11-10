@@ -1,13 +1,14 @@
 from copy import copy
 from random import randint
-from typing import (Any, Callable, List, Optional, Sequence)
+from typing import (Any, Callable, List, Sequence)
 
 from numpy import random
 
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.fitness import Fitness
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
@@ -15,14 +16,11 @@ from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer(Composer):
-    def __init__(self, optimizer: 'RandomSearchOptimizer',
-                 composer_requirements: Optional[ComposerRequirements] = None):
-        super().__init__(optimizer=optimizer,
-                         composer_requirements=composer_requirements)
+    def __init__(self, optimizer: 'RandomSearchOptimizer'):
+        super().__init__(optimizer=optimizer)
 
     def compose_pipeline(self, data: InputData) -> Pipeline:
-        train_data = data
-        test_data = data
+        train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
         def prepared_objective(pipeline: Pipeline) -> Fitness:
             pipeline.fit(train_data)
@@ -76,17 +74,16 @@ class RandomGraphFactory:
 class RandomSearchOptimizer(GraphOptimizer):
 
     def __init__(self, objective: Objective,
-                 random_pipeline_factory: Callable[..., Pipeline],
-                 iter_num: int = 1):
-        self._factory = random_pipeline_factory
-        self._iter_num = iter_num
-        super().__init__(objective)
+                 requirements: PipelineComposerRequirements,
+                 ):
+        super().__init__(objective, requirements=requirements)
+        self._factory = RandomGraphFactory(requirements.primary, requirements.secondary)
 
     def optimise(self, objective: ObjectiveFunction) -> Sequence[Pipeline]:
         best_metric_value = 1000
         best_set = None
         history = []
-        for i in range(self._iter_num):
+        for i in range(self.requirements.num_of_generations):
             new_pipeline = self._factory()
             new_metric_value = objective(new_pipeline).value
             new_metric_value = round(new_metric_value, 3)

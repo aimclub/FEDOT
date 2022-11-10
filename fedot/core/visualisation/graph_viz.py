@@ -16,8 +16,8 @@ from pyvis.network import Network
 from seaborn import color_palette
 
 from fedot.core.dag.graph_utils import distance_to_primary_level
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.log import default_log
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:

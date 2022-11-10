@@ -2,7 +2,7 @@ import networkx as nx
 from networkx import isolates, simple_cycles
 
 from fedot.core.adapter import register_native
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.dag.graph import Graph
 
 ERROR_PREFIX = 'Invalid graph configuration:'

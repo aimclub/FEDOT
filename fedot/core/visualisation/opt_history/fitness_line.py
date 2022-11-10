@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from matplotlib.widgets import Button
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import null_fitness
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.utils import default_fedot_data_dir

@@ -1,7 +1,7 @@
 import pytest
 
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.verification_rules import *
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 

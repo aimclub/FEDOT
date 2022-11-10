@@ -7,6 +7,7 @@ import pandas as pd
 
 from fedot.core.adapter import DirectAdapter, register_native
 from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy
+from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
@@ -18,7 +19,6 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import fedot_project_root
 
 random.seed(1)

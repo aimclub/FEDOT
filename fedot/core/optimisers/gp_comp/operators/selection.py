@@ -63,6 +63,7 @@ def default_selection_behaviour(selection_func: Optional[Callable] = None, *, en
 
 @default_selection_behaviour
 def tournament_selection(individuals: PopulationT, pop_size: int, fraction: float = 0.1) -> PopulationT:
+    individuals = list(individuals)  # don't modify original
     group_size = math.ceil(len(individuals) * fraction)
     min_group_size = min(2, len(individuals))
     group_size = max(group_size, min_group_size)

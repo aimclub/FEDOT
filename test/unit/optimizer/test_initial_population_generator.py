@@ -3,7 +3,7 @@ from random import choice
 
 import pytest
 
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
