@@ -6,14 +6,16 @@ import itertools
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.opt_history_objects.generation import Generation
 from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
 if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
     from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 
@@ -31,8 +33,9 @@ class OptHistory:
                  is_multi_objective: bool = False,
                  default_save_dir: Optional[os.PathLike] = None):
         self._is_multi_objective = is_multi_objective
-        self.individuals: List[List[Individual]] = []
+        self.individuals: List[Generation] = []
         self.archive_history: List[List[Individual]] = []
+        self._tuning_result: Optional[Graph] = None
         self._log = default_log(self)
 
         # init default save directory
@@ -48,8 +51,10 @@ class OptHistory:
     def is_empty(self) -> bool:
         return not self.individuals
 
-    def add_to_history(self, individuals: Sequence[Individual]):
-        self.individuals.append(list(individuals))
+    def add_to_history(self, individuals: Sequence[Individual], generation_label: Optional[str] = None,
+                       generation_metadata: Optional[Dict[str, Any]] = None):
+        generation = Generation(individuals, self.generations_count, generation_label, generation_metadata)
+        self.individuals.append(generation)
 
     def add_to_archive_history(self, individuals: Sequence[Individual]):
         self.archive_history.append(list(individuals))
@@ -85,7 +90,7 @@ class OptHistory:
             self._log.info(f"Created directory for saving optimization history: {save_dir}")
 
         try:
-            last_gen_id = len(self.individuals) - 1
+            last_gen_id = self.generations_count - 1
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
             for individual, ind_fitness in zip(last_gen, last_gen_history):
@@ -192,3 +197,34 @@ class OptHistory:
                                   f'{positional_id}',
                                   f'{individual.graph.descriptive_id}']), file=output)
         return output.getvalue()
+
+    @property
+    def initial_assumptions(self) -> Optional[Generation]:
+        if not self.individuals:
+            return None
+        for gen in self.individuals:
+            if gen.label == 'initial_assumptions':
+                return gen
+
+    @property
+    def final_choices(self) -> Optional[Generation]:
+        if not self.individuals:
+            return None
+        for gen in reversed(self.individuals):
+            if gen.label == 'final_choices':
+                return gen
+
+    @property
+    def generations_count(self) -> int:
+        return len(self.individuals)
+
+    @property
+    def tuning_result(self):
+        if hasattr(self, '_tuning_result'):
+            return self._tuning_result
+        else:
+            return None
+
+    @tuning_result.setter
+    def tuning_result(self, val):
+        self._tuning_result = val
