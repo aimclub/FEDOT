@@ -35,7 +35,7 @@ class OptHistory:
         self._is_multi_objective = is_multi_objective
         self.individuals: List[Generation] = []
         self.archive_history: List[List[Individual]] = []
-        self.tuning_result: Optional[Graph] = None
+        self._tuning_result: Optional[Graph] = None
         self._log = default_log(self)
 
         # init default save directory
@@ -217,3 +217,14 @@ class OptHistory:
     @property
     def generations_count(self) -> int:
         return len(self.individuals)
+
+    @property
+    def tuning_result(self):
+        if hasattr(self, '_tuning_result'):
+            return self._tuning_result
+        else:
+            return None
+
+    @tuning_result.setter
+    def tuning_result(self, val):
+        self._tuning_result = val
