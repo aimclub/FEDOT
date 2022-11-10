@@ -95,6 +95,9 @@ class ApiParams:
         if 'preset' not in input_params['composer_tuner_params']:
             self.api_params['preset'] = 'auto'
 
+        # If early_stopping_generations is not specified,
+        # than estimate it as in time-based manner as: 0.33 * composing_timeout.
+        # The minimal number of generations is 5.
         if 'early_stopping_iterations' not in input_params['composer_tuner_params']:
             if input_params['timeout']:
                 depending_on_timeout = int(input_params['timeout']/3)

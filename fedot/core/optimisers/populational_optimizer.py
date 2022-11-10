@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, Optional, Sequence
 
+import datetime
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
@@ -60,7 +61,7 @@ class PopulationalOptimizer(GraphOptimizer):
                         self.current_generation_num >= requirements.num_of_generations + 1,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
-                lambda: self.generations.stagnation_iter_amount >= max_stagnation_length,
+                lambda: self.generations.stagnation_iter_count >= max_stagnation_length,
                 'Optimisation finished: Early stopping iterations criteria was satisfied'
             ).add_condition(
                 lambda: self.generations.stagnation_time_duration >= max_stagnation_time,
@@ -118,7 +119,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
         self.log.info(f'Generation num: {self.current_generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
-        self.log.info(f'no improvements for {self.generations.stagnation_iter_amount} iterations')
+        self.log.info(f'no improvements for {self.generations.stagnation_iter_count} iterations')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
 
     def _log_to_history(self, population: PopulationT, label: Optional[str] = None,

@@ -30,6 +30,6 @@ class AdaptiveGraphDepth(AdaptiveParameter[int]):
             return self._max_depth
         if self._current_depth >= self._max_depth:
             return self._current_depth
-        if self._improvements.stagnation_iter_amount >= self._max_stagnation_gens:
+        if self._improvements.stagnation_iter_count >= self._max_stagnation_gens:
             self._current_depth += 1
         return self._current_depth

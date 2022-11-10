@@ -15,8 +15,13 @@ class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
 
     @property
-    def stagnation_iter_amount(self) -> int:
-        """Returns number of generations for which not any metrics has improved."""
+    def stagnation_iter_count(self) -> int:
+        """Returns number of generations for which any metrics has not improved."""
+        raise NotImplementedError()
+
+    @property
+    def stagnation_time_duration(self) -> float:
+        """Returns time duration for which any metrics has not improved."""
         raise NotImplementedError()
 
     @property
@@ -72,6 +77,14 @@ class GenerationKeeper(ImprovementWatcher):
             self.append(initial_generation)
 
     @property
+    def stagnation_start_time(self):
+        return self._stagnation_start_time
+
+    @stagnation_start_time.setter
+    def stagnation_start_time(self, stagnation_start_time: datetime.datetime):
+        self._stagnation_start_time = stagnation_start_time
+
+    @property
     def best_individuals(self) -> Sequence[Individual]:
         return self.archive.items
 
@@ -80,7 +93,7 @@ class GenerationKeeper(ImprovementWatcher):
         return self._generation_num
 
     @property
-    def stagnation_iter_amount(self) -> int:
+    def stagnation_iter_count(self) -> int:
         return self._stagnation_counter
 
     @property
