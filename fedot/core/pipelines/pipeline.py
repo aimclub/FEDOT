@@ -21,7 +21,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
-from fedot.core.visualisation.graph_viz import NodeColorType, GraphVisualiser
+from fedot.core.visualisation.graph_viz import NodeColorType, GraphVisualizer
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -374,8 +374,8 @@ class Pipeline(GraphDelegate, Serializable):
             edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
             dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
-        node_color = node_color or GraphVisualiser.get_colors_by_tags
-        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
+        node_color = node_color or GraphVisualizer.get_colors_by_tags
+        GraphVisualizer().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
                                     edge_curvature_scale)
 
 

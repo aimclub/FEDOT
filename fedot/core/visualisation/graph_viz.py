@@ -32,7 +32,7 @@ NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
 NodeColorType = Union[MatplotlibColorType, LabelsColorMapType, NodeColorFunctionType]
 
 
-class GraphVisualiser:
+class GraphVisualizer:
     def __init__(self):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')

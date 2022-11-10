@@ -3,7 +3,7 @@ from os import PathLike
 from typing import Tuple, Dict, List, Sequence, Union, TypeVar, Optional
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
+from fedot.core.visualisation.graph_viz import GraphVisualizer, NodeColorType
 
 NodeType = TypeVar('NodeType', bound=GraphNode, covariant=False, contravariant=False)
 
@@ -179,7 +179,7 @@ class Graph(ABC):
             edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
             dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
-        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
+        GraphVisualizer().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
                                     edge_curvature_scale)
 
     @property
