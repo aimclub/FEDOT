@@ -234,6 +234,9 @@ class ApiComposer:
                                                      metric_functions[0],
                                                      composer_requirements,
                                                      best_pipeline)
+        if gp_composer.history:
+            adapter = gp_composer.optimizer.graph_generation_params.adapter
+            gp_composer.history.tuning_result = adapter.adapt(best_pipeline)
         # enforce memory cleaning
         gc.collect()
 

@@ -15,6 +15,7 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
 if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
     from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 
@@ -34,6 +35,7 @@ class OptHistory:
         self._is_multi_objective = is_multi_objective
         self.individuals: List[Generation] = []
         self.archive_history: List[List[Individual]] = []
+        self.tuning_result: Optional[Graph] = None
         self._log = default_log(self)
 
         # init default save directory
