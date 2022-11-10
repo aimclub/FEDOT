@@ -15,7 +15,7 @@ class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
 
     @property
-    def stagnation_iter_duration(self) -> int:
+    def stagnation_iter_amount(self) -> int:
         """Returns number of generations for which not any metrics has improved."""
         raise NotImplementedError()
 
@@ -80,12 +80,12 @@ class GenerationKeeper(ImprovementWatcher):
         return self._generation_num
 
     @property
-    def stagnation_iter_duration(self) -> int:
+    def stagnation_iter_amount(self) -> int:
         return self._stagnation_counter
 
     @property
     def stagnation_time_duration(self) -> float:
-        return self._stagnation_counter
+        return (datetime.datetime.now() - self._stagnation_start_time).seconds/60
 
     @property
     def is_any_improved(self) -> bool:
