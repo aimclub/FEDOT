@@ -4,7 +4,13 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from fedot.core.log import default_log
-from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
+# from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper  # TODO: Apply in GOLEM
+
+# TODO: Remove in GOLEM # --
+from fedot.core.visualisation.pipeline_specific_utils import PipelineArgConstraintWrapper
+
+ArgConstraintWrapper = PipelineArgConstraintWrapper
+# --
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory

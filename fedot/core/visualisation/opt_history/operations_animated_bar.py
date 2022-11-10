@@ -9,8 +9,8 @@ from matplotlib.colors import Normalize
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
-from fedot.core.visualisation.opt_history.utils import get_history_dataframe, get_description_of_operations_by_tag, \
-    get_palette_based_on_default_tags
+from fedot.core.visualisation.opt_history.utils import get_history_dataframe, get_description_of_operations_by_tag
+from fedot.core.visualisation.pipeline_specific_utils import get_palette_based_on_default_tags
 
 
 class OperationsAnimatedBar(HistoryVisualization):

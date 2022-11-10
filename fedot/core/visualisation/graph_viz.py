@@ -59,14 +59,6 @@ class GraphVisualizer:
                                       'Possible values: matplotlib, pyvis, graphviz.')
 
     @staticmethod
-    def get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
-        from fedot.core.visualisation.opt_history.utils import get_palette_based_on_default_tags
-        from fedot.core.repository.operation_types_repository import get_opt_node_tag
-
-        palette = get_palette_based_on_default_tags()
-        return {label: palette[get_opt_node_tag(label)] for label in labels}
-
-    @staticmethod
     def __get_colors_by_labels(labels: Iterable[str]) -> LabelsColorMapType:
         unique_labels = list(set(labels))
         palette = color_palette('tab10', len(unique_labels))
@@ -74,7 +66,7 @@ class GraphVisualizer:
 
     @staticmethod
     def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                             node_color=get_colors_by_tags.__func__, dpi=100):
+                             node_color=__get_colors_by_labels.__func__, dpi=100):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
         if callable(node_color):
@@ -108,7 +100,7 @@ class GraphVisualizer:
 
     @staticmethod
     def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                          nodes_color=get_colors_by_tags.__func__):
+                          nodes_color=__get_colors_by_labels.__func__):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors

@@ -330,6 +330,21 @@ class OperationTypesRepository:
         return None
 
 
+def get_visualization_tags_map():
+    # Search for tags.
+    operations_map = {}
+    for repo_name in ('model', 'data_operation'):
+        repo = OperationTypesRepository(repo_name)
+        for operation in repo.operations:
+            tag = repo.get_first_suitable_operation_tag(operation.id, repo.default_tags)
+            operations_map[tag] = (operations_map.get(tag) or []) + [operation.id]
+    # Sort tags.
+    tags_model = OperationTypesRepository.DEFAULT_MODEL_TAGS
+    tags_data = OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+    operations_map = {tag: operations_map[tag] for tag in tags_model + tags_data if tag in operations_map}
+    return operations_map
+
+
 def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
                      tags_data: Optional[List[str]] = None,
                      repos_tags: Optional[Dict['OperationTypesRepository', List[str]]] = None) -> Optional[str]:
