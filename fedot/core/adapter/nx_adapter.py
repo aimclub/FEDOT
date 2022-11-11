@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Sequence, Optional, Dict, Any
+from typing import Sequence, Optional, Dict, Any, Iterable
 
 import networkx as nx
 
@@ -33,30 +33,24 @@ class BaseNetworkxAdapter(BaseOptimizationAdapter[nx.DiGraph]):
         return OptNode(content=deepcopy(data))
 
     def _adapt(self, adaptee: nx.DiGraph) -> OptGraph:
-        nodes = []
         mapped_nodes = {}
 
-        def map_predecessors(node_id) -> Sequence[OptNode]:
-            predecessor_nodes = []
+        def map_predecessors(node_id) -> Iterable[OptNode]:
             for pred_id in adaptee.predecessors(node_id):
-                pred_node = mapped_nodes.get(pred_id)
-                if pred_node is None:
-                    node_data = adaptee.nodes[pred_id]
-                    pred_node = self._node_adapt(node_data)
-                    mapped_nodes[pred_id] = pred_node
-                predecessor_nodes.append(pred_node)
-            return predecessor_nodes
+                yield mapped_nodes[pred_id]
 
+        # map nodes
         for node_id, node_data in adaptee.nodes.items():
             # transform node
             node = self._node_adapt(node_data)
             mapped_nodes[node_id] = node
+
+        # map parent nodes
+        for node_id, node in mapped_nodes.items():
             # append its parent edges
             node.nodes_from = map_predecessors(node_id)
-            # append node
-            nodes.append(node)
 
-        return OptGraph(nodes)
+        return OptGraph(mapped_nodes.values())
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> nx.DiGraph:
         nx_graph = nx.DiGraph()
