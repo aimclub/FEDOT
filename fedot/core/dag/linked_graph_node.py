@@ -48,7 +48,7 @@ class LinkedGraphNode(GraphNode):
         return hash(self.uid)
 
     def __str__(self) -> str:
-        return str(self.content['name'])
+        return str(self.content.get('name', self.uid))
 
     def __repr__(self) -> str:
         return self.__str__()
