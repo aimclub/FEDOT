@@ -19,7 +19,7 @@ class FitnessBox(HistoryVisualization):
         :param best_fraction: fraction of the best individuals of each generation that included in the
             visualization. Must be in the interval (0, 1].
         """
-        df_history = get_history_dataframe(self.history, get_tags=False, best_fraction=best_fraction)
+        df_history = get_history_dataframe(self.history, best_fraction=best_fraction)
         columns_needed = ['generation', 'individual', 'fitness']
         df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)
         # Get color palette by mean fitness per generation
