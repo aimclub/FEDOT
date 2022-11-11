@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from random import choice
-from typing import Optional
+from typing import Optional, Iterable
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
@@ -36,19 +36,14 @@ class OptNodeFactory(ABC):
 
 
 class DefaultOptNodeFactory(OptNodeFactory):
-    def __init__(self, requirements: Optional[PipelineComposerRequirements] = None):
-        if requirements:
-            self._available_nodes = list(requirements.primary) + list(requirements.secondary)
-        else:
-            self._available_nodes = []
+    def __init__(self, available_node_types: Iterable[str]):
+        self._available_nodes = tuple(available_node_types)
 
-    def exchange_node(self, node: OptNode) -> Optional[OptNode]:
+    def exchange_node(self, node: OptNode) -> OptNode:
         return node
 
-    def get_parent_node(self, node: OptNode, **kwargs) -> Optional[OptNode]:
+    def get_parent_node(self, node: OptNode, **kwargs) -> OptNode:
         return self.get_node(**kwargs)
 
-    def get_node(self, is_primary: bool) -> Optional[OptNode]:
-        if not self._available_nodes:
-            return None
+    def get_node(self, **kwargs) -> OptNode:
         return OptNode(content={'name': choice(self._available_nodes)})
