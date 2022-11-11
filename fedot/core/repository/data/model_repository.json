@@ -78,7 +78,7 @@
       ],
       "description": "Implementations of the regression models from scikit-learn framework",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.multi_ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.regression",
@@ -93,7 +93,7 @@
     },
     "ts_model": {
       "description": "Implementations of the time series models",
-      "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
+      "input_type": "[DataTypesEnum.ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.time_series",
