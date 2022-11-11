@@ -3,6 +3,7 @@ import pytest
 
 from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.dag.graph import Graph
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -40,9 +41,11 @@ def get_pipelines():
     node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])
     skip_connection_structure = Pipeline(node_c)
 
-    return [one_node_pipeline, linear_pipeline,
-            branching_structure, branching_structure2,
-            skip_connection_structure]
+    graphs = [one_node_pipeline, linear_pipeline,
+              branching_structure, branching_structure2,
+              skip_connection_structure]
+    graphs = PipelineAdapter().adapt(graphs)
+    return graphs
 
 
 @pytest.mark.parametrize('graph', [
@@ -57,7 +60,3 @@ def test_transform_to_and_from_nx(graph: Graph):
     retranslated_graph = nx_to_optgraph(nx_graph)
 
     assert retranslated_graph.descriptive_id == graph.descriptive_id
-
-
-def test_transform_to(graph: Graph, nxgraph: nx.DiGraph):
-    assert True
