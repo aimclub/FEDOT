@@ -1,4 +1,5 @@
 import datetime
+from copy import deepcopy
 from pathlib import Path
 from typing import Sequence, Optional
 
@@ -9,7 +10,7 @@ from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import ParetoFront
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
+from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates, replace_subtrees
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -21,6 +22,7 @@ from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -178,3 +180,27 @@ def test_filter_duplicates():
     assert len(filtered_archive) == 1
     assert filtered_archive[0].fitness.values[0] == -0.80001
     assert filtered_archive[0].fitness.values[1] == 0.25
+
+
+def test_replace_subtree():
+    # graph with depth = 3
+    pipeline_1 = pipeline_first()
+    passed_pipeline_1 = deepcopy(pipeline_1)
+    # graph with depth = 2
+    pipeline_2 = pipeline_third()
+
+    # choose the first layer of the first graph
+    layer_in_first = pipeline_1.depth - 1
+    # choose the last layer of the second graph
+    layer_in_second = 0
+    max_depth = 3
+
+    node_from_graph_first = nodes_from_layer(pipeline_1, layer_in_first)[0]
+    node_from_graph_second = nodes_from_layer(pipeline_2, layer_in_second)[0]
+
+    # replace_subtrees must not replace subgraph in the first graph and its depth must be <= max_depth
+    replace_subtrees(pipeline_1, pipeline_2, node_from_graph_first, node_from_graph_second,
+                     layer_in_first, layer_in_second, max_depth)
+    assert pipeline_1.depth <= max_depth
+    assert pipeline_1 == passed_pipeline_1
+    assert pipeline_2.depth <= max_depth
