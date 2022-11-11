@@ -31,4 +31,4 @@ def run_api_explain_example(visualization=False, timeout=None):
 
 
 if __name__ == '__main__':
-    run_api_explain_example(visualization=True)
+    run_api_explain_example(visualization=True, timeout=5)

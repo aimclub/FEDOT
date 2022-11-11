@@ -300,7 +300,7 @@ class OperationTypesRepository:
                 operations_info.append(o)
 
         if data_type:
-            # ignore text and image data types: no operations defines these `input_types`
+            # ignore text and image data types: there are no operations with these `input_type`
             ignore_data_type = data_type in [DataTypesEnum.text, DataTypesEnum.image]
             if data_type == DataTypesEnum.ts:
                 valid_data_types = [DataTypesEnum.ts, DataTypesEnum.table]
@@ -399,12 +399,13 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None,
-                            preset: str = None):
+def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesEnum] = None, mode='all', tags=None,
+                            forbidden_tags=None, preset: str = None):
     """Function returns aliases of operations.
 
     Args:
         task: task to solve
+        data_type: type of input data
         mode: mode to return operations
 
             .. details:: the possible parameters of ``mode``:
@@ -429,7 +430,7 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
-        model_types = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+        model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
                                               preset=preset)
         return model_types
     else:

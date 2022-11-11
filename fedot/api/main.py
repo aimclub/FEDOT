@@ -166,6 +166,7 @@ class Fedot:
         self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
         self.params.accept_and_apply_recommendations(self.train_data, recommendations)
         self._init_remote_if_necessary()
+        self.params.update_available_operations_by_preset(self.train_data)
         self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
