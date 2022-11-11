@@ -74,8 +74,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         Returns:
             OptGraph | Sequence: mapped internal graph or sequence of them
         """
-        if not isinstance(item, self.opt_graph_class):
-            # if it's not already the target, then try transforming
+        if type(item) is self.domain_graph_class:
             return self._adapt(item)
         elif isinstance(item, Sequence) and type(item[0]) is self.domain_graph_class:
             return [self._adapt(graph) for graph in item]
@@ -93,8 +92,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         Returns:
             OptGraph | Sequence: mapped domain graph or sequence of them
         """
-        if not isinstance(item, self.domain_graph_class):
-            # if it's not already the target, then try transforming
+        if type(item) is self.opt_graph_class:
             return self._restore(item)
         elif isinstance(item, Individual):
             return self._restore(item.graph, item.metadata)
