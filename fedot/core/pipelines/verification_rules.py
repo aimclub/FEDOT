@@ -145,7 +145,8 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                          'locf': ['lagged', 'sparse_lagged'],
                          'ets':  ['lagged', 'sparse_lagged'],
                          'polyfit': ['lagged', 'sparse_lagged'],
-                         'clstm': ['lagged', 'sparse_lagged']
+                         'clstm': ['lagged', 'sparse_lagged'],
+                         'glm': ['lagged', 'sparse_lagged']
                          }
 
     for node in pipeline.nodes:

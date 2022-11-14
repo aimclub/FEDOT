@@ -142,6 +142,6 @@
     "max_df": 0.9
   },
   "fast_ica": {
-    "whiten": "arbitrary-variance"
+    "whiten": "unit-variance"
   }
 }

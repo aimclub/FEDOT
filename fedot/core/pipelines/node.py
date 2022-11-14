@@ -436,7 +436,6 @@ class SecondaryNode(Node):
 
         parent_results, _ = _combine_parents(parent_nodes, input_data,
                                              parent_operation)
-
         secondary_input = DataMerger.get(parent_results).merge()
 
         # Update info about visited nodes

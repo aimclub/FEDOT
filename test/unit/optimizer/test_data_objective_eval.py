@@ -112,14 +112,14 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
 
 
 def test_pipeline_objective_evaluate_with_empty_datasource(classification_dataset):
-    pipeline = sample_pipeline()
+    with pytest.raises(ValueError):
+        pipeline = sample_pipeline()
 
-    data_split = empty_datasource
-    metric = ClassificationMetricsEnum.ROCAUC_penalty
+        data_split = empty_datasource
+        metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
-    fitness = objective_eval(pipeline)
-    assert not fitness.valid
+        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
+        objective_eval(pipeline)
 
 
 def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset):
@@ -146,13 +146,13 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
      throwing_exception_metric]
 )
 def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset, metrics):
-    pipeline = sample_pipeline()
+    with pytest.raises(ValueError):
+        pipeline = sample_pipeline()
 
-    data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
+        data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
 
-    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_split)
-    fitness = objective_eval(pipeline)
-    assert not fitness.valid
+        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_split)
+        objective_eval(pipeline)
 
 
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])

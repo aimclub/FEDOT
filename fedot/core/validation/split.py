@@ -54,6 +54,8 @@ class TsInputDataSplit(TimeSeriesSplit):
         data_for_split = np.array(input_data.target)
 
         for train_ids, test_ids in super().split(data_for_split):
+            if len(train_ids) <= len(test_ids):
+                raise ValueError("Train size will be too small with selected number of folds and validation blocks")
             # Return train part by ids
             train_features, train_target = _ts_data_by_index(train_ids, train_ids, input_data)
             train_data = InputData(idx=np.arange(0, len(train_target)),

@@ -175,7 +175,8 @@ class SearchSpace:
                 'kernel': (hp.choice, [['linear', 'poly', 'rbf', 'sigmoid', 'cosine', 'precomputed']])
             },
             'fast_ica': {
-                'n_components': (hp.uniformint, [1, 20])
+                'n_components': (hp.uniformint, [1, 20]),
+                'fun': (hp.choice, [['logcosh', 'exp', 'cube']])
             },
             'ransac_lin_reg': {
                 'min_samples': (hp.uniform, [0.1, 0.9]),
