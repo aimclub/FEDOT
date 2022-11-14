@@ -7,16 +7,15 @@ import seaborn as sns
 from matplotlib import cm, animation, pyplot as plt
 from matplotlib.colors import Normalize
 
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
-from fedot.core.visualisation.opt_history.utils import get_history_dataframe, get_description_of_operations_by_tag
-from fedot.core.visualisation.pipeline_specific_utils import get_palette_based_on_default_tags
+from fedot.core.visualisation.opt_history.utils import get_history_dataframe, get_description_of_operations_by_tag, \
+    TagOperationsMap, LabelsColorMapType
 
 
 class OperationsAnimatedBar(HistoryVisualization):
     def visualize(self, save_path: Union[os.PathLike, str] = 'history_animated_bars.gif', dpi: int = 100,
-                  best_fraction: Optional[float] = None, show_fitness: bool = True, use_tags: bool = True,
-                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
+                  best_fraction: Optional[float] = None, show_fitness: bool = True,
+                  tags_map: TagOperationsMap = None, palette: Optional[LabelsColorMapType] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
         :param save_path: path to save the visualization.
@@ -24,13 +23,11 @@ class OperationsAnimatedBar(HistoryVisualization):
         :param best_fraction: fraction of the best individuals of each generation that included in the
             visualization. Must be in the interval (0, 1].
         :param show_fitness: if False, the bar colors will not correspond to fitness.
-        :param use_tags: if True (default), all operations in the history are colored and grouped based on
-            FEDOT repo tags. If False, operations are not grouped, colors are picked by fixed colormap for
-            every history independently.
-        :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
-            The later the tag, the higher its priority in case of intersection.
-        :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
-            The later the tag, the higher its priority in case of intersection.
+        :param tags_map: if specified, all operations in the history are grouped based on the provided tags.
+            If None, operations are not grouped.
+        :param palette: a map from operation label to its color. If None, colors are picked by fixed colormap
+            for every history independently.
+
         """
 
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
@@ -68,30 +65,34 @@ class OperationsAnimatedBar(HistoryVisualization):
         animation_interpolation_power = 4
         fitness_colormap = cm.get_cmap('YlOrRd')
 
-        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
-        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+        # tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        # tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
-        tags_all = [*tags_model, *tags_data]
+        # tags_all = [*tags_model, *tags_data]
 
         generation_column_name = 'Generation'
         fitness_column_name = 'Fitness'
         operation_column_name = 'Operation'
-        column_for_operation = 'tag' if use_tags else 'node'
+        column_for_operation = 'tag' if tags_map else 'node'
 
-        df_history = get_history_dataframe(self.history, tags_model, tags_data, best_fraction, use_tags)
+        df_history = get_history_dataframe(self.history, best_fraction, tags_map)
         df_history = df_history.rename({
             'generation': generation_column_name,
             'fitness': fitness_column_name,
             column_for_operation: operation_column_name,
         }, axis='columns')
         operations_found = df_history[operation_column_name].unique()
-        if use_tags:
+        if tags_map:
+            tags_all = list(tags_map.keys())
             operations_found = [tag for tag in tags_all if tag in operations_found]
             nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
             bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in operations_found]
-            no_fitness_palette = get_palette_based_on_default_tags()
         else:
             bars_labels = operations_found
+
+        if palette:
+            no_fitness_palette = palette
+        else:
             no_fitness_palette = sns.color_palette('tab10', n_colors=len(operations_found))
             no_fitness_palette = {o: no_fitness_palette[i] for i, o in enumerate(operations_found)}
 
