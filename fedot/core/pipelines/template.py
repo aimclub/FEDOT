@@ -101,9 +101,9 @@ class PipelineTemplate:
             path: custom path to save JSON to
             root_node: root node of the exported pipeline
             create_subdir: if True -- create one more dir in the last dir.
-                           Usefull for saving pipelines with fitted_operations & preprocessing.
+                           Useful for saving pipelines with fitted_operations & preprocessing.
                            if False -- save to the last dir in this path.
-                           Usefull for pipelines without fitted_operations or
+                           Useful for pipelines without fitted_operations or
                            when you want to know the exact name of the folder.
             is_datetime_in_path: is it required to add the datetime timestamp to the path.
 
@@ -190,7 +190,7 @@ class PipelineTemplate:
 
         path = os.path.abspath(path)
 
-        # explicitly specify where to save json, fitted_operation and ets will be saved in the same dir
+        # explicitly specify where to save json, fitted_operation and etc will be saved in the same dir
         if path.endswith('.json'):
             path_to_dir = os.path.split(path)[0]
             if not os.path.exists(path_to_dir):
