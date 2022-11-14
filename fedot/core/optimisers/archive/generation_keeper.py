@@ -143,10 +143,10 @@ class GenerationKeeper(ImprovementWatcher):
             if is_metric_worse(previous_worst, current_worst):
                 self._metrics_improvement[metric] = True
 
-        self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
-        self._stagnation_start_time = datetime.datetime.now() \
-            if self.is_any_improved else self._stagnation_start_time
         self._generation_num += 1  # becomes 1 on first population
+        self._stagnation_start_time = datetime.datetime.now() \
+            if self.is_any_improved or self._generation_num == 1 else self._stagnation_start_time
+        self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
 
     def _reset_metrics_improvement(self):
         self._metrics_improvement = {metric_id: False for metric_id in self._metric_ids}
