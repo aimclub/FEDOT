@@ -80,10 +80,6 @@ class GenerationKeeper(ImprovementWatcher):
     def stagnation_start_time(self):
         return self._stagnation_start_time
 
-    @stagnation_start_time.setter
-    def stagnation_start_time(self, stagnation_start_time: datetime.datetime):
-        self._stagnation_start_time = stagnation_start_time
-
     @property
     def best_individuals(self) -> Sequence[Individual]:
         return self.archive.items
