@@ -30,13 +30,13 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
         actual_time_series = data.features[:, 0]
     else:
         actual_time_series = data.features
-    target = data.target
+    target_time_series = data.target
     predict = prediction.predict
     pred_start = len(actual_time_series)
     if in_sample:
         pred_start = len(actual_time_series) - len(predict)
-    elif target is not None:
-        actual_time_series = np.concatenate([actual_time_series, target], axis=0)
+    elif target_time_series is not None:
+        actual_time_series = np.concatenate([actual_time_series, target_time_series], axis=0)
 
     padding = min(len(actual_time_series), 72)
 
