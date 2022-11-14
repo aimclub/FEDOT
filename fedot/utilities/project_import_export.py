@@ -32,7 +32,8 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
     _check_for_existing_project(absolute_folder_path, absolute_zip_path)
 
     # Converts python objects to files for compression
-    pipeline.save(str(absolute_folder_path.joinpath('pipeline.json')), datetime_in_path=False)
+    pipeline_path = os.path.join(absolute_folder_path, 'pipeline', 'pipeline.json')
+    pipeline.save(pipeline_path, is_datetime_in_path=False, create_subdir=False)
     train_data.to_csv(absolute_folder_path.joinpath('train_data.csv'))
     test_data.to_csv(absolute_folder_path.joinpath('test_data.csv'))
     if opt_history is not None:

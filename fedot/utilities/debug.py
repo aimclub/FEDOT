@@ -29,7 +29,7 @@ def save_debug_info_for_pipeline(pipeline: 'Pipeline', train_data: 'InputData', 
 
         pipeline_id = str(uuid4())
         base_path = Path(tmp_folder, pipeline_id)
-        pipeline.save(f'{base_path}_pipeline', datetime_in_path=False)
+        pipeline.save(f'{base_path}_pipeline', is_datetime_in_path=False)
 
         with open(f'{base_path}_train_data.pkl', 'wb') as file:
             pickle.dump(train_data, file)

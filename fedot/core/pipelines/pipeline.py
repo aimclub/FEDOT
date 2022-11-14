@@ -238,13 +238,16 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def save(self, path: str = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
+    def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """
         Saves the pipeline to JSON representation with pickled fitted operations
 
         Args:
-            path: custom path to save the JSON to
-            datetime_in_path: is it required to add the datetime timestamp to the path
+            path: custom path to dir where to save JSON or name of json file where to save pipeline.
+            If only file name is specified, than absolute path to this file will be created.
+            create_subdir: if True -- create one more dir in the last dir
+                           if False -- save to the last dir in specified path
+            is_datetime_in_path: is it required to add the datetime timestamp to the path
 
         Returns:
             Tuple[str, dict]: :obj:`JSON representation of the pipeline structure`,
@@ -253,7 +256,8 @@ class Pipeline(GraphDelegate, Serializable):
 
         template = PipelineTemplate(self)
         json_object, dict_fitted_operations = template.export_pipeline(path, root_node=self.root_node,
-                                                                       datetime_in_path=datetime_in_path)
+                                                                       create_subdir=create_subdir,
+                                                                       is_datetime_in_path=is_datetime_in_path)
         return json_object, dict_fitted_operations
 
     def load(self, source: Union[str, dict], dict_fitted_operations: Optional[dict] = None):
@@ -267,6 +271,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
+        return self
 
     @property
     def root_node(self) -> Optional[Node]:
