@@ -1,12 +1,11 @@
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import product
-from typing import Callable, Sequence, Optional, Dict
+from typing import Callable, Sequence, Optional
 
 import networkx as nx
-import numpy as np
-from networkx import graph_edit_distance
 
+from examples.advanced.abstract_graph_evolution.graph_metrics import get_edit_dist_metric
 from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
@@ -23,35 +22,8 @@ DiGraphGenerator = Callable[[NumNodes], nx.DiGraph]
 
 def graph_generators() -> Sequence[DiGraphGenerator]:
     return [nx.gn_graph,
-            partial(nx.gnp_random_graph, p=0.02),
-            partial(nx.gnp_random_graph, p=0.05),
+            partial(nx.gnp_random_graph, p=0.15),
             ]
-
-
-def get_similarity_metric(target_graph: nx.DiGraph,
-                          requirements: Optional[PipelineComposerRequirements] = None,
-                          ) -> Callable[[nx.DiGraph], float]:
-
-    def node_match(node_content_1: Dict, node_content_2: Dict) -> bool:
-        operations_do_match = node_content_1.get('name') == node_content_2.get('name')
-        return True or operations_do_match
-
-    if requirements:
-        upper_bound = int(np.sqrt(requirements.max_depth * requirements.max_arity)),
-        timeout = requirements.max_pipeline_fit_time.seconds,
-    else:
-        upper_bound = None
-        timeout = timedelta(seconds=60)
-
-    def metric(graph: nx.DiGraph) -> float:
-        ged = graph_edit_distance(target_graph, graph,
-                                  node_match=node_match,
-                                  upper_bound=upper_bound,
-                                  timeout=timeout.seconds,
-                                 )
-        return ged or upper_bound
-
-    return metric
 
 
 def run_experiments(graph_generators: Sequence[DiGraphGenerator],
@@ -107,7 +79,7 @@ def run_experiment(target_graph: nx.DiGraph,
         available_node_types=nodes_types,
     )
 
-    levenstein_metric = get_similarity_metric(requirements, target_graph)
+    levenstein_metric = get_edit_dist_metric(requirements, target_graph)
     objective = Objective(quality_metrics={'edit_distance': levenstein_metric})
 
     optimiser = EvoGraphOptimizer(
