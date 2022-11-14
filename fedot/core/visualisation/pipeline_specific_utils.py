@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Any, Dict, Iterable
 
 import numpy as np
 import seaborn as sns
@@ -30,3 +30,9 @@ def get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
 
     palette = get_palette_based_on_default_tags()
     return {label: palette[tags_map.get(label)] for label in labels}
+
+
+def get_pipeline_show_default_params() -> Dict[str, Any]:
+    return {
+        'node_color': get_colors_by_tags
+    }

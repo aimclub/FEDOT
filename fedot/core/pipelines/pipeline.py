@@ -1,6 +1,5 @@
 from copy import deepcopy
 from datetime import timedelta
-from os import PathLike
 from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
@@ -21,8 +20,9 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
-from fedot.core.visualisation.graph_viz import NodeColorType, GraphVisualizer
-from fedot.core.visualisation.pipeline_specific_utils import get_colors_by_tags
+from fedot.core.utils import copy_doc
+from fedot.core.visualisation.graph_viz import GraphVisualizer
+from fedot.core.visualisation.pipeline_specific_utils import get_pipeline_show_default_params
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -361,23 +361,12 @@ class Pipeline(GraphDelegate, Serializable):
                         node.content['params']['num_threads'] = n_jobs
                         node.content['params']['n_jobs'] = n_jobs
 
-    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
-             node_color: Optional[NodeColorType] = None, dpi: int = 100,
-             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
-        """Visualizes graph or saves its picture to the specified ``path``
-
-        Args:
-            save_path: optional, save location of the graph visualization image.
-            engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
-            node_color: color of nodes to use.
-            node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
-            font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
-            edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
-            dpi: DPI of the output image. Not supported for the engine 'pyvis'.
-        """
-        node_color = node_color or get_colors_by_tags
-        GraphVisualizer().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
-                                    edge_curvature_scale)
+    @copy_doc(GraphDelegate)
+    def show(self, **kwargs):
+        default_pipeline_params = get_pipeline_show_default_params()
+        kwargs.update({key: default_pipeline_params[key]
+                       for key in default_pipeline_params.keys() ^ kwargs.keys()})
+        GraphVisualizer().visualise(self, **kwargs)
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
