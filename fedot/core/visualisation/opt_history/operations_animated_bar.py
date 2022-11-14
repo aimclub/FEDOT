@@ -65,11 +65,6 @@ class OperationsAnimatedBar(HistoryVisualization):
         animation_interpolation_power = 4
         fitness_colormap = cm.get_cmap('YlOrRd')
 
-        # tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
-        # tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
-
-        # tags_all = [*tags_model, *tags_data]
-
         generation_column_name = 'Generation'
         fitness_column_name = 'Fitness'
         operation_column_name = 'Operation'

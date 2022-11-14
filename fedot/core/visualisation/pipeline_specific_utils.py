@@ -6,6 +6,8 @@ import numpy as np
 import seaborn as sns
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_visualization_tags_map
+from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
+from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 from fedot.core.visualisation.opt_history.utils import LabelsColorMapType
 
 
@@ -36,3 +38,17 @@ def get_pipeline_show_default_params() -> Dict[str, Any]:
     return {
         'node_color': get_colors_by_tags
     }
+
+
+def set_default_values_for_pipeline():
+    def set_tags_map_and_palette_defaults(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
+        name = 'tags_map'
+        kwargs[name] = kwargs.get(name) or get_visualization_tags_map()
+        if 'palette' in kwargs and not kwargs['palette']:
+            kwargs['palette'] = get_palette_based_on_default_tags()
+        return kwargs
+
+    ArgConstraintWrapper.DEFAULT_CONSTRAINTS['tags_map'] = set_tags_map_and_palette_defaults
+
+
+set_default_values_for_pipeline()

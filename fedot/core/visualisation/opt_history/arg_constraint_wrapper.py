@@ -4,9 +4,6 @@ import inspect
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
-from fedot.core.repository.operation_types_repository import get_visualization_tags_map
-from fedot.core.visualisation.pipeline_specific_utils import get_palette_based_on_default_tags
-
 if TYPE_CHECKING:
     from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 
@@ -100,17 +97,3 @@ class ArgConstraintWrapper(type):
             attrs['visualize'] = mcs.wrap_constraints(constraint_checkers)(attrs['visualize'])
 
         return super(ArgConstraintWrapper, mcs).__new__(mcs, name, bases, attrs)
-
-
-def set_default_values_for_pipeline():
-    def set_tags_map_and_palette_defaults(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
-        name = 'tags_map'
-        kwargs[name] = kwargs.get(name) or get_visualization_tags_map()
-        if 'palette' in kwargs and not kwargs['palette']:
-            kwargs['palette'] = get_palette_based_on_default_tags()
-        return kwargs
-
-    ArgConstraintWrapper.DEFAULT_CONSTRAINTS['tags_map'] = set_tags_map_and_palette_defaults
-
-
-set_default_values_for_pipeline()
