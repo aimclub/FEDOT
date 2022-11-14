@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional, Callable, Dict
 
+import netcomp
 import networkx as nx
 import numpy as np
 from networkx import graph_edit_distance
@@ -32,3 +33,18 @@ def get_edit_dist_metric(target_graph: nx.DiGraph,
         return ged or upper_bound
 
     return metric
+
+
+def matrix_edit_dist(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
+    target_adj = nx.adjacency_matrix(target_graph)
+    adj = nx.adjacency_matrix(graph)
+    value = netcomp.edit_distance(target_adj, adj)
+    return value
+
+
+def spectral_dist(target_graph: nx.DiGraph, graph: nx.DiGraph, k: int = 10) -> float:
+    target_adj = nx.adjacency_matrix(target_graph)
+    adj = nx.adjacency_matrix(graph)
+    num_eigenvalues = min(k, target_graph.number_of_nodes(), graph.number_of_nodes())
+    value = netcomp.lambda_dist(target_adj, adj, kind='laplacian', k=num_eigenvalues)
+    return value
