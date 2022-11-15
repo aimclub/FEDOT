@@ -102,9 +102,6 @@ class MultiObjFitness(Fitness):
     def __hash__(self):
         return hash(self.wvalues)
 
-    def __lt__(self, other):
-        return self.wvalues > other.wvalues
-
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.valid and other.valid and
