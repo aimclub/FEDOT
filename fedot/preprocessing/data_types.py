@@ -19,8 +19,8 @@ NAME_CLASS_INT = "<class 'int'>"
 NAME_CLASS_FLOAT = "<class 'float'>"
 NAME_CLASS_NONE = "<class 'NoneType'>"
 FEDOT_STR_NAN = 'fedot_nan'
-# If unique values in the feature column is less than 13 - convert column into string type
-CATEGORICAL_UNIQUE_TH = 13
+# If unique values in the feature column is less than 13 - convert column into string type else to numerical
+CATEGORICAL_MAX_UNIQUE_TH = 13
 # column must be removed if failed rate is between these constants below
 # because it means that in the column there are approximately the same number of truly string and ints/floats
 ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM = 0.4
@@ -34,7 +34,7 @@ class TableTypesCorrector:
 
     def __init__(self):
         # Threshold to convert numerical into categorical column
-        self.numerical_min_uniques = CATEGORICAL_UNIQUE_TH
+        self.categorical_max_uniques_th = CATEGORICAL_MAX_UNIQUE_TH
 
         self.acceptable_failed_rate_bottom = ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM
         self.acceptable_failed_rate_top = ACCEPTABLE_CONVERSION_FAILED_RATE_TOP
@@ -319,7 +319,7 @@ class TableTypesCorrector:
                 # Calculate number of unique values except nans
                 unique_numbers = len(numerical_column.dropna().unique())
 
-                if 2 < unique_numbers < self.numerical_min_uniques:
+                if 2 < unique_numbers < self.categorical_max_uniques_th:
                     # Column need to be transformed into categorical (string) one
                     self.numerical_into_str.append(column_id)
 
@@ -385,7 +385,7 @@ class TableTypesCorrector:
                     features_types[column_id] = NAME_CLASS_FLOAT
                 elif failed_ratio >= self.acceptable_failed_rate_top \
                         and is_column_contain_numerical_objects:
-                    # The column consists mostly truly str values and has a few ints/floats in it
+                    # The column consists mostly of truly str values and has a few ints/floats in it
                     self._remove_pseudo_str_values_from_str_column(data, column_id)
                 elif self.acceptable_failed_rate_top > failed_ratio >= self.acceptable_failed_rate_bottom:
                     # Probably numerical column contains a lot of '?' or 'x' as nans equivalents

@@ -168,7 +168,7 @@ def test_complicated_table_types_processed_correctly():
     train_data, test_data = data_with_complicated_types()
 
     pipeline = Pipeline(PrimaryNode('dt'))
-    pipeline = correct_preprocessing_params(pipeline, categorical_max_classes_th=13)
+    pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=13)
     train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
 
@@ -191,7 +191,7 @@ def test_numerical_column_with_string_nans():
 
     types_corr = TableTypesCorrector()
     # Set maximum allowed unique classes in categorical column
-    types_corr.categorical_max_classes_th = 5
+    types_corr.categorical_max_uniques_th = 5
     data = types_corr.convert_data_for_fit(input_data)
 
     n_rows, n_cols = data.features.shape
