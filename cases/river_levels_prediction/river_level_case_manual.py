@@ -73,6 +73,8 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
+
+            tuned_pipeline.print_structure()
             preds_tuned = predicted_values_tuned.predict
 
             mse_value = mean_squared_error(y_data_test, preds_tuned,
@@ -96,5 +98,5 @@ if __name__ == '__main__':
     # Available tuners for application: PipelineTuner, NodesTuner
     run_river_experiment(file_path='../data/river_levels/station_levels.csv',
                          pipeline=init_pipeline,
-                         iterations=20,
+                         iterations=3,
                          tuner=PipelineTuner)
