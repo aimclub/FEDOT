@@ -35,6 +35,11 @@ def get_edit_dist_metric(target_graph: nx.DiGraph,
     return metric
 
 
+def num_nodes_diff(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
+    nodes_diff = np.sqrt(abs(target_graph.number_of_nodes() - graph.number_of_nodes()))
+    return nodes_diff
+
+
 def matrix_edit_dist(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
     target_adj = nx.adjacency_matrix(target_graph)
     adj = nx.adjacency_matrix(graph)
@@ -42,9 +47,21 @@ def matrix_edit_dist(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
     return value
 
 
-def spectral_dist(target_graph: nx.DiGraph, graph: nx.DiGraph, k: int = 10) -> float:
+def spectral_dist(target_graph: nx.DiGraph, graph: nx.DiGraph,
+                  k: int = 10, kind: str = 'laplacian', with_num_nodes_penalty: bool = True) -> float:
     target_adj = nx.adjacency_matrix(target_graph)
     adj = nx.adjacency_matrix(graph)
-    num_eigenvalues = min(k, target_graph.number_of_nodes(), graph.number_of_nodes())
-    value = netcomp.lambda_dist(target_adj, adj, kind='laplacian', k=num_eigenvalues)
+    value = netcomp.lambda_dist(target_adj, adj, kind=kind, k=k)
+    if with_num_nodes_penalty:
+        value += num_nodes_diff(target_graph, graph)
     return value
+
+
+def spectral_dists_all(target_graph: nx.DiGraph, graph: nx.DiGraph, k: int = 10) -> dict:
+    target_adj = nx.adjacency_matrix(target_graph)
+    adj = nx.adjacency_matrix(graph)
+    vals = {}
+    for kind in ('adjacency', 'laplacian_norm', 'laplacian'):
+        value = netcomp.lambda_dist(target_adj, adj, kind=kind, k=k)
+        vals[kind] = np.round(value, 3)
+    return vals

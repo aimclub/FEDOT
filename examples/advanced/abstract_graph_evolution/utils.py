@@ -3,12 +3,12 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from networkx import gn_graph
+from networkx import gn_graph, gnp_random_graph
 
 from examples.advanced.abstract_graph_evolution.graph_metrics import (
     get_edit_dist_metric,
     matrix_edit_dist,
-    spectral_dist
+    spectral_dist, spectral_dists_all
 )
 from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.optimisers.objective import Objective
@@ -20,14 +20,17 @@ def measure_graphs(target_graph, graph, vis=False):
 
     ged = get_edit_dist_metric(target_graph, timeout=None)
     objective = Objective(quality_metrics={
-        'edit_distance': ged,
-        'matrix_edit_dist': partial(matrix_edit_dist, target_graph),
-        'spectral_laplacian': partial(spectral_dist, target_graph),
+        # 'edit_distance': ged,
+        # 'matrix_edit_dist': partial(matrix_edit_dist, target_graph),
+        'spectral_adjacency': partial(spectral_dist, target_graph, kind='adjacency'),
+        'spectral_laplacian': partial(spectral_dist, target_graph, kind='laplacian'),
+        'spectral_laplacian_norm': partial(spectral_dist, target_graph, kind='laplacian_norm'),
     })
 
     start = datetime.now()
     print("Computing metric...")
-    fitness = objective(graph)
+    # fitness = objective(graph)
+    fitness = spectral_dists_all(target_graph, graph)
     end = datetime.now() - start
     print(f'metrics: {fitness}, computed for '
           f'size {len(target_graph.nodes)} in {end.seconds} sec.')
@@ -46,12 +49,17 @@ def measure_graphs(target_graph, graph, vis=False):
         plt.show()
 
 
-def try_random(n=20, it=1):
+def try_random(n=100, it=1):
     for i in range(it):
-        g1 = gn_graph(n)
-        g2 = gn_graph(n)
-        measure_graphs(g1, g2, vis=False)
+        #     g1 = gn_graph(n)
+        #     g2 = gn_graph(n)
+        #     measure_graphs(g1, g2, vis=False)
+        for p in [0.05, 0.15, 0.3]:
+            # g1 = gnp_random_graph(n, p)
+            g1 = gn_graph(n)
+            g2 = gnp_random_graph(n, p)
+            measure_graphs(g1, g2, vis=False)
 
 
 if __name__ == "__main__":
-    try_random(it=10)
+    try_random(it=3)
