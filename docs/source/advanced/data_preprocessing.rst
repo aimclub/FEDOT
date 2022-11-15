@@ -95,7 +95,6 @@ Additional features
 Also for more flexible approach to preprocessing there are 2 variables to control data conversion:
 
 - ``numerical_min_uniques`` -- if number of unique values in the column lower, than ``numerical_min_uniques`` - convert column into categorical. Default: 13
-- ``categorical_max_classes_th`` -- if categorical column contains too much unique values (more than ``categorical_max_classes_th``)convert it into numerical. Default: None
 
 For example, converting column to numerical if the number of unique values is greater than 5:
 

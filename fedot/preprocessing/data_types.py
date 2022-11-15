@@ -19,7 +19,7 @@ NAME_CLASS_INT = "<class 'int'>"
 NAME_CLASS_FLOAT = "<class 'float'>"
 NAME_CLASS_NONE = "<class 'NoneType'>"
 FEDOT_STR_NAN = 'fedot_nan'
-# If unique values in the feature column is less than 13 - convert column into string type
+# If unique values in the feature column is less than 13 - convert column into string type else to numerical
 CATEGORICAL_UNIQUE_TH = 13
 # column must be removed if failed rate is between these constants below
 # because it means that in the column there are approximately the same number of truly string and ints/floats
@@ -385,7 +385,7 @@ class TableTypesCorrector:
                     features_types[column_id] = NAME_CLASS_FLOAT
                 elif failed_ratio >= self.acceptable_failed_rate_top \
                         and is_column_contain_numerical_objects:
-                    # The column consists mostly truly str values and has a few ints/floats in it
+                    # The column consists mostly of truly str values and has a few ints/floats in it
                     self._remove_pseudo_str_values_from_str_column(data, column_id)
                 elif self.acceptable_failed_rate_top > failed_ratio >= self.acceptable_failed_rate_bottom:
                     # Probably numerical column contains a lot of '?' or 'x' as nans equivalents

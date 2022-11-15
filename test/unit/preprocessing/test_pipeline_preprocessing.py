@@ -52,23 +52,18 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
     return input_data
 
 
-def correct_preprocessing_params(pipeline, numerical_min_uniques: int = None,
-                                 categorical_max_classes_th: int = None):
+def correct_preprocessing_params(pipeline, numerical_min_uniques: int = None):
     """
     Correct preprocessing classes parameters
 
     :param pipeline: pipeline without initialized preprocessors
     :param numerical_min_uniques: if number of unique values in the column lower, than
     threshold - convert column into categorical feature
-    :param categorical_max_classes_th: if categorical column contains too much unique values
-    convert it into numerical
     """
     table_corrector = TableTypesCorrector()
 
     if numerical_min_uniques is not None:
         table_corrector.numerical_min_uniques = numerical_min_uniques
-    if categorical_max_classes_th is not None:
-        table_corrector.categorical_max_classes_th = categorical_max_classes_th
     pipeline.preprocessor.types_correctors.update({DEFAULT_SOURCE_NAME: table_corrector})
     pipeline.preprocessor.binary_categorical_processors.update({DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
 
