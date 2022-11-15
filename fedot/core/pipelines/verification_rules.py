@@ -2,7 +2,7 @@ from typing import Optional
 
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode
-from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
+from fedot.core.pipelines.pipeline import Pipeline, get_nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
     atomized_model_type
@@ -180,8 +180,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
     """ The function checks whether the 'class_decompose' or 'decompose' operation has two ancestors """
 
     for decomposer in ['decompose', 'class_decompose']:
-        decompose_nodes = nodes_with_operation(pipeline,
-                                               decomposer)
+        decompose_nodes = get_nodes_with_operation(pipeline,
+                                                   decomposer)
         if len(decompose_nodes) != 0:
             # Launch check decomposers
             __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)

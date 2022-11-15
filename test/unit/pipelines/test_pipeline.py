@@ -15,7 +15,7 @@ from sklearn.datasets import load_iris
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline import Pipeline, get_node_with_uuid, get_nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -436,3 +436,23 @@ def test_ts_forecasting_pipeline_with_poly_features():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
     assert prediction is not None
+
+
+def test_get_nodes_with_operation():
+    pipeline = pipeline_first()
+    actual_nodes = get_nodes_with_operation(pipeline=pipeline, operation_name='rf')
+    expected_nodes = [pipeline.nodes[2], pipeline.nodes[-1]]
+
+    assert (actual is expected for actual, expected in zip(actual_nodes, expected_nodes))
+
+
+def test_get_node_with_uid():
+    pipeline = pipeline_first()
+
+    uid_of_first_node = pipeline.nodes[0].uid
+    actual_node = get_node_with_uuid(pipeline=pipeline, uid=uid_of_first_node)
+    expected_node = pipeline.nodes[0]
+    assert actual_node is expected_node
+
+    uid_of_non_existent_node = '123456789'
+    assert get_node_with_uuid(pipeline=pipeline, uid=uid_of_non_existent_node) is None
