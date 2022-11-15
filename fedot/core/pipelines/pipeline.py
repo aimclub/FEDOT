@@ -390,10 +390,10 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             pipeline: pipeline to process
-            uid: uuid of node to filter by
+            uid: uid of node to filter by
 
         Returns:
-            list: relevant node (empty if there are no such node)
+            list: relevant node (None if there is no such node)
         """
 
         appropriate_nodes = list(filter(lambda x: x.uid == uid, self.nodes))
