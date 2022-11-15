@@ -370,37 +370,35 @@ class Pipeline(GraphDelegate, Serializable):
              edge_curvature_scale: Optional[float] = None):
         PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
+    def get_nodes_by_operation(self, operation_name: str) -> List[Node]:
+        """Returns list of nodes with the required ``operation_name``
 
-def get_nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
-    """Returns list of nodes with the required ``operation_name``
+        Args:
+            pipeline: pipeline to process
+            operation_name: name of the operation to filter by
 
-    Args:
-        pipeline: pipeline to process
-        operation_name: name of the operation to filter by
+        Returns:
+            list: relevant nodes (empty if there are no such nodes)
+        """
 
-    Returns:
-        list: relevant nodes (empty if there are no such nodes)
-    """
+        appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, self.nodes)
 
-    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
+        return list(appropriate_nodes)
 
-    return list(appropriate_nodes)
+    def get_node_by_uuid(self, uid: str) -> Optional[Node]:
+        """Returns node with the required ``uid``
 
+        Args:
+            pipeline: pipeline to process
+            uid: uuid of node to filter by
 
-def get_node_with_uuid(pipeline: Pipeline, uid: str) -> Optional[Node]:
-    """Returns node with the required ``uid``
+        Returns:
+            list: relevant node (empty if there are no such node)
+        """
 
-    Args:
-        pipeline: pipeline to process
-        uid: uuid of node to filter by
+        appropriate_nodes = list(filter(lambda x: x.uid == uid, self.nodes))
 
-    Returns:
-        list: relevant node (empty if there are no such node)
-    """
-
-    appropriate_nodes = list(filter(lambda x: x.uid == uid, pipeline.nodes))
-
-    return appropriate_nodes[0] if appropriate_nodes else None
+        return appropriate_nodes[0] if appropriate_nodes else None
 
 
 def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):

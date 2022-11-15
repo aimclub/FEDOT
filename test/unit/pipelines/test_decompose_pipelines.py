@@ -6,7 +6,7 @@ from examples.simple.classification.classification_with_tuning import get_classi
 from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline, get_nodes_with_operation
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -159,13 +159,13 @@ def test_order_by_data_flow_len_correct():
         pipeline.fit(input_data)
 
         # Get one node with decompose operation in it
-        decompose_nodes = get_nodes_with_operation(pipeline, 'class_decompose')
+        decompose_nodes = pipeline.get_nodes_by_operation('class_decompose')
         decompose_node = decompose_nodes[0]
         # Predict from decompose must be the same as predict from Data parent
         dec_output = decompose_node.predict(input_data)
 
         # Get data parent operation for node
-        data_node = get_nodes_with_operation(pipeline, data_operation)[0]
+        data_node = pipeline.get_nodes_by_operation(data_operation)[0]
         data_output = data_node.predict(input_data)
 
         if tuple(data_output.predict.shape) != tuple(dec_output.predict.shape):
