@@ -11,8 +11,13 @@ class Fitness(Comparable):
 
     Importantly, Fitness comparison is semantic: `more-than` means `better-than`.
     Fitness can be compared using standard operators ``>``, ``<``, ``>=``, etc.
+
     Fitness comparison handles invalid fitness: invalid fitness is never better
     than any other fitness. Fitness implementations must ensure this contract.
+
+    Default Fitness comparison is lexicographic (even for multi-objective fitness,
+    to ensure total ordering). For proper comparison of multi-objective fitness
+    use method `dominates`.
     """
 
     @property
@@ -63,6 +68,19 @@ class Fitness(Comparable):
 
     def reset(self):
         del self.values
+
+    def __lt__(self, other: 'Fitness') -> bool:
+        """'Less-than' for fitness means 'worse-than'.
+        NB: in the case of both invalid the other takes precedence
+        """
+        if not self.valid:
+            # invalid self is worse
+            return True
+        elif not other.valid:
+            # valid self is NOT worse than invalid other
+            return False
+        # if both are valid then compare normally
+        return is_metric_worse(self.values, other.values)  # lexicographic comparison
 
     def __hash__(self) -> int:
         # try to avoid numeric precision errors in hash comparisons
@@ -129,19 +147,6 @@ class SingleObjFitness(Fitness):
     def __hash__(self) -> int:
         # __hash__ required explicit super() call
         return super().__hash__()
-
-    def __lt__(self, other: 'SingleObjFitness') -> bool:
-        """'Less-than' for fitness means 'worse-than'.
-        NB: in the case of both invalid the other takes precedence
-        """
-        if not self.valid:
-            # invalid self is worse
-            return True
-        elif not other.valid:
-            # valid self is NOT worse than invalid other
-            return False
-        # if both are valid then compare normally
-        return is_metric_worse(self._values, other._values)  # lexicographic comparison
 
     def __str__(self) -> str:
         # For single objective return only the primary value
