@@ -45,6 +45,11 @@ class Objective:
     def metric_names(self) -> Sequence[str]:
         return [str(metric_id) for metric_id, _ in self.metrics]
 
+    def format_fitness(self, fitness: Fitness) -> str:
+        fitness_info = zip(self.metric_names, fitness.values)
+        fitness_info_str = [f'{name}={value:.3f}' for name, value in fitness_info]
+        return f"<{' '.join(fitness_info_str)}>"
+
 
 def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = False) -> Fitness:
     if metric_values is None:
