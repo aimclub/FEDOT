@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, Optional, Sequence
 
+import datetime
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
@@ -48,8 +49,9 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          graph_cleanup_fn=_unfit_pipeline,
                                                          delegate_evaluator=graph_generation_params.remote_evaluator)
 
-        # early_stopping_generations may be None, so use some obvious max number
-        max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
+        # early_stopping_iterations and early_stopping_timeout may be None, so use some obvious max number
+        max_stagnation_length = requirements.early_stopping_iterations or requirements.num_of_generations
+        max_stagnation_time = requirements.early_stopping_timeout or self.timer.timeout
         self.stop_optimization = \
             GroupedCondition(results_as_message=True).add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),
@@ -59,8 +61,11 @@ class PopulationalOptimizer(GraphOptimizer):
                         self.current_generation_num >= requirements.num_of_generations + 1,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
-                lambda: self.generations.stagnation_duration >= max_stagnation_length,
-                'Optimisation finished: Early stopping criteria was satisfied'
+                lambda: self.generations.stagnation_iter_count >= max_stagnation_length,
+                'Optimisation finished: Early stopping iterations criteria was satisfied'
+            ).add_condition(
+                lambda: self.generations.stagnation_time_duration >= max_stagnation_time,
+                'Optimisation finished: Early stopping timeout criteria was satisfied'
             )
 
     @property
@@ -114,7 +119,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
         self.log.info(f'Generation num: {self.current_generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
-        self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
+        self.log.info(f'no improvements for {self.generations.stagnation_iter_count} iterations')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
 
     def _log_to_history(self, population: PopulationT, label: Optional[str] = None,

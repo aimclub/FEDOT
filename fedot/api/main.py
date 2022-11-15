@@ -69,7 +69,8 @@ class Fedot:
         num_of_generations: number of generations for composer
         keep_n_best: Number of the best individuals of previous generation to keep in next generation.
         available_operations: list of model names to use
-        early_stopping_generations: composer will stop after ``n`` generation without improving
+        early_stopping_iterations: composer will stop after ``n`` generation without improving
+        early_stopping_timeout: stagnation timeout in minutes: composer will stop after ``n`` minutes without improving
         with_tuning: allow hyperparameters tuning for the model
         cv_folds: number of folds for cross-validation
         validation_blocks: number of validation blocks for time series forecasting

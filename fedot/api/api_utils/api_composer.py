@@ -115,8 +115,8 @@ class ApiComposer:
 
             num_of_generations=composer_params['num_of_generations'],
             timeout=datetime_composing,
-            early_stopping_generations=composer_params.get('early_stopping_generations', None),
-
+            early_stopping_iterations=composer_params.get('early_stopping_iterations', None),
+            early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             show_progress=api_params['show_progress'],
@@ -334,9 +334,9 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
                                 validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
-                                early_stopping_generations=None, optimizer=None, optimizer_external_params=None,
-                                collect_intermediate_metric=False, max_pipeline_fit_time=None,
-                                initial_assumption=None, preset='auto',
+                                early_stopping_iterations=None, early_stopping_timeout=None, optimizer=None,
+                                optimizer_external_params=None, collect_intermediate_metric=False,
+                                max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
                                 keep_history=True, history_dir=None,)
 

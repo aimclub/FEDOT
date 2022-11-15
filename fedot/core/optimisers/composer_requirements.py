@@ -13,7 +13,7 @@ class ComposerRequirements:
     Options related to stop condition:
     :param num_of_generations: maximum number of optimizer generations
     :param timeout: max time in minutes available for composition process
-    :param early_stopping_generations: optional max number of stagnating
+    :param early_stopping_iterations: optional max number of stagnating
     populations for early stopping. If None -- do not use early stopping.
 
     Infrastructure options (logging, performance)
@@ -37,8 +37,8 @@ class ComposerRequirements:
 
     num_of_generations: Optional[int] = None
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
-    early_stopping_generations: Optional[int] = 10
-
+    early_stopping_iterations: Optional[int] = 10
+    early_stopping_timeout: Optional[float] = 5
     keep_n_best: int = 1
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = 1

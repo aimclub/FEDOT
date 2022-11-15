@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Sequence, Type, Optional, Any
 
 import numpy as np
+import datetime
 
 from fedot.core.optimisers.fitness import is_metric_worse
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -14,8 +15,13 @@ class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
 
     @property
-    def stagnation_duration(self) -> int:
-        """Returns number of generations for which not any metrics has improved."""
+    def stagnation_iter_count(self) -> int:
+        """Returns number of generations for which any metrics has not improved."""
+        raise NotImplementedError()
+
+    @property
+    def stagnation_time_duration(self) -> float:
+        """Returns time duration for which any metrics has not improved."""
         raise NotImplementedError()
 
     @property
@@ -59,6 +65,7 @@ class GenerationKeeper(ImprovementWatcher):
                  initial_generation: PopulationT = None):
         self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
+        self._stagnation_start_time = datetime.datetime.now()
 
         self._objective = objective
         self._metrics_improvement: Dict[Any, bool] = {}
@@ -70,6 +77,10 @@ class GenerationKeeper(ImprovementWatcher):
             self.append(initial_generation)
 
     @property
+    def stagnation_start_time(self):
+        return self._stagnation_start_time
+
+    @property
     def best_individuals(self) -> Sequence[Individual]:
         return self.archive.items
 
@@ -78,8 +89,12 @@ class GenerationKeeper(ImprovementWatcher):
         return self._generation_num
 
     @property
-    def stagnation_duration(self) -> int:
+    def stagnation_iter_count(self) -> int:
         return self._stagnation_counter
+
+    @property
+    def stagnation_time_duration(self) -> float:
+        return (datetime.datetime.now() - self._stagnation_start_time).seconds/60
 
     @property
     def is_any_improved(self) -> bool:
@@ -124,8 +139,10 @@ class GenerationKeeper(ImprovementWatcher):
             if is_metric_worse(previous_worst, current_worst):
                 self._metrics_improvement[metric] = True
 
-        self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
         self._generation_num += 1  # becomes 1 on first population
+        self._stagnation_start_time = datetime.datetime.now() \
+            if self.is_any_improved or self._generation_num == 1 else self._stagnation_start_time
+        self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
 
     def _reset_metrics_improvement(self):
         self._metrics_improvement = {metric_id: False for metric_id in self._metric_ids}
