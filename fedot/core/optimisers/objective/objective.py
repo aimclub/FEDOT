@@ -55,8 +55,8 @@ def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = 
     if metric_values is None:
         return null_fitness()
     elif multi_objective:
-        return MultiObjFitness(values=metric_values,
-                               weights=[-1] * len(metric_values))
+        return MultiObjFitness(values=metric_values)
+                               # weights=[-1] * len(metric_values))
     else:
         return SingleObjFitness(*metric_values)
 

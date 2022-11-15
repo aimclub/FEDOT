@@ -15,9 +15,14 @@ from fedot.core.optimisers.objective import Objective
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
-def measure_graphs(target_graph, graph, vis=False):
+def plot_nx_graph(g: nx.DiGraph, ax: plt.Axes = None):
     adapter = BaseNetworkxAdapter()
+    GraphVisualiser.draw_nx_dag(adapter.adapt(g), ax,
+                                node_size_scale=0.2, font_size_scale=0.25,
+                                edge_curvature_scale=0.5)
 
+
+def measure_graphs(target_graph, graph, vis=False):
     ged = get_edit_dist_metric(target_graph, timeout=None)
     objective = Objective(quality_metrics={
         # 'edit_distance': ged,
@@ -36,14 +41,10 @@ def measure_graphs(target_graph, graph, vis=False):
           f'size {len(target_graph.nodes)} in {end.seconds} sec.')
 
     if vis:
-        def show_graph(g: nx.DiGraph, ax: plt.Axes):
-            GraphVisualiser.draw_nx_dag(adapter.adapt(g), ax,
-                                        node_size_scale=0.2, font_size_scale=0.25,
-                                        edge_curvature_scale=0.5)
         # 2 subplots
         fig, axs = plt.subplots(nrows=1, ncols=2)
         for g, ax in zip((target_graph, graph), axs):
-            show_graph(g, ax)
+            plot_nx_graph(g, ax)
 
         plt.title(f'metrics: {fitness.values}')
         plt.show()

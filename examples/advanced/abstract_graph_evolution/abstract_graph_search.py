@@ -6,11 +6,13 @@ from typing import Callable, Sequence, Optional
 import networkx as nx
 
 from examples.advanced.abstract_graph_evolution.graph_metrics import get_edit_dist_metric, spectral_dist, num_nodes_diff
+from examples.advanced.abstract_graph_evolution.utils import plot_nx_graph
 from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import Objective
@@ -30,7 +32,7 @@ def graph_generators() -> Sequence[DiGraphGenerator]:
 def run_experiments(graph_generators: Sequence[DiGraphGenerator],
                     graph_sizes: Sequence[int] = (10, 30, 100,),
                     num_node_kinds: int = 10,
-                    num_trials: int = 10,
+                    num_trials: int = 1,
                     trial_timeout: Optional[int] = None,
                     visualize: bool = False,
                     ):
@@ -47,8 +49,8 @@ def run_experiments(graph_generators: Sequence[DiGraphGenerator],
             duration = datetime.now() - start_time
             print(f'Trial #{i} finished, spent time: {duration}')
             if visualize:
+                plot_nx_graph(target_graph)
                 history.show.fitness_line_interactive()
-                pass
 
 
 def run_experiment(target_graph: nx.DiGraph,
@@ -68,7 +70,7 @@ def run_experiment(target_graph: nx.DiGraph,
         max_depth=num_nodes,
 
         keep_n_best=3,
-        early_stopping_generations=20,
+        early_stopping_generations=100,
         timeout=timeout,
         max_pipeline_fit_time=timedelta(seconds=30),
         n_jobs=8,
@@ -77,6 +79,13 @@ def run_experiment(target_graph: nx.DiGraph,
     optimiser_parameters = GPGraphOptimizerParameters(
         multi_objective=True,
         genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+        mutation_types=[
+            MutationTypesEnum.simple,
+            MutationTypesEnum.single_add,
+            MutationTypesEnum.single_edge,
+            MutationTypesEnum.reduce,
+            MutationTypesEnum.local_growth,
+        ]
     )
 
     graph_generation_params = GraphGenerationParams(
@@ -89,14 +98,14 @@ def run_experiment(target_graph: nx.DiGraph,
         quality_metrics={
             # 'edit_distance': get_edit_dist_metric(target_graph, requirements),
             # 'matrix_edit_dist': partial(matrix_edit_dist, target_graph),
-            'spectral_adjacency': partial(spectral_dist, target_graph, kind='adjacency'),
-            'spectral_laplacian': partial(spectral_dist, target_graph, kind='laplacian'),
-            'spectral_laplacian_norm': partial(spectral_dist, target_graph, kind='laplacian_norm'),
+            # 'sp_adj': partial(spectral_dist, target_graph, kind='adjacency'),
+            # 'sp_lapl': partial(spectral_dist, target_graph, kind='laplacian'),
+            'sp_lapl_norm': partial(spectral_dist, target_graph, kind='laplacian_norm'),
         },
         complexity_metrics={
-            'num_nodes_diff': partial(num_nodes_diff, target_graph),
+            'num_nodes': partial(num_nodes_diff, target_graph),
         },
-        is_multi_objective=True
+        # is_multi_objective=True
     )
 
     optimiser = EvoGraphOptimizer(
