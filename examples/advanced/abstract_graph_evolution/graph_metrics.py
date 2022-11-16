@@ -37,15 +37,21 @@ def get_edit_dist_metric(target_graph: nx.DiGraph,
     return metric
 
 
-def num_nodes_diff(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
+def size_diff(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
     nodes_diff = abs(target_graph.number_of_nodes() - graph.number_of_nodes())
-    return nodes_diff
-    # return np.sqrt(nodes_diff)
+    edges_diff = abs(target_graph.number_of_edges() - graph.number_of_edges())
+    # return nodes_diff + edges_diff
+    return np.sqrt(nodes_diff) + np.sqrt(edges_diff)
 
 
 def matrix_edit_dist(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
     target_adj = nx.adjacency_matrix(target_graph)
     adj = nx.adjacency_matrix(graph)
+    nmin, nmax = min_max(target_adj.shape[0], adj.shape[0])
+    if nmin != nmax:
+        shape = (nmax, nmax)
+        target_adj.resize(shape)
+        adj.resize(shape)
     value = netcomp.edit_distance(target_adj, adj)
     return value
 
@@ -53,7 +59,7 @@ def matrix_edit_dist(target_graph: nx.DiGraph, graph: nx.DiGraph) -> float:
 def spectral_dist(target_graph: nx.DiGraph, graph: nx.DiGraph,
                   k: int = 20, kind: str = 'laplacian',
                   with_num_nodes_penalty: bool = False,
-                  match_size: bool = True,
+                  match_size: bool = False,
                   ) -> float:
     target_adj = nx.adjacency_matrix(target_graph)
     adj = nx.adjacency_matrix(graph)
@@ -62,7 +68,7 @@ def spectral_dist(target_graph: nx.DiGraph, graph: nx.DiGraph,
     value = lambda_dist(target_adj, adj, kind=kind, k=k, match_size=match_size)
 
     if with_num_nodes_penalty:
-        value += num_nodes_diff(target_graph, graph)
+        value += size_diff(target_graph, graph)
     return value
 
 
@@ -77,7 +83,7 @@ def spectral_dists_all(target_graph: nx.DiGraph, graph: nx.DiGraph,
     for kind in ('adjacency', 'laplacian_norm', 'laplacian'):
         value = lambda_dist(target_adj, adj, kind=kind, k=k, match_size=match_size)
         vals[kind] = np.round(value, 3)
-    vals['nodes_diff'] = num_nodes_diff(target_graph, graph)
+    vals['nodes_diff'] = size_diff(target_graph, graph)
     return vals
 
 

@@ -36,9 +36,13 @@ def measure_graphs(target_graph, graph, vis=False):
     print("Computing metric...")
     # fitness = objective(graph)
     fitness = spectral_dists_all(target_graph, graph)
+    fitness2 = spectral_dists_all(target_graph, graph, match_size=False)
+    fitness3 = spectral_dists_all(target_graph, graph, k=10)
     end = datetime.now() - start
     print(f'metrics: {fitness}, computed for '
           f'size {len(target_graph.nodes)} in {end.seconds} sec.')
+    print(f'metrics2: {fitness2}')
+    print(f'metrics3: {fitness3}')
 
     if vis:
         # 2 subplots
@@ -52,15 +56,14 @@ def measure_graphs(target_graph, graph, vis=False):
 
 def try_random(n=100, it=1):
     for i in range(it):
-        #     g1 = gn_graph(n)
-        #     g2 = gn_graph(n)
-        #     measure_graphs(g1, g2, vis=False)
         for p in [0.05, 0.15, 0.3]:
             # g1 = gnp_random_graph(n, p)
             g1 = gn_graph(n)
-            g2 = gnp_random_graph(n, p)
-            measure_graphs(g1, g2, vis=False)
+            # g2 = gnp_random_graph(n, p)
+            # measure_graphs(g1, g2, vis=False)
+            g2small = gnp_random_graph(n // 2, p)
+            measure_graphs(g1, g2small, vis=False)
 
 
 if __name__ == "__main__":
-    try_random(it=3)
+    try_random(n=30, it=3)

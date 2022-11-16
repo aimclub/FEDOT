@@ -1,11 +1,15 @@
+import random
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import product
 from typing import Callable, Sequence, Optional
 
 import networkx as nx
+import numpy as np
+from matplotlib import pyplot as plt
 
-from examples.advanced.abstract_graph_evolution.graph_metrics import get_edit_dist_metric, spectral_dist, num_nodes_diff
+from examples.advanced.abstract_graph_evolution.graph_metrics import get_edit_dist_metric, spectral_dist, size_diff, \
+    matrix_edit_dist
 from examples.advanced.abstract_graph_evolution.utils import plot_nx_graph
 from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
@@ -30,7 +34,7 @@ def graph_generators() -> Sequence[DiGraphGenerator]:
 
 
 def run_experiments(graph_generators: Sequence[DiGraphGenerator],
-                    graph_sizes: Sequence[int] = (10, 30, 100,),
+                    graph_sizes: Sequence[int] = (30, 100, 300),
                     num_node_kinds: int = 10,
                     num_trials: int = 1,
                     trial_timeout: Optional[int] = None,
@@ -49,7 +53,8 @@ def run_experiments(graph_generators: Sequence[DiGraphGenerator],
             duration = datetime.now() - start_time
             print(f'Trial #{i} finished, spent time: {duration}')
             if visualize:
-                plot_nx_graph(target_graph)
+                # nx.draw(target_graph)
+                nx.draw_kamada_kawai(target_graph, arrows=True)
                 history.show.fitness_line_interactive()
 
 
@@ -57,7 +62,7 @@ def run_experiment(target_graph: nx.DiGraph,
                    num_nodes: int,
                    timeout: Optional[timedelta] = None):
     num_node_kinds: int = 3
-    nodes_types = [f'V{i}' for i in range(1, num_node_kinds+1)]
+    nodes_types = [f'V{i}' for i in range(1, num_node_kinds+1)] * 5
     # TODO: simple initial pop
     initial = [OptGraph(OptNode(node_type)) for node_type in nodes_types]
     # initial = [BaseNetworkxAdapter().restore(ind) for ind in initial]
@@ -69,43 +74,50 @@ def run_experiment(target_graph: nx.DiGraph,
         max_arity=num_nodes,
         max_depth=num_nodes,
 
-        keep_n_best=3,
-        early_stopping_generations=100,
+        keep_n_best=10,
+        early_stopping_generations=200,
         timeout=timeout,
         max_pipeline_fit_time=timedelta(seconds=30),
-        n_jobs=8,
+        n_jobs=-1,
     )
 
     optimiser_parameters = GPGraphOptimizerParameters(
         multi_objective=True,
-        genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+
+        pop_size=10,
+        max_pop_size=200,
+        genetic_scheme_type=GeneticSchemeTypesEnum.generational,
+        adaptive_depth=True,
+        adaptive_depth_max_stagnation=50,
+
         mutation_types=[
             MutationTypesEnum.simple,
             MutationTypesEnum.single_add,
             MutationTypesEnum.single_edge,
-            MutationTypesEnum.reduce,
-            MutationTypesEnum.local_growth,
+            MutationTypesEnum.single_drop,
+            # MutationTypesEnum.reduce,
+            # MutationTypesEnum.local_growth,
         ]
     )
 
     graph_generation_params = GraphGenerationParams(
         adapter=BaseNetworkxAdapter(),
-        rules_for_constraint=[has_no_self_cycled_nodes, has_no_cycle,],
+        rules_for_constraint=[has_no_self_cycled_nodes,],
         available_node_types=nodes_types,
     )
 
     objective = Objective(
         quality_metrics={
             # 'edit_distance': get_edit_dist_metric(target_graph, requirements),
-            # 'matrix_edit_dist': partial(matrix_edit_dist, target_graph),
+            'matrix_edit_dist': partial(matrix_edit_dist, target_graph),
             # 'sp_adj': partial(spectral_dist, target_graph, kind='adjacency'),
-            # 'sp_lapl': partial(spectral_dist, target_graph, kind='laplacian'),
-            'sp_lapl_norm': partial(spectral_dist, target_graph, kind='laplacian_norm'),
+            'sp_lapl': partial(spectral_dist, target_graph, kind='laplacian'),
+            # 'sp_lapl_norm': partial(spectral_dist, target_graph, kind='laplacian_norm'),
         },
         complexity_metrics={
-            'num_nodes': partial(num_nodes_diff, target_graph),
+            'num_nodes': partial(size_diff, target_graph),
         },
-        # is_multi_objective=True
+        is_multi_objective=True
     )
 
     optimiser = EvoGraphOptimizer(
@@ -123,4 +135,7 @@ def run_experiment(target_graph: nx.DiGraph,
 
 
 if __name__ == '__main__':
-    run_experiments(graph_generators(), trial_timeout=5, visualize=True)
+    random.seed(320)
+    np.random.seed(320)
+
+    run_experiments(graph_generators(), trial_timeout=10, visualize=True)
