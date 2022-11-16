@@ -93,7 +93,7 @@ This is the common part of the code in order to get the pipeline with fitted_ope
 
 
 Saving options:
-    1. With ``create_subdir=True`` and ``is_datetime_in_path=True``
+    **1. With ``create_subdir=True`` and ``is_datetime_in_path=True``**
 
     .. code-block:: python
 
@@ -117,7 +117,8 @@ Saving options:
     ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
 
 
-    2. With ``create_subdir=True`` and ``is_datetime_in_path=False``
+
+    **2. With ``create_subdir=True`` and ``is_datetime_in_path=False``**
 
     .. code-block:: python
 
@@ -141,7 +142,7 @@ Saving options:
     ┃ ┗ 📜0_pipeline_saved.json
 
 
-    3. With ``create_subdir=False`` and ``is_datetime_in_path=True``
+    **3. With ``create_subdir=False`` and ``is_datetime_in_path=True``**
 
     .. code-block:: python
 
@@ -163,7 +164,7 @@ Saving options:
     ┣ 📜2022-11-16_16-50-41_saved_pipeline.json
 
 
-    4. With ``create_subdir=False`` and ``is_datetime_in_path=False``
+    **4. With ``create_subdir=False`` and ``is_datetime_in_path=False``**
 
     .. code-block:: python
 
@@ -185,7 +186,7 @@ Saving options:
     ┣ 📜saved_pipeline.json
 
 
-    5. With JSON file name in path
+    **5. With JSON file name in path**
 
     .. code-block:: python
 
