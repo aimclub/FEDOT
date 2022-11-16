@@ -6,6 +6,7 @@ import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import distance_to_primary_level
@@ -361,7 +362,7 @@ class Pipeline(GraphDelegate, Serializable):
                         node.content['params']['num_threads'] = n_jobs
                         node.content['params']['n_jobs'] = n_jobs
 
-    @copy_doc(GraphDelegate)
+    @copy_doc(Graph)
     def show(self, **kwargs):
         default_pipeline_params = get_pipeline_show_default_params()
         kwargs.update({key: default_pipeline_params[key]
