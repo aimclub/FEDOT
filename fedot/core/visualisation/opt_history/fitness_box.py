@@ -10,7 +10,7 @@ from fedot.core.visualisation.opt_history.history_visualization import HistoryVi
 
 class FitnessBox(HistoryVisualization):
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 100, best_fraction: Optional[float] = None):
+                  dpi: Optional[int] = None, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
@@ -19,6 +19,10 @@ class FitnessBox(HistoryVisualization):
         :param best_fraction: fraction of the best individuals of each generation that included in the
             visualization. Must be in the interval (0, 1].
         """
+        save_path = save_path or self.get_predefined_value('save_path')
+        dpi = dpi or self.get_predefined_value('dpi')
+        best_fraction = best_fraction or self.get_predefined_value('best_fraction')
+
         df_history = get_history_dataframe(self.history, best_fraction=best_fraction)
         columns_needed = ['generation', 'individual', 'fitness']
         df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)

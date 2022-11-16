@@ -10,7 +10,7 @@ from fedot.core.visualisation.opt_history.utils import get_history_dataframe, ge
 
 
 class OperationsKDE(HistoryVisualization):
-    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 100,
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: Optional[int] = None,
                   best_fraction: Optional[float] = None, tags_map: TagOperationsMap = None,
                   palette: Optional[LabelsColorMapType] = None):
         """ Visualizes operations used across generations in the form of KDE.
@@ -26,6 +26,9 @@ class OperationsKDE(HistoryVisualization):
             for every history independently.
         """
 
+        save_path = save_path or self.get_predefined_value('save_path')
+        dpi = dpi or self.get_predefined_value('dpi')
+        best_fraction = best_fraction or self.get_predefined_value('best_fraction')
         tags_map = tags_map or self.visualizer.visuals_params.get('tags_map')
         palette = palette or self.visualizer.visuals_params.get('palette')
 

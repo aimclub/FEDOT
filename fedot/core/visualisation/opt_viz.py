@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Optional, Dict, Any
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
@@ -42,9 +42,13 @@ class OptHistoryVisualizer:
         `self.<vis_name> = <VizClass>(self.history).visualize`
     """
 
-    def __init__(self, history: OptHistory, tags_map=None, palette=None, graph_show_params=None):
+    def __init__(self, history: OptHistory, visuals_params: Optional[Dict[str, Any]] = None):
+        visuals_params = visuals_params or {}
+        default_visuals_params = dict(dpi=100)
+        default_visuals_params.update(visuals_params)
+
         self.history = history
-        self.visuals_params = dict(tags_map=tags_map, palette=palette, graph_show_params=graph_show_params)
+        self.visuals_params = default_visuals_params
 
         self.fitness_box = FitnessBox(self).visualize
         self.fitness_line = FitnessLine(self).visualize

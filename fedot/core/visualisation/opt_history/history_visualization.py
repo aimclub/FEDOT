@@ -32,3 +32,6 @@ class HistoryVisualization(metaclass=ArgConstraintWrapper):
     @abstractmethod
     def visualize(self, *args, **kwargs):
         raise NotImplementedError()
+
+    def get_predefined_value(self, param: str):
+        return self.visualizer.visuals_params.get(param)

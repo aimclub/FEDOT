@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, Optional
 
 import numpy as np
 import seaborn as sns
@@ -41,12 +41,11 @@ def get_pipeline_show_default_params() -> Dict[str, Any]:
 
 
 class PipelineHistoryVisualizer(OptHistoryVisualizer):
-    def __init__(self, history: OptHistory, tags_map=None, palette=None, graph_show_params=None):
-        if tags_map is None:
-            tags_map = get_visualization_tags_map()
-        if palette is None:
-            palette = get_palette_based_on_default_tags()
-        if graph_show_params is None:
-            graph_show_params = get_pipeline_show_default_params()
+    def __init__(self, history: OptHistory, visuals_params: Optional[Dict[str, Any]] = None):
+        visuals_params = visuals_params if visuals_params is not None else {}
+        visuals_params['tags_map'] = visuals_params.get('tags_map') or get_visualization_tags_map()
+        visuals_params['palette'] = visuals_params.get('palette') or get_palette_based_on_default_tags()
+        visuals_params['graph_show_params'] = (visuals_params.get('graph_show_params') or
+                                               get_pipeline_show_default_params())
 
-        super().__init__(history, tags_map, palette, graph_show_params)
+        super().__init__(history, visuals_params)

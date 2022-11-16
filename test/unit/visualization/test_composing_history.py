@@ -112,7 +112,7 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum, generate_
         else save_path.with_suffix('.png')
     history: OptHistory = generate_history
     visualizer = OptHistoryVisualizer(history)
-    visualization = plot_type.value
-    visualization(visualizer).visualize(save_path=str(save_path), best_fraction=0.1, dpi=100)
+    visualization = plot_type.value(visualizer)
+    visualization.visualize(save_path=str(save_path), best_fraction=0.1, dpi=100)
     if plot_type is not PlotTypesEnum.fitness_line_interactive:
         assert save_path.exists()
