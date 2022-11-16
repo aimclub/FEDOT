@@ -79,6 +79,8 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 Examples
 ~~~~~~~~
 
+**NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
+
 This is the common part of the code in order to get the pipeline with fitted_operations&preprocessing:
 
 .. code-block:: python
@@ -89,18 +91,17 @@ This is the common part of the code in order to get the pipeline with fitted_ope
     baseline_model = Fedot(problem=problem, timeout=1, seed=42)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-    path_to_save = f'{fedot_project_root()}/saved_pipelines'
-
 
 Saving options:
-    1. With ``create_subdir=True`` and
+    1. With ``create_subdir=True`` and ``is_datetime_in_path=True``
 
     .. code-block:: python
+
+        path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
         pipeline = baseline_model.current_pipeline
 
         pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
-
 
 
     Pipeline will be saved like this (with different timestamp):
@@ -113,9 +114,98 @@ Saving options:
 
     ┃ ┗ 📂preprocessing
 
-    ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved
+    ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
 
 
+    2. With ``create_subdir=True`` and ``is_datetime_in_path=False``
+
+    .. code-block:: python
+
+        path_to_save = f'{fedot_project_root()}/saved_pipelines'
+
+        pipeline = baseline_model.current_pipeline
+
+        pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
+
+
+    Pipeline will be saved like this:
+
+    📦saved_pipelines
+
+    ┣ 📂0_pipeline_saved
+
+    ┃ ┗ 📂fitted_operations
+
+    ┃ ┗ 📂preprocessing
+
+    ┃ ┗ 📜0_pipeline_saved.json
+
+
+    3. With ``create_subdir=False`` and ``is_datetime_in_path=True``
+
+    .. code-block:: python
+
+        path_to_save = f'{fedot_project_root()}/saved_pipeline'
+
+        pipeline = baseline_model.current_pipeline
+
+        pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=True)
+
+
+    Pipeline will be saved like this:
+
+    📦saved_pipeline
+
+    ┣ 📂fitted_operations
+
+    ┣ 📂preprocessing
+
+    ┣ 📜2022-11-16_16-50-41_saved_pipeline.json
+
+
+    4. With ``create_subdir=False`` and ``is_datetime_in_path=False``
+
+    .. code-block:: python
+
+        path_to_save = f'{fedot_project_root()}/saved_pipeline'
+
+        pipeline = baseline_model.current_pipeline
+
+        pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=False)
+
+
+    Pipeline will be saved like this:
+
+    📦saved_pipeline
+
+    ┣ 📂fitted_operations
+
+    ┣ 📂preprocessing
+
+    ┣ 📜saved_pipeline.json
+
+
+    5. With JSON file name in path
+
+    .. code-block:: python
+
+        path_to_save = f'{fedot_project_root()}/saved_pipeline/best_pipeline.json'
+
+        pipeline = baseline_model.current_pipeline
+
+        pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
+
+
+
+    Pipeline will be saved like this:
+
+    📦saved_pipeline
+
+    ┣ 📂fitted_operations
+
+    ┣ 📂preprocessing
+
+    ┣ 📜best_pipeline.json
 
 
 
