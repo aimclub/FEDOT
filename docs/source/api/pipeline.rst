@@ -66,7 +66,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
             Fitted_operations&preprocessing will be loaded automatically if there is any.
 
-            NB. You can use the same path without modification to load pipeline only if it was saved in 3, 4 or 5 way.
+            **NB.** You can use the same path without modification to load pipeline only if it was saved in 3, 4 or 5 way.
             This is due to the fact that with such saving options it is known exactly in which folder JSON file with the pipeline was saved.
 
         2. To specify path to JSON file with pipeline
@@ -79,8 +79,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 Examples
 ~~~~~~~~
 
-Saving options :
-
+This is the common part of the code in order to get the pipeline with fitted_operations&preprocessing:
 .. code-block:: python
 
     problem = 'classification'
@@ -91,27 +90,29 @@ Saving options :
 
     path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-    pipeline = baseline_model.current_pipeline
+Saving options:
 
-    pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
-Pipeline will be saved like this:
+    - With ``create_subdir=True`` and ``is_datetime_in_path=True``
+        .. code-block:: python
+            pipeline = baseline_model.current_pipeline
 
-📦quakehunter
+            pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
- ┣ 📂client
 
- ┣ 📂node_modules
+        Pipeline will be saved like this (with different timestamp):
 
- ┣ 📂server
+        📦saved_pipelines
 
- ┃ ┗ 📜index.js
+         ┣ 📂2022-11-16_15-53-49_pipeline_saved
 
- ┣ 📜.gitignore
+         ┃ ┗ 📂fitted_operations
 
- ┣ 📜package-lock.json
+         ┃ ┗ 📂preprocessing
 
- ┗ 📜package.json
+         ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved
+
+
 
 
 
