@@ -99,7 +99,7 @@ def get_complex_class_pipeline():
 def get_class_pipelines():
     simple_pipelines = [get_simple_class_pipeline(operation_type) for operation_type in get_class_operation_types()]
 
-    return [get_complex_class_pipeline()]
+    return simple_pipelines + [get_complex_class_pipeline()]
 
 
 def get_regr_operation_types():
@@ -163,7 +163,7 @@ def run_pipeline_tuner(train_data,
                        search_space=SearchSpace(),
                        cv=None,
                        algo=tpe.suggest,
-                       iterations=10,
+                       iterations=1,
                        early_stopping_rounds=None):
     # Pipeline tuning
     pipeline_tuner = TunerBuilder(train_data.task) \
@@ -239,7 +239,9 @@ def test_custom_params_setter(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
-                         [('classification_dataset', get_class_pipelines(), get_class_losses())])
+                         [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
+                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)

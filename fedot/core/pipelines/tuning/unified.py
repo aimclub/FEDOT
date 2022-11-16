@@ -1,8 +1,7 @@
 from functools import partial
 from typing import Tuple
 
-from hyperopt import fmin, space_eval, pyll, hp, Trials
-from hyperopt.fmin import generate_trials_to_calculate
+from hyperopt import fmin, space_eval, hp, Trials
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params
@@ -25,26 +24,26 @@ class PipelineTuner(HyperoptTuner):
 
         pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
-        # trials = Trials()
+        trials = Trials()
 
-        # if init_params_space and self.iterations >= 10:
-            #
-            # init_params_iter = min(self.iterations * 0.1, 10)
-            #
-            # fmin(partial(self._objective, pipeline=pipeline),
-            #      init_params_space,
-            #      trials=trials,
-            #      algo=self.algo,
-            #      max_evals=init_params_iter,
-            #      show_progressbar=show_progress,
-            #      early_stop_fn=self.early_stop_fn,
-            #      timeout=self.max_seconds)
+        if init_params_space and self.iterations >= 10:
 
-            # print('Trials: ',  trials.trials)
+            init_params_iter = min(self.iterations * 0.1, 10)
+
+            fmin(partial(self._objective, pipeline=pipeline),
+                 init_params_space,
+                 trials=trials,
+                 algo=self.algo,
+                 max_evals=init_params_iter,
+                 show_progressbar=show_progress,
+                 early_stop_fn=self.early_stop_fn,
+                 timeout=self.max_seconds)
+
+            print('Trials: ',  trials.trials)
 
         best = fmin(partial(self._objective, pipeline=pipeline),
                     parameters_dict,
-                    # trials=trials,
+                    trials=trials,
                     algo=self.algo,
                     max_evals=self.iterations,
                     show_progressbar=show_progress,
@@ -98,7 +97,7 @@ class PipelineTuner(HyperoptTuner):
                 else:
                     init_params_space[key] = parameters_dict[key]
 
-        return parameters_dict, init_params_space
+        return parameters_dict, initial_parameters
 
     def _objective(self, parameters_dict: dict, pipeline: Pipeline) \
             -> float:
@@ -114,6 +113,7 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
         print("Current arguments:", parameters_dict)
+        print("Current pipeline: ", pipeline.descriptive_id)
         metric_value = self.get_metric_value(pipeline=pipeline)
         return metric_value
 
@@ -129,7 +129,7 @@ class PipelineTuner(HyperoptTuner):
 
         # Set hyperparameters for every node
         for node_id, _ in enumerate(pipeline.nodes):
-            node_params = parameters.get(node_id)
+            node_params = {key: value for key, value in parameters.items() if key.startswith(str(node_id))}
 
             if node_params is not None:
                 # Delete all prefix strings to get appropriate parameters names
