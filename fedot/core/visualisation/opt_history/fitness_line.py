@@ -203,8 +203,8 @@ class FitnessLineInteractive(HistoryVisualization):
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     graph = ind.graph
-                    if use_tags:
-                        graph = PipelineAdapter().restore(ind.graph)
+                    # if use_tags:
+                    #     graph = PipelineAdapter().restore(ind.graph)
                     graph.show(self.temp_path)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
                 self.temp_path.unlink()

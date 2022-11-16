@@ -155,8 +155,13 @@ class GraphVisualiser:
                              in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.set_dpi(dpi)
-        self.draw_nx_dag(graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
-                         in_graph_converter_function)
+
+        # self.draw_nx_dag(graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
+        #                  in_graph_converter_function)
+        from fedot.core.adapter.nx_adapter import BaseNetworkxAdapter
+        nx_graph = BaseNetworkxAdapter().restore(graph)
+        nx.draw_kamada_kawai(nx_graph, arrows=True, ax=ax)
+
         if not save_path:
             plt.show()
         else:
