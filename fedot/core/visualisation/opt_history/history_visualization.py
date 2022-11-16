@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
 
 if TYPE_CHECKING:
     from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
-    from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 
 class HistoryVisualization(metaclass=ArgConstraintWrapper):
@@ -25,18 +24,9 @@ class HistoryVisualization(metaclass=ArgConstraintWrapper):
     """
     constraint_checkers = []  # Use this for class-specific constraint checkers.
 
-    def __init__(self, history: Optional[OptHistory] = None, visualizer: Optional[OptHistoryVisualizer] = None):
-        from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
-
-        if not any((history, visualizer)):
-            raise ValueError('History or visualizer should be set.')
-
-        if visualizer:
-            self.visualizer = visualizer
-            self.history = visualizer.history
-        else:
-            self.visualizer = OptHistoryVisualizer(history)
-            self.history = history
+    def __init__(self, visualizer: OptHistoryVisualizer):
+        self.visualizer = visualizer
+        self.history = visualizer.history
         self.log = default_log(self)
 
     @abstractmethod
