@@ -111,6 +111,7 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum, generate_
     save_path = save_path.with_suffix('.gif') if plot_type is PlotTypesEnum.operations_animated_bar \
         else save_path.with_suffix('.png')
     history = generate_history
-    history.show(plot_type=plot_type, save_path=str(save_path), best_fraction=0.1, dpi=100)
+    visualization = plot_type.value
+    visualization(history).visualize(save_path=str(save_path), best_fraction=0.1, dpi=100)
     if plot_type is not PlotTypesEnum.fitness_line_interactive:
         assert save_path.exists()

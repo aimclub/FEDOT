@@ -26,6 +26,9 @@ class OperationsKDE(HistoryVisualization):
             for every history independently.
         """
 
+        tags_map = tags_map or self.visualizer.visuals_params.get('tags_map')
+        palette = palette or self.visualizer.visuals_params.get('palette')
+
         generation_column_name = 'Generation'
         operation_column_name = 'Operation'
         column_for_operation = 'tag' if tags_map else 'node'

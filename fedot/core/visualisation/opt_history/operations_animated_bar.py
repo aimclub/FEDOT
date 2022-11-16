@@ -30,6 +30,9 @@ class OperationsAnimatedBar(HistoryVisualization):
 
         """
 
+        tags_map = tags_map or self.visualizer.visuals_params.get('tags_map')
+        palette = palette or self.visualizer.visuals_params.get('palette')
+
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
             t_interp = np.linspace(0, 1, smoothness)
             point_1, point_2 = np.array(point_1), np.array(point_2)

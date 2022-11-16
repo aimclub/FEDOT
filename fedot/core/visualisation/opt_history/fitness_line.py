@@ -169,7 +169,7 @@ class FitnessLineInteractive(HistoryVisualization):
         :param graph_show_kwargs: keyword arguments of `graph.show()` function.
         """
 
-        graph_show_kwargs = graph_show_kwargs or {}
+        graph_show_kwargs = graph_show_kwargs or self.visualizer.visuals_params.get('graph_show_params') or {}
 
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes

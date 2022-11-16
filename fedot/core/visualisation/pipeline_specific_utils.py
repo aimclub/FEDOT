@@ -5,10 +5,10 @@ from typing import Any, Dict, Iterable
 import numpy as np
 import seaborn as sns
 
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_visualization_tags_map
-from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
-from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 from fedot.core.visualisation.opt_history.utils import LabelsColorMapType
+from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
 
 def get_palette_based_on_default_tags() -> LabelsColorMapType:
@@ -40,15 +40,13 @@ def get_pipeline_show_default_params() -> Dict[str, Any]:
     }
 
 
-def set_default_values_for_pipeline():
-    def set_tags_map_and_palette_defaults(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
-        name = 'tags_map'
-        kwargs[name] = kwargs.get(name) or get_visualization_tags_map()
-        if 'palette' in kwargs and not kwargs['palette']:
-            kwargs['palette'] = get_palette_based_on_default_tags()
-        return kwargs
+class PipelineHistoryVisualizer(OptHistoryVisualizer):
+    def __init__(self, history: OptHistory, tags_map=None, palette=None, graph_show_params=None):
+        if tags_map is None:
+            tags_map = get_visualization_tags_map()
+        if palette is None:
+            palette = get_palette_based_on_default_tags()
+        if graph_show_params is None:
+            graph_show_params = get_pipeline_show_default_params()
 
-    ArgConstraintWrapper.DEFAULT_CONSTRAINTS['tags_map'] = set_tags_map_and_palette_defaults
-
-
-set_default_values_for_pipeline()
+        super().__init__(history, tags_map, palette, graph_show_params)

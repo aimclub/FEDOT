@@ -42,13 +42,15 @@ class OptHistoryVisualizer:
         `self.<vis_name> = <VizClass>(self.history).visualize`
     """
 
-    def __init__(self, history: OptHistory):
+    def __init__(self, history: OptHistory, tags_map=None, palette=None, graph_show_params=None):
         self.history = history
-        self.fitness_box = FitnessBox(self.history).visualize
-        self.fitness_line = FitnessLine(self.history).visualize
-        self.fitness_line_interactive = FitnessLineInteractive(self.history).visualize
-        self.operations_kde = OperationsKDE(self.history).visualize
-        self.operations_animated_bar = OperationsAnimatedBar(self.history).visualize
+        self.visuals_params = dict(tags_map=tags_map, palette=palette, graph_show_params=graph_show_params)
+
+        self.fitness_box = FitnessBox(visualizer=self).visualize
+        self.fitness_line = FitnessLine(visualizer=self).visualize
+        self.fitness_line_interactive = FitnessLineInteractive(visualizer=self).visualize
+        self.operations_kde = OperationsKDE(visualizer=self).visualize
+        self.operations_animated_bar = OperationsAnimatedBar(visualizer=self).visualize
 
         self.log = default_log(self)
 
@@ -80,3 +82,4 @@ class OptHistoryVisualizer:
         else:
             visualize_function = vars(self)[plot_type.name]
         visualize_function(**kwargs)
+
