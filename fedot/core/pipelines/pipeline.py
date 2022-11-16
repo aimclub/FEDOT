@@ -374,7 +374,6 @@ class Pipeline(GraphDelegate, Serializable):
         """Returns list of nodes with the required ``operation_name``
 
         Args:
-            pipeline: pipeline to process
             operation_name: name of the operation to filter by
 
         Returns:
@@ -389,11 +388,10 @@ class Pipeline(GraphDelegate, Serializable):
         """Returns node with the required ``uid``
 
         Args:
-            pipeline: pipeline to process
             uid: uid of node to filter by
 
         Returns:
-            list: relevant node (None if there is no such node)
+            Optional[Node]: relevant node (None if there is no such node)
         """
 
         appropriate_nodes = list(filter(lambda x: x.uid == uid, self.nodes))

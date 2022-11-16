@@ -53,6 +53,7 @@ class PipelineBuilder:
 
         :param operation_type: operations for new nodes, either as an operation name
             or as a tuple of operation name and operation parameters.
+        :param branch_idx: index of the branch for branching its tip
         """
         for operation in operation_type:
             operation, params = self._unpack_operation(operation)
