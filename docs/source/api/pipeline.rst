@@ -80,6 +80,7 @@ Examples
 ~~~~~~~~
 
 This is the common part of the code in order to get the pipeline with fitted_operations&preprocessing:
+
 .. code-block:: python
 
     problem = 'classification'
@@ -90,27 +91,29 @@ This is the common part of the code in order to get the pipeline with fitted_ope
 
     path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
+
 Saving options:
+    1. With ``create_subdir=True`` and
+
+    .. code-block:: python
+
+        pipeline = baseline_model.current_pipeline
+
+        pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
 
-    - With ``create_subdir=True`` and ``is_datetime_in_path=True``
-        .. code-block:: python
-            pipeline = baseline_model.current_pipeline
 
-            pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
+    Pipeline will be saved like this (with different timestamp):
 
+    📦saved_pipelines
 
-        Pipeline will be saved like this (with different timestamp):
+    ┣ 📂2022-11-16_15-53-49_pipeline_saved
 
-        📦saved_pipelines
+    ┃ ┗ 📂fitted_operations
 
-         ┣ 📂2022-11-16_15-53-49_pipeline_saved
+    ┃ ┗ 📂preprocessing
 
-         ┃ ┗ 📂fitted_operations
-
-         ┃ ┗ 📂preprocessing
-
-         ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved
+    ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved
 
 
 
