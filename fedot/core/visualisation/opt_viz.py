@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Union, Optional, Dict, Any
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox

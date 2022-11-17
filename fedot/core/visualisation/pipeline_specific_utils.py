@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 import numpy as np
 import seaborn as sns

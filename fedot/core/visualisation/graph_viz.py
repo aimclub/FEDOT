@@ -4,7 +4,7 @@ import datetime
 import os
 from pathlib import Path
 from textwrap import wrap
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Tuple, Union, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
 import networkx as nx

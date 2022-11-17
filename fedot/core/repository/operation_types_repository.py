@@ -2,11 +2,10 @@ import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, List, Optional, Dict, Union
+from typing import Any, Dict, List, Optional
 
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.log import default_log
-from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -330,7 +329,10 @@ class OperationTypesRepository:
         return None
 
 
-def get_visualization_tags_map():
+def get_visualization_tags_map() -> Dict[str, List[str]]:
+    """
+    Returns map between repository tags and list of corresponding models for visualizations.
+    """
     # Search for tags.
     operations_map = {}
     for repo_name in ('model', 'data_operation'):
@@ -343,40 +345,6 @@ def get_visualization_tags_map():
     tags_data = OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
     operations_map = {tag: operations_map[tag] for tag in tags_model + tags_data if tag in operations_map}
     return operations_map
-
-
-def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
-                     tags_data: Optional[List[str]] = None,
-                     repos_tags: Optional[Dict['OperationTypesRepository', List[str]]] = None) -> Optional[str]:
-    """Finds the first suitable tag for the OptNode across Fedot repositories
-
-    Args:
-        opt_node: :obj:`OptNode` or its name
-        tags_model: tags for :obj:`OperationTypesRepository('model')` to map the history operations
-            The later the tag, the higher its priority in case of intersection
-        tags_data: tags for :obj:`OperationTypesRepository('data_operation')` to map the history operations
-            The later the tag, the higher its priority in case of intersection
-        repos_tags: dictionary mapping :obj:`OperationTypesRepository` with suitable tags.
-            Can be used only if no ``tags_model`` and ``tags_data`` specified.
-    Returns:
-        Optional[str]: first suitable tag or ``None``
-    """
-
-    if (tags_model or tags_data) and repos_tags:
-        raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
-
-    node_name = str(opt_node) if isinstance(opt_node, OptNode) else opt_node
-
-    repos_tags = repos_tags or {
-        OperationTypesRepository('model'): tags_model,
-        OperationTypesRepository('data_operation'): tags_data
-    }
-
-    for repo, tags in repos_tags.items():
-        tag = repo.get_first_suitable_operation_tag(node_name, tags)
-        if tag is not None:
-            return tag
-    return None
 
 
 def _is_operation_contains_tag(candidate_tags: List[str],

@@ -144,7 +144,7 @@ class FitnessLine(HistoryVisualization):
         :param per_time: defines whether to show time grid if it is available in history.
         """
         save_path = save_path or self.get_predefined_value('save_path')
-        dpi = save_path or self.get_predefined_value('dpi')
+        dpi = dpi or self.get_predefined_value('dpi')
         per_time = per_time if per_time is not None else self.get_predefined_value('per_time') or False
 
         fig, ax = plt.subplots(figsize=(6.4, 4.8), facecolor='w')
@@ -173,7 +173,7 @@ class FitnessLineInteractive(HistoryVisualization):
         """
 
         save_path = save_path or self.get_predefined_value('save_path')
-        dpi = save_path or self.get_predefined_value('dpi')
+        dpi = dpi or self.get_predefined_value('dpi')
         per_time = per_time if per_time is not None else self.get_predefined_value('per_time') or False
         graph_show_kwargs = graph_show_kwargs or self.get_predefined_value('graph_show_params') or {}
 

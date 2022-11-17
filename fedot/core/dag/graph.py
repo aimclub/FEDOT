@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from os import PathLike
-from typing import Tuple, Dict, List, Sequence, Union, TypeVar, Optional
+from typing import Dict, List, Optional, Sequence, Union, Tuple, TypeVar
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.visualisation.graph_viz import GraphVisualizer, NodeColorType
