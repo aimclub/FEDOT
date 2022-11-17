@@ -1,5 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
+from os import PathLike
 from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
@@ -22,8 +23,8 @@ from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
 from fedot.core.utils import copy_doc
-from fedot.core.visualisation.graph_viz import GraphVisualizer
-from fedot.core.visualisation.pipeline_specific_utils import get_pipeline_show_default_params
+from fedot.core.visualisation.graph_viz import NodeColorType
+from fedot.core.visualisation.pipeline_specific_utils import PipelineVisualizer
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -363,11 +364,11 @@ class Pipeline(GraphDelegate, Serializable):
                         node.content['params']['n_jobs'] = n_jobs
 
     @copy_doc(Graph)
-    def show(self, **kwargs):
-        default_pipeline_params = get_pipeline_show_default_params()
-        kwargs.update({key: default_pipeline_params[key]
-                       for key in default_pipeline_params.keys() ^ kwargs.keys()})
-        GraphVisualizer().visualise(self, **kwargs)
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
+             node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
+             node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,
+             edge_curvature_scale: Optional[float] = None):
+        PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:

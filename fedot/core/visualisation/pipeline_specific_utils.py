@@ -1,14 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 import seaborn as sns
 
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_visualization_tags_map
+from fedot.core.visualisation.graph_viz import GraphVisualizer
 from fedot.core.visualisation.opt_history.utils import LabelsColorMapType
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
+
+
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.optimisers.graph import OptGraph
+
+    GraphType = Union[Graph, OptGraph]
 
 
 def get_palette_based_on_default_tags() -> LabelsColorMapType:
@@ -49,3 +57,11 @@ class PipelineHistoryVisualizer(OptHistoryVisualizer):
                                                get_pipeline_show_default_params())
 
         super().__init__(history, visuals_params)
+
+
+class PipelineVisualizer(GraphVisualizer):
+    def __init__(self, graph: GraphType, visuals_params: Optional[Dict[str, Any]] = None):
+        visuals_params = visuals_params or {}
+        default_visuals_params = get_pipeline_show_default_params()
+        default_visuals_params.update(visuals_params)
+        super().__init__(graph, default_visuals_params)
