@@ -62,9 +62,9 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
     There two ways to load pipeline:
         1. To specify path to pipeline dir
             For example, if pipeline was saved to ``C:\FEDOT\saved\2022-11-16_15-53-49_pipeline_saved\2022-11-16_15-53-49_pipeline_saved.json``
-            than path to load pipeline must be specified as ``C:\FEDOT\saved\2022-11-16_15-53-49_pipeline_saved``.
+            than path to load pipeline should be specified as ``C:\FEDOT\saved\2022-11-16_15-53-49_pipeline_saved``.
 
-            Fitted_operations&preprocessing will be loaded automatically if there is any.
+            Fitted_operations&preprocessing will be loaded automatically if there are any.
 
             **NB.** You can use the same path without modification to load pipeline only if it was saved in 3, 4 or 5 way.
             This is due to the fact that with such saving options it is known exactly in which folder JSON file with the pipeline was saved.
@@ -73,7 +73,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             For example, if pipeline was saved to ``C:\FEDOT\saved\2022-11-16_15-53-49_pipeline_saved\2022-11-16_15-53-49_pipeline_saved.json``
             than path to load pipeline must be specified as ``C:\FEDOT\saved\2022-11-16_15-53-49_pipeline_saved\2022-11-16_15-53-49_pipeline_saved.json``.
 
-            Fitted_operations&preprocessing will be loaded automatically if there is any.
+            Fitted_operations&preprocessing will be loaded automatically if there are any.
 
 
 Examples
@@ -95,7 +95,7 @@ This is the common part of the code in order to get the pipeline with fitted_ope
 
 
 Saving options:
-    1. With ``create_subdir=True`` and ``is_datetime_in_path=True``
+    **1. With ``create_subdir=True`` and ``is_datetime_in_path=True``**
 
     .. code-block:: python
 
@@ -104,7 +104,7 @@ Saving options:
         pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
 
-    Pipeline will be saved like this (with different timestamp):
+    Directory with saved pipeline will look like this (with different timestamp):
 
     📦saved_pipelines
 
@@ -117,8 +117,7 @@ Saving options:
     ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
 
 
-
-    2. With ``create_subdir=True`` and ``is_datetime_in_path=False``
+    **2. With ``create_subdir=True`` and ``is_datetime_in_path=False``**
 
     .. code-block:: python
 
@@ -127,7 +126,7 @@ Saving options:
         pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
 
 
-    Pipeline will be saved like this:
+     Directory with saved pipeline will look like this:
 
     📦saved_pipelines
 
@@ -140,7 +139,7 @@ Saving options:
     ┃ ┗ 📜0_pipeline_saved.json
 
 
-    3. With ``create_subdir=False`` and ``is_datetime_in_path=True``
+    **3. With ``create_subdir=False`` and ``is_datetime_in_path=True``**
 
     .. code-block:: python
 
@@ -149,7 +148,7 @@ Saving options:
         pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=True)
 
 
-    Pipeline will be saved like this:
+    Directory with saved pipeline will look like this:
 
     📦saved_pipeline
 
@@ -160,7 +159,7 @@ Saving options:
     ┣ 📜2022-11-16_16-50-41_saved_pipeline.json
 
 
-    4. With ``create_subdir=False`` and ``is_datetime_in_path=False``
+    **4. With ``create_subdir=False`` and ``is_datetime_in_path=False``**
 
     .. code-block:: python
 
@@ -169,7 +168,7 @@ Saving options:
         pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=False)
 
 
-    Pipeline will be saved like this:
+    Directory with saved pipeline will look like this:
 
     📦saved_pipeline
 
@@ -180,7 +179,7 @@ Saving options:
     ┣ 📜saved_pipeline.json
 
 
-    5. With JSON file name in path
+    **5. With JSON file name in path**
 
     .. code-block:: python
 
@@ -190,7 +189,7 @@ Saving options:
 
 
 
-    Pipeline will be saved like this:
+    Directory with saved pipeline will look like this:
 
     📦saved_pipeline
 
@@ -199,9 +198,3 @@ Saving options:
     ┣ 📂preprocessing
 
     ┣ 📜best_pipeline.json
-
-
-
-.. automodule:: fedot.core.pipelines.pipeline
-   :members:
-   :no-undoc-members:
