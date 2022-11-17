@@ -10,12 +10,12 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
     This method saves the pipeline to JSON representation with pickled fitted operations and preprocessing if there are any.
 
     There are five ways to save pipeline:
-        1. With ``create_subdir=True`` and ``is_datetime_in_path=True``
+        1. **With** ``create_subdir=True`` **and** ``is_datetime_in_path=True``
 
            An additional folder will be created inside the specified directory.
            The folder and name of JSON file with pipeline will contain timestamp.
 
-        2. With ``create_subdir=True`` and ``is_datetime_in_path=False``
+        2. **With** ``create_subdir=True`` **and** ``is_datetime_in_path=False``
 
            An additional folder will be created inside the specified directory.
            The folder and name of JSON file with pipeline will contain pipeline autoincrement index.
@@ -26,14 +26,14 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
            This option is useful for pipelines with fitted_operations&preprocessing.
 
-        3. With ``create_subdir=False`` and ``is_datetime_in_path=True``
+        3. **With** ``create_subdir=False`` **and** ``is_datetime_in_path=True``
 
            Pipeline will be saved exactly in specified dir.
            The folder and name of JSON file with pipeline will contain timestamp.
 
            This option is useful for pipelines without fitted_operations&preprocessing.
 
-        4. With ``create_subdir=False`` and ``is_datetime_in_path=False``
+        4. **With** ``create_subdir=False`` **and** ``is_datetime_in_path=False``
 
            Pipeline will be saved exactly in specified dir.
            The name of JSON file with pipeline will be the same as the last folder in the path.
@@ -44,7 +44,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            This option is useful for pipelines without fitted_operations&preprocessing
            and when it's important to know the exact name of pipeline file.
 
-        5. With JSON file name in path
+        5. **With JSON file name in path**
 
            For example, if path specified like this ``C:\path\to\my\pipeline\pipeline.json``,
            than pipeline will be saved exactly to this file. Fitted_operations&preprocessing will be saved in
