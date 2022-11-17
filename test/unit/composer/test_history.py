@@ -1,7 +1,10 @@
+import itertools
 import os
+from copy import deepcopy
 from functools import partial
 from itertools import chain
 from pathlib import Path
+from tempfile import TemporaryFile
 
 import numpy as np
 import pytest
@@ -11,6 +14,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
+from fedot.core.optimisers.graph import OptNode, OptGraph
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -29,7 +33,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -257,3 +261,27 @@ def test_history_correct_serialization():
     assert history.individuals == reloaded_history.individuals
     assert dumped_history_json == reloaded_history.save(), 'The history is not equal to itself after reloading!'
     _test_individuals_in_history(reloaded_history)
+
+
+def test_history_save_custom_nodedata():
+    contents = [{'name': f'custom_{i}',
+                 'important_field': ('secret', 42),
+                 'matrix': np.random.randint(0, 100, (40+2*i, 20+i)).tolist()}
+                for i in range(10)]
+
+    graphs = [Individual(OptGraph(OptNode(content=content)), native_generation=i)
+              for i, content in enumerate(contents)]
+
+    # tmp_path = default_fedot_data_dir()
+    history = OptHistory()
+    history.add_to_history(graphs[:3])
+    history.add_to_history(graphs[3:6])
+    history.add_to_history(graphs[6:])
+
+    saved = history.save()
+    reloaded = OptHistory.load(saved)
+
+    for i, ind in enumerate(itertools.chain(*reloaded.individuals)):
+        ind_content = ind.graph.root_node.content
+        assert ind_content == contents[i]
+        assert (ind_content['matrix'] == contents[i]['matrix']).all()
