@@ -113,6 +113,11 @@ class Node(LinkedGraphNode):
         self.parameters = updated_parameters
 
     @property
+    def name(self) -> str:
+        """ Returns str name of operation """
+        return self.operation.operation_type
+
+    @property
     def operation(self) -> Operation:
         """Returns node operation object
 

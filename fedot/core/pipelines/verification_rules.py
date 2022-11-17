@@ -180,7 +180,7 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
     """ The function checks whether the 'class_decompose' or 'decompose' operation has two ancestors """
 
     for decomposer in ['decompose', 'class_decompose']:
-        decompose_nodes = pipeline.get_nodes_by_operation(decomposer)
+        decompose_nodes = pipeline.get_nodes_by_name(decomposer)
         if len(decompose_nodes) != 0:
             # Launch check decomposers
             __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)
