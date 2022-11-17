@@ -19,27 +19,19 @@ class PipelineTuner(HyperoptTuner):
         :param pipeline: Pipeline which hyperparameters will be tuned
         :param show_progress: shows progress of tuning if true
         """
-        parameters_dict, init_params_space = self._get_parameters_for_tune(pipeline)
+        parameters_dict, init_parameters, is_init_params_full = self._get_parameters_for_tune(pipeline)
         self.init_check(pipeline)
 
         pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
         trials = Trials()
 
-        if init_params_space and self.iterations >= 10:
+        try_initial_parameters = init_parameters and self.iterations > 1
 
-            init_params_iter = min(self.iterations * 0.1, 10)
-
-            fmin(partial(self._objective, pipeline=pipeline),
-                 init_params_space,
-                 trials=trials,
-                 algo=self.algo,
-                 max_evals=init_params_iter,
-                 show_progressbar=show_progress,
-                 early_stop_fn=self.early_stop_fn,
-                 timeout=self.max_seconds)
-
-            print('Trials: ',  trials.trials)
+        if try_initial_parameters:
+            trials, init_trials_num = self._search_near_initial_parameters(pipeline, init_parameters,
+                                                                           is_init_params_full, trials,
+                                                                           show_progress)
 
         best = fmin(partial(self._objective, pipeline=pipeline),
                     parameters_dict,
@@ -49,6 +41,10 @@ class PipelineTuner(HyperoptTuner):
                     show_progressbar=show_progress,
                     early_stop_fn=self.early_stop_fn,
                     timeout=self.max_seconds)
+
+        if try_initial_parameters:
+            is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
+            parameters_dict = init_parameters if is_best_trial_with_init_params else parameters_dict
 
         best = space_eval(space=parameters_dict, hp_assignment=best)
 
@@ -60,7 +56,23 @@ class PipelineTuner(HyperoptTuner):
 
         return final_pipeline
 
-    def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict]:
+    def _search_near_initial_parameters(self, pipeline: Pipeline, initial_parameters: dict,
+                                        is_init_parameters_full: bool, trials: Trials,
+                                        show_progress: bool = True):
+        init_trials_num = min(int(self.iterations * 0.1), 10) \
+            if (self.iterations >= 10 and not is_init_parameters_full) else 1
+
+        fmin(partial(self._objective, pipeline=pipeline),
+             initial_parameters,
+             trials=trials,
+             algo=self.algo,
+             max_evals=init_trials_num,
+             show_progressbar=show_progress,
+             early_stop_fn=self.early_stop_fn,
+             timeout=self.max_seconds)
+        return trials, init_trials_num
+
+    def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict, bool]:
         """
         Function for defining the search space
 
@@ -88,8 +100,8 @@ class PipelineTuner(HyperoptTuner):
 
         # create search space with fixed initial parameters
         init_params_space = {}
-        is_need_params_completion = len(initial_parameters) < len(parameters_dict)
-        if initial_parameters and is_need_params_completion:
+        is_init_params_full = len(initial_parameters) == len(parameters_dict)
+        if initial_parameters:
             for key in parameters_dict:
                 if key in initial_parameters:
                     value = initial_parameters[key]
@@ -97,7 +109,7 @@ class PipelineTuner(HyperoptTuner):
                 else:
                     init_params_space[key] = parameters_dict[key]
 
-        return parameters_dict, initial_parameters
+        return parameters_dict, init_params_space, is_init_params_full
 
     def _objective(self, parameters_dict: dict, pipeline: Pipeline) \
             -> float:
@@ -112,8 +124,6 @@ class PipelineTuner(HyperoptTuner):
 
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
-        print("Current arguments:", parameters_dict)
-        print("Current pipeline: ", pipeline.descriptive_id)
         metric_value = self.get_metric_value(pipeline=pipeline)
         return metric_value
 

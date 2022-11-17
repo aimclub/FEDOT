@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -34,16 +36,17 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
     :return several_iter_scores_test: list with metrics
     """
     several_iter_scores_test = []
+    tuner = TunerBuilder(train_data.task) \
+        .with_tuner(PipelineTuner) \
+        .with_metric(ClassificationMetricsEnum.ROCAUC) \
+        .with_iterations(tuner_iter_num) \
+        .build(train_data)
     for iteration in range(local_iter):
         print(f'current local iteration {iteration}')
 
         # Pipeline tuning
-        tuner = TunerBuilder(train_data.task)\
-            .with_tuner(PipelineTuner)\
-            .with_metric(ClassificationMetricsEnum.ROCAUC)\
-            .with_iterations(tuner_iter_num) \
-            .build(train_data)
-        tuned_pipeline = tuner.tune(pipeline)
+        pipeline_copy = deepcopy(pipeline)
+        tuned_pipeline = tuner.tune(pipeline_copy)
 
         # After tuning prediction
         tuned_pipeline.fit(train_data)

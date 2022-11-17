@@ -68,6 +68,7 @@ class HyperoptTuner(ABC):
         Returns:
           value of loss function
         """
+        pipeline.unfit()
         pipeline_fitness = self.objective_evaluate.evaluate(pipeline)
         metric_value = pipeline_fitness.value
         if not pipeline_fitness.valid:
