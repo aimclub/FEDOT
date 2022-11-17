@@ -3,7 +3,7 @@ from pathlib import Path
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
-from fedot.core.visualisation.pipeline_specific_utils import PipelineHistoryVisualizer
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 
 
 def run_pipeline_and_history_visualization():

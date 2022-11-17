@@ -8,7 +8,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.visualisation.opt_viz import PlotTypesEnum
-from fedot.core.visualisation.pipeline_specific_utils import PipelineHistoryVisualizer
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from test.unit.serialization.mocks.history_mocks import CustomMockNode, CustomMockGraph
 
 
