@@ -79,12 +79,13 @@ class GraphVisualizer:
         return {label: palette[unique_labels.index(label)] for label in labels}
 
     def __draw_with_graphviz(self, save_path: Optional[PathType] = None, node_color: Optional[NodeColorType] = None,
-                             dpi: Optional[int] = None):
+                             dpi: Optional[int] = None, graph_to_nx_convert_func: Optional[Callable] = None):
         save_path = save_path or self.get_predefined_value('save_path')
         node_color = node_color or self.get_predefined_value('node_color')
         dpi = dpi or self.get_predefined_value('dpi')
+        graph_to_nx_convert_func = graph_to_nx_convert_func or self.get_predefined_value('graph_to_nx_convert_func')
 
-        nx_graph, nodes = graph_structure_as_nx_graph(self.graph)
+        nx_graph, nodes = graph_to_nx_convert_func(self.graph)
         # Define colors
         if callable(node_color):
             colors = node_color([str(node) for node in nodes.values()])
@@ -115,19 +116,21 @@ class GraphVisualizer:
             plt.show()
             remove_old_files_from_dir(save_path.parent)
 
-    def __draw_with_pyvis(self, save_path: Optional[PathType] = None, nodes_color: Optional[NodeColorType] = None):
+    def __draw_with_pyvis(self, save_path: Optional[PathType] = None, node_color: Optional[NodeColorType] = None,
+                          graph_to_nx_convert_func: Optional[Callable] = None):
         save_path = save_path or self.get_predefined_value('save_path')
-        nodes_color = nodes_color or self.get_predefined_value('nodes_color')
+        node_color = node_color or self.get_predefined_value('node_color')
+        graph_to_nx_convert_func = graph_to_nx_convert_func or self.get_predefined_value('graph_to_nx_convert_func')
 
         net = Network('500px', '1000px', directed=True)
-        nx_graph, nodes = graph_structure_as_nx_graph(self.graph)
+        nx_graph, nodes = graph_to_nx_convert_func(self.graph)
         # Define colors
-        if callable(nodes_color):
-            colors = nodes_color([str(node) for node in nodes.values()])
-        elif isinstance(nodes_color, dict):
-            colors = nodes_color
+        if callable(node_color):
+            colors = node_color([str(node) for node in nodes.values()])
+        elif isinstance(node_color, dict):
+            colors = node_color
         else:
-            colors = {str(node): nodes_color for node in nodes.values()}
+            colors = {str(node): node_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
             operation = nodes[n]
             label = str(operation)
