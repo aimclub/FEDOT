@@ -1,11 +1,13 @@
 from copy import deepcopy
 from datetime import timedelta
+from os import PathLike
 from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import distance_to_primary_level
@@ -20,6 +22,9 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
+from fedot.core.utils import copy_doc
+from fedot.core.visualisation.graph_viz import NodeColorType
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -357,6 +362,13 @@ class Pipeline(GraphDelegate, Serializable):
                     if node.content['name'] == 'lgbm':
                         node.content['params']['num_threads'] = n_jobs
                         node.content['params']['n_jobs'] = n_jobs
+
+    @copy_doc(Graph)
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
+             node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
+             node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,
+             edge_curvature_scale: Optional[float] = None):
+        PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:

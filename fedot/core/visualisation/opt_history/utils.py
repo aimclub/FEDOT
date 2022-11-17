@@ -5,13 +5,10 @@ from pathlib import Path
 from textwrap import wrap
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
 
-import numpy as np
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 
 from fedot.core.log import default_log
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
@@ -19,30 +16,23 @@ if TYPE_CHECKING:
 MatplotlibColorType = Union[str, Sequence[float]]
 LabelsColorMapType = Dict[str, MatplotlibColorType]
 
-
-def get_palette_based_on_default_tags() -> LabelsColorMapType:
-    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
-    p_1 = sns.color_palette('tab20')
-    colour_period = 2  # diverge similar nearby colors
-    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
-    p_2 = sns.color_palette('Set3')
-    palette = np.vstack([p_1, p_2])
-    palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
-    palette_map.update({None: 'mediumaquamarine'})
-    return palette_map
+TagOperationsMap = Dict[str, List[str]]
 
 
-def get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] = None,
-                          tags_data: Optional[List[str]] = None, best_fraction: Optional[float] = None,
-                          get_tags: bool = True):
+def get_history_dataframe(history: OptHistory, best_fraction: Optional[float] = None,
+                          tags_map: Optional[TagOperationsMap] = None):
     history_data = {
         'generation': [],
         'individual': [],
         'fitness': [],
         'node': [],
     }
-    if get_tags:
+    if tags_map:
         history_data['tag'] = []
+        new_map = {}
+        for tag, operations in tags_map.items():
+            new_map.update({operation: tag for operation in operations})
+        tags_map = new_map
 
     uid_counts = {}  # Resolving individuals with the same uid
     for gen_num, gen in enumerate(history.individuals):
@@ -54,9 +44,9 @@ def get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] =
                 fitness = abs(ind.fitness.value)
                 history_data['fitness'].append(fitness)
                 history_data['node'].append(str(node))
-                if not get_tags:
+                if not tags_map:
                     continue
-                history_data['tag'].append(get_opt_node_tag(str(node), tags_model=tags_model, tags_data=tags_data))
+                history_data['tag'].append(tags_map.get(str(node), None))
 
     df_history = pd.DataFrame.from_dict(history_data)
 

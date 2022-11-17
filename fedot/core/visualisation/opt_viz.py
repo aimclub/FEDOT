@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
@@ -42,13 +42,19 @@ class OptHistoryVisualizer:
         `self.<vis_name> = <VizClass>(self.history).visualize`
     """
 
-    def __init__(self, history: OptHistory):
+    def __init__(self, history: OptHistory, visuals_params: Optional[Dict[str, Any]] = None):
+        visuals_params = visuals_params or {}
+        default_visuals_params = dict(dpi=100)
+        default_visuals_params.update(visuals_params)
+
         self.history = history
-        self.fitness_box = FitnessBox(self.history).visualize
-        self.fitness_line = FitnessLine(self.history).visualize
-        self.fitness_line_interactive = FitnessLineInteractive(self.history).visualize
-        self.operations_kde = OperationsKDE(self.history).visualize
-        self.operations_animated_bar = OperationsAnimatedBar(self.history).visualize
+        self.visuals_params = default_visuals_params
+
+        self.fitness_box = FitnessBox(self).visualize
+        self.fitness_line = FitnessLine(self).visualize
+        self.fitness_line_interactive = FitnessLineInteractive(self).visualize
+        self.operations_kde = OperationsKDE(self).visualize
+        self.operations_animated_bar = OperationsAnimatedBar(self).visualize
 
         self.log = default_log(self)
 
@@ -80,3 +86,4 @@ class OptHistoryVisualizer:
         else:
             visualize_function = vars(self)[plot_type.name]
         visualize_function(**kwargs)
+

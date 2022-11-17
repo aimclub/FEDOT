@@ -4,7 +4,7 @@ import datetime
 import os
 from pathlib import Path
 from textwrap import wrap
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Tuple, Union, Iterable
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 from uuid import uuid4
 
 import networkx as nx
@@ -26,48 +26,51 @@ if TYPE_CHECKING:
 
     GraphType = Union[Graph, OptGraph]
 
+PathType = Union[os.PathLike, str]
+
 MatplotlibColorType = Union[str, Sequence[float]]
 LabelsColorMapType = Dict[str, MatplotlibColorType]
 NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
 NodeColorType = Union[MatplotlibColorType, LabelsColorMapType, NodeColorFunctionType]
 
 
-class GraphVisualiser:
-    def __init__(self):
-        default_data_dir = default_fedot_data_dir()
-        self.temp_path = os.path.join(default_data_dir, 'composing_history')
+class GraphVisualizer:
+    def __init__(self, graph: GraphType, visuals_params: Optional[Dict[str, Any]] = None):
+        visuals_params = visuals_params or {}
+        default_visuals_params = dict(
+            engine='matplotlib',
+            dpi=100,
+            node_color=self.__get_colors_by_labels,
+            node_size_scale=1.0,
+            font_size_scale=1.0,
+            edge_curvature_scale=1.0,
+            graph_to_nx_convert_func=graph_structure_as_nx_graph
+        )
+        default_visuals_params.update(visuals_params)
+        self.visuals_params = default_visuals_params
+        self.graph = graph
+
         self.log = default_log(self)
 
-    def visualise(self, graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                  engine: str = 'matplotlib', node_color: Optional[NodeColorType] = None,
-                  dpi: int = 100, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
-                  edge_curvature_scale: float = 1.0):
-        if not graph.nodes:
+    def visualise(self, save_path: Optional[PathType] = None, engine: Optional[str] = None,
+                  node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
+                  node_size_scale: Optional[float] = None,
+                  font_size_scale: Optional[float] = None, edge_curvature_scale: Optional[float] = None):
+        engine = engine or self.get_predefined_value('engine')
+
+        if not self.graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
-        # Define colors.
-        if not node_color:
-            if type(graph).__name__ == 'Pipeline':  # This type check avoids circular imports.
-                node_color = self.__get_colors_by_tags
-            else:
-                node_color = self.__get_colors_by_labels
+
         if engine == 'matplotlib':
-            self.__draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
+            self.__draw_with_networkx(save_path, node_color, dpi, node_size_scale, font_size_scale,
                                       edge_curvature_scale)
         elif engine == 'pyvis':
-            self.__draw_with_pyvis(graph, save_path, node_color)
+            self.__draw_with_pyvis(save_path, node_color)
         elif engine == 'graphviz':
-            self.__draw_with_graphviz(graph, save_path, node_color, dpi)
+            self.__draw_with_graphviz(save_path, node_color, dpi)
         else:
             raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
                                       'Possible values: matplotlib, pyvis, graphviz.')
-
-    @staticmethod
-    def __get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
-        from fedot.core.visualisation.opt_history.utils import get_palette_based_on_default_tags
-        from fedot.core.repository.operation_types_repository import get_opt_node_tag
-
-        palette = get_palette_based_on_default_tags()
-        return {label: palette[get_opt_node_tag(label)] for label in labels}
 
     @staticmethod
     def __get_colors_by_labels(labels: Iterable[str]) -> LabelsColorMapType:
@@ -75,10 +78,14 @@ class GraphVisualiser:
         palette = color_palette('tab10', len(unique_labels))
         return {label: palette[unique_labels.index(label)] for label in labels}
 
-    @staticmethod
-    def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                             node_color=__get_colors_by_tags.__func__, dpi=100):
-        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+    def __draw_with_graphviz(self, save_path: Optional[PathType] = None, node_color: Optional[NodeColorType] = None,
+                             dpi: Optional[int] = None, graph_to_nx_convert_func: Optional[Callable] = None):
+        save_path = save_path or self.get_predefined_value('save_path')
+        node_color = node_color or self.get_predefined_value('node_color')
+        dpi = dpi or self.get_predefined_value('dpi')
+        graph_to_nx_convert_func = graph_to_nx_convert_func or self.get_predefined_value('graph_to_nx_convert_func')
+
+        nx_graph, nodes = graph_to_nx_convert_func(self.graph)
         # Define colors
         if callable(node_color):
             colors = node_color([str(node) for node in nodes.values()])
@@ -109,18 +116,21 @@ class GraphVisualiser:
             plt.show()
             remove_old_files_from_dir(save_path.parent)
 
-    @staticmethod
-    def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                          nodes_color=__get_colors_by_tags.__func__):
+    def __draw_with_pyvis(self, save_path: Optional[PathType] = None, node_color: Optional[NodeColorType] = None,
+                          graph_to_nx_convert_func: Optional[Callable] = None):
+        save_path = save_path or self.get_predefined_value('save_path')
+        node_color = node_color or self.get_predefined_value('node_color')
+        graph_to_nx_convert_func = graph_to_nx_convert_func or self.get_predefined_value('graph_to_nx_convert_func')
+
         net = Network('500px', '1000px', directed=True)
-        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        nx_graph, nodes = graph_to_nx_convert_func(self.graph)
         # Define colors
-        if callable(nodes_color):
-            colors = nodes_color([str(node) for node in nodes.values()])
-        elif isinstance(nodes_color, dict):
-            colors = nodes_color
+        if callable(node_color):
+            colors = node_color([str(node) for node in nodes.values()])
+        elif isinstance(node_color, dict):
+            colors = node_color
         else:
-            colors = {str(node): nodes_color for node in nodes.values()}
+            colors = {str(node): node_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
             operation = nodes[n]
             label = str(operation)
@@ -148,15 +158,24 @@ class GraphVisualiser:
         net.show(str(save_path))
         remove_old_files_from_dir(save_path.parent)
 
-    def __draw_with_networkx(self, graph: GraphType, save_path=None,
+    def __draw_with_networkx(self, save_path: Optional[PathType] = None,
                              node_color: Optional[NodeColorType] = None,
-                             dpi: int = 100, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
-                             edge_curvature_scale: float = 1.0,
-                             in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+                             dpi: Optional[int] = None, node_size_scale: Optional[float] = None,
+                             font_size_scale: Optional[float] = None, edge_curvature_scale: Optional[float] = None,
+                             graph_to_nx_convert_func: Optional[Callable] = None):
+        save_path = save_path or self.get_predefined_value('save_path')
+        node_color = node_color or self.get_predefined_value('node_color')
+        dpi = dpi or self.get_predefined_value('dpi')
+        node_size_scale = node_size_scale or self.get_predefined_value('node_size_scale')
+        font_size_scale = font_size_scale or self.get_predefined_value('font_size_scale')
+        edge_curvature_scale = (edge_curvature_scale if edge_curvature_scale is not None
+                                else self.get_predefined_value('edge_curvature_scale'))
+        graph_to_nx_convert_func = graph_to_nx_convert_func or self.get_predefined_value('graph_to_nx_convert_func')
+
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.set_dpi(dpi)
-        self.draw_nx_dag(graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
-                         in_graph_converter_function)
+        self.draw_nx_dag(self.graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
+                         graph_to_nx_convert_func)
         if not save_path:
             plt.show()
         else:
@@ -167,7 +186,7 @@ class GraphVisualiser:
     def draw_nx_dag(graph: GraphType, ax: Optional[plt.Axes] = None,
                     node_color: Optional[NodeColorType] = None,
                     node_size_scale: float = 1, font_size_scale: float = 1, edge_curvature_scale: float = 1,
-                    in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+                    graph_to_nx_convert_func: Callable = graph_structure_as_nx_graph):
 
         def draw_nx_labels(pos, node_labels, ax, max_sequence_length, font_size_scale=1.0):
             def get_scaled_font_size(nodes_amount):
@@ -194,7 +213,7 @@ class GraphVisualiser:
         if ax is None:
             ax = plt.gca()
 
-        nx_graph, nodes = in_graph_converter_function(graph)
+        nx_graph, nodes = graph_to_nx_convert_func(graph)
         # Define colors
         if callable(node_color):
             node_color = node_color([str(node) for node in nodes.values()])
@@ -272,6 +291,9 @@ class GraphVisualiser:
         ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
         ax.axis('off')
         plt.tight_layout()
+
+    def get_predefined_value(self, param: str):
+        return self.visuals_params.get(param)
 
 
 def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:

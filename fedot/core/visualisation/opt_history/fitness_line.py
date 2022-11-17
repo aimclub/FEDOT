@@ -2,7 +2,7 @@ import functools
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import matplotlib as mpl
 import numpy as np
@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from matplotlib.widgets import Button
 
 from fedot.core.log import default_log
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import null_fitness
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.utils import default_fedot_data_dir
@@ -136,14 +135,17 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
 
 
 class FitnessLine(HistoryVisualization):
-    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 100,
-                  per_time: bool = False):
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: Optional[int] = None,
+                  per_time: Optional[bool] = None):
         """ Visualizes the best fitness values during the evolution in the form of line.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI of the output figure.
         :param per_time: defines whether to show time grid if it is available in history.
         """
+        save_path = save_path or self.get_predefined_value('save_path')
+        dpi = dpi or self.get_predefined_value('dpi')
+        per_time = per_time if per_time is not None else self.get_predefined_value('per_time') or False
 
         fig, ax = plt.subplots(figsize=(6.4, 4.8), facecolor='w')
         if per_time:
@@ -159,17 +161,23 @@ class FitnessLine(HistoryVisualization):
 class FitnessLineInteractive(HistoryVisualization):
 
     @with_alternate_matplotlib_backend
-    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
-                  dpi: int = 100, per_time: bool = False, use_tags: bool = True):
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: Optional[int] = None,
+                  per_time: Optional[bool] = None,  graph_show_kwargs: Optional[Dict[str, Any]] = None):
         """ Visualizes the best fitness values during the evolution in the form of line.
         Additionally, shows the structure of the best individuals and the moment of their discovering.
         :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
             it will be displayed.
         :param dpi: DPI of the output figure.
         :param per_time: defines whether to show time grid if it is available in history.
-        :param use_tags: defines whether the evolutionary graphs should be coloured according to FEDOT
-            ML repositories tags.
+        :param graph_show_kwargs: keyword arguments of `graph.show()` function.
         """
+
+        save_path = save_path or self.get_predefined_value('save_path')
+        dpi = dpi or self.get_predefined_value('dpi')
+        per_time = per_time if per_time is not None else self.get_predefined_value('per_time') or False
+        graph_show_kwargs = graph_show_kwargs or self.get_predefined_value('graph_show_params') or {}
+
+        graph_show_kwargs = graph_show_kwargs or self.visualizer.visuals_params.get('graph_show_params') or {}
 
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
@@ -203,9 +211,7 @@ class FitnessLineInteractive(HistoryVisualization):
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     graph = ind.graph
-                    if use_tags:
-                        graph = PipelineAdapter().restore(ind.graph)
-                    graph.show(self.temp_path)
+                    graph.show(self.temp_path, **graph_show_kwargs)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
                 self.temp_path.unlink()
 

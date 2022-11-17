@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from os import PathLike
-from typing import Tuple, Dict, List, Sequence, Union, TypeVar, Optional
+from typing import Dict, List, Optional, Sequence, Union, Tuple, TypeVar
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
+from fedot.core.visualisation.graph_viz import GraphVisualizer, NodeColorType
 
 NodeType = TypeVar('NodeType', bound=GraphNode, covariant=False, contravariant=False)
 
@@ -165,9 +165,10 @@ class Graph(ABC):
 
         return len(self.nodes)
 
-    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
-             node_color: Optional[NodeColorType] = None, dpi: int = 100,
-             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
+             node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
+             node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,
+             edge_curvature_scale: Optional[float] = None):
         """Visualizes graph or saves its picture to the specified ``path``
 
         Args:
@@ -179,8 +180,8 @@ class Graph(ABC):
             edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
             dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
-        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
-                                    edge_curvature_scale)
+        GraphVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
+                                        edge_curvature_scale)
 
     @property
     def graph_description(self) -> Dict:

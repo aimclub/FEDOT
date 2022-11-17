@@ -8,6 +8,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.visualisation.opt_viz import PlotTypesEnum
+from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from test.unit.serialization.mocks.history_mocks import CustomMockNode, CustomMockGraph
 
 
@@ -110,7 +111,9 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum, generate_
     save_path = Path(tmp_path, plot_type.name)
     save_path = save_path.with_suffix('.gif') if plot_type is PlotTypesEnum.operations_animated_bar \
         else save_path.with_suffix('.png')
-    history = generate_history
-    history.show(plot_type=plot_type, save_path=str(save_path), best_fraction=0.1, dpi=100)
+    history: OptHistory = generate_history
+    visualizer = PipelineHistoryVisualizer(history)
+    visualization = plot_type.value(visualizer)
+    visualization.visualize(save_path=str(save_path), best_fraction=0.1, dpi=100)
     if plot_type is not PlotTypesEnum.fitness_line_interactive:
         assert save_path.exists()

@@ -16,7 +16,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.utils import default_fedot_data_dir
-from fedot.core.visualisation.graph_viz import GraphVisualiser
+from fedot.core.visualisation.graph_viz import GraphVisualizer
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -41,7 +41,7 @@ class OptHistoryExtraVisualizer:
         self.convergence_imgs = []
         self.best_pipelines_imgs = []
         self.merged_imgs = []
-        self.graph_visualizer = GraphVisualiser()
+        self.graph_visualizer = GraphVisualizer()
 
     def pareto_gif_create(self, pareto_fronts: List[List[Any]], individuals: List[List[Any]] = None,
                           objectives_numbers: Tuple[int] = (1, 0),
