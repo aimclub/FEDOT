@@ -12,6 +12,7 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 def is_test_session():
+    # TODO remove 'manual' after fixes of unit tests
     return 'PYTEST_CURRENT_TEST' in os.environ
 
 

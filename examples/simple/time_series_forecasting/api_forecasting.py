@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
@@ -19,7 +20,8 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def get_ts_data(dataset: str = 'beer', horizon: int = 10, validation_blocks: Optional[int] = None):
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
+                               visualization=False):
     time_series = pd.read_csv(datasets[dataset])
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=horizon))

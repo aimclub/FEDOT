@@ -16,6 +16,8 @@ class CustomModelImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+        if not self.params:
+            raise ValueError('There is no specified parameters for custom model!')
         self.fitted_model = None
 
     @property

@@ -388,6 +388,8 @@ def _combine_parents(parent_nodes: List[PipelineNode],
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
+            if parent.content['name'].operation_type == 'ts_naive_average':
+                print(0)
             prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
         else:
