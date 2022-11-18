@@ -126,7 +126,7 @@ Saving options:
         pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
 
 
-     Directory with saved pipeline will look like this:
+    Directory with saved pipeline will look like this:
 
     📦saved_pipelines
 
