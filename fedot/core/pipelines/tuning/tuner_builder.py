@@ -1,11 +1,11 @@
 from datetime import timedelta
 from typing import Callable, Type, Union
 
+from golem.core.optimisers.composer_requirements import ComposerRequirements
 from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective

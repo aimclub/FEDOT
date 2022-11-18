@@ -2,10 +2,10 @@ from functools import reduce
 from random import choice
 
 import pytest
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task

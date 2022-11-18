@@ -1,4 +1,4 @@
-from fedot.core.utilities.data_structures import UniqueList
+from golem.core.utilities.data_structures import UniqueList
 
 
 def test_init():

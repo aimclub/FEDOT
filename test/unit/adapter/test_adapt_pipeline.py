@@ -2,11 +2,11 @@ from copy import deepcopy
 from random import choice
 
 import pytest
+from golem.core.dag.graph_verifier import GraphVerifier
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
+from golem.core.optimisers.graph import OptNode
 
-from fedot.core.dag.graph_verifier import GraphVerifier
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

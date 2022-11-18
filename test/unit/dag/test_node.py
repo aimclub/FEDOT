@@ -1,4 +1,5 @@
-from fedot.core.dag.graph_utils import distance_to_primary_level
+from golem.core.dag.graph_utils import distance_to_primary_level
+
 from fedot.core.pipelines.node import PipelineNode
 
 

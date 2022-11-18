@@ -4,12 +4,12 @@ from importlib import reload
 from pathlib import Path
 
 import pytest
+from golem.core.log import DEFAULT_LOG_PATH, Log, default_log
+from golem.core.utilities.singleton_meta import SingletonMeta
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import DEFAULT_LOG_PATH, Log, default_log
 from fedot.core.operations.model import Model
-from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 @pytest.fixture()

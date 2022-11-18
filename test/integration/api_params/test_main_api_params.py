@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Callable, Union, Tuple
 
 import pytest
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.main import Fedot
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.repository.tasks import TsForecastingParams
 from test.unit.api.test_main_api import get_dataset
 

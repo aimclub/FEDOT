@@ -1,13 +1,15 @@
 from functools import partial
 from random import randint
 
-from fedot.core.optimisers.fitness.fitness import SingleObjFitness
-from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection, random_selection
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.fitness.fitness import SingleObjFitness
+from golem.core.optimisers.genetic.gp_operators import random_graph
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum, Selection, random_selection
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.opt_history_objects.individual import Individual
+
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
+
 
 class RandomMetric:
     @staticmethod

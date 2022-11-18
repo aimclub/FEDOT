@@ -1,7 +1,7 @@
 from typing import List, Optional, Callable, Sequence
 
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
+from golem.core.dag.graph import Graph
+from golem.core.dag.graph_node import GraphNode
 
 
 def nodes_same(left_nodes: Sequence[GraphNode], right_nodes: Sequence[GraphNode]) -> bool:

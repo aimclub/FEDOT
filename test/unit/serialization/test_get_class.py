@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers import MODULE_X_NAME_DELIMITER, Serializer
+from golem.serializers import MODULE_X_NAME_DELIMITER, Serializer
 
 from .dataclasses.serialization_dataclasses import GetClassCase
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation

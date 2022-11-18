@@ -5,19 +5,19 @@ import random
 import numpy as np
 import pandas as pd
 import pytest
+from golem.core.optimisers.genetic.gp_operators import random_graph
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimizer
+from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimizer
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode

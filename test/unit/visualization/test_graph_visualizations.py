@@ -2,12 +2,12 @@ from pathlib import Path
 from typing import Type, Union
 
 import pytest
+from golem.core.dag.graph import Graph
+from golem.core.dag.graph_delegate import GraphDelegate
+from golem.core.dag.linked_graph import LinkedGraph
+from golem.core.dag.linked_graph_node import LinkedGraphNode
+from golem.core.optimisers.graph import OptGraph, OptNode
 
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.linked_graph import LinkedGraph
-from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -15,7 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 @pytest.fixture(scope='module', params=[GraphDelegate, LinkedGraph, Pipeline, OptGraph])
 def graph(request):
     graph_type: Union[Type[Graph], Type[Pipeline], Type[OptGraph]] = request.param
-    nodes_kwargs = [{'content': {'name': f'n{i+1}'}} for i in range(4)]
+    nodes_kwargs = [{'content': {'name': f'n{i + 1}'}} for i in range(4)]
     nodes_kwargs[-1]['nodes_from'] = range(len(nodes_kwargs) - 1)
     if graph_type in [LinkedGraph, GraphDelegate]:
         node_type = LinkedGraphNode

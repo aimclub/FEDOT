@@ -7,25 +7,26 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from golem.core.dag.graph import Graph
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
+from golem.core.optimisers.fitness import SingleObjFitness
+from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.graph import OptNode, OptGraph
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.core.optimisers.opt_history_objects.parent_operator import ParentOperator
+
 from fedot.api.main import Fedot
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
-from fedot.core.optimisers.graph import OptNode, OptGraph
-from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.fitness import SingleObjFitness
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -35,7 +36,7 @@ from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
-from test.unit.visualization.test_composing_history import generate_history, create_mock_graph_individual
+from test.unit.visualization.test_composing_history import create_mock_graph_individual
 
 
 def scaling_logit_rf_pipeline():

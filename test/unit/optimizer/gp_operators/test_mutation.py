@@ -1,17 +1,17 @@
 from copy import deepcopy
 
 import pytest
+from golem.core.dag.graph_node import GraphNode
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

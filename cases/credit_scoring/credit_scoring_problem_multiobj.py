@@ -2,15 +2,16 @@ import datetime
 import random
 
 import numpy as np
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
@@ -18,7 +19,6 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 
 random.seed(12)
 np.random.seed(12)

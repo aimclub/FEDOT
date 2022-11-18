@@ -2,15 +2,15 @@ import logging
 from typing import Any, Optional, Union, Sequence
 
 import pytest
+from golem.core.dag.graph import Graph
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.objective.objective import Objective, ObjectiveFunction
+from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 
 from fedot.api.main import Fedot
-from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import

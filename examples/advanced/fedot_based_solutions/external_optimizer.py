@@ -2,15 +2,16 @@ import logging
 from random import choice
 from typing import Any, Optional, Sequence, Union
 
+from golem.core.dag.graph import Graph
+from golem.core.optimisers.genetic.evaluation import SequentialDispatcher
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
+from golem.core.optimisers.objective import Objective, ObjectiveFunction
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
+from golem.core.optimisers.timer import OptimisationTimer
+
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.dag.graph import Graph
-from fedot.core.optimisers.gp_comp.evaluation import SequentialDispatcher
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.optimisers.objective import Objective, ObjectiveFunction
-from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
-from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.utils import fedot_project_root
 
 

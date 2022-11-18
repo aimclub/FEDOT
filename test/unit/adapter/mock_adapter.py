@@ -1,8 +1,9 @@
 from copy import copy
 from typing import Optional, Dict, Any
 
-from fedot.core.adapter import BaseOptimizationAdapter
-from fedot.core.optimisers.graph import OptGraph
+from golem.core.adapter import BaseOptimizationAdapter
+from golem.core.optimisers.graph import OptGraph
+
 from test.unit.dag.test_graph_utils import nodes_same
 
 

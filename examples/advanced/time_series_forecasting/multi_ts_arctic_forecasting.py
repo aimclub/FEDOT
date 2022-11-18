@@ -2,6 +2,9 @@ import datetime
 from copy import deepcopy
 
 import numpy as np
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
@@ -9,9 +12,6 @@ from cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \

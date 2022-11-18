@@ -1,4 +1,5 @@
-from fedot.core.log import default_log
+from golem.core.log import default_log
+
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

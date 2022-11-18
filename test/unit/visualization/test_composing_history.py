@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import pytest
+from golem.core.optimisers.fitness.fitness import SingleObjFitness
+from golem.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.visualisation.opt_viz import PlotTypesEnum
 
-from fedot.core.optimisers.fitness.fitness import SingleObjFitness
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-from fedot.core.visualisation.opt_viz import PlotTypesEnum
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from test.unit.serialization.mocks.history_mocks import CustomMockNode, CustomMockGraph
 

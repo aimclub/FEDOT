@@ -9,8 +9,8 @@ from typing import List, Optional, Tuple, Union, Iterable, Any
 import numpy as np
 import pandas as pd
 
-from fedot.core.log import default_log
-from fedot.utilities.requirements_notificator import warn_requirement
+from golem.core.log import default_log
+from golem.utilities.requirements_notificator import warn_requirement
 
 #: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
 #: and :py:meth:`MultiModalData.from_csv`.

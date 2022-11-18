@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Dict, TypeVar
+from typing import Any, Dict
 
-from fedot.core.serializers import INSTANCE_OR_CALLABLE
+from golem.serializers import INSTANCE_OR_CALLABLE
 
 
 @dataclass

@@ -1,10 +1,8 @@
 import json
-from copy import deepcopy
-
-import pytest
 from typing import Dict
 
-from fedot.core.serializers.serializer import register_serializable, Serializer, CLASS_PATH_KEY
+import pytest
+from golem.serializers.serializer import register_serializable, Serializer
 
 
 class DataEq:

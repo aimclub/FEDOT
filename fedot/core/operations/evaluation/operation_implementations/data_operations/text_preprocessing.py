@@ -2,10 +2,10 @@ import re
 from typing import Optional
 
 import numpy as np
+from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import nltk

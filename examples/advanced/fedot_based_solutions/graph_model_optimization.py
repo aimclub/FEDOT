@@ -4,21 +4,21 @@ import random
 
 import numpy as np
 import pandas as pd
+from golem.core.adapter import DirectAdapter, register_native
+from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
+from golem.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
+from golem.core.log import default_log
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.objective import Objective, ObjectiveEvaluate
+from golem.core.optimisers.optimizer import GraphGenerationParams
 
-from fedot.core.adapter import DirectAdapter, register_native
-from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy
-from fedot.core.dag.convert import graph_structure_as_nx_graph
-from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
-from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utils import fedot_project_root
 
 random.seed(1)

@@ -1,9 +1,9 @@
 import pytest
+from golem.core.optimisers.genetic.evaluation import SequentialDispatcher
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.operators.elitism import Elitism, ElitismTypesEnum
+from golem.core.optimisers.opt_history_objects.individual import Individual
 
-from fedot.core.optimisers.gp_comp.evaluation import SequentialDispatcher
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
-from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.adapters import PipelineAdapter
 from test.unit.optimizer.test_evaluation import prepared_objective
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth, \
