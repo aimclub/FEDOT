@@ -28,7 +28,6 @@ class LinkedGraphNode(GraphNode):
 
         self.content = content
         self._nodes_from = UniqueList(nodes_from or ())
-        self.uid = str(uuid4())
 
         super().__init__()
 
@@ -40,11 +39,15 @@ class LinkedGraphNode(GraphNode):
     def nodes_from(self, nodes: Optional[Iterable['LinkedGraphNode']]):
         self._nodes_from = UniqueList(nodes)
 
+    @property
+    def name(self) -> str:
+        return str(self.content.get('name'))
+
     def __hash__(self) -> int:
         return hash(self.uid)
 
     def __str__(self) -> str:
-        return str(self.content['name'])
+        return str(self.content.get('name'))
 
     def __repr__(self) -> str:
         return self.__str__()

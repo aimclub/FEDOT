@@ -103,6 +103,34 @@ class Graph(ABC):
         """
         raise NotImplementedError()
 
+    def get_nodes_by_name(self, name: str) -> List[GraphNode]:
+        """Returns list of nodes with the required ``name``
+
+        Args:
+            name: name to filter by
+
+        Returns:
+            list: relevant nodes (empty if there are no such nodes)
+        """
+
+        appropriate_nodes = filter(lambda x: x.name == name, self.nodes)
+
+        return list(appropriate_nodes)
+
+    def get_node_by_uid(self, uid: str) -> Optional[GraphNode]:
+        """Returns node with the required ``uid``
+
+        Args:
+            uid: uid of node to filter by
+
+        Returns:
+            Optional[Node]: relevant node (None if there is no such node)
+        """
+
+        appropriate_nodes = list(filter(lambda x: x.uid == uid, self.nodes))
+
+        return appropriate_nodes[0] if appropriate_nodes else None
+
     @abstractmethod
     def __eq__(self, other_graph: 'Graph') -> bool:
         """Compares this graph with the ``other_graph``

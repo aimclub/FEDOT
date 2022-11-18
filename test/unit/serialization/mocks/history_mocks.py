@@ -8,13 +8,18 @@ class CustomMockNode(GraphNode):
     def __init__(self, content: dict = None, nodes_from: list = None):
         self._content = content
         self._nodes_from = nodes_from or []
+        super().__init__()
 
     @property
     def nodes_from(self):
         return self._nodes_from
 
-    def __str__(self):
-        return self._content['name']
+    @property
+    def name(self) -> str:
+        return self._content.get('name')
+
+    def __str__(self) -> str:
+        return self._content.get('name')
 
 
 class CustomMockGraph(Graph):

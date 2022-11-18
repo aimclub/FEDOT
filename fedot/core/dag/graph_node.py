@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import List, Optional, Iterable
+from uuid import uuid4
 
 
 class GraphNode(ABC):
@@ -9,6 +10,8 @@ class GraphNode(ABC):
     Provides interface for getting and modifying the parent nodes
     and recursive description based on all preceding nodes.
     """
+    def __init__(self):
+        self.uid = str(uuid4())
 
     @property
     @abstractmethod
@@ -28,6 +31,12 @@ class GraphNode(ABC):
         Args:
             nodes: new sequence of parent nodes
         """
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """ Str name of this graph node """
         pass
 
     @abstractmethod

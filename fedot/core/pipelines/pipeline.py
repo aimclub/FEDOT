@@ -371,23 +371,6 @@ class Pipeline(GraphDelegate, Serializable):
         PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
 
-def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
-    """Returns list of nodes with the required ``operation_name``
-
-    Args:
-        pipeline: pipeline to process
-        operation_name: name of the operation to filter by
-
-    Returns:
-        list: relevant nodes (empty if there are no such nodes)
-    """
-
-    # Check if model has decompose operations
-    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
-
-    return list(appropriate_nodes)
-
-
 def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):
     """
     Method to update nodes type after performing some action on the pipeline

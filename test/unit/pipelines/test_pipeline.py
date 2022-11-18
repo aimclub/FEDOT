@@ -436,3 +436,23 @@ def test_ts_forecasting_pipeline_with_poly_features():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
     assert prediction is not None
+
+
+def test_get_nodes_with_operation():
+    pipeline = pipeline_first()
+    actual_nodes = pipeline.get_nodes_by_name(name='rf')
+    expected_nodes = [pipeline.nodes[2], pipeline.nodes[-1]]
+
+    assert (actual is expected for actual, expected in zip(actual_nodes, expected_nodes))
+
+
+def test_get_node_with_uid():
+    pipeline = pipeline_first()
+
+    uid_of_first_node = pipeline.nodes[0].uid
+    actual_node = pipeline.get_node_by_uid(uid=uid_of_first_node)
+    expected_node = pipeline.nodes[0]
+    assert actual_node is expected_node
+
+    uid_of_non_existent_node = '123456789'
+    assert pipeline.get_node_by_uid(uid=uid_of_non_existent_node) is None
