@@ -11,3 +11,5 @@ jobs:
       GITLAB_USER: ${{ secrets.GITLAB_USER }}
       GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }}
       
+
+
