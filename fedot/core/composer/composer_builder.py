@@ -3,17 +3,19 @@ from multiprocessing import set_start_method
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Type, Union
 
+from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
+from golem.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
-from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
@@ -24,7 +26,6 @@ from fedot.core.repository.quality_metrics_repository import (
     MetricType
 )
 from fedot.core.repository.tasks import Task
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
 

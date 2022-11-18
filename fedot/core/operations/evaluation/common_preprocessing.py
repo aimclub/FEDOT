@@ -1,6 +1,8 @@
 import warnings
 from typing import Optional
 
+from golem.core.utilities.random import RandomStateHandler
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
@@ -9,7 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

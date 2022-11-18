@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import List, Optional, Sequence, Any, TypeVar, Callable, Hashable
 
 import numpy as np
+from golem.core.log import default_log
+from golem.core.optimisers.genetic.evaluation import DelegateEvaluator
+from golem.core.utilities.serializable import Serializable
 
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
-from fedot.core.utilities.serializable import Serializable
-from fedot.core.optimisers.gp_comp.evaluation import DelegateEvaluator
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton
 

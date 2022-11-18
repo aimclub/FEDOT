@@ -1,14 +1,14 @@
 from copy import deepcopy
 from os.path import join
 from threading import Lock, Thread
-from typing import List, Optional, Union
+from typing import List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+from golem.core.log import default_log
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

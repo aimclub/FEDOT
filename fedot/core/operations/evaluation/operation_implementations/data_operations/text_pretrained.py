@@ -2,14 +2,14 @@ import os
 from typing import Optional
 
 import numpy as np
+from golem.core.log import default_log
+from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import gensim.downloader as api

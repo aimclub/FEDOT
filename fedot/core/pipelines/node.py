@@ -2,17 +2,17 @@ from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
+from golem.core.dag.linked_graph_node import LinkedGraphNode
+from golem.core.log import default_log
+from golem.core.optimisers.timer import Timer
+from golem.serializers.serializer import register_serializable
 
-from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
-from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.serializers.serializer import register_serializable
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 

@@ -2,10 +2,10 @@ from copy import deepcopy
 from typing import List, Union
 
 import numpy as np
+from golem.core.log import default_log
 from scipy import interpolate
 
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 

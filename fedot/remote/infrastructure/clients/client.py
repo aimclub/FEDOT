@@ -2,10 +2,10 @@ import os
 from datetime import timedelta
 from typing import Optional, Type, TypeVar
 
-from fedot.core.log import default_log
-from fedot.core.utilities.serializable import Serializable
-from fedot.core.utils import default_fedot_data_dir
+from golem.core.log import default_log
+from golem.core.utilities.serializable import Serializable
 
+from fedot.core.utils import default_fedot_data_dir
 
 G = TypeVar('G', bound=Serializable)
 

@@ -1,4 +1,4 @@
-from fedot.core.optimisers.timer import Timer
+from golem.core.optimisers.timer import Timer
 
 
 class TunerTimer(Timer):

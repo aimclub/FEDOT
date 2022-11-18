@@ -3,9 +3,10 @@ import shutil
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
+from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 

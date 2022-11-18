@@ -4,15 +4,15 @@ from typing import (Any, Callable, List, Sequence)
 
 from numpy import random
 
+from golem.core.optimisers.fitness import Fitness
+from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.objective import Objective, ObjectiveFunction
+from golem.core.optimisers.optimizer import GraphOptimizer
+
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.fitness import Fitness
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.objective import Objective, ObjectiveFunction
-from fedot.core.optimisers.optimizer import GraphOptimizer
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline import Pipeline, PipelineNode
 
 
 class RandomSearchComposer(Composer):

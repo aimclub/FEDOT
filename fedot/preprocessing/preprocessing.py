@@ -3,6 +3,7 @@ from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
+from golem.core.log import default_log
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
@@ -14,7 +15,6 @@ from fedot.core.data.data_preprocessing import (
     replace_nans_with_empty_strings
 )
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation

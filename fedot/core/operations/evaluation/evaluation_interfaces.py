@@ -4,6 +4,8 @@ from typing import Optional
 
 import numpy as np
 from catboost import CatBoostClassifier, CatBoostRegressor
+from golem.core.log import default_log
+from golem.core.utilities.random import RandomStateHandler
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
@@ -28,12 +30,10 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

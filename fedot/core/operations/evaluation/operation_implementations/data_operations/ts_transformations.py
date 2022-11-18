@@ -3,11 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from golem.core.log import default_log
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )

@@ -1,11 +1,12 @@
 from typing import List, Union, Optional, Set, Tuple
 
+from golem.core.log import default_log
+
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

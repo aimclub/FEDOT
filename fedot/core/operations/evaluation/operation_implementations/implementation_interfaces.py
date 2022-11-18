@@ -3,9 +3,9 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+from golem.core.log import default_log
 
 from fedot.core.data.data import OutputData, InputData
-from fedot.core.log import default_log
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 

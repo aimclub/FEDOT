@@ -7,9 +7,9 @@ from os.path import exists, join
 from typing import List, Optional, Type, Union, Callable
 
 import matplotlib.pyplot as plt
+from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline

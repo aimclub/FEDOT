@@ -1,6 +1,8 @@
 import warnings
 from typing import Optional
 
+from golem.core.utilities.random import RandomStateHandler
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
@@ -18,7 +20,6 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

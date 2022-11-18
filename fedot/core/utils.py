@@ -1,13 +1,10 @@
 import os
 import platform
 import tempfile
-
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 import pandas as pd
-
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -18,7 +15,7 @@ def fedot_project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-def default_data_dir() -> str:
+def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/Fedot
     """

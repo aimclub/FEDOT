@@ -2,17 +2,18 @@ from functools import partial
 from inspect import signature
 from typing import Callable, List, Sequence, Optional, Union
 
-from fedot.core.adapter import BaseOptimizationAdapter
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
-from fedot.core.dag.verification_rules import (
+from golem.core.adapter import BaseOptimizationAdapter
+from golem.core.dag.graph import Graph
+from golem.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
+from golem.core.dag.verification_rules import (
     has_no_cycle,
     has_no_isolated_nodes,
     has_no_self_cycled_nodes,
     has_one_root
 )
+from golem.core.optimisers.graph import OptGraph
+
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
     has_correct_data_sources,

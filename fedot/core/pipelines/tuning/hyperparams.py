@@ -1,8 +1,8 @@
 import random
 
+from golem.core.log import default_log
 from hyperopt.pyll.stochastic import sample as hp_sample
 
-from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 

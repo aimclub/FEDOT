@@ -4,26 +4,27 @@ from os import PathLike
 from typing import Optional, Tuple, Union, Sequence
 
 import func_timeout
+from golem.core.dag.graph import Graph
+from golem.core.dag.graph_delegate import GraphDelegate
+from golem.core.dag.graph_node import GraphNode
+from golem.core.dag.graph_utils import distance_to_primary_level
+from golem.core.dag.linked_graph import LinkedGraph
+from golem.core.log import default_log
+from golem.core.optimisers.timer import Timer
+from golem.core.paths import copy_doc
+from golem.core.utilities.serializable import Serializable
+from golem.visualisation.graph_viz import NodeColorType
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_utils import distance_to_primary_level
-from fedot.core.dag.linked_graph import LinkedGraph
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utilities.serializable import Serializable
-from golem.core.paths import copy_doc
-from fedot.core.visualisation.graph_viz import NodeColorType
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
