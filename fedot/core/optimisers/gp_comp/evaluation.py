@@ -201,8 +201,8 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if self._delegate_evaluator and self._delegate_evaluator.is_enabled:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore(population)
-            computed_pipelines = self._delegate_evaluator.compute_graphs(restored_graphs)
-            self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
+            computed_graphs = self._delegate_evaluator.compute_graphs(restored_graphs)
+            self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_graphs)}
 
 
 class SimpleDispatcher(ObjectiveEvaluationDispatcher):

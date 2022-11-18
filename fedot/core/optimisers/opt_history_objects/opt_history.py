@@ -127,7 +127,8 @@ class OptHistory:
                                      for generation in self.individuals]
                 historical_fitness.append(objective_history)
         else:
-            historical_fitness = [[pipeline.fitness.value for pipeline in pop] for pop in self.individuals]
+            historical_fitness = [[ind.fitness.value for ind in pop]
+                                  for pop in self.individuals]
         return historical_fitness
 
     @property
@@ -178,7 +179,7 @@ class OptHistory:
 
         output = io.StringIO()
         separator = ' | '
-        header = separator.join(['Position', 'Fitness', 'Generation', 'Pipeline'])
+        header = separator.join(['Position', 'Fitness', 'Generation', 'Graph'])
         print(header, file=output)
         for ind_num, ind_with_position in enumerate(top_individuals):
             individual, gen_num, ind_num = ind_with_position
