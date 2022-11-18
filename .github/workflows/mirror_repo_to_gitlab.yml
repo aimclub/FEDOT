@@ -4,7 +4,7 @@ on: [push, delete]
 
 jobs:
   call-nss-ops-mirror-workflow:
-    uses: ITMO-NSS-team/NSS-Ops/.github/workflows/mirror-repo.yml@2f08ee2ce9bb5cf9bd9eaeabcb98b48effdbd941
+    uses: ITMO-NSS-team/NSS-Ops/.github/workflows/mirror-repo.yml@c3f43824514b722d23edd45e572ec4d364c75bf5
     with:
       GITLAB_URL: 'https://gitlab.actcognitive.org/itmo-nss-team/FEDOT.git'
     secrets:
