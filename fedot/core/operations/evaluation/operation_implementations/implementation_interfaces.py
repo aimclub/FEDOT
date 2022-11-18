@@ -88,8 +88,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         self.bool_ids = bool_ids
 
         if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process])
-            self.operation.fit(features_to_process)
+            try:
+                features_to_process = np.array(features[:, ids_to_process])
+                self.operation.fit(features_to_process)
+            except:
+                print(0)
         else:
             pass
 

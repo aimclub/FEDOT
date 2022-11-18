@@ -6,9 +6,9 @@ from typing import Callable, List, Union, Tuple, TYPE_CHECKING
 import numpy as np
 
 from fedot.core.adapter import register_native
-from fedot.core.optimisers.advisor import RemoveType
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_utils import distance_to_root_level, ordered_subnodes_hierarchy, distance_to_primary_level
+from fedot.core.optimisers.advisor import RemoveType
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -16,6 +16,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.pipeline_advisor import check_for_specific_operations
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
@@ -212,6 +213,12 @@ class Mutation(Operator):
         # add as child
         old_node_children = graph.node_children(node_to_mutate)
         new_node_child = choice(old_node_children) if old_node_children else None
+        operation_id = node_to_mutate.content['name']
+
+        if check_for_specific_operations(operation_id):
+            # data source, exog_ts and custom models moving is useless
+            return graph
+
         new_node = self.graph_generation_params.node_factory.get_node(is_primary=False)
         if not new_node:
             return graph
@@ -269,6 +276,9 @@ class Mutation(Operator):
         node_to_del = choice(graph.nodes)
         node_name = node_to_del.content['name']
         removal_type = self.graph_generation_params.advisor.can_be_removed(node_to_del)
+        # we can't delete all data source nodes
+        if 'data_source' in node_name and self.only_one_data_source_node(graph):
+            return graph
         if removal_type == RemoveType.with_direct_children:
             # TODO refactor workaround with data_source
             nodes_to_delete = \
@@ -389,3 +399,10 @@ class Mutation(Operator):
             return mutations[mutation_type]
         else:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
+
+    def only_one_data_source_node(self, graph: OptGraph):
+        count = 0
+        for node in graph.nodes:
+            if 'data_source' in node.content['name']:
+                count += 1
+            return count <= 1

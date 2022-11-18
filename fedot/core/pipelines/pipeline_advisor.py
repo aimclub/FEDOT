@@ -29,11 +29,9 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         :return: list of candidates with str operations
         """
         operation_id = node.content['name']
-        if ('data_source' in operation_id or
-                'exog_ts' == operation_id or
-                'custom' in operation_id):
-            # data source replacement is useless
-            return [operation_id]
+        # data source, exog_ts and custom models replacement is useless
+        if check_for_specific_operations(operation_id):
+            return []
 
         is_model = operation_id in self.models
         similar_operations = self.models if is_model else self.data_operations
@@ -47,7 +45,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         if operation_id in candidates:
             # the change to the same node is not meaningful
             candidates.remove(operation_id)
-        return list(candidates)
+        return candidates
 
     def propose_parent(self, node: OptNode, possible_operations: List[str]) -> List[str]:
         """
@@ -58,14 +56,28 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         """
 
         operation_id = node.content['name']
-        parent_operations = [str(n.content['name']) for n in node.nodes_from]
+        if check_for_specific_operations(operation_id):
+            # data source, exog_ts and custom models moving is useless
+            return []
 
+        parent_operations = [str(n.content['name']) for n in node.nodes_from]
         candidates = set.intersection(set(self.data_operations), set(possible_operations))
+
         if operation_id in candidates:
             candidates.remove(operation_id)
         if parent_operations:
             for parent_operation_id in parent_operations:
+                if check_for_specific_operations(parent_operation_id):
+                    # data source, exog_ts and custom models moving is useless
+                    return []
                 if parent_operation_id in candidates:
                     # the sequence of the same parent and child is not meaningful
                     candidates.remove(parent_operation_id)
-        return list(candidates)
+        return candidates
+
+
+def check_for_specific_operations(operation_id: str):
+    if ('data_source' in operation_id or
+            'exog_ts' == operation_id or 'custom' in operation_id):
+        return True
+    return False

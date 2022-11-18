@@ -6,6 +6,8 @@ import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
@@ -17,6 +19,16 @@ datasets = {
     'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
     'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
+
+
+def get_wrong_pipeline():
+    primary_node = PrimaryNode('ts_naive_average')
+    primary_node_2 = PrimaryNode('lagged')
+    secondary_node = SecondaryNode('ridge', nodes_from=[primary_node_2, primary_node])
+    primary_node_3 = PrimaryNode('lagged')
+    secondary_node_2 = SecondaryNode('ridge', nodes_from=[primary_node_3])
+    final = SecondaryNode('linear', nodes_from=[secondary_node, secondary_node_2])
+    return Pipeline(final)
 
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
@@ -61,4 +73,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='beer', horizon=10, timeout=3, visualization=True)
+    run_ts_forecasting_example(dataset='beer', horizon=10, timeout=2.)

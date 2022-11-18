@@ -142,7 +142,6 @@ class Pipeline(GraphDelegate, Serializable):
         copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
                                                                       data=copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
         else:
