@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Sequence, Optional
 
 from golem.core.dag.graph_utils import nodes_from_layer
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.archive import ParetoFront
 from golem.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher

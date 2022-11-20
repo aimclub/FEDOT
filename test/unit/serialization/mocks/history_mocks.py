@@ -11,6 +11,10 @@ class CustomMockNode(GraphNode):
         super().__init__()
 
     @property
+    def name(self) -> str:
+        return 'mock_node'
+
+    @property
     def nodes_from(self):
         return self._nodes_from
 

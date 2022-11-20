@@ -1,4 +1,3 @@
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
 from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
