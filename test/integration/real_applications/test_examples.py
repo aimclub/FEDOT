@@ -82,8 +82,8 @@ def test_multistep_example():
 
 
 def test_api_example():
-    # prediction = run_classification_example(timeout=1)
-    # assert prediction is not None
+    prediction = run_classification_example(timeout=1)
+    assert prediction is not None
 
     forecast = run_ts_forecasting_example(dataset='australia', timeout=1)
     assert forecast is not None

@@ -73,4 +73,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='beer', horizon=10, timeout=2.)
+    run_ts_forecasting_example(dataset='beer', horizon=10, timeout=2., visualization=True)

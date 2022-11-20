@@ -136,11 +136,11 @@ def is_crossover_correct(graph_first: OptGraph, graph_second: OptGraph):
     # crossover with custom models and exog_ts is unsafe
     for node in graph_first.nodes:
         operation_id = node.content['name']
-        if 'exog_ts' == operation_id or 'custom' in operation_id:
+        if 'exog_ts' in operation_id or 'custom' in operation_id:
             return False
 
     for node in graph_second.nodes:
         operation_id = node.content['name']
-        if 'exog_ts' == operation_id or 'custom' in operation_id:
+        if 'exog_ts' in operation_id or 'custom' in operation_id:
             return False
     return True

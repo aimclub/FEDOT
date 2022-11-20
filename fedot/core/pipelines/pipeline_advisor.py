@@ -13,7 +13,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
 
     def can_be_removed(self, node: OptNode) -> RemoveType:
         operation_id = node.content['name']
-        if 'exog_ts' == operation_id:
+        if 'exog_ts' in operation_id:
             return RemoveType.forbidden
         if 'custom' in operation_id or 'lagged' in operation_id:
             return RemoveType.with_parents
