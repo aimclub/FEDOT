@@ -1,10 +1,8 @@
 import itertools
 import os
-from copy import deepcopy
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from tempfile import TemporaryFile
 
 import numpy as np
 import pytest
@@ -33,7 +31,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
-from fedot.core.utils import fedot_project_root, default_fedot_data_dir
+from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -272,7 +270,6 @@ def test_history_save_custom_nodedata():
     graphs = [Individual(OptGraph(OptNode(content=content)), native_generation=i)
               for i, content in enumerate(contents)]
 
-    # tmp_path = default_fedot_data_dir()
     history = OptHistory()
     history.add_to_history(graphs[:3])
     history.add_to_history(graphs[3:6])
