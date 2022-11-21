@@ -412,21 +412,14 @@ class TableTypesCorrector:
                 features_types[column_id] = NAME_CLASS_FLOAT
 
 
-def define_column_types(table: np.array):
+def define_column_types(table: np.ndarray):
     """ Prepare information about types per columns. For each column store unique
     types, which column contains. If column with mixed type contain str object
     additional field 'str_ids' with indices of string objects is prepared
     """
-
-    # TODO: current processing is relatively computationally expensive - probably refactor needed
-
-    def type_ignoring_nans(item):
-        """ Return type of element in the array. If item is np.nan - return NoneType """
-        current_type = type(item)
-        if current_type is float and np.isnan(item):
-            # Check is current element is nan or not (np.nan is a float type)
-            return type(None)
-        return current_type
+    def to_type(item):
+        return str(type(item))
+    vto_type = np.vectorize(to_type)
 
     if table is None:
         return {}
@@ -436,34 +429,24 @@ def define_column_types(table: np.array):
     for column_id in range(n_columns):
         current_column = table[:, column_id]
 
-        # Check every element in numpy array - it can take a long time!
-        column_types = list(map(type_ignoring_nans, current_column))
+        column_types = np.where(pd.isna(current_column), str(type(None)), vto_type(current_column))
 
-        # Store only unique values
-        set_column_types = set(column_types)
-        # Convert types into string names
-        column_types_names = list(map(str, set_column_types))
-
-        if len(column_types_names) > 1:
-            # There are several types in one column
-            types_names = np.array(column_types, dtype=str)
-            # Calculate number of string objects in the dataset
-            str_number = len(np.argwhere(types_names == NAME_CLASS_STR))
-            int_number = len(np.argwhere(types_names == NAME_CLASS_INT))
-            float_number = len(np.argwhere(types_names == NAME_CLASS_FLOAT))
+        if len(np.unique(column_types)) > 1:
+            str_number = (column_types == NAME_CLASS_STR).sum()
+            int_number = (column_types == NAME_CLASS_INT).sum()
+            float_number = (column_types == NAME_CLASS_FLOAT).sum()
 
             # Store information about nans in the target
-            nan_ids = np.ravel(np.argwhere(types_names == NAME_CLASS_NONE))
-            nan_number = len(nan_ids)
-            columns_info.update({column_id: {'types': column_types_names,
+            nan_ids = np.ravel(np.argwhere(column_types == NAME_CLASS_NONE))  # TODO: maybe just convert to list to preserve idx pairs?
+            columns_info.update({column_id: {'types': column_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
                                              'float_number': float_number,
-                                             'nan_number': nan_number,
+                                             'nan_number': len(nan_ids),
                                              'nan_ids': nan_ids}})
         else:
             # There is only one type, or several types such as int and float
-            columns_info.update({column_id: {'types': column_types_names}})
+            columns_info.update({column_id: {'types': column_types}})
     return columns_info
 
 
