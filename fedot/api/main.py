@@ -152,13 +152,14 @@ class Fedot:
             features: FeaturesType,
             target: TargetType = 'target',
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
-        """Fits the graph with a predefined structure or compose and fit the new graph
+        """Composes and fits a new pipeline, or fits a predefined one.
 
         Args:
-            features: the array with features of train data
-            target: the array with target values of train data
-            predefined_model: the name of the atomic model or Pipeline instance.
-                If argument is ``auto``, perform initial assumption generation and then fit the pipeline
+            features: train data feature values in one of the supported features formats.
+            target: train data target values in one of the supported target formats.
+            predefined_model: the name of a single model or a :class:`Pipeline` instance, or ``"auto"``.
+                With any value specified, the method does not perform composing. In case of ``"auto"``,
+                the method generates a single initial assumption and then fits the created pipeline.
 
         Returns:
             Pipeline object
