@@ -24,9 +24,7 @@ class ConstRatePopulationSize(PopulationSize):
 
     def next(self, population: PopulationT) -> int:
         pop_size = len(population)
-        if self._max_size and pop_size >= self._max_size:
-            pass
-        else:
+        if not self._max_size or pop_size < self._max_size:
             pop_size += math.ceil(pop_size * self._offspring_rate)
         return pop_size
 
