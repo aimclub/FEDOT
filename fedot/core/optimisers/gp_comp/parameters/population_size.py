@@ -26,6 +26,8 @@ class ConstRatePopulationSize(PopulationSize):
         pop_size = len(population)
         if not self._max_size or pop_size < self._max_size:
             pop_size += math.ceil(pop_size * self._offspring_rate)
+        if self._max_size:
+            pop_size = min(pop_size, self._max_size)
         return pop_size
 
 
