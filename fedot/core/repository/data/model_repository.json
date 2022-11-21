@@ -125,7 +125,8 @@
       "tags": [
         "boosting",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "ar": {
@@ -164,21 +165,21 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "bayesian", "non_multi", "linear"
+        "bayesian", "non_multi", "linear", "disc"
       ]
     },
     "catboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non-default", "non_linear"
+        "boosting", "non-default", "non_linear", "mix"
       ]
     },
     "catboostreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non_multi", "non-default", "non_linear"
+        "boosting", "non_multi", "non-default", "non_linear", "mix"
       ]
     },
     "dt": {
@@ -187,7 +188,8 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "dtreg": {
@@ -196,7 +198,8 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "gbr": {
@@ -205,7 +208,8 @@
       "tags": [
         "boosting",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "kmeans": {
@@ -219,7 +223,8 @@
       "tags": [
         "simple",
         "correct_params",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "knnreg": {
@@ -228,7 +233,8 @@
       "tags": [
         "simple",
         "correct_params",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "lasso": {
@@ -237,34 +243,35 @@
       "tags": [
         "simple",
         "linear",
-        "interpretable"
+        "interpretable",
+        "cont"
       ]
     },
     "lda": {
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant", "linear", "correct_params", "non-default"
+        "discriminant", "linear", "correct_params", "non-default", "cont"
       ]
     },
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting", "tree", "non_linear"
+        "boosting", "tree", "non_linear", "mix"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non_linear"
+        "boosting", "tree", "non_multi", "non_linear", "mix"
       ]
     },
     "linear": {
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "simple", "linear", "interpretable"
+        "simple", "linear", "interpretable", "cont"
       ]
     },
     "logit": {
@@ -274,14 +281,16 @@
         "simple",
         "linear",
         "interpretable",
-        "non_multi"
+        "non_multi",
+        "cont"
       ]
     },
     "mlp": {
       "meta": "sklearn_class",
       "tags": [
         "neural",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "multinb": {
@@ -291,7 +300,8 @@
         "non-default",
         "bayesian",
         "non_multi",
-        "linear"
+        "linear",
+        "disc"
       ]
     },
     "qda": {
@@ -300,18 +310,19 @@
       "tags": [
         "discriminant",
         "quadratic",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "rf": {
       "meta": "sklearn_class",
       "presets": ["fast_train", "*tree"],
-      "tags": ["tree", "non_linear"]
+      "tags": ["tree", "non_linear", "cont"]
     },
     "rfr": {
       "meta": "sklearn_regr",
       "presets": ["fast_train", "*tree"],
-      "tags": ["tree", "non_linear"]
+      "tags": ["tree", "non_linear", "cont"]
     },
     "ridge": {
       "meta": "sklearn_regr",
@@ -319,7 +330,8 @@
       "tags": [
         "simple",
         "linear",
-        "interpretable"
+        "interpretable",
+        "cont"
       ]
     },
     "polyfit": {
@@ -338,7 +350,7 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "non_multi", "non_linear"
+        "non_multi", "non_linear", "cont"
       ]
     },
     "stl_arima": {
@@ -410,7 +422,8 @@
       "meta": "sklearn_regr",
       "tags": [
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "treg": {
@@ -418,21 +431,22 @@
       "presets": ["*tree"],
       "tags": [
         "tree",
-        "non_linear"
+        "non_linear",
+        "cont"
       ]
     },
     "xgboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non-default", "non_linear"
+        "boosting", "tree", "non-default", "non_linear", "mix"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non-default", "non_linear"
+        "boosting", "tree", "non_multi", "non-default", "non_linear", "cont"
       ]
     },
     "cnn": {

@@ -28,7 +28,7 @@ class ComposerRequirements:
 
     num_of_generations: int = 20
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
-    early_stopping_generations: Optional[int] = 10
+    early_stopping_generations: Optional[int] = 20
 
     keep_n_best: int = 1
     max_pipeline_fit_time: Optional[datetime.timedelta] = None

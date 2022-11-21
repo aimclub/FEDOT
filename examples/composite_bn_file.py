@@ -1,4 +1,5 @@
 
+from audioop import cross
 from datetime import timedelta
 import sys
 from typing import Optional, Union, List
@@ -39,17 +40,19 @@ from pgmpy.estimators import K2Score
 from math import ceil
 from examples.composite_model import CompositeModel
 from examples.composite_node import CompositeNode
+from examples.advisor_node_factory_bn import BnNodeFactory, BnChangeAdvisor
 import bamt.Networks as Nets
 from scipy.stats import norm
-from numpy import std, mean, log, dot
+from numpy import std, mean, log, dot, nan, isnan
 from sklearn.metrics import mean_squared_error
 from itertools import chain, starmap
 from math import log10
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
     score, len_data, edges_count = 0, len(data), len(graph.get_edges())
-    for node in graph.nodes:
+    for node in graph.nodes:   
         data_of_node = data[node.content['name']]
         if node.nodes_from == None or node.nodes_from == []:
             if node.content['type'] == 'cont':
@@ -59,7 +62,7 @@ def composite_metric(graph: CompositeModel, data: pd.DataFrame):
                 # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
                 count = data_of_node.value_counts().values
                 frequency  = log(count / len_data)
-                score += dot(count, frequency)                
+                score += dot(count, frequency)  
         else:
             model, columns, target, idx = node.content['parent_model'], [n.content['name'] for n in node.nodes_from], data_of_node.to_numpy(), data.index.to_numpy()
             features = data[columns].to_numpy()
@@ -72,16 +75,16 @@ def composite_metric(graph: CompositeModel, data: pd.DataFrame):
             fitted_model = model.fit(train)
             
             if node.content['type'] == 'cont':
-                predict = fitted_model.predict(train.features)
-                mse =  mean_squared_error(target, predict,squared=False)
-                score += norm.logpdf(target, loc=predict, scale=mse).sum()
+                predict = fitted_model.predict(train.features)        
+                mse =  mean_squared_error(target, predict,squared=False) + 0.0000001
+                a = norm.logpdf(target, loc=predict, scale=mse)
+                score += a.sum()                
             else:
                 # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
                 predict_proba = fitted_model.predict_proba(features)
                 # sum(starmap(f, zip(predict_proba, target)))
-                score += sum([log(predict_proba[i][target[i]]) for i in idx])
+                score += sum([log(predict_proba[i][target[i]]) for i in idx])        
     score -= len(graph.nodes)*log10(len_data)*edges_count/4
-
     return [-score]
 
 
@@ -103,10 +106,13 @@ def custom_metric(graph: CompositeModel, data: pd.DataFrame):
 
 # задаем кроссовер (обмен ребрами)
 def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGraph, max_depth):
-    def find_node(graph: OptGraph, node):
-        return graph.nodes[dir_of_nodes[node.content['name']]]
 
-    dir_of_nodes={graph_first.nodes[i].content['name']:i for i in range(len(graph_first.nodes))}     
+    def find_node(graph: OptGraph, node):
+        name = node.content['name']
+        for graph_node in graph.nodes:
+            if graph_node.content['name'] == name:
+                return graph_node
+
     num_cros = 100
     try:
         for _ in range(num_cros):
@@ -150,16 +156,20 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
     return new_graph_first, new_graph_second
 
 def custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth):
-
+    
     def find_node(graph: OptGraph, node):
-        return graph.nodes[dir_of_nodes[node.content['name']]]
-
-    dir_of_nodes={graph_first.nodes[i].content['name']:i for i in range(len(graph_first.nodes))}     
+        name = node.content['name']
+        for graph_node in graph.nodes:
+            if graph_node.content['name'] == name:
+                return graph_node
+    
     num_cros = 100
     try:
         for _ in range(num_cros):
             old_edges1 = []
             old_edges2 = []
+            parents1 = []
+            parents2 = []
             new_graph_first=deepcopy(graph_first)
             new_graph_second=deepcopy(graph_second)
 
@@ -174,8 +184,13 @@ def custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth)
                 selected_node1=find_node(new_graph_first, selected_node2)
                 parents1=selected_node1.nodes_from
                 
-                selected_node1.nodes_from=[]
-                selected_node2.nodes_from=[]
+                if parents1:
+                    for p in parents1:
+                        new_graph_first.operator.disconnect_nodes(p, selected_node1, False)
+                if parents2:
+                    for p in parents2:
+                        new_graph_second.operator.disconnect_nodes(p, selected_node2, False)
+
                 old_edges1 = new_graph_first.operator.get_edges()
                 old_edges2 = new_graph_second.operator.get_edges()
 
@@ -202,15 +217,17 @@ def custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth)
             new_graph_second = deepcopy(graph_second)       
 
     except Exception as ex:
-        print(ex)
+        print(ex)    
     return new_graph_first, new_graph_second
 
 def custom_crossover_all_model(graph_first: OptGraph, graph_second: OptGraph, max_depth):
-    def find_node(graph: OptGraph, node):
-        return graph.nodes[dir_of_nodes[node.content['name']]]
 
-    dir_of_nodes={graph_first.nodes[i].content['name']:i for i in range(len(graph_first.nodes))}     
-    
+    def find_node(graph: OptGraph, node):
+        name = node.content['name']
+        for graph_node in graph.nodes:
+            if graph_node.content['name'] == name:
+                return graph_node    
+        
     num_cros = 100
     try:
         for _ in range(num_cros):
@@ -218,7 +235,7 @@ def custom_crossover_all_model(graph_first: OptGraph, graph_second: OptGraph, ma
             if selected_node1.nodes_from == None or selected_node1.nodes_from == []:
                 continue
             
-            selected_node2=find_node(graph_second, selected_node1)
+            selected_node2=find_node(graph_second, selected_node1)           
             if selected_node2.nodes_from == None or selected_node2.nodes_from == []:
                 continue            
 
@@ -302,11 +319,22 @@ parent_model_class = ['xgboost','logit',
     'catboost'
     ]
 
-def random_choice_model(node_type):
-    if node_type == 'cont':
-        return SkLearnEvaluationStrategy(choice(parent_model_regr))
+def random_choice_model(node: CompositeNode):
+    model_repository = OperationTypesRepository()
+    task = None
+    if node.content['type'] == 'cont':
+        task = TaskTypesEnum.regression
     else:
-        return SkLearnEvaluationStrategy(choice(parent_model_class))
+        task = TaskTypesEnum.classification
+    candidates = model_repository.suitable_operation(task_type=task, data_type = DataTypesEnum.table)
+    if 'knn' in candidates:
+        candidates.remove('knn')
+    if 'qda' in candidates:
+        candidates.remove('qda')
+    if 'knnreg' in candidates:
+        candidates.remove('knnreg')
+    return SkLearnEvaluationStrategy(choice(candidates))
+   
 
 
 
@@ -317,7 +345,7 @@ def custom_mutation_add_model(graph: OptGraph, **kwargs):
         if nodes_with_parents == []:
             return graph
         node = choice(nodes_with_parents)
-        node.content['parent_model'] = random_choice_model(node.content['type'])
+        node.content['parent_model'] = random_choice_model(node)
     except Exception as ex:
         print(ex)  
     return graph
@@ -325,13 +353,17 @@ def custom_mutation_add_model(graph: OptGraph, **kwargs):
 def mutation_set1(graph: OptGraph, **kwargs):
     return custom_mutation_add_model(custom_mutation_add_structure(graph, **kwargs))
 
-def mutation_set2(graph: OptGraph, **kwargs):
+def mutation_set2(graph: OptGraph, **kwargs): 
     return custom_mutation_add_model(custom_mutation_delete_structure(graph, **kwargs))
         
 def mutation_set3(graph: OptGraph, **kwargs):
     return custom_mutation_add_model(custom_mutation_reverse_structure(graph, **kwargs))
 
-
+def cross_set(graph_first, graph_second, max_depth):
+    g11, g12 = custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth)
+    g21, g22 = custom_crossover_exchange_edges(g11, g12, max_depth)
+    g31, g32 = custom_crossover_all_model(g21, g22, max_depth)
+    return g31, g32
 
 # задаем правила на запрет дублирующих узлов
 def _has_no_duplicates(graph):
@@ -359,8 +391,8 @@ def run_example():
     discretized_data2, _ = p2.apply(data)
 
     # словарь: {имя_узла: уникальный_номер_узла}
-    global dir_of_nodes
-    dir_of_nodes={data.columns[i]:i for i in range(len(data.columns))}     
+    # global dir_of_nodes
+    # dir_of_nodes={data.columns[i]:i for i in range(len(data.columns))}     
 
     # правила для байесовских сетей: нет петель, нет циклов, нет повторяющихся узлов
     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
@@ -458,7 +490,7 @@ def run_example():
 # назначить parent_model узлам с родителями    
     for node in init.nodes:
         if not (node.nodes_from == None or node.nodes_from == []):
-            node.content['parent_model'] = random_choice_model(node.content['type'])   
+            node.content['parent_model'] = random_choice_model(node)   
 
     
 #     # score true and bamt
@@ -628,12 +660,16 @@ def run_example():
         custom_mutation_delete_structure, 
         custom_mutation_reverse_structure, 
         custom_mutation_add_model
+        # mutation_set1,
+        # mutation_set2,
+        # mutation_set3
         ],
 
         crossover_types = [
+            # cross_set
             custom_crossover_exchange_edges,
             custom_crossover_all_model,
-            custom_crossover_exchange_parents_both
+            custom_crossover_exchange_parents_both,
             ]
     )
 
@@ -647,15 +683,17 @@ def run_example():
         requirements=requirements,
         initial_graphs=[init],
         objective=objective)
-
+    optimiser.number = number
 
     def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
             try:
                 if child.nodes_from==None or child.nodes_from==[]:
-                    child.nodes_from=[]
-                    child.content['parent_model'] = random_choice_model(child.content['type'])                     
-                child.nodes_from.append(parent)
+                    child.nodes_from = []
+                    child.nodes_from.append(parent)
+                    child.content['parent_model'] = random_choice_model(child)  
+                else:                      
+                    child.nodes_from.append(parent)
             except Exception as ex:
                 print(ex)
     
@@ -705,14 +743,21 @@ def run_example():
 if __name__ == '__main__':
 
     # файл с исходными данными (должен лежать в 'examples/data/')
-    file = 'healthcare'
+    file = 'sachs'
     # размер популяции 
     pop_size = 20
     # количество поколений
-    n_generation = 100
+    n_generation = 1000
     # вероятность кроссовера
     crossover_probability = 0.8
     # вероятность мутации
     mutation_probability = 0.9
-    time_m = 100
-    run_example() 
+    time_m = 1000
+    n = 5
+    number = 1
+    while number <= n:
+        run_example()
+        number += 1 
+        # TODO продолжить расчеты на других датасетах, досмотреть статью
+
+

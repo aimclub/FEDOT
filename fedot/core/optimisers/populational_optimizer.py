@@ -19,10 +19,31 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fpdf import FPDF
 import numpy as np
-pdf = FPDF()
+
 if TYPE_CHECKING:
     pass
 
+file = 'sachs'
+k = 1
+dict_true_str = {'asia':
+        [('asia', 'tub'), ('tub', 'either'), ('smoke', 'lung'), ('smoke', 'bronc'), ('lung', 'either'), ('bronc', 'dysp'), ('either', 'xray'), ('either', 'dysp')],
+
+        'cancer':
+        [('Pollution', 'Cancer'), ('Smoker', 'Cancer'), ('Cancer', 'Xray'), ('Cancer', 'Dyspnoea')],
+
+        'earthquake':
+        [('Burglary', 'Alarm'), ('Earthquake', 'Alarm'), ('Alarm', 'JohnCalls'), ('Alarm', 'MaryCalls')],
+
+        'sachs':
+        [('Erk', 'Akt'), ('Mek', 'Erk'), ('PIP3', 'PIP2'), ('PKA', 'Akt'), ('PKA', 'Erk'), ('PKA', 'Jnk'), ('PKA', 'Mek'), ('PKA', 'P38'), ('PKA', 'Raf'), ('PKC', 'Jnk'), ('PKC', 'Mek'), ('PKC', 'P38'), ('PKC', 'PKA'), ('PKC', 'Raf'), ('Plcg', 'PIP2'), ('Plcg', 'PIP3'), ('Raf', 'Mek')],  
+
+        'healthcare':
+        [('A', 'C'), ('A', 'D'), ('A', 'H'), ('A', 'O'), ('C', 'I'), ('D', 'I'), ('H', 'D'), ('I', 'T'), ('O', 'T')],
+        'child':
+        [('BirthAsphyxia', 'Disease'), ('HypDistrib', 'LowerBodyO2'), ('HypoxiaInO2', 'LowerBodyO2'), ('HypoxiaInO2', 'RUQO2'), ('CO2', 'CO2Report'), ('ChestXray', 'XrayReport'), ('Grunting', 'GruntingReport'), ('Disease', 'Age'), ('Disease', 'LVH'), ('Disease', 'DuctFlow'), ('Disease', 'CardiacMixing'), ('Disease', 'LungParench'), ('Disease', 'LungFlow'), ('Disease', 'Sick'), ('LVH', 'LVHreport'), ('DuctFlow', 'HypDistrib'), ('CardiacMixing', 'HypDistrib'), ('CardiacMixing', 'HypoxiaInO2'), ('LungParench', 'HypoxiaInO2'), ('LungParench', 'CO2'), ('LungParench', 'ChestXray'), ('LungParench', 'Grunting'), ('LungFlow', 'ChestXray'), ('Sick', 'Grunting'), ('Sick', 'Age')],
+        'magic-niab':
+        [('YR.GLASS', 'YR.FIELD'), ('YR.GLASS', 'YLD'), ('HT', 'YLD'), ('HT', 'FUS'), ('MIL', 'YR.GLASS'), ('FT', 'YR.FIELD'), ('FT', 'YLD'), ('G418', 'YR.GLASS'), ('G418', 'YR.FIELD'), ('G418', 'G1294'), ('G418', 'G2835'), ('G311', 'YR.GLASS'), ('G311', 'G43'), ('G1217', 'YR.GLASS'), ('G1217', 'MIL'), ('G1217', 'G257'), ('G1217', 'G1800'), ('G800', 'YR.GLASS'), ('G800', 'G383'), ('G866', 'YR.GLASS'), ('G795', 'YR.GLASS'), ('G2570', 'YLD'), ('G260', 'YLD'), ('G2920', 'YLD'), ('G832', 'HT'), ('G832', 'YLD'), ('G832', 'FUS'), ('G1896', 'HT'), ('G1896', 'FUS'), ('G2953', 'HT'), ('G2953', 'G1896'), ('G2953', 'G1800'), ('G266', 'HT'), ('G266', 'FT'), ('G266', 'G1789'), ('G847', 'HT'), ('G942', 'HT'), ('G200', 'YR.FIELD'), ('G257', 'YR.FIELD'), ('G257', 'G2208'), ('G257', 'G1800'), ('G2208', 'YR.FIELD'), ('G2208', 'MIL'), ('G1373', 'YR.FIELD'), ('G599', 'YR.FIELD'), ('G599', 'G1276'), ('G261', 'YR.FIELD'), ('G383', 'FUS'), ('G1853', 'G311'), ('G1853', 'FUS'), ('G1033', 'FUS'), ('G1945', 'MIL'), ('G1338', 'MIL'), ('G1338', 'G266'), ('G1276', 'FT'), ('G1276', 'G266'), ('G1263', 'FT'), ('G2318', 'FT'), ('G1294', 'FT'), ('G1800', 'FT'), ('G1750', 'YR.GLASS'), ('G1750', 'G1373'), ('G524', 'MIL'), ('G775', 'FT'), ('G2835', 'HT'), ('G2835', 'G1800')]
+        }
 
 def child_dict(net: list):
     res_dict = dict()
@@ -62,7 +83,7 @@ def precision_recall(pred, true_net: list, decimal = 2):
     return {
     'SHD': shd}
 
-true_net = [('A', 'C'), ('A', 'D'), ('A', 'H'), ('A', 'O'), ('C', 'I'), ('D', 'I'), ('H', 'D'), ('I', 'T'), ('O', 'T')]
+true_net = dict_true_str[file]
 
 class PopulationalOptimizer(GraphOptimizer):
     """
@@ -126,16 +147,16 @@ class PopulationalOptimizer(GraphOptimizer):
 
             self._initial_population(evaluator=evaluator)
             
-            textfile = open("2_healthcare.txt", "w")
-            textfile.write('pop_size: ' + str(self.graph_optimizer_params.pop_size)+'\n')
-            textfile.write('num_of_generations: ' + str(self.requirements.num_of_generations)+'\n')
-            textfile.write('crossover_prob: ' + str(self.graph_optimizer_params.crossover_prob)+'\n')
-            textfile.write('mutation_prob: ' + str(self.graph_optimizer_params.mutation_prob)+'\n')
-            textfile.write('genetic_scheme_type: ' + str(self.graph_optimizer_params.genetic_scheme_type.name)+'\n')
-            textfile.write('selection_types: ' + str(self.graph_optimizer_params.selection_types[0].name)+'\n')
-            textfile.write('mutation_types: ' + str([i.__name__ for i in self.graph_optimizer_params.mutation_types])+'\n')
-            textfile.write('crossover_types: ' + str([i.__name__ for i in self.graph_optimizer_params.crossover_types])+'\n')
-            textfile.write('\n')        
+            # textfile = open("2_healthcare.txt", "w")
+            # textfile.write('pop_size: ' + str(self.graph_optimizer_params.pop_size)+'\n')
+            # textfile.write('num_of_generations: ' + str(self.requirements.num_of_generations)+'\n')
+            # textfile.write('crossover_prob: ' + str(self.graph_optimizer_params.crossover_prob)+'\n')
+            # textfile.write('mutation_prob: ' + str(self.graph_optimizer_params.mutation_prob)+'\n')
+            # textfile.write('genetic_scheme_type: ' + str(self.graph_optimizer_params.genetic_scheme_type.name)+'\n')
+            # textfile.write('selection_types: ' + str(self.graph_optimizer_params.selection_types[0].name)+'\n')
+            # textfile.write('mutation_types: ' + str([i.__name__ for i in self.graph_optimizer_params.mutation_types])+'\n')
+            # textfile.write('crossover_types: ' + str([i.__name__ for i in self.graph_optimizer_params.crossover_types])+'\n')
+            # textfile.write('\n')        
             
 
             while not self.stop_optimization():
@@ -146,17 +167,16 @@ class PopulationalOptimizer(GraphOptimizer):
                     return self.best_graphs
                 # Adding of new population to history
                 self._update_population(new_population)
+                # best = self.generations.best_individuals[0]
+                # structure = best.graph.get_edges()
+                # score = best.fitness.value[0]
+                # SHD = precision_recall(best, true_net)['SHD']
 
-                best = self.generations.best_individuals[0]
-                structure = best.graph.get_edges()
-                score = best.fitness.value[0]
-                SHD = precision_recall(best, true_net)['SHD']
-
-                textfile.write('current_generation_num:' + str(self.current_generation_num)+'\n')
-                textfile.write('structure:' + str(structure)+'\n')
-                textfile.write('score:' + str(score)+'\n')
-                textfile.write('SHD:' + str(SHD)+'\n')
-                textfile.write('\n')
+                # textfile.write('current_generation_num:' + str(self.current_generation_num)+'\n')
+                # textfile.write('structure:' + str(structure)+'\n')
+                # textfile.write('score:' + str(score)+'\n')
+                # textfile.write('SHD:' + str(SHD)+'\n')
+                # textfile.write('\n')
 
         #         SHD = precision_recall(best, true_net)['SHD']
         #         print(SHD)
@@ -172,15 +192,41 @@ class PopulationalOptimizer(GraphOptimizer):
         #             else:
         #                 pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
         # pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/asia0" +".pdf")
-        textfile.write('time_min:' + str(round(self.timer.minutes_from_start, 1)) + '\n')
-        textfile.write(str('parent_model:') + '\n')
+        
+        
+        # textfile.write('time_min:' + str(round(self.timer.minutes_from_start, 1)) + '\n')
+        # textfile.write(str('parent_model:') + '\n')
+        # for node in best.graph.nodes:
+        #     if node.content['parent_model'] == None: 
+        #         textfile.write(str(node) + " -> " + str(None) + '\n')
+        #     else:
+        #         textfile.write(str(node) + " -> " + str(node.content['parent_model'].implementation_info) + '\n')
+                
+        # textfile.close()
+
+        best = self.generations.best_individuals[0]
+        structure = best.graph.get_edges()
+        score = best.fitness.value[0]
+        SHD = precision_recall(best, true_net)['SHD']
+        best.graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/' + str(k) + str(file)+ str(self.number) + '.png'))
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size = 14)
+        pdf.cell(150, 5, txt = 'Score = ' + str(score), ln = 1, align = 'C')   
+        pdf.cell(150, 5, txt = 'SHD = ' + str(SHD), ln = 1, align = 'C')
+        pdf.cell(150, 5, txt = 'time_min = ' + str(round(self.timer.minutes_from_start, 1)), ln = 1, align = 'C')
+        pdf.cell(150, 5, txt = 'current_generation_num =' + str(self.current_generation_num), ln = 1, align = 'C')   
+        pdf.image('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/' + str(k) + str(file)+ str(self.number) +'.png',w=165, h=165)     
+        pdf.multi_cell(180, 5, txt = 'structure = ' + str(structure))  
         for node in best.graph.nodes:
             if node.content['parent_model'] == None: 
-                textfile.write(str(node) + " -> " + str(None) + '\n')
+                pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(None))
             else:
-                textfile.write(str(node) + " -> " + str(node.content['parent_model'].implementation_info) + '\n')
-                
-        textfile.close()
+                pdf.multi_cell(150, 5, txt = str(node) + " -> " + str(node.content['parent_model'].implementation_info))
+        pdf.output("C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/" + str(k) + str(file)+ str(self.number) + ".pdf")
+        
+
         return self.best_graphs
     @property
     def best_graphs(self):
