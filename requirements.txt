@@ -1,5 +1,5 @@
 # Base framework
-git+https://github.com/ITMO-NSS-team/GOLEM.git@main#egg=golem
+golem @ git+https://github.com/ITMO-NSS-team/GOLEM.git@main#egg=golem
 
 # Data
 numpy>=1.16.0, !=1.24.0
