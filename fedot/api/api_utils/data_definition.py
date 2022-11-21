@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from os import PathLike
 from typing import Union, Optional
 
 import numpy as np
@@ -10,8 +11,8 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict, tuple]
-TargetType = Union[str, np.ndarray, pd.Series, dict]
+FeaturesType = Union[str, PathLike, np.ndarray, pd.DataFrame, InputData, dict, tuple]
+TargetType = Union[str, PathLike, np.ndarray, pd.Series, dict]
 
 
 class DataDefiner:
@@ -112,7 +113,7 @@ class NumpyStrategy(StrategyDefineData):
 
 
 class CsvStrategy(StrategyDefineData):
-    def define_data(self, features: str,
+    def define_data(self, features: Union[str, PathLike],
                     ml_task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
@@ -165,9 +166,10 @@ class MultimodalStrategy(StrategyDefineData):
 
 
 def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
-    data_type = type(features)
 
-    data = DataDefiner(_strategy_dispatch[data_type]())
+    strategy = [strategy for cls, strategy in _strategy_dispatch.items() if isinstance(features, cls)][0]
+
+    data = DataDefiner(strategy())
     return data.define_data(features, ml_task, target, is_predict)
 
 
@@ -177,4 +179,5 @@ _strategy_dispatch = {InputData: FedotStrategy,
                       pd.DataFrame: PandasStrategy,
                       np.ndarray: NumpyStrategy,
                       str: CsvStrategy,
+                      PathLike: CsvStrategy,
                       dict: MultimodalStrategy}
