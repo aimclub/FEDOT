@@ -41,9 +41,7 @@ def get_mutation_operator(mutation_types: Sequence[MutationTypesEnum],
     if not requirements:
         operations = get_operations_for_task(task)
         requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
-    graph_params = get_pipeline_generation_params(requirements=requirements,
-                                                  rules_for_constraint=DEFAULT_DAG_RULES,
-                                                  task=task)
+    graph_params = get_pipeline_generation_params(requirements=requirements, task=task)
     parameters = GPGraphOptimizerParameters(mutation_types=mutation_types,
                                             mutation_prob=mutation_prob,
                                             mutation_strength=mutation_strength)
@@ -113,8 +111,9 @@ def pipeline_with_custom_parameters(alpha_value):
 
 def get_requirements_and_params_for_task(task: TaskTypesEnum):
     ops = get_operations_for_task(Task(task))
-    return (PipelineComposerRequirements(primary=ops, secondary=ops, max_depth=2),
-            get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES, task=Task(task)))
+    req = PipelineComposerRequirements(primary=ops, secondary=ops, max_depth=2)
+    gen_params = get_pipeline_generation_params(requirements=req, task=Task(task))
+    return req, gen_params
 
 
 def test_nodes_from_height():
@@ -142,9 +141,9 @@ def test_evaluate_individuals():
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=0.001)
-    params = get_pipeline_generation_params()
+    adapter = PipelineAdapter()
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(params.adapter).dispatch(objective_eval, timer=t)
+        evaluator = MultiprocessingDispatcher(adapter).dispatch(objective_eval, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
@@ -154,7 +153,7 @@ def test_evaluate_individuals():
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(params.adapter).dispatch(objective_eval, timer=t)
+        evaluator = MultiprocessingDispatcher(adapter).dispatch(objective_eval, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 4
     assert all([ind.fitness.valid for ind in evaluated])

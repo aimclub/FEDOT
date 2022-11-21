@@ -103,8 +103,8 @@ class GraphOptimizer:
         self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
-        self.requirements = requirements
-        self.graph_generation_params = graph_generation_params or GraphGenerationParams()
+        self.requirements = requirements or ComposerRequirements()
+        self.graph_generation_params = graph_generation_params
         self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
         mo = False if not graph_optimizer_parameters else graph_optimizer_parameters.multi_objective

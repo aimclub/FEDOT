@@ -304,13 +304,18 @@ class PipelineTemplate:
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
 
+        preprocessor_file = None
         if path is not None and 'preprocessing' in os.listdir(path):
             # Load data preprocessor and store it into the
             preprocessor_file = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
-            pipeline.preprocessor = joblib.load(preprocessor_file)
         elif dict_fitted_operations and 'preprocessing' in dict_fitted_operations:
             preprocessor_file = dict_fitted_operations['preprocessing']
-            pipeline.preprocessor = joblib.load(preprocessor_file)
+        if preprocessor_file:
+            try:
+                pipeline.preprocessor = joblib.load(preprocessor_file)
+            except ModuleNotFoundError as ex:
+                self.log.warning(f'Could not load preprocessor from file `{preprocessor_file}` '
+                                 f'due to legacy incompatibility. Please refit the preprocessor.')
 
     def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
