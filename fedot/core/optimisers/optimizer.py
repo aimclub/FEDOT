@@ -64,13 +64,20 @@ class GraphGenerationParams:
                  rules_for_constraint: Sequence[VerifierRuleType] = tuple(DEFAULT_DAG_RULES),
                  advisor: Optional[DefaultChangeAdvisor] = None,
                  node_factory: Optional[OptNodeFactory] = None,
+                 available_node_types: Optional[Sequence[Any]] = None,
                  remote_evaluator: Optional[DelegateEvaluator] = None,
                  ):
         self.adapter = adapter or IdentityAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
-        self.node_factory = node_factory or DefaultOptNodeFactory()
         self.remote_evaluator = remote_evaluator
+        if node_factory:
+            self.node_factory = node_factory
+        elif available_node_types:
+            self.node_factory = DefaultOptNodeFactory(available_node_types)
+        else:
+            raise AttributeError('Required arguments not provided, please provide '
+                                 'custom node factory or collection of available node types.')
 
 
 class GraphOptimizer:
@@ -96,8 +103,8 @@ class GraphOptimizer:
         self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
-        self.requirements = requirements
-        self.graph_generation_params = graph_generation_params or GraphGenerationParams()
+        self.requirements = requirements or ComposerRequirements()
+        self.graph_generation_params = graph_generation_params
         self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
         mo = False if not graph_optimizer_parameters else graph_optimizer_parameters.multi_objective

@@ -4,7 +4,7 @@ from typing import Dict, Iterable, Sequence, Type, Optional, Any
 import numpy as np
 import datetime
 
-from fedot.core.optimisers.fitness import is_metric_worse
+from fedot.core.optimisers.fitness import is_metric_worse, Fitness
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
@@ -147,11 +147,7 @@ class GenerationKeeper(ImprovementWatcher):
     def _reset_metrics_improvement(self):
         self._metrics_improvement = {metric_id: False for metric_id in self._metric_ids}
 
-    def _format_fitness(self, individual: Individual) -> str:
-        fitness_info = zip(self._metric_ids, individual.fitness.values)
-        fitness_info_str = [f'{name}={value:.3f}' for name, value in fitness_info]
-        return ' '.join(fitness_info_str)
-
     def __str__(self) -> str:
+        ff = self._objective.format_fitness
         return (f'{self.archive.__class__.__name__} archive fitness: '
-                f'{[self._format_fitness(ind) for ind in self.best_individuals]}')
+                f'{[ff(ind.fitness) for ind in self.best_individuals]}')

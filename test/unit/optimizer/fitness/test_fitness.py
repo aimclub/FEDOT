@@ -82,6 +82,13 @@ def test_fitness_equality(fitness_objects):
     assert SingleObjFitness(1., 2., 3.) != MultiObjFitness([1., 2., 3.])
 
 
+def test_fitness_compare_with_null_fitness():
+    assert SingleObjFitness(1, 10) > null_fitness()
+    assert SingleObjFitness(None, 10) != null_fitness()
+    assert MultiObjFitness((1, 123, 123)) > null_fitness()
+    assert MultiObjFitness((0, 0, 0)) > null_fitness()
+
+
 def test_fitness_compare_prioritised_invalid():
     assert SingleObjFitness(None, 10) < SingleObjFitness(1, 20)
     assert SingleObjFitness(1, 10) > SingleObjFitness(None, 20)

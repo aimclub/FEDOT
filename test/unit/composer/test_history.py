@@ -1,3 +1,4 @@
+import itertools
 import os
 from functools import partial
 from itertools import chain
@@ -11,6 +12,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
+from fedot.core.optimisers.graph import OptNode, OptGraph
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -128,8 +130,8 @@ def test_ancestor_for_crossover():
     parent_ind_first = Individual(adapter.adapt(Pipeline(PrimaryNode('linear'))))
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
-    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
     composer_requirements = PipelineComposerRequirements(max_depth=3)
+    graph_params = get_pipeline_generation_params(composer_requirements)
     opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
     crossover = Crossover(opt_parameters, composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
@@ -257,3 +259,27 @@ def test_history_correct_serialization():
     assert history.individuals == reloaded_history.individuals
     assert dumped_history_json == reloaded_history.save(), 'The history is not equal to itself after reloading!'
     _test_individuals_in_history(reloaded_history)
+
+
+def test_history_save_custom_nodedata():
+    contents = [{'name': f'custom_{i}',
+                 'important_field': ['secret', 42],
+                 'matrix': np.random.randint(0, 100, (4 + 2 * i, 2 + i)).tolist()}
+                for i in range(10)]
+
+    graphs = [Individual(OptGraph(OptNode(content=content)), native_generation=i)
+              for i, content in enumerate(contents)]
+
+    history = OptHistory()
+    history.add_to_history(graphs[:3])
+    history.add_to_history(graphs[3:6])
+    history.add_to_history(graphs[6:])
+
+    saved = history.save()
+    reloaded = OptHistory.load(saved)
+    reloaded_inds = list(itertools.chain(*reloaded.individuals))
+
+    for i, ind in enumerate(reloaded_inds):
+        ind_content = ind.graph.root_node.content
+        assert ind_content == contents[i]
+        assert ind_content['matrix'] == contents[i]['matrix']

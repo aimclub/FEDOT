@@ -4,7 +4,7 @@ Profiler
 MemoryProfiler
 --------------
 
-.. automodule:: fedot.utilities.profiler.automl_memory_profiler
+.. automodule:: fedot.utilities.profiler.memory_profiler
    :members:
    :no-undoc-members:
 

@@ -33,8 +33,8 @@ def test_crossover_with_single_node():
     graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
     graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
 
-    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
     requirements = PipelineComposerRequirements()
+    graph_params = get_pipeline_generation_params(requirements)
 
     for crossover_type in CrossoverTypesEnum:
         opt_parameters = GPGraphOptimizerParameters(crossover_types=[crossover_type], crossover_prob=1)

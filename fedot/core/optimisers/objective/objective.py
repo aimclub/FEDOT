@@ -45,6 +45,13 @@ class Objective:
     def metric_names(self) -> Sequence[str]:
         return [str(metric_id) for metric_id, _ in self.metrics]
 
+    def format_fitness(self, fitness: Fitness) -> str:
+        """Returns formatted fitness string.
+        Example for 3 metrics: `<roc_auc=0.542 f1=0.72 complexity=0.8>`"""
+        fitness_info = zip(self.metric_names, fitness.values)
+        fitness_info_str = [f'{name}={value:.3f}' for name, value in fitness_info]
+        return f"<{' '.join(fitness_info_str)}>"
+
 
 def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = False) -> Fitness:
     if metric_values is None:
@@ -54,9 +61,3 @@ def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = 
                                weights=[-1] * len(metric_values))
     else:
         return SingleObjFitness(*metric_values)
-
-
-def get_metric_position(metrics, metric_type):
-    for num, metric in enumerate(metrics):
-        if isinstance(metric, metric_type):
-            return num
