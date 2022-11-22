@@ -4,13 +4,13 @@ Profiler
 MemoryProfiler
 --------------
 
-.. automodule:: fedot.utilities.profiler.memory_profiler
+.. automodule:: golem.utilities.profiler.memory_profiler
    :members:
    :no-undoc-members:
 
 TimeProfiler
 ------------
 
-.. automodule:: fedot.utilities.profiler.time_profiler
+.. automodule:: golem.utilities.profiler.time_profiler
    :members:
    :no-undoc-members:

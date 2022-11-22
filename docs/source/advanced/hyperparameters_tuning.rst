@@ -151,7 +151,7 @@ Specify metric to optimize using ``.with_metric()``.
 .. code-block:: python
 
     from sklearn.metrics import mean_squared_error as mse
-    from fedot.core.dag.graph import Graph
+    from golem.core.dag.graph import Graph
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -266,8 +266,8 @@ Tuning all hyperparameters simultaniously
     import datetime
     import hyperopt
     from hyperopt import hp
+    from golem.core.optimisers.composer_requirements import ComposerRequirements
     from fedot.core.data.data import InputData
-    from fedot.core.optimisers.composer_requirements import ComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.search_space import SearchSpace
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -406,7 +406,7 @@ Tuning of a node
 .. code-block:: python
 
     import datetime
-    from fedot.core.optimisers.composer_requirements import ComposerRequirements
+    from golem.core.optimisers.composer_requirements import ComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder

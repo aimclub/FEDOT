@@ -1,5 +1,5 @@
 GraphNode
 =========
 
-.. autoclass:: fedot.core.dag.graph_node.GraphNode
+.. autoclass:: golem.core.dag.graph_node.GraphNode
    :members:

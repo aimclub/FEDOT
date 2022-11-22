@@ -1,10 +1,10 @@
 Adapter Subsystem
 =================
 
-.. automodule:: fedot.core.adapter.adapt_registry
+.. automodule:: golem.core.adapter.adapt_registry
    :members:
    :no-undoc-members:
 
-.. automodule:: fedot.core.adapter.adapter
+.. automodule:: golem.core.adapter.adapter
    :members:
    :no-undoc-members:
