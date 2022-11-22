@@ -50,14 +50,14 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data, in_sample=True)
+    in_sample_forecast = model.predict(test_data)
     print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape'], in_sample=True))
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
 
     # plot forecasting result
     if visualization:
         pipeline.show()
-        model.plot_prediction(in_sample=True)
+        model.plot_prediction()
 
     # use model to obtain one-step forecast
     train_data, test_data = train_test_data_setup(train_input)

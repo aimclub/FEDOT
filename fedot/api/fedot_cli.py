@@ -73,7 +73,7 @@ def run_fedot(parameters, main_params, fit_params, save_predictions=True):
     print("\nFitting start...")
     model.fit(**fit_params)
     print("\nPrediction start...")
-    prediction = model.predict(features=getattr(parameters, 'test'), save_predictions=save_predictions)
+    prediction = model.predict(features=getattr(parameters, 'test'), in_sample=False, save_predictions=save_predictions)
     print(f"\nPrediction saved at {os.getcwd()}\\predictions.csv")
     return prediction
 

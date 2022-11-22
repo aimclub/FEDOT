@@ -132,6 +132,7 @@ class Fedot:
 
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
+        self.prediction_is_in_sample = True
         self.train_data: Optional[InputData] = None
         self.test_data: Optional[InputData] = None
 
@@ -196,7 +197,7 @@ class Fedot:
     def predict(self,
                 features: FeaturesType,
                 save_predictions: bool = False,
-                in_sample: bool = False,
+                in_sample: bool = True,
                 validation_blocks: Optional[int] = None) -> np.ndarray:
         """Predicts new target using already fitted model.
 
@@ -220,12 +221,12 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
-
+        self.prediction_is_in_sample = in_sample
         validation_blocks = validation_blocks or self.params.api_params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
-                                                                 in_sample=in_sample,
+                                                                 in_sample=self.prediction_is_in_sample,
                                                                  validation_blocks=validation_blocks)
 
         if save_predictions:
@@ -293,6 +294,7 @@ class Fedot:
                                                          is_predict=True)
         predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
+        self.prediction_is_in_sample = False
         if save_predictions:
             self.save_predict(self.prediction)
         return self.prediction.predict
@@ -324,7 +326,7 @@ class Fedot:
                          objectives_names=metric_names,
                          show=True)
 
-    def plot_prediction(self, in_sample: bool = False, target: Optional[Any] = None):
+    def plot_prediction(self, in_sample: Optional[bool] = None, target: Optional[Any] = None):
         """Plots the prediction obtained from graph
 
         Args:
@@ -335,6 +337,7 @@ class Fedot:
         """
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
+                in_sample = in_sample or self.prediction_is_in_sample
                 plot_forecast(self.test_data, self.prediction, in_sample, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
@@ -351,7 +354,7 @@ class Fedot:
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None,
-                    in_sample: bool = False,
+                    in_sample: Optional[bool] = None,
                     validation_blocks: Optional[int] = None) -> dict:
         """Gets quality metrics for the fitted graph
 
@@ -394,7 +397,9 @@ class Fedot:
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities
                     prediction.predict = self.predict_proba(self.test_data)
                 else:
-                    prediction.predict = self.predict(self.test_data, in_sample=in_sample,
+                    if in_sample is not None:
+                        self.prediction_is_in_sample = in_sample
+                    prediction.predict = self.predict(self.test_data, in_sample=self.prediction_is_in_sample,
                                                       validation_blocks=validation_blocks)
                 real = deepcopy(self.test_data)
 
