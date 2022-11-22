@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Iterable, Any
 
 import numpy as np
 import pandas as pd
 
+from fedot.core.log import default_log
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -44,18 +47,18 @@ class Data:
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List] = None,
                  target_columns: Union[str, List] = '',
-                 index_col: Optional[Union[str, int]] = 0):
+                 index_col: Optional[Union[str, int]] = 0) -> InputData:
         """Import data from ``csv``
 
         Args:
-            file_path: the path to the ``CSV`` with data
-            columns_to_drop: the names of columns that should be dropped
-            delimiter: the delimiter to separate the columns
-            task: the :obj:`Task` that should be solved with data
-            data_type: the type of data interpretation
-            target_columns: name of target column (last column if empty and no target if ``None``)
-            index_col: column name or index to use as the :obj:`Data.idx`;\n
-                if ``None`` then arrange new unique index
+            file_path: the path to the ``CSV`` with data.
+            columns_to_drop: the names of columns that should be dropped.
+            delimiter: the delimiter to separate the columns.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+            target_columns: name of the target column (the last column if empty and no target if ``None``).
+            index_col: name or index of the column to use as the :obj:`Data.idx`;\n
+                if ``None``, then new unique index is arranged.
 
         Returns:
             data
@@ -63,7 +66,7 @@ class Data:
 
         data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
         if columns_to_drop:
-            data_frame = data_frame.drop(columns_to_drop, axis=1)
+            data_frame.drop(columns_to_drop, axis=1, inplace=True)
 
         idx = data_frame.index.to_numpy()
         features, target = process_target_and_features(data_frame, target_columns)
@@ -75,7 +78,7 @@ class Data:
                              file_path=None,
                              delimiter=',',
                              is_predict=False,
-                             target_column: Optional[str] = ''):
+                             target_column: Optional[str] = '') -> InputData:
         df = pd.read_csv(file_path, sep=delimiter)
 
         idx = get_indices_from_file(df, file_path)
@@ -112,7 +115,7 @@ class Data:
                                    delimiter=',',
                                    is_predict=False,
                                    columns_to_use: Optional[list] = None,
-                                   target_column: Optional[str] = ''):
+                                   target_column: Optional[str] = '') -> InputData:
         """
         Forms :obj:`InputData` of ``multi_ts`` type from columns of different variant of the same variable
 
@@ -165,7 +168,7 @@ class Data:
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification),
-                   target_size: Optional[Tuple[int, int]] = None):
+                   target_size: Optional[Tuple[int, int]] = None) -> InputData:
         """Input data from Image
 
         Args:
@@ -213,7 +216,7 @@ class Data:
     def from_text_meta_file(meta_file_path: str = None,
                             label: str = 'label',
                             task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.text):
+                            data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
 
         if os.path.isdir(meta_file_path):
             raise ValueError("""CSV file expected but got directory""")
@@ -233,7 +236,7 @@ class Data:
     def from_text_files(files_path: str,
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.text):
+                        data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
 
         if os.path.isfile(files_path):
             raise ValueError("""Path to the directory expected but got file""")
@@ -253,7 +256,7 @@ class Data:
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: DataTypesEnum = DataTypesEnum.table,
-                        export_to_meta=False, is_multilabel=False, shuffle=True) -> 'InputData':
+                        export_to_meta=False, is_multilabel=False, shuffle=True) -> InputData:
         """Generates InputData from the set of ``JSON`` files with different fields
 
         Args:
@@ -519,7 +522,7 @@ def data_type_is_image(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.image
 
 
-def get_indices_from_file(data_frame, file_path, idx_column='datetime'):
+def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Iterable[Any]:
     if idx_column in data_frame.columns:
         df = pd.read_csv(file_path,
                          parse_dates=[idx_column])
@@ -532,7 +535,7 @@ def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: Optional[DataTypesEnum] = None):
+                        data_type: Optional[DataTypesEnum] = None) -> InputData:
     if idx is None:
         idx = np.arange(len(features_array))
     if data_type is None:

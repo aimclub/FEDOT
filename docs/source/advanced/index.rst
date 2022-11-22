@@ -1,5 +1,3 @@
-.. _advanced:
-
 Advanced usage
 ==============
 
