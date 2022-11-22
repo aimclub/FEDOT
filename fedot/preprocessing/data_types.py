@@ -430,15 +430,16 @@ def define_column_types(table: np.ndarray):
         current_column = table[:, column_id]
 
         column_types = np.where(pd.isna(current_column), str(type(None)), vto_type(current_column))
+        unique_column_types = np.unique(column_types)
 
-        if len(np.unique(column_types)) > 1:
+        if len(unique_column_types) > 1:
             str_number = (column_types == NAME_CLASS_STR).sum()
             int_number = (column_types == NAME_CLASS_INT).sum()
             float_number = (column_types == NAME_CLASS_FLOAT).sum()
 
             # Store information about nans in the target
             nan_ids = np.ravel(np.argwhere(column_types == NAME_CLASS_NONE))  # TODO: maybe just convert to list to preserve idx pairs?
-            columns_info.update({column_id: {'types': column_types,
+            columns_info.update({column_id: {'types': unique_column_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
                                              'float_number': float_number,
@@ -446,7 +447,7 @@ def define_column_types(table: np.ndarray):
                                              'nan_ids': nan_ids}})
         else:
             # There is only one type, or several types such as int and float
-            columns_info.update({column_id: {'types': column_types}})
+            columns_info.update({column_id: {'types': unique_column_types}})
     return columns_info
 
 
