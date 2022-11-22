@@ -100,7 +100,9 @@ class NumpyStrategy(StrategyDefineData):
         if target is None:
             target = np.array([])
 
-        if isinstance(target, int):
+        if ml_task.task_type is TaskTypesEnum.ts_forecasting:
+            target_array = features
+        elif isinstance(target, int):
             target_array = features[target]
             features = np.delete(features, target, axis=1)
         else:

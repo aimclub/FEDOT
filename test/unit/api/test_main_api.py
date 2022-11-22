@@ -645,3 +645,12 @@ def test_forecast_with_multivariate_ts():
     assert len(forecast) == forecast_length - 1
     with pytest.raises(ValueError):
         model.forecast(horizon=forecast_length + 1)
+
+
+def test_ts_from_array():
+    df = pd.read_csv(fedot_project_root().joinpath('test/data/simple_sea_level.csv'))
+    train_array = np.array(df['Level'])
+
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=250))
+    data = ApiDataProcessor(task).define_data(features=train_array, target='target')
+    assert np.array_equal(data.target, data.features)
