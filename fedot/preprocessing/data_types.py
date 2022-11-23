@@ -494,17 +494,10 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
 
 def convert_num_column_into_string_array(numerical_column: pd.Series) -> np.array:
     """ Convert pandas column into numpy one-dimensional array """
-    # Convert into string
-    converted_column = numerical_column.astype(str)
-    converted_array = converted_column.values
-
-    # If there are nans - insert them
-    nan_ids = np.ravel(np.argwhere(converted_array == 'nan'))
-    if len(nan_ids) > 0:
-        converted_array = converted_array.astype(object)
-        converted_array[nan_ids] = np.nan
-
-    return converted_array
+    # convert only non-nans values
+    true_nums = numerical_column[numerical_column.notna()]
+    numerical_column[true_nums.index] = true_nums.astype(str, copy=False)
+    return numerical_column.to_numpy()
 
 
 def _obtain_new_column_type(column_info):
