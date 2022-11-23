@@ -9,7 +9,7 @@ from golem.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 NoneType = type(None)
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from fedot.core.data.data import InputData
@@ -281,7 +281,7 @@ class TableTypesCorrector:
             return None, 'removed'
 
     def _convert_target_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int,
-                                      task: Task) -> [np.array, str]:
+                                      task: Task) -> Tuple[np.ndarray, str]:
         """ Convert target columns into one type based on column proportions of object and task """
         if task.task_type is TaskTypesEnum.classification:
             # For classification labels are string if at least one element is a string
@@ -309,7 +309,7 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        n_rows, n_cols = data.features.shape
+        _, n_cols = data.features.shape
         for column_id in range(n_cols):
             # For every int/float column perform check
             column_type = data.supplementary_data.column_types['features'][column_id]
@@ -339,7 +339,7 @@ class TableTypesCorrector:
             # There is no transformation for current table
             return data
 
-        n_rows, n_cols = data.features.shape
+        _, n_cols = data.features.shape
         for column_id in range(n_cols):
             if column_id in self.numerical_into_str:
                 numerical_column = pd.Series(data.features[:, column_id])
