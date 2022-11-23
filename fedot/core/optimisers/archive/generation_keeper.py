@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Sequence, Type, Optional, Any
+from typing import Dict, Iterable, Sequence, Type, Optional, Any, Callable
 
 import numpy as np
 import datetime
@@ -48,6 +48,13 @@ class ImprovementWatcher(ABC):
         raise NotImplementedError()
 
 
+def _individuals_same(ind1: Individual, ind2: Individual) -> bool:
+    fitness_same = ind1.fitness == ind2.fitness
+    graphs_similar = (ind1.graph.depth == ind2.graph.depth and
+                      ind1.graph.length == ind2.graph.length)
+    return fitness_same and graphs_similar
+
+
 class GenerationKeeper(ImprovementWatcher):
     """Generation keeper that primarily tracks number of generations and stagnation duration.
 
@@ -57,12 +64,15 @@ class GenerationKeeper(ImprovementWatcher):
          NB: relevant only for single-objective optimization.
         initial_generation: Optional first generation;
          NB: if None then keeper is created in inconsistent state and requires an initial .append().
+        similar: a function that tells in the case of multi-objective optimization
+         tells the Pareto front whether or not two individuals are similar, optional.
     """
 
     def __init__(self,
                  objective: Optional[Objective] = None,
                  keep_n_best: int = 1,
-                 initial_generation: PopulationT = None):
+                 initial_generation: PopulationT = None,
+                 similar: Callable = _individuals_same):
         self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._stagnation_start_time = datetime.datetime.now()
@@ -71,7 +81,10 @@ class GenerationKeeper(ImprovementWatcher):
         self._metrics_improvement: Dict[Any, bool] = {}
         self._reset_metrics_improvement()
 
-        self.archive = ParetoFront() if objective.is_multi_objective else HallOfFame(maxsize=keep_n_best)
+        if objective.is_multi_objective:
+            self.archive = ParetoFront(maxsize=keep_n_best * 10, similar=similar)
+        else:
+            self.archive = HallOfFame(maxsize=keep_n_best)
 
         if initial_generation is not None:
             self.append(initial_generation)
@@ -94,7 +107,7 @@ class GenerationKeeper(ImprovementWatcher):
 
     @property
     def stagnation_time_duration(self) -> float:
-        return (datetime.datetime.now() - self._stagnation_start_time).seconds/60
+        return (datetime.datetime.now() - self._stagnation_start_time).seconds / 60
 
     @property
     def is_any_improved(self) -> bool:
@@ -149,5 +162,5 @@ class GenerationKeeper(ImprovementWatcher):
 
     def __str__(self) -> str:
         ff = self._objective.format_fitness
-        return (f'{self.archive.__class__.__name__} archive fitness: '
-                f'{[ff(ind.fitness) for ind in self.best_individuals]}')
+        fitnesses = [ff(ind.fitness) for ind in self.best_individuals]
+        return f'{self.archive.__class__.__name__} archive fitness ({len(fitnesses)}): {fitnesses}'

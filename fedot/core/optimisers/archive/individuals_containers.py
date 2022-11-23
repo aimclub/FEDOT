@@ -31,7 +31,7 @@ class HallOfFame:
     """
 
     def __init__(self, maxsize: Optional[int], similar: Callable = eq):
-        self.maxsize = maxsize
+        self.maxsize = maxsize or 0
         self.keys = list()
         self.items = list()
         self.similar = similar
@@ -125,12 +125,15 @@ class ParetoFront(HallOfFame):
     case only one of the two individuals will be added to the hall of fame. By
     default the similarity function is :func:`operator.eq`.
 
+    ParetoFront also supports hard-limiting maxsize, in which cases the element
+    with worst primary metric is removed. By default ParetoFront is unbounded.
+
     Since, the Pareto front hall of fame inherits from the :class:`HallOfFame`,
     it is sorted lexicographically at every moment.
     """
 
-    def __init__(self, similar: Callable = eq):
-        HallOfFame.__init__(self, None, similar)
+    def __init__(self, maxsize: Optional[int] = None, similar: Callable = eq):
+        HallOfFame.__init__(self, maxsize, similar)
 
     def update(self, population: PopulationT):
         """
@@ -161,4 +164,6 @@ class ParetoFront(HallOfFame):
             for i in reversed(to_remove):  # Remove the dominated hofer
                 self.remove(i)
             if not is_dominated and not has_twin:
+                if len(self) >= self.maxsize:
+                    self.remove(-1)
                 self.insert(ind)
