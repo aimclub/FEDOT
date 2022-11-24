@@ -1,5 +1,5 @@
-Quickstart
-==========
+Quick start
+===========
 
 FEDOT Framework quick start guide.
 
