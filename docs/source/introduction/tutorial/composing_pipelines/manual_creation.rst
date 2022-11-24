@@ -1,5 +1,3 @@
-.. _manual_creation:
-
 Manual way
 ----------
 
@@ -14,7 +12,7 @@ Manual way
 
 .. hint::
 
-    See the :ref:`API documentation <fedot_api>` for descriptions of these and others parameters.
+    See the :doc:`API documentation </api/api>` for descriptions of these and others parameters.
 
 .. code:: python
 
@@ -45,13 +43,10 @@ Manual way
    node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
-The following links provide examples of manually constructed pipelines for different tasks:
-`classification <https://github.com/aimclub/FEDOT/blob/master/examples/simple/
-classification/classification_pipelines.py>`_,
-`regression <https://github.com/aimclub/FEDOT/blob/master/examples/simple/
-regression/regression_pipelines.py>`_,
-`time series forecasting <https://github.com/aimclub/FEDOT/blob/master/examples/simple/
-time_series_forecasting/ts_pipelines.py>`_.
+The following pages provide examples of manually constructed pipelines for different tasks:
+:doc:`classification </examples/classification_pipelines>`,
+:doc:`regression </examples/regression_pipelines>`,
+:doc:`time series forecasting </examples/ts_pipelines>`.
 
 -  **Step 3**. Fit the pipeline.
 
@@ -62,7 +57,7 @@ time_series_forecasting/ts_pipelines.py>`_.
 .. hint::
 
     If `predefined_model` is set to `'auto'`, FEDOT will choose and fit the default initial
-    assumption for the task. Note that this differs from :ref:`automated model creation <automated_creation>`,
+    assumption for the task. Note that this differs from :doc:`automated model creation </introduction/tutorial/composing_pipelines/automated_creation>`,
     although it does not require manual selection of the model.
 
 .. code::python
@@ -90,4 +85,4 @@ but significantly looses in ROC AUC. Apparently, there is a better way to go.
 
 Next, we can try to create another ML pipeline by hand and see if it gives higher scores.
 Or we can let FEDOT do it for us using evolutionary search.
-See the section :ref:`automated_creation` for details.
+See :doc:`/introduction/tutorial/composing_pipelines/automated_creation` for details.

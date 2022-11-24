@@ -1,5 +1,3 @@
-.. _fedot_api:
-
 FEDOT API
 =========
 

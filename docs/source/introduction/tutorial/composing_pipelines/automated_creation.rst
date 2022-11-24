@@ -1,5 +1,3 @@
-.. _automated_creation:
-
 Automated way
 -------------
 
@@ -14,7 +12,7 @@ Automated way
 
 .. hint::
 
-    See the :ref:`API documentation <fedot_api>` for descriptions of these and others parameters.
+    See the :doc:`API documentation </api/api>` for descriptions of these and others parameters.
 
 .. code:: python
 
@@ -56,10 +54,10 @@ Automated way
    >>> metrics: {'roc_auc': 0.833, 'f1': 0.936}
 
 Congratulations! We've just automatically built a machine learning pipeline with FEDOT.
-This time our pipeline outperforms the assumptions from the :ref:`previous example <manual_creation>`.
-To continue exploring the framework, there are sections with more detailed information on using FEDOT:
+This time our pipeline outperforms the assumptions from the :doc:`previous example <manual_creation>`.
+To continue exploring the framework, there are pages with more detailed information on using FEDOT:
 
--  :ref:`basics`;
--  :ref:`examples`;
--  :ref:`api`;
--  :ref:`advanced`.
+-  :doc:`/basics/index`;
+-  :doc:`/examples/index`;
+-  :doc:`/api/index`;
+-  :doc:`/advanced/index`.
