@@ -45,8 +45,7 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
         print(f'current local iteration {iteration}')
 
         # Pipeline tuning
-        pipeline_copy = deepcopy(pipeline)
-        tuned_pipeline = tuner.tune(pipeline_copy)
+        tuned_pipeline = tuner.tune(pipeline)
 
         # After tuning prediction
         tuned_pipeline.fit(train_data)
@@ -57,8 +56,8 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
                                   y_score=after_tuning_predicted.predict)
         several_iter_scores_test.append(aft_tun_roc_auc)
 
-    mean_metric = float(np.mean(several_iter_scores_test))
-    return mean_metric, several_iter_scores_test
+    max_metric = float(np.max(several_iter_scores_test))
+    return max_metric, several_iter_scores_test
 
 
 if __name__ == '__main__':
@@ -81,6 +80,6 @@ if __name__ == '__main__':
                                                                    local_iter=local_iter)
 
     print(f'Several test scores {several_iter_scores_test}')
-    print(f'Mean test score over {local_iter} iterations: {after_tune_roc_auc}')
-    print(round(bfr_tun_roc_auc, 3))
-    print(round(after_tune_roc_auc, 3))
+    print(f'Maximal test score over {local_iter} iterations: {after_tune_roc_auc}')
+    print(f'ROC-AUC before tuning {round(bfr_tun_roc_auc, 3)}')
+    print(f'ROC-AUC after tuning {round(after_tune_roc_auc, 3)}')

@@ -337,14 +337,22 @@ class Pipeline(GraphDelegate, Serializable):
             return None
         return input_data
 
+    @property
+    def structure(self) -> str:
+        """ Structural information about the pipeline
+
+            Returns:
+                string with pipeline structure
+        """
+        return '\n'.join([str(self), *(f'{node.operation.operation_type} - {node.parameters}' for node in self.nodes)])
+
     def print_structure(self):
-        """ Prints structural information about the pipeline
+        """ Prints structure of the pipeline
         """
 
         print(
             'Pipeline structure:',
-            self,
-            *(f'{node.operation.operation_type} - {node.parameters}' for node in self.nodes),
+            self.structure,
             sep='\n'
         )
 

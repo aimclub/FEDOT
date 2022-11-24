@@ -345,11 +345,7 @@ class SearchSpace:
         else:
             params_dict = {}
             for parameter_name in params_list:
-                # Name with operation and parameter
-                op_parameter_name = ''.join((operation_name, ' | ', parameter_name))
-
-                # Name with node id || operation | parameter
-                node_op_parameter_name = ''.join((str(node_id), ' || ', op_parameter_name))
+                node_op_parameter_name = get_node_operation_parameter_label(node_id, operation_name, parameter_name)
 
                 # For operation get range where search can be done
                 space = self.get_operation_parameter_range(operation_name=operation_name,
@@ -359,6 +355,15 @@ class SearchSpace:
                 params_dict.update({node_op_parameter_name: space})
 
         return params_dict
+
+
+def get_node_operation_parameter_label(node_id: int, operation_name: str, parameter_name: str) -> str:
+    # Name with operation and parameter
+    op_parameter_name = ''.join((operation_name, ' | ', parameter_name))
+
+    # Name with node id || operation | parameter
+    node_op_parameter_name = ''.join((str(node_id), ' || ', op_parameter_name))
+    return node_op_parameter_name
 
 
 def convert_params(params):
