@@ -124,7 +124,7 @@ class ApiComposer:
             timeout=datetime_composing,
             early_stopping_iterations=composer_params.get('early_stopping_iterations', None),
             early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
-            max_pipeline_fit_time=max_pipeline_fit_time,
+            max_graph_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             parallelization_mode=api_params['parallelization_mode'],
             static_individual_metadata={
@@ -340,7 +340,7 @@ class ApiComposer:
             .with_metric(metric_function) \
             .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
             .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
-            .with_eval_time_constraint(composer_requirements.max_pipeline_fit_time) \
+            .with_eval_time_constraint(composer_requirements.max_graph_fit_time) \
             .with_requirements(composer_requirements) \
             .build(train_data)
 

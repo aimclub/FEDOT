@@ -330,7 +330,7 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
         primary=primary_operations,
         secondary=secondary_operations,
         timeout=datetime.timedelta(seconds=300),
-        max_pipeline_fit_time=None,
+        max_graph_fit_time=None,
         max_depth=max_depth,
         max_arity=2,
         cv_folds=None,

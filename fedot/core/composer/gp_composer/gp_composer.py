@@ -51,7 +51,7 @@ class GPComposer(Composer):
 
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
-                                                        self.composer_requirements.max_pipeline_fit_time,
+                                                        self.composer_requirements.max_graph_fit_time,
                                                         self.composer_requirements.validation_blocks,
                                                         self.pipelines_cache, self.preprocessing_cache,
                                                         eval_n_jobs=n_jobs_for_evaluation)

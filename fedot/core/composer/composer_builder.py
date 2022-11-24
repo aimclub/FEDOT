@@ -84,7 +84,7 @@ class ComposerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.composer_requirements = requirements
-        if self.composer_requirements.max_pipeline_fit_time:
+        if self.composer_requirements.max_graph_fit_time:
             set_multiprocess_start_method()
         return self
 
