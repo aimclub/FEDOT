@@ -1,7 +1,6 @@
 from datetime import timedelta
 from typing import Callable, Type, Union
 
-from golem.core.optimisers.composer_requirements import ComposerRequirements
 from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -9,6 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -35,7 +35,7 @@ class TunerBuilder:
         self.tuner_class = tuner
         return self
 
-    def with_requirements(self, requirements: ComposerRequirements):
+    def with_requirements(self, requirements: PipelineComposerRequirements):
         self.cv_folds = requirements.cv_folds
         self.validation_blocks = requirements.validation_blocks
         self.n_jobs = requirements.n_jobs

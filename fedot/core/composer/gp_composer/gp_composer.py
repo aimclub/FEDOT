@@ -1,6 +1,6 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
 
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 

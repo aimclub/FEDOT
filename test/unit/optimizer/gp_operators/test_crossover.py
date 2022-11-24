@@ -1,6 +1,6 @@
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.adapters import PipelineAdapter

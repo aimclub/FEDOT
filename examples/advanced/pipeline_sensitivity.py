@@ -3,7 +3,7 @@ from os.path import exists, join
 
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
 from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline

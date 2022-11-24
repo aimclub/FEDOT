@@ -5,7 +5,7 @@ from typing import (Any, Callable, List, Sequence)
 from numpy import random
 
 from golem.core.optimisers.fitness import Fitness
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.objective import Objective, ObjectiveFunction
 from golem.core.optimisers.optimizer import GraphOptimizer
 

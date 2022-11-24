@@ -11,7 +11,7 @@ from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from golem.core.optimisers.objective.objective import Objective
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Union
 
 from golem.core.log import default_log
-from golem.core.optimisers.composer_requirements import ComposerRequirements
+from golem.core.optimisers.optimization_parameters import OptimizationParameters
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.optimisers.optimizer import GraphOptimizer
 
@@ -20,7 +20,7 @@ class Composer(ABC):
         composer_requirements: requirements for composition process
     """
 
-    def __init__(self, optimizer: GraphOptimizer, composer_requirements: Optional[ComposerRequirements] = None):
+    def __init__(self, optimizer: GraphOptimizer, composer_requirements: Optional[OptimizationParameters] = None):
         self.composer_requirements = composer_requirements
         self.optimizer = optimizer
         self.log = default_log(self)

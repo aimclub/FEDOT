@@ -5,7 +5,7 @@ from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.opt_history_objects.individual import Individual
 from golem.core.optimisers.optimizer import GraphGenerationParams

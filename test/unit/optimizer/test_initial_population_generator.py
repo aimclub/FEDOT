@@ -2,7 +2,7 @@ from functools import reduce
 from random import choice
 
 import pytest
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 
 from fedot.core.pipelines.adapters import PipelineAdapter

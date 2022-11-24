@@ -3,7 +3,7 @@ import logging
 
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot

@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder

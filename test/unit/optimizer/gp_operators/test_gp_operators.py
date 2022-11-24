@@ -10,7 +10,7 @@ from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
 from golem.core.optimisers.genetic.gp_operators import filter_duplicates, replace_subtrees
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.opt_history_objects.individual import Individual
 from golem.core.optimisers.timer import OptimisationTimer

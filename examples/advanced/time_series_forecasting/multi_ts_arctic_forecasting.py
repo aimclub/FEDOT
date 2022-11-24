@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 

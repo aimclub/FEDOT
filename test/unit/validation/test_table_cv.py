@@ -4,7 +4,7 @@ from datetime import timedelta
 from functools import partial
 
 import pytest
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import KFold, StratifiedKFold
 

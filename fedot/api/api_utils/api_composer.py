@@ -9,7 +9,7 @@ from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence

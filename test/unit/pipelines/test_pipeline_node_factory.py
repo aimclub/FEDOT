@@ -1,5 +1,5 @@
 import pytest
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptNode
 
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor

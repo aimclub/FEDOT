@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Sequence, Type, Union
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from golem.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence

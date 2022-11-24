@@ -5,7 +5,7 @@ from golem.core.optimisers.fitness.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.gp_operators import random_graph
 from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum, Selection, random_selection
-from golem.core.optimisers.genetic.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
