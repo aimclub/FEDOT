@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -34,15 +36,15 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
     :return several_iter_scores_test: list with metrics
     """
     several_iter_scores_test = []
+    tuner = TunerBuilder(train_data.task) \
+        .with_tuner(PipelineTuner) \
+        .with_metric(ClassificationMetricsEnum.ROCAUC) \
+        .with_iterations(tuner_iter_num) \
+        .build(train_data)
     for iteration in range(local_iter):
         print(f'current local iteration {iteration}')
 
         # Pipeline tuning
-        tuner = TunerBuilder(train_data.task)\
-            .with_tuner(PipelineTuner)\
-            .with_metric(ClassificationMetricsEnum.ROCAUC)\
-            .with_iterations(tuner_iter_num) \
-            .build(train_data)
         tuned_pipeline = tuner.tune(pipeline)
 
         # After tuning prediction
@@ -54,8 +56,8 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
                                   y_score=after_tuning_predicted.predict)
         several_iter_scores_test.append(aft_tun_roc_auc)
 
-    mean_metric = float(np.mean(several_iter_scores_test))
-    return mean_metric, several_iter_scores_test
+    max_metric = float(np.max(several_iter_scores_test))
+    return max_metric, several_iter_scores_test
 
 
 if __name__ == '__main__':
@@ -78,6 +80,6 @@ if __name__ == '__main__':
                                                                    local_iter=local_iter)
 
     print(f'Several test scores {several_iter_scores_test}')
-    print(f'Mean test score over {local_iter} iterations: {after_tune_roc_auc}')
-    print(round(bfr_tun_roc_auc, 3))
-    print(round(after_tune_roc_auc, 3))
+    print(f'Maximal test score over {local_iter} iterations: {after_tune_roc_auc}')
+    print(f'ROC-AUC before tuning {round(bfr_tun_roc_auc, 3)}')
+    print(f'ROC-AUC after tuning {round(after_tune_roc_auc, 3)}')

@@ -24,12 +24,12 @@ class SearchSpace:
                 'n_clusters': (hp.uniformint, [2, 7])
             },
             'adareg': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'loss': (hp.choice, [["linear", "square", "exponential"]])
             },
             'gbr': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'loss': (hp.choice, [["ls", "lad", "huber", "quantile"]]),
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'max_depth': (hp.uniformint, [1, 11]),
@@ -43,7 +43,6 @@ class SearchSpace:
                 'C': (hp.uniform, [1e-2, 10.0])
             },
             'rf': {
-                'n_estimators': (hp.choice, [[100]]),
                 'criterion': (hp.choice, [["gini", "entropy"]]),
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 10]),
@@ -57,14 +56,14 @@ class SearchSpace:
                 'alpha': (hp.uniform, [0.01, 10.0])
             },
             'rfr': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'xgbreg': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'max_depth': (hp.uniformint, [1, 11]),
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'subsample': (hp.uniform, [0.05, 1.0]),
@@ -72,7 +71,7 @@ class SearchSpace:
                 'objective': (hp.choice, [['reg:squarederror']])
             },
             'xgboost': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'max_depth': (hp.uniformint, [1, 7]),
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'subsample': (hp.uniform, [0.05, 0.99]),
@@ -90,7 +89,7 @@ class SearchSpace:
                 'min_samples_leaf': (hp.uniformint, [1, 21])
             },
             'treg': {
-                'n_estimators': (hp.choice, [[100]]),
+
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21]),
@@ -346,11 +345,7 @@ class SearchSpace:
         else:
             params_dict = {}
             for parameter_name in params_list:
-                # Name with operation and parameter
-                op_parameter_name = ''.join((operation_name, ' | ', parameter_name))
-
-                # Name with node id || operation | parameter
-                node_op_parameter_name = ''.join((str(node_id), ' || ', op_parameter_name))
+                node_op_parameter_name = get_node_operation_parameter_label(node_id, operation_name, parameter_name)
 
                 # For operation get range where search can be done
                 space = self.get_operation_parameter_range(operation_name=operation_name,
@@ -360,6 +355,15 @@ class SearchSpace:
                 params_dict.update({node_op_parameter_name: space})
 
         return params_dict
+
+
+def get_node_operation_parameter_label(node_id: int, operation_name: str, parameter_name: str) -> str:
+    # Name with operation and parameter
+    op_parameter_name = ''.join((operation_name, ' | ', parameter_name))
+
+    # Name with node id || operation | parameter
+    node_op_parameter_name = ''.join((str(node_id), ' || ', op_parameter_name))
+    return node_op_parameter_name
 
 
 def convert_params(params):

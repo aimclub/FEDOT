@@ -128,7 +128,6 @@ def get_not_default_search_space():
         },
         'lgbmreg': {
             'min_samples_leaf': (hp.uniform, [1e-3, 0.5]),
-            'n_estimators': (hp.choice, [[100]]),
             'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.uniform, [0.15, 1])
@@ -452,7 +451,7 @@ def test_search_space_correctness_after_customization():
 
 def test_search_space_get_operation_parameter_range():
     default_search_space = SearchSpace()
-    gbr_operations = ['n_estimators', 'loss', 'learning_rate', 'max_depth', 'min_samples_split',
+    gbr_operations = ['loss', 'learning_rate', 'max_depth', 'min_samples_split',
                       'min_samples_leaf', 'subsample', 'max_features', 'alpha']
 
     custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}

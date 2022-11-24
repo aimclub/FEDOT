@@ -119,8 +119,9 @@ class PopulationalOptimizer(GraphOptimizer):
 
         self.log.info(f'Generation num: {self.current_generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
-        self.log.info(f'no improvements for {self.generations.stagnation_iter_count} iterations')
-        self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+        if self.generations.stagnation_iter_count > 0:
+            self.log.info(f'no improvements for {self.generations.stagnation_iter_count} iterations')
+            self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
 
     def _log_to_history(self, population: PopulationT, label: Optional[str] = None,
                         metadata: Optional[Dict[str, Any]] = None):

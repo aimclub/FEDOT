@@ -188,7 +188,7 @@ class Fedot:
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+        self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
 
         return self.current_pipeline
 

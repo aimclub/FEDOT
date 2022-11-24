@@ -316,7 +316,7 @@ class ApiComposer:
                 self.log.message('Hyperparameters tuning finished')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                             f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
+                             f'The remaining {max(0, round(timeout_for_tuning, 1))} seconds are not enough '
                              f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
