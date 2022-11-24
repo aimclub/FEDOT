@@ -9,8 +9,9 @@ from typing import List, Optional, Tuple, Union, Iterable, Any
 import numpy as np
 import pandas as pd
 
-from fedot.core.log import default_log
 from fedot.utilities.requirements_notificator import warn_requirement
+
+POSSIBLE_IDX_KEYWORDS = ['idx', 'index', 'id', 'datatime', 'date', 'unnamed: 0']
 
 try:
     import cv2
@@ -24,6 +25,7 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+PathType = Union[os.PathLike, str]
 
 @dataclass
 class Data:
@@ -41,13 +43,14 @@ class Data:
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
     @staticmethod
-    def from_csv(file_path=None,
+    def from_csv(file_path: Optional[PathType],
                  delimiter=',',
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List] = None,
                  target_columns: Union[str, List] = '',
-                 index_col: Optional[Union[str, int]] = 0) -> InputData:
+                 index_col: Optional[Union[str, int]] = None,
+                 possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """Import data from ``csv``
 
         Args:
@@ -57,16 +60,18 @@ class Data:
             task: the :obj:`Task` to solve with the data.
             data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
             target_columns: name of the target column (the last column if empty and no target if ``None``).
-            index_col: name or index of the column to use as the :obj:`Data.idx`;\n
-                if ``None``, then new unique index is arranged.
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :obj:`POSSIBLE_IDX_KEYWORDS` for the list of default keywords.
 
         Returns:
             data
         """
 
-        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
-        if columns_to_drop:
-            data_frame.drop(columns_to_drop, axis=1, inplace=True)
+        data_frame = get_df_from_csv(file_path, delimiter, columns_to_drop, index_col, possible_idx_keywords)
 
         idx = data_frame.index.to_numpy()
         features, target = process_target_and_features(data_frame, target_columns)
@@ -548,3 +553,27 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
         return DataTypesEnum.ts
     else:
         return DataTypesEnum.table
+
+
+def get_df_from_csv(file_path: PathType, delimiter, columns_to_drop=None, index_col=None, possible_idx_keywords=None):
+
+    possible_idx_keywords = possible_idx_keywords or POSSIBLE_IDX_KEYWORDS
+    columns_to_drop = columns_to_drop or []
+
+    columns = list(pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1))
+
+    if columns_to_drop:
+        columns_to_read = [col for col in columns if col not in columns_to_drop]
+    else:
+        columns_to_read = columns
+
+    if isinstance(index_col, int):
+        index_col = columns[index_col]
+
+    elif index_col is None:
+        first_column = columns_to_read[0]
+        if any(key in first_column.lower() for key in possible_idx_keywords):
+            index_col = first_column
+
+    data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_read)
+    return data_frame

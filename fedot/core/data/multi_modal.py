@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import os
 from functools import partial
 from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import process_target_and_features, get_indices_from_file, array_to_input_data
+from fedot.core.data.data import process_target_and_features, get_indices_from_file, array_to_input_data, \
+    get_df_from_csv, PathType
 from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -138,13 +138,14 @@ class MultiModalData(dict):
 
     @classmethod
     def from_csv(cls,
-                 file_path: Optional[Union[os.PathLike, str]] = None,
+                 file_path: Optional[PathType],
                  delimiter=',',
                  task: Union[Task, str] = 'classification',
                  text_columns: Optional[Union[str, List[str]]] = None,
                  columns_to_drop: Optional[List[str]] = None,
                  target_columns: Union[str, List[str]] = '',
-                 index_col: Optional[Union[str, int]] = 0) -> MultiModalData:
+                 index_col: Optional[Union[str, int]] = None,
+                 possible_idx_keywords: Optional[List[str]] = None) -> MultiModalData:
         """
         :param file_path: the path to the CSV with data
         :param columns_to_drop: the names of columns that should be dropped
@@ -152,15 +153,17 @@ class MultiModalData(dict):
         :param task: the task that should be solved with data
         :param text_columns: names of columns that contain text data
         :param target_columns: name of target column (last column if empty and no target if None)
-        :param index_col: column name or index to use as the Data.idx;
-            if None then arrange new unique index
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :obj:`POSSIBLE_IDX_KEYWORDS` for the list of default keywords.
         :return: MultiModalData object with text and table data sources as InputData
         """
 
         text_data_detector = TextDataDetector()
-        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
-        if columns_to_drop:
-            data_frame = data_frame.drop(columns_to_drop, axis=1)
+        data_frame = get_df_from_csv(file_path, delimiter, columns_to_drop, index_col, possible_idx_keywords)
 
         idx = data_frame.index.to_numpy()
         if isinstance(task, str):
