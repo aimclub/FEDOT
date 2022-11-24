@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
@@ -168,10 +169,11 @@ def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
     model = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=1)
 
-    model.fit(features=train_data)
-    ts_forecast = model.predict(features=test_data, in_sample=False)
+    model.fit(features=train_data, predefined_model='auto')
+    ts_forecast = model.predict(features=test_data)
     _ = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -186,7 +188,7 @@ def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 't
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   validation_blocks=validation_blocks)
 
-    model.fit(features=train_data)
+    model.fit(features=train_data, predefined_model='auto')
     ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
     _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
 
@@ -203,7 +205,7 @@ def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: st
                   available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
                                         'ridge', 'lasso', 'linear', 'cut'])
 
-    model.fit(features=train_data)
+    model.fit(features=train_data, predefined_model=ts_complex_ridge_smoothing_pipeline())
     ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
     _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
 

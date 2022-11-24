@@ -38,7 +38,7 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     elif target_time_series is not None:
         actual_time_series = np.concatenate([actual_time_series, target_time_series], axis=0)
 
-    padding = min(len(actual_time_series), 72)
+    padding = min(pred_start, 72)
 
     first_idx = pred_start - padding
 
