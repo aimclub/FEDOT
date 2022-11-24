@@ -1,35 +1,35 @@
 import numpy as np
 import pandas as pd
 
+from typing import Tuple, Optional
+
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-def data_type_is_suitable_preprocessing(data: InputData) -> bool:
-    if data_type_is_table(data) or data_type_is_ts(data) or data_type_is_multi_ts(data):
-        return True
-    return False
+def data_type_is_suitable_for_preprocessing(data: InputData) -> bool:
+    return data_type_is_table(data) or data_type_is_ts(data) or data_type_is_multi_ts(data)
 
 
 def replace_inf_with_nans(input_data: InputData):
-    values_to_replace = [np.inf, -np.inf]
-    features_with_replaced_inf = np.where(np.isin(input_data.features,
-                                                  values_to_replace),
-                                          np.nan,
-                                          input_data.features)
-    input_data.features = features_with_replaced_inf
+    features = input_data.features
+    if features.dtype == object:
+        print(features[:2])
+    try:
+        features[(features == np.inf) | (features == -np.inf)] = np.nan
+    except Exception as exc:
+        print("PROBLEM DTYPE", features.dtype, exc, features)
+        raise
 
 
 def replace_nans_with_empty_strings(input_data: InputData):
     """
     Replace NaNs with empty strings in input_data.features
     """
-    input_data.features = np.where(pd.isna(input_data.features),
-                                   '',
-                                   input_data.features)
+    input_data.features[pd.isna(input_data.features)] = ''
 
 
-def convert_into_column(array: np.array):
+def convert_into_column(array: np.ndarray) -> np.ndarray:
     """ Perform conversion for data if it is necessary """
     if len(array.shape) == 1:
         return array.reshape(-1, 1)
@@ -38,7 +38,7 @@ def convert_into_column(array: np.array):
 
 
 def divide_data_categorical_numerical(input_data: InputData, categorical_ids: list,
-                                      non_categorical_ids: list) -> (InputData, InputData):
+                                      non_categorical_ids: list) -> Tuple[Optional[InputData], Optional[InputData]]:
     """
     Split tabular InputData into two parts: with numerical and categorical features
     using list with ids of categorical and numerical features.
@@ -65,7 +65,7 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def find_categorical_columns(table: np.array, column_types: dict = None):
+def find_categorical_columns(table: np.ndarray, column_types: dict = None):
     """
     Method for finding categorical and non-categorical columns in tabular data
 
@@ -89,29 +89,16 @@ def find_categorical_columns(table: np.array, column_types: dict = None):
     return categorical_ids, non_categorical_ids
 
 
-def force_categorical_determination(table):
+def force_categorical_determination(table: np.ndarray):
     """ Find string columns using 'computationally expensive' approach """
-    source_shape = table.shape
-    columns_number = source_shape[1] if len(source_shape) > 1 else 1
-
     categorical_ids = []
     non_categorical_ids = []
-    # For every column in table make check for first element
-    for column_id in range(0, columns_number):
-        column = table[:, column_id] if columns_number > 1 else table
-        col_shape = column.shape
-        for i in column:
-            # Check if element is string object or not until the first appearance
-            if len(col_shape) == 2 and isinstance(i[0], str):
-                # Column looks like [[n], [n], [n]]
-                categorical_ids.append(column_id)
-                break
-            elif len(col_shape) == 1 and isinstance(i, str):
-                # Column [n, n, n]
-                categorical_ids.append(column_id)
-                break
-
-        if column_id not in categorical_ids:
+    # For every column in table make check
+    for column_id, column in enumerate(table.T):
+        # Check if column is of string objects
+        if pd.api.types.infer_dtype(column, skipna=True) == 'string':
+            categorical_ids.append(column_id)
+        else:
             non_categorical_ids.append(column_id)
 
     return categorical_ids, non_categorical_ids
@@ -119,9 +106,7 @@ def force_categorical_determination(table):
 
 def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
-    if data_type_is_suitable_preprocessing(data):
-        return pd.DataFrame(data.features).isna().sum().sum() > 0
-    return False
+    return data_type_is_suitable_for_preprocessing(data) and pd.DataFrame(data.features).isna().sum().sum() > 0
 
 
 def data_has_categorical_features(data: InputData) -> bool:
