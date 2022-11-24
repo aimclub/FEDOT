@@ -73,7 +73,7 @@ Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (appli
 
 .. code-block:: python
 
-    requirements = ComposerRequirements(cv_folds=2, validation_blocks=3, n_jobs=2)
+    requirements = PipelineComposerRequirements(cv_folds=2, validation_blocks=3, n_jobs=2)
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_requirements(requirements) \
@@ -266,7 +266,7 @@ Tuning all hyperparameters simultaniously
     import datetime
     import hyperopt
     from hyperopt import hp
-    from golem.core.optimisers.composer_requirements import ComposerRequirements
+    from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -279,7 +279,7 @@ Tuning all hyperparameters simultaniously
 
     tuner = PipelineTuner
 
-    requirements = ComposerRequirements(cv_folds=2, n_jobs=2)
+    requirements = PipelineComposerRequirements(cv_folds=2, n_jobs=2)
 
     metric = ClassificationMetricsEnum.ROCAUC
 
@@ -406,7 +406,7 @@ Tuning of a node
 .. code-block:: python
 
     import datetime
-    from golem.core.optimisers.composer_requirements import ComposerRequirements
+    from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -418,7 +418,7 @@ Tuning of a node
 
     tuner = SequentialTuner
 
-    requirements = ComposerRequirements(cv_folds=2, n_jobs=-1)
+    requirements = PipelineComposerRequirements(cv_folds=2, n_jobs=-1)
 
     metric = RegressionMetricsEnum.SMAPE
 

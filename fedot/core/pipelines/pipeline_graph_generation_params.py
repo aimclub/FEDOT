@@ -2,11 +2,11 @@ from typing import Optional, Sequence
 
 from golem.core.dag.graph_verifier import VerifierRuleType
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task

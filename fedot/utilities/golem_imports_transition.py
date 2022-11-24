@@ -11,11 +11,9 @@ paths_map = {
     'fedot.core.optimisers.gp_comp': 'golem.core.optimisers.genetic',
     'fedot.core.log': 'golem.core.log',
 
-    # TMP
-    'golem.core.optimisers.composer_requirements import ComposerRequirements':
+    'fedot.golem.core.optimisers.composer_requirements import ComposerRequirements':
         'golem.core.optimisers.optimization_parameters import OptimizationParameters',
-    'golem.core.optimisers.genetic.pipeline_composer_requirements':
-    # 'fedot.core.optimisers.gp_comp.pipeline_composer_requirements':
+    'fedot.core.optimisers.gp_comp.pipeline_composer_requirements':
         'fedot.core.pipelines.pipeline_composer_requirements',
 
     'fedot.core.adapter': 'golem.core.adapter',
@@ -86,4 +84,4 @@ if __name__ == "__main__":
     """
 
     fedot_root = fedot_project_root()
-    rename_substrings_recursively(paths_map, root_dir=fedot_root, dry_run=False)
+    rename_substrings_recursively(paths_map, root_dir=fedot_root, dry_run=True)

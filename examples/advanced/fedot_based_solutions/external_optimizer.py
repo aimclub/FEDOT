@@ -1,13 +1,14 @@
 import logging
 from random import choice
-from typing import Any, Optional, Sequence, Union
+from typing import Optional, Sequence, Union
 
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.genetic.evaluation import SequentialDispatcher
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
 from golem.core.optimisers.objective import Objective, ObjectiveFunction
 from golem.core.optimisers.opt_history_objects.individual import Individual
-from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
+from golem.core.optimisers.optimization_parameters import OptimizationParameters
+from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, AlgorithmParameters
 from golem.core.optimisers.timer import OptimisationTimer
 
 from fedot.api.main import Fedot
@@ -23,9 +24,9 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
     def __init__(self,
                  objective: Objective,
                  initial_graphs: Union[Graph, Sequence[Graph]] = (),
-                 requirements: Optional[Any] = None,
+                 requirements: Optional[OptimizationParameters] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None):
+                 graph_optimizer_parameters: Optional[AlgorithmParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_parameters)
         self.mutation_types = [boosting_mutation, parameter_change_mutation,
                                MutationTypesEnum.single_edge,

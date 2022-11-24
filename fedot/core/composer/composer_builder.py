@@ -5,10 +5,10 @@ from typing import Dict, List, Optional, Sequence, Type, Union
 
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
-from golem.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
+from golem.core.optimisers.optimizer import GraphOptimizer, AlgorithmParameters, GraphGenerationParams
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.pipelines_cache import OperationsCache
@@ -45,7 +45,7 @@ class ComposerBuilder:
         self.metrics: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
 
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
-        self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
+        self.optimizer_parameters: Optional[AlgorithmParameters] = None
         self.optimizer_external_parameters: dict = {}
 
         self.composer_cls: Type[Composer] = GPComposer  # default composer class
@@ -71,7 +71,7 @@ class ComposerBuilder:
             self.optimizer_cls = optimizer_cls
         return self
 
-    def with_optimizer_params(self, parameters: Optional[GraphOptimizerParameters] = None,
+    def with_optimizer_params(self, parameters: Optional[AlgorithmParameters] = None,
                               external_parameters: Optional[Dict] = None,
                               dispatcher=None):
         if parameters is not None:
