@@ -11,6 +11,8 @@ import pandas as pd
 
 from fedot.utilities.requirements_notificator import warn_requirement
 
+#: The list of keyword for auto-detecting csv data index. Used in :py:meth:`Data.from_csv`
+#: and :py:meth:`MultiModalData.from_csv`.
 POSSIBLE_IDX_KEYWORDS = ['idx', 'index', 'id', 'datatime', 'date', 'unnamed: 0']
 
 try:
@@ -65,7 +67,7 @@ class Data:
                 (see the param ``possible_idx_keywords``).\n
                 Set ``False`` to skip the check and rearrange a new integer index.
             possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
-                it is used as index. See the :obj:`POSSIBLE_IDX_KEYWORDS` for the list of default keywords.
+                it is used as index. See the :const:`POSSIBLE_IDX_KEYWORDS` for the list of default keywords.
 
         Returns:
             data
