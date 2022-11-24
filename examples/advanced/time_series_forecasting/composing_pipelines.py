@@ -3,7 +3,7 @@ from typing import Any, List
 
 import numpy as np
 import pandas as pd
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
@@ -97,7 +97,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
         cv_folds=2,
         validation_blocks=2
     )
-    optimizer_parameters = GPGraphOptimizerParameters(
+    optimizer_parameters = GPAlgorithmParameters(
         pop_size=10,
         crossover_prob=0.8, mutation_prob=0.8,
         mutation_types=[parameter_change_mutation,

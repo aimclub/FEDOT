@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import Mutation, MutationStrengthEnum, MutationTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph, OptNode
@@ -37,8 +37,8 @@ def get_mutation_obj() -> Mutation:
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=task)
-    parameters = GPGraphOptimizerParameters(mutation_strength=MutationStrengthEnum.strong,
-                                            mutation_prob=1)
+    parameters = GPAlgorithmParameters(mutation_strength=MutationStrengthEnum.strong,
+                                       mutation_prob=1)
 
     mutation = Mutation(parameters, requirements, graph_params)
     return mutation

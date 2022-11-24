@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from golem.core.optimisers.genetic.gp_operators import random_graph
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -103,7 +103,7 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
     req = PipelineComposerRequirements(primary=available_model_types,
                                        secondary=available_model_types,
                                        num_of_generations=1)
-    params = GPGraphOptimizerParameters(pop_size=2)
+    params = GPAlgorithmParameters(pop_size=2)
 
     builder = ComposerBuilder(task).with_requirements(req).with_optimizer_params(params).with_metrics(metric_function)
     gp_composer = builder.build()
@@ -144,7 +144,7 @@ def test_composition_time(data_fixture, request):
         max_depth=2,
         num_of_generations=5,
         timeout=datetime.timedelta(minutes=0.000001))
-    params = GPGraphOptimizerParameters(pop_size=2)
+    params = GPAlgorithmParameters(pop_size=2)
 
     builder = ComposerBuilder(task) \
         .with_requirements(req_terminated_evolution) \
@@ -160,7 +160,7 @@ def test_composition_time(data_fixture, request):
         secondary=models_impl,
         num_of_generations=2
     )
-    params = GPGraphOptimizerParameters(pop_size=2)
+    params = GPAlgorithmParameters(pop_size=2)
 
     builder = ComposerBuilder(task) \
         .with_requirements(req_completed_evolution) \
@@ -188,7 +188,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, num_of_generations=3)
-    params = GPGraphOptimizerParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+    params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
 
     gp_composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_optimizer_params(params) \
@@ -219,8 +219,8 @@ def test_multi_objective_composer(data_fixture, request):
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task_type)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, num_of_generations=1)
-    params = GPGraphOptimizerParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
-                                        selection_types=[SelectionTypesEnum.spea2])
+    params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                                   selection_types=[SelectionTypesEnum.spea2])
 
     composer = ComposerBuilder(task=Task(task_type))\
         .with_requirements(req)\
@@ -262,15 +262,15 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     num_gen = 3
     req = PipelineComposerRequirements(primary=available_primary_model_types, secondary=available_secondary_model_types,
                                        start_depth=2, max_depth=max_depth, num_of_generations=num_gen)
-    params = GPGraphOptimizerParameters(adaptive_depth=True,
-                                        adaptive_depth_max_stagnation=num_gen - 1,
-                                        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
-                                        pop_size=10)
+    params = GPAlgorithmParameters(adaptive_depth=True,
+                                   adaptive_depth_max_stagnation=num_gen - 1,
+                                   genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                                   pop_size=10)
     composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_requirements(req) \
         .with_optimizer_params(params) \
         .with_metrics(quality_metric) \
-        .build() \
+        .build()
 
     composer.compose_pipeline(data=dataset_to_compose)
 

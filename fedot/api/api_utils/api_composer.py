@@ -6,7 +6,7 @@ from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.evaluation import determine_n_jobs
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -146,12 +146,12 @@ class ApiComposer:
     @staticmethod
     def _init_optimizer_parameters(composer_params: dict,
                                    multi_objective: bool,
-                                   task_type: TaskTypesEnum) -> GPGraphOptimizerParameters:
+                                   task_type: TaskTypesEnum) -> GPAlgorithmParameters:
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        optimizer_params = GPGraphOptimizerParameters(
+        optimizer_params = GPAlgorithmParameters(
             multi_objective=multi_objective,
             pop_size=composer_params['pop_size'],
             genetic_scheme_type=genetic_scheme_type,

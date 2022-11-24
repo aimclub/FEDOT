@@ -10,7 +10,7 @@ from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
 from golem.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
@@ -91,7 +91,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         timeout=timeout
     )
 
-    optimiser_parameters = GPGraphOptimizerParameters(
+    optimiser_parameters = GPAlgorithmParameters(
         pop_size=5,
         crossover_prob=0.8, mutation_prob=0.9,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

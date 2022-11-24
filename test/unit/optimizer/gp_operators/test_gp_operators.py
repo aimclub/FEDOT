@@ -8,7 +8,7 @@ from golem.core.optimisers.archive import ParetoFront
 from golem.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
 from golem.core.optimisers.genetic.gp_operators import filter_duplicates, replace_subtrees
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph, OptNode
@@ -41,9 +41,9 @@ def get_mutation_operator(mutation_types: Sequence[MutationTypesEnum],
         operations = get_operations_for_task(task)
         requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
     graph_params = get_pipeline_generation_params(requirements=requirements, task=task)
-    parameters = GPGraphOptimizerParameters(mutation_types=mutation_types,
-                                            mutation_prob=mutation_prob,
-                                            mutation_strength=mutation_strength)
+    parameters = GPAlgorithmParameters(mutation_types=mutation_types,
+                                       mutation_prob=mutation_prob,
+                                       mutation_strength=mutation_strength)
     mutation = Mutation(parameters, requirements, graph_params)
     return mutation
 

@@ -1,4 +1,4 @@
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.individual import Individual
@@ -15,13 +15,13 @@ def test_crossover():
     graph_example_second = adapter.adapt(pipeline_second())
 
     requirements = PipelineComposerRequirements()
-    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.none], crossover_prob=1)
+    opt_parameters = GPAlgorithmParameters(crossover_types=[CrossoverTypesEnum.none], crossover_prob=1)
     crossover = Crossover(opt_parameters, requirements, get_pipeline_generation_params())
     new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
 
-    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=0)
+    opt_parameters = GPAlgorithmParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=0)
     crossover = Crossover(opt_parameters, requirements, get_pipeline_generation_params())
     new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
@@ -37,7 +37,7 @@ def test_crossover_with_single_node():
     graph_params = get_pipeline_generation_params(requirements)
 
     for crossover_type in CrossoverTypesEnum:
-        opt_parameters = GPGraphOptimizerParameters(crossover_types=[crossover_type], crossover_prob=1)
+        opt_parameters = GPAlgorithmParameters(crossover_types=[crossover_type], crossover_prob=1)
         crossover = Crossover(opt_parameters, requirements, graph_params)
         new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
 

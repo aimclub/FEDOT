@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
@@ -100,7 +100,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
             timeout=datetime.timedelta(minutes=5)
         )
 
-        optimizer_parameters = GPGraphOptimizerParameters(
+        optimizer_parameters = GPAlgorithmParameters(
             pop_size=10, mutation_prob=0.8, crossover_prob=0.8,
         )
 

@@ -1,4 +1,4 @@
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
@@ -46,7 +46,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         primary=available_model_types,
         secondary=available_model_types,
     )
-    params = GPGraphOptimizerParameters(
+    params = GPAlgorithmParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state
     )
 

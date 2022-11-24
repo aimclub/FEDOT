@@ -2,7 +2,7 @@ import datetime
 import random
 
 import numpy as np
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -63,7 +63,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         timeout=timeout,
         num_of_generations=20
     )
-    params = GPGraphOptimizerParameters(
+    params = GPAlgorithmParameters(
         selection_types=[SelectionTypesEnum.spea2],
         genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
     )

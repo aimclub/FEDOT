@@ -11,7 +11,7 @@ from golem.core.dag.graph import Graph
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -115,7 +115,7 @@ def test_ancestor_for_mutation():
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
-    parameters = GPGraphOptimizerParameters(mutation_types=[MutationTypesEnum.simple], mutation_prob=1)
+    parameters = GPAlgorithmParameters(mutation_types=[MutationTypesEnum.simple], mutation_prob=1)
     mutation = Mutation(parameters, composer_requirements, graph_params)
 
     mutation_result = mutation(parent_ind)
@@ -133,7 +133,7 @@ def test_ancestor_for_crossover():
 
     composer_requirements = PipelineComposerRequirements(max_depth=3)
     graph_params = get_pipeline_generation_params(composer_requirements)
-    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
+    opt_parameters = GPAlgorithmParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
     crossover = Crossover(opt_parameters, composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 

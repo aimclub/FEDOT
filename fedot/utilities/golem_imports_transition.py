@@ -6,15 +6,17 @@ from typing import Mapping, Iterable, List, Tuple, Union
 from fedot.core.utils import fedot_project_root
 
 paths_map = {
-    'fedot.utilities.requirements_notificator': 'golem.utilities.requirements_notificator',
-    'fedot.utilities.profiler': 'golem.utilities.profiler',
-    'fedot.core.optimisers.gp_comp': 'golem.core.optimisers.genetic',
-    'fedot.core.log': 'golem.core.log',
-
     'fedot.golem.core.optimisers.composer_requirements import ComposerRequirements':
         'golem.core.optimisers.optimization_parameters import OptimizationParameters',
     'fedot.core.optimisers.gp_comp.pipeline_composer_requirements':
         'fedot.core.pipelines.pipeline_composer_requirements',
+    'fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters':
+        'golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters',
+
+    'fedot.utilities.requirements_notificator': 'golem.utilities.requirements_notificator',
+    'fedot.utilities.profiler': 'golem.utilities.profiler',
+    'fedot.core.optimisers.gp_comp': 'golem.core.optimisers.genetic',
+    'fedot.core.log': 'golem.core.log',
 
     'fedot.core.adapter': 'golem.core.adapter',
     'fedot.core.dag': 'golem.core.dag',

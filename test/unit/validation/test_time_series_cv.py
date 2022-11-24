@@ -2,7 +2,7 @@ import datetime
 import logging
 
 from golem.core.log import default_log
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
@@ -112,7 +112,7 @@ def test_composer_cv_correct():
         cv_folds=2,
         validation_blocks=validation_blocks,
         show_progress=False)
-    parameters = GPGraphOptimizerParameters(
+    parameters = GPAlgorithmParameters(
         pop_size=2,
         crossover_prob=0.8,
         mutation_prob=0.8,

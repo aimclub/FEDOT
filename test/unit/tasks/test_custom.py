@@ -7,7 +7,7 @@ from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.dag.verification_rules import has_no_self_cycled_nodes
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
@@ -53,7 +53,7 @@ def test_custom_graph_opt():
         num_of_generations=5,
         show_progress=False)
 
-    optimiser_parameters = GPGraphOptimizerParameters(
+    optimiser_parameters = GPAlgorithmParameters(
         pop_size=5,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[

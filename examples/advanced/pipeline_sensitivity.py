@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import exists, join
 
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
@@ -31,7 +31,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         num_of_generations=20,
     )
 
-    optimizer_parameters = GPGraphOptimizerParameters(
+    optimizer_parameters = GPAlgorithmParameters(
         pop_size=15,
         mutation_prob=0.8, crossover_prob=0.8,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

@@ -2,7 +2,7 @@ import datetime
 from copy import deepcopy
 
 import numpy as np
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
@@ -40,7 +40,7 @@ def compose_pipeline(pipeline, train_data, task):
         max_arity=3, max_depth=5,
         num_of_generations=30,
         timeout=datetime.timedelta(minutes=10))
-    optimizer_parameters = GPGraphOptimizerParameters(
+    optimizer_parameters = GPAlgorithmParameters(
         pop_size=15,
         mutation_prob=0.8, crossover_prob=0.8,
         mutation_types=[parameter_change_mutation,

@@ -3,7 +3,7 @@ from random import randint
 
 from golem.core.optimisers.fitness.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.gp_operators import random_graph
-from golem.core.optimisers.genetic.gp_params import GPGraphOptimizerParameters
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum, Selection, random_selection
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.individual import Individual
@@ -44,7 +44,7 @@ def obj_function() -> float:
 def test_tournament_selection():
     num_of_inds = 40
     population = rand_population_gener_and_eval(pop_size=50)
-    requirements = GPGraphOptimizerParameters(selection_types=[SelectionTypesEnum.tournament], pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=[SelectionTypesEnum.tournament], pop_size=num_of_inds)
     selection = Selection(requirements)
     selected_individuals = selection(population)
     assert (all([ind in population for ind in selected_individuals]) and
@@ -63,7 +63,7 @@ def test_individuals_selection_random_individuals():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
     types = [SelectionTypesEnum.tournament]
-    requirements = GPGraphOptimizerParameters(selection_types=types, pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=types, pop_size=num_of_inds)
     selection = Selection(requirements)
     selected_individuals = selection.individuals_selection(individuals=population)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
@@ -75,7 +75,7 @@ def test_individuals_selection_equality_individuals():
     num_of_inds = 4
     population = rand_population_gener_and_eval(pop_size=1)
     types = [SelectionTypesEnum.tournament]
-    requirements = GPGraphOptimizerParameters(selection_types=types, pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=types, pop_size=num_of_inds)
     population = [population[0] for _ in range(4)]
     selection = Selection(requirements)
     selected_individuals = selection.individuals_selection(individuals=population)
