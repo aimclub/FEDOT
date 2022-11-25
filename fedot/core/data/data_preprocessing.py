@@ -13,13 +13,9 @@ def data_type_is_suitable_for_preprocessing(data: InputData) -> bool:
 
 def replace_inf_with_nans(input_data: InputData):
     features = input_data.features
-    if features.dtype == object:
-        print(features[:2])
-    try:
-        features[(features == np.inf) | (features == -np.inf)] = np.nan
-    except Exception as exc:
-        print("PROBLEM DTYPE", features.dtype, exc, features)
-        raise
+    has_infs = (features == np.inf) | (features == -np.inf)
+    if np.any(has_infs):
+        features[has_infs] = np.nan
 
 
 def replace_nans_with_empty_strings(input_data: InputData):

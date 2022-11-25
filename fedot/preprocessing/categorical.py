@@ -1,9 +1,8 @@
 from copy import deepcopy
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
-from typing import Tuple
-
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData
