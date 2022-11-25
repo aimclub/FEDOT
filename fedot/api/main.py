@@ -411,7 +411,7 @@ class Fedot:
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
-                calculated_metrics[metric_name] = metric_value
+                calculated_metrics[metric_name] = round(metric_value, 3)
 
         return calculated_metrics
 

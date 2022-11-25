@@ -16,8 +16,74 @@ like moving average smoothing or Gaussian smoothing are used as well.
 .. |windowing| image:: img_utilities/windowing_method.png
    :width: 80%
 
-Simple examples
+Simple example
 ~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    from fedot.api.main import Fedot
+    from fedot.core.data.data import InputData
+    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10))  # forecast_length - required depth of forecast
+
+    train_input = InputData.from_csv_time_series(task=task,
+                                                 file_path='time_series.csv',
+                                                 delimiter=',',
+                                                 target_column='value')
+
+    train_data, test_data = train_test_data_setup(train_input)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params)
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+    # plot obtained pipeline
+    pipeline.show()
+
+    # use model to obtain out-of-sample forecast with one step
+    forecast = model.forecast(test_data)
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
+
+    # plot forecasting result
+    model.plot_prediction()
+
+Sample output:
+
+Pipeline plot from the example:
+
+
+|simple_ts_pipeline|
+
+.. |simple_ts_pipeline| image:: img_utilities/simple_ts_pipeline.png
+   :width: 80%
+
+Here:
+
+- glm - Generalized linear model
+- lasso - Lasso regression,
+- lagged - Lagged transformation,
+- ridge - Ridge regression.
+
+In the first branch generalized linear model is applied to obtain forecast. In the second branch
+lagged transformation is used to transform time-series into table data and then lasso is applied.
+Finally, ridge model uses forecasts of two branches to generate final prediction.
+
+Obtained metrics:
+
+.. code-block:: python
+
+    {'rmse': 10.386, 'mae': 9.170, 'mape': 0.064}
+
+Plot of the forecast:
+
+|simple_forecast|
+
+.. |simple_forecast| image:: img_utilities/simple_forecast.png
+   :width: 80%
 
 Automated
 ---------
@@ -26,7 +92,6 @@ Use FEDOT in automated mode to get pipeline for time-series forecasting.
 
 .. code-block:: python
 
-    import numpy as np
     from fedot.api.main import Fedot
     from fedot.core.data.data import InputData
     from fedot.core.data.data_split import train_test_data_setup
@@ -40,7 +105,7 @@ Use FEDOT in automated mode to get pipeline for time-series forecasting.
                                                  delimiter=',',
                                                  target_column = 'value')
 
-    train_data, test_data = train_test_data_setup(train_input)
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=2)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
@@ -53,9 +118,11 @@ Use FEDOT in automated mode to get pipeline for time-series forecasting.
 
     # run AutoML model design
     pipeline = model.fit(train_data)
+    # plot obtained pipeline
     pipeline.show()
 
-    # use model to obtain forecast
+    # use model to obtain in-sample forecast with two steps
+    # by default number of steps is equal to `validation_blocks` specified for a model
     forecast = model.predict(test_data)
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
@@ -64,9 +131,31 @@ Use FEDOT in automated mode to get pipeline for time-series forecasting.
 
 Sample output:
 
+Pipeline plot from the example:
+
+
+|ts_pipeline_auto|
+
+.. |ts_pipeline_auto| image:: img_utilities/ts_pipeline_auto.png
+   :width: 80%
+
+Here:
+
+- polyfit - Polynomial interpolation,
+- lagged - Lagged transformation,
+- ridge - Ridge regression.
+
+In the first branch polynomial interpolation is applied to obtain forecast. In the second branch
+lagged transformation is used to transform time-series into table data and then ridge is applied.
+Finally, another ridge model uses forecasts of two branches to generate final prediction.
+
+Obtained metrics:
+
 .. code-block:: python
 
     {'rmse': 8.485, 'mae': 6.904, 'mape': 0.049}
+
+Plot of the forecast:
 
 |sample_forecast|
 
@@ -109,8 +198,8 @@ Examples of time-series pipelines can be found `here`_.
 
     model.fit(train_data, predefined_model=pipeline)
 
-    # use model to obtain forecast
-    forecast = model.predict(test_data)
+    # use model to obtain one-step out-of-sample forecast
+    forecast = model.forecast(test_data)
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
     # plot forecasting result
@@ -118,23 +207,38 @@ Examples of time-series pipelines can be found `here`_.
 
 Sample output:
 
-.. code-block:: python
-
-    {'rmse': 2.659, 'mae': 2.142, 'mape': 0.100}
-
-|manual_sample_forecast|
-
-.. |manual_sample_forecast| image:: img_utilities/manual_sample_forecast.png
-   :width: 80%
-
-Pipeline from the example:
+Pipeline plot from the example:
 
 |ts_pipeline|
 
 .. |ts_pipeline| image:: img_utilities/ts_pipeline.png
    :width: 80%
 
-In this pipeline in the first branch
+Here:
+
+- glm - Generalized linear model,
+- lagged - Lagged transformation,
+- ridge - Ridge regression.
+
+In the first branch
+lagged transformation is used to transform time-series into table data and then ridge is applied.
+In the second branch generalized linear model is applied to obtain forecast.
+Finally, another ridge model uses forecasts of two branches to generate final prediction.
+
+Obtained metric:
+
+.. code-block:: python
+
+    {'rmse': 2.659, 'mae': 2.142, 'mape': 0.100}
+
+Plot of the forecast:
+
+|manual_sample_forecast|
+
+.. |manual_sample_forecast| image:: img_utilities/manual_sample_forecast.png
+   :width: 80%
+
+.. _Time-series validation:
 
 Time-series validation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -148,6 +252,12 @@ the way pipelines are evaluated during structural design:
 Let's consider meaning of these parameters.
 
 There are to approaches to time-series forecasting: in-sample and out-of-sample.
+For example, our trained model forecasts 10 values ahead and our training sample length is 100. With in-sample
+forecast we will predict 10 last values of our training sample using 90 first values as prehistory.
+With out-of-sample we will predict 10 future values of the training sample using the whole sample of 100 values
+as prehistory.
+
+To obtain forecast with length exceeding the forecast length (depth) model was trained for, we use iterative prediction.
 For example, our trained model forecasts 10 values ahead, but we want to forecast 20 values.
 With out-of-sample approach we would predict 10 values and then use those values to forecast
 another 10 values. But with in-sample approach we forecast already known parts of
@@ -180,7 +290,9 @@ To split InputData use ``train_test_data_setup`` method.
 
 .. autofunction:: fedot.core.data.data_split.train_test_data_setup
 
-The method uses ``forecast_length`` specified in the ``data.task``. The resulting split:
+The method uses ``forecast_length`` specified in the ``data.task``. This approach can be used to
+obtain ```test_data``` for **out-of-sample** forecast after training a model on the ```train_data```.
+The resulting split:
 
 - ``train_data.features = data.features[:-forecast_length]``
 - ``train_data.target = data.target[:-forecast_length]``
@@ -192,7 +304,7 @@ The method uses ``forecast_length`` specified in the ``data.task``. The resultin
 .. |train_test_split| image:: img_utilities/train_test_split.png
    :width: 80%
 
-If you pass keyword argument ``validation_blocks`` train data will be prepared for in-sample
+If you pass keyword argument ``validation_blocks`` train data will be prepared for **in-sample**
 validation with ``validation_blocks`` number of steps. In these case:
 
 - ``train_data.features = data.features[:-forecast_length * validation_blocks]``
@@ -210,9 +322,24 @@ Prediction
 
 You can use two methods for time-series forecasting:
 
-- ``Fedot.predict`` allows you to obtain forecast of future values with depth of ``forecast_length`` specified in the task parameters.
+- ``Fedot.predict`` allows you to obtain iterative **in-sample** forecast with depth of ``forecast_length * validation_blocks``.
+  Method uses ``forecast_length`` specified in the task parameters and ``validation_blocks`` specified while model
+  initialization. This method uses ``features`` as sample and gets forecast in the way
+  described in the picture (``validation_blocks=3``).
 
-- ``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon.
+|in_sample_predict|
+
+.. |in_sample_predict| image:: img_utilities/in_sample_predict.png
+   :width: 80%
+
+- ``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon. If
+  ``horizon > forecast_length`` forecast is obtained iteratively using previously forecasted values to
+  predict next ones at each step.
+
+|out_of_sample_forecast|
+
+.. |out_of_sample_forecast| image:: img_utilities/out_of_sample_forecast.png
+   :width: 80%
 
 See `FEDOT API`_ for more details.
 
@@ -222,7 +349,6 @@ Multivariate time-series forecasting
 .. code-block:: python
 
     import numpy as np
-    from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
     from fedot.api.main import Fedot
     from fedot.core.data.data import InputData
     from fedot.core.data.data_split import train_test_data_setup
@@ -231,38 +357,65 @@ Multivariate time-series forecasting
     target = 'col_3'
 
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10))
+                TsForecastingParams(forecast_length=20)) # forecast_length - required depth of forecast
     data = InputData.from_csv_multi_time_series(
             file_path='time_series.csv',
             task=task,
             target_column=target,
             columns_to_use=['col_1', 'col_2', 'col_3', ..., 'col_n'])
-    train_data, test_data = train_test_data_setup(data)
+    train_data, test_data = train_test_data_setup(data, validation_blocks=2)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
-                  timeout=0.5,
+                  timeout=5,
                   n_jobs=-1,
                   cv_folds=2,
-                  validation_blocks=2,
-                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
-                                        'ridge', 'lasso', 'linear', 'cut'])
+                  validation_blocks=2) # number of forecasting steps used during model validation
 
     # run AutoML model design
     pipeline = model.fit(train_data)
+    # plot obtained pipeline
     pipeline.show()
 
-    # use model to obtain forecast
+    # use model to obtain two-step in-sample forecast
     forecast = model.predict(test_data)
     target = np.ravel(test_data.target)
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
 Sample output:
 
+
+Pipeline plot from the example:
+
+|multi_ts_pipeline|
+
+.. |multi_ts_pipeline| image:: img_utilities/multi_ts_pipeline.png
+   :width: 80%
+
+Here:
+
+- smoothing - Rolling mean,
+- lagged - Lagged transformation,
+- ridge - Ridge regression.
+
+In the first branch time-series is transformed using rolling mean,
+lagged transformation is used to transform time-series into table data and then ridge is applied.
+In the second branch only lagged transformation is applied before using ridge.
+Finally, another ridge model uses forecasts of two branches to generate final prediction.
+
+Obtained metric:
+
 .. code-block:: python
 
-    {'rmse': 0.1050271953774521, 'mae': 0.08713287228369834, 'mape': 0.46942204814978494}
+    {'rmse': 0.105, 'mae': 0.087, 'mape': 0.469}
+
+Plot of the forecast:
+
+|multi_ts_forecast|
+
+.. |multi_ts_forecast| image:: img_utilities/multi_ts_forecast.png
+   :width: 80%
 
 Examples
 ~~~~~~~~
