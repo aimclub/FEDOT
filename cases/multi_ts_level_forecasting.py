@@ -67,9 +67,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
                   max_arity=4,
                   cv_folds=None,
                   validation_blocks=None,
-                  initial_assumption=init_pipeline,
-                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
-                                        'ridge', 'lasso', 'linear', 'cut']
+                  initial_assumption=init_pipeline
                   )
     # fit model
     pipeline = model.fit(train_data)

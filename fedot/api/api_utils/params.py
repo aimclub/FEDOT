@@ -8,6 +8,7 @@ from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 from fedot.core.utilities.random import RandomStateHandler
 
@@ -26,11 +27,13 @@ class ApiParams:
     def initialize_params(self, input_params: Dict[str, Any]):
         """ Merge input_params dictionary with several parameters for AutoML algorithm """
         self.get_initial_params(input_params)
-        preset_operations = OperationsPreset(task=self.task, preset_name=self.api_params['preset'])
-        self.api_params = preset_operations.composer_params_based_on_preset(api_params=self.api_params)
 
         # Final check for correctness for timeout and generations
         self.api_params = check_timeout_vs_generations(self.api_params)
+
+    def update_available_operations_by_preset(self, data: InputData):
+        preset_operations = OperationsPreset(task=self.task, preset_name=self.api_params['preset'])
+        self.api_params = preset_operations.composer_params_based_on_preset(self.api_params, data.data_type)
 
     def get_initial_params(self, input_params: Dict[str, Any]):
         self._parse_input_params(input_params)
@@ -57,9 +60,9 @@ class ApiParams:
         else:
             if 'label_encoded' in recommendations:
                 self.log.info("Change preset due to label encoding")
-                self.change_preset_for_label_encoded_data(input_data.task)
+                self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
 
-    def change_preset_for_label_encoded_data(self, task: Task):
+    def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
         if 'preset' in self.api_params:
             preset_name = ''.join((self.api_params['preset'], '*tree'))
@@ -69,7 +72,7 @@ class ApiParams:
 
         if self.api_params.get('available_operations') is not None:
             del self.api_params['available_operations']
-        self.api_params = preset_operations.composer_params_based_on_preset(api_params=self.api_params)
+        self.api_params = preset_operations.composer_params_based_on_preset(self.api_params, data_type)
         param_dict = {
             'task': self.task,
             'logger': self.log

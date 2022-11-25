@@ -1,8 +1,10 @@
 from copy import copy
+from typing import Optional
 
 from fedot.api.time import ApiTime
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -19,7 +21,7 @@ class OperationsPreset:
         # Is there a modification in preset or not
         self.modification_using = False
 
-    def composer_params_based_on_preset(self, api_params: dict) -> dict:
+    def composer_params_based_on_preset(self, api_params: dict, data_type: Optional[DataTypesEnum] = None) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
@@ -29,18 +31,18 @@ class OperationsPreset:
             self.preset_name = updated_params['preset']
 
         if self.preset_name is not None and 'available_operations' not in api_params:
-            available_operations = self.filter_operations_by_preset()
+            available_operations = self.filter_operations_by_preset(data_type)
             updated_params['available_operations'] = available_operations
 
         return updated_params
 
-    def filter_operations_by_preset(self):
+    def filter_operations_by_preset(self, data_type: Optional[DataTypesEnum] = None):
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
         preset_name = self.preset_name
         if 'auto' in preset_name:
-            available_operations = get_operations_for_task(self.task, mode='all')
+            available_operations = get_operations_for_task(self.task, data_type, mode='all')
             return available_operations
 
         # TODO remove workaround
@@ -59,10 +61,10 @@ class OperationsPreset:
             preset_name, modification = preset_name.split('*')
             modification = ''.join(('*', modification))
 
-            mod_operations = get_operations_for_task(self.task, mode='all', preset=modification)
+            mod_operations = get_operations_for_task(self.task, data_type, mode='all', preset=modification)
 
         # Get operations
-        available_operations = get_operations_for_task(self.task, mode='all', preset=preset_name)
+        available_operations = get_operations_for_task(self.task, data_type, mode='all', preset=preset_name)
 
         if self.modification_using:
             # Find subsample of operations
@@ -75,7 +77,7 @@ class OperationsPreset:
 
         if 'gpu' in self.preset_name:
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
-            available_operations = repository.suitable_operation(task_type=self.task.task_type)
+            available_operations = repository.suitable_operation(task_type=self.task.task_type, data_type=data_type)
 
         filtered_operations = set(available_operations).difference(set(excluded_tree))
         available_operations = list(filtered_operations)

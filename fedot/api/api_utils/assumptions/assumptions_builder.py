@@ -8,7 +8,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
@@ -64,7 +63,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
         if available_operations:
-            operations_for_task_and_data = self.repo.suitable_operation(self.data.task.task_type)
+            operations_for_task_and_data = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
             operations_to_choose_from = set(operations_for_task_and_data).intersection(available_operations)
             _check_operations_to_choose_from(self.data, self.data_type, operations_to_choose_from)
             if operations_to_choose_from:

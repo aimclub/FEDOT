@@ -4,11 +4,14 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+import numpy as np
+
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
 
@@ -296,9 +299,16 @@ class OperationTypesRepository:
             if is_desired_task and tags_good and tags_bad and is_desired_preset:
                 operations_info.append(o)
 
-        # TODO: too many operations are filtered out, because only a small number of operations defines `input_types`
         if data_type:
-            operations_info = [o for o in operations_info if data_type in o.input_types]
+            # ignore text and image data types: there are no operations with these `input_type`
+            ignore_data_type = data_type in [DataTypesEnum.text, DataTypesEnum.image]
+            if data_type == DataTypesEnum.ts:
+                valid_data_types = [DataTypesEnum.ts, DataTypesEnum.table]
+            else:
+                valid_data_types = ensure_wrapped_in_sequence(data_type)
+            if not ignore_data_type:
+                operations_info = [o for o in operations_info if
+                                   np.any([data_type in o.input_types for data_type in valid_data_types])]
 
         return [m.id for m in operations_info]
 
@@ -389,12 +399,13 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None,
-                            preset: str = None):
+def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesEnum] = None, mode='all', tags=None,
+                            forbidden_tags=None, preset: str = None):
     """Function returns aliases of operations.
 
     Args:
         task: task to solve
+        data_type: type of input data
         mode: mode to return operations
 
             .. details:: the possible parameters of ``mode``:
@@ -419,7 +430,7 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
-        model_types = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+        model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
                                               preset=preset)
         return model_types
     else:

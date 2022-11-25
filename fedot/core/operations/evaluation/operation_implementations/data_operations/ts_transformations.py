@@ -272,13 +272,7 @@ class LaggedImplementation(DataOperationImplementation):
     def _apply_transformation_for_predict(self, input_data: InputData):
         """Apply lagged transformation for every column (time series) in the dataset
         """
-
-        if self.sparse_transform:
-            self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
-            transformed_cols = self._update_features_for_sparse(input_data)
-            # Take last row in the lagged table and reshape into array with 1 row and n columns
-            self.features_columns = transformed_cols[-1].reshape(1, -1)
-            return self.features_columns
+        old_idx = copy(input_data.idx)
 
         if len(input_data.features.shape) > 1:
             # Multivariate time series
@@ -293,6 +287,12 @@ class LaggedImplementation(DataOperationImplementation):
                 current_ts = input_data.features
             else:
                 current_ts = np.ravel(input_data.features[:, current_ts_id])
+
+            if self.sparse_transform:
+                self.log.debug('Sparse lagged transformation applied. If new data were used. Call fit method')
+                transformed_cols = self._update_features_for_sparse(current_ts, old_idx)
+                # Take last row in the lagged table and reshape into array with 1 row and n columns
+                current_ts = transformed_cols[-1].reshape(1, -1)
 
             # Take last window_size elements for current ts
             last_part_of_ts = current_ts[-self.window_size:].reshape(1, -1)
@@ -320,13 +320,13 @@ class LaggedImplementation(DataOperationImplementation):
             all_features = np.hstack((all_features, part_to_add))
         return all_features
 
-    def _update_features_for_sparse(self, input_data: InputData):
+    def _update_features_for_sparse(self, time_series: np.array, idx: np.array):
         """Make sparse matrix which will be used during forecasting
         """
 
         # Prepare features for training
-        new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
-                                                time_series=input_data.features,
+        new_idx, transformed_cols = ts_to_table(idx=idx,
+                                                time_series=time_series,
                                                 window_size=self.window_size,
                                                 is_lag=True)
         # Sparsing
