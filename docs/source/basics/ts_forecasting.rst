@@ -13,7 +13,7 @@ like moving average smoothing or Gaussian smoothing are used as well.
 
 |windowing|
 
-.. |windowing| image:: img_utilities/windowing_method.png
+.. |windowing| image:: img_utilities/ts_forecasting/windowing_method.png
    :width: 80%
 
 Simple example
@@ -58,8 +58,8 @@ Pipeline plot from the example:
 
 |simple_ts_pipeline|
 
-.. |simple_ts_pipeline| image:: img_utilities/simple_ts_pipeline.png
-   :width: 80%
+.. |simple_ts_pipeline| image:: img_utilities/ts_forecasting/simple_ts_pipeline.png
+   :width: 60%
 
 Here:
 
@@ -82,7 +82,7 @@ Plot of the forecast:
 
 |simple_forecast|
 
-.. |simple_forecast| image:: img_utilities/simple_forecast.png
+.. |simple_forecast| image:: img_utilities/ts_forecasting/simple_forecast.png
    :width: 80%
 
 Automated
@@ -136,8 +136,8 @@ Pipeline plot from the example:
 
 |ts_pipeline_auto|
 
-.. |ts_pipeline_auto| image:: img_utilities/ts_pipeline_auto.png
-   :width: 80%
+.. |ts_pipeline_auto| image:: img_utilities/ts_forecasting/ts_pipeline_auto.png
+   :width: 60%
 
 Here:
 
@@ -159,7 +159,7 @@ Plot of the forecast:
 
 |sample_forecast|
 
-.. |sample_forecast| image:: img_utilities/sample_forecast.png
+.. |sample_forecast| image:: img_utilities/ts_forecasting/sample_forecast.png
    :width: 80%
 
 
@@ -211,8 +211,8 @@ Pipeline plot from the example:
 
 |ts_pipeline|
 
-.. |ts_pipeline| image:: img_utilities/ts_pipeline.png
-   :width: 80%
+.. |ts_pipeline| image:: img_utilities/ts_forecasting/ts_pipeline.png
+   :width: 60%
 
 Here:
 
@@ -235,7 +235,7 @@ Plot of the forecast:
 
 |manual_sample_forecast|
 
-.. |manual_sample_forecast| image:: img_utilities/manual_sample_forecast.png
+.. |manual_sample_forecast| image:: img_utilities/ts_forecasting/manual_sample_forecast.png
    :width: 80%
 
 .. _Time-series validation:
@@ -279,7 +279,7 @@ a time-series into ``cv_folds`` number of folds and applying in-sample forecast 
 
 |ts_cv|
 
-.. |ts_cv| image:: img_utilities/ts_cross_val.png
+.. |ts_cv| image:: img_utilities/ts_forecasting/ts_cross_val.png
    :width: 80%
 
 Train test split
@@ -301,7 +301,7 @@ The resulting split:
 
 |train_test_split|
 
-.. |train_test_split| image:: img_utilities/train_test_split.png
+.. |train_test_split| image:: img_utilities/ts_forecasting/train_test_split.png
    :width: 80%
 
 If you pass keyword argument ``validation_blocks`` train data will be prepared for **in-sample**
@@ -314,34 +314,163 @@ validation with ``validation_blocks`` number of steps. In these case:
 
 |train_test_split_val|
 
-.. |train_test_split_val| image:: img_utilities/train_test_split_val.png
+.. |train_test_split_val| image:: img_utilities/ts_forecasting/train_test_split_val.png
    :width: 80%
 
 Prediction
 ~~~~~~~~~~
 
-You can use two methods for time-series forecasting:
+You can use two methods for time-series forecasting: ``Fedot.predict`` - in-sample forecast, ``Fedot.forecast`` -
+out-of-sample forecast.
 
-- ``Fedot.predict`` allows you to obtain iterative **in-sample** forecast with depth of ``forecast_length * validation_blocks``.
-  Method uses ``forecast_length`` specified in the task parameters and ``validation_blocks`` specified while model
-  initialization. This method uses ``features`` as sample and gets forecast in the way
-  described in the picture (``validation_blocks=3``).
+In-sample forecast
+------------------
+
+``Fedot.predict`` allows you to obtain iterative **in-sample** forecast with depth of ``forecast_length * validation_blocks``.
+Method uses ``forecast_length`` specified in the task parameters and ``validation_blocks`` specified while model
+initialization. This method uses ``features`` as sample and gets forecast in the way
+described in the picture (``validation_blocks=3``).
 
 |in_sample_predict|
 
-.. |in_sample_predict| image:: img_utilities/in_sample_predict.png
+.. |in_sample_predict| image:: img_utilities/ts_forecasting/in_sample_predict.png
    :width: 80%
 
-- ``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon. If
-  ``horizon > forecast_length`` forecast is obtained iteratively using previously forecasted values to
-  predict next ones at each step.
+Example of in-sample forecast where number of ``validation_blocks`` is equal to ``validation_blocks`` set for the model.
+
+.. code-block:: python
+
+    from fedot.api.main import Fedot
+    from fedot.core.data.data import InputData
+    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+    # set task type and forecast length
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10))
+
+    # load data from csv
+    train_input = InputData.from_csv_time_series(file_path='time_series.csv',
+                                                 task=task,
+                                                 target_column='value')
+
+    # split data for in-sample forecast
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=3)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
+                  cv_folds=2, validation_blocks=3)
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+
+    # use model to obtain three-step in-sample forecast
+    in_sample_forecast = model.predict(test_data)
+
+    # get metrics for the prediction
+    print('Metrics for two-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+
+    # plot forecasting result
+    model.plot_prediction()
+
+Example of in-sample forecast where number of ``validation_blocks`` is not equal to ``validation_blocks``
+set for the model.
+
+.. code-block:: python
+
+    ...
+    # split data for in-sample forecast
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=2)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
+                  cv_folds=2, validation_blocks=3)
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+
+    # use model to obtain two-step in-sample forecast while using 3 validation blocks for fit
+    in_sample_forecast = model.predict(test_data, validation_blocks=2)
+
+    # get metrics for the prediction
+    print('Metrics for two-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'], validation_blocks=2))
+
+    # plot forecasting result
+    model.plot_prediction()
+
+Out-of-sample forecast
+----------------------
+
+``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon. If
+``horizon > forecast_length`` forecast is obtained iteratively using previously forecasted values to
+predict next ones at each step. If ``horizon < forecast_length`` forecast is cutted according to the ``horison``.
+By default ``horizon = forecast_length``
 
 |out_of_sample_forecast|
 
-.. |out_of_sample_forecast| image:: img_utilities/out_of_sample_forecast.png
+.. |out_of_sample_forecast| image:: img_utilities/ts_forecasting/out_of_sample_forecast.png
    :width: 80%
 
-See `FEDOT API`_ for more details.
+Example of forecast with default horizon.
+
+.. code-block:: python
+
+    from fedot.api.main import Fedot
+    from fedot.core.data.data import InputData
+    from fedot.core.data.data_split import train_test_data_setup
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+    # set task type and forecast length
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10))
+
+    # load data from csv
+    train_input = InputData.from_csv_time_series(file_path='time_series.csv',
+                                                 task=task,
+                                                 target_column='value')
+
+    # split data for out-of-sample forecast
+    train_data, test_data = train_test_data_setup(train_input)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
+                  cv_folds=2, validation_blocks=3)
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+
+    # use model to obtain one-step out-of-sample forecast
+    out_of_sample_forecast = model.forecast(test_data)
+
+    # get metrics for the prediction
+    print('Metrics for two-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+
+    # plot forecasting result
+    model.plot_prediction()
+
+Example of forecast with ``horizon > forecast_length``.
+
+.. code-block:: python
+
+    ...
+    # split data for out-of-sample forecast
+    train_data, test_data = train_test_data_setup(train_input)
+
+    # init model for the time series forecasting
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
+                  cv_folds=2, validation_blocks=3)
+
+    # run AutoML model design
+    pipeline = model.fit(train_data)
+
+    # use model to obtain out-of-sample forecast with horizon = 25 (> forecast_length)
+    in_sample_forecast = model.forecast(test_data, horizon=25)
+
+    # plot forecasting result
+    model.plot_prediction()
 
 Multivariate time-series forecasting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -390,8 +519,8 @@ Pipeline plot from the example:
 
 |multi_ts_pipeline|
 
-.. |multi_ts_pipeline| image:: img_utilities/multi_ts_pipeline.png
-   :width: 80%
+.. |multi_ts_pipeline| image:: img_utilities/ts_forecasting/multi_ts_pipeline.png
+   :width: 60%
 
 Here:
 
@@ -414,7 +543,7 @@ Plot of the forecast:
 
 |multi_ts_forecast|
 
-.. |multi_ts_forecast| image:: img_utilities/multi_ts_forecast.png
+.. |multi_ts_forecast| image:: img_utilities/ts_forecasting/multi_ts_forecast.png
    :width: 80%
 
 Examples
