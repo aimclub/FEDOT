@@ -3,21 +3,22 @@ Time Series Forecasting
 
 FEDOT allows you to automate machine learning pipeline design for time-series forecasting.
 
-To extract features FEDOT uses lagged transformation (windowing method) which allows to represent time-series as
-trajectory matrix and apply regression methods for forecasting.
+FEDOT extracts features using `lagged transformation`_ to apply regression methods for forecasting.
 Therefore not only specific models for time series forecasting (such as
 ARIMA and AR) can be used but also any machine learning method (knn, decision tree, etc.).
 
 Time-series specific preprocessing methods,
 like moving average smoothing or Gaussian smoothing are used as well.
 
-|windowing|
-
-.. |windowing| image:: img_utilities/ts_forecasting/windowing_method.png
-   :width: 80%
-
-Simple example
+Simple examples
 ~~~~~~~~~~~~~~~
+
+You can find all available ``Fedot`` parameters in `FEDOT API`_.
+
+Automated
+---------
+
+Use FEDOT in automated mode to get pipeline with automatically composed architecture and tuned parameters.
 
 .. code-block:: python
 
@@ -26,14 +27,16 @@ Simple example
     from fedot.core.data.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
+    # specify the task and the forecast length (required depth of forecast)
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10))  # forecast_length - required depth of forecast
+                TsForecastingParams(forecast_length=10))
 
+    # load data from csv
     train_input = InputData.from_csv_time_series(task=task,
                                                  file_path='time_series.csv',
                                                  delimiter=',',
                                                  target_column='value')
-
+    # split data for train and test
     train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time series forecasting
@@ -56,84 +59,6 @@ Sample output:
 Pipeline plot from the example:
 
 
-|simple_ts_pipeline|
-
-.. |simple_ts_pipeline| image:: img_utilities/ts_forecasting/simple_ts_pipeline.png
-   :width: 60%
-
-Here:
-
-- glm - Generalized linear model
-- lasso - Lasso regression,
-- lagged - Lagged transformation,
-- ridge - Ridge regression.
-
-In the first branch generalized linear model is applied to obtain forecast. In the second branch
-lagged transformation is used to transform time-series into table data and then lasso is applied.
-Finally, ridge model uses forecasts of two branches to generate final prediction.
-
-Obtained metrics:
-
-.. code-block:: python
-
-    {'rmse': 10.386, 'mae': 9.170, 'mape': 0.064}
-
-Plot of the forecast:
-
-|simple_forecast|
-
-.. |simple_forecast| image:: img_utilities/ts_forecasting/simple_forecast.png
-   :width: 80%
-
-Automated
----------
-
-Use FEDOT in automated mode to get pipeline for time-series forecasting.
-
-.. code-block:: python
-
-    from fedot.api.main import Fedot
-    from fedot.core.data.data import InputData
-    from fedot.core.data.data_split import train_test_data_setup
-    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10)) # forecast_length - required depth of forecast
-
-    train_input = InputData.from_csv_time_series(task=task,
-                                                 file_path='time_series.csv',
-                                                 delimiter=',',
-                                                 target_column = 'value')
-
-    train_data, test_data = train_test_data_setup(train_input, validation_blocks=2)
-
-    # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting',
-                  task_params=task.task_params,
-                  timeout=10,
-                  n_jobs=-1,
-                  cv_folds=2,
-                  validation_blocks=2, # number of forecasting steps used during model validation
-                  preset='fast_train')
-
-    # run AutoML model design
-    pipeline = model.fit(train_data)
-    # plot obtained pipeline
-    pipeline.show()
-
-    # use model to obtain in-sample forecast with two steps
-    # by default number of steps is equal to `validation_blocks` specified for a model
-    forecast = model.predict(test_data)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
-
-    # plot forecasting result
-    model.plot_prediction()
-
-Sample output:
-
-Pipeline plot from the example:
-
-
 |ts_pipeline_auto|
 
 .. |ts_pipeline_auto| image:: img_utilities/ts_forecasting/ts_pipeline_auto.png
@@ -141,9 +66,9 @@ Pipeline plot from the example:
 
 Here:
 
-- polyfit - Polynomial interpolation,
-- lagged - Lagged transformation,
-- ridge - Ridge regression.
+- polyfit - polynomial interpolation,
+- lagged - `lagged transformation`_,
+- ridge - ridge regression.
 
 In the first branch polynomial interpolation is applied to obtain forecast. In the second branch
 lagged transformation is used to transform time-series into table data and then ridge is applied.
@@ -162,13 +87,14 @@ Plot of the forecast:
 .. |sample_forecast| image:: img_utilities/ts_forecasting/sample_forecast.png
    :width: 80%
 
-
 Manual
 ------
 
 Use FEDOT in manual mode to fit your own pipeline for time-series forecasting.
 
 Examples of time-series pipelines can be found `here`_.
+
+See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_
 
 .. code-block:: python
 
@@ -178,24 +104,28 @@ Examples of time-series pipelines can be found `here`_.
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
+    # compose your own pipeline
     pipeline = PipelineBuilder() \
         .add_sequence('lagged', 'ridge', branch_idx=0) \
         .add_sequence('glm', branch_idx=1).join_branches('ridge').to_pipeline()
 
+    # specify the task and the forecast length (required depth of forecast)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=10))
 
+    # load data from csv
     train_input = InputData.from_csv_time_series(task=task,
                                                  file_path='time_series.csv',
                                                  delimiter=',',
                                                  target_column='value')
 
+    # split data for train and test
     train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting',
-                  task_params=task.task_params)
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params)
 
+    # fit pipeline
     model.fit(train_data, predefined_model=pipeline)
 
     # use model to obtain one-step out-of-sample forecast
@@ -216,9 +146,9 @@ Pipeline plot from the example:
 
 Here:
 
-- glm - Generalized linear model,
-- lagged - Lagged transformation,
-- ridge - Ridge regression.
+- glm - generalized linear model,
+- lagged - `lagged transformation`_,
+- ridge - ridge regression.
 
 In the first branch
 lagged transformation is used to transform time-series into table data and then ridge is applied.
@@ -328,7 +258,7 @@ In-sample forecast
 
 ``Fedot.predict`` allows you to obtain iterative **in-sample** forecast with depth of ``forecast_length * validation_blocks``.
 Method uses ``forecast_length`` specified in the task parameters and ``validation_blocks`` specified while model
-initialization. This method uses ``features`` as sample and gets forecast in the way
+initialization by default. But number of ``validation_blocks`` can be changed. This method uses ``features`` as sample and gets forecast in the way
 described in the picture (``validation_blocks=3``).
 
 |in_sample_predict|
@@ -374,6 +304,13 @@ Example of in-sample forecast where number of ``validation_blocks`` is equal to 
     # plot forecasting result
     model.plot_prediction()
 
+Plot of the forecast:
+
+|in_sample_3_forecast|
+
+.. |in_sample_3_forecast| image:: img_utilities/ts_forecasting/in_sample_3_forecast.png
+   :width: 80%
+
 Example of in-sample forecast where number of ``validation_blocks`` is not equal to ``validation_blocks``
 set for the model.
 
@@ -400,13 +337,20 @@ set for the model.
     # plot forecasting result
     model.plot_prediction()
 
+Plot of the forecast:
+
+|in_sample_2_forecast|
+
+.. |in_sample_2_forecast| image:: img_utilities/ts_forecasting/in_sample_3_forecast.png
+   :width: 80%
+
 Out-of-sample forecast
 ----------------------
 
 ``Fedot.forecast`` can be used to obtain out-of-sample forecast with custom forecast horizon. If
 ``horizon > forecast_length`` forecast is obtained iteratively using previously forecasted values to
 predict next ones at each step. If ``horizon < forecast_length`` forecast is cutted according to the ``horison``.
-By default ``horizon = forecast_length``
+By default ``horizon = forecast_length``.
 
 |out_of_sample_forecast|
 
@@ -451,6 +395,13 @@ Example of forecast with default horizon.
     # plot forecasting result
     model.plot_prediction()
 
+Plot of the forecast:
+
+|out_of_sample_10_forecast|
+
+.. |out_of_sample_10_forecast| image:: img_utilities/ts_forecasting/out_of_sample_10_forecast.png
+   :width: 80%
+
 Example of forecast with ``horizon > forecast_length``.
 
 .. code-block:: python
@@ -472,8 +423,20 @@ Example of forecast with ``horizon > forecast_length``.
     # plot forecasting result
     model.plot_prediction()
 
+Plot of the forecast:
+
+|out_of_sample_25_forecast|
+
+.. |out_of_sample_25_forecast| image:: img_utilities/ts_forecasting/out_of_sample_25_forecast.png
+   :width: 80%
+
 Multivariate time-series forecasting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FEDOT allows you to forecast multivariate time-series.
+
+At first, `lagged transformation`_ is applied to transform time-series
+to table data then regression models are used.
 
 .. code-block:: python
 
@@ -483,15 +446,21 @@ Multivariate time-series forecasting
     from fedot.core.data.data_split import train_test_data_setup
     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
+    # name of the column with target time-series
     target = 'col_3'
 
+    # set task type and forecast length
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=20)) # forecast_length - required depth of forecast
+
+    # load data from csv
     data = InputData.from_csv_multi_time_series(
             file_path='time_series.csv',
             task=task,
             target_column=target,
             columns_to_use=['col_1', 'col_2', 'col_3', ..., 'col_n'])
+
+    # split data for in-sample forecast
     train_data, test_data = train_test_data_setup(data, validation_blocks=2)
 
     # init model for the time series forecasting
@@ -509,8 +478,7 @@ Multivariate time-series forecasting
 
     # use model to obtain two-step in-sample forecast
     forecast = model.predict(test_data)
-    target = np.ravel(test_data.target)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
 
 Sample output:
 
@@ -524,9 +492,9 @@ Pipeline plot from the example:
 
 Here:
 
-- smoothing - Rolling mean,
-- lagged - Lagged transformation,
-- ridge - Ridge regression.
+- smoothing - rolling mean,
+- lagged - `lagged transformation`_,
+- ridge - ridge regression.
 
 In the first branch time-series is transformed using rolling mean,
 lagged transformation is used to transform time-series into table data and then ridge is applied.
@@ -544,6 +512,19 @@ Plot of the forecast:
 |multi_ts_forecast|
 
 .. |multi_ts_forecast| image:: img_utilities/ts_forecasting/multi_ts_forecast.png
+   :width: 80%
+
+.. _`lagged transformation`:
+
+Lagged transformation
+~~~~~~~~~~~~~~~~~~~~~
+
+To extract features FEDOT uses lagged transformation (windowing method) which allows to represent time-series as
+trajectory matrix and apply regression methods for forecasting.
+
+|windowing|
+
+.. |windowing| image:: img_utilities/ts_forecasting/windowing_method.png
    :width: 80%
 
 Examples
@@ -572,3 +553,4 @@ Examples
 
 .. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
 .. _here: https://fedot.readthedocs.io/en/latest/examples/ts_pipelines.html
+.. _Tuning of Hyperparameters: https://fedot.readthedocs.io/en/latest/advanced/hyperparameters_tuning.html
