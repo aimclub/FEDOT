@@ -21,16 +21,6 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def get_wrong_pipeline():
-    primary_node = PrimaryNode('ts_naive_average')
-    primary_node_2 = PrimaryNode('lagged')
-    secondary_node = SecondaryNode('ridge', nodes_from=[primary_node_2, primary_node])
-    primary_node_3 = PrimaryNode('lagged')
-    secondary_node_2 = SecondaryNode('ridge', nodes_from=[primary_node_3])
-    final = SecondaryNode('linear', nodes_from=[secondary_node, secondary_node_2])
-    return Pipeline(final)
-
-
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
                                visualization=False):
     time_series = pd.read_csv(datasets[dataset])
