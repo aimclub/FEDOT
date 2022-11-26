@@ -337,8 +337,8 @@ def test_ts_naive_average_forecast_correctly():
     predict_forecast = model.predict(predict_input)
 
     # Check correctness during pipeline fit stage
-    assert (10, 4) == fit_forecast.target.shape
-    assert np.array_equal(fit_forecast.idx, np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+    assert (11, 4) == fit_forecast.target.shape
+    assert np.array_equal(fit_forecast.idx, np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
     assert np.isclose(fit_forecast.predict[0, 0], 0)
 
     # Pipeline predict stage

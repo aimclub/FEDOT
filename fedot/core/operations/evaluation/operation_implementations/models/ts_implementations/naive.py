@@ -100,6 +100,7 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         pass
 
     def predict(self, input_data: InputData) -> OutputData:
+        input_data = copy(input_data)
         """ Get desired part of time series for averaging and calculate mean value """
         forecast_length = input_data.task.task_params.forecast_length
 
@@ -114,20 +115,18 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         return output_data
 
     def predict_for_fit(self, input_data: InputData) -> OutputData:
+        input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
         parts = split_rolling_slices(input_data)
         mean_values_for_chunks = self.average_by_axis(parts)
         forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
-        forecast = forecast[:-forecast_length, :]
 
         # Update target
-        _, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
-                                            window_size=forecast_length, is_lag=True)
-        input_data.target = transformed_target[1:, :]
+        new_idx, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
+                                                  window_size=forecast_length)
 
-        # Update indices - there is no forecast for first element and skip last out of boundaries predictions
-        last_threshold = forecast_length - 1
-        new_idx = input_data.idx[1: -last_threshold]
+        input_data.target = transformed_target
+        forecast = forecast[new_idx]
         input_data.idx = new_idx
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,

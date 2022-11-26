@@ -23,6 +23,7 @@ datasets = {
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
                                visualization=False):
     time_series = pd.read_csv(datasets[dataset])
+
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=horizon))
     if dataset not in ['australia']:

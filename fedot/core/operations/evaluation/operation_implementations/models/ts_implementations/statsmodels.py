@@ -196,15 +196,16 @@ class AutoRegImplementation(ModelImplementation):
         # adding nan to target as in predicted
         nan_mask = np.isnan(predicted)
         target = target.astype(float)
-        target[nan_mask] = np.nan
-        _, predict = ts_to_table(idx=idx,
-                                 time_series=predicted,
-                                 window_size=forecast_length)
+        target = target[~nan_mask]
+        idx = idx[~nan_mask]
+        predicted = predicted[~nan_mask]
+        new_idx, predict = ts_to_table(idx=idx,
+                                       time_series=predicted,
+                                       window_size=forecast_length)
         _, target_columns = ts_to_table(idx=idx,
-                                              time_series=target,
-                                              window_size=forecast_length)
-
-        input_data.idx = input_data.idx[~nan_mask]
+                                        time_series=target,
+                                        window_size=forecast_length)
+        input_data.idx = new_idx
         input_data.target = target_columns
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -260,7 +261,7 @@ class ExpSmoothingImplementation(ModelImplementation):
             error=self.params.get("error"),
             trend=self.params.get("trend"),
             seasonal=self.params.get("seasonal"),
-            damped_trend=self.params.get("damped_trend"),
+            damped_trend= self.params.get("damped_trend") if self.params.get("trend") else None,
             seasonal_periods=self.seasonal_periods
         )
         self.model = self.model.fit(disp=False)

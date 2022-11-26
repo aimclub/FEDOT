@@ -106,7 +106,9 @@ def is_pipeline_contains_ts_operations(pipeline: Pipeline):
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
     task = Task(TaskTypesEnum.ts_forecasting)
-    models = get_operations_for_task(task=task, mode='model')
+    ts_models = get_operations_for_task(task=task, mode='model', tags=["non_lagged"])
+    non_ts_models = list(set(get_operations_for_task(task=task, mode='model')).difference(set(ts_models)))
+
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
                                                      mode='data_operation',
@@ -119,41 +121,46 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     ts_data_operations.remove('sparse_lagged')
     ts_data_operations.remove('exog_ts')
 
+    ts_to_table_operations = ['lagged', 'sparse_lagged', 'exog_ts']
+
     # Dictionary as {'current operation in the node': 'parent operations list'}
     # TODO refactor
-    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'sparse_lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'ar': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'arima': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'ridge': ts_data_operations, 'linear': ts_data_operations,
-                         'lasso': ts_data_operations, 'dtreg': ts_data_operations,
-                         'knnreg': ts_data_operations, 'scaling': ts_data_operations,
-                         'xgbreg': ts_data_operations, 'adareg': ts_data_operations,
-                         'gbr': ts_data_operations, 'treg': ts_data_operations,
-                         'rfr': ts_data_operations, 'svr': ts_data_operations,
-                         'sgdr': ts_data_operations, 'normalization': ts_data_operations,
-                         'kernel_pca': ts_data_operations, 'poly_features': ts_data_operations,
-                         'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
-                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations,
-                         'pca': ts_data_operations,
-                         'gaussian_filter': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'diff_filter': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'smoothing': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'cut': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'ts_naive_average': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'locf': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'ets': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'polyfit': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'clstm': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'glm': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         'stl_arima': ['lagged', 'sparse_lagged', 'exog_ts'],
-                         }
+    limit_lagged_parents = {lagged_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+                            for lagged_op in ts_to_table_operations}
+
+    limit_ts_models_parents = {ts_model: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+                               for ts_model in ts_models}
+    limit_non_ts_models_parents = {non_ts_model: ts_data_operations
+                                   for non_ts_model in non_ts_models}
+
+    limit_ts_data_operations_parents = {
+        ts_data_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+        for ts_data_op in ts_data_operations}
+    limit_non_ts_data_operations_parents = {non_ts_data_op: ts_data_operations
+                                            for non_ts_data_op in non_ts_data_operations}
+
+    limit_ts_model_data_op_parents_count = {ts_model_op: 1
+                               for ts_model_op in ts_models+ts_data_operations+ts_to_table_operations}
+
+    limit_decompose_parents_count = {'decompose': 1}
+
+    limit_parents_count = {**limit_ts_model_data_op_parents_count, **limit_decompose_parents_count}
+
+    need_to_have_parent = [op for op in non_ts_data_operations]
+
+    wrong_connections = {**limit_non_ts_data_operations_parents,
+                         **limit_ts_data_operations_parents,
+                         **limit_non_ts_models_parents,
+                         **limit_ts_models_parents,
+                         **limit_lagged_parents}
 
     for node in pipeline.nodes:
         # Operation name in the current node
         current_operation = node.operation.operation_type
         parent_nodes = node.nodes_from
-
+        if current_operation in limit_parents_count:
+            if limit_parents_count[current_operation] < len(parent_nodes):
+                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
         if parent_nodes is not None:
             # There are several parents for current node or at least 1
             for parent in parent_nodes:
@@ -162,6 +169,9 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
+        else:
+            if current_operation in need_to_have_parent:
+                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
 

@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 from typing import Optional, Union
 
 import numpy as np
@@ -678,8 +678,9 @@ class CutImplementation(DataOperationImplementation):
         Returns:
             output data with cutted time series
         """
-
+        old_target = deepcopy(input_data.target)
         input_data = self._cut_input_data(input_data)
+        input_data.target = old_target
 
         output_data = self._convert_to_output(input_data,
                                               input_data.features,
