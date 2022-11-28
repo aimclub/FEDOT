@@ -142,12 +142,12 @@ class LabelEncodingImplementation(DataOperationImplementation):
             # If categorical features are exists - transform them inplace in InputData
             for categorical_id in self.categorical_ids:
                 categorical_column = input_data.features[:, categorical_id]
-                gap_ids = pd.isna(categorical_column)
+                gap_ids: np.ndarray = pd.isna(categorical_column)
 
                 transformed = self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
                 copied_data.features[:, categorical_id] = transformed
 
-        output_data = self._convert_to_output(input_data,
+        output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
 
         self._update_column_types(output_data)
