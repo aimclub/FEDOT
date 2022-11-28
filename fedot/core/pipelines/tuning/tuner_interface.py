@@ -38,7 +38,7 @@ class HyperoptTuner(ABC):
         self.init_metric = None
         self.obtained_metric = None
         self.objective_evaluate = objective_evaluate
-        self._default_metric_value = -MAX_METRIC_VALUE
+        self._default_metric_value = MAX_METRIC_VALUE
         self.search_space = search_space
         self.algo = algo
         self.n_jobs = n_jobs

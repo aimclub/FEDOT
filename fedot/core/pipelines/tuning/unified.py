@@ -1,7 +1,7 @@
 from functools import partial
-from typing import Tuple
+from typing import Tuple, Optional
 
-from hyperopt import fmin, space_eval, hp, Trials
+from hyperopt import fmin, space_eval, Trials
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
@@ -20,7 +20,8 @@ class PipelineTuner(HyperoptTuner):
         :param show_progress: shows progress of tuning if true
         """
 
-        parameters_dict, init_parameters, is_init_params_full = self._get_parameters_for_tune(pipeline)
+        parameters_dict, init_parameters = self._get_parameters_for_tune(pipeline)
+
         self.init_check(pipeline)
 
         pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
@@ -28,12 +29,8 @@ class PipelineTuner(HyperoptTuner):
         trials = Trials()
 
         # try searching using initial parameters (uses original search space with fixed initial parameters)
-        try_initial_parameters = init_parameters and self.iterations > 1
-
-        if try_initial_parameters:
-            trials, init_trials_num = self._search_near_initial_parameters(pipeline, init_parameters,
-                                                                           is_init_params_full, trials,
-                                                                           show_progress)
+        trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict, init_parameters,
+                                                                       trials, show_progress)
 
         best = fmin(partial(self._objective, pipeline=pipeline),
                     parameters_dict,
@@ -44,13 +41,12 @@ class PipelineTuner(HyperoptTuner):
                     early_stop_fn=self.early_stop_fn,
                     timeout=self.max_seconds)
 
-        # check if best point was obtained using search space with fixed initial parameters
-        if try_initial_parameters:
-            is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
-            # replace search space
-            parameters_dict = init_parameters if is_best_trial_with_init_params else parameters_dict
-
         best = space_eval(space=parameters_dict, hp_assignment=best)
+
+        # check if best point was obtained using search space with fixed initial parameters
+        is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
+        if is_best_trial_with_init_params:
+            best = {**best, **init_parameters}
 
         tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
                                                parameters=best)
@@ -60,17 +56,22 @@ class PipelineTuner(HyperoptTuner):
 
         return final_pipeline
 
-    def _search_near_initial_parameters(self, pipeline: Pipeline, initial_parameters: dict,
-                                        is_init_parameters_full: bool, trials: Trials,
-                                        show_progress: bool = True):
-        if self.iterations >= 10 and not is_init_parameters_full:
-            init_trials_num = min(int(self.iterations * 0.1), 10)
-        else:
+    def _search_near_initial_parameters(self, pipeline: Pipeline, search_space: dict, initial_parameters: dict,
+                                        trials: Trials, show_progress: bool = True):
+        try_initial_parameters = initial_parameters and self.iterations > 1
+        if not try_initial_parameters:
+            init_trials_num = 0
+            return trials, init_trials_num
+
+        is_init_params_full = len(initial_parameters) == len(search_space)
+        if self.iterations < 10 or is_init_params_full:
             init_trials_num = 1
+        else:
+            init_trials_num = min(int(self.iterations * 0.1), 10)
 
         # fmin updates trials with evaluation points tried out during the call
-        fmin(partial(self._objective, pipeline=pipeline),
-             initial_parameters,
+        fmin(partial(self._objective, pipeline=pipeline, unchangeable_parameters=initial_parameters),
+             search_space,
              trials=trials,
              algo=self.algo,
              max_evals=init_trials_num,
@@ -79,7 +80,7 @@ class PipelineTuner(HyperoptTuner):
              timeout=self.max_seconds)
         return trials, init_trials_num
 
-    def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict, bool]:
+    def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict]:
         """
         Function for defining the search space
 
@@ -105,33 +106,28 @@ class PipelineTuner(HyperoptTuner):
             if tunable_initial_params:
                 initial_parameters.update(tunable_initial_params)
 
-        # create search space with fixed initial parameters
-        init_params_space = {}
-        is_init_params_full = len(initial_parameters) == len(parameters_dict)
-        if initial_parameters:
-            for key in parameters_dict:
-                if key in initial_parameters:
-                    value = initial_parameters[key]
-                    # fix possible value for initial parameter (the value will be chosen with probability=1)
-                    init_params_space[key] = hp.pchoice(key, [(1, value)])
-                else:
-                    init_params_space[key] = parameters_dict[key]
+        return parameters_dict, initial_parameters
 
-        return parameters_dict, init_params_space, is_init_params_full
-
-    def _objective(self, parameters_dict: dict, pipeline: Pipeline) \
+    def _objective(self, parameters_dict: dict, pipeline: Pipeline, unchangeable_parameters: Optional[dict] = None) \
             -> float:
         """
         Objective function for minimization / maximization problem
 
-        :param parameters_dict: Dict which contains new hyperparameters of the pipeline
-        :param pipeline: pipeline to optimize
+        Args:
+            parameters_dict: Dict which contains new pipeline hyperparameters
+            pipeline: pipeline to optimize
+            unchangeable_parameters: Dict with parameters that should not be changed
 
-        :return metric_value: value of objective function
+        Returns:
+             metric_value: value of objective function
         """
 
+        # replace new parameters with parameters
+        unchangeable_parameters = unchangeable_parameters or {}
+        parameters_dict = {**parameters_dict, **unchangeable_parameters}
+
         # Set hyperparameters for every node
-        pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
+        pipeline = self.set_arg_pipeline(pipeline, parameters_dict)
         metric_value = self.get_metric_value(pipeline=pipeline)
         return metric_value
 
@@ -139,12 +135,13 @@ class PipelineTuner(HyperoptTuner):
     def set_arg_pipeline(pipeline: Pipeline, parameters: dict) -> Pipeline:
         """ Method for parameters setting to a pipeline
 
-        :param pipeline: pipeline to which parameters should ba assigned
-        :param parameters: dictionary with parameters to set
+        Args:
+            pipeline: pipeline to which parameters should ba assigned
+            parameters: dictionary with parameters to set
 
-        :return pipeline: pipeline with new hyperparameters in each node
+        Returns:
+            pipeline: pipeline with new hyperparameters in each node
         """
-
         # Set hyperparameters for every node
         for node_id, _ in enumerate(pipeline.nodes):
             node_params = {key: value for key, value in parameters.items() if key.startswith(str(node_id))}
