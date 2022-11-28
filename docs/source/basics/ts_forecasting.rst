@@ -435,12 +435,13 @@ Multivariate time-series forecasting
 
 FEDOT allows you to forecast multivariate time-series.
 
+Use **multi time-series approach** to forecast an variable, using several realizations of the same
+random variable.
 At first, `lagged transformation`_ is applied to transform time-series
 to table data then regression models are used.
 
 .. code-block:: python
 
-    import numpy as np
     from fedot.api.main import Fedot
     from fedot.core.data.data import InputData
     from fedot.core.data.data_split import train_test_data_setup
@@ -512,6 +513,87 @@ Plot of the forecast:
 |multi_ts_forecast|
 
 .. |multi_ts_forecast| image:: img_utilities/ts_forecasting/multi_ts_forecast.png
+   :width: 80%
+
+Use **multimodal approach** to forecast a time-series using several other time-series.
+In this case for every time series a *data sourse* node will be created.
+
+.. code-block:: python
+
+    import numpy as np
+    import pandas as pd
+
+    from fedot.api.main import Fedot
+    from fedot.core.repository.tasks import TsForecastingParams
+    from fedot.core.utils import fedot_project_root
+
+    forecast_length = 10
+
+    # load data from csv
+    df_train = pd.read_csv('data_train.csv'))
+
+    # get time-series
+    ws_history = np.ravel(np.array(df_train['wind_speed']))[:200]
+    ssh_history = np.ravel(np.array(df_train['sea_height']))[:200]
+
+    # use dict as input data
+    historical_data = {
+        'ws': ws_history,  # additional variable
+        'ssh': ssh_history,  # target variable
+    }
+
+    # init model for the time series forecasting
+    fedot = Fedot(problem='ts_forecasting',
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  timeout=10)
+
+    # run AutoML model design
+    pipeline = fedot.fit(features=historical_data,
+                         target=ssh_history)  # specify target time-series
+
+    # get in-sample forecast
+    fedot.predict(historical_data)
+
+    # get metrics
+    metric = fedot.get_metrics(ssh_history[-forecast_length:])
+
+    pipeline.show()
+    fedot.plot_prediction(target='ssh')
+
+Sample output:
+
+
+Pipeline plot from the example:
+
+|multimodal_pipeline|
+
+.. |multimodal_pipeline| image:: img_utilities/ts_forecasting/multimodaldata_pipeline.png
+   :width: 60%
+
+Here:
+
+- glm - generalized linear model,
+- lagged - `lagged transformation`_,
+- ridge - ridge regression,
+- data_source_ts/ws - data input node for *ws* time-series,
+- data_source_ts/ssh - data input node for *ssh* time-series
+
+In the first branch time-series is transformed using lagged transformation
+and then ridge is applied.
+In the second branch only generalized linear model is applied.
+Finally, another ridge model uses forecasts of two branches to generate final prediction.
+
+Obtained metric:
+
+.. code-block:: python
+
+    {'rmse': 11.578, 'mae': 10.400}
+
+Plot of the forecast:
+
+|multimodal_ts_forecast|
+
+.. |multimodal_ts_forecast| image:: img_utilities/ts_forecasting/multimodal_ts_forecast.png
    :width: 80%
 
 .. _`lagged transformation`:
