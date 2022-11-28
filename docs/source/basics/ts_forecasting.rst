@@ -515,6 +515,7 @@ Plot of the forecast:
 .. |multi_ts_forecast| image:: img_utilities/ts_forecasting/multi_ts_forecast.png
    :width: 80%
 
+
 Use **multimodal approach** to forecast a time-series using several other time-series.
 In this case for every time series a *data sourse* node will be created.
 
