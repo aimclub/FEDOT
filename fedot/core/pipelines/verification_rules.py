@@ -122,10 +122,10 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     # TODO refactor
-    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
-                         'sparse_lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
-                         'ar': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
-                         'arima': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'sparse_lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'ar': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'arima': models + non_ts_data_operations + ['lagged', 'sparse_lagged', 'exog_ts'],
                          'ridge': ts_data_operations, 'linear': ts_data_operations,
                          'lasso': ts_data_operations, 'dtreg': ts_data_operations,
                          'knnreg': ts_data_operations, 'scaling': ts_data_operations,
@@ -137,15 +137,17 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                          'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
                          'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations,
                          'pca': ts_data_operations,
-                         'gaussian_filter': ['lagged', 'sparse_lagged'],
-                         'diff_filter': ['lagged', 'sparse_lagged'],
-                         'smoothing': ['lagged', 'sparse_lagged'],
-                         'cut': ['lagged', 'sparse_lagged'],
-                         'ts_naive_average': ['lagged', 'sparse_lagged'],
-                         'locf': ['lagged', 'sparse_lagged'],
-                         'ets':  ['lagged', 'sparse_lagged'],
-                         'polyfit': ['lagged', 'sparse_lagged'],
-                         'clstm': ['lagged', 'sparse_lagged']
+                         'gaussian_filter': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'diff_filter': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'smoothing': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'cut': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'ts_naive_average': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'locf': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'ets': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'polyfit': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'clstm': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'glm': ['lagged', 'sparse_lagged', 'exog_ts'],
+                         'stl_arima': ['lagged', 'sparse_lagged', 'exog_ts'],
                          }
 
     for node in pipeline.nodes:

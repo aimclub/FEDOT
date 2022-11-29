@@ -12,7 +12,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
 
 TABULAR_SIMPLE = {'train_features_size': (8, 5), 'test_features_size': (2, 5), 'test_idx': (8, 9)}
-TS_SIMPLE = {'train_features_size': (8,), 'test_features_size': (8,), 'test_idx': (8, 9)}
+TS_SIMPLE = {'train_features_size': (18,), 'test_features_size': (18,), 'test_idx': (18, 19)}
 TEXT_SIMPLE = {'train_features_size': (8,), 'test_features_size': (2,), 'test_idx': (8, 9)}
 IMAGE_SIMPLE = {'train_features_size': (8, 5, 5, 2), 'test_features_size': (2, 5, 5, 2), 'test_idx': (8, 9)}
 
@@ -28,7 +28,7 @@ def get_tabular_classification_data():
 
 def get_ts_data_to_forecast_two_elements():
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2))
-    ts = np.arange(0, 10)
+    ts = np.arange(0, 20)
     input_data = InputData(idx=range(0, len(ts)), features=ts,
                            target=ts, task=task, data_type=DataTypesEnum.ts)
     return input_data
@@ -86,10 +86,10 @@ def test_advanced_time_series_splitting():
     time_series = get_ts_data_to_forecast_two_elements()
     train_data, test_data = train_test_data_setup(time_series, validation_blocks=validation_blocks)
 
-    assert len(train_data.features) == len(train_data.target) == 6
+    assert len(train_data.features) == len(train_data.target) == 16
     # For in sample validation it is required to have all length of time series
-    assert len(test_data.features) == 10
-    assert np.allclose(test_data.target, np.array([6, 7, 8, 9]))
+    assert len(test_data.features) == 20
+    assert np.allclose(test_data.target, np.array([16, 17, 18, 19]))
 
 
 def test_data_splitting_perform_correctly_after_build():
@@ -97,8 +97,8 @@ def test_data_splitting_perform_correctly_after_build():
     Check if data splitting perform correctly through Objective Builder - Objective Evaluate
     Case: in-sample validation during cross validation for time series forecasting
     """
-    output_by_fold = {0: {'train_features_size': (2,), 'test_features_size': (6,), 'test_target_size': (6,)},
-                      1: {'train_features_size': (6,), 'test_features_size': (10,), 'test_target_size': (10,)}}
+    output_by_fold = {0: {'train_features_size': (12,), 'test_features_size': (16,), 'test_target_size': (16,)},
+                      1: {'train_features_size': (16,), 'test_features_size': (20,), 'test_target_size': (20,)}}
 
     time_series = get_ts_data_to_forecast_two_elements()
     data_source = DataSourceSplitter(cv_folds=2, validation_blocks=2).build(time_series)
@@ -119,8 +119,8 @@ def test_multivariate_time_series_splitting_correct():
 
     train_data, test_data = train_test_data_setup(multivar_ts, validation_blocks=2)
     for series_id, train_series_data in train_data.items():
-        assert len(train_series_data.features) == len(train_series_data.target) == 6
+        assert len(train_series_data.features) == len(train_series_data.target) == 16
 
     for series_id, test_series_data in test_data.items():
-        assert len(test_series_data.features) == 10
-        assert np.allclose(test_series_data.target, np.array([6, 7, 8, 9]))
+        assert len(test_series_data.features) == 20
+        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))

@@ -112,7 +112,7 @@ def prepare_data():
                                                    task=task)
 
         ds[f'data_source_ts/exog_{i}'] = InputData(idx=idx,
-                                                   features=df[:, i],
+                                                   features=deepcopy(df[:, i]),
                                                    target=deepcopy(hist),
                                                    data_type=DataTypesEnum.ts,
                                                    task=task)
@@ -127,7 +127,10 @@ def model_fit(idx: np.array, features: np.array, target: np.array, params: dict)
 
 
 def model_predict(fitted_model: Any, idx: np.array, features: np.array, params: dict):
-    return features[:, 0], 'ts'
+    # there we can face with several variant due to mutations
+    if len(features.shape) > 1:
+        return features[:, 0], 'ts'
+    return features, 'ts'
 
 
 def get_simple_pipeline(multi_data):

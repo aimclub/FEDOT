@@ -200,11 +200,11 @@ class AutoRegImplementation(ModelImplementation):
         _, predict = ts_to_table(idx=idx,
                                  time_series=predicted,
                                  window_size=forecast_length)
-        new_idx, target_columns = ts_to_table(idx=idx,
+        _, target_columns = ts_to_table(idx=idx,
                                               time_series=target,
                                               window_size=forecast_length)
 
-        input_data.idx = new_idx
+        input_data.idx = input_data.idx[~nan_mask]
         input_data.target = target_columns
         output_data = self._convert_to_output(input_data,
                                               predict=predict,

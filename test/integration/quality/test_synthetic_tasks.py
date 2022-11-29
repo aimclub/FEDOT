@@ -91,7 +91,6 @@ def test_synthetic_regression_automl():
                        available_operations=['scaling',
                                              'normalization',
                                              'pca',
-                                             'knn',
                                              'ridge',
                                              'linear'],
                        preset='best_quality')

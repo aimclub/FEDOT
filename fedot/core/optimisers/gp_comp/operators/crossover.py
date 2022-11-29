@@ -108,8 +108,9 @@ def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: 
     node_from_graph_first = choice(nodes_from_layer(graph_first, random_layer_in_graph_first))
     node_from_graph_second = choice(nodes_from_layer(graph_second, random_layer_in_graph_second))
 
-    replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
-                     random_layer_in_graph_first, random_layer_in_graph_second, max_depth)
+    if is_crossover_correct(graph_first, graph_second):
+        replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
+                         random_layer_in_graph_first, random_layer_in_graph_second, max_depth)
 
     return graph_first, graph_second
 
@@ -118,13 +119,28 @@ def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: 
 def one_point_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int) -> Tuple[OptGraph, OptGraph]:
     """Finds common structural parts between two trees, and after that randomly
     chooses the location of nodes, subtrees of which will be swapped"""
-    pairs_of_nodes = equivalent_subtree(graph_first, graph_second)
-    if pairs_of_nodes:
-        node_from_graph_first, node_from_graph_second = choice(pairs_of_nodes)
+    if is_crossover_correct(graph_first, graph_second):
+        pairs_of_nodes = equivalent_subtree(graph_first, graph_second)
+        if pairs_of_nodes:
+            node_from_graph_first, node_from_graph_second = choice(pairs_of_nodes)
 
-        layer_in_graph_first = graph_first.depth - node_depth(node_from_graph_first)
-        layer_in_graph_second = graph_second.depth - node_depth(node_from_graph_second)
+            layer_in_graph_first = graph_first.depth - node_depth(node_from_graph_first)
+            layer_in_graph_second = graph_second.depth - node_depth(node_from_graph_second)
 
-        replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
-                         layer_in_graph_first, layer_in_graph_second, max_depth)
+            replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
+                             layer_in_graph_first, layer_in_graph_second, max_depth)
     return graph_first, graph_second
+
+
+def is_crossover_correct(graph_first: OptGraph, graph_second: OptGraph):
+    # crossover with custom models and exog_ts is unsafe
+    for node in graph_first.nodes:
+        operation_id = node.content['name']
+        if 'exog_ts' in operation_id or 'custom' in operation_id:
+            return False
+
+    for node in graph_second.nodes:
+        operation_id = node.content['name']
+        if 'exog_ts' in operation_id or 'custom' in operation_id:
+            return False
+    return True

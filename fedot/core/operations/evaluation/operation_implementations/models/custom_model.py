@@ -16,9 +16,9 @@ class CustomModelImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.fitted_model = None
         if not self.params:
             raise ValueError('There is no specified parameters for custom model!')
+        self.fitted_model = None
 
     @property
     def model_predict(self) -> Callable:
@@ -60,7 +60,6 @@ class CustomModelImplementation(ModelImplementation):
         except Exception as e:
             raise TypeError(f'{e}\nInput model has incorrect behaviour. Check type hints for model: \
                                     Callable[[any, np.array, dict], np.array, str]')
-
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=output_type)
