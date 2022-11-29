@@ -38,8 +38,7 @@ def invalid_objective(pipeline: Pipeline) -> Fitness:
     'dispatcher',
     [SimpleDispatcher(PipelineAdapter()),
      MultiprocessingDispatcher(PipelineAdapter()),
-     MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1),
-     MultiprocessingDispatcher(PipelineAdapter(), n_jobs=1)]
+     MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1)]
 )
 def test_dispatchers_with_and_without_multiprocessing(dispatcher):
     _, population = set_up_tests()

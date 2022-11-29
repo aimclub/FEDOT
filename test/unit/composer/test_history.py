@@ -154,7 +154,8 @@ def test_newly_generated_history(n_jobs: int):
                        timeout=None,
                        num_of_generations=num_of_gens, pop_size=3,
                        preset='fast_train',
-                       n_jobs=n_jobs)
+                       n_jobs=n_jobs,
+                       with_tuning=False)
     auto_model.fit(features=file_path_train, target='Y')
 
     history = auto_model.history

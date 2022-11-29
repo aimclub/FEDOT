@@ -38,7 +38,7 @@ class HyperoptTuner(ABC):
         self.init_metric = None
         self.obtained_metric = None
         self.objective_evaluate = objective_evaluate
-        self._default_metric_value = -MAX_METRIC_VALUE
+        self._default_metric_value = MAX_METRIC_VALUE
         self.search_space = search_space
         self.algo = algo
         self.n_jobs = n_jobs
@@ -124,6 +124,9 @@ class HyperoptTuner(ABC):
             self.log.info(f'{prefix_init_phrase} {abs(self.obtained_metric):.3f} '
                           f'worse than initial (+ 5% deviation) {abs(init_metric):.3f}')
             final_pipeline = self.init_pipeline
-        self.log.message(f'Final pipeline: {final_pipeline.structure} \n'
-                         f'Final metric: {abs(self.obtained_metric):.3f}')
+        self.log.message(f'Final pipeline: {final_pipeline.structure}')
+        if self.obtained_metric is not None:
+            self.log.message(f'Final metric: {abs(self.obtained_metric):.3f}')
+        else:
+            self.log.message(f'Final metric is None')
         return final_pipeline

@@ -254,16 +254,18 @@ def dummy_quality_metric(*args, **kwargs):
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
-    available_model_types = ['rf', 'knn']
+    available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
+    available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
 
     quality_metric = dummy_quality_metric
     max_depth = 5
     num_gen = 3
-    req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
+    req = PipelineComposerRequirements(primary=available_primary_model_types, secondary=available_secondary_model_types,
                                        start_depth=2, max_depth=max_depth, num_of_generations=num_gen)
     params = GPGraphOptimizerParameters(adaptive_depth=True,
                                         adaptive_depth_max_stagnation=num_gen - 1,
-                                        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state)
+                                        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                                        pop_size=10)
     composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_requirements(req) \
         .with_optimizer_params(params) \
