@@ -404,5 +404,7 @@ class Mutation(Operator):
         count = 0
         for node in graph.nodes:
             if 'data_source' in node.content['name']:
+                if count == 1:
+                    return False
                 count += 1
         return count == 1
