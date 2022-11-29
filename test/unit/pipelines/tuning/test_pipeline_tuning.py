@@ -262,6 +262,21 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     assert is_tuning_finished
 
 
+def test_pipeline_tuner_with_initial_params(classification_dataset):
+    """ Test PipelineTuner based on hyperopt library for pipeline with initial parameters """
+    # a model
+    node = PrimaryNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
+                                                              'learning_rate': 0.03,
+                                                              'min_child_weight': 2}})
+    pipeline = Pipeline(node)
+    pipeline_tuner, tuned_pipeline = run_pipeline_tuner(train_data=classification_dataset,
+                                                        pipeline=pipeline,
+                                                        loss_function=ClassificationMetricsEnum.ROCAUC,
+                                                        iterations=20)
+    assert pipeline_tuner.obtained_metric is not None
+    assert not tuned_pipeline.is_fitted
+
+
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),

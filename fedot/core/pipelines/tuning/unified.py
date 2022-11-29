@@ -42,7 +42,6 @@ class PipelineTuner(HyperoptTuner):
                     timeout=self.max_seconds)
 
         best = space_eval(space=parameters_dict, hp_assignment=best)
-
         # check if best point was obtained using search space with fixed initial parameters
         is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
         if is_best_trial_with_init_params:
@@ -123,9 +122,8 @@ class PipelineTuner(HyperoptTuner):
         """
 
         # replace new parameters with parameters
-        unchangeable_parameters = unchangeable_parameters or {}
-        parameters_dict = {**parameters_dict, **unchangeable_parameters}
-
+        if unchangeable_parameters:
+            parameters_dict = {**parameters_dict, **unchangeable_parameters}
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline, parameters_dict)
         metric_value = self.get_metric_value(pipeline=pipeline)
@@ -145,7 +143,7 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         for node_id, node in enumerate(pipeline.nodes):
             node_params = {key: value for key, value in parameters.items()
-                           if key.startswith(f'{str(node_id)}|{node.name}')}
+                           if key.startswith(f'{str(node_id)} || {node.name}')}
 
             if node_params is not None:
                 # Delete all prefix strings to get appropriate parameters names
