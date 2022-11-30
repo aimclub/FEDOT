@@ -181,7 +181,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         :param gap_ids: indices of gap elements in array
         """
         column_encoder = self.encoders[categorical_id]
-        column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, categorical_column)))
+        column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, categorical_column)))
 
         transformed_column = column_encoder.transform(categorical_column)
         if len(gap_ids) > 0:
