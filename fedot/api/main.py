@@ -132,7 +132,7 @@ class Fedot:
 
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
-        self.prediction_is_in_sample = True
+        self._is_in_sample_prediction = True
         self.train_data: Optional[InputData] = None
         self.test_data: Optional[InputData] = None
 
@@ -221,12 +221,12 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
-        self.prediction_is_in_sample = in_sample
+        self._is_in_sample_prediction = in_sample
         validation_blocks = validation_blocks or self.params.api_params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
-                                                                 in_sample=self.prediction_is_in_sample,
+                                                                 in_sample=self._is_in_sample_prediction,
                                                                  validation_blocks=validation_blocks)
 
         if save_predictions:
@@ -294,7 +294,7 @@ class Fedot:
                                                          is_predict=True)
         predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
-        self.prediction_is_in_sample = False
+        self._is_in_sample_prediction = False
         if save_predictions:
             self.save_predict(self.prediction)
         return self.prediction.predict
@@ -337,7 +337,7 @@ class Fedot:
         """
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
-                in_sample = in_sample or self.prediction_is_in_sample
+                in_sample = in_sample or self._is_in_sample_prediction
                 plot_forecast(self.test_data, self.prediction, in_sample, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
@@ -398,8 +398,8 @@ class Fedot:
                     prediction.predict = self.predict_proba(self.test_data)
                 else:
                     if in_sample is not None:
-                        self.prediction_is_in_sample = in_sample
-                    prediction.predict = self.predict(self.test_data, in_sample=self.prediction_is_in_sample,
+                        self._is_in_sample_prediction = in_sample
+                    prediction.predict = self.predict(self.test_data, in_sample=self._is_in_sample_prediction,
                                                       validation_blocks=validation_blocks)
                 real = deepcopy(self.test_data)
 
