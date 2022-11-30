@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
@@ -66,21 +67,28 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
-    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]) -> OutputData:
+    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
+                           in_sample: bool = False, validation_blocks: int = None) -> OutputData:
         """ Prepare predictions """
         if self.task.task_type == TaskTypesEnum.classification:
             # Prediction should be converted into source labels
             output_prediction = current_pipeline.predict(test_data, output_mode='labels')
-
         elif self.task.task_type == TaskTypesEnum.ts_forecasting:
-            # Convert forecast into one-dimensional array
-            prediction = current_pipeline.predict(test_data)
-            forecast = np.ravel(np.array(prediction.predict))
-            prediction.predict = forecast
+            if in_sample:
+                forecast_length = test_data.task.task_params.forecast_length
+                validation_blocks = validation_blocks or 1
+                horizon = forecast_length * validation_blocks
+                forecast = in_sample_ts_forecast(current_pipeline, test_data, horizon)
+                idx = test_data.idx[-horizon:]
+                prediction = convert_forecast_to_output(test_data, forecast, idx=idx)
+            else:
+                prediction = current_pipeline.predict(test_data)
+                # Convert forecast into one-dimensional array
+                forecast = np.ravel(np.array(prediction.predict))
+                prediction.predict = forecast
             output_prediction = prediction
         else:
-            prediction = current_pipeline.predict(test_data)
-            output_prediction = prediction
+            output_prediction = current_pipeline.predict(test_data)
 
         return output_prediction
 

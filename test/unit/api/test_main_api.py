@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
@@ -28,6 +30,7 @@ from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 default_params = {
@@ -63,7 +66,7 @@ def get_cholesterol_dataset():
     return train, test
 
 
-def get_dataset(task_type: str):
+def get_dataset(task_type: str, validation_blocks: Optional[int] = None):
     if task_type == 'regression':
         data = get_synthetic_regression_data(n_samples=50, n_features=5)
         train_data, test_data = train_test_data_setup(data)
@@ -77,11 +80,28 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=5)
+        train_data, test_data = get_ts_data(forecast_length=5, validation_blocks=validation_blocks)
         threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
     return train_data, test_data, threshold
+
+
+def get_multimodal_ts_data(size=500):
+    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    target_history, add_history, _ = prepare_input_data(full_path_train, full_path_test,
+                                                        history_size=size)
+    historical_data = {
+        'ws': add_history,  # additional variable
+        'ssh': target_history,  # target variable
+    }
+    return historical_data, target_history
 
 
 def load_categorical_unimodal():
@@ -144,24 +164,69 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
-def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
+def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type)
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
     model = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=1)
 
-    model.fit(features=train_data)
+    model.fit(features=train_data, predefined_model='auto')
     ts_forecast = model.predict(features=test_data)
-    metric = model.get_metrics(target=test_data.target, metric_names='rmse')
+    _ = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
-    assert metric['rmse'] >= 0
+
+
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+    # The forecast length must be equal to 5
+    forecast_length = 5
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=validation_blocks)
+
+    model.fit(features=train_data, predefined_model='auto')
+    ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
+    _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
+
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length * 2
+
+
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
+    forecast_length = 2
+    train_data, test_data = get_multi_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=validation_blocks,
+                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
+                                        'ridge', 'lasso', 'linear', 'cut'])
+
+    model.fit(features=train_data, predefined_model=ts_complex_ridge_smoothing_pipeline())
+    ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
+    _ = model.get_metrics(target=test_data.target, metric_names='rmse', validation_blocks=validation_blocks)
+
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length * 254
+
+
+@pytest.mark.parametrize('validation_blocks', [None, 2, 3])
+def test_api_in_sample_multimodal_ts_predict_correct(validation_blocks):
+    forecast_length = 5
+    historical_data, target = get_multimodal_ts_data()
+
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model.fit(features=historical_data, target=target, predefined_model='auto')
+    ts_forecast = model.predict(historical_data, validation_blocks=validation_blocks)
+    assert len(ts_forecast) == forecast_length * validation_blocks if validation_blocks else forecast_length
 
 
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
-    forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type)
+    forecast_length = 2
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
     model = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
@@ -172,7 +237,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     model.fit(features=train_data.features,
               target=train_data.target,
               predefined_model=pipeline)
-    ts_forecast = model.predict(features=train_data)
+    ts_forecast = model.predict(features=test_data, in_sample=False)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -529,24 +594,11 @@ def test_forecast_with_not_ts_problem():
 def test_forecast_with_multivariate_ts():
     forecast_length = 2
 
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
-                                                          history_size=500)
-
-    historical_data = {
-        'ws': add_history,  # additional variable
-        'ssh': target_history,  # target variable
-    }
+    historical_data, target = get_multimodal_ts_data()
 
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
-    model.fit(features=historical_data, target=target_history, predefined_model='auto')
+    model.fit(features=historical_data, target=target, predefined_model='auto')
     forecast = model.forecast()
     assert len(forecast) == forecast_length
     forecast = model.forecast(horizon=forecast_length - 1)

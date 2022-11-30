@@ -60,12 +60,22 @@ def _split_multi_time_series(data: InputData, task, *args, **kwargs):
     input_target = data.target
     forecast_length = task.task_params.forecast_length
 
-    # Source time series divide into two parts
-    x_train = input_features[:-forecast_length]
-    x_test = input_features[:-forecast_length]
+    if kwargs.get('validation_blocks') is not None:
+        # It is required to split data for in-sample forecasting
+        forecast_length = forecast_length * kwargs.get('validation_blocks')
+        x_train = input_features[:-forecast_length]
+        x_test = input_features
 
-    y_train = input_target[:-forecast_length]
-    y_test = input_target[-forecast_length:, :1]
+        y_train = input_target[:-forecast_length]
+        y_test = input_target[-forecast_length:, 0]
+
+    else:
+        # Source time series divide into two parts
+        x_train = input_features[:-forecast_length]
+        x_test = input_features[:-forecast_length]
+
+        y_train = input_target[:-forecast_length]
+        y_test = input_target[-forecast_length:, 0]
 
     idx_train = data.idx[:-forecast_length]
     idx_test = data.idx[-forecast_length:]

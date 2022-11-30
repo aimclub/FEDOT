@@ -1,6 +1,7 @@
 import os
 from copy import deepcopy
 from random import seed
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -33,12 +34,13 @@ def _max_rmse_threshold_by_std(values, is_strict=True):
     return np.std(values) * tolerance_coeff
 
 
-def get_ts_data(n_steps=80, forecast_length=5):
+def get_ts_data(n_steps: int = 80, forecast_length: int = 5, validation_blocks: Optional[int] = None):
     """ Prepare data from csv file with time series and take needed number of
     elements
 
     :param n_steps: number of elements in time series to take
     :param forecast_length: the length of forecast
+    :param validation_blocks: number of validation blocks
     """
     project_root_path = str(fedot_project_root())
     file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
@@ -53,7 +55,7 @@ def get_ts_data(n_steps=80, forecast_length=5):
                      target=time_series,
                      task=task,
                      data_type=DataTypesEnum.ts)
-    return train_test_data_setup(data)
+    return train_test_data_setup(data, validation_blocks=validation_blocks)
 
 
 def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):

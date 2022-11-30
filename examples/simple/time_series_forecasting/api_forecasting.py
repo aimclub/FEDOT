@@ -1,6 +1,5 @@
 import logging
 
-import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
@@ -38,7 +37,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
-    train_data, test_data = train_test_data_setup(train_input)
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=validation_blocks)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
@@ -50,16 +49,31 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
 
-    # use model to obtain forecast
-    forecast = model.predict(test_data)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
+    # use model to obtain two-step in-sample forecast
+    in_sample_forecast = model.predict(test_data)
+    print('Metrics for two-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
 
     # plot forecasting result
     if visualization:
         pipeline.show()
         model.plot_prediction()
 
-    return forecast
+    # use model to obtain one-step forecast
+    train_data, test_data = train_test_data_setup(train_input)
+    simple_forecast = model.forecast(test_data)
+    print('Metrics for one-step forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+    if visualization:
+        model.plot_prediction()
+
+    # use model to obtain two-step out-of-sample forecast
+    out_of_sample_forecast = model.forecast(test_data, horizon=20)
+    # we can not calculate metrics because we do not have enough future values
+    if visualization:
+        model.plot_prediction()
+
+    return in_sample_forecast, simple_forecast, out_of_sample_forecast
 
 
 if __name__ == '__main__':

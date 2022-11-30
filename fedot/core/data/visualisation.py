@@ -1,38 +1,46 @@
+from typing import Optional, Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, target: None):
+def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_sample: bool = False,
+                  target: Optional[Any] = None):
     """
     Function for drawing plot with time series forecast. If data.target is None function plot prediction
     as future values. If not - we use last data features as validation.
 
-    :param data: the InputData or MultiModalData with actual time series as features
-    :param prediction: the OutputData with predictions
-    :param target: user-specified name of target variable for MultiModalData
+    Args:
+        data: the InputData or MultiModalData with actual time series as features
+        prediction: the OutputData with predictions
+        in_sample: if obtained prediction was in sample.
+        If ``False`` plots predictions as future values for test data features.
+        target: user-specified name of target variable for MultiModalData
     """
     if isinstance(data, MultiModalData):
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
         data = data.extract_data_source(target)
-    actual_time_series = np.concatenate([data.features, data.target], axis=0)
-    target = data.target
+    if data.data_type == DataTypesEnum.multi_ts:
+        actual_time_series = data.features[:, 0]
+    else:
+        actual_time_series = data.features
+    target_time_series = data.target
     predict = prediction.predict
-    if len(actual_time_series) < 72:
-        padding = len(actual_time_series)
-    else:
-        padding = 72
-
-    if target is not None:
+    pred_start = len(actual_time_series)
+    if in_sample:
         pred_start = len(actual_time_series) - len(predict)
-        first_idx = pred_start - padding
-    else:
-        pred_start = len(actual_time_series)
-        first_idx = pred_start - padding
+    elif target_time_series is not None:
+        actual_time_series = np.concatenate([actual_time_series, target_time_series], axis=0)
+
+    padding = min(pred_start, 72)
+
+    first_idx = pred_start - padding
 
     plt.plot(np.arange(pred_start, pred_start + len(predict)),
              predict, label='Predicted', c='blue')

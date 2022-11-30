@@ -132,6 +132,7 @@ class Fedot:
 
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
+        self._is_in_sample_prediction = True
         self.train_data: Optional[InputData] = None
         self.test_data: Optional[InputData] = None
 
@@ -195,12 +196,23 @@ class Fedot:
 
     def predict(self,
                 features: FeaturesType,
-                save_predictions: bool = False) -> np.ndarray:
-        """Predicts new target using already fitted model
+                save_predictions: bool = False,
+                in_sample: bool = True,
+                validation_blocks: Optional[int] = None) -> np.ndarray:
+        """Predicts new target using already fitted model.
+
+        For time-series performs forecast with depth ``forecast_length`` if ``in_sample=False``.
+        If ``in_sample=True`` performs in-sample forecast using features as sample.
 
         Args:
             features: the array with features of test data
             save_predictions: if ``True`` - save predictions as csv-file in working directory
+            in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
+                features with number if iterations specified in ``validation_blocks``.
+            validation_blocks: number of validation blocks for in-sample forecast.
+                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+                (default is 2).
+
 
         Returns:
             the array with prediction values
@@ -209,9 +221,13 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
+        self._is_in_sample_prediction = in_sample
+        validation_blocks = validation_blocks or self.params.api_params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
-                                                                 test_data=self.test_data)
+                                                                 test_data=self.test_data,
+                                                                 in_sample=self._is_in_sample_prediction,
+                                                                 validation_blocks=validation_blocks)
 
         if save_predictions:
             self.save_predict(self.prediction)
@@ -270,12 +286,15 @@ class Fedot:
 
         forecast_length = self.train_data.task.task_params.forecast_length
         horizon = horizon if horizon is not None else forecast_length
-        pre_history = pre_history if pre_history is not None else self.train_data
+        if pre_history is None:
+            pre_history = self.train_data
+            pre_history.target = None
         self.test_data = self.data_processor.define_data(target=self.target,
                                                          features=pre_history,
                                                          is_predict=True)
         predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
+        self._is_in_sample_prediction = False
         if save_predictions:
             self.save_predict(self.prediction)
         return self.prediction.predict
@@ -307,15 +326,19 @@ class Fedot:
                          objectives_names=metric_names,
                          show=True)
 
-    def plot_prediction(self, target: Optional[Any] = None):
+    def plot_prediction(self, in_sample: Optional[bool] = None, target: Optional[Any] = None):
         """Plots the prediction obtained from graph
 
         Args:
+            in_sample: if current prediction is in_sample (for time-series forecasting).
+            Plots predictions as future values
             target: user-specified name of target variable for :obj:`MultiModalData`
+
         """
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(self.test_data, self.prediction, target)
+                in_sample = in_sample or self._is_in_sample_prediction
+                plot_forecast(self.test_data, self.prediction, in_sample, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:
@@ -330,13 +353,19 @@ class Fedot:
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
-                    metric_names: Union[str, List[str]] = None) -> dict:
+                    metric_names: Union[str, List[str]] = None,
+                    in_sample: Optional[bool] = None,
+                    validation_blocks: Optional[int] = None) -> dict:
         """Gets quality metrics for the fitted graph
 
         Args:
-
             target: the array with target values of test data
             metric_names: the names of required metrics
+            in_sample: used for time-series forecasting.
+                If True prediction will be obtained as ``.predict(..., in_sample=True)``.
+            validation_blocks: number of validation blocks for in-sample forecast.
+                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+                (default is 2).
 
         Returns:
             the values of quality metrics
@@ -368,7 +397,10 @@ class Fedot:
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities
                     prediction.predict = self.predict_proba(self.test_data)
                 else:
-                    prediction.predict = self.predict(self.test_data)
+                    if in_sample is not None:
+                        self._is_in_sample_prediction = in_sample
+                    prediction.predict = self.predict(self.test_data, in_sample=self._is_in_sample_prediction,
+                                                      validation_blocks=validation_blocks)
                 real = deepcopy(self.test_data)
 
                 # Work inplace - correct predictions

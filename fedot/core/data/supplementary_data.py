@@ -10,7 +10,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 @dataclass
 class SupplementaryData:
     """
-    A class that stores variables for for internal purposes in core during fit
+    A class that stores variables for internal purposes in core during fit
     and predict. For instance, to manage dataflow properties.
     """
     # Is it data in the main branch
