@@ -219,9 +219,9 @@ class ApiComposer:
                                                available_operations=composer_params.get('available_operations'),
                                                requirements=composer_requirements)
         self.log.message(f"AutoML configured."
-                         f" Parameters tuning: {with_tuning}"
-                         f" Time limit: {timeout} min"
-                         f" Set of candidate models: {available_operations}")
+                         f" Parameters tuning: {with_tuning}."
+                         f" Time limit: {timeout} min."
+                         f" Set of candidate models: {available_operations}.")
 
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
                                                                                      fitted_assumption,

@@ -4,8 +4,8 @@ Time Series Forecasting
 FEDOT allows you to automate machine learning pipeline design for time-series forecasting.
 
 FEDOT extracts features using `lagged transformation`_ to apply regression methods for forecasting.
-Therefore not only specific models for time series forecasting (such as
-ARIMA and AR) can be used but also any machine learning method (knn, decision tree, etc.).
+Therefore not only models specific for time-series forecasting (such as
+ARIMA and AR) can be used but also any regression method (ridge, lasso, etc.).
 
 Time-series specific preprocessing methods,
 like moving average smoothing or Gaussian smoothing are used as well.
@@ -18,7 +18,7 @@ You can find all available ``Fedot`` parameters in `FEDOT API`_.
 Automated
 ---------
 
-Use FEDOT in automated mode to get pipeline with automatically composed architecture and tuned parameters.
+Use FEDOT in automated mode to get pipeline with automatically composed architecture and tuned hyperparameters.
 
 .. code-block:: python
 
@@ -94,7 +94,7 @@ Use FEDOT in manual mode to fit your own pipeline for time-series forecasting.
 
 Examples of time-series pipelines can be found `here`_.
 
-See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_
+See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_.
 
 .. code-block:: python
 
@@ -191,7 +191,7 @@ To obtain forecast with length exceeding the forecast length (depth) model was t
 For example, our trained model forecasts 10 values ahead, but we want to forecast 20 values.
 With out-of-sample approach we would predict 10 values and then use those values to forecast
 another 10 values. But with in-sample approach we forecast already known parts of
-time-series. And after forecasting first 10 values we would use real values from timeseries
+time-series. And after forecasting first 10 values we would use real values from time-series
 to forecast next 10 values.
 
 FEDOT uses in-sample forecasting for time-series validation. ``validation_blocks`` specifies
@@ -220,7 +220,14 @@ To split InputData use ``train_test_data_setup`` method.
 
 .. autofunction:: fedot.core.data.data_split.train_test_data_setup
 
-The method uses ``forecast_length`` specified in the ``data.task``. This approach can be used to
+The method uses ``forecast_length`` specified in the ``data.task``.
+
+
+.. code-block:: python
+
+    train_data, test_data = train_test_data_setup(train_input)
+
+This approach can be used to
 obtain ```test_data``` for **out-of-sample** forecast after training a model on the ```train_data```.
 The resulting split:
 
@@ -233,6 +240,11 @@ The resulting split:
 
 .. |train_test_split| image:: img_utilities/ts_forecasting/train_test_split.png
    :width: 80%
+
+
+.. code-block:: python
+
+    train_data, test_data = train_test_data_setup(train_input, validation_blocks=3)
 
 If you pass keyword argument ``validation_blocks`` train data will be prepared for **in-sample**
 validation with ``validation_blocks`` number of steps. In these case:
@@ -437,8 +449,9 @@ FEDOT allows you to forecast multivariate time-series.
 
 Use **multi time-series approach** to forecast an variable, using several realizations of the same
 random variable.
-At first, `lagged transformation`_ is applied to transform time-series
-to table data then regression models are used.
+At first, `lagged transformation`_ is applied to transform all of the time-series
+to table data then regression models are used. (Using several time-series allows you
+to expand training sample - after lagged transformation you get more train/target pairs).
 
 .. code-block:: python
 
