@@ -13,37 +13,37 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            The folder and name of JSON file with pipeline will contain timestamp.
 
             <details>
-            <summary>**Example:**</summary>
+                <summary>**Example:**</summary>
 
-            **NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
+                **NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
 
-            .. code-block:: python
+                .. code-block:: python
 
-                problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                    problem = 'classification'
+                    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                    baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-                pipeline = baseline_model.current_pipeline
+                    pipeline = baseline_model.current_pipeline
 
-                path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                    path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-                pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
+                    pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
 
 
-            Directory with saved pipeline will look like this (with different timestamp):
+                Directory with saved pipeline will look like this (with different timestamp):
 
-            📦saved_pipelines
+                📦saved_pipelines
 
-            ┣ 📂2022-11-16_15-53-49_pipeline_saved
+                ┣ 📂2022-11-16_15-53-49_pipeline_saved
 
-            ┃ ┗ 📂fitted_operations
+                ┃ ┗ 📂fitted_operations
 
-            ┃ ┗ 📂preprocessing
+                ┃ ┗ 📂preprocessing
 
-            ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
+                ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
 
             </details>
 
