@@ -39,7 +39,7 @@ Use FEDOT in automated mode to get pipeline with automatically composed architec
     # split data for train and test
     train_data, test_data = train_test_data_setup(train_input)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params)
 
     # run AutoML model design
@@ -122,7 +122,7 @@ See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_.
     # split data for train and test
     train_data, test_data = train_test_data_setup(train_input)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params)
 
     # fit pipeline
@@ -181,7 +181,7 @@ the way pipelines are evaluated during structural design:
 
 Let's consider meaning of these parameters.
 
-There are to approaches to time-series forecasting: in-sample and out-of-sample.
+There are two approaches to time-series forecasting: in-sample and out-of-sample.
 For example, our trained model forecasts 10 values ahead and our training sample length is 100. With in-sample
 forecast we will predict 10 last values of our training sample using 90 first values as prehistory.
 With out-of-sample we will predict 10 future values of the training sample using the whole sample of 100 values
@@ -203,7 +203,7 @@ For instance, ``forecast length=10`` and
 
 ``cv_folds`` parameter sets number of folds for cross validation of a time-series.
 
-Finally, using ``cv_folds`` and ``validation_blocks`` together will result in splittinq
+Finally, using ``cv_folds`` and ``validation_blocks`` together will result in splitting
 a time-series into ``cv_folds`` number of folds and applying in-sample forecast with
 ``validation_blocks`` number of steps in each fold.
 
@@ -299,7 +299,7 @@ Example of in-sample forecast where number of ``validation_blocks`` is equal to 
     # split data for in-sample forecast
     train_data, test_data = train_test_data_setup(train_input, validation_blocks=3)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params,
                   cv_folds=2, validation_blocks=3)
 
@@ -332,7 +332,7 @@ set for the model.
     # split data for in-sample forecast
     train_data, test_data = train_test_data_setup(train_input, validation_blocks=2)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params,
                   cv_folds=2, validation_blocks=3)
 
@@ -390,7 +390,7 @@ Example of forecast with default horizon.
     # split data for out-of-sample forecast
     train_data, test_data = train_test_data_setup(train_input)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params,
                   cv_folds=2, validation_blocks=3)
 
@@ -422,7 +422,7 @@ Example of forecast with ``horizon > forecast_length``.
     # split data for out-of-sample forecast
     train_data, test_data = train_test_data_setup(train_input)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params,
                   cv_folds=2, validation_blocks=3)
 
@@ -447,8 +447,8 @@ Multivariate time-series forecasting
 
 FEDOT allows you to forecast multivariate time-series.
 
-Use **multi time-series approach** to forecast an variable, using several realizations of the same
-random variable.
+Use **multi time-series approach** to forecast one time-series, while model was trained on the number of
+time-series of the same variable as target.
 At first, `lagged transformation`_ is applied to transform all of the time-series
 to table data then regression models are used. (Using several time-series allows you
 to expand training sample - after lagged transformation you get more train/target pairs).
@@ -477,7 +477,7 @@ to expand training sample - after lagged transformation you get more train/targe
     # split data for in-sample forecast
     train_data, test_data = train_test_data_setup(data, validation_blocks=2)
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=5,
@@ -530,7 +530,7 @@ Plot of the forecast:
 
 
 Use **multimodal approach** to forecast a time-series using several other time-series.
-In this case for every time series a *data sourse* node will be created.
+In this case for every time-series a *data sourse* node will be created.
 
 .. code-block:: python
 
@@ -556,7 +556,7 @@ In this case for every time series a *data sourse* node will be created.
         'ssh': ssh_history,  # target variable
     }
 
-    # init model for the time series forecasting
+    # init model for the time-series forecasting
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   timeout=10)
@@ -632,7 +632,7 @@ Examples
 * `Forecasting using clstm <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/clstm.py>`_
 * `Fitted values <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/fitted_values.py>`_
 * `Time-series gap-filling <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/gapfilling.py>`_
-* `Pipeline tuning for time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
+* `Pipeline tuning for time-series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
 
 **Advanced**
 
@@ -640,7 +640,7 @@ Examples
 * `Forecasting with using exogenous features <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/exogenous.py>`_
 * `Out-of-sample forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multistep.py>`_
 * `Tuning pipelines with sparse_lagged / lagged node  <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
-* `Topaz multi time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
+* `Topaz multi time-series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
 
 **Cases**
 
