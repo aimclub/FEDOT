@@ -33,7 +33,8 @@ class SimpleGapFiller:
     Methods from the SimpleGapFiller class can be used for comparison with more
     complex models in class ModelGapFiller
 
-    :param gap_value: value, which identify gap elements in array
+    Args:
+        gap_value: value, which identify gap elements in array
     """
 
     def __init__(self, gap_value: float = -100.0):
@@ -46,9 +47,13 @@ class SimpleGapFiller:
         Method allows to restore missing values in an array
         using linear interpolation
 
-        :param input_data: array with gaps
-        :return: array without gaps
+        Args:
+            input_data: array with gaps
+
+        Returns:
+            array without gaps
         """
+
         output_data = np.array(input_data)
         output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
@@ -67,16 +72,19 @@ class SimpleGapFiller:
     @series_has_gaps_check
     def local_poly_approximation(self, input_data, degree: int = 2,
                                  n_neighbors: int = 5):
-        """
-        Method allows to restore missing values in an array
+        """Method allows to restore missing values in an array
         using Savitzky-Golay filter
 
-        :param input_data: array with gaps
-        :param degree: degree of a polynomial function
-        :param n_neighbors: number of neighboring known elements of the time
-        series that the approximation is based on
-        :return: array without gaps
+        Args:
+            input_data: array with gaps
+            degree: degree of a polynomial function
+            n_neighbors: number of neighboring known elements of the time
+            series that the approximation is based on
+
+        Returns:
+            array without gaps
         """
+
         output_data = np.array(input_data)
         output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
@@ -113,18 +121,21 @@ class SimpleGapFiller:
     @series_has_gaps_check
     def batch_poly_approximation(self, input_data, degree: int = 3,
                                  n_neighbors: int = 10):
-        """
-        Method allows to restore missing values in an array using
+        """Method allows to restore missing values in an array using
         batch polynomial approximations.
         Approximation is applied not for individual omissions, but for
         intervals of omitted values
 
-        :param input_data: array with gaps
-        :param degree: degree of a polynomial function
-        :param n_neighbors: the number of neighboring known elements of
-        time series that the approximation is based on
-        :return: array without gaps
+        Args:
+            input_data: array with gaps
+            degree: degree of a polynomial function
+            n_neighbors: the number of neighboring known elements of
+            time series that the approximation is based on
+
+        Returns:
+            array without gaps
         """
+
         output_data = np.array(input_data)
         output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
@@ -172,11 +183,13 @@ class SimpleGapFiller:
         return output_data
 
     def _parse_gap_ids(self, gap_list: Union[List, np.ndarray]) -> list:
-        """
-        Method allows parsing source array with gaps indexes
+        """Method allows parsing source array with gaps indexes
 
-        :param gap_list: array with indexes of gaps in array
-        :return: a list with separated gaps in continuous intervals
+        Args:
+            gap_list: array with indexes of gaps in array
+
+        Returns:
+            a list with separated gaps in continuous intervals
         """
 
         new_gap_list = []
@@ -218,8 +231,9 @@ class ModelGapFiller(SimpleGapFiller):
     """
     Class used for filling in the gaps in time series
 
-    :param gap_value: value, which mask gap elements in array
-    :param pipeline: TsForecastingPipeline object for filling in the gaps
+    Args:
+        gap_value: value, which mask gap elements in array
+        pipeline: TsForecastingPipeline object for filling in the gaps
     """
 
     def __init__(self, gap_value, pipeline):
@@ -231,12 +245,14 @@ class ModelGapFiller(SimpleGapFiller):
 
     @series_has_gaps_check
     def forward_inverse_filling(self, input_data):
-        """
-        Method fills in the gaps in the input array using forward and inverse
+        """Method fills in the gaps in the input array using forward and inverse
         directions of predictions
 
-        :param input_data: data with gaps to filling in the gaps in it
-        :return: array without gaps
+        Args:
+            input_data: data with gaps to filling in the gaps in it
+
+        Returns:
+            array without gaps
         """
         output_data = np.array(input_data)
         output_data = replace_nan_with_label(output_data, label=self.gap_value)
@@ -269,12 +285,14 @@ class ModelGapFiller(SimpleGapFiller):
 
     @series_has_gaps_check
     def forward_filling(self, input_data: Union[List, np.ndarray]):
-        """
-        Method fills in the gaps in the input array using graph with only
+        """ Method fills in the gaps in the input array using graph with only
         forward direction (i.e. time series forecasting)
 
-        :param input_data: data with gaps to filling in the gaps in it
-        :return: array without gaps
+        Args:
+            input_data: data with gaps to filling in the gaps in it
+
+        Returns:
+            array without gaps
         """
         output_data = np.array(input_data)
         output_data = replace_nan_with_label(output_data, label=self.gap_value)
@@ -299,16 +317,17 @@ class ModelGapFiller(SimpleGapFiller):
         return output_data
 
     def _forward(self, output_data, batch_index, new_gap_list):
-        """
-        The time series method makes a forward forecast based on the part
+        """The time series method makes a forward forecast based on the part
         of the time series that is located to the left of the gap.
 
-        :param output_data: one-dimensional array of a time series
-        :param batch_index: index of the interval (batch) with a gap
-        :param new_gap_list: array with nested lists of gap indexes
+        Args:
+            output_data: one-dimensional array of a time series
+            batch_index: index of the interval (batch) with a gap
+            new_gap_list: array with nested lists of gap indexes
 
-        :return weights_list: numpy array with prediction weights for averaging
-        :return predicted: numpy array with prediction values in the gap
+        Returns:
+            weights_list: numpy array with prediction weights for averaging
+            predicted: numpy array with prediction values in the gap
         """
 
         gap = new_gap_list[batch_index]
@@ -324,16 +343,17 @@ class ModelGapFiller(SimpleGapFiller):
         return weights_list, predicted
 
     def _inverse(self, output_data, batch_index, new_gap_list):
-        """
-        The time series method makes an inverse forecast based on the part
+        """The time series method makes an inverse forecast based on the part
         of the time series that is located to the right of the gap.
 
-        :param output_data: one-dimensional array of a time series
-        :param batch_index: index of the interval (batch) with a gap
-        :param new_gap_list: array with nested lists of gap indexes
+        Args:
+            output_data: one-dimensional array of a time series
+            batch_index: index of the interval (batch) with a gap
+            new_gap_list: array with nested lists of gap indexes
 
-        :return weights_list: numpy array with prediction weights for averaging
-        :return predicted_values: numpy array with prediction values in the gap
+        Returns:
+            weights_list: numpy array with prediction weights for averaging
+            predicted_values: numpy array with prediction values in the gap
         """
 
         gap = new_gap_list[batch_index]
@@ -388,14 +408,16 @@ class ModelGapFiller(SimpleGapFiller):
         return weights_list, predicted
 
     def __pipeline_fit_predict(self, pipeline, timeseries_train: np.array, len_gap: int):
-        """
-        The method makes a prediction as a sequence of elements based on a
+        """The method makes a prediction as a sequence of elements based on a
         training sample. There are two main parts: fit model and predict.
 
-        :param pipeline: pipeline for forecasting
-        :param timeseries_train: part of the time series for training the model
-        :param len_gap: number of elements in the gap
-        :return: array without gaps
+        Args:
+            pipeline: pipeline for forecasting
+            timeseries_train: part of the time series for training the model
+            len_gap: number of elements in the gap
+
+        Returns:
+            array without gaps
         """
         pipeline_for_forecast = deepcopy(pipeline)
 
@@ -428,10 +450,14 @@ class ModelGapFiller(SimpleGapFiller):
     def __forecast_in_gap(self, pipeline, timeseries_train_part, output_data, gap):
         """ Make forecast for desired part of time series with gap
 
-        :param pipeline: pipeline for forecasting
-        :param timeseries_train_part: part of time series without gaps to fit pipeline
-        :param output_data: array with gaps (some og them may be filled previously)
-        :param gap: indices of continuous batch (gap)
+        Args:
+            pipeline: pipeline for forecasting
+            timeseries_train_part: part of time series without gaps to fit pipeline
+            output_data: array with gaps (some og them may be filled previously)
+            gap: indices of continuous batch (gap)
+
+        Returns:
+            predicted values
         """
 
         train_ts_len = len(timeseries_train_part) - len(gap)

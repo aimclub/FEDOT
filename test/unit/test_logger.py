@@ -9,7 +9,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import DEFAULT_LOG_PATH, Log, default_log
 from fedot.core.operations.model import Model
-from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
