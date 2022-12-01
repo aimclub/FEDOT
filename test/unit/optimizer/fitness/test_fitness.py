@@ -7,6 +7,7 @@ import pytest
 
 from fedot.core.optimisers.fitness.fitness import *
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.objective.objective import to_fitness
 from fedot.core.serializers import Serializer
 
 
@@ -114,6 +115,14 @@ def test_fitness_multiobj_dominates():
 
     assert not MultiObjFitness([1., 1., 1.]).dominates(MultiObjFitness([1., 1., 1.]))
     assert not MultiObjFitness([1., 1., 2.]).dominates(MultiObjFitness([1., 2., 1.]))
+
+
+def test_universal_fitness_compare():
+    assert to_fitness([1., 1., 3.], multi_objective=False).dominates(to_fitness([1., 2., 3.], multi_objective=False))
+    assert to_fitness([1., 1., 3.], multi_objective=True).dominates(to_fitness([1., 2., 3.], multi_objective=True))
+
+    assert to_fitness([1., 1., 3.], multi_objective=False).dominates(to_fitness([1., 2., 1.], multi_objective=False))
+    assert not to_fitness([1., 1., 3.], multi_objective=True).dominates(to_fitness([1., 2., 1.], multi_objective=True))
 
 
 @pytest.mark.parametrize('fitness', get_fitness_objects())
