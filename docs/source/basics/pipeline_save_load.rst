@@ -12,7 +12,8 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            An additional folder will be created inside the specified directory.
            The folder and name of JSON file with pipeline will contain timestamp.
 
-            **Example:**
+            <details>
+            <summary>**Example:**</summary>
 
             **NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
 
@@ -43,6 +44,8 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             ┃ ┗ 📂preprocessing
 
             ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
+
+            </details>
 
 
         2. **With** ``create_subdir=True`` **and** ``is_datetime_in_path=False``
