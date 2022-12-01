@@ -211,26 +211,26 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             **NB.** You can use the same path without modification to load pipeline only if it was saved in 3, 4 or 5 way.
             This is due to the fact that with such saving options it is known exactly in which folder JSON file with the pipeline was saved.
 
-            **Example:**
+                **Example:**
 
-            If the directory where needed pipelines is stored looks like this:
+                If the directory where needed pipelines is stored looks like this:
 
-            📦saved_pipeline
+                📦saved_pipeline
 
-            ┣ 📂fitted_operations
+                ┣ 📂fitted_operations
 
-            ┣ 📂preprocessing
+                ┣ 📂preprocessing
 
-            ┣ 📜best_pipeline.json
+                ┣ 📜best_pipeline.json
 
-            The pipeline can be loaded in the following way:
+                The pipeline can be loaded in the following way:
 
-            .. code-block:: python
+                .. code-block:: python
 
-                # path to dir with pipeline
-                path_to_load = f'{fedot_project_root()}/saved_pipeline'
+                    # path to dir with pipeline
+                    path_to_load = f'{fedot_project_root()}/saved_pipeline'
 
-                pipeline2 = Pipeline().load(path_to_load)
+                    pipeline2 = Pipeline().load(path_to_load)
 
 
         2. To specify path to JSON file with pipeline
@@ -239,23 +239,23 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
             Fitted_operations&preprocessing will be loaded automatically if there are any.
 
-            **Example:**
+                **Example:**
 
-            If the directory where needed pipelines is stored looks like this:
+                If the directory where needed pipelines is stored looks like this:
 
-            📦saved_pipeline
+                📦saved_pipeline
 
-            ┣ 📂fitted_operations
+                ┣ 📂fitted_operations
 
-            ┣ 📂preprocessing
+                ┣ 📂preprocessing
 
-            ┣ 📜best_pipeline.json
+                ┣ 📜best_pipeline.json
 
-            The pipeline can be loaded in the following way:
+                The pipeline can be loaded in the following way:
 
-            .. code-block:: python
+                .. code-block:: python
 
-                # path to pipeline json
-                path_to_load = f'{fedot_project_root()}/saved_pipeline/best_pipeline.json'
+                    # path to pipeline json
+                    path_to_load = f'{fedot_project_root()}/saved_pipeline/best_pipeline.json'
 
-                pipeline2 = Pipeline().load(path_to_load)
+                    pipeline2 = Pipeline().load(path_to_load)
