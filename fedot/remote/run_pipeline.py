@@ -26,7 +26,7 @@ def _load_ts_data(config):
         train_data = MultiModalData.from_csv_time_series(
             file_path=config.input_data,
             task=task, target_column=config.target,
-            var_names=config.var_names)
+            columns_to_use=config.var_names)
     else:
         train_data = InputData.from_csv_time_series(
             file_path=config.input_data,

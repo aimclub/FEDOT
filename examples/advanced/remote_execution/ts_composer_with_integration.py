@@ -79,9 +79,9 @@ features_to_use = ['wind_speed', 'sea_height']
 
 data = MultiModalData.from_csv_time_series(
     file_path=f'{fedot_project_root()}/cases/data/metocean/metocean_data_train.csv',
-    var_names=features_to_use,
+    columns_to_use=features_to_use,
     target_column='sea_height',
-    idx_column='datetime')
+    index_col='datetime')
 
 forecast, obtained_pipeline = run_automl(data=data, features_to_use=['wind_speed', 'sea_height'],
                                          forecast_horizon=30,
