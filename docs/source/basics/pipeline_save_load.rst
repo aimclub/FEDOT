@@ -182,7 +182,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
                 pipeline = baseline_model.current_pipeline
 
-                path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines/best_pipeline.json'
 
                 pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
 
@@ -213,7 +213,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
                 **Example:**
 
-                If the directory where needed pipelines is stored looks like this:
+                If the directory where needed pipeline is stored looks like this:
 
                 📦saved_pipeline
 
@@ -241,7 +241,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
                 **Example:**
 
-                If the directory where needed pipelines is stored looks like this:
+                If the directory where needed pipeline is stored looks like this:
 
                 📦saved_pipeline
 
