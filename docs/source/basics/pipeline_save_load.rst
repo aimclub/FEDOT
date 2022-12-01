@@ -12,40 +12,38 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            An additional folder will be created inside the specified directory.
            The folder and name of JSON file with pipeline will contain timestamp.
 
-            <details>
-                <summary>**Example:**</summary>
+            **Example:**
 
-                **NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
+            **NB.** *All examples assume that the folder where the pipelines are stored is initially empty.*
 
-                .. code-block:: python
+            .. code-block:: python
 
-                    problem = 'classification'
-                    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                problem = 'classification'
+                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-                    baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-                    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-                    pipeline = baseline_model.current_pipeline
+                pipeline = baseline_model.current_pipeline
 
-                    path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-                    pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
-
+                pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=True)
 
 
-                Directory with saved pipeline will look like this (with different timestamp):
 
-                📦saved_pipelines
+            Directory with saved pipeline will look like this (with different timestamp):
 
-                ┣ 📂2022-11-16_15-53-49_pipeline_saved
+            📦saved_pipelines
 
-                ┃ ┗ 📂fitted_operations
+            ┣ 📂2022-11-16_15-53-49_pipeline_saved
 
-                ┃ ┗ 📂preprocessing
+            ┃ ┗ 📂fitted_operations
 
-                ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
+            ┃ ┗ 📂preprocessing
 
-            </details>
+            ┃ ┗ 📜2022-11-16_15-53-49_pipeline_saved.json
+
 
 
         2. **With** ``create_subdir=True`` **and** ``is_datetime_in_path=False``
@@ -59,34 +57,34 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
            This option is useful for pipelines with fitted_operations&preprocessing.
 
-        **Example:**
+            **Example:**
 
-        .. code-block:: python
+            .. code-block:: python
 
-            problem = 'classification'
-            train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                problem = 'classification'
+                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-            baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-            baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-            pipeline = baseline_model.current_pipeline
+                pipeline = baseline_model.current_pipeline
 
-            path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-            pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
+                pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
 
 
-        Directory with saved pipeline will look like this:
+            Directory with saved pipeline will look like this:
 
-        📦saved_pipelines
+            📦saved_pipelines
 
-        ┣ 📂0_pipeline_saved
+            ┣ 📂0_pipeline_saved
 
-        ┃ ┗ 📂fitted_operations
+            ┃ ┗ 📂fitted_operations
 
-        ┃ ┗ 📂preprocessing
+            ┃ ┗ 📂preprocessing
 
-        ┃ ┗ 📜0_pipeline_saved.json
+            ┃ ┗ 📜0_pipeline_saved.json
 
 
         3. **With** ``create_subdir=False`` **and** ``is_datetime_in_path=True``
@@ -96,32 +94,32 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
            This option is useful for pipelines without fitted_operations&preprocessing.
 
-        **Example:**
+            **Example:**
 
-        .. code-block:: python
+            .. code-block:: python
 
-            problem = 'classification'
-            train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                problem = 'classification'
+                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-            baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-            baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-            pipeline = baseline_model.current_pipeline
+                pipeline = baseline_model.current_pipeline
 
-            path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-            pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=True)
+                pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=True)
 
 
-        Directory with saved pipeline will look like this:
+            Directory with saved pipeline will look like this:
 
-        📦saved_pipeline
+            📦saved_pipeline
 
-        ┣ 📂fitted_operations
+            ┣ 📂fitted_operations
 
-        ┣ 📂preprocessing
+            ┣ 📂preprocessing
 
-        ┣ 📜2022-11-16_16-50-41_saved_pipeline.json
+            ┣ 📜2022-11-16_16-50-41_saved_pipeline.json
 
         4. **With** ``create_subdir=False`` **and** ``is_datetime_in_path=False``
 
@@ -134,32 +132,32 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            This option is useful for pipelines without fitted_operations&preprocessing
            and when it's important to know the exact name of pipeline file.
 
-        **Example:**
+            **Example:**
 
-        .. code-block:: python
+            .. code-block:: python
 
-            problem = 'classification'
-            train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                problem = 'classification'
+                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-            baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-            baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-            pipeline = baseline_model.current_pipeline
+                pipeline = baseline_model.current_pipeline
 
-            path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-            pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=False)
+                pipeline.save(path=path_to_save, create_subdir=False, is_datetime_in_path=False)
 
 
-        Directory with saved pipeline will look like this:
+            Directory with saved pipeline will look like this:
 
-        📦saved_pipeline
+            📦saved_pipeline
 
-        ┣ 📂fitted_operations
+            ┣ 📂fitted_operations
 
-        ┣ 📂preprocessing
+            ┣ 📂preprocessing
 
-        ┣ 📜saved_pipeline.json
+            ┣ 📜saved_pipeline.json
 
         5. **With JSON file name in path**
 
@@ -172,32 +170,32 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
            This option is useful for pipelines without fitted_operations&preprocessing
            and when it's important to know the exact name of pipeline file.
 
-        **Example:**
+            **Example:**
 
-        .. code-block:: python
+            .. code-block:: python
 
-            problem = 'classification'
-            train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                problem = 'classification'
+                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
 
-            baseline_model = Fedot(problem=problem, timeout=1, seed=42)
-            baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+                baseline_model = Fedot(problem=problem, timeout=1, seed=42)
+                baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-            pipeline = baseline_model.current_pipeline
+                pipeline = baseline_model.current_pipeline
 
-            path_to_save = f'{fedot_project_root()}/saved_pipelines'
+                path_to_save = f'{fedot_project_root()}/saved_pipelines'
 
-            pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
+                pipeline.save(path=path_to_save, create_subdir=True, is_datetime_in_path=False)
 
 
-        Directory with saved pipeline will look like this:
+            Directory with saved pipeline will look like this:
 
-        📦saved_pipeline
+            📦saved_pipeline
 
-        ┣ 📂fitted_operations
+            ┣ 📂fitted_operations
 
-        ┣ 📂preprocessing
+            ┣ 📂preprocessing
 
-        ┣ 📜best_pipeline.json
+            ┣ 📜best_pipeline.json
 
 
 - `load <https://github.com/aimclub/FEDOT/blob/master/fedot/core/pipelines/pipeline.py#L263>`_
@@ -213,26 +211,26 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             **NB.** You can use the same path without modification to load pipeline only if it was saved in 3, 4 or 5 way.
             This is due to the fact that with such saving options it is known exactly in which folder JSON file with the pipeline was saved.
 
-        **Example:**
+            **Example:**
 
-        If the directory where needed pipelines is stored looks like this:
+            If the directory where needed pipelines is stored looks like this:
 
-        📦saved_pipeline
+            📦saved_pipeline
 
-        ┣ 📂fitted_operations
+            ┣ 📂fitted_operations
 
-        ┣ 📂preprocessing
+            ┣ 📂preprocessing
 
-        ┣ 📜best_pipeline.json
+            ┣ 📜best_pipeline.json
 
-        The pipeline can be loaded in the following way:
+            The pipeline can be loaded in the following way:
 
-        .. code-block:: python
+            .. code-block:: python
 
-            # path to dir with pipeline
-            path_to_load = f'{fedot_project_root()}/saved_pipeline'
+                # path to dir with pipeline
+                path_to_load = f'{fedot_project_root()}/saved_pipeline'
 
-            pipeline2 = Pipeline().load(path_to_load)
+                pipeline2 = Pipeline().load(path_to_load)
 
 
         2. To specify path to JSON file with pipeline
@@ -241,23 +239,23 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
 
             Fitted_operations&preprocessing will be loaded automatically if there are any.
 
-        **Example:**
+            **Example:**
 
-        If the directory where needed pipelines is stored looks like this:
+            If the directory where needed pipelines is stored looks like this:
 
-        📦saved_pipeline
+            📦saved_pipeline
 
-        ┣ 📂fitted_operations
+            ┣ 📂fitted_operations
 
-        ┣ 📂preprocessing
+            ┣ 📂preprocessing
 
-        ┣ 📜best_pipeline.json
+            ┣ 📜best_pipeline.json
 
-        The pipeline can be loaded in the following way:
+            The pipeline can be loaded in the following way:
 
-        .. code-block:: python
+            .. code-block:: python
 
-            # path to pipeline json
-            path_to_load = f'{fedot_project_root()}/saved_pipeline/best_pipeline.json'
+                # path to pipeline json
+                path_to_load = f'{fedot_project_root()}/saved_pipeline/best_pipeline.json'
 
-            pipeline2 = Pipeline().load(path_to_load)
+                pipeline2 = Pipeline().load(path_to_load)
