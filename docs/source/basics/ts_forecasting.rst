@@ -581,7 +581,7 @@ Pipeline plot from the example:
 
 |multimodal_pipeline|
 
-.. |multimodal_pipeline| image:: img_utilities/ts_forecasting/multimodaldata_pipeline.png
+.. |multimodal_pipeline| image:: img_utilities/ts_forecasting/multimodal_pipeline.png
    :width: 60%
 
 Here:
