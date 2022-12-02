@@ -164,6 +164,6 @@ class ParetoFront(HallOfFame):
             for i in reversed(to_remove):  # Remove the dominated hofer
                 self.remove(i)
             if not is_dominated and not has_twin:
-                if len(self) >= self.maxsize:
+                if len(self) >= self.maxsize > 0:
                     self.remove(-1)
                 self.insert(ind)
