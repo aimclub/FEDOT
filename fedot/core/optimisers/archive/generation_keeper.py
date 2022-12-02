@@ -10,6 +10,7 @@ from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from .individuals_containers import HallOfFame, ParetoFront
 
+PARETO_MAX_POP_SIZE_MULTIPLIER = 10
 
 class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
@@ -64,15 +65,15 @@ class GenerationKeeper(ImprovementWatcher):
          NB: relevant only for single-objective optimization.
         initial_generation: Optional first generation;
          NB: if None then keeper is created in inconsistent state and requires an initial .append().
-        similar: a function that tells in the case of multi-objective optimization
-         tells the Pareto front whether or not two individuals are similar, optional.
+        similarity_criteria: a function that in the case of multi-objective optimization
+         tells the Pareto front whether two individuals are similar, optional.
     """
 
     def __init__(self,
                  objective: Optional[Objective] = None,
                  keep_n_best: int = 1,
                  initial_generation: PopulationT = None,
-                 similar: Callable = _individuals_same):
+                 similarity_criteria: Callable = _individuals_same):
         self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._stagnation_start_time = datetime.datetime.now()
@@ -82,7 +83,8 @@ class GenerationKeeper(ImprovementWatcher):
         self._reset_metrics_improvement()
 
         if objective.is_multi_objective:
-            self.archive = ParetoFront(maxsize=keep_n_best * 10, similar=similar)
+            self.archive = ParetoFront(maxsize=keep_n_best * PARETO_MAX_POP_SIZE_MULTIPLIER,
+                                       similar=similarity_criteria)
         else:
             self.archive = HallOfFame(maxsize=keep_n_best)
 
