@@ -55,22 +55,21 @@ class ApiComposer:
         if metric is None:
             metric = MetricByTask.get_default_quality_metrics(task.task_type)
 
-        metric_functions = []
+        metric_ids = []
         for specific_metric in ensure_wrapped_in_sequence(metric):
             if isinstance(specific_metric, Callable):
-                specific_metric_function = specific_metric
+                metric = specific_metric
             else:
-                metric_id = None
+                metric = None
                 if isinstance(specific_metric, str):
                     # Composer metric was defined by name (str)
-                    metric_id = self.metrics.get_metrics_mapping(metric_name=specific_metric)
+                    metric = self.metrics.get_metrics_mapping(metric_name=specific_metric)
                 elif isinstance(specific_metric, MetricsEnum):
-                    metric_id = specific_metric
-                specific_metric_function = MetricsRepository().metric_by_id(metric_id)
-            if specific_metric_function is None:
+                    metric = specific_metric
+            if metric is None:
                 raise ValueError(f'Incorrect metric {specific_metric}')
-            metric_functions.append(specific_metric_function)
-        return metric_functions
+            metric_ids.append(metric)
+        return metric_ids
 
     def obtain_model(self, **common_dict):
         # Prepare parameters
