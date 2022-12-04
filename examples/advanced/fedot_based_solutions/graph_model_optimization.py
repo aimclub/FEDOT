@@ -4,9 +4,8 @@ import random
 
 import numpy as np
 import pandas as pd
-from golem.core.adapter import DirectAdapter, register_native
+from golem.core.adapter import DirectAdapter
 from golem.core.dag.convert import graph_structure_as_nx_graph
-from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
 from golem.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
@@ -14,9 +13,9 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.objective import Objective, ObjectiveEvaluate
+from golem.core.optimisers.optimization_parameters import GraphRequirements
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.core.utils import fedot_project_root
@@ -51,20 +50,14 @@ def _has_no_duplicates(graph):
     return True
 
 
-@register_native
-def custom_mutation(graph: OptGraph, **kwargs):
+def custom_mutation(graph: CustomGraphModel, **kwargs) -> CustomGraphModel:
     num_mut = 10
     try:
         for _ in range(num_mut):
             rid = random.choice(range(graph.length))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
-            nodes_not_cycling = (random_node.descriptive_id not in
-                                 [n.descriptive_id for n in ordered_subnodes_hierarchy(other_random_node)] and
-                                 other_random_node.descriptive_id not in
-                                 [n.descriptive_id for n in ordered_subnodes_hierarchy(random_node)])
-            if nodes_not_cycling:
-                graph.connect_nodes(random_node, other_random_node)
+            graph.connect_nodes(random_node, other_random_node)
     except Exception as ex:
         default_log(prefix='custom_mutation').warning(f'Incorrect connection: {ex}')
     return graph
@@ -73,23 +66,19 @@ def custom_mutation(graph: OptGraph, **kwargs):
 def run_custom_example(timeout: datetime.timedelta = None):
     if not timeout:
         timeout = datetime.timedelta(minutes=1)
+
     data = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'custom_encoded.csv'))
     nodes_types = ['V1', 'V2', 'V3',
                    'V4', 'V5', 'V6',
                    'V7', 'V8', 'V9', 'V10']
-    rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
-    initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
-                                                       content={'name': node_type}) for node_type in nodes_types])]
+    initial = [CustomGraphModel(nodes=[CustomGraphNode(node_type) for node_type in nodes_types])]
 
-    requirements = PipelineComposerRequirements(
-        primary=nodes_types,
-        secondary=nodes_types,
+    requirements = GraphRequirements(
         max_arity=10,
         max_depth=10,
         num_of_generations=5,
-        timeout=timeout
-    )
+        timeout=timeout)
 
     optimiser_parameters = GPAlgorithmParameters(
         pop_size=5,
@@ -99,20 +88,24 @@ def run_custom_example(timeout: datetime.timedelta = None):
         crossover_types=[CrossoverTypesEnum.none],
         regularization_type=RegularizationTypesEnum.none)
 
+    adapter = DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode)
+    constraints = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
     graph_generation_params = GraphGenerationParams(
-        adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
-        rules_for_constraint=rules)
+        adapter=adapter,
+        rules_for_constraint=constraints,
+        available_node_types=nodes_types)
 
     objective = Objective({'custom': custom_metric})
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
         graph_optimizer_params=optimiser_parameters,
-        requirements=requirements, initial_graphs=initial)
+        requirements=requirements,
+        initial_graphs=initial)
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
+    optimized_network = adapter.restore(optimized_graphs[0])
 
     optimized_network.show()
 
