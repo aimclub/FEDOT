@@ -212,24 +212,6 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     assert_intermediate_metrics(restored_pipeline)
 
 
-@pytest.mark.parametrize("cv_generator, data",
-                         [(partial(tabular_cv_generator, folds=5),
-                           get_classification_data()),
-                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
-                           get_ts_data()[0])])
-def test_cv_generator_works_stable(cv_generator, data):
-    """ Test if ts cv generator works stable (always return same folds) """
-    idx_first = []
-    idx_second = []
-    for row in cv_generator(data=data):
-        idx_first.append(row[1].idx)
-    for row in cv_generator(data=data):
-        idx_second.append(row[1].idx)
-
-    for i in range(len(idx_first)):
-        assert np.all(idx_first[i] == idx_second[i])
-
-
 def test_history_backward_compatibility():
     from fedot.core.optimisers.objective import init_backward_serialize_compat
     init_backward_serialize_compat()

@@ -20,7 +20,7 @@ from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -80,28 +80,17 @@ def graph_example():
 
 def generate_pipeline_with_single_node():
     pipeline = Pipeline()
-    pipeline.add_node(PipelineNode('knn'))
+    pipeline.add_node(PrimaryNode('knn'))
 
-    return pipeline
-
-
-def generate_so_complex_pipeline():
-    node_imp = PipelineNode('simple_imputation')
-    node_lagged = PipelineNode('lagged', nodes_from=[node_imp])
-    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
-    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_ridge])
-    node_pca = PipelineNode('pca', nodes_from=[node_decompose])
-    node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_pca])
-    pipeline = Pipeline(node_final)
     return pipeline
 
 
 def pipeline_with_custom_parameters(alpha_value):
-    node_scaling = PipelineNode('scaling')
-    node_norm = PipelineNode('normalization')
-    node_dtreg = PipelineNode('dtreg', nodes_from=[node_scaling])
-    node_lasso = PipelineNode('lasso', nodes_from=[node_norm])
-    node_final = PipelineNode('ridge', nodes_from=[node_dtreg, node_lasso])
+    node_scaling = PrimaryNode('scaling')
+    node_norm = PrimaryNode('normalization')
+    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
+    node_lasso = SecondaryNode('lasso', nodes_from=[node_norm])
+    node_final = SecondaryNode('ridge', nodes_from=[node_dtreg, node_lasso])
     node_final.parameters = {'alpha': alpha_value}
     pipeline = Pipeline(node_final)
 
@@ -121,41 +110,6 @@ def test_nodes_from_height():
     true_nodes = [node for node in graph.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])
-
-
-def test_evaluate_individuals():
-    file_path_train = Path(fedot_project_root(), 'test', 'data', 'simple_classification.csv')
-    full_path_train = Path(fedot_project_root(), file_path_train)
-
-    task = Task(TaskTypesEnum.classification)
-    dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    pipelines_to_evaluate = [pipeline_first(), pipeline_second(),
-                             pipeline_third(), pipeline_fourth()]
-
-    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective = MetricsObjective(metric_function)
-    data_source = DataSourceSplitter().build(dataset_to_compose)
-    objective_eval = PipelineObjectiveEvaluate(objective, data_source)
-    adapter = PipelineAdapter()
-
-    population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
-    timeout = datetime.timedelta(minutes=0.001)
-    adapter = PipelineAdapter()
-    with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(adapter).dispatch(objective_eval, timer=t)
-        evaluated = evaluator(population)
-    assert len(evaluated) == 1
-    assert evaluated[0].fitness is not None
-    assert evaluated[0].fitness.valid
-    assert evaluated[0].metadata['computation_time_in_seconds'] is not None
-
-    population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
-    timeout = datetime.timedelta(minutes=5)
-    with OptimisationTimer(timeout=timeout) as t:
-        evaluator = MultiprocessingDispatcher(adapter).dispatch(objective_eval, timer=t)
-        evaluated = evaluator(population)
-    assert len(evaluated) == 4
-    assert all([ind.fitness.valid for ind in evaluated])
 
 
 def test_filter_duplicates():

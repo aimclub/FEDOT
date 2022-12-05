@@ -4,9 +4,19 @@ from golem.core.optimisers.graph import OptNode
 
 from fedot.core.pipelines.adapters import PipelineAdapter
 from test.unit.dag.test_graph_utils import find_first
-from test.unit.optimizer.gp_operators.test_gp_operators import pipeline_with_custom_parameters, \
-    generate_so_complex_pipeline
+from test.unit.optimizer.gp_operators.test_gp_operators import pipeline_with_custom_parameters
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+
+
+def generate_so_complex_pipeline():
+    node_imp = PrimaryNode('simple_imputation')
+    node_lagged = SecondaryNode('lagged', nodes_from=[node_imp])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_ridge])
+    node_pca = SecondaryNode('pca', nodes_from=[node_decompose])
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_pca])
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 def test_pipeline_adapters_params_correct():
