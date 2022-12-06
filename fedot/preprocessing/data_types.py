@@ -110,7 +110,7 @@ class TableTypesCorrector:
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
-    def remove_incorrect_features(self, table: np.array, converted_columns: dict):
+    def remove_incorrect_features(self, table: np.ndarray, converted_columns: dict):
         """
         Remove from the table columns with conflicts with types were not resolved
 
@@ -130,7 +130,7 @@ class TableTypesCorrector:
         table = np.delete(table, self.columns_to_del, 1)
         return table
 
-    def features_types_converting(self, features: np.array) -> np.array:
+    def features_types_converting(self, features: np.ndarray) -> np.array:
         """ Convert all elements in the data in every feature column into one type
 
         :param features: tabular features array
@@ -157,7 +157,7 @@ class TableTypesCorrector:
 
         return features
 
-    def target_types_converting(self, target: np.array, task: Task) -> np.array:
+    def target_types_converting(self, target: np.ndarray, task: Task) -> np.array:
         """ Convert all elements in every target column into one type
 
         :param target: tabular target array
@@ -185,7 +185,7 @@ class TableTypesCorrector:
 
         return target
 
-    def prepare_column_types_info(self, predictors: np.array, target: np.array = None,
+    def prepare_column_types_info(self, predictors: np.ndarray, target: np.ndarray = None,
                                   task: Task = None) -> dict:
         """ Prepare information about columns in a form of dictionary
         Dictionary has two keys: 'target' and 'features'
@@ -224,7 +224,7 @@ class TableTypesCorrector:
                     remained_column_types.append(col)
             data.supplementary_data.column_types['features'] = remained_column_types
 
-    def _check_columns_vs_types_number(self, table: np.array, column_types: list):
+    def _check_columns_vs_types_number(self, table: np.ndarray, column_types: list):
         # Check if columns number correct
         n_rows, n_cols = table.shape
         if n_cols != len(column_types):
@@ -244,7 +244,7 @@ class TableTypesCorrector:
                 converted_column.append(cur_column[i])
         data.features[:, column_id] = pd.Series(converted_column).values
 
-    def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
+    def _convert_feature_into_one_type(self, mixed_column: np.ndarray, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
 
         :param mixed_column: one-dimensional array with several data types
@@ -280,7 +280,7 @@ class TableTypesCorrector:
             self.log.warning(f'{prefix} String cannot be converted into {suggested_type}. Drop column.')
             return None, 'removed'
 
-    def _convert_target_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int,
+    def _convert_target_into_one_type(self, mixed_column: np.ndarray, column_info: dict, mixed_column_id: int,
                                       task: Task) -> Tuple[np.ndarray, str]:
         """ Convert target columns into one type based on column proportions of object and task """
         if task.task_type is TaskTypesEnum.classification:
@@ -424,7 +424,7 @@ def define_column_types(table: np.ndarray):
     if table is None:
         return {}
 
-    n_rows, n_columns = table.shape
+    _, n_columns = table.shape
     columns_info = {}
     for column_id in range(n_columns):
         current_column = table[:, column_id]
@@ -438,7 +438,7 @@ def define_column_types(table: np.ndarray):
             float_number = (column_types == NAME_CLASS_FLOAT).sum()
 
             # Store information about nans in the target
-            nan_ids = np.ravel(np.argwhere(column_types == NAME_CLASS_NONE))  # TODO: maybe just convert to list to preserve idx pairs?
+            nan_ids = np.ravel(np.argwhere(column_types == NAME_CLASS_NONE))
             columns_info.update({column_id: {'types': unique_column_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
@@ -462,7 +462,7 @@ def find_mixed_types_columns(columns_info: dict):
     return columns_with_mixed_types
 
 
-def apply_type_transformation(table: np.array, column_types: list, log: LoggerAdapter):
+def apply_type_transformation(table: np.ndarray, column_types: list, log: LoggerAdapter):
     """
     Apply transformation for columns in dataset into desired type. Perform
     transformation on predict stage when column types were already determined
@@ -510,7 +510,7 @@ def _obtain_new_column_type(column_info):
         return int
 
 
-def _convert_predict_column_into_desired_type(table: np.array, current_column: np.array,
+def _convert_predict_column_into_desired_type(table: np.ndarray, current_column: np.ndarray,
                                               column_id: int, current_type, log: LoggerAdapter):
     try:
         table[:, column_id] = current_column.astype(current_type)
