@@ -50,10 +50,9 @@ class ImprovementWatcher(ABC):
 
 
 def _individuals_same(ind1: Individual, ind2: Individual) -> bool:
-    fitness_same = ind1.fitness == ind2.fitness
-    graphs_similar = (ind1.graph.depth == ind2.graph.depth and
-                      ind1.graph.length == ind2.graph.length)
-    return fitness_same and graphs_similar
+    return (ind1.fitness == ind2.fitness and
+            ind1.native_generation == ind2.native_generation and
+            ind1.graph == ind2.graph)
 
 
 class GenerationKeeper(ImprovementWatcher):
