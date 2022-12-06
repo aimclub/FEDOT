@@ -18,6 +18,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -367,12 +368,37 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
-    model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.regression, forbidden_tags=['bagging']
+    )
 
     for model_name in model_names:
         node_data_operation = PipelineNode(model_name)
         node_final = PipelineNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
+
+        # Fit and predict for pipeline
+        pipeline.fit_from_scratch(train_input)
+        predicted_output = pipeline.predict(train_input)
+        predicted = predicted_output.predict
+
+        assert np.sum(np.isinf(predicted)) == 0
+        assert np.sum(np.isnan(predicted)) == 0
+
+
+def test_inf_and_nan_absence_after_bagging_pipeline_fitting_from_scratch():
+    train_input = get_nan_inf_data()
+
+    bagging_models = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.regression, tags=['bagging']
+    )
+
+    for model_name in bagging_models:
+        # oob_score is false due to tiny train_input
+        pipeline = PipelineBuilder() \
+            .add_node(model_name, params={'bagging_params': {'oob_score': False}}) \
+            .add_node('linear') \
+            .to_pipeline()
 
         # Fit and predict for pipeline
         pipeline.fit_from_scratch(train_input)

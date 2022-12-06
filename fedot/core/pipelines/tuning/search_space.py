@@ -601,6 +601,15 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'}
             },
+            'lgbmxt': {
+                'class_weight': (hp.choice, [[None, 'balanced']]),
+                'num_leaves': (hp.uniformint, [2, 256]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+            },
             'lgbmreg': {
                 'num_leaves': {
                     'hyperopt-dist': hp.uniformint,
@@ -626,6 +635,14 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'}
+            },
+            'lgbmxtreg': {
+                'num_leaves': (hp.uniformint, [2, 256]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'catboost': {
                 'iterations': {
@@ -767,6 +784,158 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.9, 0.99],
                     'type': 'continuous'}
+            },
+            'bag_dt': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'min_samples_split': (hp.uniformint, [2, 21]),
+                    'min_samples_leaf': (hp.uniformint, [1, 21])
+                }
+            },
+            'bag_dtreg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'min_samples_split': (hp.uniformint, [2, 21]),
+                    'min_samples_leaf': (hp.uniformint, [1, 21])
+                }
+            },
+            'bag_adareg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'loss': (hp.choice, [["linear", "square", "exponential"]])
+                }
+            },
+            'bag_catboost': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                    'border_count': (hp.uniformint, [2, 255]),
+                    'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'loss_function': (hp.choice, [['Logloss', 'CrossEntropy']])
+                }
+            },
+            'bag_xgboost': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 7]),
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'subsample': (hp.uniform, [0.05, 0.99]),
+                    'min_child_weight': (hp.uniform, [1, 21])
+                }
+            },
+            'bag_lgbm': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'class_weight': (hp.choice, [[None, 'balanced']]),
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_lgbmxt': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'class_weight': (hp.choice, [[None, 'balanced']]),
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_catboostreg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                    'border_count': (hp.uniformint, [2, 255]),
+                    'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_xgboostreg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 7]),
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'subsample': (hp.uniform, [0.05, 0.99]),
+                    'min_child_weight': (hp.uniform, [1, 21])
+                }
+            },
+            'bag_lgbmreg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_lgbmxtreg': {
+                'bagging_params': {
+                    'n_estimators': (hp.uniformint, [3, 200]),
+                    'bootstrap': True,
+                    'oob_score': (hp.choice, [[True, False]]),
+                },
+                'model_params': {
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
             },
         }
 

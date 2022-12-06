@@ -154,6 +154,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``svr``-> SklearnSVR
                 - ``sgdr``-> SklearnSGD
                 - ``lgbmreg``-> LGBMRegressor
+                - ``lgbmxtreg``-> LGBMRegressor with Extra Tree
                 - ``catboostreg``-> CatBoostRegressor
                 - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
@@ -163,6 +164,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``rf``-> RandomForestClassifier
                 - ``mlp``-> MLPClassifier
                 - ``lgbm``-> LGBMClassifier
+                - ``lgbmxt``-> LGBMClassifier with Extra Tree
                 - ``catboost``-> CatBoostClassifier
                 - ``kmeans``-> SklearnKmeans
 
@@ -182,6 +184,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
         'lgbmreg': LGBMRegressor,
+        'lgbmxtreg': LGBMRegressor,
 
         'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
@@ -191,6 +194,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
         'lgbm': LGBMClassifier,
+        'lgbmxt': LGBMClassifier,
 
         'kmeans': SklearnKmeans,
     }
