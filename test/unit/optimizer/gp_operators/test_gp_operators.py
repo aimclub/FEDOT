@@ -113,7 +113,7 @@ def test_nodes_from_height():
 
 
 def test_filter_duplicates():
-    archive = ParetoFront()
+    archive = ParetoFront(maxsize=5)
     adapter = PipelineAdapter()
 
     archive_items = [Individual(adapter.adapt(p)) for p in [pipeline_first(), pipeline_second(), pipeline_third()]]

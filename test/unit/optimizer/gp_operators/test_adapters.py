@@ -1,4 +1,7 @@
 import numpy as np
+
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from golem.core.dag.graph_node import GraphNode
 from golem.core.optimisers.graph import OptNode
 

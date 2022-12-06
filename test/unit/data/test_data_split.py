@@ -191,7 +191,7 @@ def test_multivariate_time_series_splitting_correct():
 
 @pytest.mark.parametrize("cv_generator, data",
                          [(partial(tabular_cv_generator, folds=5),
-                           get_classification_data()),
+                           get_classification_data()[0]),
                           (partial(ts_cv_generator, folds=3, validation_blocks=2),
                            get_ts_data()[0])])
 def test_cv_generator_works_stable(cv_generator, data):
