@@ -302,8 +302,6 @@ class PipelineNode(LinkedGraphNode):
         # Update info about visited nodes
         parent_operations = [node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_operations
-        if len(secondary_input.features) == 0:
-            print(0)
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):

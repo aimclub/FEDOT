@@ -124,35 +124,12 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     ts_to_table_operations = ['lagged', 'sparse_lagged', 'exog_ts']
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
-    # TODO refactor
-    limit_lagged_parents = {lagged_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
-                            for lagged_op in ts_to_table_operations}
+    wrong_connections = get_wrong_links(ts_to_table_operations, ts_data_operations, non_ts_data_operations,
+                                        ts_models, non_ts_models)
 
-    limit_ts_models_parents = {ts_model: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
-                               for ts_model in ts_models}
-    limit_non_ts_models_parents = {non_ts_model: ts_data_operations
-                                   for non_ts_model in non_ts_models}
-
-    limit_ts_data_operations_parents = {
-        ts_data_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
-        for ts_data_op in ts_data_operations}
-    limit_non_ts_data_operations_parents = {non_ts_data_op: ts_data_operations
-                                            for non_ts_data_op in non_ts_data_operations}
-
-    limit_ts_model_data_op_parents_count = {ts_model_op: 1
-                               for ts_model_op in ts_models+ts_data_operations+ts_to_table_operations}
-
-    limit_decompose_parents_count = {'decompose': 1}
-
-    limit_parents_count = {**limit_ts_model_data_op_parents_count, **limit_decompose_parents_count}
-
-    need_to_have_parent = [op for op in non_ts_data_operations]
-
-    wrong_connections = {**limit_non_ts_data_operations_parents,
-                         **limit_ts_data_operations_parents,
-                         **limit_non_ts_models_parents,
-                         **limit_ts_models_parents,
-                         **limit_lagged_parents}
+    limit_parents_count, need_to_have_parent = get_parent_limits(ts_to_table_operations, ts_data_operations,
+                                                                 non_ts_data_operations,
+                                                                 ts_models)
 
     for node in pipeline.nodes:
         # Operation name in the current node
@@ -173,6 +150,62 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
             if current_operation in need_to_have_parent:
                 raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
+
+
+def get_wrong_links(ts_to_table_operations: list, ts_data_operations: list, non_ts_data_operations: list,
+                    ts_models: list, non_ts_models: list) -> dict:
+    """
+    Function that return wrong ts connections like op_A : [op_B, op_C] that means op_B and op_C
+    can't be a parent for op_A.
+
+    :param ts_to_table_operations: list of ts_to_table operations
+    :param ts_data_operations: list of ts data operations
+    :param non_ts_data_operations: list of non ts data operations
+    :param ts_models: list of ts models
+    :param non_ts_models: list of non ts models
+    :return: dict with wrong connections
+    """
+    limit_lagged_parents = {lagged_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+                            for lagged_op in ts_to_table_operations}
+
+    limit_ts_models_parents = {ts_model: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+                               for ts_model in ts_models}
+    limit_non_ts_models_parents = {non_ts_model: ts_data_operations
+                                   for non_ts_model in non_ts_models}
+
+    limit_ts_data_operations_parents = {
+        ts_data_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+        for ts_data_op in ts_data_operations}
+    limit_non_ts_data_operations_parents = {non_ts_data_op: ts_data_operations
+                                            for non_ts_data_op in non_ts_data_operations}
+
+    wrong_connections = {**limit_non_ts_data_operations_parents,
+                         **limit_ts_data_operations_parents,
+                         **limit_non_ts_models_parents,
+                         **limit_ts_models_parents,
+                         **limit_lagged_parents}
+    return wrong_connections
+
+
+def get_parent_limits(ts_to_table_operations: list, ts_data_operations: list, non_ts_data_operations: list,
+                      ts_models: list) -> (dict, list):
+    """
+    Function that return some constraints on number of parents for time series forecasting graphs
+
+    :param ts_to_table_operations: list of ts_to_table operations
+    :param ts_data_operations: list of ts data operations
+    :param non_ts_data_operations: list of non ts data operations
+    :param ts_models: list of ts models
+    :return: dict with parent limits and list with operations that must have a parent
+    """
+    limit_ts_model_data_op_parents_count = {ts_model_op: 1
+                                            for ts_model_op in ts_models + ts_data_operations + ts_to_table_operations}
+
+    limit_decompose_parents_count = {'decompose': 1}
+
+    limit_parents_count = {**limit_ts_model_data_op_parents_count, **limit_decompose_parents_count}
+    need_to_have_parent = [op for op in non_ts_data_operations]
+    return limit_parents_count, need_to_have_parent
 
 
 def only_non_lagged_operations_are_primary(pipeline: Pipeline):

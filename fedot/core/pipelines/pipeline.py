@@ -187,7 +187,6 @@ class Pipeline(GraphDelegate, Serializable):
         copied_input_data = self._preprocess(input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-        _copied = deepcopy(copied_input_data)
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
         else:
@@ -241,6 +240,7 @@ class Pipeline(GraphDelegate, Serializable):
         Returns:
             bool: indicating if at least one node was loaded
         """
+
         if cache is not None:
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
