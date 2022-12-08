@@ -1,5 +1,4 @@
 import pytest
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

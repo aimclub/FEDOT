@@ -9,7 +9,7 @@ from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.visualisation.opt_viz import PlotTypesEnum
 
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
-from test.unit.serialization.mocks.history_mocks import CustomMockNode, CustomMockGraph
+from test.unit.mocks.history_mocks import CustomMockNode, CustomMockGraph
 
 
 def create_mock_graph_individual():
