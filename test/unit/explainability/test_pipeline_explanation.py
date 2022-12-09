@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-from sklearn.datasets import load_iris, load_boston
+from sklearn.datasets import load_iris, load_diabetes
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -15,61 +15,47 @@ from fedot.explainability.surrogate_explainer import SurrogateExplainer, get_sim
 np.random.seed(1)
 
 
-@pytest.fixture(scope='module', name='classification')
-def classification_fixture() -> 'InputData, Pipeline':
-    predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-    return data, get_simple_pipeline('rf')
-
-
-@pytest.fixture(scope='module', name='regression')
-def regression_fixture() -> 'InputData, Pipeline':
-    predictors, response = load_boston(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.regression),
-                     data_type=DataTypesEnum.table)
-    return data, get_simple_pipeline('rfr')
-
-
-@pytest.fixture(scope='module', name="task_type")
-def task_type_fixture(request, classification, regression) -> 'InputData, Pipeline':
+@pytest.fixture(scope='module')
+def data_for_task_type(request) -> (InputData, Pipeline):
     task_type = request.param
     if task_type == TaskTypesEnum.classification:
-        return classification
+        load_func = load_iris
+        pipeline = get_simple_pipeline('rf')
     elif task_type == TaskTypesEnum.regression:
-        return regression
+        load_func = load_diabetes
+        pipeline = get_simple_pipeline('rfr')
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
+    predictors, response = load_func(return_X_y=True)
+    np.random.seed(1)
+    np.random.shuffle(predictors)
+    np.random.shuffle(response)
+    predictors = predictors[:100]
+    response = response[:100]
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
+                     task=Task(task_type),
+                     data_type=DataTypesEnum.table)
+    return data, pipeline
 
 
-def _successful_output(explainer: 'Explainer'):
+def _successful_output(explainer):
     try:
         explainer.visualize()
         return True
-    except Exception:
-        return False
+    except Exception as e:
+        raise e
 
 
-@pytest.mark.parametrize('method, task_type', [
-    ('surrogate_dt', TaskTypesEnum.classification),
-    ('surrogate_dt', TaskTypesEnum.regression),
-], indirect=['task_type'])
-def test_surrogate_explainer(method, task_type, request):
-    data, pipeline = request.getfixturevalue('task_type')
+@pytest.mark.parametrize(
+    'data_for_task_type, method',
+    [
+        (TaskTypesEnum.classification, 'surrogate_dt'),
+        (TaskTypesEnum.regression, 'surrogate_dt'),
+    ],
+    indirect=['data_for_task_type'])
+def test_surrogate_explainer(data_for_task_type, method):
+    data, pipeline = data_for_task_type
     train, _ = train_test_data_setup(data)
-
     pipeline.fit(input_data=train)
 
     explainer = explain_pipeline(pipeline, data=train, method=method, visualization=False)
@@ -80,11 +66,15 @@ def test_surrogate_explainer(method, task_type, request):
     assert isinstance(explainer.score, float) and explainer.score > 0
 
 
-@pytest.mark.parametrize('method, task_type', [
-    ('surrogate_dt', TaskTypesEnum.classification),
-], indirect=['task_type'])
-def test_pipeline_explain(method, task_type, request):
-    data, pipeline = request.getfixturevalue('task_type')
+@pytest.mark.parametrize(
+    'data_for_task_type, method',
+    [
+        (TaskTypesEnum.classification, 'surrogate_dt'),
+        (TaskTypesEnum.regression, 'surrogate_dt'),
+    ],
+    indirect=['data_for_task_type'])
+def test_pipeline_explain(data_for_task_type, method):
+    data, pipeline = data_for_task_type
     train, _ = train_test_data_setup(data)
 
     pipeline.fit(input_data=train)
