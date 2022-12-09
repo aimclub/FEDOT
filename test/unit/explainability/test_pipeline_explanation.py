@@ -38,21 +38,14 @@ def data_for_task_type(request) -> (InputData, Pipeline):
     return data, pipeline
 
 
-def _successful_output(explainer):
-    try:
-        explainer.visualize()
-        return True
-    except Exception as e:
-        raise e
-
-
 @pytest.mark.parametrize(
     'data_for_task_type, method',
     [
         (TaskTypesEnum.classification, 'surrogate_dt'),
         (TaskTypesEnum.regression, 'surrogate_dt'),
     ],
-    indirect=['data_for_task_type'])
+    indirect=['data_for_task_type']
+)
 def test_surrogate_explainer(data_for_task_type, method):
     data, pipeline = data_for_task_type
     train, _ = train_test_data_setup(data)
@@ -72,7 +65,8 @@ def test_surrogate_explainer(data_for_task_type, method):
         (TaskTypesEnum.classification, 'surrogate_dt'),
         (TaskTypesEnum.regression, 'surrogate_dt'),
     ],
-    indirect=['data_for_task_type'])
+    indirect=['data_for_task_type']
+)
 def test_pipeline_explain(data_for_task_type, method):
     data, pipeline = data_for_task_type
     train, _ = train_test_data_setup(data)
@@ -82,5 +76,5 @@ def test_pipeline_explain(data_for_task_type, method):
 
     explainer = explain_pipeline(pipeline, data=train, method=method, visualization=False)
 
+    explainer.visualize()  # Check successful output.
     assert pipeline == old_pipeline
-    assert _successful_output(explainer)
