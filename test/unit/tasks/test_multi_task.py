@@ -27,4 +27,4 @@ def test_multitask_pipeline_predict_correctly():
 
     assert np.array_equal(side_predict, np.array(['a_category', 'a_category', 'b_category', 'b_category']))
     # Two source features and predicted class label as third
-    assert multitask_pipeline.root_node.fitted_operation.n_features_ == 3
+    assert multitask_pipeline.root_node.fitted_operation.n_features_in_ == 3
