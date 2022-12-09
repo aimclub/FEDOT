@@ -16,7 +16,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricType
-from test.unit.optimizer.test_data_objective_eval import pipeline_first_test
+from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
 from test.unit.pipelines.tuning.test_pipeline_tuning import get_not_default_search_space
 from test.unit.validation.test_table_cv import get_classification_data
 

@@ -1,8 +1,6 @@
 import datetime
 import time
 
-from golem.core.optimisers.timer import OptimisationTimer
-
 from fedot.core.pipelines.tuning.timer import TunerTimer
 
 

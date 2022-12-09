@@ -1,6 +1,4 @@
 import pytest
-from golem.core.dag.verification_rules import has_no_cycle, has_no_isolated_components, has_no_isolated_nodes, \
-    has_no_self_cycled_nodes
 
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -11,6 +9,7 @@ from fedot.core.pipelines.verification_rules import has_correct_operations_for_t
     has_correct_data_sources, has_parent_contain_single_resample, has_no_conflicts_during_multitask, \
     has_no_conflicts_after_class_decompose
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from golem.core.dag.verification_rules import has_no_cycle
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
 GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
@@ -32,36 +31,6 @@ def valid_pipeline():
     return pipeline
 
 
-def pipeline_with_cycle():
-    first = PipelineNode(operation_type='logit')
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    third = PipelineNode(operation_type='logit',
-                         nodes_from=[second, first])
-    second.nodes_from.append(third)
-    pipeline = Pipeline()
-    for node in [first, second, third]:
-        pipeline.add_node(node)
-
-    return pipeline
-
-
-def pipeline_with_isolated_nodes():
-    first = PipelineNode(operation_type='logit')
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    third = PipelineNode(operation_type='logit',
-                         nodes_from=[second])
-    isolated = PipelineNode(operation_type='logit',
-                            nodes_from=[])
-    pipeline = Pipeline()
-
-    for node in [first, second, third, isolated]:
-        pipeline.add_node(node)
-
-    return pipeline
-
-
 def pipeline_with_multiple_roots():
     first = PipelineNode(operation_type='logit')
     root_first = PipelineNode(operation_type='logit',
@@ -71,35 +40,6 @@ def pipeline_with_multiple_roots():
     pipeline = Pipeline()
 
     for node in [first, root_first, root_second]:
-        pipeline.add_node(node)
-
-    return pipeline
-
-
-def pipeline_with_self_cycle():
-    first = PipelineNode(operation_type='logit')
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    second.nodes_from.append(second)
-
-    pipeline = Pipeline()
-    pipeline.add_node(first)
-    pipeline.add_node(second)
-
-    return pipeline
-
-
-def pipeline_with_isolated_components():
-    first = PipelineNode(operation_type='logit')
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    third = PipelineNode(operation_type='logit',
-                         nodes_from=[])
-    fourth = PipelineNode(operation_type='logit',
-                          nodes_from=[third])
-
-    pipeline = Pipeline()
-    for node in [first, second, third, fourth]:
         pipeline.add_node(node)
 
     return pipeline
@@ -250,26 +190,6 @@ def pipeline_with_incorrect_resample_node():
     return pipeline
 
 
-def test_pipeline_with_cycle_raise_exception():
-    pipeline = pipeline_with_cycle()
-    with pytest.raises(Exception) as exc:
-        assert has_no_cycle(pipeline)
-    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has cycles'
-
-
-def test_pipeline_without_cycles_correct():
-    pipeline = valid_pipeline()
-
-    assert has_no_cycle(pipeline)
-
-
-def test_pipeline_with_isolated_nodes_raise_exception():
-    pipeline = pipeline_with_isolated_nodes()
-    with pytest.raises(ValueError) as exc:
-        assert has_no_isolated_nodes(pipeline)
-    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated nodes'
-
-
 def test_multi_root_pipeline_raise_exception():
     pipeline = pipeline_with_multiple_roots()
 
@@ -283,23 +203,9 @@ def test_pipeline_with_primary_nodes_correct():
     assert has_primary_nodes(pipeline)
 
 
-def test_pipeline_with_self_cycled_nodes_raise_exception():
-    pipeline = pipeline_with_self_cycle()
-    with pytest.raises(Exception) as exc:
-        assert has_no_self_cycled_nodes(pipeline)
-    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has self-cycled nodes'
-
-
 def test_pipeline_validate_correct():
     pipeline = valid_pipeline()
     verify_pipeline(pipeline)
-
-
-def test_pipeline_with_isolated_components_raise_exception():
-    pipeline = pipeline_with_isolated_components()
-    with pytest.raises(Exception) as exc:
-        assert has_no_isolated_components(pipeline)
-    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated components'
 
 
 def test_pipeline_with_incorrect_task_type_raise_exception():
