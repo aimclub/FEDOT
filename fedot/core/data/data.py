@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple, Union, Iterable, Any
 import numpy as np
 import pandas as pd
 
+from fedot.core.log import default_log
 from fedot.utilities.requirements_notificator import warn_requirement
 
 #: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
@@ -611,6 +612,8 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     columns_to_use = columns_to_use or []
     possible_idx_keywords = possible_idx_keywords or []
 
+    logger = default_log('CSV data extraction')
+
     columns = list(pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1))
 
     if columns_to_drop and columns_to_use:
@@ -625,6 +628,7 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     if index_col is None:
         first_column = columns_to_use[0]
         if any(key in first_column.lower() for key in possible_idx_keywords):
+            logger.message(f'Used the column as index: "{first_column}".')
             index_col = first_column
 
     df = pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)
