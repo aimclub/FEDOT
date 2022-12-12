@@ -102,7 +102,7 @@ def force_categorical_determination(table: np.ndarray):
 
 def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
-    return data_type_is_suitable_for_preprocessing(data) and pd.DataFrame(data.features).isna().sum().sum() > 0
+    return data_type_is_suitable_for_preprocessing(data) and pd.DataFrame(data.features).isna().to_numpy().sum() > 0
 
 
 def data_has_categorical_features(data: InputData) -> bool:
