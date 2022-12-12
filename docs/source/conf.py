@@ -23,7 +23,7 @@ copyright = '2020-{}, NSS Lab'.format(datetime.datetime.now().year)
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.0'
+release = '0.6.1'
 
 # -- General configuration ---------------------------------------------------
 
