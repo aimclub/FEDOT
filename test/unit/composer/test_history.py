@@ -21,7 +21,6 @@ from fedot.core.utils import fedot_project_root
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
-from golem.core.optimisers.graph import OptNode, OptGraph
 from golem.core.optimisers.opt_history_objects.individual import Individual
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -162,15 +161,3 @@ def test_history_backward_compatibility():
                for parent_op in ind.operators_from_prev_generation
                for parent_ind in parent_op.parent_individuals)
     _test_individuals_in_history(history)
-
-
-def test_history_correct_serialization():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
-
-    history = OptHistory.load(test_history_path)
-    dumped_history_json = history.save()
-    reloaded_history = OptHistory.load(dumped_history_json)
-
-    assert history.individuals == reloaded_history.individuals
-    assert dumped_history_json == reloaded_history.save(), 'The history is not equal to itself after reloading!'
-    _test_individuals_in_history(reloaded_history)

@@ -1,8 +1,6 @@
 import json
 import os
 
-import pytest
-
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
