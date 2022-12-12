@@ -117,7 +117,7 @@ class BinaryCategoricalPreprocessor:
                 encoder_classes.append(label)
 
         # Extent encoder classes
-        encoder.classes_ = encoder_classes
+        encoder.classes_ = np.array(encoder_classes)
 
         converted = encoder.transform(column)
         if len(gap_ids) > 0:

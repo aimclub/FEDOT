@@ -185,7 +185,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
                 encoder_classes.append(label)
 
         # Extent encoder classes
-        column_encoder.classes_ = encoder_classes
+        column_encoder.classes_ = np.array(encoder_classes)
 
         transformed_column = column_encoder.transform(categorical_column)
         if len(gap_ids) > 0:

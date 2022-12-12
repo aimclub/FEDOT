@@ -117,7 +117,7 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-        self.inner_model = LinearRegression(normalize=True)
+        self.inner_model = LinearRegression()
 
         if not self.params:
             # Default parameters
