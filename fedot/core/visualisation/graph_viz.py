@@ -30,7 +30,6 @@ LabelsColorMapType = Dict[str, MatplotlibColorType]
 NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
 NodeColorType = Union[MatplotlibColorType, LabelsColorMapType, NodeColorFunctionType]
 
-
 class GraphVisualiser:
     def __init__(self):
         default_data_dir = default_fedot_data_dir()
@@ -53,7 +52,7 @@ class GraphVisualiser:
             self.__draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
                                       edge_curvature_scale)
         elif engine == 'pyvis':
-            self.__draw_with_pyvis(graph, save_path, node_color)
+            self.__draw_with_pyvis(graph, save_path, node_color, node_size_scale)
         elif engine == 'graphviz':
             self.__draw_with_graphviz(graph, save_path, node_color, dpi)
         else:
@@ -110,7 +109,7 @@ class GraphVisualiser:
 
     @staticmethod
     def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                          nodes_color=__get_colors_by_tags.__func__):
+                          nodes_color=__get_colors_by_tags.__func__, nodes_size=None):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
@@ -133,6 +132,8 @@ class GraphVisualiser:
             data['color'] = to_hex(colors.get(label, colors.get(None)))
             data['font'] = '20px'
             data['labelHighlightBold'] = True
+            data['size'] = nodes_size[label]
+            # data['size'] = nodes_color[label]
 
         for _, data in nx_graph.nodes(data=True):
             net.add_node(**data)
@@ -207,7 +208,7 @@ class GraphVisualiser:
         node_size = get_scaled_node_size(longest_sequence) * node_size_scale
         # Draw the graph's nodes.
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
-                               edgecolors=node_color)
+                               edgecolors=node_color)                  
         # Draw the graph's node labels.
         draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
                        font_size_scale)
@@ -258,9 +259,27 @@ class GraphVisualiser:
             e['connectionstyle'] = connection_style_curved_template.format(edge_curvature)
         # Draw the graph's edges.
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
+        
+#########################
+# composite
+        # dir_edges={}
+        # for u, v, e in nx_graph.edges(data=True):
+        #     dir_edges[(u, v)]=nodes[v].content['parent_model'].implementation_info.split('.')[-1][:-2]
+# pos=nx.circular_layout(nx_graph)
+##########################     
+        # for u, v, e in nx_graph.edges(data=True):
+        #     nx.draw_networkx_edges(nx_graph, pos = nx.circular_layout(nx_graph), edgelist=[(u, v)])                           
         for u, v, e in nx_graph.edges(data=True):
             nx.draw_networkx_edges(nx_graph, pos, edgelist=[(u, v)], node_size=node_size, ax=ax, arrowsize=10,
                                    arrowstyle=arrow_style, connectionstyle=e['connectionstyle'])
+##########################
+# composite
+        # for u, v, e in nx_graph.edges(data=True):
+        #     nx.draw_networkx_edge_labels(nx_graph, pos, ax=ax, font_size = 3, # verticalalignment = 'center',
+        #                             edge_labels=dir_edges)    
+#########################
+
+# self.draw_networkx_edge_labels                                   
         # Rescale the figure for all nodes to fit in.
         x_1, x_2 = ax.get_xlim()
         y_1, y_2 = ax.get_ylim()

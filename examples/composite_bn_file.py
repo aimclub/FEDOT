@@ -8,7 +8,7 @@ import time
 
 parentdir = os.getcwd()
 
-
+import bamt.Networks as Nets
 
 
 # parentdir = 'C:\\Users\\anaxa\\Documents\\Projects\\\CompositeBayesianNetworks\\FEDOT'
@@ -16,7 +16,7 @@ sys.path.insert(0, parentdir)
 from fedot.core.dag.graph import Graph
 from copy import deepcopy
 import pandas as pd
-from random import choice, sample
+from random import choice, sample, randint
 from sklearn import preprocessing
 import bamt.Preprocessors as pp
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -48,43 +48,105 @@ from sklearn.metrics import mean_squared_error
 from itertools import chain, starmap
 from math import log10
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
+# def composite_metric(graph: CompositeModel, data: pd.DataFrame):
+#     score, len_data, edges_count = 0, len(data), len(graph.get_edges())
+#     for node in graph.nodes:   
+#         data_of_node = data[node.content['name']]
+#         if node.nodes_from == None or node.nodes_from == []:
+#             if node.content['type'] == 'cont':
+#                 mu, sigma = mean(data_of_node), std(data_of_node)
+#                 score += norm.logpdf(data_of_node.values, loc=mu, scale=sigma).sum()
+#             else:
+#                 # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
+#                 count = data_of_node.value_counts().values
+#                 frequency  = log(count / len_data)
+#                 score += dot(count, frequency)  
+#         else:
+#             model, columns, target, idx = node.content['parent_model'], [n.content['name'] for n in node.nodes_from], data_of_node.to_numpy(), data.index.to_numpy()
+#             features = data[columns].to_numpy()
+#             if node.content['type'] == 'cont':
+#                 task = Task(TaskTypesEnum.regression)            
+#             else:
+#                 task = Task(TaskTypesEnum.classification)
+#             data_type = DataTypesEnum.table
+#             train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+#             fitted_model = model.fit(train)
+            
+#             if node.content['type'] == 'cont':
+#                 predict = fitted_model.predict(train.features)        
+#                 mse =  mean_squared_error(target, predict,squared=False) + 0.0000001
+#                 a = norm.logpdf(target, loc=predict, scale=mse)
+#                 score += a.sum()                
+#             else:
+#                 # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
+#                 predict_proba = fitted_model.predict_proba(features)
+#                 # sum(starmap(f, zip(predict_proba, target)))
+#                 score += sum([log(predict_proba[i][target[i]]) for i in idx])        
+#     score -= len(graph.nodes)*log10(len_data)*edges_count/4
+#     return [-score]
 
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
-    score, len_data, edges_count = 0, len(data), len(graph.get_edges())
-    for node in graph.nodes:   
-        data_of_node = data[node.content['name']]
-        if node.nodes_from == None or node.nodes_from == []:
-            if node.content['type'] == 'cont':
-                mu, sigma = mean(data_of_node), std(data_of_node)
-                score += norm.logpdf(data_of_node.values, loc=mu, scale=sigma).sum()
+    try:
+        data_all = data
+        data_train , data_test = train_test_split(data_all, train_size = 0.8, random_state=42)
+        score, len_data, edges_count = 0, len(data_train), len(graph.get_edges())
+        for node in graph.nodes:   
+            # if str(node) == 'Period':
+            #     print('9')
+            data_of_node_train = data_train[node.content['name']]
+            data_of_node_test = data_test[node.content['name']]
+            if node.nodes_from == None or node.nodes_from == []:
+                if node.content['type'] == 'cont':
+                    mu, sigma = mean(data_of_node_train), std(data_of_node_train)
+                    score += norm.logpdf(data_of_node_test.values, loc=mu, scale=sigma).sum()
+                else:
+                    count = data_of_node_train.value_counts()
+                    frequency  = log(count / len_data)
+                    index = frequency.index.tolist()
+                    for value in data_of_node_test:
+                        if value in index:
+                            score += frequency[value]
+
             else:
-                # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
-                count = data_of_node.value_counts().values
-                frequency  = log(count / len_data)
-                score += dot(count, frequency)  
-        else:
-            model, columns, target, idx = node.content['parent_model'], [n.content['name'] for n in node.nodes_from], data_of_node.to_numpy(), data.index.to_numpy()
-            features = data[columns].to_numpy()
-            if node.content['type'] == 'cont':
-                task = Task(TaskTypesEnum.regression)            
-            else:
-                task = Task(TaskTypesEnum.classification)
-            data_type = DataTypesEnum.table
-            train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
-            fitted_model = model.fit(train)
-            
-            if node.content['type'] == 'cont':
-                predict = fitted_model.predict(train.features)        
-                mse =  mean_squared_error(target, predict,squared=False) + 0.0000001
-                a = norm.logpdf(target, loc=predict, scale=mse)
-                score += a.sum()                
-            else:
-                # if node.content['type'] == 'disc' or node.content['type'] == 'disc_num'
-                predict_proba = fitted_model.predict_proba(features)
-                # sum(starmap(f, zip(predict_proba, target)))
-                score += sum([log(predict_proba[i][target[i]]) for i in idx])        
-    score -= len(graph.nodes)*log10(len_data)*edges_count/4
+                model, columns, target, idx = node.content['parent_model'], [n.content['name'] for n in node.nodes_from], data_of_node_train.to_numpy(), data_train.index.to_numpy()
+                features = data_train[columns].to_numpy()
+                if node.content['type'] == 'cont':
+                    task = Task(TaskTypesEnum.regression)            
+                else:
+                    task = Task(TaskTypesEnum.classification)
+                data_type = DataTypesEnum.table
+                train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+                fitted_model = model.fit(train)
+                
+                idx=data_test.index.to_numpy()
+                features=data_test[columns].to_numpy()
+                target=data_of_node_test.to_numpy()            
+                if node.content['type'] == 'cont':
+                    test = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+                    predict = fitted_model.predict(test.features)        
+                    mse =  mean_squared_error(target, predict, squared=False) + 0.0000001
+                    a = norm.logpdf(target, loc=predict, scale=mse)
+                    score += a.sum()                
+                else:
+                    predict_proba = fitted_model.predict_proba(features)
+                    idx = pd.array(list(range(len(target))))
+                    li = []
+                    
+                    for i in idx:
+                        a = predict_proba[i]
+                        try:
+                            b = a[target[i]]
+                        except:
+                            b = 0.0000001
+                        li.append(log(b))
+                    score += sum(li)
+                    # score += sum([log(predict_proba[i][target[i]]) for i in idx])        
+        # score -= len(graph.nodes)*log10(len_data)*edges_count/4
+    except Exception as ax:
+        print(ax)
     return [-score]
 
 
@@ -304,7 +366,46 @@ def custom_mutation_reverse_structure(graph: OptGraph, **kwargs):
     return graph
 
 
+def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
+    if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
+        try:
+            if child.nodes_from==None or child.nodes_from==[]:
+                child.nodes_from = []
+                child.nodes_from.append(parent)
+                child.content['parent_model'] = random_choice_model(child)  
+            else:                      
+                child.nodes_from.append(parent)
+        except Exception as ex:
+            print(ex)
 
+def disconnect_nodes(self, node_parent: CompositeNode, node_child: CompositeNode,
+                    clean_up_leftovers: bool = True):
+    if not node_child.nodes_from or node_parent not in node_child.nodes_from:
+        return
+    elif node_parent not in self._nodes or node_child not in self._nodes:
+        return
+    elif len(node_child.nodes_from) == 1:
+        node_child.nodes_from = None
+    else:
+        node_child.nodes_from.remove(node_parent)
+
+    if clean_up_leftovers:
+        self._clean_up_leftovers(node_parent)
+
+    self._postprocess_nodes(self, self._nodes)
+
+    if node_child.nodes_from == [] or node_child.nodes_from == None:
+        node_child.content['parent_model'] = None
+
+
+
+def reverse_edge(self, node_parent: CompositeNode, node_child: CompositeNode):
+    self.disconnect_nodes(node_parent, node_child, False)
+    self.connect_nodes(node_child, node_parent)
+
+GraphOperator.reverse_edge = reverse_edge
+GraphOperator.connect_nodes = connect_nodes
+GraphOperator.disconnect_nodes = disconnect_nodes
 
 # parent_model
 # parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
@@ -376,11 +477,22 @@ def _has_no_duplicates(graph):
 def run_example():
 
     data = pd.read_csv('examples/data/'+file+'.csv')   
-    data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    data.dropna(inplace=True)
+    if file == 'hack_processed_with_rf':
+        data.drop(['Oil density', 'Oil recovery factor','Field name', 'Reservoir unit', 'Country', 'Region', 'Basin name', 'Latitude', 'Longitude', 'Operator company', 'Onshore/offshore', 'Hydrocarbon type', 'Reservoir status',  'Condensate recovery factor', 'Gas recovery factor'], axis=1, inplace=True)
+    else:
+        data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    if file != 'hack_processed_with_rf':
+        data.dropna(inplace=True)
     data.reset_index(inplace=True, drop=True)
-
+    # x = 'Permeability'
+    # y = 'Oil recovery factor'
+    # plt.scatter(data[x], data[y])
+    # plt.xlabel(x)
+    # plt.ylabel(y)    
+    # plt.show()
     vertices = list(data.columns)
+    print(len(vertices))
+    print(vertices)
 
     encoder = preprocessing.LabelEncoder()
     discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
@@ -389,6 +501,7 @@ def run_example():
     p2 = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
     discretized_data, _ = p.apply(data)
     discretized_data2, _ = p2.apply(data)
+
 
     # словарь: {имя_узла: уникальный_номер_узла}
     # global dir_of_nodes
@@ -442,6 +555,32 @@ def run_example():
                                                             'parent_model': None}) 
                                                     for vertex in vertices])] 
     init = initial[0]
+
+    # print('Создание начальной популяции')
+    # def create_population(pop_size):
+    #     initial = []
+    #     for i in range(0, pop_size):
+    #         rand = randint(1, 2*len(vertices))
+    #         fl1 = False
+    #         while not fl1:
+    #             try:
+    #                 fl1 = False
+    #                 g=deepcopy(init)
+    #                 for _ in range(rand):
+    #                     g=deepcopy(custom_mutation_add_structure(g))
+    #                 mylist = []
+    #                 for rule_func in rules:
+    #                     mylist.append(rule_func(g))
+    #                 fl1=all(mylist)
+    #             except:
+    #                 pass
+    #         initial.append(g)
+            
+    #     return initial
+
+    # initial = create_population(pop_size)
+    # print('Конец создания начальной популяции')
+
     # добавим для начального графа три ребра
     # init = custom_mutation_add_structure(custom_mutation_add_structure(custom_mutation_add_structure(init)))
 
@@ -476,34 +615,69 @@ def run_example():
         return fdt    
 
 
-    # заполнить пустую сети CompositeModel
-    # for node in init.nodes: 
-    #     parents = []
-    #     for n in bn.nodes:
-    #         if str(node) == str(n):
-    #             parents = n.cont_parents + n.disc_parents
-    #             break
-    #     for n2 in init.nodes:
-    #         if str(n2) in parents:
-    #             node.nodes_from.append(n2)
+
+#########################
+# семплирование
+    # init = structure_to_opt_graph(init, [('H', 'A'), ('C', 'A'), ('H', 'C'), ('H', 'D'), ('O', 'D'), ('D', 'I'), ('C', 'I'), ('C', 'O'), ('A', 'O'), ('O', 'T'), ('I', 'T')])
+    # h 2 2
+    # a 1 5
+
+    # di = {'A': 'mlp',
+    # 'C': 'mlp',
+    # 'D': 'lgbmreg',
+    # 'I': 'treg',
+    # 'O': 'treg',
+    # 'T': 'linear'}
+
+    # for node in init.nodes:
+    #     if not (node.nodes_from == None or node.nodes_from == []):
+    #         node.content['parent_model'] = SkLearnEvaluationStrategy(di[node.content['name']])
     
+    # bn = Nets.HybridBN(use_mixture=True, has_logit=True)
+    # info = p.info
+    # bn.add_nodes(info)
+    # structure = [(str(edge[0]), str(edge[1])) for edge in init.get_edges()]
+    # bn.set_structure(edges=structure)
+    # print(bn.get_info())
+    # dict_reg = {}
+    # for n in init.nodes:
+    #     dict_reg[str(n)] = n.content['parent_model']
+    # bn.set_regressor(regressors=dict_reg)
+    # bn.fit_parameters(data)
+    # sample = bn.sample(1000)    
+    # print(sample)
+
+    # data['C'].value_counts().plot(kind='bar', grid=True, color='#607c8e')
+    # plt.ylabel('Count') 
+    # plt.xlabel('Values') 
+    # plt.show()
+    # sample['I'].plot.hist(grid=True, bins=20, rwidth=0.9,
+    #                 color='#607c8e')
+    # plt.xlabel('Values')  
+    # plt.show()
+    # data['I'].plot.hist(grid=True, bins=20, rwidth=0.9,
+    #                 color='#607c8e')       
+    # plt.xlabel('Values')         
+    # plt.show()
+
+#########################
+
+    # data.dropna(inplace=True)
+    # data.reset_index(inplace=True, drop=True)
+    # predict = bn.predict(data.iloc[:, :6])
+    # print((predict))
+
+
+
+
+
+
+
 # назначить parent_model узлам с родителями    
     for node in init.nodes:
         if not (node.nodes_from == None or node.nodes_from == []):
             node.content['parent_model'] = random_choice_model(node)   
 
-    
-#     # score true and bamt
-#     init = structure_to_opt_graph(init, [('Pollution', 'Cancer'), ('Smoker', 'Cancer'), ('Cancer', 'Xray'), ('Cancer', 'Dyspnoea')]
-#     )
-# для эталонной структуры и bamt    
-    # for node in init.nodes:
-    #     if not (node.nodes_from == None or node.nodes_from == []):
-    #         if node.content['type'] == 'cont':
-    #             node.content['parent_model'] = SkLearnEvaluationStrategy('linear')
-    #         else:
-    #             node.content['parent_model'] = SkLearnEvaluationStrategy('logit')       
-#     print('score_true', composite_metric(init, discretized_data))
     
     def f(m):
         if m == None:
@@ -511,17 +685,12 @@ def run_example():
         else:
             return (node.content['parent_model'].implementation_info)
 
-    # score = composite_metric(init, discretized_data)
-    # [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
-    # print(score)
-    # init.show()
     
     # вывод parent_model по узлам
     for node in init.nodes:
         print(node.content['name'], node.content['type'], f(node.content['parent_model']))
-    # print('score_true', composite_metric(init, discretized_data))
 
-    def bamt_sore():
+    def bamt_sсore():
         initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                         content={'name': vertex,
                                                                 'type': p.nodes_types[vertex],
@@ -560,6 +729,7 @@ def run_example():
                 else:
                     node.content['parent_model'] = SkLearnEvaluationStrategy('logit')    
     
+    # генерация случайных индивидов
         # def child_dict(net: list):
         #     res_dict = dict()
         #     for e0, e1 in net:
@@ -606,7 +776,7 @@ def run_example():
         return print('score_bamt', composite_metric(init, discretized_data))
     
     
-    def true_sore():
+    def true_sсore():
         initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                         content={'name': vertex,
                                                                 'type': p.nodes_types[vertex],
@@ -627,7 +797,21 @@ def run_example():
         [('Erk', 'Akt'), ('Mek', 'Erk'), ('PIP3', 'PIP2'), ('PKA', 'Akt'), ('PKA', 'Erk'), ('PKA', 'Jnk'), ('PKA', 'Mek'), ('PKA', 'P38'), ('PKA', 'Raf'), ('PKC', 'Jnk'), ('PKC', 'Mek'), ('PKC', 'P38'), ('PKC', 'PKA'), ('PKC', 'Raf'), ('Plcg', 'PIP2'), ('Plcg', 'PIP3'), ('Raf', 'Mek')],  
 
         'healthcare':
-        [('A', 'C'), ('A', 'D'), ('A', 'H'), ('A', 'O'), ('C', 'I'), ('D', 'I'), ('H', 'D'), ('I', 'T'), ('O', 'T')]}     
+        [('A', 'C'), ('A', 'D'), ('A', 'H'), ('A', 'O'), ('C', 'I'), ('D', 'I'), ('H', 'D'), ('I', 'T'), ('O', 'T')],
+        
+        'child':
+        [('BirthAsphyxia', 'Disease'), ('HypDistrib', 'LowerBodyO2'), ('HypoxiaInO2', 'LowerBodyO2'), ('HypoxiaInO2', 'RUQO2'), ('CO2', 'CO2Report'), ('ChestXray', 'XrayReport'), ('Grunting', 'GruntingReport'), ('Disease', 'Age'), ('Disease', 'LVH'), ('Disease', 'DuctFlow'), ('Disease', 'CardiacMixing'), ('Disease', 'LungParench'), ('Disease', 'LungFlow'), ('Disease', 'Sick'), ('LVH', 'LVHreport'), ('DuctFlow', 'HypDistrib'), ('CardiacMixing', 'HypDistrib'), ('CardiacMixing', 'HypoxiaInO2'), ('LungParench', 'HypoxiaInO2'), ('LungParench', 'CO2'), ('LungParench', 'ChestXray'), ('LungParench', 'Grunting'), ('LungFlow', 'ChestXray'), ('Sick', 'Grunting'), ('Sick', 'Age')],
+        
+        'magic-niab':
+        [('YR.GLASS', 'YR.FIELD'), ('YR.GLASS', 'YLD'), ('HT', 'YLD'), ('HT', 'FUS'), ('MIL', 'YR.GLASS'), ('FT', 'YR.FIELD'), ('FT', 'YLD'), ('G418', 'YR.GLASS'), ('G418', 'YR.FIELD'), ('G418', 'G1294'), ('G418', 'G2835'), ('G311', 'YR.GLASS'), ('G311', 'G43'), ('G1217', 'YR.GLASS'), ('G1217', 'MIL'), ('G1217', 'G257'), ('G1217', 'G1800'), ('G800', 'YR.GLASS'), ('G800', 'G383'), ('G866', 'YR.GLASS'), ('G795', 'YR.GLASS'), ('G2570', 'YLD'), ('G260', 'YLD'), ('G2920', 'YLD'), ('G832', 'HT'), ('G832', 'YLD'), ('G832', 'FUS'), ('G1896', 'HT'), ('G1896', 'FUS'), ('G2953', 'HT'), ('G2953', 'G1896'), ('G2953', 'G1800'), ('G266', 'HT'), ('G266', 'FT'), ('G266', 'G1789'), ('G847', 'HT'), ('G942', 'HT'), ('G200', 'YR.FIELD'), ('G257', 'YR.FIELD'), ('G257', 'G2208'), ('G257', 'G1800'), ('G2208', 'YR.FIELD'), ('G2208', 'MIL'), ('G1373', 'YR.FIELD'), ('G599', 'YR.FIELD'), ('G599', 'G1276'), ('G261', 'YR.FIELD'), ('G383', 'FUS'), ('G1853', 'G311'), ('G1853', 'FUS'), ('G1033', 'FUS'), ('G1945', 'MIL'), ('G1338', 'MIL'), ('G1338', 'G266'), ('G1276', 'FT'), ('G1276', 'G266'), ('G1263', 'FT'), ('G2318', 'FT'), ('G1294', 'FT'), ('G1800', 'FT'), ('G1750', 'YR.GLASS'), ('G1750', 'G1373'), ('G524', 'MIL'), ('G775', 'FT'), ('G2835', 'HT'), ('G2835', 'G1800')],
+        
+        'hack_processed_with_rf':
+        [
+        ('Tectonic regime','Structural setting'), ('Structural setting', 'Depth'), ('Structural setting', 'Gross'),
+        ('Structural setting', 'Period'), ('Gross', 'Netpay'), ('Period', 'Porosity'),  ('Period', 'Gross'), 
+        ('Porosity', 'Depth'), ('Porosity', 'Permeability'), ('Lithology', 'Gross'), ('Lithology', 'Permeability')
+        ]
+        }     
         init = structure_to_opt_graph(init, dict_true_str[file])
         
         for node in init.nodes:
@@ -638,7 +822,45 @@ def run_example():
                     node.content['parent_model'] = SkLearnEvaluationStrategy('logit')    
     
         return print('score_true', composite_metric(init, discretized_data))    
+        # return init
     
+ 
+    graph = true_sсore()
+
+    # name_nodes = [str(n) for n in graph.nodes]
+    # graph_nodes = filter(lambda x: str(x) in name_nodes, graph.nodes)
+    # for node in graph_nodes:
+    #     if node.content['parent_model'] != None:
+    #         model_name = node.content['parent_model'].implementation_info.split('.')[-1][:-2]
+    #         parents = [n.content['name'] for n in node.nodes_from]
+    #         new_node = CompositeNode(nodes_from=None,
+    #                                     content={'name': model_name,
+    #                                             'type' : 'model',
+    #                                             'parent_model': None})
+    #         graph.add_node(new_node)
+
+    #         for parent in parents:
+    #             parent = [n for n in graph.nodes if n.content['name'] == parent][0]
+    #             graph.operator.disconnect_nodes(parent, node, False)
+    #             graph.operator.connect_nodes(parent, new_node)   
+
+    #         graph.operator.connect_nodes(new_node, node)
+    #         graph.operator.sort_nodes()
+
+    # size_dict = {}
+    # color_dict = {}
+    # for n in graph.nodes:
+    #     if n.content['type'] == 'model':
+    #         size_dict[n.content['name']] = 10
+    #         color_dict[n.content['name']] = 'yellow'
+    #     else:
+    #         size_dict[n.content['name']] = 30
+    #         color_dict[n.content['name']] = 'pink'
+    
+
+    # graph.show(engine = 'pyvis', node_color = color_dict, node_size_scale = size_dict)
+
+    # graph.show(save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/' + 'MODEL' + '.png'))
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -656,20 +878,20 @@ def run_example():
         genetic_scheme_type = GeneticSchemeTypesEnum.steady_state,
         selection_types = [SelectionTypesEnum.tournament],
         mutation_types = [
-        custom_mutation_add_structure, 
-        custom_mutation_delete_structure, 
-        custom_mutation_reverse_structure, 
-        custom_mutation_add_model
-        # mutation_set1,
-        # mutation_set2,
-        # mutation_set3
+        # custom_mutation_add_structure, 
+        # custom_mutation_delete_structure, 
+        # custom_mutation_reverse_structure, 
+        # custom_mutation_add_model
+        mutation_set1,
+        mutation_set2,
+        mutation_set3
         ],
 
         crossover_types = [
-            # cross_set
             custom_crossover_exchange_edges,
-            custom_crossover_all_model,
             custom_crossover_exchange_parents_both,
+            custom_crossover_all_model
+            # cross_set
             ]
     )
 
@@ -682,68 +904,79 @@ def run_example():
         graph_optimizer_params=optimiser_parameters,
         requirements=requirements,
         initial_graphs=[init],
+        # initial_graphs=initial,
         objective=objective)
     optimiser.number = number
 
-    def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
-        if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
-            try:
-                if child.nodes_from==None or child.nodes_from==[]:
-                    child.nodes_from = []
-                    child.nodes_from.append(parent)
-                    child.content['parent_model'] = random_choice_model(child)  
-                else:                      
-                    child.nodes_from.append(parent)
-            except Exception as ex:
-                print(ex)
-    
-    def disconnect_nodes(self, node_parent: CompositeNode, node_child: CompositeNode,
-                        clean_up_leftovers: bool = True):
-        if not node_child.nodes_from or node_parent not in node_child.nodes_from:
-            return
-        elif node_parent not in self._nodes or node_child not in self._nodes:
-            return
-        elif len(node_child.nodes_from) == 1:
-            node_child.nodes_from = None
-        else:
-            node_child.nodes_from.remove(node_parent)
-
-        if clean_up_leftovers:
-            self._clean_up_leftovers(node_parent)
-
-        self._postprocess_nodes(self, self._nodes)
-
-        if node_child.nodes_from == [] or node_child.nodes_from == None:
-            node_child.content['parent_model'] = None
-
-
-
-    def reverse_edge(self, node_parent: CompositeNode, node_child: CompositeNode):
-        self.disconnect_nodes(node_parent, node_child, False)
-        self.connect_nodes(node_child, node_parent)
-
-    GraphOperator.reverse_edge = reverse_edge
-    GraphOperator.connect_nodes = connect_nodes
-    GraphOperator.disconnect_nodes = disconnect_nodes
- 
     
     # запуск оптимизатора
     optimized_graph = optimiser.optimise(objective_eval)[0]
-    # вывод полученного графа
+
+
+    # bn = Nets.HybridBN(use_mixture=True, has_logit=True)
+    # info = p.info
+    # bn.add_nodes(info)
+    # structure = [(str(edge[0]), str(edge[1])) for edge in optimized_graph.get_edges()]
+    # bn.set_structure(edges=structure)
+    # print(bn.get_info())
+    # dict_reg = {}
     # for n in optimized_graph.nodes:
-    #     n.content['parent_model']
+    #     dict_reg[str(n)] = n.content['parent_model']
+    # bn.set_regressor(regressors=dict_reg)
+    # bn.fit_parameters(data)
+    # # sample = bn.sample(2500)
+    # # data.dropna(inplace=True)
+    # # data.reset_index(inplace=True, drop=True)
+    # predict = bn.predict(data.iloc[:, :3])
+
+    graph = optimized_graph
+    name_nodes = [str(n) for n in graph.nodes]
+    graph_nodes = filter(lambda x: str(x) in name_nodes, graph.nodes)
+    for node in graph_nodes:
+        if node.content['parent_model'] != None:
+            model_name = node.content['parent_model'].implementation_info.split('.')[-1][:-2]
+            parents = [n.content['name'] for n in node.nodes_from]
+            new_node = CompositeNode(nodes_from=None,
+                                        content={'name': model_name,
+                                                'type' : 'model',
+                                                'parent_model': None})
+            graph.add_node(new_node)
+
+            for parent in parents:
+                parent = [n for n in graph.nodes if n.content['name'] == parent][0]
+                graph.operator.disconnect_nodes(parent, node, False)
+                graph.operator.connect_nodes(parent, new_node)   
+
+            graph.operator.connect_nodes(new_node, node)
+            graph.operator.sort_nodes()
+
+    size_dict = {}
+    color_dict = {}
+    for n in graph.nodes:
+        if n.content['type'] == 'model':
+            size_dict[n.content['name']] = 10
+            color_dict[n.content['name']] = 'yellow'
+        else:
+            size_dict[n.content['name']] = 30
+            color_dict[n.content['name']] = 'pink'
+    
+
+    graph.show(engine = 'pyvis', node_color = color_dict, node_size_scale = size_dict,
+    save_path=('C:/Users/anaxa/Documents/Projects/CompositeBayesianNetworks/FEDOT/examples/pictures/train_test/' + 'pyvis' + '_' + str(k) + '_' + str(file) + '_' + str(number) + '_' +  'train_test' + '.html'))
+
 
     # вывод parent_model финального графа
     for node in optimized_graph.nodes:
         print(node.content['name'],node.content['type'], f(node.content['parent_model']))
 
-    # optimized_graph.show()
+
 
 
 if __name__ == '__main__':
 
     # файл с исходными данными (должен лежать в 'examples/data/')
-    file = 'sachs'
+    file = 'asia'
+    k = 2
     # размер популяции 
     pop_size = 20
     # количество поколений
@@ -756,8 +989,11 @@ if __name__ == '__main__':
     n = 5
     number = 1
     while number <= n:
-        run_example()
+        run_example() 
         number += 1 
-        # TODO продолжить расчеты на других датасетах, досмотреть статью
+
+
+
+
 
 
