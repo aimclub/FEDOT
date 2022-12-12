@@ -22,7 +22,7 @@ class MetricsObjective(Objective):
                 else:
                     quality_metrics[metric] = metric_func
             elif isinstance(metric, Callable):
-                metric_id = getattr(metric, '__name__', str(metric))
+                metric_id = str(metric)
                 quality_metrics[metric_id] = metric
 
         super().__init__(quality_metrics, complexity_metrics, is_multi_objective)

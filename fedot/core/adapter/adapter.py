@@ -177,7 +177,7 @@ def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
             adapted_result = None
         elif isinstance(result, Tuple):
             # In case when function returns not only Graph
-            adapted_result = (f_ret(result_item) for result_item in result)
+            adapted_result = tuple(f_ret(result_item) for result_item in result)
         else:
             adapted_result = f_ret(result)
         return adapted_result
