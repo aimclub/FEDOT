@@ -214,6 +214,7 @@ class R2(QualityMetric):
     default_value = 0
 
     @staticmethod
+    @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
         return r2_score(y_true=reference.target, y_pred=predicted.predict)
 
