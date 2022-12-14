@@ -17,3 +17,19 @@ Why *feature_name* is not supported?
 
 .. _issue: https://github.com/nccr-itmo/FEDOT/issues
 .. `issue` replace:: *issue*
+
+Can I change path to cacher's database files?
+---------------------------------------------
+
+    *Using* :doc:`FEDOT’s main API </api/api>` *you can change*
+    ``cache_folder`` *parameter with your custom path to
+    the database files.*
+    
+    *So, setting it would look like:*
+    
+    .. code:: python
+
+       your_custom_path = ...
+       ...
+       model = Fedot(..., cache_folder=your_custom_path, ...)
+       ...
