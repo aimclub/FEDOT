@@ -1,3 +1,5 @@
+from typing import Tuple, Optional
+
 import numpy as np
 import pandas as pd
 
@@ -132,6 +134,4 @@ def data_has_text_features(data: InputData) -> bool:
     Returns bool, whether data has text fields or not
     """
     # TODO andreygetmanov: make compatible with current text checking
-    if data.data_type is DataTypesEnum.text:
-        return True
-    return False
+    return data.data_type is DataTypesEnum.text
