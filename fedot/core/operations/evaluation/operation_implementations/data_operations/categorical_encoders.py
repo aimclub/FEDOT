@@ -142,9 +142,9 @@ class LabelEncodingImplementation(DataOperationImplementation):
             # If categorical features are exists - transform them inplace in InputData
             for categorical_id in self.categorical_ids:
                 categorical_column = input_data.features[:, categorical_id]
-                gap_ids: np.ndarray = pd.isna(categorical_column)
+                has_nan: np.ndarray = pd.isna(categorical_column)
 
-                transformed = self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+                transformed = self._apply_label_encoder(categorical_column, categorical_id, has_nan)
                 copied_data.features[:, categorical_id] = transformed
 
         output_data = self._convert_to_output(copied_data,
@@ -173,21 +173,21 @@ class LabelEncodingImplementation(DataOperationImplementation):
             self.encoders.update({categorical_id: le})
 
     def _apply_label_encoder(self, categorical_column: np.ndarray, categorical_id: int,
-                             gap_ids: np.ndarray) -> np.ndarray:
+                             has_nan: np.ndarray) -> np.ndarray:
         """ Apply fitted LabelEncoder for column transformation
 
         :param categorical_column: numpy array with categorical features
         :param categorical_id: index of current categorical column
-        :param gap_ids: indices of gap elements in array
+        :param has_nan: bool array of gap elements in the ``categorical_column``
         """
         column_encoder = self.encoders[categorical_id]
         column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, categorical_column)))
 
         transformed_column = column_encoder.transform(categorical_column)
-        if len(gap_ids) > 0:
+        if len(has_nan) > 0:
             # Store np.nan values
             transformed_column = transformed_column.astype(object)
-            transformed_column[gap_ids] = np.nan
+            transformed_column[has_nan] = np.nan
 
         return transformed_column
 

@@ -219,7 +219,7 @@ class ModelImplementation(ABC):
         return converted
 
 
-def _convert_to_output_function(input_data: InputData, transformed_features: np.array,
+def _convert_to_output_function(input_data: InputData, transformed_features: np.ndarray,
                                 data_type: DataTypesEnum = DataTypesEnum.table):
     """ Function prepare prediction of operation as OutputData object
 

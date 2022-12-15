@@ -74,10 +74,10 @@ class BinaryCategoricalPreprocessor:
                 # If column contains nans - replace them with fedot nans special string
                 pd_column = pd.Series(input_data.features[:, column_id])
                 has_nan = pd_column.isna()
-                replaced_column, gap_ids = replace_nans_with_fedot_nans(pd_column, has_nan)
+                replaced_column, has_nan = replace_nans_with_fedot_nans(pd_column, has_nan)
 
                 # Convert into integers
-                converted_column = self._apply_encoder(replaced_column, column_id, gap_ids)
+                converted_column = self._apply_encoder(replaced_column, column_id, has_nan)
             else:
                 # Stay column the same
                 converted_column = input_data.features[:, column_id]
@@ -117,17 +117,17 @@ class BinaryCategoricalPreprocessor:
         # Store fitted label encoder for transform method
         self.binary_encoders.update({column_id: encoder})
 
-    def _apply_encoder(self, column: pd.Series, column_id: int, gap_ids: pd.Series) -> np.ndarray:
+    def _apply_encoder(self, column: pd.Series, column_id: int, has_nan: pd.Series) -> np.ndarray:
         """ Apply already fitted encoders """
         encoder = self.binary_encoders[column_id]
         # Extend encoder classes if the column contains categories not previously encountered
         encoder.classes_ = np.unique(np.concatenate((encoder.classes_, column)))
 
         converted = encoder.transform(column)
-        if len(gap_ids) > 0:
+        if len(has_nan) > 0:
             # Column has nans in its structure - after conversion replace it
             converted = converted.astype(float)
-            converted[gap_ids] = np.nan
+            converted[has_nan] = np.nan
 
         return converted
 
