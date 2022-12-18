@@ -50,13 +50,13 @@ class AdaptivePopulationSize(PopulationSize):
         no_progress = not fitness_improved and not complexity_decreased
 
         pop_size = len(population)
-        if progress_in_both_goals and pop_size > 2:
+        if progress_in_both_goals and pop_size > 0:
             if self._iterator.has_prev():
                 pop_size = self._iterator.prev()
         elif no_progress:
             if self._iterator.has_next():
                 pop_size = self._iterator.next()
-
+        pop_size = pop_size if pop_size >= 5 else 5
         return pop_size
 
 
