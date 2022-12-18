@@ -82,7 +82,7 @@ class QualityMetric:
 
         # Define conditions for target and predictions transforming
         is_regression = reference_data.task.task_type == TaskTypesEnum.regression
-        is_multi_target = len(np.array(results.predict).shape[1]) > 1
+        is_multi_target = np.array(results.predict).shape[1] > 1
         is_multi_target_regression = is_regression and is_multi_target
 
         # Time series forecasting
