@@ -59,7 +59,7 @@ class AdaptivePopulationSize(PopulationSize):
         elif no_progress:
             if self._iterator.has_next():
                 pop_size = self._iterator.next()
-        pop_size = pop_size if pop_size >= MIN_POP_SIZE else MIN_POP_SIZE
+        pop_size = max(pop_size, MIN_POP_SIZE)
         return pop_size
 
 
