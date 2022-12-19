@@ -11,6 +11,9 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 
 PopulationSize = AdaptiveParameter[int]
 
+# min pop size to avoid getting stuck in local maximum during optimization
+MIN_POP_SIZE = 5
+
 
 class ConstRatePopulationSize(PopulationSize):
     def __init__(self, pop_size: int, offspring_rate: float, max_pop_size: Optional[int] = None):
@@ -50,13 +53,13 @@ class AdaptivePopulationSize(PopulationSize):
         no_progress = not fitness_improved and not complexity_decreased
 
         pop_size = len(population)
-        if progress_in_both_goals and pop_size > 2:
+        if progress_in_both_goals and pop_size > 0:
             if self._iterator.has_prev():
                 pop_size = self._iterator.prev()
         elif no_progress:
             if self._iterator.has_next():
                 pop_size = self._iterator.next()
-
+        pop_size = max(pop_size, MIN_POP_SIZE)
         return pop_size
 
 
