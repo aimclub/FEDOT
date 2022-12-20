@@ -1,61 +1,9 @@
 import logging
-from random import choice
-from typing import Optional, Sequence, Union
 
-from golem.core.dag.graph import Graph
-from golem.core.optimisers.genetic.evaluation import SequentialDispatcher
-from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
-from golem.core.optimisers.objective import Objective, ObjectiveFunction
-from golem.core.optimisers.opt_history_objects.individual import Individual
-from golem.core.optimisers.optimization_parameters import OptimizationParameters
-from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, AlgorithmParameters
-from golem.core.optimisers.timer import OptimisationTimer
+from golem.core.optimisers.random.random_mutation_optimizer import RandomMutationSearchOptimizer
 
 from fedot.api.main import Fedot
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.utils import fedot_project_root
-
-
-class RandomMutationSearchOptimizer(GraphOptimizer):
-    """
-    Random search-based graph models optimizer
-    """
-
-    def __init__(self,
-                 objective: Objective,
-                 initial_graphs: Union[Graph, Sequence[Graph]] = (),
-                 requirements: Optional[OptimizationParameters] = None,
-                 graph_generation_params: Optional[GraphGenerationParams] = None,
-                 graph_optimizer_parameters: Optional[AlgorithmParameters] = None):
-        super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_parameters)
-        self.mutation_types = [boosting_mutation, parameter_change_mutation,
-                               MutationTypesEnum.single_edge,
-                               MutationTypesEnum.single_change,
-                               MutationTypesEnum.single_drop,
-                               MutationTypesEnum.single_add]
-
-    def optimise(self, objective: ObjectiveFunction):
-
-        timer = OptimisationTimer(timeout=self.requirements.timeout)
-        dispatcher = SequentialDispatcher(self.graph_generation_params.adapter)
-        evaluator = dispatcher.dispatch(objective, timer)
-
-        num_iter = 0
-
-        initial_individuals = [Individual(graph) for graph in self.initial_graphs]
-        best = choice(initial_individuals)
-        evaluator([best])
-
-        with timer as t:
-            while not t.is_time_limit_reached(num_iter):
-                mutation = Mutation(self.mutation_types, self.requirements, self.graph_generation_params)
-                new = mutation(best)
-                evaluator([new])
-                if new.fitness < best.fitness:
-                    best = new
-                num_iter += 1
-
-        return self.graph_generation_params.adapter.restore(best)
 
 
 def run_with_random_search_composer():

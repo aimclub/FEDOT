@@ -11,6 +11,9 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
+from golem.core.optimisers.opt_node_factory import DefaultOptNodeFactory
+from golem.core.optimisers.optimization_parameters import GraphRequirements
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from golem.core.optimisers.objective.objective import Objective
@@ -47,9 +50,7 @@ def test_custom_graph_opt():
     nodes_types = ['A', 'B', 'C', 'D']
     rules = [has_no_self_cycled_nodes]
 
-    requirements = PipelineComposerRequirements(
-        primary=nodes_types,
-        secondary=nodes_types,
+    requirements = GraphRequirements(
         num_of_generations=5,
         show_progress=False)
 
@@ -66,7 +67,7 @@ def test_custom_graph_opt():
     graph_generation_params = GraphGenerationParams(
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules,
-        node_factory=PipelineOptNodeFactory(requirements=requirements))
+        node_factory=DefaultOptNodeFactory(available_node_types=nodes_types))
 
     objective = Objective({'custom': custom_metric})
     init_population = InitialPopulationGenerator(optimiser_parameters.pop_size,

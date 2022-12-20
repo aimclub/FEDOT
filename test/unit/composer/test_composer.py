@@ -5,17 +5,18 @@ import random
 import numpy as np
 import pandas as pd
 import pytest
-from golem.core.optimisers.genetic.gp_operators import random_graph
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.optimisers.random.random_search import RandomSearchOptimizer
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimizer
+from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
@@ -75,12 +76,14 @@ def test_random_composer(data_fixture, request):
                                        primary=available_model_types,
                                        secondary=available_model_types)
     objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
+    pipeline_generation_params = get_pipeline_generation_params(requirements=req)
 
-    optimiser = RandomSearchOptimizer(objective, req)
+    optimiser = RandomSearchOptimizer(objective, requirements=req, graph_generation_params=pipeline_generation_params)
     random_composer = RandomSearchComposer(optimiser)
 
-    pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
-    pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)
+    opt_graph_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
+    pipeline_random_composed = pipeline_generation_params.adapter.restore(opt_graph_random_composed)
+    pipeline_random_composed.fit(input_data=dataset_to_compose)
     predicted_random_composed = pipeline_random_composed.predict(dataset_to_validate)
 
     roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
@@ -339,7 +342,7 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
 
     params = get_pipeline_generation_params(requirements=requirements, task=task)
 
-    graphs = [random_graph(params, requirements, max_depth=None) for _ in range(4)]
+    graphs = [params.random_graph_factory(requirements) for _ in range(4)]
     for graph in graphs:
         for node in graph.nodes:
             if node.nodes_from:

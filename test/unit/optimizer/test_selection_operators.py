@@ -2,7 +2,6 @@ from functools import partial
 from random import randint
 
 from golem.core.optimisers.fitness.fitness import SingleObjFitness
-from golem.core.optimisers.genetic.gp_operators import random_graph
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum, Selection, random_selection
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -22,7 +21,7 @@ def rand_population_gener_and_eval(pop_size=4):
     requirements = PipelineComposerRequirements(primary=models_set,
                                                 secondary=models_set, max_depth=1)
     pipeline_gener_params = get_pipeline_generation_params(requirements=requirements)
-    random_pipeline_function = partial(random_graph, pipeline_gener_params, requirements)
+    random_pipeline_function = partial(pipeline_gener_params.random_graph_factory, requirements)
     population = []
     while len(population) != pop_size:
         # to ensure uniqueness
