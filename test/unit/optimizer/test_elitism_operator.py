@@ -34,16 +34,6 @@ def test_keep_n_best_elitism(set_up):
     assert len(population) == len(new_population)
 
 
-def test_replace_worst(set_up):
-    best_individuals, population = set_up
-    elitism = Elitism(GPAlgorithmParameters(elitism_type=ElitismTypesEnum.replace_worst))
-    new_population = elitism(best_individuals, population)
-    for best_ind in best_individuals:
-        if any(best_ind.fitness > ind.fitness for ind in population):
-            assert best_ind in new_population
-    assert len(new_population) == len(population)
-
-
 def test_elitism_not_applicable(set_up):
     best_individuals, population = set_up
     elitisms = [
