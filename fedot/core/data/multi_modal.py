@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from fedot.core.data.data import (process_target_and_features, array_to_input_data,
-                                  get_df_from_csv, PathType, POSSIBLE_TABULAR_IDX_KEYWORDS)
+                                  get_df_from_csv, PathType, POSSIBLE_TABULAR_IDX_KEYWORDS, POSSIBLE_TS_IDX_KEYWORDS)
 from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -183,15 +183,14 @@ class MultiModalData(dict):
                 (see the param ``possible_idx_keywords``).\n
                 Set ``False`` to skip the check and rearrange a new integer index.
             possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
-                it is used as index. See the :const:`POSSIBLE_TABULAR_IDX_KEYWORDS` for the list of default
+                it is used as index. See the :const:`POSSIBLE_TS_IDX_KEYWORDS` for the list of default
                 keywords.
 
         Returns:
-            An instance of :class:`MultiModalData` containing tabular and time series data sources as
-                :class:`InputData` instances.
+            An instance of :class:`MultiModalData` multiple time series data sources as :class:`InputData` instances.
         """
 
-        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
+        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TS_IDX_KEYWORDS
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
