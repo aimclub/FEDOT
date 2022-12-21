@@ -158,11 +158,12 @@ class Fedot:
             features: train data feature values in one of the supported features formats.
             target: train data target values in one of the supported target formats.
             predefined_model: the name of a single model or a :class:`Pipeline` instance, or ``"auto"``.
-                With any value specified, the method does not perform composing. In case of ``"auto"``,
-                the method generates a single initial assumption and then fits the created pipeline.
+                With any value specified, the method does not perform composing and tuning.
+                In case of ``"auto"``, the method generates a single initial assumption and then fits
+                the created pipeline.
 
         Returns:
-            Pipeline object
+            :class:`Pipeline` object.
 
         """
 

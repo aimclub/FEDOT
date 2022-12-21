@@ -17,7 +17,7 @@ from fedot.utilities.requirements_notificator import warn_requirement
 POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
 #: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
 #: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
-POSSIBLE_TS_IDX_KEYWORDS = ['datatime', 'date', 'time', 'unnamed: 0']
+POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
 
 try:
     import cv2
@@ -614,7 +614,7 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
 
     logger = default_log('CSV data extraction')
 
-    columns = list(pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1))
+    columns = pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1).columns
 
     if columns_to_drop and columns_to_use:
         raise ValueError('Incompatible arguments are used: columns_to_drop and columns_to_use. '
