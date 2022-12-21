@@ -29,11 +29,11 @@ class DataDefiner:
         self._strategy = strategy
 
     def define_data(self, features: FeaturesType,
-                    ml_task: Task,
+                    task: Task,
                     target: Optional[str] = None,
                     is_predict: bool = False) -> None:
         return self._strategy.define_data(features,
-                                          ml_task,
+                                          task,
                                           target,
                                           is_predict)
 
@@ -41,7 +41,7 @@ class DataDefiner:
 class StrategyDefineData(ABC):
     @abstractmethod
     def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False):
         pass
@@ -49,23 +49,23 @@ class StrategyDefineData(ABC):
 
 class FedotStrategy(StrategyDefineData):
     def define_data(self, features: Union[InputData, MultiModalData],
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False) -> Union[InputData, MultiModalData]:
         # InputData or MultiModalData format for input data
         data = deepcopy(features)
-        data.task = ml_task
+        data.task = task
         return data
 
 
 class TupleStrategy(StrategyDefineData):
     def define_data(self, features: tuple,
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
         data = array_to_input_data(features_array=features[0],
                                    target_array=features[1],
-                                   task=ml_task)
+                                   task=task)
         return data
 
 
@@ -73,7 +73,7 @@ class PandasStrategy(StrategyDefineData):
     """ Class for wrapping pandas DataFrames into InputData """
 
     def define_data(self, features: pd.DataFrame,
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
         if target is None:
@@ -87,20 +87,20 @@ class PandasStrategy(StrategyDefineData):
 
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target_array),
-                                   task=ml_task)
+                                   task=task)
         return data
 
 
 class NumpyStrategy(StrategyDefineData):
     def define_data(self, features: np.ndarray,
-                    ml_task: Task,
+                    task: Task,
                     target: Optional[int] = None,
                     is_predict: bool = False) -> InputData:
         # numpy format for input data
         if target is None:
             target = np.array([])
 
-        if ml_task.task_type is TaskTypesEnum.ts_forecasting:
+        if task.task_type is TaskTypesEnum.ts_forecasting:
             target_array = features
         elif isinstance(target, int):
             target_array = features[target]
@@ -110,28 +110,28 @@ class NumpyStrategy(StrategyDefineData):
 
         data = array_to_input_data(features_array=features,
                                    target_array=target_array,
-                                   task=ml_task)
+                                   task=task)
         return data
 
 
 class CsvStrategy(StrategyDefineData):
     def define_data(self, features: Union[str, PathLike],
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
         # CSV files as input data, by default - table data
 
         data_type = DataTypesEnum.table
-        if ml_task.task_type == TaskTypesEnum.ts_forecasting:
+        if task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting format - time series
-            data = InputData.from_csv_time_series(task=ml_task,
+            data = InputData.from_csv_time_series(task=task,
                                                   file_path=features,
                                                   target_column=target,
                                                   is_predict=is_predict)
         else:
             # Make default features table
             # CSV files as input data
-            data = InputData.from_csv(features, task=ml_task,
+            data = InputData.from_csv(features, task=task,
                                       target_columns=target,
                                       data_type=data_type)
         return data
@@ -149,7 +149,7 @@ class MultimodalStrategy(StrategyDefineData):
                            'image': 'data_source_image'}
 
     def define_data(self, features: dict,
-                    ml_task: Task,
+                    task: Task,
                     target: str = None,
                     is_predict: bool = False,
                     idx=None) -> MultiModalData:
@@ -158,7 +158,7 @@ class MultimodalStrategy(StrategyDefineData):
         for source in features:
             if not isinstance(features[source], InputData):
                 features[source] = array_to_input_data(features_array=features[source], target_array=target,
-                                                       task=ml_task, idx=idx)
+                                                       task=task, idx=idx)
         # create labels for data sources
         sources = dict((f'{self.source_name_by_type.get(features[data_part_key].data_type.name)}/{data_part_key}',
                         data_part)
@@ -167,12 +167,12 @@ class MultimodalStrategy(StrategyDefineData):
         return data
 
 
-def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
+def data_strategy_selector(features, target, task: Task = None, is_predict: bool = None):
 
     strategy = [strategy for cls, strategy in _strategy_dispatch.items() if isinstance(features, cls)][0]
 
     data = DataDefiner(strategy())
-    return data.define_data(features, ml_task, target, is_predict)
+    return data.define_data(features, task, target, is_predict)
 
 
 _strategy_dispatch = {InputData: FedotStrategy,
