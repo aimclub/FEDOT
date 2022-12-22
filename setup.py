@@ -11,7 +11,7 @@ NAME = 'fedot'
 VERSION = '0.6.1'
 AUTHOR = 'NSS Lab'
 SHORT_DESCRIPTION = 'Automated machine learning framework for composite pipelines'
-README = Path(HERE, 'README.rst').read_text(encoding='utf-8')
+README = Path(HERE, 'README_en.rst').read_text(encoding='utf-8')
 URL = 'https://github.com/nccr-itmo/FEDOT'
 REQUIRES_PYTHON = '>=3.7'
 LICENSE = 'BSD 3-Clause'
