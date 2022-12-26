@@ -238,8 +238,11 @@ def test_history_backward_compatibility():
     # Assert that properties are not empty
     assert all_historical_fitness
     assert historical_fitness
-    # Assert that all history pipelines have fitness
-    assert np.shape(history.individuals) == np.shape(historical_fitness)
+    # Assert that all fitness properties are valid.
+    assert len(history.individuals) == len(historical_fitness)
+    assert np.all(len(generation) == len(gen_fitness)
+                  for generation, gen_fitness in zip(history.individuals, historical_fitness))
+    assert np.all(np.equal([ind.fitness.value for ind in chain(*history.individuals)], all_historical_fitness))
     # Assert that fitness, graph, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
     assert all(ind.graph.nodes for ind in chain(*history.individuals))
