@@ -194,8 +194,7 @@ class MultiModalData(dict):
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use,
-                             parse_index_as_datetime=True)
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
         idx = df.index.to_numpy()
         if not columns_to_use:
             columns_to_use = list(set(df.columns) - set(index_col))

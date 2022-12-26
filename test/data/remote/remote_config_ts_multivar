@@ -3,7 +3,7 @@ pipeline_template =   {	"total_pipeline_operations": [		"data_source_ts/velocity
 train_data = {fedot_base_path}/test/data/multivar_ts.csv
 task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=1))
 output_path = ./test_ts_multivar
-train_data_idx = ["2019-05-01 00:00:00","2019-05-02 00:00:00","2019-05-03 00:00:00","2019-05-04 00:00:00","2019-05-05 00:00:00","2019-05-06 00:00:00","2019-05-07 00:00:00","2019-05-08 00:00:00","2019-05-09 00:00:00","2019-05-10 00:00:00","2019-05-11 00:00:00","2019-05-12 00:00:00","2019-05-13 00:00:00","2019-05-14 00:00:00","2019-05-15 00:00:00"]
+train_data_idx = ["2019-05-01","2019-05-02","2019-05-03","2019-05-04","2019-05-05","2019-05-06","2019-05-07","2019-05-08","2019-05-09","2019-05-10","2019-05-11","2019-05-12","2019-05-13","2019-05-14","2019-05-15"]
 var_names = ["diesel_fuel_kWh","wind_power_kWh","diesel_time_h","wind_time_h","velocity_max_msec","velocity_mean_msec","tmp_grad"]
 is_multi_modal = "True"
 target = "diesel_fuel_kWh"

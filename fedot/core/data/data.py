@@ -124,8 +124,7 @@ class Data:
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop,
-                             parse_index_as_datetime=True)
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
         if target_column is not None:
@@ -185,8 +184,7 @@ class Data:
             An instance of :class:`InputData`.
         """
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use,
-                             parse_index_as_datetime=True)
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
         idx = df.index.to_numpy()
         if columns_to_use is not None:
             actual_df = df[columns_to_use]
@@ -605,11 +603,20 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
 
 
 def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Union[str, int]] = None,
-                    possible_idx_keywords: Optional[List[str]] = None,
-                    *, columns_to_drop: Optional[List[Union[str, int]]] = None,
-                    columns_to_use: Optional[List[Union[str, int]]] = None, parse_index_as_datetime: bool = False):
-    columns_to_drop = columns_to_drop or []
-    columns_to_use = columns_to_use or []
+                    possible_idx_keywords: Optional[List[str]] = None, *,
+                    columns_to_drop: Optional[List[Union[str, int]]] = None,
+                    columns_to_use: Optional[List[Union[str, int]]] = None):
+
+    def define_index_column(candidate_columns: List[str]) -> Optional[str]:
+        for column_name in candidate_columns:
+            if is_column_name_suitable_for_index(column_name):
+                return column_name
+
+    def is_column_name_suitable_for_index(column_name: str) -> bool:
+        return any(key in column_name.lower() for key in possible_idx_keywords)
+
+    columns_to_drop = copy(columns_to_drop) or []
+    columns_to_use = copy(columns_to_use) or []
     possible_idx_keywords = possible_idx_keywords or []
 
     logger = default_log('CSV data extraction')
@@ -623,16 +630,16 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     if columns_to_drop:
         columns_to_use = [col for col in columns if col not in columns_to_drop]
     elif not columns_to_use:
-        columns_to_use = columns
+        columns_to_use = list(columns)
 
+    candidate_idx_cols = [columns_to_use[0], columns[0]]
     if index_col is None:
-        first_column = columns_to_use[0]
-        if any(key in first_column.lower() for key in possible_idx_keywords):
-            logger.message(f'Used the column as index: "{first_column}".')
-            index_col = first_column
+        defined_index = define_index_column(candidate_idx_cols)
+        if define_index_column is not None:
+            index_col = defined_index
+            logger.message(f'Used the column as index: "{index_col}".')
 
-    df = pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)
+    if (index_col is not None) and (index_col not in columns_to_use):
+        columns_to_use.append(index_col)
 
-    if parse_index_as_datetime and index_col:
-        df.index = pd.to_datetime(df.index).astype(str)
-    return df
+    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)
