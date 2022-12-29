@@ -18,6 +18,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
+from fedot.core.utilities.performance.memory import MemoryAnalytics
 from fedot.core.utilities.serializable import Serializable
 
 OptionalEvalResult = Optional[GraphEvalResult]
@@ -155,6 +156,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             single_ind = choice(individuals)
             evaluation_result = eval_func(single_ind.graph, single_ind.uid, with_time_limit=False)
             successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
+        MemoryAnalytics.log(self.logger, 'parallel evaluation of population')
         return successful_evals
 
     def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True, cache_key: Optional[str] = None,

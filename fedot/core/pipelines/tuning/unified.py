@@ -6,6 +6,7 @@ from hyperopt import fmin, space_eval, Trials
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
+from fedot.core.utilities.performance.memory import MemoryAnalytics
 
 
 class PipelineTuner(HyperoptTuner):
@@ -127,6 +128,9 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline, parameters_dict)
         metric_value = self.get_metric_value(pipeline=pipeline)
+
+        MemoryAnalytics.log(self.logger, 'evaluation of tuner objective')
+
         return metric_value
 
     @staticmethod
