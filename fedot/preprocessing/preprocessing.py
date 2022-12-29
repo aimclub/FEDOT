@@ -29,7 +29,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_ts, exclude_multi_ts, exclude_image
-from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
+from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 
 # The allowed percent of empty samples in features.
@@ -357,6 +357,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             cleaned ``data``
         """
+
         def strip_all_strs(item: Union[object, str]):
             try:
                 return item.strip()
@@ -472,8 +473,8 @@ class DataPreprocessor(BasePreprocessor):
         encoded_target = data.target
         if encoder is not None:
             # Target encoders have already been fitted
-            data.supplementary_data.column_types['target'] = [NAME_CLASS_INT]
-            encoded_target = encoder.transform(data.target)
+            data.supplementary_data.column_types['target'] = [TYPE_TO_ID[int]]
+            encoded_target = encoder.transform(encoded_target)
             if len(encoded_target.shape) == 1:
                 encoded_target = encoded_target.reshape((-1, 1))
         return encoded_target

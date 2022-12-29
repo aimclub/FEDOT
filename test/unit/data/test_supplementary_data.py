@@ -9,8 +9,8 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.data_types import TYPE_TO_ID
 from test.unit.tasks.test_regression import get_synthetic_regression_data
-from test.unit.data.test_data_merge import unequal_outputs_table
 
 
 @pytest.fixture()
@@ -19,15 +19,15 @@ def outputs_table_with_different_types():
     task = Task(TaskTypesEnum.regression)
     idx = [0, 1, 2]
     target = [1, 2, 10]
-    data_info_first = SupplementaryData(column_types={'features': ["<class 'str'>", "<class 'float'>"],
-                                                      'target': ["<class 'int'>"]})
+    data_info_first = SupplementaryData(column_types={'features': [TYPE_TO_ID[str], TYPE_TO_ID[float]],
+                                                      'target': [TYPE_TO_ID[int]]})
     output_first = OutputData(idx=idx, features=None,
                               predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
                               task=task, target=target, data_type=DataTypesEnum.table,
                               supplementary_data=data_info_first)
 
-    data_info_second = SupplementaryData(column_types={'features': ["<class 'float'>"],
-                                                       'target': ["<class 'int'>"]})
+    data_info_second = SupplementaryData(column_types={'features': [TYPE_TO_ID[float]],
+                                                       'target': [TYPE_TO_ID[int]]})
     output_second = OutputData(idx=idx, features=None,
                                predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
                                task=task, target=target, data_type=DataTypesEnum.table,
@@ -124,4 +124,4 @@ def test_define_types_after_merging(outputs_table_with_different_types):
     ancestor_target_type = outputs[0].supplementary_data.column_types['target'][0]
     assert target_types[0] == ancestor_target_type
     assert len(features_types) == 3
-    assert tuple(features_types) == ("<class 'str'>", "<class 'float'>", "<class 'float'>")
+    assert tuple(features_types) == (TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])

@@ -9,6 +9,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
+from fedot.preprocessing.data_types import TYPE_TO_ID
 from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
@@ -133,10 +134,10 @@ def test_column_types_converting_correctly():
 
     assert len(features_types) == 4
     assert len(target_types) == 2
-    assert features_types[0] == "<class 'str'>"
-    assert features_types[1] == "<class 'str'>"
-    assert features_types[2] == "<class 'str'>"
-    assert target_types[0] == target_types[0] == "<class 'str'>"
+    assert features_types[0] == TYPE_TO_ID[str]
+    assert features_types[1] == TYPE_TO_ID[str]
+    assert features_types[2] == TYPE_TO_ID[str]
+    assert target_types[0] == target_types[1] == TYPE_TO_ID[str]
 
 
 def test_column_types_process_correctly():
@@ -158,7 +159,7 @@ def test_column_types_process_correctly():
     features_columns = predicted.supplementary_data.column_types['features']
     assert len(features_columns) == predicted.predict.shape[1]
     # All output values are float
-    assert all('float' in str(feature_type) for feature_type in features_columns)
+    assert all(feature_type_id == TYPE_TO_ID[float] for feature_type_id in features_columns)
 
 
 def test_complicated_table_types_processed_correctly():
@@ -263,7 +264,7 @@ def test_str_numbers_with_dots_and_commas_in_predict():
     input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
-    transformed_predict = apply_type_transformation(table=input_data.features, column_types=['int'],
+    transformed_predict = apply_type_transformation(table=input_data.features, column_types=[TYPE_TO_ID[int]],
                                                     log=default_log('test_str_numbers_with_dots_and_commas_in_predict'))
 
     assert all(transformed_predict == np.array([[8], [4], [3], [6]]))

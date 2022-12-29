@@ -5,6 +5,7 @@ import pandas as pd
 
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 def data_type_is_suitable_for_preprocessing(data: InputData) -> bool:
@@ -76,11 +77,11 @@ def find_categorical_columns(table: np.ndarray, column_types: dict = None):
 
     categorical_ids = []
     non_categorical_ids = []
-    for column_id, type_name in enumerate(column_types):
-        if 'str' in str(type_name):
-            categorical_ids.append(column_id)
+    for col_id, col_type_id in enumerate(column_types):
+        if col_type_id == TYPE_TO_ID[str]:
+            categorical_ids.append(col_id)
         else:
-            non_categorical_ids.append(column_id)
+            non_categorical_ids.append(col_id)
 
     return categorical_ids, non_categorical_ids
 

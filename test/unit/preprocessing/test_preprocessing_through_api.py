@@ -6,12 +6,12 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.preprocessing.data_types import NAME_CLASS_STR
+from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 def data_with_only_categorical_features():
     """ Generate tabular data with only categorical features. All of them are binary. """
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_STR] * 3})
+    supp_data = SupplementaryData(column_types={'features': [TYPE_TO_ID[str]] * 3})
     task = Task(TaskTypesEnum.regression)
     features = np.array([["'a'", "0", "1"],
                          ["'b'", "1", "0"],

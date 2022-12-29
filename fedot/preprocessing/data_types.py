@@ -14,10 +14,11 @@ from typing import TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
     from fedot.core.data.data import InputData
 
-NAME_CLASS_STR = "<class 'str'>"
-NAME_CLASS_INT = "<class 'int'>"
-NAME_CLASS_FLOAT = "<class 'float'>"
-NAME_CLASS_NONE = "<class 'NoneType'>"
+_convertable_types = (bool, float, int, str, type(None))
+_types_ids = range(len(_convertable_types))
+
+TYPE_TO_ID = dict(zip(_convertable_types, _types_ids))
+
 FEDOT_STR_NAN = 'fedot_nan'
 # If unique values in the feature column is less than 13 - convert column into string type else to numerical
 CATEGORICAL_MAX_UNIQUE_TH = 13
@@ -120,8 +121,7 @@ class TableTypesCorrector:
         if not converted_columns:
             return table
 
-        self.columns_to_del = [column_id for column_id, new_type_name in converted_columns.items() if
-                               new_type_name == 'removed']
+        self.columns_to_del = [col_id for col_id, new_type_id in converted_columns.items() if new_type_id == -1]
         if not self.columns_to_del:
             # There are no columns to delete
             return table
@@ -218,15 +218,15 @@ class TableTypesCorrector:
 
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
 
-            remained_column_types = []
-            for i, col in enumerate(data.supplementary_data.column_types['features']):
-                if i not in self.string_columns_transformation_failed:
-                    remained_column_types.append(col)
-            data.supplementary_data.column_types['features'] = remained_column_types
+            data.supplementary_data.column_types['features'] = [
+                col_type
+                for col_id, col_type in enumerate(data.supplementary_data.column_types['features'])
+                if col_id not in self.string_columns_transformation_failed
+            ]
 
     def _check_columns_vs_types_number(self, table: np.ndarray, column_types: list):
         # Check if columns number correct
-        n_rows, n_cols = table.shape
+        _, n_cols = table.shape
         if n_cols != len(column_types):
             # There is an incorrect types calculation
             self.log.warning('Columns number and types numbers do not match.')
@@ -251,9 +251,9 @@ class TableTypesCorrector:
         :param column_info: dictionary with information about types in the column
         :param mixed_column_id: index of column in dataset
         """
-        if len(column_info['types']) == 2 and NAME_CLASS_NONE in column_info['types']:
+        if len(column_info['types']) == 2 and TYPE_TO_ID[type(None)] in column_info['types']:
             # Column contain only one data type and nans
-            filtered_types = [x for x in column_info['types'] if x != NAME_CLASS_NONE]
+            filtered_types = [x for x in column_info['types'] if x != TYPE_TO_ID[type(None)]]
             return mixed_column, filtered_types[0]
 
         string_objects_number = column_info['str_number']
@@ -272,13 +272,13 @@ class TableTypesCorrector:
                 mixed_column = mixed_column.astype(object)
                 mixed_column[column_info['nan_ids']] = np.nan
                 del column_info['nan_ids']
-            return mixed_column, str(suggested_type)
+            return mixed_column, TYPE_TO_ID[suggested_type]
         except ValueError:
             # Cannot convert string objects into int or float (for example 'a' into int)
             prefix = f'Feature column with index {mixed_column_id} contains ' \
                      f'following data types: {column_info["types"]}.'
             self.log.warning(f'{prefix} String cannot be converted into {suggested_type}. Drop column.')
-            return None, 'removed'
+            return None, -1
 
     def _convert_target_into_one_type(self, mixed_column: np.ndarray, column_info: dict, mixed_column_id: int,
                                       task: Task) -> Tuple[np.ndarray, str]:
@@ -291,7 +291,7 @@ class TableTypesCorrector:
 
         try:
             mixed_column = mixed_column.astype(suggested_type)
-            return mixed_column, str(suggested_type)
+            return mixed_column, TYPE_TO_ID[suggested_type]
         except ValueError:
             # Cannot convert string objects into int or float (for example 'a' into int)
             target_column = pd.Series(mixed_column)
@@ -302,7 +302,7 @@ class TableTypesCorrector:
             log_message = f'{prefix} String cannot be converted into {suggested_type}. Ignore non converted values.'
             self.log.debug(log_message)
             self.target_converting_has_errors = True
-            return converted_column.values, str(suggested_type)
+            return converted_column.values, TYPE_TO_ID[suggested_type]
 
     def _into_categorical_features_transformation_for_fit(self, data: InputData):
         """
@@ -313,7 +313,7 @@ class TableTypesCorrector:
         for column_id in range(n_cols):
             # For every int/float column perform check
             column_type = data.supplementary_data.column_types['features'][column_id]
-            if 'int' in column_type or 'float' in column_type:
+            if column_type in [TYPE_TO_ID[int], TYPE_TO_ID[float]]:
                 numerical_column = pd.Series(data.features[:, column_id])
 
                 # Calculate number of unique values except nans
@@ -331,7 +331,7 @@ class TableTypesCorrector:
 
                     # Update information about column types (in-place)
                     features_types = data.supplementary_data.column_types['features']
-                    features_types[column_id] = NAME_CLASS_STR
+                    features_types[column_id] = TYPE_TO_ID[str]
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
@@ -349,7 +349,7 @@ class TableTypesCorrector:
 
                 # Update information about column types (in-place)
                 features_types = data.supplementary_data.column_types['features']
-                features_types[column_id] = NAME_CLASS_STR
+                features_types[column_id] = TYPE_TO_ID[str]
 
     def _into_numeric_features_transformation_for_fit(self, data: InputData):
         """
@@ -359,7 +359,7 @@ class TableTypesCorrector:
         for column_id in range(n_cols):
             # For every string column perform converting if necessary
             column_type = data.supplementary_data.column_types['features'][column_id]
-            if 'str' in column_type:
+            if column_type == TYPE_TO_ID[str]:
                 string_column = pd.Series(data.features[:, column_id])
 
                 # Number of nans in the column
@@ -382,7 +382,7 @@ class TableTypesCorrector:
                     # Update information about column types (in-place)
                     self.categorical_into_float.append(column_id)
                     features_types = data.supplementary_data.column_types['features']
-                    features_types[column_id] = NAME_CLASS_FLOAT
+                    features_types[column_id] = TYPE_TO_ID[float]
                 elif failed_ratio >= self.acceptable_failed_rate_top \
                         and is_column_contain_numerical_objects:
                     # The column consists mostly of truly str values and has a few ints/floats in it
@@ -390,7 +390,7 @@ class TableTypesCorrector:
                 elif self.acceptable_failed_rate_top > failed_ratio >= self.acceptable_failed_rate_bottom:
                     # Probably numerical column contains a lot of '?' or 'x' as nans equivalents
                     # Add columns to remove list
-                    self.string_columns_transformation_failed.update({column_id: 'removed'})
+                    self.string_columns_transformation_failed.update({column_id: -1})
 
     def _into_numeric_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into float string column for every signed column """
@@ -409,7 +409,7 @@ class TableTypesCorrector:
 
                 # Update information about column types (in-place)
                 features_types = data.supplementary_data.column_types['features']
-                features_types[column_id] = NAME_CLASS_FLOAT
+                features_types[column_id] = TYPE_TO_ID[float]
 
 
 def define_column_types(table: np.ndarray):
@@ -417,29 +417,38 @@ def define_column_types(table: np.ndarray):
     types, which column contains. If column with mixed type contain str object
     additional field 'str_ids' with indices of string objects is prepared
     """
-    def to_type(item):
-        return str(type(item))
-    vto_type = np.vectorize(to_type)
-
     if table is None:
         return {}
 
     _, n_columns = table.shape
+
+    nans = pd.isna(table)
+    table_of_types = np.empty_like(table, dtype=np.int8)
+    table_of_types[~nans] = [
+        TYPE_TO_ID[type(x.item() if getattr(x, 'item', False) else x)]
+        for x in table[~nans]
+    ]
+    table_of_types[nans] = TYPE_TO_ID[type(None)]
+
     columns_info = {}
     for column_id in range(n_columns):
-        current_column = table[:, column_id]
+        col_types = table_of_types[:, column_id]
 
-        column_types = np.where(pd.isna(current_column), str(type(None)), vto_type(current_column))
-        unique_column_types = np.unique(column_types)
+        unique_col_types, unique_col_types_number = np.unique(col_types, return_counts=True)
 
-        if len(unique_column_types) > 1:
-            str_number = (column_types == NAME_CLASS_STR).sum()
-            int_number = (column_types == NAME_CLASS_INT).sum()
-            float_number = (column_types == NAME_CLASS_FLOAT).sum()
+        if len(unique_col_types) > 1:
+            numbers = [
+                unique_col_types_number[unique_col_types == TYPE_TO_ID[t]]
+                for t in [str, int, float]
+            ]
+            str_number, int_number, float_number = [
+                number.item() if len(number) else 0
+                for number in numbers
+            ]
 
             # Store information about nans in the target
-            nan_ids = np.ravel(np.argwhere(column_types == NAME_CLASS_NONE))
-            columns_info.update({column_id: {'types': unique_column_types,
+            nan_ids = np.ravel(np.argwhere(col_types == TYPE_TO_ID[type(None)]))
+            columns_info.update({column_id: {'types': unique_col_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
                                              'float_number': float_number,
@@ -447,7 +456,7 @@ def define_column_types(table: np.ndarray):
                                              'nan_ids': nan_ids}})
         else:
             # There is only one type, or several types such as int and float
-            columns_info.update({column_id: {'types': unique_column_types}})
+            columns_info.update({column_id: {'types': unique_col_types}})
     return columns_info
 
 
@@ -469,11 +478,11 @@ def apply_type_transformation(table: np.ndarray, column_types: list, log: Logger
     during fit
     """
 
-    def type_by_name(current_type_name: str):
-        """ Return type by its name """
-        if 'int' in current_type_name:
+    def type_by_id(current_type_id: int):
+        """ Return type by its ID """
+        if current_type_id == TYPE_TO_ID[int]:
             return int
-        elif 'str' in current_type_name:
+        elif current_type_id == TYPE_TO_ID[str]:
             return str
         else:
             return float
@@ -485,7 +494,7 @@ def apply_type_transformation(table: np.ndarray, column_types: list, log: Logger
     n_rows, n_cols = table.shape
     for column_id in range(n_cols):
         current_column = table[:, column_id]
-        current_type = type_by_name(column_types[column_id])
+        current_type = type_by_id(column_types[column_id])
         _convert_predict_column_into_desired_type(table=table, current_column=current_column, current_type=current_type,
                                                   column_id=column_id, log=log)
 
@@ -500,7 +509,7 @@ def convert_num_column_into_string_array(numerical_column: pd.Series) -> np.arra
     return numerical_column.to_numpy()
 
 
-def _obtain_new_column_type(column_info):
+def _obtain_new_column_type(column_info: dict):
     """ Suggest in or float type based on the presence of nan and float values """
     if column_info['float_number'] > 0 or column_info['nan_number'] > 0:
         # Even if one of types are float - all elements should be converted into float
@@ -534,24 +543,24 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
     """
     updated_column_types = []
     for column_id, column_info in columns_types_info.items():
-        column_types = column_info['types']
+        column_type_ids = column_info['types']
 
-        if len(column_types) == 1:
+        if len(column_type_ids) == 1:
             # Column initially contain only one type
-            updated_column_types.append(column_types[0])
-        elif len(column_types) == 2 and NAME_CLASS_NONE in column_types:
+            updated_column_types.append(column_type_ids[0])
+        elif len(column_type_ids) == 2 and TYPE_TO_ID[type(None)] in column_type_ids:
             # Column with one type and nans
-            filtered_types = [x for x in column_types if x != NAME_CLASS_NONE]
+            filtered_types = [x for x in column_type_ids if x != TYPE_TO_ID[type(None)]]
             updated_column_types.append(filtered_types[0])
         else:
-            if any('str' in column_type_name for column_type_name in column_types):
+            if any(column_type_id == TYPE_TO_ID[str] for column_type_id in column_type_ids):
                 # Mixed-types column with string
                 new_column_type = converted_columns[column_id]
-                if new_column_type != 'removed':
+                if new_column_type != -1:
                     updated_column_types.append(new_column_type)
             else:
                 # Mixed-types with float and integer
-                updated_column_types.append(NAME_CLASS_FLOAT)
+                updated_column_types.append(TYPE_TO_ID[float])
 
     return updated_column_types
 

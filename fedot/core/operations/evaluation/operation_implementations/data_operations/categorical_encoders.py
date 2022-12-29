@@ -12,6 +12,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 )
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class OneHotEncodingImplementation(DataOperationImplementation):
@@ -35,9 +36,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        features_types = input_data.supplementary_data.column_types.get('features')
+        features_type_ids = input_data.supplementary_data.column_types.get('features')
         categorical_ids, non_categorical_ids = find_categorical_columns(features,
-                                                                        features_types)
+                                                                        features_type_ids)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -79,11 +80,11 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         if self.categorical_ids:
             # There are categorical features in the table
             col_types = output_data.supplementary_data.column_types['features']
-            numerical_columns = [t_name for t_name in col_types if 'str' not in t_name]
+            numerical_columns = [t_name for t_name in col_types if t_name != TYPE_TO_ID[str]]
 
             # Calculate new binary columns number after encoding
             encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
-            numerical_columns.extend([str(int)] * encoded_columns_number)
+            numerical_columns.extend([TYPE_TO_ID[int]] * encoded_columns_number)
 
             output_data.encoded_idx = self.encoded_ids
             output_data.supplementary_data.column_types['features'] = numerical_columns
@@ -159,7 +160,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
             # Categorical features were in the dataset
             col_types = output_data.supplementary_data.column_types['features']
             for categorical_id in self.categorical_ids:
-                col_types[categorical_id] = str(int)
+                col_types[categorical_id] = TYPE_TO_ID[int]
 
             output_data.supplementary_data.column_types['features'] = col_types
 

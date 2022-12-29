@@ -21,8 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.preprocessing.data_types import NAME_CLASS_FLOAT, NAME_CLASS_INT, \
-    NAME_CLASS_STR
+from fedot.preprocessing.data_types import TYPE_TO_ID
 from test.unit.preprocessing.test_preprocessing_through_api import data_with_only_categorical_features
 
 
@@ -130,7 +129,7 @@ def get_multivariate_time_series(mutli_ts=False):
 
 
 def get_nan_inf_data():
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT] * 4})
+    supp_data = SupplementaryData(column_types={'features': [TYPE_TO_ID[float]] * 4})
     train_input = InputData(idx=[0, 1, 2, 3],
                             features=np.array([[1, 2, 3, 4],
                                                [2, np.nan, 4, 5],
@@ -145,8 +144,8 @@ def get_nan_inf_data():
 
 
 def get_single_feature_data(task=None):
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_INT],
-                                                'target': [NAME_CLASS_INT]})
+    supp_data = SupplementaryData(column_types={'features': [TYPE_TO_ID[int]],
+                                                'target': [TYPE_TO_ID[int]]})
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=np.array([[1], [2], [3], [7], [8], [9]]),
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
@@ -169,10 +168,10 @@ def get_mixed_data(task=None, extended=False):
                              [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
-        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_INT,
-                          NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_STR]
+        features_types = [TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[int],
+                          TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[str]]
         supp_data = SupplementaryData(column_types={'features': features_types,
-                                                    'target': [NAME_CLASS_INT]})
+                                                    'target': [TYPE_TO_ID[int]]})
     else:
         features = np.array([[1, '0', 1],
                              [2, '1', 0],
@@ -180,9 +179,9 @@ def get_mixed_data(task=None, extended=False):
                              [7, '1', 1],
                              [8, '1', 1],
                              [9, '0', 0]], dtype=object)
-        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_INT]
+        features_types = [TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]]
         supp_data = SupplementaryData(column_types={'features': features_types,
-                                                    'target': [NAME_CLASS_INT]})
+                                                    'target': [TYPE_TO_ID[int]]})
 
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=features,
@@ -201,7 +200,7 @@ def get_nan_binary_data(task=None):
     Binary int columns must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
-    features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_INT]
+    features_types = [TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]]
     supp_data = SupplementaryData(column_types={'features': features_types})
     features = np.array([[1, '0', 0],
                          [np.nan, np.nan, np.nan],
@@ -232,8 +231,8 @@ def get_unbalanced_dataset(size=10, disbalance=0.4, target_dim=None):
         target = target.reshape(-1, 1)
 
     supp_data = SupplementaryData(column_types={
-        'features': [NAME_CLASS_INT, NAME_CLASS_STR],
-        'target': [NAME_CLASS_INT]
+        'features': [TYPE_TO_ID[int], TYPE_TO_ID[str]],
+        'target': [TYPE_TO_ID[int]]
     })
 
     input_data = InputData(idx=np.arange(features.shape[0]),
@@ -252,7 +251,7 @@ def data_with_binary_int_features_and_equal_categories():
     must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_INT, NAME_CLASS_INT]})
+    supp_data = SupplementaryData(column_types={'features': [TYPE_TO_ID[int], TYPE_TO_ID[int]]})
     task = Task(TaskTypesEnum.classification)
     features = np.array([[1, 10],
                          [np.nan, np.nan],
