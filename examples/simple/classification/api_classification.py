@@ -1,5 +1,4 @@
 from fedot.api.main import Fedot
-from fedot.core.utilities.performance.memory import MemoryAnalytics
 from fedot.core.utils import fedot_project_root
 
 
@@ -14,15 +13,10 @@ def run_classification_example(timeout: float = None, visualization=False):
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    MemoryAnalytics.start()
-    MemoryAnalytics.log(additional_info='test')
-
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1, preset='best_quality',
-                       max_pipeline_fit_time=5, metric='roc_auc')
+                       max_pipeline_fit_time=5, metric='roc_auc', logging_level=10)
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
-
-    MemoryAnalytics.finish()
 
     print(auto_model.get_metrics())
     if visualization:
