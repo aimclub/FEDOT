@@ -1,11 +1,13 @@
+import logging
 from functools import partial
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
-from hyperopt import fmin, space_eval, Trials
+from hyperopt import Trials, fmin, space_eval
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
+from fedot.utilities.memory import MemoryAnalytics
 
 
 class PipelineTuner(HyperoptTuner):
@@ -101,7 +103,7 @@ class PipelineTuner(HyperoptTuner):
 
             tunable_node_params = self.search_space.get_operation_parameter_range(operation_name)
             tunable_initial_params = {get_node_operation_parameter_label(node_id, operation_name, p):
-                                      node.parameters[p] for p in node.parameters if p in tunable_node_params}
+                                          node.parameters[p] for p in node.parameters if p in tunable_node_params}
             if tunable_initial_params:
                 initial_parameters.update(tunable_initial_params)
 
@@ -127,6 +129,11 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline, parameters_dict)
         metric_value = self.get_metric_value(pipeline=pipeline)
+
+        MemoryAnalytics.log(self.log,
+                            additional_info='evaluation of tuner objective',
+                            logging_level=logging.DEBUG)
+
         return metric_value
 
     @staticmethod

@@ -17,6 +17,7 @@ def run_classification_example(timeout: float = None, visualization=False):
                        max_pipeline_fit_time=5, metric='roc_auc')
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
+
     print(auto_model.get_metrics())
     if visualization:
         auto_model.plot_prediction()

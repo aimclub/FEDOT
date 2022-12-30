@@ -1,17 +1,18 @@
 import gc
+import logging
 import pathlib
 import timeit
 from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import partial
 from random import choice
-from typing import Dict, Optional, Tuple, List, TypeVar, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple, TypeVar
 
-from joblib import Parallel, delayed, cpu_count
+from joblib import Parallel, cpu_count, delayed
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph import Graph
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
 from fedot.core.optimisers.graph import OptGraph
@@ -19,6 +20,7 @@ from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.utilities.serializable import Serializable
+from fedot.utilities.memory import MemoryAnalytics
 
 OptionalEvalResult = Optional[GraphEvalResult]
 EvalResultsList = List[OptionalEvalResult]
@@ -155,6 +157,9 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             single_ind = choice(individuals)
             evaluation_result = eval_func(single_ind.graph, single_ind.uid, with_time_limit=False)
             successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
+        MemoryAnalytics.log(self.logger,
+                            additional_info='parallel evaluation of population',
+                            logging_level=logging.INFO)
         return successful_evals
 
     def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True, cache_key: Optional[str] = None,

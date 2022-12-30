@@ -18,7 +18,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast, convert_forecast_to_output
+from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -27,6 +27,7 @@ from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -157,6 +158,9 @@ class Fedot:
             Pipeline object
 
         """
+
+        MemoryAnalytics.start()
+
         self.target = target
 
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
@@ -191,6 +195,8 @@ class Fedot:
                                                                  self.current_pipeline.preprocessor)
 
         self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
+
+        MemoryAnalytics.finish()
 
         return self.current_pipeline
 
