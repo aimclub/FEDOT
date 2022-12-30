@@ -37,14 +37,15 @@ class Pipeline(GraphDelegate, Serializable):
         nodes: :obj:`Node` object(s)
     """
 
-    def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_preprocessing: bool = True):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
         self.log = default_log(self)
 
-        # Define data preprocessor
-        self.preprocessor = DataPreprocessor()
+        if use_preprocessing:
+            # Define data preprocessor
+            self.preprocessor = DataPreprocessor()
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """[Obsolete] Method used for training the pipeline without using saved information
@@ -133,12 +134,14 @@ class Pipeline(GraphDelegate, Serializable):
         self.replace_n_jobs_in_nodes(n_jobs)
 
         copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+        if self.preprocessor is not None:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                        data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                        data=copied_input_data)
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
@@ -178,7 +181,8 @@ class Pipeline(GraphDelegate, Serializable):
             self.unfit_preprocessor()
 
     def unfit_preprocessor(self):
-        self.preprocessor = DataPreprocessor()
+        if self.preprocessor is not None:
+            self.preprocessor = DataPreprocessor()
 
     def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
                             fold_id: Optional[int] = None):
@@ -222,22 +226,24 @@ class Pipeline(GraphDelegate, Serializable):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
-                                                                           data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
-                                                                          data=copied_input_data)
+        if self.preprocessor is not None:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
+                                                                            data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
+                                                                            data=copied_input_data)
         copied_input_data = update_indices_for_time_series(copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
 
-        result = self.preprocessor.restore_index(copied_input_data, result)
-        # Prediction should be converted into source labels (if it is needed)
-        if output_mode == 'labels':
-            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+        if self.preprocessor is not None:
+            result = self.preprocessor.restore_index(copied_input_data, result)
+            # Prediction should be converted into source labels (if it is needed)
+            if output_mode == 'labels':
+                result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
@@ -310,7 +316,8 @@ class Pipeline(GraphDelegate, Serializable):
                 max_distance = distance_to_primary_level(node)
 
         pipeline = Pipeline(side_root_node)
-        pipeline.preprocessor = self.preprocessor
+        if self.preprocessor is not None:
+            pipeline.preprocessor = self.preprocessor
         return pipeline
 
     def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:

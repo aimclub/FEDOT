@@ -10,7 +10,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.memory import MemoryAnalytics
 
 
 class AssumptionsHandler:
@@ -25,7 +24,8 @@ class AssumptionsHandler:
 
     def propose_assumptions(self,
                             initial_assumption: Union[List[Pipeline], Pipeline, None],
-                            available_operations: List) -> List[Pipeline]:
+                            available_operations: List,
+                            use_preprocessing: bool = True) -> List[Pipeline]:
         """
         Method to propose initial assumptions if needed
 
@@ -35,7 +35,7 @@ class AssumptionsHandler:
 
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
-                .get(self.data) \
+                .get(self.data, use_preprocessing) \
                 .from_operations(available_operations)
             initial_assumption = assumptions_builder.build()
         elif isinstance(initial_assumption, Pipeline):
@@ -45,22 +45,20 @@ class AssumptionsHandler:
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
                                              pipelines_cache: Optional[OperationsCache] = None,
-                                             preprocessing_cache: Optional[PreprocessingCache] = None,
-                                             eval_n_jobs: int = -1) -> Pipeline:
+                                             preprocessing_cache: Optional[PreprocessingCache] = None) -> Pipeline:
         """
         Check if initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
         :param pipelines_cache: Cache manager for fitted models, optional.
         :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
-        :param eval_n_jobs: number of jobs to fit the initial pipeline
         """
         try:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
             # load preprocessing
             pipeline.try_load_from_cache(pipelines_cache, preprocessing_cache)
-            pipeline.fit(data_train, n_jobs=eval_n_jobs)
+            pipeline.fit(data_train)
 
             if pipelines_cache is not None:
                 pipelines_cache.save_pipeline(pipeline)
@@ -69,10 +67,6 @@ class AssumptionsHandler:
 
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
-
-            MemoryAnalytics.log(self.log,
-                                additional_info='fitting of the initial pipeline',
-                                logging_level=45)  # message logging level
 
         except Exception as ex:
             self._raise_evaluating_exception(ex)
@@ -96,5 +90,5 @@ class AssumptionsHandler:
         """
         if not preset or preset == 'auto':
             preset = change_preset_based_on_initial_fit(timer, n_jobs)
-            self.log.message(f"Preset was changed to {preset} due to fit time estimation for initial model.")
+            self.log.info(f"Preset was changed to {preset}")
         return preset

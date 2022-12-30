@@ -25,14 +25,18 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task):
+    def __init__(self, task: Task, use_preprocessing: bool = True):
         self.task = task
-        self.preprocessor = DataPreprocessor()
 
-        # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encode'
-        # to encode features using label encoder). Parameters for transformation provided also
-        self.recommendations = {'cut': self.preprocessor.cut_dataset,
-                                'label_encoded': self.preprocessor.label_encoding_for_fit}
+        if use_preprocessing:
+            self.preprocessor = DataPreprocessor()
+
+            # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'
+            # to encode features using label encoder). Parameters for transformation provided also
+            self._recommendations = {'cut': self.preprocessor.cut_dataset,
+                                    'label_encoded': self.preprocessor.label_encoding_for_fit}
+        else:
+            self.preprocessor = None
 
     def define_data(self,
                     features: FeaturesType,
@@ -60,11 +64,12 @@ class ApiDataProcessor:
                              'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
                              f'Exception: {ex}')
 
-        # Perform obligatory steps of data preprocessing
-        if is_predict:
-            data = self.preprocessor.obligatory_prepare_for_predict(data)
-        else:
-            data = self.preprocessor.obligatory_prepare_for_fit(data)
+        if self.preprocessor is not None:
+            # Perform obligatory steps of data preprocessing
+            if is_predict:
+                data = self.preprocessor.obligatory_prepare_for_predict(data)
+            else:
+                data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
@@ -118,4 +123,4 @@ class ApiDataProcessor:
             for name in recommendations:
                 rec = recommendations[name]
                 # Apply desired preprocessing function
-                self.recommendations[name](input_data, *rec.values())
+                self._recommendations[name](input_data, *rec.values())
