@@ -85,7 +85,8 @@ class TunerBuilder:
         data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
                                                        validation_blocks=self.validation_blocks,
-                                                       time_constraint=self.eval_time_constraint)
+                                                       time_constraint=self.eval_time_constraint,
+                                                       eval_n_jobs=self.n_jobs)  # because tuners are not parallelized
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  iterations=self.iterations,
                                  early_stopping_rounds=self.early_stopping_rounds,

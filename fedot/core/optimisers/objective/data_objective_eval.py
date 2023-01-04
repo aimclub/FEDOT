@@ -62,14 +62,14 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
-                self._log.warning(f'Error on Pipeline fit during fitness evaluation. '
-                                  f'Skipping the Pipeline. Error <{ex}> on graph: {graph_id}')
+                self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
+                                  f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
                 if is_test_session() and not isinstance(ex, TimeoutError):
                     stack_trace = traceback.format_exc()
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
                     if not is_recording_mode():
                         raise ex
-                continue
+                break  # if even one fold fails, the evaluation stops
 
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,

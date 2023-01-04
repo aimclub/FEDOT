@@ -438,7 +438,10 @@ def test_custom_history_folder_define_correct():
 
     params = {
         **default_params,
-        'history_folder': custom_path}
+        'history_folder': custom_path,
+        'timeout': None,
+        'num_of_generations': 1,
+        'pop_size': 3}
 
     model = Fedot(problem='ts_forecasting', **params,
                   task_params=TsForecastingParams(forecast_length=5))

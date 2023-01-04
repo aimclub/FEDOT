@@ -1,12 +1,11 @@
 from abc import abstractmethod
 from typing import Any, Dict, Optional, Sequence
 
-import datetime
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SequentialDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
@@ -44,10 +43,14 @@ class PopulationalOptimizer(GraphOptimizer):
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
-        self.eval_dispatcher = MultiprocessingDispatcher(adapter=graph_generation_params.adapter,
-                                                         n_jobs=requirements.n_jobs,
-                                                         graph_cleanup_fn=_unfit_pipeline,
-                                                         delegate_evaluator=graph_generation_params.remote_evaluator)
+
+        dispatcher_type = MultiprocessingDispatcher if self.requirements.parallelization_mode == 'populational' else \
+            SequentialDispatcher
+
+        self.eval_dispatcher = dispatcher_type(adapter=graph_generation_params.adapter,
+                                               n_jobs=requirements.n_jobs,
+                                               graph_cleanup_fn=_unfit_pipeline,
+                                               delegate_evaluator=graph_generation_params.remote_evaluator)
 
         # early_stopping_iterations and early_stopping_timeout may be None, so use some obvious max number
         max_stagnation_length = requirements.early_stopping_iterations or requirements.num_of_generations

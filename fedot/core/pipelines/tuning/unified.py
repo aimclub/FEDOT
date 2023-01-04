@@ -4,9 +4,11 @@ from typing import Optional, Tuple
 
 from hyperopt import Trials, fmin, space_eval
 
+from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
+from fedot.utilities.debug import is_test_session
 from fedot.utilities.memory import MemoryAnalytics
 
 
@@ -24,43 +26,67 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict, init_parameters = self._get_parameters_for_tune(pipeline)
 
-        pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
+        min_sec_number = 3
+        with Timer() as global_tuner_timer:
 
-        self.init_check(pipeline)
-
-        if parameters_dict:
+            self.init_check(pipeline)
+            pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
             trials = Trials()
 
-            # try searching using initial parameters (uses original search space with fixed initial parameters)
-            trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict, init_parameters,
-                                                                           trials, show_progress)
+            remaining_time = self.max_seconds - global_tuner_timer.minutes_from_start * 60
+            if remaining_time <= min_sec_number:
+                self.log.message('Tunner stopped after initial assumption due to the lack of time')
+                return pipeline
 
-            best = fmin(partial(self._objective, pipeline=pipeline),
-                        parameters_dict,
-                        trials=trials,
-                        algo=self.algo,
-                        max_evals=self.iterations,
-                        show_progressbar=show_progress,
-                        early_stop_fn=self.early_stop_fn,
-                        timeout=self.max_seconds)
+            try:
+                if parameters_dict:
 
-            best = space_eval(space=parameters_dict, hp_assignment=best)
-            # check if best point was obtained using search space with fixed initial parameters
-            is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
-            if is_best_trial_with_init_params:
-                best = {**best, **init_parameters}
+                    # try searching using initial parameters (uses original search space with fixed initial parameters)
+                    trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict,
+                                                                                   init_parameters,
+                                                                                   trials, show_progress)
 
-            tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
-                                                   parameters=best)
+                    self.max_seconds = self.max_seconds - global_tuner_timer.minutes_from_start * 60
+                    if self.max_seconds > min_sec_number:
+                        best = fmin(partial(self._objective, pipeline=pipeline),
+                                    parameters_dict,
+                                    trials=trials,
+                                    algo=self.algo,
+                                    max_evals=self.iterations,
+                                    show_progressbar=show_progress,
+                                    early_stop_fn=self.early_stop_fn,
+                                    timeout=self.max_seconds)
+                    else:
+                        self.log.message('Tunner stopped after initial search due to the lack of time')
 
-        else:
-            self.log.info(f'Pipeline "{pipeline.graph_description}" has no parameters to optimize')
-            tuned_pipeline = pipeline
-            self.obtained_metric = self.init_metric
+                    best = space_eval(space=parameters_dict, hp_assignment=best)
+                    # check if best point was obtained using search space with fixed initial parameters
+                    is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
+                    if is_best_trial_with_init_params:
+                        best = {**best, **init_parameters}
 
-        # Validation is the optimization do well
-        final_pipeline = self.final_check(tuned_pipeline)
+                    tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
+                                                           parameters=best)
+
+                    # Validation is the optimization do well
+                    self.was_tuned = True
+
+                else:
+                    # TODO can be moved to the beginning
+                    # since init_metric can be derived from previous stage in most cases
+                    self.log.info(f'Pipeline "{pipeline.graph_description}" has no parameters to optimize')
+                    tuned_pipeline = pipeline
+                    self.obtained_metric = self.init_metric
+
+                final_pipeline = self.final_check(tuned_pipeline)
+            except Exception as ex:
+                final_pipeline = pipeline
+                self.was_tuned = False
+
+                self.log.warning(f'Exception {ex} occurred during tuning', rai)
+                if is_test_session():
+                    raise ex
 
         return final_pipeline
 

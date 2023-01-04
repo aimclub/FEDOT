@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 from fedot.core.constants import COMPOSING_TUNING_PROPORTION, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION, \
-    MINIMAL_SECONDS_FOR_TUNING
+    MINIMAL_SECONDS_FOR_TUNING, MIN_NUMBER_OF_GENERATIONS
 
 
 class ApiTime:
@@ -38,7 +38,8 @@ class ApiTime:
 
     def have_time_for_composing(self, pop_size: int, n_jobs: int) -> bool:
         timeout_not_set = self.timedelta_composing is None
-        return timeout_not_set or self.assumption_fit_spend_time < self.timedelta_composing * n_jobs / pop_size
+        return timeout_not_set or self.assumption_fit_spend_time < \
+               self.timedelta_composing * n_jobs / (pop_size * MIN_NUMBER_OF_GENERATIONS)
 
     def have_time_for_the_best_quality(self, n_jobs: int):
         timeout_not_set = self.timedelta_automl is None

@@ -70,6 +70,7 @@ class HyperoptTuner(ABC):
         """
         pipeline.unfit()
         pipeline_fitness = self.objective_evaluate.evaluate(pipeline)
+
         metric_value = pipeline_fitness.value
         if not pipeline_fitness.valid:
             return self._default_metric_value
@@ -82,7 +83,7 @@ class HyperoptTuner(ABC):
         Args:
           pipeline: Pipeline to calculate objective
         """
-        self.log.info('Hyperparameters optimization start')
+        self.log.info('Hyperparameters optimization start: estimation of metric for initial pipeline')
 
         # Train pipeline
         self.init_pipeline = deepcopy(pipeline)

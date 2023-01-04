@@ -7,10 +7,10 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score, roc_curve, auc)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-from fedot.core.pipelines.pipeline import Pipeline
 
 
 def from_maximised_metric(metric_func):
@@ -70,8 +70,7 @@ class QualityMetric:
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
-            # TODO: use log instead of stdout
-            print(f'Metric evaluation error: {ex}')
+            pipeline.log.info(f'Metric can not be evaluated because of: {ex}')
 
         return metric
 

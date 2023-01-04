@@ -29,6 +29,7 @@ G = TypeVar('G', bound=Serializable)
 
 class DelegateEvaluator:
     """Interface for delegate evaluator of graphs."""
+
     @property
     @abstractmethod
     def is_enabled(self) -> bool:
@@ -146,6 +147,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
         # Evaluate individuals without valid fitness in parallel.
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
+
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         eval_func = partial(self.evaluate_single, logs_initializer=Log().get_parameters())
         evaluation_results = parallel(delayed(eval_func)(ind.graph, ind.uid) for ind in individuals_to_evaluate)
@@ -162,7 +164,8 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
                             logging_level=logging.INFO)
         return successful_evals
 
-    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True, cache_key: Optional[str] = None,
+    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True,
+                        cache_key: Optional[str] = None,
                         logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> OptionalEvalResult:
 
         if with_time_limit and self.timer.is_time_limit_reached():
@@ -210,6 +213,24 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_graphs)}
 
 
+class SequentialDispatcher(MultiprocessingDispatcher):
+    """Evaluates objective function on population in sequential way.
+
+        Usage: call `dispatch(objective_function)` to get evaluation function.
+    """
+
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
+        individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
+        evaluation_results = [self.evaluate_single(ind.graph, ind.uid) for ind in individuals_to_evaluate]
+        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
+        evaluated_population = individuals_evaluated + individuals_to_skip or None
+
+        MemoryAnalytics.log(self.logger,
+                            additional_info='sequential evaluation of population',
+                            logging_level=logging.INFO)
+        return evaluated_population
+
+
 class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population.
 
@@ -233,6 +254,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         evaluation_results = [self.evaluate_single(ind.graph, ind.uid) for ind in individuals_to_evaluate]
         individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
         evaluated_population = individuals_evaluated + individuals_to_skip or None
+
         return evaluated_population
 
     def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit=True) -> OptionalEvalResult:
