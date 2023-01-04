@@ -10,6 +10,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.memory import MemoryAnalytics
 
 
 class AssumptionsHandler:
@@ -66,6 +67,10 @@ class AssumptionsHandler:
 
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
+
+            MemoryAnalytics.log(self.log,
+                                additional_info='fitting of the initial pipeline',
+                                logging_level=45)  # message logging level
 
         except Exception as ex:
             self._raise_evaluating_exception(ex)
