@@ -69,7 +69,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
                     if not is_recording_mode():
                         raise ex
-                continue
+                break  # if even one fold fails, the evaluation stops
 
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,

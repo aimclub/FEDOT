@@ -32,9 +32,9 @@ class SequentialTuner(HyperoptTuner):
         :param pipeline: Pipeline which hyperparameters will be tuned
         """
         # Check source metrics for data
-        self.init_check(pipeline)
-
         pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
+
+        self.init_check(pipeline)
 
         # Calculate amount of iterations we can apply per node
         nodes_amount = pipeline.length

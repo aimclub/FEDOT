@@ -11,6 +11,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.serializers.serializer import default_load, default_save
+from fedot.utilities.debug import is_test_session
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
@@ -116,6 +117,8 @@ class Individual:
 
     def __copy__(self):
         default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
+        if is_test_session():
+            raise ValueError(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
@@ -123,6 +126,8 @@ class Individual:
 
     def __deepcopy__(self, memo):
         default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
+        if is_test_session():
+            raise ValueError(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result

@@ -171,7 +171,10 @@ class Fedot:
         self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
         self.params.accept_and_apply_recommendations(self.train_data, recommendations)
         self._init_remote_if_necessary()
-        self.params.update_available_operations_by_preset(self.train_data)
+
+        if self.params.api_params['preset'] != 'auto':
+            self.params.update_available_operations_by_preset(self.train_data)
+
         self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
@@ -182,6 +185,9 @@ class Fedot:
         else:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
+
+            if self.current_pipeline is None:
+                raise ValueError('No any models were found')
 
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:

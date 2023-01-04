@@ -1,6 +1,11 @@
 Basics
 ======
 
+This sections contains the description of main use cases for FEDOT:
+classification and regression for the tabular data,
+time series forecasting, multi-modal tasks
+and reproducibility of the experiments.
+
 .. toctree::
    :maxdepth: 1
 
