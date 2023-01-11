@@ -24,13 +24,14 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
-        self.atomized_preprocessor = DataPreprocessor()
+        self.atomized_preprocessor = DataPreprocessor() if pipeline.preprocessor is not None else None
 
     def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData,
             use_cache: bool = True):
 
         copied_input_data = deepcopy(data)
-        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_fit(copied_input_data)
+        if self.atomized_preprocessor is not None:
+            copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_fit(copied_input_data)
 
         predicted_train = self.pipeline.fit(input_data=copied_input_data)
         fitted_atomized_operation = self.pipeline
@@ -42,7 +43,8 @@ class AtomizedModel(Operation):
 
         # Preprocessing applied
         copied_input_data = deepcopy(data)
-        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_predict(copied_input_data)
+        if self.atomized_preprocessor is not None:
+            copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_predict(copied_input_data)
 
         prediction = fitted_operation.predict(input_data=copied_input_data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)

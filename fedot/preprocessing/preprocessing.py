@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -507,12 +507,14 @@ class DataPreprocessor:
                 values.supplementary_data.was_preprocessed = True
 
 
-def merge_preprocessors(api_preprocessor: DataPreprocessor,
-                        pipeline_preprocessor: DataPreprocessor) -> DataPreprocessor:
+def merge_preprocessors(api_preprocessor: Optional[DataPreprocessor],
+                        pipeline_preprocessor: Optional[DataPreprocessor]) -> Optional[DataPreprocessor]:
     """
-    Combining two preprocessor objects. One is the preprocessor from the API,
+    Combining two preprocessor objects if both of them exists. The first is the preprocessor from the API,
     the second is the preprocessor from the obtained pipeline
     """
+    if api_preprocessor is None or pipeline_preprocessor is None:
+        return None
     # Take all obligatory data preprocessing from API
     new_data_preprocessor = api_preprocessor
 

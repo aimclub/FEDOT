@@ -392,7 +392,7 @@ class PipelineTemplate:
                 return data_preprocessor_path
         else:
             # dictionary with bytes of fitted operations
-            if self.data_preprocessor:
+            if self.data_preprocessor is not None:
                 bytes_container = BytesIO()
                 joblib.dump(self.data_preprocessor, bytes_container)
                 return bytes_container

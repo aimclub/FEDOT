@@ -43,9 +43,8 @@ class Pipeline(GraphDelegate, Serializable):
         self.computation_time = None
         self.log = default_log(self)
 
-        if use_preprocessing:
-            # Define data preprocessor
-            self.preprocessor = DataPreprocessor()
+        # Define data preprocessor
+        self.preprocessor = DataPreprocessor() if use_preprocessing else None
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """[Obsolete] Method used for training the pipeline without using saved information
