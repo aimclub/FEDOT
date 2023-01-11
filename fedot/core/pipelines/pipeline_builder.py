@@ -2,11 +2,12 @@ from copy import deepcopy
 from typing import List, Union, Optional, Tuple, Dict
 
 from fedot.core.dag.linked_graph import LinkedGraph
+from fedot.core.optimisers.opt_graph_builder import OptGraphBuilder
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-class PipelineBuilder:
+class PipelineBuilder(OptGraphBuilder):
     """ Builder for incremental construction of directed acyclic Pipelines.
     Semantics:
     - Forward-only & addition-only (can't prepend or delete nodes).
@@ -19,17 +20,14 @@ class PipelineBuilder:
 
     def __init__(self, *initial_nodes: Optional[Node]):
         """ Create builder with prebuilt nodes as origins of the branches. """
+        super().__init__(*initial_nodes)
         self.heads: List[Node] = list(filter(None, initial_nodes))
-
-    @property
-    def _iend(self) -> int:
-        return len(self.heads)
 
     def add_node(self, operation_type: Optional[str], branch_idx: int = 0, params: Optional[Dict] = None):
         """ Add single node to pipeline branch of specified index.
         If there are no heads => adds single PrimaryNode.
         If there is single head => adds single SecondaryNode using head as input.
-        If there are several heads => adds single SecondaryNode using as input the head indexed by head_idx.
+        If there are several heads => adds single SecondaryNode using as input the head indexed by branch_idx.
         If input is None => do nothing.
         If branch_idx is out of bounds => appends new PrimaryNode.
 
@@ -126,19 +124,8 @@ class PipelineBuilder:
             self.heads = [new_head]
         return self
 
-    def reset(self):
-        """ Reset builder state. """
-        self.heads = []
-
     def merge_with(self, following_builder) -> Optional['PipelineBuilder']:
         return merge_pipeline_builders(self, following_builder)
-
-    def to_nodes(self) -> List[Node]:
-        """
-        Return list of final nodes and reset internal state.
-        :return: list of final nodes, possibly empty.
-        """
-        return deepcopy(self.heads)
 
     def to_pipeline(self) -> Optional[Pipeline]:
         """
@@ -146,17 +133,6 @@ class PipelineBuilder:
         :return: Pipeline if there exist nodes, None if there're no nodes.
         """
         return Pipeline(self.to_nodes()) if self.heads else None
-
-    @staticmethod
-    def _unpack_operation(operation: Optional[OperationType]) -> Tuple[Optional[str], Optional[Dict]]:
-        if isinstance(operation, str) or operation is None:
-            return operation, None
-        else:
-            return operation
-
-    @staticmethod
-    def _pack_params(name: str, params: Optional[dict]) -> Optional[dict]:
-        return {'name': name, 'params': params} if params else None
 
 
 def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilder) -> Optional[PipelineBuilder]:
