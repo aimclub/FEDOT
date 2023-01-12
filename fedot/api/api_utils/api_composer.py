@@ -122,6 +122,7 @@ class ApiComposer:
             early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
+            parallelization_mode=api_params['parallelization_mode'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
@@ -199,16 +200,19 @@ class ApiComposer:
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)
+
+        n_jobs = determine_n_jobs(api_params['n_jobs'])
+
         with self.timer.launch_assumption_fit():
             fitted_assumption = \
                 assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                         pipelines_cache=self.pipelines_cache,
-                                                                        preprocessing_cache=self.preprocessing_cache)
+                                                                        preprocessing_cache=self.preprocessing_cache,
+                                                                        n_jobs=n_jobs)
 
         self.log.message(
             f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        n_jobs = determine_n_jobs(api_params['n_jobs'])
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
 
         composer_requirements = ApiComposer._init_composer_requirements(api_params, composer_params,
@@ -275,6 +279,7 @@ class ApiComposer:
             .build()
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
+
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
@@ -335,7 +340,9 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, timeout=5, n_jobs=1, show_progress=True, logger=None)
+    api_params_dict = dict(train_data=None, task=Task, timeout=5,
+                           n_jobs=1, parallelization_mode='populational',
+                           show_progress=True, logger=None)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,

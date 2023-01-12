@@ -39,9 +39,16 @@ class GPComposer(Composer):
         data_producer = DataSourceSplitter(self.composer_requirements.cv_folds,
                                            self.composer_requirements.validation_blocks,
                                            shuffle=True).build(data)
+
+        parallelization_mode = self.composer_requirements.parallelization_mode
+        if parallelization_mode == 'populational':
+            n_jobs_for_evaluation = 1
+        elif parallelization_mode == 'sequential':
+            n_jobs_for_evaluation = self.composer_requirements.n_jobs
+        else:
+            raise ValueError(f'Unknown parallelization_mode: {parallelization_mode}')
+
         # Define objective function
-        n_jobs_for_evaluation = 1
-        # TODO implement dispatcher selection
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,
                                                         self.composer_requirements.validation_blocks,
