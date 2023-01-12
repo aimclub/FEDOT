@@ -81,13 +81,13 @@ class ApiComposer:
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
     def init_cache(self, use_pipelines_cache: bool = True, 
-                   use_preprocessing: bool = True, use_preprocessing_cache: bool = True, 
+                   use_io_preprocessing: bool = True, use_preprocessing_cache: bool = True, 
                    cache_folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
-        if use_preprocessing and use_preprocessing_cache:
+        if use_io_preprocessing and use_preprocessing_cache:
             self.preprocessing_cache = PreprocessingCache(cache_folder)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
@@ -201,7 +201,7 @@ class ApiComposer:
         task: Task = api_params['task']
         train_data = api_params['train_data']
         timeout = api_params['timeout']
-        use_preprocessing = api_params['use_preprocessing']
+        use_io_preprocessing = api_params['use_io_preprocessing']
         with_tuning = tuning_params['with_tuning']
         available_operations = composer_params['available_operations']
         preset = composer_params['preset']

@@ -17,23 +17,23 @@ class PreprocessingBuilder:
     If data is multimodal, builder makes preprocessing pipeline for each data source iteratively.
     """
     def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: Node,
-                 use_preprocessing: bool = True):
+                 use_io_preprocessing: bool = True):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(*initial_nodes, use_preprocessing=use_preprocessing)
+        self._builder = PipelineBuilder(*initial_nodes, use_io_preprocessing=use_io_preprocessing)
 
     @classmethod
     def builder_for_data(cls,
                          task_type: TaskTypesEnum,
                          data: Union[InputData, MultiModalData],
                          *initial_nodes: Optional[Node],
-                         use_preprocessing: bool = True) -> PipelineBuilder:
+                         use_io_preprocessing: bool = True) -> PipelineBuilder:
         if isinstance(data, MultiModalData):
             # if the data is unimodal, initial_nodes = tuple of None
             # if the data is multimodal, initial_nodes = tuple of 1 element (current data_source node)
             # so the whole data is reduced to the current data_source for an easier preprocessing
             data = data[str(initial_nodes[0])]
-        preprocessing_builder = cls(task_type, data.data_type, *initial_nodes, use_preprocessing=use_preprocessing)
+        preprocessing_builder = cls(task_type, data.data_type, *initial_nodes, use_io_preprocessing=use_io_preprocessing)
         if data_has_text_features(data):
             preprocessing_builder = preprocessing_builder.with_text_vectorizer()
         return preprocessing_builder.to_builder()

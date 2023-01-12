@@ -98,7 +98,7 @@ class Fedot:
                 - ``ts`` -> A special preset with models for time series forecasting task.
                 - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
 
-        use_preprocessing: bool indicating whether to do preprocessing of given data, enabled by default.
+        use_io_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
         cache_folder: path to the place where cache files should be stored (if any cache is enabled).
@@ -130,14 +130,14 @@ class Fedot:
 
         # Initialize ApiComposer's cache parameters via ApiParams
         self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
-                                     self.params.api_params['use_preprocessing'],
+                                     self.params.api_params['use_io_preprocessing'],
                                      self.params.api_params['use_preprocessing_cache'],
                                      self.params.api_params['cache_folder'])
         self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
-                                               use_preprocessing=self.params.api_params['use_preprocessing'])
+                                               use_io_preprocessing=self.params.api_params['use_io_preprocessing'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -175,7 +175,7 @@ class Fedot:
         self.target = target
 
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-        if self.params.api_params['use_preprocessing']:
+        if self.params.api_params['use_io_preprocessing']:
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations = self.data_analyser.give_recommendation(self.train_data)
             self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
@@ -213,7 +213,7 @@ class Fedot:
                 self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
-        if self.params.api_params['use_preprocessing']:
+        if self.params.api_params['use_io_preprocessing']:
             self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                      self.current_pipeline.preprocessor)
 
