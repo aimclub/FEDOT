@@ -232,7 +232,7 @@ class Pipeline(GraphDelegate, Serializable):
                                                                             data=copied_input_data)
             copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
                                                                             data=copied_input_data)
-        copied_input_data = update_indices_for_time_series(copied_input_data)
+            copied_input_data = update_indices_for_time_series(copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
