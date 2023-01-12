@@ -39,9 +39,16 @@ class GPComposer(Composer):
         data_producer = DataSourceSplitter(self.composer_requirements.cv_folds,
                                            self.composer_requirements.validation_blocks,
                                            shuffle=True).build(data)
+
+        parallelization_mode = self.composer_requirements.parallelization_mode
+        if parallelization_mode == 'populational':
+            n_jobs_for_evaluation = 1
+        elif parallelization_mode == 'sequential':
+            n_jobs_for_evaluation = self.composer_requirements.n_jobs
+        else:
+            raise ValueError(f'Unknown parallelization_mode: {parallelization_mode}')
+
         # Define objective function
-        n_jobs_for_evaluation = 1
-        # TODO implement dispatcher selection
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,
                                                         self.composer_requirements.validation_blocks,
@@ -60,10 +67,13 @@ class GPComposer(Composer):
         self.log.info('GP composition finished')
         return best_model
 
-    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Pipeline, Sequence[Pipeline]]:
+    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[
+        Optional[Pipeline], Sequence[Pipeline]]:
         adapter = self.optimizer.graph_generation_params.adapter
         multi_objective = self.optimizer.objective.is_multi_objective
         best_pipelines = [adapter.restore(graph) for graph in opt_result]
+        if not best_pipelines:
+            return None, []
         chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
         return chosen_best_pipeline, best_pipelines
 
