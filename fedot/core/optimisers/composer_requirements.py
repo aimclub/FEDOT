@@ -40,8 +40,11 @@ class ComposerRequirements:
     early_stopping_iterations: Optional[int] = 10
     early_stopping_timeout: Optional[float] = 5
     keep_n_best: int = 1
+
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
-    n_jobs: int = 1
+    n_jobs: int = -1
+    parallelization_mode: str = 'populational'
+
     show_progress: bool = True
     collect_intermediate_metric: bool = False
 
