@@ -566,8 +566,7 @@ def test_api_params():
                                'early_stopping_iterations': default_int_value,
                                'early_stopping_timeout': default_int_value,
                                'validation_blocks': default_int_value,
-                               'optimizer_external_params': {'path': default_int_value},
-                               'use_pipelines_cache': True, 'use_preprocessing_cache': True, 'cache_folder': None}
+                               'optimizer_external_params': {'path': default_int_value}}
     correct_tuner_params = {'with_tuning': True}
 
     model = Fedot(**api_params)

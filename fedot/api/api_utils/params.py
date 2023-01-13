@@ -135,6 +135,7 @@ class ApiParams:
                   'genetic_scheme': None,
                   'early_stopping_iterations': 30,
                   'early_stopping_timeout': 10,
+                  'use_io_preprocessing': True,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True,
                   'cache_folder': None}
