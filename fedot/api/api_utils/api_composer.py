@@ -344,7 +344,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 optimizer_external_params=None, collect_intermediate_metric=False,
                                 max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
-                                keep_history=True, history_dir=None, )
+                                keep_history=True, history_dir=None)
 
     tuner_params_dict = dict(with_tuning=False)
 
