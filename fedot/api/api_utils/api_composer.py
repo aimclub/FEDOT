@@ -50,6 +50,7 @@ class ApiComposer:
         self.was_optimised = False
         # status flag indicating that tuner step was applied
         self.was_tuned = False
+        self.tuner_requirements = None
 
     def obtain_metric(self, task: Task, metric: Union[str, MetricsEnum, Callable, Sequence]) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
@@ -183,6 +184,15 @@ class ApiComposer:
                                                         node_factory=node_factory)
         return graph_generation_params
 
+    def set_tuner_requirements(self, **common_dict):
+        api_params, composer_params, _ = _divide_parameters(common_dict)
+
+        self.tuner_requirements = PipelineComposerRequirements(
+            n_jobs=api_params['n_jobs'],
+            cv_folds=composer_params['cv_folds'],
+            validation_blocks=composer_params['validation_blocks'],
+        )
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -221,6 +231,8 @@ class ApiComposer:
 
         available_operations = list(chain(composer_requirements.primary,
                                           composer_requirements.secondary))
+
+        self.tuner_requirements = composer_requirements
 
         metric_functions = self.obtain_metric(task, composer_params['metric'])
         graph_generation_params = \

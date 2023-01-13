@@ -19,8 +19,6 @@ class ApiParams:
         self.api_params = None
         self.log = None
         self.task = None
-        self.metric_to_compose = None
-        self.metric_to_tuning = None
         self.task_params = None
         self.metrics_name = None
 

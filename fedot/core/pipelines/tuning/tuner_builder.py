@@ -3,6 +3,7 @@ from typing import Callable, Type, Union
 
 from hyperopt import tpe
 
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
@@ -23,9 +24,9 @@ class TunerBuilder:
         self.validation_blocks = None
         self.n_jobs = -1
         self.metric: MetricsEnum = MetricByTask.get_default_quality_metrics(task.task_type)[0]
-        self.iterations = 100
+        self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
         self.early_stopping_rounds = None
-        self.timeout = timedelta(minutes=5)
+        self.timeout = None
         self.search_space = SearchSpace()
         self.algo = tpe.suggest
         self.eval_time_constraint = None
@@ -64,8 +65,11 @@ class TunerBuilder:
         self.early_stopping_rounds = early_stopping_rounds
         return self
 
-    def with_timeout(self, timeout: timedelta):
-        self.timeout = timeout
+    def with_timeout(self, timeout: float):
+        if timeout in [-1, None]:
+            self.timeout = None
+        else:
+            self.timeout = timedelta(minutes=timeout)
         return self
 
     def with_eval_time_constraint(self, eval_time_constraint: Union[timedelta, int, float]):

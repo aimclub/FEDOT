@@ -1,5 +1,6 @@
 import os
 import shutil
+from copy import deepcopy
 from typing import Optional
 
 import numpy as np
@@ -28,7 +29,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
-from test.unit.tasks.test_classification import get_iris_data
+from test.unit.tasks.test_classification import get_iris_data, get_synthetic_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
@@ -68,11 +69,11 @@ def get_cholesterol_dataset():
 
 def get_dataset(task_type: str, validation_blocks: Optional[int] = None):
     if task_type == 'regression':
-        data = get_synthetic_regression_data(n_samples=50, n_features=5)
+        data = get_synthetic_regression_data(n_samples=1000, n_features=10)
         train_data, test_data = train_test_data_setup(data)
         threshold = np.std(test_data.target) * 0.05
     elif task_type == 'classification':
-        data = get_iris_data()
+        data = get_synthetic_classification_data(n_samples=1000, n_features=10)
         train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
         threshold = 0.95
     elif task_type == 'clustering':
@@ -164,19 +165,41 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
-def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
-    # The forecast length must be equal to 5
-    forecast_length = 5
-    train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
-    model = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length),
-                  validation_blocks=1)
+@pytest.mark.parametrize('task_type, metric_name, pred_model', [
+    (TaskTypesEnum.classification, 'f1', 'dt'),
+    (TaskTypesEnum.regression, 'rmse', 'dtreg'),
+    (TaskTypesEnum.ts_forecasting, 'rmse', 'auto')
+])
+def test_api_tune_correct(task_type, metric_name, pred_model):
+    task_type = task_type.value
 
-    model.fit(features=train_data, predefined_model='auto')
-    ts_forecast = model.predict(features=test_data)
-    _ = model.get_metrics(target=test_data.target, metric_names='rmse')
+    if task_type is 'ts_forecasting':
+        forecast_length = 5
+        train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
+        model = Fedot(
+            problem=task_type, timeout=0.1, logging_level=0,
+            task_params=TsForecastingParams(forecast_length=forecast_length),
+            validation_blocks=1)
+    else:
+        train_data, test_data, _ = get_dataset(task_type)
+        model = Fedot(problem=task_type, timeout=0.1)
 
-    assert len(ts_forecast) == forecast_length
+    base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
+    pred_before = model.predict(features=test_data)
+    metric_before = model.get_metrics()
+
+    tuned_pipeline = deepcopy(model.tune(timeout=0.15))
+    pred_after = model.predict(features=test_data)
+    metric_after = model.get_metrics()
+
+    assert isinstance(tuned_pipeline, Pipeline)
+    assert base_pipeline.structure != tuned_pipeline.structure
+    assert len(test_data.target) == len(pred_before) == len(pred_after)
+
+    if task_type is 'classification':
+        assert metric_before[metric_name] <= metric_after[metric_name]
+    else:
+        assert metric_before[metric_name] >= metric_after[metric_name]
 
 
 @pytest.mark.parametrize('validation_blocks', [None, 2, 3])
