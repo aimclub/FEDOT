@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def _split_time_series(data: InputData, task, *args, **kwargs):
@@ -110,13 +111,19 @@ def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False
     input_features = data.features
     input_target = data.target
     idx = data.idx
+    if task.task_type == TaskTypesEnum.classification and with_shuffle:
+        stratify = input_target
+    else:
+        stratify = None
+
     idx_train, idx_test, x_train, x_test, y_train, y_test = \
         train_test_split(idx,
                          input_features,
                          input_target,
                          test_size=1. - split_ratio,
                          shuffle=with_shuffle,
-                         random_state=random_state)
+                         random_state=random_state,
+                         stratify=stratify)
 
     # Prepare data to train the operation
     train_data = InputData(idx=idx_train, features=x_train,  target=y_train,
