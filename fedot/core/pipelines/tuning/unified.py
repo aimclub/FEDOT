@@ -30,31 +30,33 @@ class PipelineTuner(HyperoptTuner):
 
         trials = Trials()
 
-        # try searching using initial parameters (uses original search space with fixed initial parameters)
-        trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict, init_parameters,
-                                                                       trials, show_progress)
+        try:
+            # try searching using initial parameters (uses original search space with fixed initial parameters)
+            trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict, init_parameters,
+                                                                           trials, show_progress)
+            best = fmin(partial(self._objective, pipeline=pipeline),
+                        parameters_dict,
+                        trials=trials,
+                        algo=self.algo,
+                        max_evals=self.iterations,
+                        show_progressbar=show_progress,
+                        early_stop_fn=self.early_stop_fn,
+                        timeout=self.max_seconds)
 
-        best = fmin(partial(self._objective, pipeline=pipeline),
-                    parameters_dict,
-                    trials=trials,
-                    algo=self.algo,
-                    max_evals=self.iterations,
-                    show_progressbar=show_progress,
-                    early_stop_fn=self.early_stop_fn,
-                    timeout=self.max_seconds)
+            best = space_eval(space=parameters_dict, hp_assignment=best)
+            # check if best point was obtained using search space with fixed initial parameters
+            is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
+            if is_best_trial_with_init_params:
+                best = {**best, **init_parameters}
 
-        best = space_eval(space=parameters_dict, hp_assignment=best)
-        # check if best point was obtained using search space with fixed initial parameters
-        is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
-        if is_best_trial_with_init_params:
-            best = {**best, **init_parameters}
+            tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
+                                                   parameters=best)
 
-        tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
-                                               parameters=best)
-
-        # Validation is the optimization do well
-        final_pipeline = self.final_check(tuned_pipeline)
-
+            # Validation is the optimization do well
+            final_pipeline = self.final_check(tuned_pipeline)
+        except Exception as ex:
+            self.log.warning(f'Exception {ex} occured during tuning')
+            final_pipeline = pipeline
         return final_pipeline
 
     def _search_near_initial_parameters(self, pipeline: Pipeline, search_space: dict, initial_parameters: dict,
