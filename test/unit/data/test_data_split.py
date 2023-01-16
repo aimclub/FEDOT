@@ -53,6 +53,50 @@ def get_image_classification_data():
     return input_data
 
 
+def get_imbalanced_data_to_test_mismatch():
+    task = Task(TaskTypesEnum.classification)
+    x = np.array([[0, 0, 15],
+                 [0, 1, 2],
+                 [8, 12, 0],
+                 [0, 1, 0],
+                 [1, 1, 0],
+                 [0, 11, 9],
+                 [5, 1, 10],
+                 [8, 16, 4],
+                 [3, 1, 5],
+                 [0, 1, 6],
+                 [2, 7, 9],
+                 [0, 1, 2],
+                 [14, 1, 0],
+                 [0, 4, 10]])
+    y = np.array([0, 0, 0, 0, 2, 0, 0, 1, 2, 1, 0, 0, 3, 3])
+    input_data = InputData(idx=np.arange(0, len(x)), features=x,
+                           target=y, task=task, data_type=DataTypesEnum.table)
+    return input_data
+
+
+def get_balanced_data_to_test_mismatch():
+    task = Task(TaskTypesEnum.classification)
+    x = np.array([[0, 0, 15],
+                 [0, 1, 2],
+                 [8, 12, 0],
+                 [0, 1, 0],
+                 [1, 1, 0],
+                 [0, 11, 9],
+                 [5, 1, 10],
+                 [8, 16, 4],
+                 [3, 1, 5],
+                 [0, 1, 6],
+                 [2, 7, 9],
+                 [0, 1, 2],
+                 [14, 1, 0],
+                 [0, 4, 10]])
+    y = np.array([0, 1, 2, 3, 2, 1, 0, 1, 2, 1, 0, 0, 3, 3])
+    input_data = InputData(idx=np.arange(0, len(x)), features=x,
+                           target=y, task=task, data_type=DataTypesEnum.table)
+    return input_data
+
+
 def test_split_data():
     dataframe = pd.DataFrame(data=[[1, 2, 3],
                                    [4, 5, 6],
@@ -92,6 +136,20 @@ def test_advanced_time_series_splitting():
     assert np.allclose(test_data.target, np.array([16, 17, 18, 19]))
 
 
+@pytest.mark.parametrize('data_splitter, data',
+                         # test StratifiedKFold
+                         [(DataSourceSplitter(cv_folds=3, shuffle=True), get_imbalanced_data_to_test_mismatch()),
+                          # test KFold
+                          (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
+                          # test hold-out
+                          (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch())])
+def test_data_splitting_without_shape_mismatch(data_splitter: DataSourceSplitter, data: InputData):
+    """ Checks if data split correctly into train test subsets: there are no new classes in test subset """
+    data_source = data_splitter.build(data=data)
+    for fold_id, (train_data, test_data) in enumerate(data_source()):
+        assert set(train_data.target) >= set(test_data.target)
+
+
 def test_data_splitting_perform_correctly_after_build():
     """
     Check if data splitting perform correctly through Objective Builder - Objective Evaluate
@@ -105,7 +163,6 @@ def test_data_splitting_perform_correctly_after_build():
 
     # Imitate evaluation process
     for fold_id, (train_data, test_data) in enumerate(data_source()):
-
         expected_output = output_by_fold[fold_id]
         assert train_data.features.shape == expected_output['train_features_size']
         assert test_data.features.shape == expected_output['test_features_size']
