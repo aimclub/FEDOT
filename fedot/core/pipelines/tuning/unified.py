@@ -44,7 +44,7 @@ class PipelineTuner(HyperoptTuner):
                                                                                trials, show_progress)
 
                 self.max_seconds = self.max_seconds - global_tuner_timer.minutes_from_start * 60
-                if False:  # self.max_seconds > min_sec_number:
+                if self.max_seconds > min_sec_number:
                     best = fmin(partial(self._objective, pipeline=pipeline),
                                 parameters_dict,
                                 trials=trials,
