@@ -107,6 +107,35 @@ class PipelineBuilder(OptGraphBuilder):
                 self.add_node(operation, self._iend, params)
         return self
 
+    def add_skip_connection_edge(self, branch_idx_first: int, branch_idx_second: int,
+                                 node_idx_in_branch_first: int, node_idx_in_branch_second: int,):
+        """ Joins two nodes which are not placed sequential in one branch.
+        Can be used only in the very end of graph building but before 'join_branches'.
+        Edge is directed from the first node to the second.
+
+        :param branch_idx_first: index of the first branch which to take the first node
+        :param branch_idx_second: index of the second branch which to take the second node
+        :param node_idx_in_branch_first: index of the node in its branch
+        :param node_idx_in_branch_second: index of the node in its branch
+        """
+
+        if branch_idx_first >= len(self.heads) or branch_idx_second >= len(self.heads):
+            return
+        first_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_first,
+                                                         node_idx_in_branch=node_idx_in_branch_first)
+        second_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_second,
+                                                         node_idx_in_branch=node_idx_in_branch_second)
+        second_node.nodes_from.append(first_node)
+
+        return self
+
+    def _get_node_from_branch_with_idx(self, branch_idx: int, node_idx_in_branch: int):
+        head_node = self.heads[branch_idx]
+        branch_pipeline = Pipeline(head_node)
+        return branch_pipeline.nodes[node_idx_in_branch]
+
+
+
     def join_branches(self, operation_type: Optional[str], params: Optional[Dict] = None):
         """ Joins all current branches with provided operation as ensemble node.
 
