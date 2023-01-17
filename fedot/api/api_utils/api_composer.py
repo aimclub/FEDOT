@@ -323,7 +323,6 @@ class ApiComposer:
                 self.was_tuned = False
                 self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
-                self.was_tuned = True
                 self.log.message('Hyperparameters tuning finished')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
