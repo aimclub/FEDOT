@@ -1,5 +1,5 @@
 # Base framework
-nss-golem @ git+https://github.com/aimclub/GOLEM.git@main#egg=nss-golem
+thegolem @ git+https://github.com/aimclub/GOLEM.git@main#egg=thegolem
 
 # Data
 numpy>=1.16.0, !=1.24.0
