@@ -199,3 +199,25 @@ def test_pipeline_builder_merge_interface():
         merge_pipeline_builders(builder_many_to_one, builder_one_to_many),
         builder_many_to_one.merge_with(builder_one_to_many)
     )
+
+def test_skip_connection_edge():
+    pipe_builder = PipelineBuilder() \
+        .add_sequence('scaling', 'knn', branch_idx=0) \
+        .add_sequence('scaling', 'logit', branch_idx=1) \
+        .add_skip_connection_edge(branch_idx_first=0, branch_idx_second=1,
+                                  node_idx_in_branch_first=0, node_idx_in_branch_second=1) \
+        .join_branches('rf')
+
+    pipeline_with_builder = pipe_builder.to_pipeline()
+
+    node_scaling_1 = PrimaryNode('scaling')
+    node_knn = SecondaryNode('knn', nodes_from=[node_scaling_1])
+    node_scaling_2 = SecondaryNode('scaling', nodes_from=[node_knn])
+    node_logit = SecondaryNode('logit', nodes_from=[node_scaling_2])
+    node_rf = SecondaryNode('rf', nodes_from=[node_knn, node_logit])
+
+    pipeline_without_builder = Pipeline(node_rf)
+
+    assert graphs_same(pipeline_without_builder, pipeline_with_builder)
+
+
