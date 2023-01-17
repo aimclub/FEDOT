@@ -37,7 +37,17 @@ def run_classification(train_data, test_data,
     return prediction
 
 
+def run_classification_baseline(train_data, test_data, timeout: float = 5):
+    baseline_model = Fedot(problem='classification', timeout=timeout)
+    baseline_model.fit(features=train_data.features, target=train_data.target,
+                       predefined_model='rf')
+    baseline_model.predict(features=test_data.features)
+    metrics = baseline_model.get_metrics(target=test_data.target)
+    print(metrics)
+
+
 if __name__ == '__main__':
     train_data, test_data = get_kc2_data()
+    run_classification_baseline(train_data, test_data)
     run_classification(train_data, test_data,
-                       timeout=10.0, visualize=True)
+                       timeout=5.0, visualize=True)
