@@ -34,7 +34,7 @@ class PipelineTuner(HyperoptTuner):
             trials = Trials()
 
             remaining_time = self.max_seconds - global_tuner_timer.minutes_from_start * 60
-            if remaining_time > min_sec_number:
+            if remaining_time <= min_sec_number:
                 self.log.message('Tunner stopped after initial assumption due to the lack of time')
                 return pipeline
 
