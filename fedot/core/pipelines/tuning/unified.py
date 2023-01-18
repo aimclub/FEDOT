@@ -35,6 +35,7 @@ class PipelineTuner(HyperoptTuner):
 
             remaining_time = self.max_seconds - global_tuner_timer.minutes_from_start * 60
             if remaining_time > min_sec_number:
+                self.log.message('Tunner stopped after initial assumption due to the lack of time')
                 return pipeline
 
             try:
@@ -53,6 +54,8 @@ class PipelineTuner(HyperoptTuner):
                                 show_progressbar=show_progress,
                                 early_stop_fn=self.early_stop_fn,
                                 timeout=self.max_seconds)
+                else:
+                    self.log.message('Tunner stopped after initial search due to the lack of time')
 
                 best = space_eval(space=parameters_dict, hp_assignment=best)
                 # check if best point was obtained using search space with fixed initial parameters
