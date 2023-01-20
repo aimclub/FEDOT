@@ -96,6 +96,16 @@ def get_complex_class_pipeline():
     return pipeline
 
 
+def get_pipeline_with_no_params_to_tune():
+    first = PrimaryNode(operation_type='scaling')
+    final = SecondaryNode(operation_type='bernb',
+                          nodes_from=[first])
+
+    pipeline = Pipeline(final)
+
+    return pipeline
+
+
 def get_class_pipelines():
     simple_pipelines = [get_simple_class_pipeline(operation_type) for operation_type in get_class_operation_types()]
 
@@ -260,6 +270,17 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     is_tuning_finished = True
 
     assert is_tuning_finished
+
+
+def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset):
+    pipeline = get_pipeline_with_no_params_to_tune()
+    pipeline_tuner, tuned_pipeline = run_pipeline_tuner(train_data=classification_dataset,
+                                                        pipeline=pipeline,
+                                                        loss_function=ClassificationMetricsEnum.ROCAUC,
+                                                        iterations=20)
+    assert pipeline_tuner.obtained_metric is not None
+    assert pipeline_tuner.obtained_metric == pipeline_tuner.init_metric
+    assert not tuned_pipeline.is_fitted
 
 
 def test_pipeline_tuner_with_initial_params(classification_dataset):
