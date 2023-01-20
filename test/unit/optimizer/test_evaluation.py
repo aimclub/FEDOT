@@ -2,14 +2,13 @@ import datetime
 
 import pytest
 
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import Fitness, null_fitness
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SimpleDispatcher, \
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SequentialDispatcher, \
     ObjectiveEvaluationDispatcher
-from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth
@@ -36,7 +35,7 @@ def invalid_objective(pipeline: Pipeline) -> Fitness:
 
 @pytest.mark.parametrize(
     'dispatcher',
-    [SimpleDispatcher(PipelineAdapter()),
+    [SequentialDispatcher(PipelineAdapter()),
      MultiprocessingDispatcher(PipelineAdapter()),
      MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1)]
 )
@@ -57,7 +56,7 @@ def test_dispatchers_with_and_without_multiprocessing(dispatcher):
 @pytest.mark.parametrize(
     'dispatcher',
     [MultiprocessingDispatcher(PipelineAdapter()),
-     SimpleDispatcher(PipelineAdapter())]
+     SequentialDispatcher(PipelineAdapter())]
 )
 def test_dispatchers_with_faulty_objectives(objective, dispatcher):
     adapter, population = set_up_tests()
@@ -68,7 +67,7 @@ def test_dispatchers_with_faulty_objectives(objective, dispatcher):
 
 @pytest.mark.parametrize('dispatcher', [
     MultiprocessingDispatcher(PipelineAdapter()),
-    SimpleDispatcher(PipelineAdapter()),
+    SequentialDispatcher(PipelineAdapter()),
 ])
 def test_dispatcher_with_timeout(dispatcher: ObjectiveEvaluationDispatcher):
     adapter, population = set_up_tests()

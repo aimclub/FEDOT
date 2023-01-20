@@ -46,21 +46,21 @@ class AssumptionsHandler:
                                              pipeline: Pipeline,
                                              pipelines_cache: Optional[OperationsCache] = None,
                                              preprocessing_cache: Optional[PreprocessingCache] = None,
-                                             n_jobs: int = -1) -> Pipeline:
+                                             eval_n_jobs: int = -1) -> Pipeline:
         """
         Check if initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
         :param pipelines_cache: Cache manager for fitted models, optional.
         :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
-        :param n_jobs: number of jobs to fit the initial pipeline
+        :param eval_n_jobs: number of jobs to fit the initial pipeline
         """
         try:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
             # load preprocessing
             pipeline.try_load_from_cache(pipelines_cache, preprocessing_cache)
-            pipeline.fit(data_train, n_jobs=n_jobs)
+            pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
             if pipelines_cache is not None:
                 pipelines_cache.save_pipeline(pipeline)

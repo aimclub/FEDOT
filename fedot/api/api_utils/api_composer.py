@@ -208,7 +208,7 @@ class ApiComposer:
                 assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache,
-                                                                        n_jobs=n_jobs)
+                                                                        eval_n_jobs=n_jobs)
 
         self.log.message(
             f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')

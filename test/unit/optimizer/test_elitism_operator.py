@@ -1,10 +1,10 @@
 import pytest
 
-from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import SequentialDispatcher
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.pipelines.adapters import PipelineAdapter
 from test.unit.optimizer.test_evaluation import prepared_objective
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth, \
     pipeline_fifth
@@ -17,7 +17,7 @@ def set_up():
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
     best_individual = [Individual(adapter.adapt(pipeline_fourth())), Individual(adapter.adapt(pipeline_fifth()))]
 
-    dispatcher = SimpleDispatcher(adapter)
+    dispatcher = SequentialDispatcher(adapter)
     objective = prepared_objective
     evaluator = dispatcher.dispatch(objective)
     evaluated_population = evaluator(population)

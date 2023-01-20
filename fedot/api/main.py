@@ -191,7 +191,7 @@ class Fedot:
                 self.api_composer.obtain_model(**self.params.api_params)
 
             if self.current_pipeline is None:
-                raise ValueError('No any models were found')
+                raise ValueError('No models were found')
 
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
