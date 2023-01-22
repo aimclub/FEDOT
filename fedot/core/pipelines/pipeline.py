@@ -66,7 +66,6 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             input_data: data used for operations training
-            use_fitted_operations: flag defining whether to use saved information about previous executions or not
             time: time constraint for operations fitting process (in minutes)
 
         Returns:
@@ -95,7 +94,6 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             input_data: data used for operation training
-            use_fitted_operations: flag defining whether to use saved information about previous executions or not
             process_state_dict: dictionary used for saving required pipeline parameters
                 (which were changed inside the process) in case of operations fit time control (when process created)
             fitted_operations: list used for saving fitted operations of pipeline nodes

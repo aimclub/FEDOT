@@ -134,8 +134,6 @@ class PipelineBuilder(OptGraphBuilder):
         branch_pipeline = Pipeline(head_node)
         return branch_pipeline.nodes[node_idx_in_branch]
 
-
-
     def join_branches(self, operation_type: Optional[str], params: Optional[Dict] = None):
         """ Joins all current branches with provided operation as ensemble node.
 

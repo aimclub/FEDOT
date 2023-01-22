@@ -1,10 +1,15 @@
 from copy import deepcopy
 from typing import Union, Tuple, Optional, List, Dict
 
-from fedot.core.optimisers.graph import OptNode
+from fedot.core.adapter.adapter import DomainStructureType
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.linked_graph import LinkedGraph
+from fedot.core.optimisers.graph import OptNode, OptGraph
+from fedot.core.optimisers.graph_builder import GraphBuilder
+from fedot.core.pipelines.node import Node
 
 
-class OptGraphBuilder:
+class OptGraphBuilder(GraphBuilder):
     """ Builder for incremental construction of directed acyclic OptGraphs.
     Semantics:
     - Forward-only & addition-only (can't prepend or delete nodes).
@@ -15,24 +20,10 @@ class OptGraphBuilder:
 
     OperationType = Union[str, Tuple[str, dict]]
 
-    def __init__(self, *initial_nodes: Optional[OptNode]):
+    def __init__(self, built_graph_cls: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
         """ Create builder with prebuilt nodes as origins of the branches. """
-        self.heads: List[OptNode] = list(filter(None, initial_nodes))
-
-    @property
-    def _iend(self) -> int:
-        return len(self.heads)
-
-    def reset(self):
-        """ Reset builder state. """
-        self.heads = []
-
-    def to_nodes(self) -> List[OptNode]:
-        """
-        Return list of final nodes and reset internal state.
-        :return: list of final nodes, possibly empty.
-        """
-        return deepcopy(self.heads)
+        super().__init__(built_graph_cls, *initial_nodes)
+        self.built_graph_cls = built_graph_cls or OptGraph
 
     def add_node(self, operation_type: Optional[str], branch_idx: int = 0, params: Optional[Dict] = None):
         """ Add single node to graph branch of specified index.
@@ -47,7 +38,15 @@ class OptGraphBuilder:
         :param params: parameters dictionary for the specific operation
         :return: self
         """
-        raise NotImplementedError()
+        if not operation_type:
+            return self
+        params = self._pack_params(operation_type, params)
+        if branch_idx < len(self.heads):
+            input_node = self.heads[branch_idx]
+            self.heads[branch_idx] = OptNode(content=params, nodes_from=[input_node])
+        else:
+            self.heads.append(OptNode(content=params))
+        return self
 
     def add_sequence(self, *operation_type: OperationType, branch_idx: int = 0):
         """ Same as .node() but for many operations at once.
@@ -56,7 +55,10 @@ class OptGraphBuilder:
             or as a tuple of operation name and operation parameters.
         :param branch_idx: index of the branch for branching its tip
         """
-        raise NotImplementedError()
+        for operation in operation_type:
+            operation, params = self._unpack_operation(operation)
+            self.add_node(operation, branch_idx, params)
+        return self
 
     def grow_branches(self, *operation_type: Optional[OperationType]):
         """ Add single node to each branch.
@@ -70,7 +72,10 @@ class OptGraphBuilder:
             or as a tuple of operation name and operation parameters.
         :return: self
         """
-        raise NotImplementedError()
+        for i, operation in enumerate(operation_type):
+            operation, params = self._unpack_operation(operation)
+            self.add_node(operation, i, params)
+        return self
 
     def add_branch(self, *operation_type: Optional[OperationType], branch_idx: int = 0):
         """ Create branches at the tip of branch with branch_idx.
@@ -88,7 +93,20 @@ class OptGraphBuilder:
         :param branch_idx: index of the branch for branching its tip
         :return: self
         """
-        raise NotImplementedError()
+        operations = list(filter(None, operation_type))
+        if not operations:
+            return self
+        if branch_idx < len(self.heads):
+            input_node = self.heads.pop(branch_idx)
+            for i, operation in enumerate(operations):
+                operation, params = self._unpack_operation(operation)
+                self.heads.insert(branch_idx + i, OptNode(content=self._pack_params(operation, params),
+                                                          nodes_from=[input_node]))
+        else:
+            for operation in operations:
+                operation, params = self._unpack_operation(operation)
+                self.add_node(operation, self._iend, params)
+        return self
 
     def add_skip_connection_edge(self, branch_idx_first: int, branch_idx_second: int,
                                  node_idx_in_branch_first: int, node_idx_in_branch_second: int,):
@@ -101,7 +119,20 @@ class OptGraphBuilder:
         :param node_idx_in_branch_first: index of the node in its branch
         :param node_idx_in_branch_second: index of the node in its branch
         """
-        raise NotImplementedError()
+        if branch_idx_first >= len(self.heads) or branch_idx_second >= len(self.heads):
+            return
+        first_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_first,
+                                                         node_idx_in_branch=node_idx_in_branch_first)
+        second_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_second,
+                                                         node_idx_in_branch=node_idx_in_branch_second)
+        second_node.nodes_from.append(first_node)
+
+        return self
+
+    def _get_node_from_branch_with_idx(self, branch_idx: int, node_idx_in_branch: int):
+        head_node = self.heads[branch_idx]
+        branch_pipeline = OptGraph(head_node)
+        return branch_pipeline.nodes[node_idx_in_branch]
 
     def join_branches(self, operation_type: Optional[str], params: Optional[Dict] = None):
         """ Joins all current branches with provided operation as ensemble node.
@@ -114,15 +145,61 @@ class OptGraphBuilder:
         :param params: parameters dictionary for the specific operation
         :return: self
         """
-        raise NotImplementedError()
+        if self.heads and operation_type:
+            content = self._pack_params(operation_type, params)
+            new_head = OptNode(content=content, nodes_from=self.heads)
+            self.heads = [new_head]
+        return self
 
-    @staticmethod
-    def _unpack_operation(operation: Optional[OperationType]) -> Tuple[Optional[str], Optional[Dict]]:
-        if isinstance(operation, str) or operation is None:
-            return operation, None
-        else:
-            return operation
+    def build(self) -> DomainStructureType:
+        """ Adapt resulted graph to required graph class. """
+        return self.built_graph_cls(self.to_nodes())
 
-    @staticmethod
-    def _pack_params(name: str, params: Optional[dict]) -> Optional[dict]:
-        return {'name': name, 'params': params} if params else None
+    def merge_with(self, following_builder) -> Optional['OptGraphBuilder']:
+        return merge_opt_graph_builders(self, following_builder)
+
+
+def merge_opt_graph_builders(previous: OptGraphBuilder, following: OptGraphBuilder) -> Optional[OptGraphBuilder]:
+    """ Merge two builders.
+
+    Merging is defined for cases one-to-many and many-to-one nodes,
+    i.e. one final node to many initial nodes and many final nodes to one initial node.
+    Merging is undefined for the case of many-to-many nodes and None is returned.
+    Merging of the builder with itself is well-defined and leads to duplication of the graph.
+
+    If one of the builders is empty -- the other one is returned, no merging is performed.
+    State of the passed builders is preserved as they were, after merging new builder is returned.
+
+    :return: PipelineBuilder if merging is well-defined, None otherwise.
+    """
+
+    if not following.heads:
+        return previous
+    elif not previous.heads:
+        return following
+
+    lhs_nodes_final = previous.to_nodes()
+    rhs_tmp_graph = LinkedGraph(following.to_nodes())
+    rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
+
+    # If merging one-to-one or one-to-many
+    if len(lhs_nodes_final) == 1:
+        final_node = lhs_nodes_final[0]
+        for initial_node in rhs_nodes_initial:
+            rhs_tmp_graph.update_node(initial_node,
+                                      OptNode(content={'name': initial_node.name}, nodes_from=[final_node]))
+    # If merging many-to-one
+    elif len(rhs_nodes_initial) == 1:
+        initial_node = rhs_nodes_initial[0]
+        rhs_tmp_graph.update_node(initial_node,
+                                  OptNode(content={'name': initial_node.name}, nodes_from=lhs_nodes_final))
+    # Merging is not defined for many-to-many case
+    else:
+        return None
+
+    # Check that Graph didn't mess up with node types
+    if not all(map(lambda n: isinstance(n, Node), rhs_tmp_graph.nodes)):
+        raise ValueError("Expected Graph only with nodes of type 'Node'")
+
+    merged_builder = OptGraphBuilder(*rhs_tmp_graph.root_nodes())
+    return merged_builder
