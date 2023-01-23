@@ -17,7 +17,9 @@ class GraphBuilder:
     OperationType = Union[str, Tuple[str, dict]]
 
     def __init__(self, graph_adapter: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
-        """ Create builder with prebuilt nodes as origins of the branches. """
+        """ Create builder with prebuilt nodes as origins of the branches.
+        :param graph_adapter: adapter to adapt built graph to particular graph type.
+        """
         self.graph_adapter = graph_adapter
         self.heads: List[OptNode] = list(filter(None, initial_nodes))
 

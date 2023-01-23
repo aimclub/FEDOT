@@ -18,7 +18,9 @@ class OptGraphBuilder(GraphBuilder):
     OperationType = Union[str, Tuple[str, dict]]
 
     def __init__(self, graph_adapter: Optional[BaseOptimizationAdapter] = None, *initial_nodes: Optional[OptNode]):
-        """ Create builder with prebuilt nodes as origins of the branches. """
+        """ Create builder with prebuilt nodes as origins of the branches.
+        :param graph_adapter: adapter to adapt built graph to particular graph type.
+        """
         super().__init__(graph_adapter, *initial_nodes)
         self.graph_adapter = graph_adapter
         self.heads: List[OptNode] = list(filter(None, initial_nodes))

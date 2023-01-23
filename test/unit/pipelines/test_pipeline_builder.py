@@ -6,7 +6,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from test.unit.dag.test_graph_utils import graphs_same
 
 
-
 def builders_same(left: PipelineBuilder, right: PipelineBuilder):
     """ for non-empty builders """
     left_pipeline = left.build()
@@ -201,6 +200,7 @@ def test_pipeline_builder_merge_interface():
         builder_many_to_one.merge_with(builder_one_to_many)
     )
 
+
 def test_skip_connection_edge():
     pipe_builder = PipelineBuilder() \
         .add_sequence('scaling', 'knn', branch_idx=0) \
@@ -220,5 +220,3 @@ def test_skip_connection_edge():
     pipeline_without_builder = Pipeline(node_rf)
 
     assert graphs_same(pipeline_without_builder, pipeline_with_builder)
-
-
