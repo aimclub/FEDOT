@@ -220,3 +220,25 @@ def test_skip_connection_edge():
     pipeline_without_builder = Pipeline(node_rf)
 
     assert graphs_same(pipeline_without_builder, pipeline_with_builder)
+
+
+def test_skip_connection_edge_to_cycle_graph():
+    """ Checks that cycles are avoided even if the edge to cycle graph if manually inserted. """
+    pipe = PipelineBuilder()\
+        .add_node('operation_b', 0) \
+        .add_node('operation_c', 0) \
+        .add_node('operation_b2', 1) \
+        .add_node('operation_c2', 1)        \
+        .join_branches('operation_f')\
+        .build()
+
+    pipe_try_cycle = PipelineBuilder()\
+        .add_node('operation_b', 0) \
+        .add_node('operation_c', 0) \
+        .add_node('operation_b2', 1) \
+        .add_node('operation_c2', 1)        \
+        .join_branches('operation_f')\
+        .add_skip_connection_edge(0, 0, 1, 2) \
+        .build()
+
+    assert graphs_same(pipe, pipe_try_cycle)
