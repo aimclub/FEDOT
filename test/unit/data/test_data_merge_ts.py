@@ -87,7 +87,7 @@ def output_ts_different_idx(request):
 def test_data_merge_ts_pipelines(ts_pipelines):
     train_input, predict_input, test_data = get_time_series()
 
-    pipeline = ts_pipelines.to_pipeline()
+    pipeline = ts_pipelines.build()
 
     pipeline.fit_from_scratch(train_input)
     predicted_output = pipeline.predict(predict_input)

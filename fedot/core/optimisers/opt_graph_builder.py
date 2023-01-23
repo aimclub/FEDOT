@@ -122,7 +122,7 @@ class OptGraphBuilder(GraphBuilder):
         first_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_first,
                                                          node_idx_in_branch=node_idx_in_branch_first)
         second_node = self._get_node_from_branch_with_idx(branch_idx=branch_idx_second,
-                                                         node_idx_in_branch=node_idx_in_branch_second)
+                                                          node_idx_in_branch=node_idx_in_branch_second)
         second_node.nodes_from.append(first_node)
 
         return self
@@ -149,8 +149,10 @@ class OptGraphBuilder(GraphBuilder):
             self.heads = [new_head]
         return self
 
-    def build(self) -> DomainStructureType:
+    def build(self) -> Optional[DomainStructureType]:
         """ Adapt resulted graph to required graph class. """
+        if not self.to_nodes():
+            return None
         result_opt_graph = OptGraph(self.to_nodes())
         if self.graph_adapter:
             return self.graph_adapter.restore(result_opt_graph)

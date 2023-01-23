@@ -76,7 +76,6 @@ def test_preprocessing_builder_no_data():
     assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).to_pipeline() is None
 
 
-
 def test_preprocessing_builder_with_data():
     # TableTypesCorrector fills in .supplementary_data needed for preprocessing_builder
     data_reg = TableTypesCorrector().convert_data_for_fit(get_small_regression_dataset()[0])
