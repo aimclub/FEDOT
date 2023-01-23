@@ -239,6 +239,8 @@ def test_history_backward_compatibility():
     # Pre-computing properties
     all_historical_fitness = history.all_historical_fitness
     historical_fitness = history.historical_fitness
+    # Assert presence of necessary fields after deserialization of old history
+    assert hasattr(history, 'objective')
     # Assert that properties are not empty
     assert all_historical_fitness
     assert historical_fitness
