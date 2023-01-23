@@ -27,7 +27,7 @@ from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.visualisation.opt_viz_extra import visualise_pareto
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
-from fedot.preprocessing.preprocessing import merge_preprocessors
+from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
@@ -213,9 +213,8 @@ class Fedot:
                 self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
-        if self.params.api_params['use_io_preprocessing']:
-            self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
-                                                                     self.current_pipeline.preprocessor)
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
         self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
 
@@ -558,7 +557,8 @@ class Fedot:
             if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target
 
-    def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict], full_train_not_preprocessed: Union[InputData, MultiModalData]):
+    def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
+                                        full_train_not_preprocessed: Union[InputData, MultiModalData]):
         """Applies training procedure for obtained pipeline if dataset was clipped
         """
 

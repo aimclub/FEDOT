@@ -10,6 +10,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
@@ -28,15 +29,15 @@ class ApiDataProcessor:
     def __init__(self, task: Task, use_io_preprocessing: bool = True):
         self.task = task
 
+        self._recommendations = {}
+        self.preprocessor = DummyPreprocessor()
         if use_io_preprocessing:
             self.preprocessor = DataPreprocessor()
 
             # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'
             # to encode features using label encoder). Parameters for transformation provided also
             self._recommendations = {'cut': self.preprocessor.cut_dataset,
-                                    'label_encoded': self.preprocessor.label_encoding_for_fit}
-        else:
-            self.preprocessor = None
+                                     'label_encoded': self.preprocessor.label_encoding_for_fit}
 
     def define_data(self,
                     features: FeaturesType,
@@ -64,12 +65,11 @@ class ApiDataProcessor:
                              'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
                              f'Exception: {ex}')
 
-        if self.preprocessor is not None:
-            # Perform obligatory steps of data preprocessing
-            if is_predict:
-                data = self.preprocessor.obligatory_prepare_for_predict(data)
-            else:
-                data = self.preprocessor.obligatory_prepare_for_fit(data)
+        # Perform obligatory steps of data preprocessing
+        if is_predict:
+            data = self.preprocessor.obligatory_prepare_for_predict(data)
+        else:
+            data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
@@ -120,7 +120,6 @@ class ApiDataProcessor:
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
-            for name in recommendations:
-                rec = recommendations[name]
+            for name, rec in recommendations.items():
                 # Apply desired preprocessing function
                 self._recommendations[name](input_data, *rec.values())
