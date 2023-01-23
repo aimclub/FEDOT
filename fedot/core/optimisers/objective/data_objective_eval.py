@@ -78,11 +78,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                 folds_metrics.append(evaluated_fitness.values)
             else:
                 self._log.warning(f'Invalid fitness after objective evaluation. '
-                                  f'Skipping the graph: {graph_id}')
-                if is_test_session():
-                    raise ValueError(f'Fitness {evaluated_fitness} is not valid')
-                else:
-                    continue
+                                  f'Skipping the graph: {graph_id}', raise_if_test=True)
             graph.unfit()
         if folds_metrics:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds

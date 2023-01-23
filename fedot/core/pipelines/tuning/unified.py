@@ -8,7 +8,6 @@ from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
-from fedot.utilities.debug import is_test_session
 from fedot.utilities.memory import MemoryAnalytics
 
 
@@ -83,9 +82,7 @@ class PipelineTuner(HyperoptTuner):
                 final_pipeline = pipeline
                 self.was_tuned = False
 
-                self.log.warning(f'Exception {ex} occurred during tuning', rai)
-                if is_test_session():
-                    raise ex
+                self.log.warning(f'Exception {ex} occurred during tuning', raise_if_test=True)
 
         return final_pipeline
 
