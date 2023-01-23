@@ -374,7 +374,7 @@ class Pipeline(GraphDelegate, Serializable):
                         node.content['params']['num_threads'] = n_jobs
                         node.content['params']['n_jobs'] = n_jobs
 
-    @copy_doc(Graph)
+    @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
              node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
              node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,
