@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Union, Tuple, Optional, List, Dict
 
 from fedot.core.adapter.adapter import DomainStructureType
-from fedot.core.optimisers.graph import OptNode
+from fedot.core.dag.graph_node import GraphNode
 
 
 class GraphBuilder:
@@ -10,18 +10,18 @@ class GraphBuilder:
     Semantics:
     - Forward-only & addition-only (can't prepend or delete nodes).
     - Doesn't throw, doesn't fail: methods always have a way to interpret input given current graph state.
-    - Is not responsible for the validity of resulting Graph (e.g. correct order, valid operations).
+    - Is not responsible for the validity of resulting graph (e.g. correct order, valid operations).
     - Builds always new graphs (on copies of nodes), preserves its state between builds. State doesn't leak outside.
     """
 
     OperationType = Union[str, Tuple[str, dict]]
 
-    def __init__(self, graph_adapter: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
+    def __init__(self, graph_adapter: Optional[DomainStructureType] = None, *initial_nodes: Optional[GraphNode]):
         """ Create builder with prebuilt nodes as origins of the branches.
         :param graph_adapter: adapter to adapt built graph to particular graph type.
         """
         self.graph_adapter = graph_adapter
-        self.heads: List[OptNode] = list(filter(None, initial_nodes))
+        self.heads: List[GraphNode] = list(filter(None, initial_nodes))
 
     @property
     def _iend(self) -> int:
@@ -31,7 +31,7 @@ class GraphBuilder:
         """ Reset builder state. """
         self.heads = []
 
-    def to_nodes(self) -> List[OptNode]:
+    def to_nodes(self) -> List[GraphNode]:
         """
         Return list of final nodes and reset internal state.
         :return: list of final nodes, possibly empty.
