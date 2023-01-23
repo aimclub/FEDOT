@@ -177,7 +177,6 @@
   },
   "bag_dt": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": false,
@@ -191,7 +190,6 @@
   },
   "bag_dtreg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": false,
@@ -205,7 +203,6 @@
   },
   "bag_adareg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -215,7 +212,6 @@
   },
   "bag_catboost": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -228,7 +224,6 @@
   },
   "bag_xgboost": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -238,7 +233,6 @@
   },
   "bag_lgbm": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -248,7 +242,6 @@
   },
   "bag_lgbmxt": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -260,7 +253,6 @@
   },
   "bag_catboostreg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -273,7 +265,6 @@
   },
   "bag_xgboostreg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -283,7 +274,6 @@
   },
   "bag_lgbmreg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,
@@ -293,7 +283,6 @@
   },
   "bag_lgbmxtreg": {
     "bagging_params": {
-      "base_estimator": null,
       "n_estimators": 25,
       "bootstrap": true,
       "oob_score": true,

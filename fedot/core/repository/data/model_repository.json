@@ -169,7 +169,7 @@
       "tasks": "[TaskTypesEnum.classification]"
     },
     "bagging_regr": {
-      "description": "SkLearn bagging of models implementation",
+      "description": "SkLearn bagging of regression models implementation",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
@@ -255,7 +255,8 @@
         "simple",
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "dtreg": {
@@ -264,7 +265,8 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "gbr": {
@@ -318,14 +320,17 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "tree", "non_linear"
+        "tree",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "lgbmxt": {
       "meta": "sklearn_class",
       "tags": [
         "tree",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "lgbmreg": {
@@ -336,7 +341,8 @@
       "tags": [
         "tree",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "lgbmxtreg": {
@@ -347,7 +353,8 @@
       "tags": [
         "tree",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "linear": {
@@ -523,14 +530,21 @@
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non-default", "non_linear"
+        "tree",
+        "non-default",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non-default", "non_linear"
+        "tree",
+        "non_multi",
+        "non-default",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "cnn": {
@@ -554,29 +568,7 @@
         "bagging_class"
       ],
       "tags": [
-        "tree",
-        "non-default"
-      ]
-    },
-    "bag_dtreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "tree",
-        "non-default"
-      ]
-    },
-    "bag_adareg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting",
-        "non_multi",
-        "non_linear"
+        "boosting"
       ]
     },
     "bag_catboost": {
@@ -585,9 +577,7 @@
         "bagging_class"
       ],
       "tags": [
-        "boosting",
-        "non-default",
-        "non_linear"
+        "boosting"
       ]
     },
     "bag_xgboost": {
@@ -596,10 +586,7 @@
         "bagging_class"
       ],
       "tags": [
-        "boosting",
-        "tree",
-        "non-default",
-        "non_linear"
+        "boosting"
       ]
     },
     "bag_lgbm": {
@@ -608,9 +595,7 @@
         "bagging_class"
       ],
       "tags": [
-        "boosting",
-        "tree",
-        "non_linear"
+        "boosting"
       ]
     },
     "bag_lgbmxt": {
@@ -619,153 +604,61 @@
         "bagging_class"
       ],
       "tags": [
-        "boosting",
-        "tree",
-        "non_linear"
+        "boosting"
       ]
     },
-    "bag_catboostreg": {
+    "bag_dtreg": {
       "meta": "bagging_regr",
       "presets": [
         "bagging_regr"
       ],
       "tags": [
-        "boosting",
-        "non-default",
-        "non_linear"
-      ]
-    },
-    "bag_xgboostreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting",
-        "tree",
-        "non-default",
-        "non_linear"
-      ]
-    },
-    "bag_lgbmreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting",
-        "tree",
-        "non_linear"
-      ]
-    },
-    "bag_lgbmxtreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting",
-        "tree",
-        "non_linear"
+        "boosting"
       ]
     },
     "bag_adareg": {
-      "meta": "bagging",
+      "meta": "bagging_regr",
       "presets": [
-        "bagging"
+        "bagging_regr"
       ],
       "tags": [
-        "tree",
-        "non-default",
-        "bagging"
-      ]
-    },
-    "bag_catboost": {
-      "meta": "bagging",
-      "presets": [
-        "bagging"
-      ],
-      "tags": [
-        "tree",
-        "non-default",
-        "bagging"
-      ]
-    },
-    "bag_xgboost": {
-      "meta": "bagging",
-      "presets": [
-        "bagging"
-      ],
-      "tags": [
-        "tree",
-        "non-default",
-        "bagging"
-      ]
-    },
-    "bag_lgbm": {
-      "meta": "bagging",
-      "presets": [
-        "bagging"
-      ],
-      "tags": [
-        "tree",
-        "non-default",
-        "bagging"
-      ]
-    },
-    "bag_lgbm_xt": {
-      "meta": "bagging",
-      "presets": [
-        "bagging"
-      ],
-      "tags": [
-        "tree",
-        "non-default",
-        "bagging"
+        "boosting"
       ]
     },
     "bag_catboostreg": {
-      "meta": "bagging",
+      "meta": "bagging_regr",
       "presets": [
-        "bagging"
+        "bagging_regr"
       ],
       "tags": [
-        "tree",
-        "non-default",
-        "bagging"
+        "boosting"
       ]
     },
     "bag_xgboostreg": {
-      "meta": "bagging",
+      "meta": "bagging_regr",
       "presets": [
-        "bagging"
+        "bagging_regr"
       ],
       "tags": [
-        "tree",
-        "non-default",
-        "bagging"
+        "boosting"
       ]
     },
     "bag_lgbmreg": {
-      "meta": "bagging",
+      "meta": "bagging_regr",
       "presets": [
-        "bagging"
+        "bagging_regr"
       ],
       "tags": [
-        "tree",
-        "non-default",
-        "bagging"
+        "boosting"
       ]
     },
     "bag_lgbmxtreg": {
-      "meta": "bagging",
+      "meta": "bagging_regr",
       "presets": [
-        "bagging"
+        "bagging_regr"
       ],
       "tags": [
-        "tree",
-        "non-default",
-        "bagging"
+        "boosting"
       ]
     }
   }

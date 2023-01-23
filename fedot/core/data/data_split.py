@@ -1,8 +1,7 @@
 from copy import deepcopy
 from typing import Tuple, Optional, Union
 
-import numpy as np
-from sklearn.model_selection import train_test_split, RepeatedKFold, RepeatedStratifiedKFold
+from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -206,36 +205,3 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                           ' InputData, MultiModalData'))
 
     return train_data, test_data
-
-
-class DataSplitter:
-    # TODO: Adding groups splitter and others
-
-    def __init__(self, splitter_method=None, n_splits=3, n_repeats=1, stratified=None, random_state=0):
-        self.n_splits = n_splits
-        self.n_repeats = n_repeats
-        self.stratified = stratified
-        self.random_state = random_state
-
-        if splitter_method is None:
-            splitter_method = self._get_splitter_method()
-
-        self._splitter = self._get_splitter(splitter_method)
-
-    def _get_splitter_method(self):
-        if self.stratified:
-            splitter_method = RepeatedStratifiedKFold
-        else:
-            splitter_method = RepeatedKFold
-
-        return splitter_method
-
-    def _get_splitter(self, splitter_method):
-        if splitter_method in [RepeatedKFold, RepeatedStratifiedKFold]:
-            return splitter_method(n_splits=self.n_splits, n_repeats=self.n_repeats, random_state=self.random_state)
-        else:
-            raise AssertionError(f'{splitter_method} is not supported')
-
-    def split(self, input_data: InputData) -> list:
-        return [[train_index, test_index] for train_index, test_index in
-                self._splitter.split(input_data.features, input_data.target)]

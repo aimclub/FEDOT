@@ -5,6 +5,7 @@ from golem.core.optimisers.genetic.operators.base_mutations import get_mutation_
 
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -119,3 +120,30 @@ def choose_new_model(boosting_model_candidates: List[str]) -> str:
     else:
         new_model = choice(boosting_model_candidates)
     return new_model
+
+
+def bagging_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pipeline:
+    """ This type of mutation change model to bagging if it available """
+
+    # TODO: refactor next line to get task_type more obviously
+    task_type = params.advisor.task.task_type
+
+    mutable_models = OperationTypesRepository().suitable_operation(
+        task_type=task_type, tags=['bagging_allowed']
+    )
+
+    mutable_candidates = [n for n in pipeline.nodes if str(n) in mutable_models]
+    mutable_node = choice(mutable_candidates)
+
+    replaced_node_index = pipeline.nodes.index(mutable_node)
+    replaced_node = pipeline.nodes[replaced_node_index]
+
+    bag_model = 'bag_' + mutable_node.name
+    bag_params = {
+        'model_params': replaced_node.parameters,
+    }
+
+    new_node = PipelineBuilder().add_node(bag_model, params=bag_params).build().nodes[0]
+    pipeline.update_node(old_node=replaced_node, new_node=new_node)
+
+    return pipeline

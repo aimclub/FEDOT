@@ -10,7 +10,7 @@ from golem.core.optimisers.genetic.operators.mutation import Mutation
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, bagging_mutation
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
@@ -170,3 +170,36 @@ def test_no_opt_or_graph_nodes_after_mutation():
     new_pipeline = adapter.restore(graph)
 
     assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
+
+
+def test_bagging_mutation_changes_pipeline():
+    init_pipeline = PipelineBuilder() \
+        .add_node('scaling') \
+        .add_node('lgbm', params={"num_leaves": 16}) \
+        .build()
+
+    bag_pipeline = PipelineBuilder() \
+        .add_node('scaling') \
+        .add_node('bag_lgbm', params={"model_params": {"num_leaves": 16}}) \
+        .build()
+
+    requirements = PipelineComposerRequirements()
+
+    pipeline = bagging_mutation(
+        init_pipeline,
+        requirements,
+        get_pipeline_generation_params(
+            requirements=requirements,
+            rules_for_constraint=DEFAULT_DAG_RULES,
+            task=Task(TaskTypesEnum.classification)
+        )
+    )
+
+    model_params = bag_pipeline.nodes[0].parameters["model_params"]["num_leaves"]
+    bagging_params = bag_pipeline.nodes[0].parameters["bagging_params"]
+
+    mut_model_params = pipeline.nodes[0].parameters["model_params"]["num_leaves"]
+    mut_bagging_params = pipeline.nodes[0].parameters["bagging_params"]
+
+    assert model_params == mut_model_params
+    assert bagging_params == mut_bagging_params

@@ -47,7 +47,7 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
 
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'bag_dtreg': DecisionTreeRegressor,
         'bag_adareg': AdaBoostRegressor,
         'bag_xgboostreg': XGBRegressor,
@@ -68,12 +68,12 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         self.bagging_operation = None
 
     def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
+        if operation_type in self._operations_by_types.keys():
             if self._model_params:
-                self._bagging_params['base_estimator'] = self.__operations_by_types[operation_type](
+                self._bagging_params['base_estimator'] = self._operations_by_types[operation_type](
                     **self._model_params)
             else:
-                self._bagging_params['base_estimator'] = self.__operations_by_types[operation_type]()
+                self._bagging_params['base_estimator'] = self._operations_by_types[operation_type]()
 
             return self.bagging_operation(**self._bagging_params)
 
@@ -85,6 +85,9 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
             params = get_default_params(operation_type)
         elif isinstance(params, dict):
             params = OperationParameters.from_operation_type(operation_type, **params)
+        elif isinstance(params, OperationParameters):
+            if params.get('model_params') or params.get('bagging_params'):
+                params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
         self._model_params = params.get('model_params')
         # TODO: sklearn param base_estimator will change to estimator in future since 1.4
@@ -133,16 +136,13 @@ class SkLearnBaggingClassificationStrategy(SkLearnBaggingStrategy):
             Args:
                 operation_type: 'str' selected operation as a base model in bagging
                 params: operation's init and fitting hyperparameters
-        """
+    """
 
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
         params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
         self.bagging_operation = BaggingClassifier
         self.operation_impl = self._convert_to_operation(operation_type)
-
-    def fit(self, train_data: InputData):
-        return super().fit(train_data)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         if self.output_mode == 'labels':
@@ -161,16 +161,13 @@ class SkLearnBaggingRegressionStrategy(SkLearnBaggingStrategy):
             Args:
                 operation_type: 'str' selected operation as a base model in bagging
                 params: operation's init and fitting hyperparameters
-        """
+    """
 
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
         params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
         self.bagging_operation = BaggingRegressor
         self.operation_impl = self._convert_to_operation(operation_type)
-
-    def fit(self, train_data: InputData):
-        return super().fit(train_data)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         prediction = trained_operation.predict(predict_data.features)

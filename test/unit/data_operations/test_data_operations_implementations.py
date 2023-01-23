@@ -398,7 +398,7 @@ def test_inf_and_nan_absence_after_bagging_pipeline_fitting_from_scratch():
         pipeline = PipelineBuilder() \
             .add_node(model_name, params={'bagging_params': {'oob_score': False}}) \
             .add_node('linear') \
-            .to_pipeline()
+            .build()
 
         # Fit and predict for pipeline
         pipeline.fit_from_scratch(train_input)

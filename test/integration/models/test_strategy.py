@@ -88,7 +88,7 @@ def test_bagging_classification_operation():
     )
 
     for model_name in model_names:
-        pipeline = PipelineBuilder().add_node(model_name, params=params).to_pipeline()
+        pipeline = PipelineBuilder().add_node(model_name, params=params).build()
         pipeline.fit(train_data)
         predicted_output = pipeline.predict(test_data, output_mode='labels')
         metric = roc_auc(test_data.target, predicted_output.predict)
@@ -111,7 +111,7 @@ def test_bagging_regression_operation():
     )
 
     for model_name in model_names:
-        pipeline = PipelineBuilder().add_node(model_name, params=params).to_pipeline()
+        pipeline = PipelineBuilder().add_node(model_name, params=params).build()
         pipeline.fit(train_data)
         predicted_output = pipeline.predict(test_data)
         metric = mean_squared_error(test_data.target, predicted_output.predict)
