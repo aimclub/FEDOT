@@ -425,7 +425,7 @@ def define_column_types(table: np.ndarray):
     nans = pd.isna(table)
     table_of_types = np.empty_like(table, dtype=np.int8)
     table_of_types[~nans] = [
-        TYPE_TO_ID[type(x.item() if getattr(x, 'item', False) else x)]
+        TYPE_TO_ID[type(x.item() if isinstance(x, (np.ndarray, np.generic)) else x)]
         for x in table[~nans]
     ]
     table_of_types[nans] = TYPE_TO_ID[type(None)]
@@ -447,7 +447,7 @@ def define_column_types(table: np.ndarray):
             ]
 
             # Store information about nans in the target
-            nan_ids = np.ravel(np.argwhere(col_types == TYPE_TO_ID[type(None)]))
+            nan_ids = np.where(nans[:, column_id])[0]
             columns_info.update({column_id: {'types': unique_col_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
