@@ -154,11 +154,10 @@
     },
     "clstm": {
       "meta": "ts_model",
+      "presets": ["ts"],
       "tags": [
-        "non_lagged",
         "non_linear"
-      ],
-	  "input_type": "[DataTypesEnum.ts]"
+      ]
     },
     "bernb": {
       "meta": "sklearn_class",

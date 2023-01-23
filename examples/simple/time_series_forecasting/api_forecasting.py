@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
@@ -17,11 +18,8 @@ datasets = {
     'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
-
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
-                               visualization=False, with_tuning=True):
+def get_ts_data(dataset: str = 'beer', horizon: int = 10, validation_blocks: int = 1):
     time_series = pd.read_csv(datasets[dataset])
-
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=horizon))
     if dataset not in ['australia']:
@@ -36,10 +34,16 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                             task=task,
                             data_type=DataTypesEnum.ts)
     train_data, test_data = train_test_data_setup(train_input, validation_blocks=validation_blocks)
+    return train_data, test_data
 
+
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
+                               visualization=False, with_tuning=True):
+    train_data, test_data = get_ts_data(dataset, horizon, 2)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
-                  task_params=task.task_params,
+                  task_params=Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
                   n_jobs=1,
                   with_tuning=with_tuning,
@@ -59,7 +63,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
         model.plot_prediction()
 
     # use model to obtain one-step forecast
-    train_data, test_data = train_test_data_setup(train_input)
+    train_data, test_data = get_ts_data(dataset, horizon)
     simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
@@ -76,4 +80,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='beer', horizon=10, timeout=2., visualization=True)
+    run_ts_forecasting_example(dataset='salaries', horizon=10, timeout=10., visualization=True)
