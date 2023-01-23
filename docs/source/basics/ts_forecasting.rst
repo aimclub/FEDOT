@@ -107,7 +107,7 @@ See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_.
     # compose your own pipeline
     pipeline = PipelineBuilder() \
         .add_sequence('lagged', 'ridge', branch_idx=0) \
-        .add_sequence('glm', branch_idx=1).join_branches('ridge').to_pipeline()
+        .add_sequence('glm', branch_idx=1).join_branches('ridge').build()
 
     # specify the task and the forecast length (required depth of forecast)
     task = Task(TaskTypesEnum.ts_forecasting,

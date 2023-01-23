@@ -16,9 +16,9 @@ class GraphBuilder:
 
     OperationType = Union[str, Tuple[str, dict]]
 
-    def __init__(self, built_graph_cls: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
+    def __init__(self, graph_adapter: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
         """ Create builder with prebuilt nodes as origins of the branches. """
-        self.built_graph_cls = built_graph_cls
+        self.graph_adapter = graph_adapter
         self.heads: List[OptNode] = list(filter(None, initial_nodes))
 
     @property
@@ -127,4 +127,4 @@ class GraphBuilder:
 
     @staticmethod
     def _pack_params(name: str, params: Optional[dict]) -> Optional[dict]:
-        return {'name': name, 'params': params} if params else None
+        return {'name': name, 'params': params} if params else {'name': name}

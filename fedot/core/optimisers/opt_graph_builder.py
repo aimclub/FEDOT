@@ -1,12 +1,9 @@
-from copy import deepcopy
 from typing import Union, Tuple, Optional, List, Dict
 
-from fedot.core.adapter.adapter import DomainStructureType
-from fedot.core.dag.graph import Graph
+from fedot.core.adapter.adapter import DomainStructureType, BaseOptimizationAdapter
 from fedot.core.dag.linked_graph import LinkedGraph
 from fedot.core.optimisers.graph import OptNode, OptGraph
 from fedot.core.optimisers.graph_builder import GraphBuilder
-from fedot.core.pipelines.node import Node
 
 
 class OptGraphBuilder(GraphBuilder):
@@ -20,10 +17,11 @@ class OptGraphBuilder(GraphBuilder):
 
     OperationType = Union[str, Tuple[str, dict]]
 
-    def __init__(self, built_graph_cls: Optional[DomainStructureType] = None, *initial_nodes: Optional[OptNode]):
+    def __init__(self, graph_adapter: Optional[BaseOptimizationAdapter] = None, *initial_nodes: Optional[OptNode]):
         """ Create builder with prebuilt nodes as origins of the branches. """
-        super().__init__(built_graph_cls, *initial_nodes)
-        self.built_graph_cls = built_graph_cls or OptGraph
+        super().__init__(graph_adapter, *initial_nodes)
+        self.graph_adapter = graph_adapter
+        self.heads: List[OptNode] = list(filter(None, initial_nodes))
 
     def add_node(self, operation_type: Optional[str], branch_idx: int = 0, params: Optional[Dict] = None):
         """ Add single node to graph branch of specified index.
@@ -153,7 +151,11 @@ class OptGraphBuilder(GraphBuilder):
 
     def build(self) -> DomainStructureType:
         """ Adapt resulted graph to required graph class. """
-        return self.built_graph_cls(self.to_nodes())
+        result_opt_graph = OptGraph(self.to_nodes())
+        if self.graph_adapter:
+            return self.graph_adapter.restore(result_opt_graph)
+        else:
+            return result_opt_graph
 
     def merge_with(self, following_builder) -> Optional['OptGraphBuilder']:
         return merge_opt_graph_builders(self, following_builder)
@@ -178,6 +180,9 @@ def merge_opt_graph_builders(previous: OptGraphBuilder, following: OptGraphBuild
     elif not previous.heads:
         return following
 
+    if type(following.graph_adapter) is not type(previous.graph_adapter):
+        raise ValueError('Adapters do not match: cannot perform merge')
+
     lhs_nodes_final = previous.to_nodes()
     rhs_tmp_graph = LinkedGraph(following.to_nodes())
     rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
@@ -198,8 +203,8 @@ def merge_opt_graph_builders(previous: OptGraphBuilder, following: OptGraphBuild
         return None
 
     # Check that Graph didn't mess up with node types
-    if not all(map(lambda n: isinstance(n, Node), rhs_tmp_graph.nodes)):
-        raise ValueError("Expected Graph only with nodes of type 'Node'")
+    if not all(map(lambda n: isinstance(n, OptNode), rhs_tmp_graph.nodes)):
+        raise ValueError("Expected Graph only with nodes of type 'OptNode'")
 
-    merged_builder = OptGraphBuilder(*rhs_tmp_graph.root_nodes())
+    merged_builder = OptGraphBuilder(following.graph_adapter, *rhs_tmp_graph.root_nodes())
     return merged_builder

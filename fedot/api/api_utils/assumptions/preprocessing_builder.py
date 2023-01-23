@@ -51,4 +51,4 @@ class PreprocessingBuilder:
 
     def to_pipeline(self) -> Optional[Pipeline]:
         """ Return result as Pipeline. Scaling is applied final by default. """
-        return self.to_builder().to_pipeline()
+        return self.to_builder().build()

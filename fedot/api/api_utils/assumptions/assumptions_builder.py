@@ -44,7 +44,7 @@ class AssumptionsBuilder:
         raise NotImplementedError('abstract')
 
     def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
-        return [builder.to_pipeline() for builder in self.to_builders(initial_node)]
+        return [builder.build() for builder in self.to_builders(initial_node)]
 
 
 class UniModalAssumptionsBuilder(AssumptionsBuilder):
@@ -83,7 +83,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.to_pipeline()):
+            if self.ops_filter.satisfies(candidate_builder.build()):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 

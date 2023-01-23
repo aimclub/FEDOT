@@ -23,7 +23,7 @@ def run_additional_learning_example():
     problem = 'classification'
 
     auto_model = Fedot(problem=problem, seed=42, timeout=5, preset='best_quality',
-                       initial_assumption=PipelineBuilder().add_node('scaling').add_node('logit').to_pipeline())
+                       initial_assumption=PipelineBuilder().add_node('scaling').add_node('logit').build())
 
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))

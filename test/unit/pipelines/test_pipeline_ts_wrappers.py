@@ -113,8 +113,8 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
     full_series.task = Task(TaskTypesEnum.ts_forecasting,
                             TsForecastingParams(forecast_length=one_step_length))
 
-    pipelines = [PipelineBuilder().add_node('arima').to_pipeline(),
-                 PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline()]
+    pipelines = [PipelineBuilder().add_node('arima').build(),
+                 PipelineBuilder().add_node('smoothing').add_node('ar').build()]
     for pipeline in pipelines:
         pipeline.fit(train_data)
         # making insample forecast

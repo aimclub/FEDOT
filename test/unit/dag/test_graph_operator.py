@@ -115,12 +115,12 @@ def test_distance_to_same_pipeline_restored():
 
 
 def test_known_distances():
-    pipeline_scaling = PipelineBuilder().add_node('scaling').to_pipeline()  # scaling
-    pipeline_xgboost = PipelineBuilder().add_node('xgboost').to_pipeline()  # xgboost
-    pipeline_knn = PipelineBuilder().add_node('scaling').add_node('knn').to_pipeline()  # scaling -> knn
-    pipeline_linear = PipelineBuilder().add_node('scaling').add_node('linear').to_pipeline()  # scaling -> linear
+    pipeline_scaling = PipelineBuilder().add_node('scaling').build()  # scaling
+    pipeline_xgboost = PipelineBuilder().add_node('xgboost').build()  # xgboost
+    pipeline_knn = PipelineBuilder().add_node('scaling').add_node('knn').build()  # scaling -> knn
+    pipeline_linear = PipelineBuilder().add_node('scaling').add_node('linear').build()  # scaling -> linear
     pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
-        add_node('knn', params={'metric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
+        add_node('knn', params={'metric': 'euclidean'}).build()  # scaling -> knn_alternate_params
 
     assert get_distance_between(graph_1=pipeline_knn,
                                 graph_2=pipeline_knn) == 0  # the same pipeline
