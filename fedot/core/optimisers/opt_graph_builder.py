@@ -109,8 +109,8 @@ class OptGraphBuilder(GraphBuilder):
         return self
 
     def add_skip_connection_edge(self, branch_idx_first: int, branch_idx_second: int,
-                                 node_idx_in_branch_first: int, node_idx_in_branch_second: int,):
-        """ Joins two nodes which are not placed sequential in one branch..
+                                 node_idx_in_branch_first: int, node_idx_in_branch_second: int):
+        """ Joins two nodes which are not placed sequential in one branch.
         Edge is directed from the first node to the second.
 
         :param branch_idx_first: index of the first branch which to take the first node
