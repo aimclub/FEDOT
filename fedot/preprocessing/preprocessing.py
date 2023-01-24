@@ -120,13 +120,11 @@ class DataPreprocessor(BasePreprocessor):
                 data[data_source_name] = self._prepare_obligatory_unimodal_for_fit(values,
                                                                                    source_name=data_source_name)
 
-        BasePreprocessor.mark_as_preprocessed(data)
-        return data
+        return super().obligatory_prepare_for_fit(data)
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_predict)
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        """ Perform obligatory preprocessing for pipeline predict method """
         if isinstance(data, InputData):
             data = self._prepare_obligatory_unimodal_for_predict(data, source_name=DEFAULT_SOURCE_NAME)
 
@@ -135,8 +133,7 @@ class DataPreprocessor(BasePreprocessor):
                 data[data_source_name] = self._prepare_obligatory_unimodal_for_predict(values,
                                                                                        source_name=data_source_name)
 
-        BasePreprocessor.mark_as_preprocessed(data)
-        return data
+        return super().obligatory_prepare_for_predict(data)
 
     @copy_doc(BasePreprocessor.optional_prepare_for_fit)
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -466,16 +463,8 @@ class DataPreprocessor(BasePreprocessor):
         else:
             return data.target
 
+    @copy_doc(BasePreprocessor.apply_inverse_target_encoding)
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
-        """
-        Applies inverse label encoding operation for target column
-
-        Args:
-            column_to_transform: column to be encoded
-        
-        Returns:
-            encoded or untouched column
-        """
         main_target_source_name = self._determine_target_converter()
 
         if main_target_source_name in self.target_encoders:

@@ -52,6 +52,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
+        BasePreprocessor.mark_as_preprocessed(data)
         return data
 
     @abstractmethod
@@ -66,6 +67,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
+        BasePreprocessor.mark_as_preprocessed(data)
         return data
 
     @abstractmethod
@@ -125,13 +127,13 @@ class BasePreprocessor(ABC):
     @abstractmethod
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
         """
-        Applies inverse label encoding operation for target column
+        Applies inverse label encoding operation for target column if needed
 
         Args:
             column_to_transform: column to be encoded
         
         Returns:
-            encoded column
+            encoded or untouched column
         """
         return column_to_transform
 
