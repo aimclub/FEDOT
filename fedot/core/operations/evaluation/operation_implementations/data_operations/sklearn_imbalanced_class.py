@@ -177,4 +177,4 @@ class ResampleImplementation(DataOperationImplementation):
             return round(maj_data.shape[0] - difference * self.balance_ratio)
 
     def _resample_data(self, data: np.array):
-        return resample(data, replace=self.replace, n_samples=self.n_samples)
+        return resample(data, replace=self.replace, n_samples=self.n_samples, random_state=42)

@@ -5,12 +5,12 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -76,7 +76,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
 
     start_time = timeit.default_timer()
     pipeline_tuner = TunerBuilder(task)\
-        .with_tuner(PipelineTuner)\
+        .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(cv_folds) \
         .with_validation_blocks(validation_blocks)\

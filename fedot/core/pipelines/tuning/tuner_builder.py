@@ -1,6 +1,8 @@
 from datetime import timedelta
 from typing import Callable, Type, Union
 
+from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.tuning.tuner_interface import HyperoptTuner
 from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -8,10 +10,9 @@ from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.tuning.search_space import SearchSpace
-from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
-from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -19,7 +20,7 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 
 class TunerBuilder:
     def __init__(self, task: Task):
-        self.tuner_class = PipelineTuner
+        self.tuner_class = SimultaneousTuner
         self.cv_folds = None
         self.validation_blocks = None
         self.n_jobs = -1
@@ -27,9 +28,10 @@ class TunerBuilder:
         self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)
-        self.search_space = SearchSpace()
+        self.search_space = PipelineSearchSpace()
         self.algo = tpe.suggest
         self.eval_time_constraint = None
+        self.adapter = PipelineAdapter()
 
     def with_tuner(self, tuner: Type[HyperoptTuner]):
         self.tuner_class = tuner
@@ -79,12 +81,16 @@ class TunerBuilder:
         self.eval_time_constraint = eval_time_constraint
         return self
 
-    def with_search_space(self, search_space: SearchSpace):
+    def with_search_space(self, search_space: PipelineSearchSpace):
         self.search_space = search_space
         return self
 
     def with_algo(self, algo: Callable):
         self.algo = algo
+        return self
+
+    def with_adapter(self, adapter):
+        self.adapter = adapter
         return self
 
     def build(self, data: InputData) -> HyperoptTuner:
@@ -95,6 +101,7 @@ class TunerBuilder:
                                                        time_constraint=self.eval_time_constraint,
                                                        eval_n_jobs=self.n_jobs)  # because tuners are not parallelized
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
+                                 adapter=self.adapter,
                                  iterations=self.iterations,
                                  early_stopping_rounds=self.early_stopping_rounds,
                                  timeout=self.timeout,

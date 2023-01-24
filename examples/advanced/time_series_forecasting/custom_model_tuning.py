@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from hyperopt import hp
 from sklearn.linear_model import Ridge
 
@@ -8,9 +9,8 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
@@ -70,8 +70,8 @@ def get_fitting_custom_pipeline():
     # For custom model params as initial approximation and model as function is necessary
     custom_node = PipelineNode('custom', nodes_from=[lagged_node])
     custom_node.parameters = {'alpha': 5,
-                                 'model_predict': custom_ml_model_imitation_predict,
-                                 'model_fit': custom_ml_model_imitation_fit}
+                              'model_predict': custom_ml_model_imitation_predict,
+                              'model_fit': custom_ml_model_imitation_fit}
 
     node_final = PipelineNode('lasso', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -112,14 +112,14 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     replace_default_search_space = True
     cv_folds = 3
     validation_blocks = 3
-    search_space = SearchSpace(custom_search_space=custom_search_space,
-                               replace_default_search_space=replace_default_search_space)
-    pipeline_tuner = TunerBuilder(train_input.task)\
-        .with_tuner(PipelineTuner)\
-        .with_metric(RegressionMetricsEnum.RMSE)\
-        .with_cv_folds(cv_folds)\
-        .with_validation_blocks(validation_blocks)\
-        .with_iterations(10)\
+    search_space = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                       replace_default_search_space=replace_default_search_space)
+    pipeline_tuner = TunerBuilder(train_input.task) \
+        .with_tuner(SimultaneousTuner) \
+        .with_metric(RegressionMetricsEnum.RMSE) \
+        .with_cv_folds(cv_folds) \
+        .with_validation_blocks(validation_blocks) \
+        .with_iterations(10) \
         .with_search_space(search_space).build(train_input)
     # Tuning pipeline
     pipeline = pipeline_tuner.tune(pipeline)

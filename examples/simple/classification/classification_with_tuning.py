@@ -1,11 +1,11 @@
 import numpy as np
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
 from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -141,4 +141,4 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 # Script for testing is pipeline can process different datasets for classification
 if __name__ == '__main__':
     run_classification_tuning_experiment(pipeline=classification_random_forest_pipeline(),
-                                         tuner=PipelineTuner)
+                                         tuner=SimultaneousTuner)

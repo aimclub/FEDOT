@@ -2,15 +2,17 @@ from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, Union, Optional
 
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class AtomizedModel(Operation):
@@ -23,10 +25,14 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
+        self.atomized_preprocessor = DataPreprocessor()
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
+    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData,
+            use_cache: bool = True):
 
         copied_input_data = deepcopy(data)
+        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_fit(copied_input_data)
+
         predicted_train = self.pipeline.fit(input_data=copied_input_data)
         fitted_atomized_operation = self.pipeline
 
@@ -37,6 +43,8 @@ class AtomizedModel(Operation):
 
         # Preprocessing applied
         copied_input_data = deepcopy(data)
+        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_predict(copied_input_data)
+
         prediction = fitted_operation.predict(input_data=copied_input_data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
@@ -49,11 +57,11 @@ class AtomizedModel(Operation):
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        tuner = TunerBuilder(input_data.task) \
-            .with_tuner(PipelineTuner) \
-            .with_metric(metric_function) \
-            .with_iterations(iterations) \
-            .with_timeout(timedelta(minutes=timeout)) \
+        tuner = TunerBuilder(input_data.task)\
+            .with_tuner(SimultaneousTuner)\
+            .with_metric(metric_function)\
+            .with_iterations(iterations)\
+            .with_timeout(timedelta(minutes=timeout))\
             .build(input_data)
         tuned_pipeline = tuner.tune(self.pipeline)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)

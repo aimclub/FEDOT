@@ -4,7 +4,9 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from golem.core.dag.graph_utils import graph_structure
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
@@ -22,7 +24,6 @@ from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_a
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.explainability.explainer_template import Explainer
@@ -219,7 +220,7 @@ class Fedot:
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
+        self.params.api_params['logger'].message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
 
         MemoryAnalytics.finish()
 
@@ -263,7 +264,7 @@ class Fedot:
             self.api_composer.tuner_requirements.n_jobs = n_jobs
 
         pipeline_tuner = TunerBuilder(self.params.task) \
-            .with_tuner(PipelineTuner) \
+            .with_tuner(SimultaneousTuner) \
             .with_requirements(self.api_composer.tuner_requirements) \
             .with_metric(self.metrics.get_metrics_mapping(metric_name)) \
             .with_iterations(iterations) \

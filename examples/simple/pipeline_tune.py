@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
@@ -8,7 +9,6 @@ from examples.simple.classification.classification_pipelines import classificati
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 
 
@@ -24,7 +24,7 @@ def get_case_train_test_data():
 def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
                     test_data: InputData, local_iter: int,
                     tuner_iter_num: int = 30) -> (float, list):
-    """ Function for tuning pipeline with PipelineTuner
+    """ Function for tuning pipeline with SimultaneousTuner
 
     :param pipeline: pipeline to tune
     :param train_data: InputData for train
@@ -37,7 +37,7 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
     """
     several_iter_scores_test = []
     tuner = TunerBuilder(train_data.task) \
-        .with_tuner(PipelineTuner) \
+        .with_tuner(SimultaneousTuner) \
         .with_metric(ClassificationMetricsEnum.ROCAUC) \
         .with_iterations(tuner_iter_num) \
         .build(train_data)

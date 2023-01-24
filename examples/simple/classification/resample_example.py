@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
@@ -10,7 +11,6 @@ from examples.simple.classification.classification_pipelines import classificati
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -85,14 +85,14 @@ def run_resample_example(path_to_data=None, tune=False):
     if tune:
         print('Start tuning process ...')
         tuner = TunerBuilder(train_input.task)\
-            .with_tuner(PipelineTuner)\
+            .with_tuner(SimultaneousTuner)\
             .with_metric(RegressionMetricsEnum.MAE)\
             .with_iterations(50) \
             .with_timeout(timedelta(minutes=1))\
             .build(train_input)
         tuned_pipeline = tuner.tune(pipeline)
         # Fit
-        pipeline.fit(train_input)
+        tuned_pipeline.fit(train_input)
         # Predict
         predicted_values_tuned = tuned_pipeline.predict(predict_input)
         preds_tuned = predicted_values_tuned.predict

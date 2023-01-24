@@ -2,6 +2,7 @@ import os
 import random
 
 import numpy as np
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_squared_error
 
 from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
@@ -11,7 +12,6 @@ from cases.spam_detection import run_text_problem_from_saved_meta_file
 from cases.time_series_gapfilling_case import run_gapfilling_case
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
 
 random.seed(1)
@@ -78,7 +78,7 @@ def test_river_levels_problem():
     run_river_experiment(file_path=file_path_train,
                          pipeline=init_pipeline,
                          iterations=1,
-                         tuner=PipelineTuner,
+                         tuner=SimultaneousTuner,
                          tuner_iterations=10)
 
     is_experiment_finished = True
