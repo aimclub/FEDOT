@@ -25,7 +25,7 @@ class AssumptionsHandler:
     def propose_assumptions(self,
                             initial_assumption: Union[List[Pipeline], Pipeline, None],
                             available_operations: List,
-                            use_io_preprocessing: bool = True) -> List[Pipeline]:
+                            use_input_preprocessing: bool = True) -> List[Pipeline]:
         """
         Method to propose initial assumptions if needed
 
@@ -35,7 +35,7 @@ class AssumptionsHandler:
 
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
-                .get(self.data, use_io_preprocessing=use_io_preprocessing) \
+                .get(self.data, use_input_preprocessing=use_input_preprocessing) \
                 .from_operations(available_operations)
             initial_assumption = assumptions_builder.build()
         elif isinstance(initial_assumption, Pipeline):

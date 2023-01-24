@@ -26,12 +26,12 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, use_io_preprocessing: bool = True):
+    def __init__(self, task: Task, use_input_preprocessing: bool = True):
         self.task = task
 
         self._recommendations = {}
         self.preprocessor = DummyPreprocessor()
-        if use_io_preprocessing:
+        if use_input_preprocessing:
             self.preprocessor = DataPreprocessor()
 
             # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'

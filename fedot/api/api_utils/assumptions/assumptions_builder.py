@@ -3,9 +3,9 @@ from typing import List, Union, Optional, Set
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
-from fedot.core.log import default_log
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -16,16 +16,16 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 class AssumptionsBuilder:
 
     def __init__(self, data: Union[InputData, MultiModalData], repository_name: str = 'model',
-                 use_io_preprocessing: bool = True):
+                 use_input_preprocessing: bool = True):
         self.logger = default_log(prefix='FEDOT logger')
         self.data = data
         self.repo = OperationTypesRepository(repository_name)
         self.assumptions_generator = TaskAssumptions.for_task(self.data.task, self.repo)
-        self.use_io_preprocessing = use_io_preprocessing
+        self.use_input_preprocessing = use_input_preprocessing
 
     @staticmethod
     def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None,
-            use_io_preprocessing: bool = True):
+            use_input_preprocessing: bool = True):
         if not repository_name:
             if data.data_type == DataTypesEnum.multi_ts:
                 # It is needed to use data operations also for multi_ts data
@@ -39,7 +39,7 @@ class AssumptionsBuilder:
             cls = MultiModalAssumptionsBuilder
         else:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
-        return cls(data, repository_name=repository_name, use_io_preprocessing=use_io_preprocessing)
+        return cls(data, repository_name=repository_name, use_input_preprocessing=use_input_preprocessing)
 
     def from_operations(self, available_operations: List[str]):
         raise NotImplementedError('abstract')
@@ -57,12 +57,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def __init__(self, data: Union[InputData, MultiModalData],
                  data_type: DataTypesEnum = None, repository_name: str = "model",
-                 use_io_preprocessing: bool = True):
+                 use_input_preprocessing: bool = True):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
-        super().__init__(data, repository_name, use_io_preprocessing)
+        super().__init__(data, repository_name, use_input_preprocessing)
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
@@ -85,7 +85,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         OperationsFilter or a single fallback builder. """
         preprocessing = \
             PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node,
-                                                  use_io_preprocessing=self.use_io_preprocessing)
+                                                  use_input_preprocessing=self.use_input_preprocessing)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
@@ -96,12 +96,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(self, data: MultiModalData, repository_name: str = "model",
-                 use_io_preprocessing: bool = True):
-        super().__init__(data, repository_name, use_io_preprocessing)
+                 use_input_preprocessing: bool = True):
+        super().__init__(data, repository_name, use_input_preprocessing)
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
             _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type,
-                                                                              use_io_preprocessing=use_io_preprocessing)))
+                                                                              use_input_preprocessing=use_input_preprocessing)))
         self._subbuilders = tuple(_subbuilders)
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
@@ -116,7 +116,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = PipelineBuilder(use_io_preprocessing=self.use_io_preprocessing) \
+            first_node = PipelineBuilder(use_input_preprocessing=self.use_input_preprocessing) \
                 .add_node(data_source_name).add_node(initial_node).to_nodes()[0]
             data_pipeline_alternatives = subbuilder.build(first_node)
             subpipelines.append(data_pipeline_alternatives)
@@ -126,7 +126,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         for pre_ensemble in zip(*subpipelines):
             ensemble_operation = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
-            ensemble_builder = PipelineBuilder(*ensemble_nodes, use_io_preprocessing=self.use_io_preprocessing) \
+            ensemble_builder = PipelineBuilder(*ensemble_nodes, use_input_preprocessing=self.use_input_preprocessing) \
                 .join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders

@@ -101,7 +101,7 @@ class ApiParams:
         # The minimal number of generations is 5.
         if 'early_stopping_iterations' not in input_params['composer_tuner_params']:
             if input_params['timeout']:
-                depending_on_timeout = int(input_params['timeout']/3)
+                depending_on_timeout = int(input_params['timeout'] / 3)
                 self.api_params['early_stopping_iterations'] = \
                     depending_on_timeout if depending_on_timeout > 5 else 5
 
@@ -135,7 +135,7 @@ class ApiParams:
                   'genetic_scheme': None,
                   'early_stopping_iterations': 30,
                   'early_stopping_timeout': 10,
-                  'use_io_preprocessing': True,
+                  'use_input_preprocessing': True,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True,
                   'cache_folder': None}

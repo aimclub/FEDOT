@@ -80,14 +80,14 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
-    def init_cache(self, use_pipelines_cache: bool = True, 
-                   use_io_preprocessing: bool = True, use_preprocessing_cache: bool = True, 
+    def init_cache(self, use_pipelines_cache: bool = True,
+                   use_input_preprocessing: bool = True, use_preprocessing_cache: bool = True,
                    cache_folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
-        if use_io_preprocessing and use_preprocessing_cache:
+        if use_input_preprocessing and use_preprocessing_cache:
             self.preprocessing_cache = PreprocessingCache(cache_folder)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
@@ -203,7 +203,7 @@ class ApiComposer:
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
         available_operations = composer_params['available_operations']
-        use_io_preprocessing = composer_params['use_io_preprocessing']
+        use_input_preprocessing = composer_params['use_input_preprocessing']
         preset = composer_params['preset']
 
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
@@ -213,7 +213,7 @@ class ApiComposer:
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations,
-                                                                    use_preprocessing)
+                                                                    use_input_preprocessing)
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
 
@@ -368,7 +368,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 optimizer_external_params=None, collect_intermediate_metric=False,
                                 max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
-                                keep_history=True, history_dir=None, use_io_preprocessing=True)
+                                keep_history=True, history_dir=None, use_input_preprocessing=True)
 
     tuner_params_dict = dict(with_tuning=False)
 

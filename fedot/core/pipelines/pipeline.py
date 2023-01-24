@@ -38,14 +38,14 @@ class Pipeline(GraphDelegate, Serializable):
         nodes: :obj:`Node` object(s)
     """
 
-    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_io_preprocessing: bool = True):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_input_preprocessing: bool = True):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
         self.log = default_log(self)
 
         # Define data preprocessor
-        self.preprocessor = DataPreprocessor() if use_io_preprocessing else DummyPreprocessor()
+        self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """[Obsolete] Method used for training the pipeline without using saved information
