@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union
+from typing import Dict, List, Union, TYPE_CHECKING
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -13,10 +13,12 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
 )
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
+
+if TYPE_CHECKING:
+    from fedot.core.pipelines.pipeline import Pipeline
 
 
 class BasePreprocessor(ABC):
@@ -134,7 +136,7 @@ class BasePreprocessor(ABC):
         return column_to_transform
 
     @abstractmethod
-    def convert_indexes_for_fit(self, pipeline: Pipeline, data: Union[InputData, MultiModalData]) -> Union[
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for fit

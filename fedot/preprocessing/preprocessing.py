@@ -36,7 +36,7 @@ from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructure
 ALLOWED_NAN_PERCENT = 0.9
 
 
-class DataPreprocessor:
+class DataPreprocessor(BasePreprocessor):
     """
     Class which contains methods for data preprocessing.
     The class performs two types of preprocessing: obligatory and optional.
@@ -107,7 +107,7 @@ class DataPreprocessor:
                 break
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_fit)
-    def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalDatas]:
+    def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         # TODO add advanced gapfilling for time series and advanced gap-filling
         self._init_supplementary_preprocessors(data)
 

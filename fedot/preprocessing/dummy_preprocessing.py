@@ -1,12 +1,14 @@
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.pipelines.pipeline import Pipeline
 from .base_preprocessing import BasePreprocessor
+
+if TYPE_CHECKING:
+    from fedot.core.pipelines.pipeline import Pipeline
 
 
 class DummyPreprocessor(BasePreprocessor):
@@ -43,7 +45,7 @@ class DummyPreprocessor(BasePreprocessor):
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
         return super().apply_inverse_target_encoding(column_to_transform)
 
-    def convert_indexes_for_fit(self, pipeline: Pipeline, data: Union[InputData, MultiModalData]) -> Union[
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
         return super().convert_indexes_for_fit(pipeline, data)
 
