@@ -115,14 +115,14 @@ class Individual:
         return self.uid == other.uid
 
     def __copy__(self):
-        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
+        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, raise_if_test=True)
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         return result
 
     def __deepcopy__(self, memo):
-        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
+        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, raise_if_test=True)
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result

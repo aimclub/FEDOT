@@ -86,7 +86,7 @@ class ApiParams:
         Log().reset_logging_level(input_params['logging_level'])
         self.log = default_log(prefix='FEDOT logger')
 
-        simple_keys = ['problem', 'n_jobs', 'timeout']
+        simple_keys = ['problem', 'n_jobs', 'parallelization_mode', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 
         default_evo_params = self.get_default_evo_params(self.api_params['problem'])

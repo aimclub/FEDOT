@@ -71,11 +71,14 @@ class ComposerBuilder:
         return self
 
     def with_optimizer_params(self, parameters: Optional[GraphOptimizerParameters] = None,
-                              external_parameters: Optional[Dict] = None):
+                              external_parameters: Optional[Dict] = None,
+                              dispatcher=None):
         if parameters is not None:
             self.optimizer_parameters = parameters
         if external_parameters is not None:
             self.optimizer_external_parameters = external_parameters
+        if dispatcher is not None:
+            self.optimizer_parameters = dispatcher
         return self
 
     def with_requirements(self, requirements: PipelineComposerRequirements):

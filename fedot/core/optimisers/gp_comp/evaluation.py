@@ -29,6 +29,7 @@ G = TypeVar('G', bound=Serializable)
 
 class DelegateEvaluator:
     """Interface for delegate evaluator of graphs."""
+
     @property
     @abstractmethod
     def is_enabled(self) -> bool:
@@ -96,18 +97,17 @@ class ObjectiveEvaluationDispatcher(ABC):
         return individuals_evaluated
 
 
-class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
-    """Evaluates objective function on population using multiprocessing pool
-    and optionally model evaluation cache with RemoteEvaluator.
+class BasePipelineEvaluationDispatcher(ObjectiveEvaluationDispatcher):
+    """Base class for disptchers that evaluate objective function on population.
 
-    Usage: call `dispatch(objective_function)` to get evaluation function.
+        Usage: call `dispatch(objective_function)` to get evaluation function.
 
-    Args:
-        adapter: adapter for graphs
-        n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
-        graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
-        delegate_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
-    """
+        Args:
+            adapter: adapter for graphs
+            n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
+            graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
+            delegate_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
+        """
 
     def __init__(self,
                  adapter: BaseOptimizationAdapter,
@@ -123,46 +123,25 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         self.timer = None
         self.logger = default_log(self)
         self._n_jobs = n_jobs
-        self._reset_eval_cache()
+
+        self.evaluation_cache = None
 
     def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
         """Return handler to this object that hides all details
         and allows only to evaluate population with provided objective."""
         self._objective_eval = objective
         self.timer = timer or get_forever_timer()
-        return self.evaluate_with_cache
+        return self.evaluate_population
 
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         self._post_eval_callback = callback
 
-    def evaluate_with_cache(self, population: PopulationT) -> Optional[PopulationT]:
-        reversed_population = list(reversed(population))
-        self._remote_compute_cache(reversed_population)
-        evaluated_population = self.evaluate_population(reversed_population)
-        self._reset_eval_cache()
-        return evaluated_population
-
+    @abstractmethod
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
-        individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
-        # Evaluate individuals without valid fitness in parallel.
-        n_jobs = determine_n_jobs(self._n_jobs, self.logger)
-        parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        eval_func = partial(self.evaluate_single, logs_initializer=Log().get_parameters())
-        evaluation_results = parallel(delayed(eval_func)(ind.graph, ind.uid) for ind in individuals_to_evaluate)
-        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
-        # If there were no successful evals then try once again getting at least one,
-        # even if time limit was reached
-        successful_evals = individuals_evaluated + individuals_to_skip
-        if not successful_evals:
-            single_ind = choice(individuals)
-            evaluation_result = eval_func(single_ind.graph, single_ind.uid, with_time_limit=False)
-            successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
-        MemoryAnalytics.log(self.logger,
-                            additional_info='parallel evaluation of population',
-                            logging_level=logging.INFO)
-        return successful_evals
+        raise NotImplementedError()
 
-    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True, cache_key: Optional[str] = None,
+    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True,
+                        cache_key: Optional[str] = None,
                         logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> OptionalEvalResult:
 
         if with_time_limit and self.timer.is_time_limit_reached():
@@ -170,8 +149,6 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if logs_initializer is not None:
             # in case of multiprocessing run
             Log.setup_in_mp(*logs_initializer)
-
-        graph = self.evaluation_cache.get(cache_key, graph)
 
         adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
         start_time = timeit.default_timer()
@@ -198,6 +175,72 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return fitness, domain_graph
 
+
+class MultiprocessingDispatcher(BasePipelineEvaluationDispatcher):
+    """Evaluates objective function on population using multiprocessing pool
+    and optionally model evaluation cache with RemoteEvaluator.
+
+    Usage: call `dispatch(objective_function)` to get evaluation function.
+
+    Args:
+        adapter: adapter for graphs
+        n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
+        graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
+        delegate_evaluator: delegate graph fitter (e.g. for remote graph fitting before evaluation)
+    """
+
+    def __init__(self,
+                 adapter: BaseOptimizationAdapter,
+                 n_jobs: int = 1,
+                 graph_cleanup_fn: Optional[GraphFunction] = None,
+                 delegate_evaluator: Optional[DelegateEvaluator] = None):
+
+        super().__init__(adapter, n_jobs, graph_cleanup_fn, delegate_evaluator)
+
+        self._reset_eval_cache()
+
+    def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
+        """Return handler to this object that hides all details
+        and allows only to evaluate population with provided objective."""
+        super().dispatch(objective, timer)
+        return self.evaluate_with_cache
+
+    def evaluate_with_cache(self, population: PopulationT) -> Optional[PopulationT]:
+        reversed_population = list(reversed(population))
+        self._remote_compute_cache(reversed_population)
+        evaluated_population = self.evaluate_population(reversed_population)
+        self._reset_eval_cache()
+        return evaluated_population
+
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
+        individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
+        # Evaluate individuals without valid fitness in parallel.
+        n_jobs = determine_n_jobs(self._n_jobs, self.logger)
+
+        parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
+        eval_func = partial(self.evaluate_single, logs_initializer=Log().get_parameters())
+        evaluation_results = parallel(delayed(eval_func)(ind.graph, ind.uid) for ind in individuals_to_evaluate)
+        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
+        # If there were no successful evals then try once again getting at least one,
+        # even if time limit was reached
+        successful_evals = individuals_evaluated + individuals_to_skip
+        if not successful_evals:
+            single_ind = choice(individuals)
+            evaluation_result = eval_func(single_ind.graph, single_ind.uid, with_time_limit=False)
+            successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
+        MemoryAnalytics.log(self.logger,
+                            additional_info='parallel evaluation of population',
+                            logging_level=logging.INFO)
+        return successful_evals
+
+    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit: bool = True,
+                        cache_key: Optional[str] = None,
+                        logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> OptionalEvalResult:
+
+        graph = self.evaluation_cache.get(cache_key, graph)
+        eval_res = super().evaluate_single(graph, uid_of_individual, with_time_limit, cache_key, logs_initializer)
+        return eval_res
+
     def _reset_eval_cache(self):
         self.evaluation_cache: Dict[str, Graph] = {}
 
@@ -210,53 +253,22 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_graphs)}
 
 
-class SimpleDispatcher(ObjectiveEvaluationDispatcher):
-    """Evaluates objective function on population.
+class SequentialDispatcher(MultiprocessingDispatcher):
+    """Evaluates objective function on population in sequential way.
 
-    Usage: call `dispatch(objective_function)` to get evaluation function.
+        Usage: call `dispatch(objective_function)` to get evaluation function.
     """
-
-    def __init__(self, adapter: BaseOptimizationAdapter):
-        self._adapter = adapter
-        self._objective_eval = None
-        self.timer = None
-
-    def dispatch(self, objective: ObjectiveFunction, timer: Optional[Timer] = None) -> EvaluationOperator:
-        """Return handler to this object that hides all details
-        and allows only to evaluate population with provided objective."""
-        self._objective_eval = objective
-        self.timer = timer or get_forever_timer()
-        return self.evaluate_population
 
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
         evaluation_results = [self.evaluate_single(ind.graph, ind.uid) for ind in individuals_to_evaluate]
         individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
         evaluated_population = individuals_evaluated + individuals_to_skip or None
+
+        MemoryAnalytics.log(self.logger,
+                            additional_info='sequential evaluation of population',
+                            logging_level=logging.INFO)
         return evaluated_population
-
-    def evaluate_single(self, graph: OptGraph, uid_of_individual: str, with_time_limit=True) -> OptionalEvalResult:
-        if with_time_limit and self.timer.is_time_limit_reached():
-            return None
-
-        adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
-        start_time = timeit.default_timer()
-        fitness, graph = adapted_evaluate(graph)
-        end_time = timeit.default_timer()
-
-        eval_time_iso = datetime.now().isoformat()
-
-        eval_res = GraphEvalResult(
-            uid_of_individual=uid_of_individual, fitness=fitness, graph=graph, metadata={
-                'computation_time_in_seconds': end_time - start_time,
-                'evaluation_time_iso': eval_time_iso
-            }
-        )
-        return eval_res
-
-    def _evaluate_graph(self, graph: Graph) -> Tuple[Fitness, Graph]:
-        fitness = self._objective_eval(graph)
-        return fitness, graph
 
 
 def determine_n_jobs(n_jobs=-1, logger=None):

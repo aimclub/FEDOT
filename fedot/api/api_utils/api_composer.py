@@ -1,6 +1,7 @@
 import datetime
 import gc
 import os
+from itertools import chain
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
@@ -9,14 +10,12 @@ from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
@@ -24,13 +23,15 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -97,8 +98,11 @@ class ApiComposer:
         task = api_params['task']
 
         # define available operations
-        available_operations = composer_params.get('available_operations',
-                                                   OperationsPreset(task, preset).filter_operations_by_preset())
+        if 'available_operations' not in composer_params or composer_params['available_operations'] is None:
+            available_operations = OperationsPreset(task, preset).filter_operations_by_preset()
+        else:
+            available_operations = composer_params['available_operations']
+
         primary_operations, secondary_operations = \
             PipelineOperationRepository.divide_operations(available_operations, task)
 
@@ -118,6 +122,7 @@ class ApiComposer:
             early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
+            parallelization_mode=api_params['parallelization_mode'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
@@ -166,7 +171,7 @@ class ApiComposer:
     def _init_graph_generation_params(task: Task, preset: str, available_operations: List[str],
                                       requirements: PipelineComposerRequirements):
         advisor = PipelineChangeAdvisor(task)
-        graph_model_repo = PipelineOperationRepository()\
+        graph_model_repo = PipelineOperationRepository() \
             .from_available_operations(task=task, preset=preset,
                                        available_operations=available_operations)
         node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
@@ -195,27 +200,33 @@ class ApiComposer:
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)
+
+        n_jobs = determine_n_jobs(api_params['n_jobs'])
+
         with self.timer.launch_assumption_fit():
             fitted_assumption = \
                 assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                         pipelines_cache=self.pipelines_cache,
-                                                                        preprocessing_cache=self.preprocessing_cache)
+                                                                        preprocessing_cache=self.preprocessing_cache,
+                                                                        eval_n_jobs=n_jobs)
 
         self.log.message(
             f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        n_jobs = determine_n_jobs(api_params['n_jobs'])
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
 
         composer_requirements = ApiComposer._init_composer_requirements(api_params, composer_params,
                                                                         self.timer.timedelta_composing,
                                                                         self.preset_name)
 
+        available_operations = list(chain(composer_requirements.primary,
+                                          composer_requirements.secondary))
+
         metric_functions = self.obtain_metric(task, composer_params['metric'])
         graph_generation_params = \
             self._init_graph_generation_params(task=task,
                                                preset=preset,
-                                               available_operations=composer_params.get('available_operations'),
+                                               available_operations=available_operations,
                                                requirements=composer_requirements)
         self.log.message(f"AutoML configured."
                          f" Parameters tuning: {with_tuning}."
@@ -268,6 +279,7 @@ class ApiComposer:
             .build()
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
+
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
@@ -311,7 +323,6 @@ class ApiComposer:
                 self.was_tuned = False
                 self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
-                self.was_tuned = True
                 self.log.message('Hyperparameters tuning finished')
         else:
             self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
@@ -328,7 +339,9 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, timeout=5, n_jobs=1, show_progress=True, logger=None)
+    api_params_dict = dict(train_data=None, task=Task, timeout=5,
+                           n_jobs=1, parallelization_mode='populational',
+                           show_progress=True, logger=None)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
@@ -337,7 +350,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 optimizer_external_params=None, collect_intermediate_metric=False,
                                 max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
-                                keep_history=True, history_dir=None,)
+                                keep_history=True, history_dir=None)
 
     tuner_params_dict = dict(with_tuning=False)
 

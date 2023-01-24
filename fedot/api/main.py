@@ -64,6 +64,7 @@ class Fedot:
         safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
             instead of oneHot encoder if summary cardinality of categorical features is high.
         n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
+        parallelization_mode: type of evaluation for candidate solution groups (populational or sequential)
         max_depth: max depth of the pipeline
         max_arity: max arity of the pipeline nodes
         pop_size: population size for composer
@@ -107,7 +108,8 @@ class Fedot:
                  task_params: TaskParams = None,
                  seed=None, logging_level: int = logging.ERROR,
                  safe_mode=False,
-                 n_jobs: int = 1,
+                 n_jobs: int = -1,
+                 parallelization_mode: str = 'populational',
                  **composer_tuner_params
                  ):
 
@@ -119,7 +121,8 @@ class Fedot:
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs}
+                        'seed': seed, 'logging_level': logging_level,
+                        'n_jobs': n_jobs, 'parallelization_mode': parallelization_mode}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
@@ -170,8 +173,12 @@ class Fedot:
         recommendations = self.data_analyser.give_recommendation(self.train_data)
         self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
         self.params.accept_and_apply_recommendations(self.train_data, recommendations)
+
         self._init_remote_if_necessary()
-        self.params.update_available_operations_by_preset(self.train_data)
+
+        if self.params.api_params['preset'] != 'auto':
+            self.params.update_available_operations_by_preset(self.train_data)
+
         self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
@@ -182,6 +189,9 @@ class Fedot:
         else:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
+
+            if self.current_pipeline is None:
+                raise ValueError('No models were found')
 
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
