@@ -48,7 +48,7 @@ def get_simple_linear_graph() -> OptGraph:
     """
     Returns simple linear graph
     """
-    pipeline = PipelineBuilder().add_node('scaling').add_node('poly_features').add_node('rf').to_pipeline()
+    pipeline = PipelineBuilder().add_node('scaling').add_node('poly_features').add_node('rf').build()
     return PipelineAdapter().adapt(pipeline)
 
 
@@ -70,7 +70,7 @@ def get_ts_forecasting_graph() -> OptGraph:
     """
     Returns simple linear graph for ts forecasting
     """
-    pipeline = PipelineBuilder().add_node('smoothing').add_node('clstm').to_pipeline()
+    pipeline = PipelineBuilder().add_node('smoothing').add_node('clstm').build()
     return PipelineAdapter().adapt(pipeline)
 
 
@@ -97,7 +97,7 @@ def get_tree_graph() -> OptGraph:
     """
     pipeline = PipelineBuilder().add_node('scaling') \
         .add_branch('pca', branch_idx=1) \
-        .join_branches('poly_features').add_node('rf').to_pipeline()
+        .join_branches('poly_features').add_node('rf').build()
     return PipelineAdapter().adapt(pipeline)
 
 
@@ -281,9 +281,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
 
 
 @pytest.mark.parametrize('pipeline, requirements, params',
-                         [(PipelineBuilder().add_node('scaling').add_node('rf').to_pipeline(),
+                         [(PipelineBuilder().add_node('scaling').add_node('rf').build(),
                            *get_requirements_and_params_for_task(TaskTypesEnum.classification)),
-                          (PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline(),
+                          (PipelineBuilder().add_node('smoothing').add_node('ar').build(),
                            *get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
                           ])
 def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
@@ -296,7 +296,7 @@ def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: Pi
 
 def test_mutation_with_single_node():
     adapter = PipelineAdapter()
-    graph = adapter.adapt(PipelineBuilder().add_node('rf').to_pipeline())
+    graph = adapter.adapt(PipelineBuilder().add_node('rf').build())
     new_graph = deepcopy(graph)
     mutation = get_mutation_obj()
     new_graph = mutation._reduce_mutation(new_graph)

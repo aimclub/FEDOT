@@ -14,7 +14,7 @@ SOME_PIPELINE_RULES = (
 
 
 def get_valid_pipeline():
-    pipeline = PipelineBuilder().add_sequence('logit', 'logit', 'logit').to_pipeline()
+    pipeline = PipelineBuilder().add_sequence('logit', 'logit', 'logit').build()
     adapter = PipelineAdapter()
     opt_graph = adapter.adapt(pipeline)
     return opt_graph, pipeline, adapter

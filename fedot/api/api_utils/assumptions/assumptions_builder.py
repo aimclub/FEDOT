@@ -6,10 +6,11 @@ from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
 from fedot.core.log import default_log
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.pipelines.node import Node
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 class AssumptionsBuilder:
@@ -44,7 +45,7 @@ class AssumptionsBuilder:
         raise NotImplementedError('abstract')
 
     def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
-        return [builder.to_pipeline() for builder in self.to_builders(initial_node)]
+        return [builder.build() for builder in self.to_builders(initial_node)]
 
 
 class UniModalAssumptionsBuilder(AssumptionsBuilder):
@@ -83,7 +84,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.to_pipeline()):
+            if self.ops_filter.satisfies(candidate_builder.build()):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 

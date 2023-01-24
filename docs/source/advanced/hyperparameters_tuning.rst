@@ -25,7 +25,7 @@ To initialize a tuner you can use ``TunerBuilder``.
     task = Task(TaskTypesEnum.classification)
     train_data = InputData.from_csv('train_file.csv')
     pipeline = PipelineBuilder().add_node('knn', branch_idx=0).add_branch('logit', branch_idx=1)\
-        .grow_branches('logit', 'rf').join_branches('knn').to_pipeline()
+        .grow_branches('logit', 'rf').join_branches('knn').build()
 
     pipeline_tuner = TunerBuilder(task).build(train_data)
 
@@ -307,7 +307,7 @@ Tuning all hyperparameters simultaniously
     train_data = InputData.from_csv('train_file.csv')
 
     pipeline = PipelineBuilder().add_node('knn', branch_idx=0).add_branch('logit', branch_idx=1) \
-        .grow_branches('logit', 'rf').join_branches('knn').to_pipeline()
+        .grow_branches('logit', 'rf').join_branches('knn').build()
 
     pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
@@ -374,7 +374,7 @@ Sequential tuning
         .add_sequence('locf', branch_idx=0) \
         .add_sequence('lagged', branch_idx=1) \
         .join_branches('ridge') \
-        .to_pipeline()
+        .build()
 
     pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
@@ -426,7 +426,7 @@ Tuning of a node
 
     train_data = get_regression_data()
 
-    pipeline = PipelineBuilder().add_node('dtreg').grow_branches('lasso').to_pipeline()
+    pipeline = PipelineBuilder().add_node('dtreg').grow_branches('lasso').build()
 
 
     pipeline_tuner = TunerBuilder(task) \

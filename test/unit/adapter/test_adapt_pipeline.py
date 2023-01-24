@@ -15,22 +15,22 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 def get_pipelines():
     one_node_pipeline = PipelineBuilder() \
         .add_sequence('logit') \
-        .to_pipeline()
+        .build()
     linear_pipeline = PipelineBuilder() \
         .add_sequence('logit', 'logit', 'logit') \
-        .to_pipeline()
+        .build()
     branching_structure = PipelineBuilder() \
         .add_node('operation_a') \
         .add_branch('operation_a', 'operation_f') \
         .join_branches('operation_f') \
-        .to_pipeline()
+        .build()
     branching_structure2 = PipelineBuilder() \
         .add_node('operation_a') \
         .add_branch('operation_b', 'operation_c') \
         .grow_branches('operation_d', None) \
         .join_branches('operation_f') \
         .add_node('operation_a') \
-        .to_pipeline()
+        .build()
     node_a = PrimaryNode('logit')
     node_b = SecondaryNode('logit', nodes_from=[node_a])
     node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])

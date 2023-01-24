@@ -24,6 +24,11 @@ class PipelineOptNodeFactory(OptNodeFactory):
 
     def exchange_node(self,
                       node: OptNode):
+        """
+        Returns new node based on a current node using information about node and advisor.
+
+        :param node: current node that must be changed.
+        """
         candidates = self.graph_model_repository.get_operations(is_primary=False) \
             if node.nodes_from else self.graph_model_repository.get_operations(is_primary=True)
         candidates = self.advisor.propose_change(node=node,

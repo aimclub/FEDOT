@@ -27,17 +27,17 @@ _ = classification_dataset
 
 
 def pipeline_first_test():
-    pipeline = PipelineBuilder().add_node('rf').add_node('rf').to_pipeline()
+    pipeline = PipelineBuilder().add_node('rf').add_node('rf').build()
     return pipeline
 
 
 def pipeline_second_test():
-    pipeline = PipelineBuilder().add_node('knn').add_node('knn').to_pipeline()
+    pipeline = PipelineBuilder().add_node('knn').add_node('knn').build()
     return pipeline
 
 
 def pipeline_third_test():
-    pipeline = PipelineBuilder().add_node('xgboost').to_pipeline()
+    pipeline = PipelineBuilder().add_node('xgboost').build()
     return pipeline
 
 

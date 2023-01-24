@@ -16,7 +16,7 @@ def ts_ets_pipeline():
                                                                      'seasonal': 'add',
                                                                      'damped_trend': False,
                                                                      'seasonal_periods': 20})
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -36,7 +36,7 @@ def ts_ets_ridge_pipeline():
                       branch_idx=0)\
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -49,7 +49,7 @@ def ts_glm_pipeline():
 
     Where glm - Generalized linear model
     """
-    pipeline = PipelineBuilder().add_node('glm', params={'family': 'gaussian'}).to_pipeline()
+    pipeline = PipelineBuilder().add_node('glm', params={'family': 'gaussian'}).build()
     return pipeline
 
 
@@ -66,7 +66,7 @@ def ts_glm_ridge_pipeline():
         .add_sequence('glm', branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -79,7 +79,7 @@ def ts_polyfit_pipeline(degree):
 
     Where polyfit - Polynomial interpolation
     """
-    pipeline = PipelineBuilder().add_node('polyfit', params={'degree': degree}).to_pipeline()
+    pipeline = PipelineBuilder().add_node('polyfit', params={'degree': degree}).build()
     return pipeline
 
 
@@ -96,7 +96,7 @@ def ts_polyfit_ridge_pipeline(degree):
         .add_sequence(('polyfit', {'degree': degree}), branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -112,7 +112,7 @@ def ts_complex_ridge_pipeline():
         .add_sequence('lagged', 'ridge', branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -129,7 +129,7 @@ def ts_complex_ridge_smoothing_pipeline():
         .add_sequence('smoothing', 'lagged', 'ridge', branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -146,7 +146,7 @@ def ts_complex_dtreg_pipeline(first_node='lagged'):
         .add_sequence(first_node, 'dtreg', branch_idx=0) \
         .add_sequence(first_node, 'dtreg', branch_idx=1).join_branches('rfr')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -165,7 +165,7 @@ def ts_multiple_ets_pipeline():
         .add_sequence('ets', branch_idx=2) \
         .join_branches('lasso')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -178,7 +178,7 @@ def ts_ar_pipeline():
 
     Where ar - auto regression
     """
-    pipeline = PipelineBuilder().add_node('ar').to_pipeline()
+    pipeline = PipelineBuilder().add_node('ar').build()
     return pipeline
 
 
@@ -190,7 +190,7 @@ def ts_arima_pipeline():
       :width: 55%
 
     """
-    pipeline = PipelineBuilder().add_node("arima").to_pipeline()
+    pipeline = PipelineBuilder().add_node("arima").build()
     return pipeline
 
 
@@ -202,7 +202,7 @@ def ts_stl_arima_pipeline():
       :width: 55%
 
     """
-    pipeline = PipelineBuilder().add_node("stl_arima").to_pipeline()
+    pipeline = PipelineBuilder().add_node("stl_arima").build()
     return pipeline
 
 
@@ -220,7 +220,7 @@ def ts_locf_ridge_pipeline():
         .add_sequence('lagged', branch_idx=1) \
         .join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -238,7 +238,7 @@ def ts_naive_average_ridge_pipeline():
         .add_sequence('lagged', branch_idx=1) \
         .join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline
 
 
@@ -262,5 +262,5 @@ def clstm_pipeline():
         .add_sequence(('clstm', clstm_params), branch_idx=1) \
         .join_branches('ridge')
 
-    pipeline = pip_builder.to_pipeline()
+    pipeline = pip_builder.build()
     return pipeline

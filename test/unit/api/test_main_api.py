@@ -499,7 +499,7 @@ def test_api_params():
                   'pop_size': default_int_value, 'num_of_generations': default_int_value,
                   'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
                   'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
-                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').to_pipeline(),
+                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
                   'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
                   'metric': RegressionMetricsEnum.SMAPE,
                   'collect_intermediate_metric': True, 'preset': 'fast_train',
@@ -517,7 +517,7 @@ def test_api_params():
                                'genetic_scheme': GeneticSchemeTypesEnum.steady_state,
                                'history_folder': 'history',
                                'initial_assumption': PipelineBuilder().add_node('lagged').add_node(
-                                   'ridge').to_pipeline(),
+                                   'ridge').build(),
                                'max_arity': default_int_value,
                                'max_depth': default_int_value,
                                'max_pipeline_fit_time': default_int_value,

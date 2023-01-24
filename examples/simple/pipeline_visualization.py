@@ -69,7 +69,7 @@ def main():
     show_customized(pipeline)
     show_custom_colors(pipeline)
     show_complex_colors(pipeline)
-    show_complex_colors(PipelineBuilder(*pipeline.nodes).add_node('xgboost').to_pipeline())
+    show_complex_colors(PipelineBuilder(*pipeline.nodes).add_node('xgboost').build())
     show_pyvis(pipeline)
     show_pyvis_custom_colors(pipeline)
     try:
