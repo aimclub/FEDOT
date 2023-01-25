@@ -76,14 +76,13 @@ class CLSTMImplementation(ModelImplementation):
         data_loader = self._create_dataloader(train_data)
 
         self.model.train()
-        for epoch in tqdm(range(self.params.get("num_epochs"))):
+        for epoch in range(self.params.get("num_epochs")):
             for x, y in data_loader:
                 self.optimizer.zero_grad()
                 x = x.to(self.device)
                 y = y.to(self.device)
                 y_pred = self.forward(x)
                 loss = self.criterion(y_pred, y)
-                print(loss)
                 loss.backward()
                 self.optimizer.step()
         return self.model
