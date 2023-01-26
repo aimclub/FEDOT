@@ -52,8 +52,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        BasePreprocessor.mark_as_preprocessed(data)
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
@@ -67,8 +66,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        BasePreprocessor.mark_as_preprocessed(data)
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -83,7 +81,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -99,7 +97,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def label_encoding_for_fit(self, data: InputData, source_name: str = DEFAULT_SOURCE_NAME):
@@ -111,7 +109,7 @@ class BasePreprocessor(ABC):
             data: data to transform
             source_name: name of data source node
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def cut_dataset(self, data: InputData, border: int):
@@ -122,7 +120,7 @@ class BasePreprocessor(ABC):
             data: data to be cut
             border: number of objects to keep
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
@@ -135,7 +133,7 @@ class BasePreprocessor(ABC):
         Returns:
             encoded or untouched column
         """
-        return column_to_transform
+        raise NotImplementedError()
 
     @abstractmethod
     def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
@@ -150,7 +148,7 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -165,7 +163,7 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        return data
+        raise NotImplementedError()
 
     @abstractmethod
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
@@ -179,7 +177,7 @@ class BasePreprocessor(ABC):
         Returns:
             ``result`` with restored index
         """
-        return result
+        raise NotImplementedError()
 
     @abstractmethod
     def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[
@@ -193,7 +191,7 @@ class BasePreprocessor(ABC):
         Returns:
             data with the replaced indices
         """
-        return test_data
+        raise NotImplementedError()
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData]):

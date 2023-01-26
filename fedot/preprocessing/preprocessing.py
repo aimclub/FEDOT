@@ -120,7 +120,8 @@ class DataPreprocessor(BasePreprocessor):
                 data[data_source_name] = self._prepare_obligatory_unimodal_for_fit(values,
                                                                                    source_name=data_source_name)
 
-        return super().obligatory_prepare_for_fit(data)
+        BasePreprocessor.mark_as_preprocessed(data)
+        return data
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_predict)
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
@@ -133,7 +134,8 @@ class DataPreprocessor(BasePreprocessor):
                 data[data_source_name] = self._prepare_obligatory_unimodal_for_predict(values,
                                                                                        source_name=data_source_name)
 
-        return super().obligatory_prepare_for_predict(data)
+        BasePreprocessor.mark_as_preprocessed(data)
+        return data
 
     @copy_doc(BasePreprocessor.optional_prepare_for_fit)
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[

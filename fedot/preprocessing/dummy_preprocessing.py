@@ -22,40 +22,42 @@ class DummyPreprocessor(BasePreprocessor):
         self.log = default_log(self)
 
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
-        return super().obligatory_prepare_for_fit(data)
+        BasePreprocessor.mark_as_preprocessed(data)
+        return data
 
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().obligatory_prepare_for_predict(data)
+        BasePreprocessor.mark_as_preprocessed(data)
+        return data
 
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().optional_prepare_for_fit(pipeline, data)
+        return data
 
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().optional_prepare_for_predict(pipeline, data)
+        return data
 
     def label_encoding_for_fit(self, data: InputData, source_name: str = ...):
-        return super().label_encoding_for_fit(data, source_name)
+        pass
 
     def cut_dataset(self, data: InputData, border: int):
-        return super().cut_dataset(data, border)
+        pass
 
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
-        return super().apply_inverse_target_encoding(column_to_transform)
+        return column_to_transform
 
     def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().convert_indexes_for_fit(pipeline, data)
+        return data
 
     def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().convert_indexes_for_predict(pipeline, data)
+        return data
 
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
-        return super().restore_index(input_data, result)
+        return result
 
     def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
-        return super().update_indices_for_time_series(test_data)
+        return test_data
