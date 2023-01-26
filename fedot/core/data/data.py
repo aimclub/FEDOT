@@ -635,7 +635,7 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     candidate_idx_cols = [columns_to_use[0], columns[0]]
     if index_col is None:
         defined_index = define_index_column(candidate_idx_cols)
-        if define_index_column is not None:
+        if defined_index is not None:
             index_col = defined_index
             logger.message(f'Used the column as index: "{index_col}".')
 
