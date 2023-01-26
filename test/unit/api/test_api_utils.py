@@ -65,8 +65,8 @@ def test_predefined_initial_assumption():
     model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
     model.params.accept_and_apply_recommendations(model.train_data, recommendations)
 
-    assert model.params.api_params['initial_assumption'] is not None
-    assert len(old_params.api_params) == len(model.params.api_params)
+    assert model.params.get('initial_assumption') is not None
+    assert len(old_params.to_dict()) == len(model.params.to_dict())
 
 
 @pytest.mark.parametrize('train_input', [
@@ -130,4 +130,4 @@ def test_api_composer_available_operations():
                   pop_size=500
                   )
     model.fit(train_data)
-    assert model.params.api_params['available_operations'] == available_operations
+    assert model.params.get('available_operations') == available_operations

@@ -14,7 +14,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
-from fedot.api.api_utils.api_composer import _divide_parameters
+from fedot.api.api_utils.params import _divide_parameters
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
@@ -574,7 +574,7 @@ def test_api_params():
     correct_tuner_params = {'with_tuning': True}
 
     model = Fedot(**fedot_params)
-    api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)
+    api_params, composer_params, tuner_params = _divide_parameters(model.params.to_dict())
 
     assert correct_api_params.items() <= api_params.items()
 
@@ -587,7 +587,7 @@ def test_unknown_param_raises_error():
     api_params = {'problem': 'classification', 'unknown': 2}
     try:
         model = Fedot(**api_params)
-        _divide_parameters(model.params.api_params)
+        _divide_parameters(model.params.to_dict())
     except KeyError as e:
         assert str(e) == "'Invalid key parameter unknown'"
 
