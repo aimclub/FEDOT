@@ -79,7 +79,7 @@ def get_ts_forecasting_graph_with_boosting() -> Pipeline:
     Returns simple linear graph for ts forecasting with boosting
     """
     node_init = PipelineNode('smoothing')
-    node_model = PipelineNode('clstm', nodes_from=[node_init])
+    node_model = PipelineNode('ar', nodes_from=[node_init])
     node_lagged = PipelineNode('lagged', nodes_from=[node_init])
     node_decompose = PipelineNode('decompose',
                                    [node_model, node_lagged])

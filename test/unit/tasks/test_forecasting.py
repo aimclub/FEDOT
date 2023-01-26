@@ -6,10 +6,11 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import pytest
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
-from examples.simple.time_series_forecasting.ts_pipelines import clstm_pipeline
+from examples.simple.time_series_forecasting.ts_pipelines import cgru_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -294,14 +295,13 @@ def test_multistep_in_sample_forecasting():
     assert len(predicted) == horizon
 
 
-def test_clstm_forecasting():
+def test_cgru_forecasting():
     horizon = 5
     window_size = 20
     n_steps = 100
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
-    node_root = PipelineNode("clstm")
-    node_root.parameters = {
+    pipeline = PipelineBuilder().add_node('lagged').add_node('cgru', params = {
         'input_size': 1,
         'window_size': window_size,
         'hidden_size': 100,
@@ -312,21 +312,19 @@ def test_clstm_forecasting():
         'cnn2_output_size': 32,
         'batch_size': 64,
         'num_epochs': 2
-    }
-
-    pipeline = Pipeline(node_root)
+    }).to_pipeline()
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data).predict[0]
 
     assert len(predicted) == horizon
 
 
-def test_clstm_in_pipeline():
+def test_cgru_in_pipeline():
     horizon = 5
     n_steps = 100
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
-    pipeline = clstm_pipeline()
+    pipeline = cgru_pipeline()
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data).predict[0]
 

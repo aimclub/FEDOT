@@ -152,7 +152,7 @@ class SearchSpace:
                 }
 
             ]])},
-            'clstm': {
+            'cgru': {
                 'window_size': (hp.uniform, [1, 200]),
                 'hidden_size': (hp.uniform, [20, 200]),
                 'teacher_forcing': (hp.uniform, [0, 1]),

@@ -152,7 +152,7 @@
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
-    "clstm": {
+    "cgru": {
       "meta": "ts_model",
       "presets": ["ts"],
       "tags": [

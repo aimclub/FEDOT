@@ -187,7 +187,7 @@ def test_ts_models_fit_predict_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                              tags=['time_series'])
+                                              tags=['non_lagged'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -214,7 +214,7 @@ def test_ts_models_dt_idx_fit_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                              tags=['time_series'])
+                                              tags=['non_lagged'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")

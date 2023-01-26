@@ -46,30 +46,25 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
     return train_test_data_setup(data), task
 
 
-def clstm_forecasting():
-    """ Example of clstm pipeline serialization """
+def cgru_forecasting():
+    """ Example of cgru pipeline serialization """
     horizon = 12
     window_size = 200
     train_data, test_data = get_ts_data('salaries', horizon)
 
-    pipeline = PipelineBuilder().add_node("lagged", params={'window_size': window_size}).add_node("clstm", params={
+    pipeline = PipelineBuilder().add_node("lagged", params={'window_size': window_size}).add_node("cgru", params={
         'hidden_size': 300,
-        'learning_rate': 0.0004,
+        'learning_rate': 0.001,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
         'num_epochs': 50}).to_pipeline()
-
     pipeline.fit(train_data)
     prediction_before_export = pipeline.predict(test_data).predict[0]
 
     print(f'Before export {prediction_before_export[:4]}')
-
-    # Export it
-    pipeline_path = "clstm"
-    pipeline.save(path=pipeline_path)
 
 
     plot_info = [
@@ -94,4 +89,4 @@ def clstm_forecasting():
 
 
 if __name__ == '__main__':
-    clstm_forecasting()
+    cgru_forecasting()

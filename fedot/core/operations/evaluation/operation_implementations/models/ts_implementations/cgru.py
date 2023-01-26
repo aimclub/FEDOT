@@ -11,7 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 )
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -31,11 +30,11 @@ except ModuleNotFoundError:
     nn = TorchMock
 
 
-class CLSTMImplementation(ModelImplementation):
+class CGRUImplementation(ModelImplementation):
     def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.device = self._get_device()
-        self.model = LSTMNetwork(
+        self.model = CGRUNetwork(
             hidden_size=int(params.get("hidden_size")),
             cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
             cnn1_output_size=int(params.get("cnn1_output_size")),
@@ -160,7 +159,7 @@ class CLSTMImplementation(ModelImplementation):
         return array * self.std + self.mu
 
 
-class LSTMNetwork(nn.Module):
+class CGRUNetwork(nn.Module):
     def __init__(self,
                  hidden_size=200,
                  cnn1_kernel_size=5,
@@ -179,7 +178,7 @@ class LSTMNetwork(nn.Module):
             nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
             nn.ReLU()
         )
-        self.lstm = nn.GRU(cnn2_output_size, self.hidden_size, dropout=0.1)
+        self.gru = nn.GRU(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = None
 
@@ -189,15 +188,13 @@ class LSTMNetwork(nn.Module):
     def init_hidden(self, batch_size, device):
         self.hidden_cell = torch.zeros(1, batch_size, self.hidden_size).to(device)
 
-
     def forward(self, x):
         if self.hidden_cell is None:
             raise Exception
         x = self.conv_block1(x)
         x = self.conv_block2(x)
         x = x.permute(2, 0, 1)
-        out, self.hidden_cell = self.lstm(x, self.hidden_cell)
-        #hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        out, self.hidden_cell = self.gru(x, self.hidden_cell)
         predictions = self.linear(self.hidden_cell)
 
         return predictions
