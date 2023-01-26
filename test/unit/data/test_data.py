@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, get_df_from_csv
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -207,3 +207,38 @@ def test_data_convert_dt_indexes_correct():
     assert np.all(train_data.supplementary_data.non_int_idx == old_train_data_idx)
     assert np.all(train_pred_data.supplementary_data.non_int_idx == old_train_pred_data_idx)
     assert np.all(test_data.supplementary_data.non_int_idx == old_test_data_idx)
+
+
+@pytest.mark.parametrize('columns_to_use, possible_idx_keywords',
+                         [
+                             (None, ['b', 'c', 'a', 'some']),
+                             (['b', 'c'], ['a', 'some'])
+                         ])
+def test_define_index_from_csv_with_first_index_column(columns_to_use, possible_idx_keywords):
+    dummy_csv_path = fedot_project_root().joinpath('test/data/dummy.csv')
+    df = get_df_from_csv(dummy_csv_path, delimiter=',',
+                         columns_to_use=columns_to_use, possible_idx_keywords=possible_idx_keywords)
+    assert df.index.name == 'a'
+    assert np.array_equal(df.index, [1, 2, 3])
+    assert np.array_equal(df.columns, ['b', 'c'])
+    assert np.array_equal(df, list(zip([4, 5, 6], [7, 8, 9])))
+
+
+def test_define_index_from_csv_with_non_first_index_column():
+    dummy_csv_path = fedot_project_root().joinpath('test/data/dummy.csv')
+    df = get_df_from_csv(dummy_csv_path, delimiter=',', columns_to_use=['b', 'c'],
+                         possible_idx_keywords=['a', 'b', 'c', 'some'])
+    assert df.index.name == 'b'
+    assert np.array_equal(df.index, [4, 5, 6])
+    assert np.array_equal(df.columns, ['c'])
+    assert np.array_equal(df, [[7], [8], [9]])
+
+
+def test_define_index_from_csv_without_index_column():
+    dummy_csv_path = fedot_project_root().joinpath('test/data/dummy.csv')
+    df = get_df_from_csv(dummy_csv_path, delimiter=',',
+                         possible_idx_keywords=['some'])
+    assert df.index.name is None
+    assert np.array_equal(df.index, [0, 1, 2])
+    assert np.array_equal(df.columns, ['a', 'b', 'c'])
+    assert np.array_equal(df, list(zip([1, 2, 3], [4, 5, 6], [7, 8, 9])))
