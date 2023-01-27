@@ -67,13 +67,13 @@ def get_cholesterol_dataset():
     return train, test
 
 
-def get_dataset(task_type: str, validation_blocks: Optional[int] = None):
+def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 1000, n_features: int = 10):
     if task_type == 'regression':
-        data = get_synthetic_regression_data(n_samples=1000, n_features=10)
+        data = get_synthetic_regression_data(n_samples=n_samples, n_features=n_features)
         train_data, test_data = train_test_data_setup(data)
         threshold = np.std(test_data.target) * 0.05
     elif task_type == 'classification':
-        data = get_synthetic_classification_data(n_samples=1000, n_features=10)
+        data = get_synthetic_classification_data(n_samples=n_samples, n_features=n_features)
         train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
         threshold = 0.95
     elif task_type == 'clustering':
@@ -181,7 +181,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
             task_params=TsForecastingParams(forecast_length=forecast_length),
             validation_blocks=1)
     else:
-        train_data, test_data, _ = get_dataset(task_type)
+        train_data, test_data, _ = get_dataset(task_type, n_features=2500, n_samples=30)
         model = Fedot(problem=task_type, timeout=0.1)
 
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
