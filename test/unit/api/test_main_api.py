@@ -343,10 +343,10 @@ def test_pandas_input_for_api():
     train_data, test_data, threshold = get_dataset('classification')
 
     train_features = pd.DataFrame(train_data.features)
-    train_target = pd.Series(train_data.target)
+    train_target = pd.Series(train_data.target.reshape(-1))
 
     test_features = pd.DataFrame(test_data.features)
-    test_target = pd.Series(test_data.target)
+    test_target = pd.Series(test_data.target.reshape(-1))
 
     # task selection, initialisation of the framework
     baseline_model = Fedot(problem='classification')

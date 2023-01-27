@@ -26,7 +26,7 @@ class TunerBuilder:
         self.metric: MetricsEnum = MetricByTask.get_default_quality_metrics(task.task_type)[0]
         self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
         self.early_stopping_rounds = None
-        self.timeout = None
+        self.timeout = timedelta(minutes=5)
         self.search_space = SearchSpace()
         self.algo = tpe.suggest
         self.eval_time_constraint = None
