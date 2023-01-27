@@ -181,14 +181,14 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
             task_params=TsForecastingParams(forecast_length=forecast_length),
             validation_blocks=1)
     else:
-        train_data, test_data, _ = get_dataset(task_type, n_features=2500, n_samples=30)
+        train_data, test_data, _ = get_dataset(task_type, n_features=2000, n_samples=20)
         model = Fedot(problem=task_type, timeout=0.1)
 
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
     pred_before = model.predict(features=test_data)
     metric_before = model.get_metrics()
 
-    tuned_pipeline = deepcopy(model.tune(timeout=0.15))
+    tuned_pipeline = deepcopy(model.tune(timeout=0.1))
     pred_after = model.predict(features=test_data)
     metric_after = model.get_metrics()
 
