@@ -65,11 +65,14 @@ class TunerBuilder:
         self.early_stopping_rounds = early_stopping_rounds
         return self
 
-    def with_timeout(self, timeout: float):
+    def with_timeout(self, timeout: Union[timedelta, float]):
         if timeout in [-1, None]:
             self.timeout = None
         else:
-            self.timeout = timedelta(minutes=timeout)
+            if isinstance(timeout, timedelta):
+                self.timeout = timeout
+            elif isinstance(timeout, float):
+                self.timeout = timedelta(minutes=timeout)
         return self
 
     def with_eval_time_constraint(self, eval_time_constraint: Union[timedelta, int, float]):
