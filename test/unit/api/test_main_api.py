@@ -202,6 +202,21 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
         assert metric_before[metric_name] >= metric_after[metric_name]
 
 
+def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
+    # The forecast length must be equal to 5
+    forecast_length = 5
+    train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  validation_blocks=1)
+
+    model.fit(features=train_data, predefined_model='auto')
+    ts_forecast = model.predict(features=test_data)
+    _ = model.get_metrics(target=test_data.target, metric_names='rmse')
+
+    assert len(ts_forecast) == forecast_length
+
+
 @pytest.mark.parametrize('validation_blocks', [None, 2, 3])
 def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
