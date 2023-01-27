@@ -70,15 +70,9 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             data: with input data for preprocessing
         """
-        categorical_sources = list(self.binary_categorical_processors)
-        types_sources = list(self.types_correctors)
-        if len(categorical_sources) == len(types_sources) and types_sources:
+        if self.helpers_were_initialized:
             # Preprocessors have been already initialized
             return None
-        self.helpers_were_initialized = True
-
-        self.binary_categorical_processors = {}
-        self.types_correctors = {}
 
         if isinstance(data, InputData):
             self.binary_categorical_processors[DEFAULT_SOURCE_NAME] = BinaryCategoricalPreprocessor()
@@ -89,6 +83,7 @@ class DataPreprocessor(BasePreprocessor):
                 self.types_correctors[data_source] = TableTypesCorrector()
         else:
             raise ValueError('Unknown type of data.')
+        self.helpers_were_initialized = True
 
     def _init_main_target_source_name(self, multi_data: MultiModalData):
         """
@@ -212,7 +207,8 @@ class DataPreprocessor(BasePreprocessor):
             data = self._drop_rows_with_nan_in_target(data)
 
         # Train Label Encoder for categorical target if necessary and apply it
-        self._train_target_encoder(data, source_name)
+        if source_name not in self.target_encoders:
+            self._train_target_encoder(data, source_name)
         data.target = self._apply_target_encoding(data, source_name)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
@@ -222,8 +218,7 @@ class DataPreprocessor(BasePreprocessor):
         elif data_type_is_table(data):
             data = self._clean_extra_spaces(data)
             # Process binary categorical features
-            self.binary_categorical_processors[source_name].fit(data)
-            data = self.binary_categorical_processors[source_name].transform(data)
+            data = self.binary_categorical_processors[source_name].fit_transform(data)
 
         return data
 
@@ -276,19 +271,16 @@ class DataPreprocessor(BasePreprocessor):
         if not data_type_is_table(data):
             return data
 
-        if data_has_missing_values(data):
-            # Data contains missing values
-            has_imputer = PipelineStructureExplorer. \
-                check_structure_by_tag(pipeline, tag_to_check='imputation', source_name=source_name)
-            if not has_imputer:
-                data = self._apply_imputation_unidata(data, source_name)
-
-        if data_has_categorical_features(data):
-            # Data contains categorical features values
-            has_encoder = PipelineStructureExplorer. \
-                check_structure_by_tag(pipeline, tag_to_check='encoding', source_name=source_name)
-            if not has_encoder:
-                data = self._apply_categorical_encoding(data, source_name)
+        for has_problems, tag_to_check, action_if_no_tag in [
+            (data_has_missing_values, 'imputation', self._apply_imputation_unidata),
+            (data_has_categorical_features, 'encoding', self._apply_categorical_encoding)
+        ]:
+            if has_problems(data):
+                # Data contains missing values
+                has_tag = PipelineStructureExplorer.check_structure_by_tag(
+                    pipeline, tag_to_check=tag_to_check, source_name=source_name)
+                if not has_tag:
+                    data = action_if_no_tag(data, source_name)
 
     def _find_features_full_of_nans(self, data: InputData, source_name: str):
         """
@@ -427,7 +419,7 @@ class DataPreprocessor(BasePreprocessor):
 
     def _train_target_encoder(self, data: InputData, source_name: str):
         """
-        Converts string categorical target into integer column using `LabelEncoder`
+        Trains `LabelEncoder` if the ``data``'s target consists of strings
         
         Args:
             data: data to be encoded
@@ -443,7 +435,7 @@ class DataPreprocessor(BasePreprocessor):
 
     def _apply_target_encoding(self, data: InputData, source_name: str) -> np.ndarray:
         """
-        Applies trained encoder for target column
+        Applies trained encoder for target column if it is needed
 
         For example, target [['red'], ['green'], ['red']] will be converted into
         [[0], [1], [0]]
@@ -455,15 +447,15 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             encoded ``data``'s target
         """
-        if source_name in self.target_encoders:
+        encoder = self.target_encoders.get(source_name)
+        encoded_target = data.target
+        if encoder is not None:
             # Target encoders have already been fitted
             data.supplementary_data.column_types['target'] = [NAME_CLASS_INT]
-            encoded_target = self.target_encoders[source_name].transform(data.target)
+            encoded_target = encoder.transform(data.target)
             if len(encoded_target.shape) == 1:
                 encoded_target = encoded_target.reshape((-1, 1))
-            return encoded_target
-        else:
-            return data.target
+        return encoded_target
 
     @copy_doc(BasePreprocessor.apply_inverse_target_encoding)
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
