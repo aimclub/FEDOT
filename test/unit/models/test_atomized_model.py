@@ -13,6 +13,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -48,6 +49,7 @@ def create_atomized_model() -> AtomizedModel:
     """
     pipeline = create_pipeline()
     atomized_model = AtomizedModel(pipeline)
+    atomized_model.pipeline.preprocessor = DataPreprocessor()  # TODO: fix that stub
 
     return atomized_model
 
@@ -188,6 +190,7 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
+    fine_tuned_atomized_model.pipeline.preprocessor = DataPreprocessor() # TODO: fix that stub
     dummy_atomized_model.fit(None, train_data)
 
     fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)
