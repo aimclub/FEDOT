@@ -312,7 +312,7 @@ def test_cgru_forecasting():
         'cnn2_output_size': 32,
         'batch_size': 64,
         'num_epochs': 2
-    }).to_pipeline()
+    }).build()
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data).predict[0]
 

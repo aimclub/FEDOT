@@ -60,7 +60,7 @@ def cgru_forecasting():
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 50}).to_pipeline()
+        'num_epochs': 50}).build()
     pipeline.fit(train_data)
     prediction_before_export = pipeline.predict(test_data).predict[0]
 

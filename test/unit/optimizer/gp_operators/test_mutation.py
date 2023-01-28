@@ -70,7 +70,8 @@ def get_ts_forecasting_graph() -> OptGraph:
     """
     Returns simple linear graph for ts forecasting
     """
-    pipeline = PipelineBuilder().add_node('smoothing').add_node('clstm').build()
+    pipeline = PipelineBuilder().add_node('smoothing').add_node('ar').build()
+
     return PipelineAdapter().adapt(pipeline)
 
 
