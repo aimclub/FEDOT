@@ -170,7 +170,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
 ])
 def test_api_tune_correct(task_type, metric_name, pred_model):
     if task_type is 'ts_forecasting':
-        tuning_timeout = 0.5
+        tuning_timeout = 0.25
         forecast_length = 5
         train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
         model = Fedot(
