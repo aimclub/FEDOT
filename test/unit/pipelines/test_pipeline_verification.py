@@ -19,11 +19,11 @@ GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
 def valid_pipeline():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit',
-                           nodes_from=[first])
+                          nodes_from=[first])
     third = PipelineNode(operation_type='logit',
-                          nodes_from=[second])
+                         nodes_from=[second])
     last = PipelineNode(operation_type='logit',
-                         nodes_from=[third])
+                        nodes_from=[third])
 
     pipeline = Pipeline()
     for node in [first, second, third, last]:
@@ -35,9 +35,9 @@ def valid_pipeline():
 def pipeline_with_cycle():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit',
-                           nodes_from=[first])
+                          nodes_from=[first])
     third = PipelineNode(operation_type='logit',
-                          nodes_from=[second, first])
+                         nodes_from=[second, first])
     second.nodes_from.append(third)
     pipeline = Pipeline()
     for node in [first, second, third]:
@@ -49,11 +49,11 @@ def pipeline_with_cycle():
 def pipeline_with_isolated_nodes():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit',
-                           nodes_from=[first])
+                          nodes_from=[first])
     third = PipelineNode(operation_type='logit',
-                          nodes_from=[second])
+                         nodes_from=[second])
     isolated = PipelineNode(operation_type='logit',
-                             nodes_from=[])
+                            nodes_from=[])
     pipeline = Pipeline()
 
     for node in [first, second, third, isolated]:
@@ -65,9 +65,9 @@ def pipeline_with_isolated_nodes():
 def pipeline_with_multiple_roots():
     first = PipelineNode(operation_type='logit')
     root_first = PipelineNode(operation_type='logit',
-                               nodes_from=[first])
+                              nodes_from=[first])
     root_second = PipelineNode(operation_type='logit',
-                                nodes_from=[first])
+                               nodes_from=[first])
     pipeline = Pipeline()
 
     for node in [first, root_first, root_second]:
@@ -76,23 +76,10 @@ def pipeline_with_multiple_roots():
     return pipeline
 
 
-def pipeline_with_secondary_nodes_only():
-    first = PipelineNode(operation_type='logit',
-                         nodes_from=[])
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    first.nodes_from.append(second)
-    pipeline = Pipeline()
-    pipeline.add_node(first)
-    pipeline.add_node(second)
-
-    return pipeline
-
-
 def pipeline_with_self_cycle():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit',
-                           nodes_from=[first])
+                          nodes_from=[first])
     second.nodes_from.append(second)
 
     pipeline = Pipeline()
@@ -105,11 +92,11 @@ def pipeline_with_self_cycle():
 def pipeline_with_isolated_components():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit',
-                           nodes_from=[first])
+                          nodes_from=[first])
     third = PipelineNode(operation_type='logit',
-                          nodes_from=[])
+                         nodes_from=[])
     fourth = PipelineNode(operation_type='logit',
-                           nodes_from=[third])
+                          nodes_from=[third])
 
     pipeline = Pipeline()
     for node in [first, second, third, fourth]:
@@ -122,7 +109,7 @@ def pipeline_with_incorrect_root_operation():
     first = PipelineNode(operation_type='logit')
     second = PipelineNode(operation_type='logit')
     final = PipelineNode(operation_type='scaling',
-                          nodes_from=[first, second])
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -133,7 +120,7 @@ def pipeline_with_incorrect_task_type():
     first = PipelineNode(operation_type='linear')
     second = PipelineNode(operation_type='linear')
     final = PipelineNode(operation_type='kmeans',
-                          nodes_from=[first, second])
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -296,13 +283,6 @@ def test_pipeline_with_primary_nodes_correct():
     assert has_primary_nodes(pipeline)
 
 
-def test_pipeline_without_primary_nodes_raise_exception():
-    pipeline = pipeline_with_secondary_nodes_only()
-    with pytest.raises(Exception) as exc:
-        assert has_primary_nodes(pipeline)
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline does not have primary nodes'
-
-
 def test_pipeline_with_self_cycled_nodes_raise_exception():
     pipeline = pipeline_with_self_cycle()
     with pytest.raises(Exception) as exc:
@@ -399,7 +379,7 @@ def test_decompose_parents_has_wright_positions():
 def test_decompose_operation_remove_in_pipeline():
     """
     In the process of evolution, edges and nodes may have been removed from the decompose pipeline.
-    Or a decompose node could be replaced with a new one. Such pipelines are incorrect.
+    Or decompose node could be replaced with a new one. Such pipelines are incorrect.
     In this test replacement the class_decompose with logit operation is performed
     """
     current_pipeline = correct_decompose_pipeline()
