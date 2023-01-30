@@ -50,7 +50,7 @@ class ApiDataProcessor:
                 del features['idx']
             data = data_strategy_selector(features=features,
                                           target=target,
-                                          ml_task=self.task,
+                                          task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
                 for key in data:

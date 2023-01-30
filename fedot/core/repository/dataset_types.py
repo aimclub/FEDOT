@@ -22,7 +22,7 @@ class DataTypesEnum(Enum):
     # Table with different variant of time-series for the same variable as columns (used for extending train sample)
     multi_ts = 'multiple_time_series'
 
-    # Table, where cells contains text
+    # Table, where cells contain text
     text = 'text'
 
     # Images represented as 3d arrays

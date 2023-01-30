@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import os
 from functools import partial
 from typing import List, Optional, Union
 
 import numpy as np
-import pandas as pd
 
-from fedot.core.data.data import process_target_and_features, get_indices_from_file, array_to_input_data
+from fedot.core.data.data import (process_target_and_features, array_to_input_data,
+                                  get_df_from_csv, PathType, POSSIBLE_TABULAR_IDX_KEYWORDS, POSSIBLE_TS_IDX_KEYWORDS)
 from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -96,77 +95,45 @@ class MultiModalData(dict):
         return self
 
     @classmethod
-    def from_csv_time_series(cls,
-                             task: Union[Task, str] = 'ts_forecasting',
-                             file_path=None,
-                             delimiter=',',
-                             is_predict=False,
-                             var_names=None,
-                             target_column: Optional[str] = '',
-                             idx_column: Optional[str] = 'datetime') -> MultiModalData:
-        ts_data_detector = TimeSeriesDataDetector()
-        df = pd.read_csv(file_path, sep=delimiter)
-        idx = get_indices_from_file(df, file_path, idx_column)
-        if isinstance(task, str):
-            task = Task(TaskTypesEnum(task))
-        if not var_names:
-            var_names = list(set(df.columns) - set(idx_column))
-
-        if is_predict:
-            raise NotImplementedError(
-                'Multivariate predict not supported in this function yet.')
-        else:
-            data = ts_data_detector.prepare_multimodal_data(dataframe=df,
-                                                            columns=var_names)
-
-            if target_column is not None:
-                target = np.array(df[target_column])
-            else:
-                target = np.array(df[df.columns[-1]])
-
-            # create labels for data sources
-            data_part_transformation_func = partial(array_to_input_data,
-                                                    idx=idx, target_array=target, task=task,
-                                                    data_type=DataTypesEnum.ts)
-
-            sources = dict((ts_data_detector.new_key_name(data_part_key),
-                            data_part_transformation_func(features_array=data_part))
-                           for (data_part_key, data_part) in data.items())
-            multi_modal_data = MultiModalData(sources)
-
-        return multi_modal_data
-
-    @classmethod
     def from_csv(cls,
-                 file_path: Optional[Union[os.PathLike, str]] = None,
+                 file_path: Optional[PathType],
                  delimiter=',',
                  task: Union[Task, str] = 'classification',
                  text_columns: Optional[Union[str, List[str]]] = None,
                  columns_to_drop: Optional[List[str]] = None,
                  target_columns: Union[str, List[str]] = '',
-                 index_col: Optional[Union[str, int]] = 0) -> MultiModalData:
-        """
-        :param file_path: the path to the CSV with data
-        :param columns_to_drop: the names of columns that should be dropped
-        :param delimiter: the delimiter to separate the columns
-        :param task: the task that should be solved with data
-        :param text_columns: names of columns that contain text data
-        :param target_columns: name of target column (last column if empty and no target if None)
-        :param index_col: column name or index to use as the Data.idx;
-            if None then arrange new unique index
-        :return: MultiModalData object with text and table data sources as InputData
-        """
+                 index_col: Optional[Union[str, int]] = None,
+                 possible_idx_keywords: Optional[List[str]] = None) -> MultiModalData:
+        """Import multimodal data from ``csv``.
 
-        text_data_detector = TextDataDetector()
-        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
-        if columns_to_drop:
-            data_frame = data_frame.drop(columns_to_drop, axis=1)
+        Args:
+            file_path: the path to the ``CSV`` with data.
+            delimiter: the delimiter to separate the columns.
+            task: the :obj:`Task` to solve with the data.
+            text_columns: names of columns that contain text data.
+            columns_to_drop: the names of columns that should be dropped.
+            target_columns: name of the target column (the last column if empty and no target if ``None``).
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :const:`POSSIBLE_TABULAR_IDX_KEYWORDS` for the list of default
+                keywords.
 
+        Returns:
+            An instance of :class:`MultiModalData` containing text and table data sources as :class:`InputData`
+                instances.
+        """
+        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
+        data_frame = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords,
+                                     columns_to_drop=columns_to_drop)
         idx = data_frame.index.to_numpy()
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
 
+        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
+        text_data_detector = TextDataDetector()
         if not text_columns:
             text_columns = text_data_detector.define_text_columns(data_frame)
 
@@ -186,8 +153,73 @@ class MultiModalData(dict):
         # add table features if they exist
         if table_features.size != 0:
             sources.update({'data_source_table': data_part_transformation_func
-                            (features_array=table_features, data_type=DataTypesEnum.table)})
+            (features_array=table_features, data_type=DataTypesEnum.table)})
 
+        multi_modal_data = MultiModalData(sources)
+
+        return multi_modal_data
+
+    @classmethod
+    def from_csv_time_series(cls,
+                             file_path: PathType,
+                             delimiter: str = ',',
+                             task: Union[Task, str] = 'ts_forecasting',
+                             is_predict: bool = False,
+                             columns_to_use: Optional[list] = None,
+                             target_column: Optional[str] = '',
+                             index_col: Optional[Union[str, int]] = None,
+                             possible_idx_keywords: Optional[List[str]] = None) -> MultiModalData:
+        """Import multimodal data from ``csv``.
+
+        Args:
+            file_path: the path to the ``CSV`` with data.
+            delimiter: the delimiter to separate the columns.
+            task: the :obj:`Task` to solve with the data.
+            is_predict: indicator of stage to prepare the data to. ``False`` means fit, ``True`` means predict.
+            columns_to_use: ``list`` with names of columns of different variant of the same variable.
+            target_column: ``string`` with name of target column, used for predict stage.
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :const:`POSSIBLE_TS_IDX_KEYWORDS` for the list of default
+                keywords.
+
+        Returns:
+            An instance of :class:`MultiModalData` multiple time series data sources as :class:`InputData` instances.
+        """
+
+        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TS_IDX_KEYWORDS
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
+        idx = df.index.to_numpy()
+        if not columns_to_use:
+            columns_to_use = list(set(df.columns) - set(index_col))
+
+        if is_predict:
+            raise NotImplementedError(
+                'Multivariate predict not supported in this function yet.')
+
+        ts_data_detector = TimeSeriesDataDetector()
+        data = ts_data_detector.prepare_multimodal_data(dataframe=df,
+                                                        columns=columns_to_use)
+
+        if target_column is not None:
+            target = np.array(df[target_column])
+        else:
+            target = np.array(df[df.columns[-1]])
+
+        # create labels for data sources
+        data_part_transformation_func = partial(array_to_input_data,
+                                                idx=idx, target_array=target, task=task,
+                                                data_type=DataTypesEnum.ts)
+
+        sources = dict((ts_data_detector.new_key_name(data_part_key),
+                        data_part_transformation_func(features_array=data_part))
+                       for (data_part_key, data_part) in data.items())
         multi_modal_data = MultiModalData(sources)
 
         return multi_modal_data

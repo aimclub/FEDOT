@@ -511,10 +511,11 @@ def test_data_from_csv_load_correctly():
     predict stages when for predict stage there is no target column in csv file
     """
     task = Task(TaskTypesEnum.regression)
+    project_root = fedot_project_root()
     path_train = 'test/data/empty_target_tables/train.csv'
     path_test = 'test/data/empty_target_tables/test.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), path_train)
-    full_path_test = os.path.join(str(fedot_project_root()), path_test)
+    full_path_train = project_root.joinpath(path_train)
+    full_path_test = project_root.joinpath(path_test)
 
     data_loader = ApiDataProcessor(task)
     train_input = data_loader.define_data(features=full_path_train, target='class')
@@ -644,3 +645,12 @@ def test_forecast_with_multivariate_ts():
     assert len(forecast) == forecast_length - 1
     with pytest.raises(ValueError):
         model.forecast(horizon=forecast_length + 1)
+
+
+def test_ts_from_array():
+    df = pd.read_csv(fedot_project_root().joinpath('test/data/simple_sea_level.csv'))
+    train_array = np.array(df['Level'])
+
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=250))
+    data = ApiDataProcessor(task).define_data(features=train_array, target='target')
+    assert np.array_equal(data.target, data.features)

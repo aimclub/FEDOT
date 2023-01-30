@@ -1,13 +1,23 @@
+from __future__ import annotations
+
 import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Iterable, Any
 
 import numpy as np
 import pandas as pd
 
+from fedot.core.log import default_log
 from fedot.utilities.requirements_notificator import warn_requirement
+
+#: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
+#: and :py:meth:`MultiModalData.from_csv`.
+POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
+#: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
+#: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
+POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
 
 try:
     import cv2
@@ -20,6 +30,8 @@ from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+PathType = Union[os.PathLike, str]
 
 
 @dataclass
@@ -37,48 +49,83 @@ class Data:
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
-    @staticmethod
-    def from_csv(file_path=None,
-                 delimiter=',',
-                 task: Task = Task(TaskTypesEnum.classification),
+    @classmethod
+    def from_csv(cls,
+                 file_path: PathType,
+                 delimiter: str = ',',
+                 task: Union[Task, str] = 'classification',
                  data_type: DataTypesEnum = DataTypesEnum.table,
-                 columns_to_drop: Optional[List] = None,
-                 target_columns: Union[str, List] = '',
-                 index_col: Optional[Union[str, int]] = 0):
-        """Import data from ``csv``
+                 columns_to_drop: Optional[List[Union[str, int]]] = None,
+                 target_columns: Union[str, List[Union[str, int]]] = '',
+                 index_col: Optional[Union[str, int]] = None,
+                 possible_idx_keywords: Optional[List[str]] = None) -> InputData:
+        """Import data from ``csv``.
 
         Args:
-            file_path: the path to the ``CSV`` with data
-            columns_to_drop: the names of columns that should be dropped
-            delimiter: the delimiter to separate the columns
-            task: the :obj:`Task` that should be solved with data
-            data_type: the type of data interpretation
-            target_columns: name of target column (last column if empty and no target if ``None``)
-            index_col: column name or index to use as the :obj:`Data.idx`;\n
-                if ``None`` then arrange new unique index
+            file_path: the path to the ``CSV`` with data.
+            columns_to_drop: the names of columns that should be dropped.
+            delimiter: the delimiter to separate the columns.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+            target_columns: name of the target column (the last column if empty and no target if ``None``).
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :const:`POSSIBLE_TABULAR_IDX_KEYWORDS` for the list of default keywords.
 
         Returns:
             data
         """
+        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
 
-        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
-        if columns_to_drop:
-            data_frame = data_frame.drop(columns_to_drop, axis=1)
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
+        idx = df.index.to_numpy()
 
-        idx = data_frame.index.to_numpy()
-        features, target = process_target_and_features(data_frame, target_columns)
+        features, target = process_target_and_features(df, target_columns)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
-    @staticmethod
-    def from_csv_time_series(task: Task,
-                             file_path=None,
-                             delimiter=',',
-                             is_predict=False,
-                             target_column: Optional[str] = ''):
-        df = pd.read_csv(file_path, sep=delimiter)
+    @classmethod
+    def from_csv_time_series(cls,
+                             file_path: PathType,
+                             delimiter: str = ',',
+                             task: Union[Task, str] = 'ts_forecasting',
+                             is_predict: bool = False,
+                             columns_to_drop: Optional[List] = None,
+                             target_column: Optional[str] = '',
+                             index_col: Optional[Union[str, int]] = None,
+                             possible_idx_keywords: Optional[List[str]] = None) -> InputData:
+        """
+        Forms :obj:`InputData` of ``ts`` type from columns of different variant of the same variable.
 
-        idx = get_indices_from_file(df, file_path)
+        Args:
+            file_path: path to the source csv file.
+            delimiter: delimiter for pandas DataFrame.
+            task: the :obj:`Task` that should be solved with data.
+            is_predict: indicator of stage to prepare the data to. ``False`` means fit, ``True`` means predict.
+            columns_to_drop: ``list`` with names of columns to ignore.
+            target_column: ``string`` with name of target column, used for predict stage.
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :const:`POSSIBLE_TS_IDX_KEYWORDS` for the list of default keywords.
+
+        Returns:
+            An instance of :class:`InputData`.
+        """
+
+        possible_idx_keywords = possible_idx_keywords or POSSIBLE_TS_IDX_KEYWORDS
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
+        idx = df.index.to_numpy()
 
         if target_column is not None:
             time_series = np.array(df[target_column])
@@ -106,31 +153,39 @@ class Data:
 
         return input_data
 
-    @staticmethod
-    def from_csv_multi_time_series(task: Task,
-                                   file_path=None,
-                                   delimiter=',',
-                                   is_predict=False,
+    @classmethod
+    def from_csv_multi_time_series(cls,
+                                   file_path: PathType,
+                                   delimiter: str = ',',
+                                   task: Union[Task, str] = 'ts_forecasting',
+                                   is_predict: bool = False,
                                    columns_to_use: Optional[list] = None,
-                                   target_column: Optional[str] = ''):
+                                   target_column: Optional[str] = '',
+                                   index_col: Optional[Union[str, int]] = None,
+                                   possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """
         Forms :obj:`InputData` of ``multi_ts`` type from columns of different variant of the same variable
 
         Args:
-            task: the :obj:`Task` that should be solved with data
-            file_path: path to csv file
-            delimiter: delimiter for pandas df
-            is_predict: is preparing for fit or predict stage
-            columns_to_use: ``list`` with names of columns of different variant of the same variable
-            target_column: ``string`` with name of target column, used for predict stage
+            file_path: path to csv file.
+            delimiter: delimiter for pandas df.
+            task: the :obj:`Task` that should be solved with data.
+            is_predict: indicator of stage to prepare the data to. ``False`` means fit, ``True`` means predict.
+            columns_to_use: ``list`` with names of columns of different variant of the same variable.
+            target_column: ``string`` with name of target column, used for predict stage.
+            index_col: name or index of the column to use as the :obj:`Data.idx`.\n
+                If ``None``, then check the first column's name and use it as index if succeeded
+                (see the param ``possible_idx_keywords``).\n
+                Set ``False`` to skip the check and rearrange a new integer index.
+            possible_idx_keywords: lowercase keys to find. If the first data column contains one of the keys,
+                it is used as index. See the :const:`POSSIBLE_TS_IDX_KEYWORDS` for the list of default keywords.
 
         Returns:
-            data
+            An instance of :class:`InputData`.
         """
 
-        df = pd.read_csv(file_path, sep=delimiter)
-
-        idx = get_indices_from_file(df, file_path)
+        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
+        idx = df.index.to_numpy()
         if columns_to_use is not None:
             actual_df = df[columns_to_use]
             multi_time_series = actual_df.to_numpy()
@@ -165,7 +220,7 @@ class Data:
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification),
-                   target_size: Optional[Tuple[int, int]] = None):
+                   target_size: Optional[Tuple[int, int]] = None) -> InputData:
         """Input data from Image
 
         Args:
@@ -177,7 +232,7 @@ class Data:
             target_size: size for the images resizing (if necessary)
 
         Returns:
-            data
+            An instance of :class:`InputData`.
         """
 
         features = images
@@ -213,7 +268,7 @@ class Data:
     def from_text_meta_file(meta_file_path: str = None,
                             label: str = 'label',
                             task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.text):
+                            data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
 
         if os.path.isdir(meta_file_path):
             raise ValueError("""CSV file expected but got directory""")
@@ -233,7 +288,7 @@ class Data:
     def from_text_files(files_path: str,
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.text):
+                        data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
 
         if os.path.isfile(files_path):
             raise ValueError("""Path to the directory expected but got file""")
@@ -253,7 +308,7 @@ class Data:
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: DataTypesEnum = DataTypesEnum.table,
-                        export_to_meta=False, is_multilabel=False, shuffle=True) -> 'InputData':
+                        export_to_meta=False, is_multilabel=False, shuffle=True) -> InputData:
         """Generates InputData from the set of ``JSON`` files with different fields
 
         Args:
@@ -267,7 +322,7 @@ class Data:
             shuffle: if ``True``, shuffles data
 
         Returns:
-            combined dataset
+            An instance of :class:`InputData`.
         """
 
         if os.path.isfile(files_path):
@@ -519,7 +574,7 @@ def data_type_is_image(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.image
 
 
-def get_indices_from_file(data_frame, file_path, idx_column='datetime'):
+def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Iterable[Any]:
     if idx_column in data_frame.columns:
         df = pd.read_csv(file_path,
                          parse_dates=[idx_column])
@@ -532,7 +587,7 @@ def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: Optional[DataTypesEnum] = None):
+                        data_type: Optional[DataTypesEnum] = None) -> InputData:
     if idx is None:
         idx = np.arange(len(features_array))
     if data_type is None:
@@ -545,3 +600,46 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
         return DataTypesEnum.ts
     else:
         return DataTypesEnum.table
+
+
+def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Union[str, int]] = None,
+                    possible_idx_keywords: Optional[List[str]] = None, *,
+                    columns_to_drop: Optional[List[Union[str, int]]] = None,
+                    columns_to_use: Optional[List[Union[str, int]]] = None):
+
+    def define_index_column(candidate_columns: List[str]) -> Optional[str]:
+        for column_name in candidate_columns:
+            if is_column_name_suitable_for_index(column_name):
+                return column_name
+
+    def is_column_name_suitable_for_index(column_name: str) -> bool:
+        return any(key in column_name.lower() for key in possible_idx_keywords)
+
+    columns_to_drop = copy(columns_to_drop) or []
+    columns_to_use = copy(columns_to_use) or []
+    possible_idx_keywords = possible_idx_keywords or []
+
+    logger = default_log('CSV data extraction')
+
+    columns = pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1).columns
+
+    if columns_to_drop and columns_to_use:
+        raise ValueError('Incompatible arguments are used: columns_to_drop and columns_to_use. '
+                         'Only one of them can be specified simultaneously.')
+
+    if columns_to_drop:
+        columns_to_use = [col for col in columns if col not in columns_to_drop]
+    elif not columns_to_use:
+        columns_to_use = list(columns)
+
+    candidate_idx_cols = [columns_to_use[0], columns[0]]
+    if index_col is None:
+        defined_index = define_index_column(candidate_idx_cols)
+        if defined_index is not None:
+            index_col = defined_index
+            logger.message(f'Used the column as index: "{index_col}".')
+
+    if (index_col is not None) and (index_col not in columns_to_use):
+        columns_to_use.append(index_col)
+
+    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)

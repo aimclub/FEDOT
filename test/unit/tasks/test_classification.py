@@ -191,7 +191,7 @@ def test_output_mode_full_probs():
     assert not np.array_equal(results_probs.predict, results.predict)
     assert np.array_equal(results_probs.predict, results_default.predict)
     assert results.predict.shape == (len(test_data.target), 2)
-    assert results_probs.predict.shape == (len(test_data.target),)
+    assert results_probs.predict.shape == (len(test_data.target), 1)
 
 
 def test_image_classification_quality():
