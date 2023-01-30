@@ -67,7 +67,7 @@ def get_cholesterol_dataset():
     return train, test
 
 
-def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 1000, n_features: int = 10):
+def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 200, n_features: int = 8):
     if task_type == 'regression':
         data = get_synthetic_regression_data(n_samples=n_samples, n_features=n_features, random_state=42)
         train_data, test_data = train_test_data_setup(data)
