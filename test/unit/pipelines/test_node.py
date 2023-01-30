@@ -9,7 +9,7 @@ from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy, distance_to_p
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -36,12 +36,13 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 def test_node_factory_log_reg_correct(data_setup):
     model_type = 'logit'
-    node = PrimaryNode(operation_type=model_type)
+    node = PipelineNode(operation_type=model_type)
 
     expected_model = Model(operation_type=model_type).__class__
     actual_model = node.operation.__class__
 
-    assert node.__class__ == PrimaryNode
+    assert isinstance(node, PipelineNode)
+    assert node.is_primary
     assert expected_model == actual_model
 
 
@@ -54,7 +55,7 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)
 
-    test_model_node = PrimaryNode(operation_type='logit')
+    test_model_node = PipelineNode(operation_type='logit')
     test_model_node.fit(input_data=train)
     actual_result = test_model_node.predict(input_data=test)
 
@@ -64,7 +65,7 @@ def test_eval_strategy_logreg(data_setup):
 def test_node_str():
     # given
     operation_type = 'logit'
-    test_model_node = PrimaryNode(operation_type=operation_type)
+    test_model_node = PipelineNode(operation_type=operation_type)
     expected_node_description = operation_type
 
     # when
@@ -77,7 +78,7 @@ def test_node_str():
 def test_node_repr():
     # given
     operation_type = 'logit'
-    test_model_node = PrimaryNode(operation_type=operation_type)
+    test_model_node = PipelineNode(operation_type=operation_type)
     expected_node_description = operation_type
 
     # when
@@ -102,10 +103,10 @@ def test_node_repr_with_params():
 
 
 def test_ordered_subnodes_hierarchy():
-    first_node = PrimaryNode('knn')
-    second_node = PrimaryNode('knn')
-    third_node = SecondaryNode('lda', nodes_from=[first_node, second_node])
-    root = SecondaryNode('logit', nodes_from=[third_node])
+    first_node = PipelineNode('knn')
+    second_node = PipelineNode('knn')
+    third_node = PipelineNode('lda', nodes_from=[first_node, second_node])
+    root = PipelineNode('logit', nodes_from=[third_node])
 
     ordered_nodes = ordered_subnodes_hierarchy(root)
 
@@ -125,7 +126,7 @@ def test_ordered_subnodes_cycle():
 
 
 def test_node_return_correct_operation_info():
-    node = PrimaryNode('simple_imputation')
+    node = PipelineNode('simple_imputation')
     operation_tags = node.tags
 
     correct_tags = ["simple", "imputation"]

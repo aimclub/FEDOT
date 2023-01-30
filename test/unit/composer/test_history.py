@@ -26,7 +26,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
@@ -39,16 +39,16 @@ from test.unit.visualization.test_composing_history import generate_history, cre
 
 
 def scaling_logit_rf_pipeline():
-    node_first = PrimaryNode('scaling')
-    node_second = SecondaryNode('logit', nodes_from=[node_first])
-    node_third = SecondaryNode('bernb', nodes_from=[node_second])
+    node_first = PipelineNode('scaling')
+    node_second = PipelineNode('logit', nodes_from=[node_first])
+    node_third = PipelineNode('bernb', nodes_from=[node_second])
     return Pipeline(node_third)
 
 
 def lagged_ridge_rfr_pipeline():
-    node_first = PrimaryNode('lagged')
-    node_second = SecondaryNode('ridge', nodes_from=[node_first])
-    node_third = SecondaryNode('rfr', nodes_from=[node_second])
+    node_first = PipelineNode('lagged')
+    node_second = PipelineNode('ridge', nodes_from=[node_first])
+    node_third = PipelineNode('rfr', nodes_from=[node_second])
     return Pipeline(node_third)
 
 
@@ -90,7 +90,7 @@ def test_history_properties(generate_history):
 
 
 def test_parent_operator():
-    pipeline = Pipeline(PrimaryNode('linear'))
+    pipeline = Pipeline(PipelineNode('linear'))
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline))
     mutation_type = MutationTypesEnum.simple
@@ -103,7 +103,7 @@ def test_parent_operator():
 
 
 def test_ancestor_for_mutation():
-    pipeline = Pipeline(PrimaryNode('linear'))
+    pipeline = Pipeline(PipelineNode('linear'))
     adapter = PipelineAdapter()
     parent_ind = Individual(adapter.adapt(pipeline))
 
@@ -127,8 +127,8 @@ def test_ancestor_for_mutation():
 
 def test_ancestor_for_crossover():
     adapter = PipelineAdapter()
-    parent_ind_first = Individual(adapter.adapt(Pipeline(PrimaryNode('linear'))))
-    parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
+    parent_ind_first = Individual(adapter.adapt(Pipeline(PipelineNode('linear'))))
+    parent_ind_second = Individual(adapter.adapt(Pipeline(PipelineNode('ridge'))))
 
     composer_requirements = PipelineComposerRequirements(max_depth=3)
     graph_params = get_pipeline_generation_params(composer_requirements)

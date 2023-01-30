@@ -6,7 +6,7 @@ from sklearn.linear_model import Ridge
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -46,14 +46,14 @@ def get_domain_pipeline():
         Pipeline looking like this
         lagged -> custom -> ridge
     """
-    lagged_node = PrimaryNode('lagged')
+    lagged_node = PipelineNode('lagged')
     lagged_node.parameters = {'window_size': 50}
 
     # For custom model params as initial approximation and model as function is necessary
-    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
+    custom_node = PipelineNode('custom', nodes_from=[lagged_node])
     custom_node.parameters = {"a": -50, "b": 500, 'model_predict': domain_model_imitation_predict}
 
-    node_final = SecondaryNode('ridge', nodes_from=[custom_node])
+    node_final = PipelineNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -64,16 +64,16 @@ def get_fitting_custom_pipeline():
         Pipeline looking like this
         lagged -> custom -> ridge
     """
-    lagged_node = PrimaryNode('lagged')
+    lagged_node = PipelineNode('lagged')
     lagged_node.parameters = {'window_size': 50}
 
     # For custom model params as initial approximation and model as function is necessary
-    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
+    custom_node = PipelineNode('custom', nodes_from=[lagged_node])
     custom_node.parameters = {'alpha': 5,
                                  'model_predict': custom_ml_model_imitation_predict,
                                  'model_fit': custom_ml_model_imitation_fit}
 
-    node_final = SecondaryNode('lasso', nodes_from=[custom_node])
+    node_final = PipelineNode('lasso', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
 
     return pipeline

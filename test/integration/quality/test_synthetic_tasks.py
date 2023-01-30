@@ -9,15 +9,15 @@ from sklearn.metrics import mean_squared_error
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.composer.test_composer import to_numerical
 
 
 def get_regression_pipeline():
-    first = PrimaryNode(operation_type='scaling')
-    final = SecondaryNode(operation_type='ridge',
+    first = PipelineNode(operation_type='scaling')
+    final = PipelineNode(operation_type='ridge',
                           nodes_from=[first])
 
     pipeline = Pipeline(final)

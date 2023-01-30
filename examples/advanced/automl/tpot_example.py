@@ -3,7 +3,7 @@ import numpy as np
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
 
@@ -14,23 +14,23 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data, get_r
 
 
 def pipeline_tpot_class() -> Pipeline:
-    node = PrimaryNode('tpot_class')
+    node = PipelineNode('tpot_class')
     pipeline = Pipeline(node)
 
     return pipeline
 
 
 def pipeline_tpot_regr() -> Pipeline:
-    node = PrimaryNode('tpot_regr')
+    node = PipelineNode('tpot_regr')
     pipeline = Pipeline(node)
 
     return pipeline
 
 
 def pipeline_tpot_ts(window_size: int = 20):
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': window_size}
-    node_root = SecondaryNode('tpot_regr', nodes_from=[node_lagged])
+    node_root = PipelineNode('tpot_regr', nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)
 

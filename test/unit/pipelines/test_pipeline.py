@@ -14,7 +14,7 @@ from sklearn.datasets import load_iris
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -69,10 +69,10 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='lda', nodes_from=[first])
-    third = SecondaryNode(operation_type='qda', nodes_from=[first])
-    final = SecondaryNode(operation_type='knn', nodes_from=[second, third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda', nodes_from=[first])
+    third = PipelineNode(operation_type='qda', nodes_from=[first])
+    final = PipelineNode(operation_type='knn', nodes_from=[second, third])
 
     train_predicted = final.fit(input_data=train)
 
@@ -91,10 +91,10 @@ def test_pipeline_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit', nodes_from=[first])
-    third = SecondaryNode(operation_type='logit', nodes_from=[first])
-    final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit', nodes_from=[first])
+    third = PipelineNode(operation_type='logit', nodes_from=[first])
+    final = PipelineNode(operation_type='logit', nodes_from=[second, third])
 
     pipeline = Pipeline()
     for node in [first, second, third, final]:
@@ -120,10 +120,10 @@ def test_pipeline_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit', nodes_from=[first])
-    third = SecondaryNode(operation_type='logit', nodes_from=[second])
-    final = SecondaryNode(operation_type='logit', nodes_from=[third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit', nodes_from=[first])
+    third = PipelineNode(operation_type='logit', nodes_from=[second])
+    final = PipelineNode(operation_type='logit', nodes_from=[third])
 
     pipeline = Pipeline()
     for node in [first, second, third, final]:
@@ -149,9 +149,9 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
 
     pipeline = Pipeline()
 
-    node_data = PrimaryNode('logit')
-    node_first = PrimaryNode('bernb')
-    node_second = SecondaryNode('rf')
+    node_data = PipelineNode('logit')
+    node_first = PipelineNode('bernb')
+    node_second = PipelineNode('rf')
 
     node_second.nodes_from = [node_first, node_data]
 
@@ -175,10 +175,10 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = DataPreprocessor().obligatory_prepare_for_fit(data)
     train, test = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='logit',
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    third = PipelineNode(operation_type='knn')
+    final = PipelineNode(operation_type='logit',
                           nodes_from=[first, second, third])
 
     pipeline = Pipeline()
@@ -189,7 +189,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(operation_type='logit',
+    final_shuffled = PipelineNode(operation_type='logit',
                                    nodes_from=[third, first, second])
 
     pipeline_shuffled = Pipeline()
@@ -228,9 +228,9 @@ def test_pipeline_with_custom_params_for_model(data_setup):
                          weights='uniform',
                          p=1)
 
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    final = PipelineNode(operation_type='knn', nodes_from=[first, second])
 
     pipeline = Pipeline(final)
     pipeline_default_params = deepcopy(pipeline)
@@ -247,7 +247,7 @@ def test_pipeline_with_custom_params_for_model(data_setup):
 
 
 def test_pipeline_with_wrong_data():
-    pipeline = Pipeline(PrimaryNode('linear'))
+    pipeline = Pipeline(PipelineNode('linear'))
     data_seq = np.arange(0, 10)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=10))
@@ -261,10 +261,10 @@ def test_pipeline_with_wrong_data():
 
 def test_pipeline_str():
     # given
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='rf',
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    third = PipelineNode(operation_type='knn')
+    final = PipelineNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -279,10 +279,10 @@ def test_pipeline_str():
 
 
 def test_pipeline_repr():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='rf',
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    third = PipelineNode(operation_type='knn')
+    final = PipelineNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -293,13 +293,13 @@ def test_pipeline_repr():
 
 
 def test_update_node_in_pipeline_correct():
-    first = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='rf', nodes_from=[first])
+    first = PipelineNode(operation_type='logit')
+    final = PipelineNode(operation_type='rf', nodes_from=[first])
 
     pipeline = Pipeline()
     pipeline.add_node(final)
-    new_node = PrimaryNode('svc')
-    replacing_node = SecondaryNode('logit', nodes_from=[new_node])
+    new_node = PipelineNode('svc')
+    replacing_node = PipelineNode('logit', nodes_from=[new_node])
 
     pipeline.update_node(old_node=first, new_node=replacing_node)
 
@@ -309,10 +309,10 @@ def test_update_node_in_pipeline_correct():
 
 
 def test_delete_node_with_redirection():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = SecondaryNode(operation_type='knn', nodes_from=[first, second])
-    final = SecondaryNode(operation_type='rf',
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    third = PipelineNode(operation_type='knn', nodes_from=[first, second])
+    final = PipelineNode(operation_type='rf',
                           nodes_from=[third])
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -325,10 +325,10 @@ def test_delete_node_with_redirection():
 
 def test_delete_primary_node():
     # given
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = SecondaryNode(operation_type='knn', nodes_from=[first])
-    final = SecondaryNode(operation_type='rf',
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='lda')
+    third = PipelineNode(operation_type='knn', nodes_from=[first])
+    final = PipelineNode(operation_type='rf',
                           nodes_from=[second, third])
     pipeline = Pipeline(final)
 
@@ -339,14 +339,15 @@ def test_delete_primary_node():
 
     # then
     assert pipeline.length == 3
-    assert isinstance(new_primary_node, PrimaryNode)
+    assert isinstance(new_primary_node, PipelineNode)
+    assert new_primary_node.is_primary
 
 
 def test_update_subtree():
     # given
     pipeline = get_pipeline()
-    subroot_parent = PrimaryNode('rf')
-    subroot = SecondaryNode('rf', nodes_from=[subroot_parent])
+    subroot_parent = PipelineNode('rf')
+    subroot = PipelineNode('rf', nodes_from=[subroot_parent])
     node_to_replace = pipeline.nodes[2]
 
     # when
@@ -412,7 +413,7 @@ def test_pipeline_fit_time_constraint():
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
 def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    pipeline = Pipeline(PrimaryNode('logit'))
+    pipeline = Pipeline(PipelineNode('logit'))
     pipeline.fit(data)
     assert pipeline.is_fitted
 
@@ -426,9 +427,9 @@ def test_pipeline_unfit(data_fixture, request):
 
 def test_ts_forecasting_pipeline_with_poly_features():
     """ Test pipeline with polynomial features in ts forecasting task """
-    lagged_node = PrimaryNode('lagged')
-    poly_node = SecondaryNode('poly_features', nodes_from=[lagged_node])
-    ridge_node = SecondaryNode('ridge', nodes_from=[poly_node])
+    lagged_node = PipelineNode('lagged')
+    poly_node = PipelineNode('poly_features', nodes_from=[lagged_node])
+    ridge_node = PipelineNode('ridge', nodes_from=[poly_node])
     pipeline = Pipeline(ridge_node)
 
     train_data, test_data = get_ts_data(n_steps=25, forecast_length=5)

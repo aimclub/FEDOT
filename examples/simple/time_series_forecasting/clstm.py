@@ -9,7 +9,7 @@ from examples.advanced.time_series_forecasting.composing_pipelines import visual
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -46,7 +46,7 @@ def clstm_forecasting():
     n_steps = 100
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
-    node_root = PrimaryNode("clstm")
+    node_root = PipelineNode("clstm")
     node_root.parameters = {'window_size': window_size,
                             'hidden_size': 135,
                             'learning_rate': 0.0004,

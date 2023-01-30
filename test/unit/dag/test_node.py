@@ -1,12 +1,12 @@
 from fedot.core.dag.graph_utils import distance_to_primary_level
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 
 
 def get_nodes():
-    first_node = PrimaryNode('knn')
-    second_node = PrimaryNode('knn')
-    third_node = SecondaryNode('lda', nodes_from=[first_node, second_node])
-    root = SecondaryNode('logit', nodes_from=[third_node])
+    first_node = PipelineNode('knn')
+    second_node = PipelineNode('knn')
+    third_node = PipelineNode('lda', nodes_from=[first_node, second_node])
+    root = PipelineNode('logit', nodes_from=[third_node])
 
     return [root, third_node, first_node, second_node]
 

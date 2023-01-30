@@ -9,7 +9,7 @@ from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from cases.spam_detection import run_text_problem_from_saved_meta_file
 from cases.time_series_gapfilling_case import run_gapfilling_case
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
@@ -64,11 +64,11 @@ def test_gapfilling_problem():
 
 def test_river_levels_problem():
     # Initialise pipeline for river levels prediction
-    node_encoder = PrimaryNode('one_hot_encoding')
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_encoder])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_final = SecondaryNode('rfr', nodes_from=[node_ridge, node_lasso])
+    node_encoder = PipelineNode('one_hot_encoding')
+    node_scaling = PipelineNode('scaling', nodes_from=[node_encoder])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
+    node_final = PipelineNode('rfr', nodes_from=[node_ridge, node_lasso])
 
     init_pipeline = Pipeline(node_final)
 

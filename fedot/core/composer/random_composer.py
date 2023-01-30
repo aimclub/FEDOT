@@ -11,7 +11,7 @@ from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
-from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
@@ -39,7 +39,7 @@ def nodes_to_pipeline(nodes: List[Node]) -> Pipeline:
 class RandomGraphFactory:
     def __init__(self,
                  primary_candidates: Sequence[Any], secondary_candidates: Sequence[Any],
-                 primary_node_func: Callable = PrimaryNode, secondary_node_func: Callable = SecondaryNode):
+                 primary_node_func: Callable = PipelineNode, secondary_node_func: Callable = PipelineNode):
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
         self.__primary_candidates = list(primary_candidates)

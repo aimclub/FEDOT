@@ -15,7 +15,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     AutoRegImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -84,18 +84,18 @@ def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):
 
 def get_multiscale_pipeline():
     # First branch
-    node_lagged_1 = PrimaryNode('lagged')
+    node_lagged_1 = PipelineNode('lagged')
     node_lagged_1.parameters = {'window_size': 20}
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
 
     # Second branch, which will try to make prediction based on smoothed ts
-    node_filtering = PrimaryNode('gaussian_filter')
+    node_filtering = PipelineNode('gaussian_filter')
     node_filtering.parameters = {'sigma': 3}
-    node_lagged_2 = SecondaryNode('lagged', nodes_from=[node_filtering])
+    node_lagged_2 = PipelineNode('lagged', nodes_from=[node_filtering])
     node_lagged_2.parameters = {'window_size': 100}
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+    node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
 
-    node_final = SecondaryNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
+    node_final = PipelineNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
 
     pipeline = Pipeline(node_final)
 
@@ -103,9 +103,9 @@ def get_multiscale_pipeline():
 
 
 def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': window_size}
-    node_root = SecondaryNode(model_root, nodes_from=[node_lagged])
+    node_root = PipelineNode(model_root, nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)
 
@@ -113,20 +113,20 @@ def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
 
 
 def get_statsmodels_pipeline():
-    node_ar = PrimaryNode('ar')
+    node_ar = PipelineNode('ar')
     node_ar.parameters = {'lag_1': 20, 'lag_2': 100}
     pipeline = Pipeline(node_ar)
     return pipeline
 
 
 def get_multiple_ts_pipeline():
-    node_filter_first = PrimaryNode('smoothing')
+    node_filter_first = PipelineNode('smoothing')
     node_filter_first.parameters = {'window_size': 2}
-    node_filter_second = PrimaryNode('gaussian_filter')
+    node_filter_second = PipelineNode('gaussian_filter')
     node_filter_second.parameters = {'sigma': 2}
 
-    node_lagged = SecondaryNode('lagged', nodes_from=[node_filter_first, node_filter_second])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_lagged = PipelineNode('lagged', nodes_from=[node_filter_first, node_filter_second])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
     return Pipeline(node_ridge)
 
 
@@ -300,7 +300,7 @@ def test_clstm_forecasting():
     n_steps = 100
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
-    node_root = PrimaryNode("clstm")
+    node_root = PipelineNode("clstm")
     node_root.parameters = {
         'input_size': 1,
         'window_size': window_size,

@@ -16,8 +16,10 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param min_arity: min number of parents for node
     :param max_arity: max number of parents for node
 
-    :param primary: operation types for :class:`~fedot.core.pipelines.node.PrimaryNode`s
-    :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`s
+    :param primary: operation types for :class:`~fedot.core.pipelines.node.PipelineNode`
+    if node.is_primary
+    :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`
+    if not node.is_primary
 
     """
 

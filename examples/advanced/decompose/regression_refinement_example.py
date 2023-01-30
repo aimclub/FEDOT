@@ -6,7 +6,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -20,27 +20,27 @@ warnings.filterwarnings('ignore')
 
 def get_refinement_pipeline():
     """ Create five-level pipeline with decompose operation """
-    node_encoding = PrimaryNode('one_hot_encoding')
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_encoding])
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('decompose', nodes_from=[node_scaling, node_lasso])
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
+    node_encoding = PipelineNode('one_hot_encoding')
+    node_scaling = PipelineNode('scaling', nodes_from=[node_encoding])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
+    node_decompose = PipelineNode('decompose', nodes_from=[node_scaling, node_lasso])
+    node_dtreg = PipelineNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.parameters = {'max_depth': 3}
-    final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
+    final_node = PipelineNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     pipeline = Pipeline(final_node)
     return pipeline
 
 
 def get_non_refinement_pipeline():
-    node_encoding = PrimaryNode('one_hot_encoding')
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_encoding])
+    node_encoding = PipelineNode('one_hot_encoding')
+    node_scaling = PipelineNode('scaling', nodes_from=[node_encoding])
 
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
+    node_dtreg = PipelineNode('dtreg', nodes_from=[node_scaling])
     node_dtreg.parameters = {'max_depth': 3}
 
-    final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
+    final_node = PipelineNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     pipeline = Pipeline(final_node)
     return pipeline

@@ -1,4 +1,4 @@
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -11,13 +11,13 @@ def regression_three_depth_manual_pipeline():
 
     Where rf - random forest, dtreg - tree regression, knn - K nearest neighbors regression,
    """
-    rfr_primary = PrimaryNode('rfr')
-    knn_primary = PrimaryNode('knnreg')
+    rfr_primary = PipelineNode('rfr')
+    knn_primary = PipelineNode('knnreg')
 
-    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[rfr_primary])
-    rfr_secondary = SecondaryNode('rfr', nodes_from=[knn_primary])
+    dtreg_secondary = PipelineNode('dtreg', nodes_from=[rfr_primary])
+    rfr_secondary = PipelineNode('rfr', nodes_from=[knn_primary])
 
-    knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
+    knnreg_root = PipelineNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
 
     pipeline = Pipeline(knnreg_root)
 
@@ -33,8 +33,8 @@ def regression_ransac_pipeline():
 
     Where ransac_lin_reg - ransac algorithm
    """
-    node_scaling = PrimaryNode('scaling')
-    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
-    node_ridge = SecondaryNode('lasso', nodes_from=[node_ransac])
+    node_scaling = PipelineNode('scaling')
+    node_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_scaling])
+    node_ridge = PipelineNode('lasso', nodes_from=[node_ransac])
     pipeline = Pipeline(node_ridge)
     return pipeline

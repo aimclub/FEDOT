@@ -7,7 +7,7 @@ from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.pipelines.node import Node, SecondaryNode, PrimaryNode
+from fedot.core.pipelines.node import Node, PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
@@ -31,9 +31,9 @@ def get_pipelines():
         .join_branches('operation_f') \
         .add_node('operation_a') \
         .build()
-    node_a = PrimaryNode('logit')
-    node_b = SecondaryNode('logit', nodes_from=[node_a])
-    node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])
+    node_a = PipelineNode('logit')
+    node_b = PipelineNode('logit', nodes_from=[node_a])
+    node_c = PipelineNode('logit', nodes_from=[node_b, node_a])
     skip_connection_structure = Pipeline(node_c)
 
     return [one_node_pipeline, linear_pipeline,

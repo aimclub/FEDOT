@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -10,8 +10,8 @@ from fedot.utilities.synth_dataset_generator import classification_dataset, regr
 
 def get_knn_reg_pipeline(k_neighbors):
     """ Function return pipeline with K-nn regression model in it """
-    node_scaling = PrimaryNode('scaling')
-    node_final = SecondaryNode('knnreg', nodes_from=[node_scaling])
+    node_scaling = PipelineNode('scaling')
+    node_final = PipelineNode('knnreg', nodes_from=[node_scaling])
     node_final.parameters = {'n_neighbors': k_neighbors}
     pipeline = Pipeline(node_final)
     return pipeline
@@ -19,8 +19,8 @@ def get_knn_reg_pipeline(k_neighbors):
 
 def get_knn_class_pipeline(k_neighbors):
     """ Function return pipeline with K-nn classification model in it """
-    node_scaling = PrimaryNode('scaling')
-    node_final = SecondaryNode('knn', nodes_from=[node_scaling])
+    node_scaling = PipelineNode('scaling')
+    node_final = PipelineNode('knn', nodes_from=[node_scaling])
     node_final.parameters = {'n_neighbors': k_neighbors}
     pipeline = Pipeline(node_final)
     return pipeline

@@ -12,7 +12,7 @@ import numpy as np
 from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import Node, PipelineNode
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -67,7 +67,7 @@ class PipelineTemplate:
 
     def _extract_pipeline_structure(self, node: Node, operation_id: int, visited_nodes: List[Node]):
         """
-        Recursively go through the Pipeline from 'root_node' to PrimaryNode's,
+        Recursively go through the Pipeline from 'root_node' to PipelineNode's,
         creating a OperationTemplate with unique id for each Node. In addition,
         checking whether this Node has been visited yet.
         """
@@ -341,14 +341,14 @@ class PipelineTemplate:
         if operation_object.operation_type == atomized_model_type():
             atomized_model = operation_object.next_pipeline_template
             if operation_object.nodes_from:
-                node = SecondaryNode(operation_type=atomized_model)
+                node = PipelineNode(operation_type=atomized_model)
             else:
-                node = PrimaryNode(operation_type=atomized_model)
+                node = PipelineNode(operation_type=atomized_model)
         else:
             if operation_object.nodes_from:
-                node = SecondaryNode(operation_object.operation_type)
+                node = PipelineNode(operation_object.operation_type)
             else:
-                node = PrimaryNode(operation_object.operation_type)
+                node = PipelineNode(operation_object.operation_type)
 
             node.parameters = operation_object.custom_params
 

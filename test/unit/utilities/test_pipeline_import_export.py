@@ -7,7 +7,7 @@ import pytest
 from sklearn.metrics import mean_absolute_error
 
 from fedot.api.main import Fedot
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode, PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -87,31 +87,31 @@ def create_json_models_files():
 
 
 def create_pipeline() -> Pipeline:
-    node_logit = PrimaryNode('logit')
+    node_logit = PipelineNode('logit')
 
-    node_lda = PrimaryNode('lda')
+    node_lda = PipelineNode('lda')
     node_lda.parameters = {'n_components': 1}
 
-    node_rf = PrimaryNode('rf')
+    node_rf = PipelineNode('rf')
 
-    node_knn = PrimaryNode('knn')
+    node_knn = PipelineNode('knn')
     node_knn.parameters = {'n_neighbors': 9}
 
-    node_knn_second = SecondaryNode('knn')
+    node_knn_second = PipelineNode('knn')
     node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_lda, node_knn]
 
-    node_logit_second = SecondaryNode('logit')
+    node_logit_second = PipelineNode('logit')
     node_logit_second.nodes_from = [node_rf, node_lda]
 
-    node_lda_second = SecondaryNode('lda')
+    node_lda_second = PipelineNode('lda')
     node_lda_second.parameters = {'n_components': 1}
     node_lda_second.nodes_from = [node_logit_second, node_knn_second, node_logit]
 
-    node_rf_second = SecondaryNode('rf')
+    node_rf_second = PipelineNode('rf')
     node_rf_second.nodes_from = [node_logit, node_logit_second, node_knn]
 
-    node_knn_third = SecondaryNode('knn')
+    node_knn_third = PipelineNode('knn')
     node_knn_third.parameters = {'n_neighbors': 8}
     node_knn_third.nodes_from = [node_lda_second, node_rf_second]
 
@@ -130,13 +130,13 @@ def create_fitted_pipeline() -> Pipeline:
 
 
 def create_classification_pipeline_with_preprocessing():
-    node_scaling = PrimaryNode('scaling')
-    node_rfe = PrimaryNode('rfe_lin_class')
+    node_scaling = PipelineNode('scaling')
+    node_rfe = PipelineNode('rfe_lin_class')
 
-    rf_node = SecondaryNode('rf', nodes_from=[node_scaling])
-    logit_node = SecondaryNode('logit', nodes_from=[node_rfe])
+    rf_node = PipelineNode('rf', nodes_from=[node_scaling])
+    logit_node = PipelineNode('logit', nodes_from=[node_rfe])
 
-    knn_root = SecondaryNode('knn', nodes_from=[rf_node, logit_node])
+    knn_root = PipelineNode('knn', nodes_from=[rf_node, logit_node])
 
     pipeline = Pipeline(knn_root)
 
@@ -144,18 +144,18 @@ def create_classification_pipeline_with_preprocessing():
 
 
 def create_four_depth_pipeline():
-    knn_node = PrimaryNode('knn')
-    lda_node = PrimaryNode('lda')
-    rf_node = PrimaryNode('rf')
-    logit_node = PrimaryNode('logit')
+    knn_node = PipelineNode('knn')
+    lda_node = PipelineNode('lda')
+    rf_node = PipelineNode('rf')
+    logit_node = PipelineNode('logit')
 
-    logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
-    rf_node_second = SecondaryNode('rf', nodes_from=[logit_node])
+    logit_node_second = PipelineNode('logit', nodes_from=[knn_node, lda_node])
+    rf_node_second = PipelineNode('rf', nodes_from=[logit_node])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, rf_node])
+    qda_node_third = PipelineNode('qda', nodes_from=[rf_node_second])
+    knn_node_third = PipelineNode('knn', nodes_from=[logit_node_second, rf_node])
 
-    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
+    knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
     pipeline = Pipeline(knn_root)
 
@@ -393,8 +393,8 @@ def test_one_hot_encoder_serialization():
     train_data, test_data, threshold = get_dataset('classification')
 
     pipeline = Pipeline()
-    one_hot_node = PrimaryNode('one_hot_encoding')
-    final_node = SecondaryNode('dt', nodes_from=[one_hot_node])
+    one_hot_node = PipelineNode('one_hot_encoding')
+    final_node = PipelineNode('dt', nodes_from=[one_hot_node])
     pipeline.add_node(final_node)
 
     pipeline.fit(train_data)
@@ -422,8 +422,8 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     """
     save_path = 'test_pipeline_with_preprocessing_serialized_correctly'
 
-    scaling_node = PrimaryNode('scaling')
-    single_node_pipeline = Pipeline(SecondaryNode('ridge', nodes_from=[scaling_node]))
+    scaling_node = PipelineNode('scaling')
+    single_node_pipeline = Pipeline(PipelineNode('ridge', nodes_from=[scaling_node]))
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -493,7 +493,7 @@ def test_load_though_api_perform_correctly():
 
 
 def test_save_load_with_the_same_path():
-    pipeline = Pipeline(PrimaryNode('rf'))
+    pipeline = Pipeline(PipelineNode('rf'))
     relative_path = 'test_save_load_with_the_same_path'
     pipeline.save(relative_path, create_subdir=False)
     loaded_pipeline = Pipeline().load(source=relative_path)
@@ -507,7 +507,7 @@ def test_save_options():
             - with timestamp
             - in final directory """
 
-    pipeline = Pipeline(PrimaryNode('rf'))
+    pipeline = Pipeline(PipelineNode('rf'))
 
     path_0 = 'test_save_with_index'
     pipeline.save(path=path_0, is_datetime_in_path=False)

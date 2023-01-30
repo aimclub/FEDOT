@@ -281,6 +281,11 @@ class PipelineNode(Node):
             # Was the data passed directly to the node or not
             self.direct_set = True
 
+    @property
+    def is_primary(self):
+        if not self.nodes_from or len(self.nodes_from) == 0:
+            return True
+
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """Fits the operation located in the node
 
@@ -398,7 +403,6 @@ class PipelineNode(Node):
             sorted :attr:`nodes_from` by :obj:`GraphNode.descriptive_id` or ``None``
         """
         return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-
 
 
 class PrimaryNode(Node):

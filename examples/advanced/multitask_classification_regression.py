@@ -7,7 +7,7 @@ import pandas as pd
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -18,9 +18,9 @@ from test.unit.api.test_api_cli_params import project_root_path
 
 
 def get_multitask_pipeline():
-    logit_node = PrimaryNode('logit')
-    data_source_node = PrimaryNode('data_source_table/regression')
-    final_node = SecondaryNode('dtreg', nodes_from=[logit_node, data_source_node])
+    logit_node = PipelineNode('logit')
+    data_source_node = PipelineNode('data_source_table/regression')
+    final_node = PipelineNode('dtreg', nodes_from=[logit_node, data_source_node])
     return Pipeline(final_node)
 
 

@@ -4,20 +4,20 @@ from fedot.core.dag.linked_graph import LinkedGraph, get_distance_between
 from fedot.core.dag.graph_utils import distance_to_root_level, nodes_from_layer
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 def get_pipeline() -> Pipeline:
-    third_level_one = PrimaryNode('lda')
+    third_level_one = PipelineNode('lda')
 
-    second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
-    second_level_two = PrimaryNode('qda')
+    second_level_one = PipelineNode('qda', nodes_from=[third_level_one])
+    second_level_two = PipelineNode('qda')
 
-    first_level_one = SecondaryNode('knn', nodes_from=[second_level_one, second_level_two])
+    first_level_one = PipelineNode('knn', nodes_from=[second_level_one, second_level_two])
 
-    root = SecondaryNode(operation_type='logit', nodes_from=[first_level_one])
+    root = PipelineNode(operation_type='logit', nodes_from=[first_level_one])
     pipeline = Pipeline(root)
 
     return pipeline
@@ -56,7 +56,7 @@ def test_actualise_old_node_children():
     # given
     pipeline = get_pipeline()
     selected_node = pipeline.nodes[2]
-    new_node = PrimaryNode('knnreg')
+    new_node = PipelineNode('knnreg')
 
     # when
     pipeline.operator.actualise_old_node_children(old_node=selected_node,
@@ -72,8 +72,8 @@ def test_sort_nodes():
     pipeline = get_pipeline()
     selected_node = pipeline.nodes[2]
     original_length = pipeline.length
-    new_node = PrimaryNode('knnreg')
-    new_subroot = SecondaryNode('knnreg', nodes_from=[new_node])
+    new_node = PipelineNode('knnreg')
+    new_subroot = PipelineNode('knnreg', nodes_from=[new_node])
 
     # when
     selected_node.nodes_from.append(new_subroot)
@@ -140,16 +140,16 @@ def test_known_distances():
 # Tests for disconnect_nodes method
 
 def get_initial_pipeline():
-    scaling_node_primary = PrimaryNode('scaling')
+    scaling_node_primary = PipelineNode('scaling')
 
-    logit_node = SecondaryNode('rf', nodes_from=[scaling_node_primary])
-    rf_node = SecondaryNode('rf', nodes_from=[scaling_node_primary])
-    rf_node_second = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    logit_node = PipelineNode('rf', nodes_from=[scaling_node_primary])
+    rf_node = PipelineNode('rf', nodes_from=[scaling_node_primary])
+    rf_node_second = PipelineNode('rf', nodes_from=[scaling_node_primary])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node, rf_node])
+    qda_node_third = PipelineNode('qda', nodes_from=[rf_node_second])
+    knn_node_third = PipelineNode('knn', nodes_from=[logit_node, rf_node])
 
-    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
+    knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
     pipeline = Pipeline(knn_root)
 
@@ -157,13 +157,13 @@ def get_initial_pipeline():
 
 
 def get_res_pipeline_test_first():
-    scaling_node_primary = PrimaryNode('scaling')
+    scaling_node_primary = PipelineNode('scaling')
 
-    rf_node_primary = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    rf_node_primary = PipelineNode('rf', nodes_from=[scaling_node_primary])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_primary])
+    qda_node_third = PipelineNode('qda', nodes_from=[rf_node_primary])
 
-    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third])
+    knn_root = PipelineNode('knn', nodes_from=[qda_node_third])
 
     pipeline = Pipeline(knn_root)
 
@@ -171,15 +171,15 @@ def get_res_pipeline_test_first():
 
 
 def get_res_pipeline_test_second():
-    scaling_node_primary = PrimaryNode('scaling')
+    scaling_node_primary = PipelineNode('scaling')
 
-    rf_node = SecondaryNode('rf', nodes_from=[scaling_node_primary])
-    rf_node_second = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    rf_node = PipelineNode('rf', nodes_from=[scaling_node_primary])
+    rf_node_second = PipelineNode('rf', nodes_from=[scaling_node_primary])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[rf_node])
+    qda_node_third = PipelineNode('qda', nodes_from=[rf_node_second])
+    knn_node_third = PipelineNode('knn', nodes_from=[rf_node])
 
-    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
+    knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
     pipeline = Pipeline(knn_root)
 
@@ -187,14 +187,14 @@ def get_res_pipeline_test_second():
 
 
 def get_res_pipeline_test_third():
-    scaling_node_primary = PrimaryNode('scaling')
+    scaling_node_primary = PipelineNode('scaling')
 
-    rf_node = SecondaryNode('rf', nodes_from=[scaling_node_primary])
-    rf_node_second = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    rf_node = PipelineNode('rf', nodes_from=[scaling_node_primary])
+    rf_node_second = PipelineNode('rf', nodes_from=[scaling_node_primary])
 
-    knn_node_third = SecondaryNode('knn', nodes_from=[rf_node, rf_node_second])
+    knn_node_third = PipelineNode('knn', nodes_from=[rf_node, rf_node_second])
 
-    knn_root = SecondaryNode('knn', nodes_from=[knn_node_third])
+    knn_root = PipelineNode('knn', nodes_from=[knn_node_third])
 
     pipeline = Pipeline(knn_root)
 
@@ -262,8 +262,8 @@ def test_disconnect_nodes_method_fifth():
     # Try to disconnect nodes that are not in this pipeline
     res_pipeline = deepcopy(pipeline)
 
-    rf_node = PrimaryNode('rf')
-    knn_root_node = SecondaryNode('knn', nodes_from=[rf_node])
+    rf_node = PipelineNode('rf')
+    knn_root_node = PipelineNode('knn', nodes_from=[rf_node])
 
     res_pipeline.disconnect_nodes(rf_node, knn_root_node)
     assert res_pipeline == pipeline
@@ -304,7 +304,7 @@ def test_postproc_nodes():
     pipeline.connect_nodes(lda_node, qda_node)
 
     for node in pipeline.nodes:
-        assert(isinstance(node, PrimaryNode) or isinstance(node, SecondaryNode))
+        assert isinstance(node, PipelineNode)
 
 
 def test_postproc_opt_nodes():

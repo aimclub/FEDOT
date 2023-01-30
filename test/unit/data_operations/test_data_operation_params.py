@@ -6,7 +6,7 @@ import pandas as pd
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -16,18 +16,18 @@ from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 
 def get_ts_pipeline(window_size):
     """ Function return pipeline with lagged transformation in it """
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': window_size}
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_final = PipelineNode('ridge', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
     return pipeline
 
 
 def get_rasnac_pipeline():
-    node_ransac = PrimaryNode('ransac_lin_reg')
+    node_ransac = PipelineNode('ransac_lin_reg')
     node_ransac.parameters = {'residual_threshold': 0.0002}
-    node_final = SecondaryNode('linear', nodes_from=[node_ransac])
+    node_final = PipelineNode('linear', nodes_from=[node_ransac])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -96,7 +96,7 @@ def test_params_filter_correct_with_default():
     """
     input_ts = small_ts_dataset()
 
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
 
     # Correct parameters during fit
     node_lagged.fit(input_ts)
@@ -118,7 +118,7 @@ def test_params_filter_with_non_default():
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
     # Params are default for now - 'default_params'
-    node_knn = PrimaryNode('knn')
+    node_knn = PipelineNode('knn')
     default_params = copy(node_knn.parameters)
 
     node_knn.fit(input_data)

@@ -9,7 +9,7 @@ from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -94,7 +94,7 @@ def test_the_formation_of_initial_assumption():
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
-    res_init_assumption = Pipeline(PrimaryNode('dt'))
+    res_init_assumption = Pipeline(PipelineNode('dt'))
     assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
@@ -110,8 +110,8 @@ def test_init_assumption_with_inappropriate_available_operations():
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
-    primary = PrimaryNode('scaling')
-    root = SecondaryNode('rf', nodes_from=[primary])
+    primary = PipelineNode('scaling')
+    root = PipelineNode('rf', nodes_from=[primary])
     res_init_assumption = Pipeline(root)
 
     assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id

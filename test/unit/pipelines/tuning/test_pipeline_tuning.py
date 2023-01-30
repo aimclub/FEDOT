@@ -12,7 +12,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
@@ -56,17 +56,17 @@ def multi_classification_dataset():
 
 
 def get_simple_regr_pipeline(operation_type='rfr'):
-    final = PrimaryNode(operation_type=operation_type)
+    final = PipelineNode(operation_type=operation_type)
     pipeline = Pipeline(final)
 
     return pipeline
 
 
 def get_complex_regr_pipeline():
-    node_scaling = PrimaryNode(operation_type='scaling')
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    final = SecondaryNode('rfr', nodes_from=[node_ridge, node_linear])
+    node_scaling = PipelineNode(operation_type='scaling')
+    node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
+    node_linear = PipelineNode('linear', nodes_from=[node_scaling])
+    final = PipelineNode('rfr', nodes_from=[node_ridge, node_linear])
     pipeline = Pipeline(final)
 
     return pipeline
@@ -79,16 +79,16 @@ def get_regr_pipelines():
 
 
 def get_simple_class_pipeline(operation_type='logit'):
-    final = PrimaryNode(operation_type=operation_type)
+    final = PipelineNode(operation_type=operation_type)
     pipeline = Pipeline(final)
 
     return pipeline
 
 
 def get_complex_class_pipeline():
-    first = PrimaryNode(operation_type='knn')
-    second = PrimaryNode(operation_type='pca')
-    final = SecondaryNode(operation_type='logit',
+    first = PipelineNode(operation_type='knn')
+    second = PipelineNode(operation_type='pca')
+    final = PipelineNode(operation_type='logit',
                           nodes_from=[first, second])
 
     pipeline = Pipeline(final)
@@ -97,8 +97,8 @@ def get_complex_class_pipeline():
 
 
 def get_pipeline_with_no_params_to_tune():
-    first = PrimaryNode(operation_type='scaling')
-    final = SecondaryNode(operation_type='bernb',
+    first = PipelineNode(operation_type='scaling')
+    final = PipelineNode(operation_type='bernb',
                           nodes_from=[first])
 
     pipeline = Pipeline(final)
@@ -286,7 +286,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset):
 def test_pipeline_tuner_with_initial_params(classification_dataset):
     """ Test PipelineTuner based on hyperopt library for pipeline with initial parameters """
     # a model
-    node = PrimaryNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
+    node = PipelineNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
                                                               'learning_rate': 0.03,
                                                               'min_child_weight': 2}})
     pipeline = Pipeline(node)
@@ -417,7 +417,7 @@ def test_ts_pipeline_with_stats_model(n_steps):
     """ Tests PipelineTuner for time series forecasting task with AR model """
     train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
 
-    ar_pipeline = Pipeline(PrimaryNode('ar'))
+    ar_pipeline = Pipeline(PipelineNode('ar'))
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
         # Tune AR model
@@ -518,7 +518,7 @@ def test_complex_search_space_tuning_correct():
     """ Tests PipelineTuner for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
 
-    glm_pipeline = Pipeline(PrimaryNode('glm'))
+    glm_pipeline = Pipeline(PipelineNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(PipelineTuner) \

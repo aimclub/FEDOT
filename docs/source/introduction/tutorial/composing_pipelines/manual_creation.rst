@@ -38,9 +38,9 @@ Manual way
 
 .. code:: python
 
-   node_first = PrimaryNode('logit')
-   node_second = PrimaryNode('xgboost')
-   node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
+   node_first = PipelineNode('logit')
+   node_second = PipelineNode('xgboost')
+   node_final = PipelineNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
 The following pages provide examples of manually constructed pipelines for different tasks:

@@ -8,7 +8,7 @@ from sklearn.datasets import load_breast_cancer
 from fedot.core.composer.metrics import QualityMetric, ROCAUC
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
@@ -54,10 +54,10 @@ def multi_target_data_setup():
 
 
 def default_valid_pipeline():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit', nodes_from=[first])
-    third = SecondaryNode(operation_type='logit', nodes_from=[first])
-    final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit', nodes_from=[first])
+    third = PipelineNode(operation_type='logit', nodes_from=[first])
+    final = PipelineNode(operation_type='logit', nodes_from=[second, third])
 
     pipeline = Pipeline(final)
 
@@ -96,7 +96,7 @@ def test_regression_quality_metric(data_setup):
 
 def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
     train, test = multi_target_data_setup
-    simple_pipeline = Pipeline(PrimaryNode('linear'))
+    simple_pipeline = Pipeline(PipelineNode('linear'))
     simple_pipeline.fit(input_data=train)
 
     source_shape = test.target.shape

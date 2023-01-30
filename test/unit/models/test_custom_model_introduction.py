@@ -13,7 +13,7 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -40,14 +40,14 @@ def get_centered_pipeline(with_params=True) -> Pipeline:
     """
         lagged -> custom -> ridge
     """
-    lagged_node = PrimaryNode('lagged')
-    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
+    lagged_node = PipelineNode('lagged')
+    custom_node = PipelineNode('custom', nodes_from=[lagged_node])
     if with_params:
         custom_node.parameters = {"a": -50,
                                      "b": 500,
                                      'model_predict': custom_model_imitation}
 
-    node_final = SecondaryNode('ridge', nodes_from=[custom_node])
+    node_final = PipelineNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -57,13 +57,13 @@ def get_starting_pipeline(with_params=True):
         custom -> lagged -> ridge
     """
 
-    custom_node = PrimaryNode('custom')
+    custom_node = PipelineNode('custom')
     if with_params:
         custom_node.parameters = {"a": -50,
                                      "b": 500,
                                      'model_predict': custom_model_imitation}
-    lagged_node = SecondaryNode('lagged', nodes_from=[custom_node])
-    node_final = SecondaryNode('ridge', nodes_from=[lagged_node])
+    lagged_node = PipelineNode('lagged', nodes_from=[custom_node])
+    node_final = PipelineNode('ridge', nodes_from=[lagged_node])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -144,22 +144,22 @@ def get_simple_pipeline(multi_data):
 
     for i, data_id in enumerate(multi_data.keys()):
         if 'exog_' in data_id:
-            exog_list.append(PrimaryNode(data_id))
+            exog_list.append(PipelineNode(data_id))
         if 'hist_' in data_id:
-            lagged_node = SecondaryNode('lagged', nodes_from=[PrimaryNode(data_id)])
+            lagged_node = PipelineNode('lagged', nodes_from=[PipelineNode(data_id)])
             lagged_node.parameters = {'window_size': 1}
 
             hist_list.append(lagged_node)
 
     # For custom model params as initial approximation and model as function is necessary
-    custom_node = SecondaryNode('custom/empty', nodes_from=exog_list)
+    custom_node = PipelineNode('custom/empty', nodes_from=exog_list)
     custom_node.parameters = {'model_predict': model_predict,
                                  'model_fit': model_fit}
 
-    exog_pred_node = SecondaryNode('exog_ts', nodes_from=[custom_node])
+    exog_pred_node = PipelineNode('exog_ts', nodes_from=[custom_node])
 
     final_ens = [exog_pred_node] + hist_list
-    node_final = SecondaryNode('ridge', nodes_from=final_ens)
+    node_final = PipelineNode('ridge', nodes_from=final_ens)
     pipeline = Pipeline(node_final)
 
     return pipeline

@@ -2,7 +2,7 @@ import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -10,13 +10,13 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 
 def get_multimodal_pipeline():
     """ Generate multimodal pipeline for classification task with several tables """
-    node_data_source_first = PrimaryNode('data_source_table/first')
-    node_data_source_second = PrimaryNode('data_source_table/second')
+    node_data_source_first = PipelineNode('data_source_table/first')
+    node_data_source_second = PipelineNode('data_source_table/second')
 
-    node_scaling_first = SecondaryNode('scaling', nodes_from=[node_data_source_first])
-    node_imputation_second = SecondaryNode('simple_imputation', nodes_from=[node_data_source_second])
+    node_scaling_first = PipelineNode('scaling', nodes_from=[node_data_source_first])
+    node_imputation_second = PipelineNode('simple_imputation', nodes_from=[node_data_source_second])
 
-    node_final = SecondaryNode('logit', nodes_from=[node_scaling_first, node_imputation_second])
+    node_final = PipelineNode('logit', nodes_from=[node_scaling_first, node_imputation_second])
     pipeline = Pipeline(node_final)
 
     return pipeline

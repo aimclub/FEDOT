@@ -19,8 +19,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -218,7 +218,7 @@ def test_ts_models_dt_idx_fit_correct():
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
-        node = PrimaryNode(model_name)
+        node = PipelineNode(model_name)
         pipeline = Pipeline(node)
 
         pipeline.fit(deepcopy(train_data))
@@ -231,8 +231,8 @@ def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    first_node = PrimaryNode('normalization')
-    second_node = SecondaryNode('kmeans', nodes_from=[first_node])
+    first_node = PipelineNode('normalization')
+    second_node = PipelineNode('kmeans', nodes_from=[first_node])
     pipeline = Pipeline(nodes=[first_node, second_node])
     train_predicted = pipeline.fit(train_data)
 
@@ -244,8 +244,8 @@ def test_svc_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    first_node = PrimaryNode('normalization')
-    second_node = SecondaryNode('svc', nodes_from=[first_node])
+    first_node = PipelineNode('normalization')
+    second_node = PipelineNode('svc', nodes_from=[first_node])
     pipeline = Pipeline(nodes=[first_node, second_node])
     train_predicted = pipeline.fit(train_data)
 
@@ -261,8 +261,8 @@ def test_pca_model_removes_redundant_features_correct():
                                                           n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
-    first_node = PrimaryNode('normalization')
-    second_node = SecondaryNode('pca', nodes_from=[first_node])
+    first_node = PipelineNode('normalization')
+    second_node = PipelineNode('pca', nodes_from=[first_node])
     pipeline = Pipeline(nodes=[first_node, second_node])
     train_predicted = pipeline.fit(train_data)
     transformed_features = train_predicted.predict

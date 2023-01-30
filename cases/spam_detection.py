@@ -5,14 +5,14 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from cases.dataset_preparation import unpack_archived_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
 def execute_pipeline_for_text_problem(train_data, test_data):
-    node_text_clean = PrimaryNode('text_clean')
-    node_tfidf = SecondaryNode('tfidf', nodes_from=[node_text_clean])
-    model_node = SecondaryNode('multinb', nodes_from=[node_tfidf])
+    node_text_clean = PipelineNode('text_clean')
+    node_tfidf = PipelineNode('tfidf', nodes_from=[node_text_clean])
+    model_node = PipelineNode('multinb', nodes_from=[node_tfidf])
     pipeline = Pipeline(model_node)
     pipeline.fit(train_data)
 

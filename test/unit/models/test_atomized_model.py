@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
@@ -28,12 +28,12 @@ def preprocessing_files_before_and_after_tests(request):
 
 def create_pipeline() -> Pipeline:
     pipeline = Pipeline()
-    node_logit = PrimaryNode('logit')
+    node_logit = PipelineNode('logit')
 
-    node_lda = PrimaryNode('lda')
+    node_lda = PipelineNode('lda')
     node_lda.parameters = {'solver': 'lsqr'}
 
-    node_rf = SecondaryNode('rf')
+    node_rf = PipelineNode('rf')
     node_rf.nodes_from = [node_logit, node_lda]
 
     pipeline.add_node(node_rf)
@@ -53,10 +53,10 @@ def create_atomized_model() -> AtomizedModel:
 
 def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
     pipeline = Pipeline()
-    node_atomized_model_primary = PrimaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary = SecondaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_second = SecondaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_third = SecondaryNode(operation_type=create_atomized_model())
+    node_atomized_model_primary = PipelineNode(operation_type=create_atomized_model())
+    node_atomized_model_secondary = PipelineNode(operation_type=create_atomized_model())
+    node_atomized_model_secondary_second = PipelineNode(operation_type=create_atomized_model())
+    node_atomized_model_secondary_third = PipelineNode(operation_type=create_atomized_model())
 
     node_atomized_model_secondary.nodes_from = [node_atomized_model_primary]
     node_atomized_model_secondary_second.nodes_from = [node_atomized_model_primary]
@@ -72,21 +72,21 @@ def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
 def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     pipeline = Pipeline()
     atomized_op = create_atomized_model_with_several_atomized_models()
-    node_atomized_model = PrimaryNode(operation_type=atomized_op)
+    node_atomized_model = PipelineNode(operation_type=atomized_op)
 
-    node_atomized_model_secondary = SecondaryNode(operation_type=create_atomized_model())
+    node_atomized_model_secondary = PipelineNode(operation_type=create_atomized_model())
     node_atomized_model_secondary.nodes_from = [node_atomized_model]
 
-    node_knn = SecondaryNode('knn')
+    node_knn = PipelineNode('knn')
     node_knn.parameters = {'n_neighbors': 9}
     node_knn.nodes_from = [node_atomized_model]
 
-    node_knn_second = SecondaryNode('knn')
+    node_knn_second = PipelineNode('knn')
     node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
 
     node_atomized_model_secondary_second = \
-        SecondaryNode(operation_type=create_atomized_model_with_several_atomized_models())
+        PipelineNode(operation_type=create_atomized_model_with_several_atomized_models())
 
     node_atomized_model_secondary_second.nodes_from = [node_knn_second]
 

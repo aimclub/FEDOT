@@ -15,7 +15,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -31,9 +31,9 @@ _ = classification_dataset
 
 
 def sample_pipeline():
-    return Pipeline(SecondaryNode(operation_type='logit',
-                                  nodes_from=[PrimaryNode(operation_type='rf'),
-                                              PrimaryNode(operation_type='scaling')]))
+    return Pipeline(PipelineNode(operation_type='logit',
+                                  nodes_from=[PipelineNode(operation_type='rf'),
+                                              PipelineNode(operation_type='scaling')]))
 
 
 def get_classification_data():

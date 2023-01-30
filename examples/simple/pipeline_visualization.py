@@ -1,15 +1,15 @@
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 def generate_pipeline() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_first = SecondaryNode('kmeans', nodes_from=[node_scaling])
-    node_second = SecondaryNode('rf', nodes_from=[node_scaling])
-    node_third = SecondaryNode('linear', nodes_from=[node_scaling])
-    node_root = SecondaryNode('logit', nodes_from=[node_first, node_second, node_third, node_scaling])
+    node_scaling = PipelineNode('scaling')
+    node_first = PipelineNode('kmeans', nodes_from=[node_scaling])
+    node_second = PipelineNode('rf', nodes_from=[node_scaling])
+    node_third = PipelineNode('linear', nodes_from=[node_scaling])
+    node_root = PipelineNode('logit', nodes_from=[node_first, node_second, node_third, node_scaling])
 
     return Pipeline(node_root)
 

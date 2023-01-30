@@ -5,7 +5,7 @@ import numpy as np
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -26,11 +26,11 @@ def generate_pipeline_with_decomposition(primary_operation, secondary_operation)
     :param secondary_operation: name of operation to place in secondary node
     """
 
-    node_first = PrimaryNode(primary_operation)
-    node_second = SecondaryNode(secondary_operation, nodes_from=[node_first])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    node_first = PipelineNode(primary_operation)
+    node_second = PipelineNode(secondary_operation, nodes_from=[node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     full_pipeline = Pipeline(node_rf)
     return full_pipeline
 
@@ -42,12 +42,12 @@ def generate_pipeline_with_filtering():
            class_decompose -> RANSAC -> rfr
     """
 
-    node_scaling = PrimaryNode('scaling')
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
-    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_decompose])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_ransac])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    node_scaling = PipelineNode('scaling')
+    node_logit = PipelineNode('logit', nodes_from=[node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_logit, node_scaling])
+    node_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_decompose])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_ransac])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_logit])
     full_pipeline = Pipeline(node_rf)
     return full_pipeline
 
@@ -57,14 +57,14 @@ def generate_cascade_decompose_pipeline():
     and solving many problems (regression and classification)
     """
 
-    node_scaling = PrimaryNode('scaling')
-    node_second = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_scaling])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
-    node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_rf, node_scaling])
-    node_rfr_2 = SecondaryNode('rfr', nodes_from=[node_decompose_new])
-    node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_rf])
+    node_scaling = PipelineNode('scaling')
+    node_second = PipelineNode('logit', nodes_from=[node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_scaling])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
+    node_decompose_new = PipelineNode('class_decompose', nodes_from=[node_rf, node_scaling])
+    node_rfr_2 = PipelineNode('rfr', nodes_from=[node_decompose_new])
+    node_final = PipelineNode('logit', nodes_from=[node_rfr_2, node_rf])
     pipeline = Pipeline(node_final)
     return pipeline
 

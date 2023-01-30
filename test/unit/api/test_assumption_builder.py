@@ -8,7 +8,7 @@ from fedot.api.api_utils.assumptions.assumptions_builder \
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import Node, PrimaryNode
+from fedot.core.pipelines.node import Node, PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -96,7 +96,7 @@ def test_assumptions_builder_for_multimodal_data():
     mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
     assert pipeline_contains_all(mm_pipeline, *mm_data)
-    assert len(list(filter(lambda node: isinstance(node, PrimaryNode), mm_pipeline.nodes)))
+    assert len(list(filter(lambda node: node.is_primary, mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
     assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 1  # minus final ensemble
 

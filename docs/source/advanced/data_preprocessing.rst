@@ -101,7 +101,7 @@ For example, converting column to numerical if the number of unique values is gr
 .. code:: python
 
     # pipeline for which to set params
-    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
 
 After this preprocessing with this pipeline will be performed according to the specified conditions.

@@ -8,7 +8,7 @@ from sklearn.datasets import load_breast_cancer
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -87,11 +87,11 @@ def pipeline_first():
     pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('rf', 'rf', 'knn')]
+        [PipelineNode(model) for model in ('rf', 'rf', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
-            new_node = PrimaryNode(requirement_model)
+            new_node = PipelineNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
             pipeline.add_node(new_node)
         pipeline.add_node(root_node_child)
@@ -108,9 +108,9 @@ def pipeline_second():
     # |  \    |  \
     # KNN KNN LR  LDA
     pipeline = pipeline_first()
-    new_node = SecondaryNode('dt')
+    new_node = PipelineNode('dt')
     for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
+        new_node.nodes_from.append(PipelineNode(model_type))
     pipeline.update_subtree(pipeline.root_node.nodes_from[0], new_node)
     return pipeline
 
@@ -120,9 +120,9 @@ def pipeline_third():
     #  |     \
     # RF     RF
     pipeline = Pipeline()
-    new_node = SecondaryNode('qda')
+    new_node = PipelineNode('qda')
     for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
+        new_node.nodes_from.append(PipelineNode(model_type))
     pipeline.add_node(new_node)
     [pipeline.add_node(node_from) for node_from in new_node.nodes_from]
     return pipeline
@@ -137,13 +137,13 @@ def pipeline_fourth():
     # |  \    |    \
     # RF  RF  KNN KNN
     pipeline = pipeline_first()
-    new_node = SecondaryNode('qda')
+    new_node = PipelineNode('qda')
     for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
+        new_node.nodes_from.append(PipelineNode(model_type))
     pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
-    new_node = SecondaryNode('knn')
+    new_node = PipelineNode('knn')
     for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
+        new_node.nodes_from.append(PipelineNode(model_type))
     pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[0], new_node)
     return pipeline
 
@@ -155,10 +155,10 @@ def pipeline_fifth():
     # |  \    |  \
     # LR LDA KNN  KNN
     pipeline = pipeline_first()
-    new_node = SecondaryNode('knn')
+    new_node = PipelineNode('knn')
     pipeline.update_node(pipeline.root_node, new_node)
-    new_node1 = PrimaryNode('knn')
-    new_node2 = PrimaryNode('knn')
+    new_node1 = PipelineNode('knn')
+    new_node2 = PipelineNode('knn')
     pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[0], new_node1)
     pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[1], new_node2)
 
@@ -174,7 +174,7 @@ def test_cache_actuality_after_model_change(data_setup, cache_cleanup):
     train, _ = data_setup
     pipeline.fit(input_data=train)
     cache.save_pipeline(pipeline)
-    new_node = SecondaryNode(operation_type='logit')
+    new_node = PipelineNode(operation_type='logit')
     pipeline.update_node(old_node=pipeline.root_node.nodes_from[0],
                          new_node=new_node)
 
@@ -249,7 +249,7 @@ def test_cache_historical_state_using_with_cv(data_setup, cache_cleanup):
     # pipeline fitted, model goes to cache
     pipeline.fit(input_data=train)
     cache.save_pipeline(pipeline, fold_id=cv_fold)
-    new_node = SecondaryNode(operation_type='logit')
+    new_node = PipelineNode(operation_type='logit')
     old_node = pipeline.root_node.nodes_from[0]
 
     # change child node to new one
