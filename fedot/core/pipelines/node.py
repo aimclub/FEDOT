@@ -266,6 +266,141 @@ class Node(LinkedGraphNode):
             return info.tags
 
 
+class PipelineNode(Node):
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
+                 nodes_from: Optional[List['Node']] = None,
+                 node_data: Optional[dict] = None,
+                 **kwargs):
+
+        super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
+        if node_data is None:
+            self._node_data = {}
+            self.direct_set = False
+        else:
+            self._node_data = node_data
+            # Was the data passed directly to the node or not
+            self.direct_set = True
+
+    def fit(self, input_data: InputData, **kwargs) -> OutputData:
+        """Fits the operation located in the node
+
+        Args:
+            input_data: data used for operation training
+
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
+        """
+
+        self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
+
+        input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+
+        return super().fit(input_data=input_data)
+
+    def unfit(self):
+        """Sets ``node_data`` (if exists) and ``fitted_operation`` to ``None``
+        """
+
+        self.fitted_operation = None
+        if hasattr(self, 'node_data'):
+            self.node_data = None
+
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
+        """Predicts using the operation located in the primary node
+
+        Args:
+            input_data: data used for prediction
+            output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
+
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
+        """
+
+        self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
+
+        input_data = self._get_input_data(input_data=input_data, parent_operation='predict')
+
+        return super().predict(input_data=input_data, output_mode=output_mode)
+
+    def get_data_from_node(self) -> dict:
+        """Returns data if it was set to the nodes directly
+
+        Returns:
+            dict: ``dict`` with :class:`InputData` for fit and predict stage
+        """
+
+        return self.node_data
+
+    @property
+    def node_data(self) -> dict:
+        """Returns directly set :attr:`node_data`
+
+        Returns:
+            dict: ``dict`` with :class:`InputData` for fit and predict stage
+        """
+
+        return getattr(self, '_node_data', {})
+
+    @node_data.setter
+    def node_data(self, value: dict):
+        """Sets :attr:`node_data`
+
+        Args:
+            value: ``dict`` with :class:`InputData` for fit and predict stage
+        """
+
+        if value is None:
+            if hasattr(self, '_node_data'):
+                del self._node_data
+        else:
+            self._node_data = value
+
+    def _get_input_data(self, input_data: InputData, parent_operation: str):
+        if self.nodes_from:
+            input_data = self._input_from_parents(input_data=input_data, parent_operation=parent_operation)
+        else:
+            if self.direct_set:
+                input_data = self.node_data
+            else:
+                self.node_data = input_data
+        return input_data
+
+    def _input_from_parents(self, input_data: InputData, parent_operation: str) -> InputData:
+        """Processes all the parent nodes via the current operation using ``input_data``
+
+        Args:
+            input_data: input data from pipeline abstraction (source input data)
+            parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
+
+        Returns:
+            InputData: predictions from the secondary nodes
+        """
+
+        if len(self.nodes_from) == 0:
+            raise ValueError('No parent nodes found')
+
+        self.log.debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
+
+        parent_nodes = self._nodes_from_with_fixed_order()
+
+        parent_results, _ = _combine_parents(parent_nodes, input_data,
+                                             parent_operation)
+        secondary_input = DataMerger.get(parent_results).merge()
+        # Update info about visited nodes
+        parent_operations = [node.operation.operation_type for node in parent_nodes]
+        secondary_input.supplementary_data.previous_operations = parent_operations
+        return secondary_input
+
+    def _nodes_from_with_fixed_order(self):
+        """Sorts :attr:`nodes_from` (if exists) by the nodes unique id
+
+        Returns:
+            sorted :attr:`nodes_from` by :obj:`GraphNode.descriptive_id` or ``None``
+        """
+        return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
+
+
+
 class PrimaryNode(Node):
     """Defines the interface of primary nodes where initial task data is located
 
