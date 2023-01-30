@@ -49,7 +49,6 @@ def create_atomized_model() -> AtomizedModel:
     """
     pipeline = create_pipeline()
     atomized_model = AtomizedModel(pipeline)
-    atomized_model.pipeline.preprocessor = DataPreprocessor()  # TODO: fix that stub
 
     return atomized_model
 
@@ -190,7 +189,6 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
-    fine_tuned_atomized_model.pipeline.preprocessor = DataPreprocessor() # TODO: fix that stub
     dummy_atomized_model.fit(None, train_data)
 
     fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)

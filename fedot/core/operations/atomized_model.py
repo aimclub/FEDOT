@@ -22,8 +22,7 @@ class AtomizedModel(Operation):
             raise ValueError('AtomizedModel could not create instance of empty Pipeline.')
 
         super().__init__(operation_type=atomized_model_type())
-        self.pipeline = deepcopy(pipeline)
-        self.pipeline.preprocessor = DummyPreprocessor()
+        self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
 
     def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
