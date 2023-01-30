@@ -12,13 +12,15 @@ from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
-from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
+from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -129,6 +131,7 @@ class Fedot:
         self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
                                      self.params.api_params['use_preprocessing_cache'],
                                      self.params.api_params['cache_folder'])
+        self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
@@ -182,6 +185,8 @@ class Fedot:
         self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
+            self.api_composer.set_tuner_requirements(**self.params.api_params)
+
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model,
                                                     self.train_data,
@@ -207,6 +212,58 @@ class Fedot:
         self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
 
         MemoryAnalytics.finish()
+
+        return self.current_pipeline
+
+    def tune(self,
+             input_data: InputData = None,
+             metric_name: str = None,
+             iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
+             timeout: Optional[float] = None,
+             cv_folds: int = None,
+             n_jobs: int = None,
+             show_progress: bool = False) -> Pipeline:
+        """Method for hyperparameters tuning of current pipeline
+
+        Args:
+            input_data: data for tuning pipeline
+            metric_name: name of metric for quality tuning
+            iterations: numbers of tuning iterations
+            timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach
+            cv_folds: number of folds on data for cross-validation.
+            n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
+            show_progress: shows progress of tuning if true
+
+        Returns:
+            Pipeline object
+
+        """
+        if self.current_pipeline is None:
+            raise ValueError(NOT_FITTED_ERR_MSG)
+
+        input_data = input_data or self.train_data
+
+        if metric_name is None:
+            metric_name = self.metrics.get_problem_metrics()[0]
+
+        if cv_folds is not None:
+            self.api_composer.tuner_requirements.cv_folds = cv_folds
+
+        if n_jobs is not None:
+            self.api_composer.tuner_requirements.n_jobs = n_jobs
+
+        pipeline_tuner = TunerBuilder(self.params.task) \
+            .with_tuner(PipelineTuner) \
+            .with_requirements(self.api_composer.tuner_requirements) \
+            .with_metric(self.metrics.get_metrics_mapping(metric_name)) \
+            .with_iterations(iterations) \
+            .with_timeout(timeout) \
+            .build(input_data)
+
+        self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress)
+
+        # Tuner returns a not fitted pipeline, and it is required to fit on train dataset
+        self.current_pipeline.fit(self.train_data)
 
         return self.current_pipeline
 

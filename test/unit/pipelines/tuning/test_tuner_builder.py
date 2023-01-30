@@ -5,8 +5,9 @@ import numpy as np
 import pytest
 from hyperopt import tpe, rand
 
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -37,7 +38,7 @@ def test_tuner_builder_with_default_params():
     assert isinstance(tuner, HyperoptTuner)
     assert np.isclose(tuner.objective_evaluate.evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
     assert isinstance(tuner.search_space, SearchSpace)
-    assert tuner.iterations == 100
+    assert tuner.iterations == DEFAULT_TUNING_ITERATIONS_NUMBER
     assert tuner.algo == tpe.suggest
     assert tuner.max_seconds == 300
 

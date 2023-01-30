@@ -9,7 +9,7 @@ try:
 except ModuleNotFoundError:
     warn_requirement('tensorflow')
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.image_classification_problem import run_image_classification_problem
@@ -60,6 +60,17 @@ def pipeline_with_pca() -> Pipeline:
     pipeline = Pipeline(node_final)
 
     return pipeline
+
+
+def get_synthetic_classification_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
+    synthetic_data = make_classification(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
+                           features=synthetic_data[0],
+                           target=synthetic_data[1].reshape((-1, 1)),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+
+    return input_data
 
 
 def get_iris_data() -> InputData:
