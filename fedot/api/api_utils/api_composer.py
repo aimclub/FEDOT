@@ -213,7 +213,7 @@ class ApiComposer:
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations,
-                                                                    use_input_preprocessing)
+                                                                    use_input_preprocessing=use_input_preprocessing)
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
 

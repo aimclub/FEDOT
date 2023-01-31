@@ -6,22 +6,24 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.verification import verify_pipeline, verifier_for_task
+from fedot.core.pipelines.verification import verify_pipeline
 
 
 class PredefinedModel:
-    def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: Log):
+    def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: Log,
+                 use_input_preprocessing: bool = True):
         self.predefined_model = predefined_model
         self.data = data
         self.log = log
-        self.pipeline = self._get_pipeline()
+        self.pipeline = self._get_pipeline(use_input_preprocessing)
 
-    def _get_pipeline(self) -> Pipeline:
+    def _get_pipeline(self, use_input_preprocessing: bool = True) -> Pipeline:
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.data).from_operations().build()[0]
+            pipelines = AssumptionsBuilder.get(self.data).from_operations().build(
+                use_input_preprocessing=use_input_preprocessing)[0]
         elif isinstance(self.predefined_model, str):
             model = PrimaryNode(self.predefined_model)
             pipelines = Pipeline(model)

@@ -129,10 +129,10 @@ class Fedot:
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
-                                     self.params.api_params['use_input_preprocessing'],
-                                     self.params.api_params['use_preprocessing_cache'],
-                                     self.params.api_params['cache_folder'])
+        self.api_composer.init_cache(use_pipelines_cache=self.params.api_params['use_pipelines_cache'],
+                                     use_input_preprocessing=self.params.api_params['use_input_preprocessing'],
+                                     use_preprocessing_cache=self.params.api_params['use_preprocessing_cache'],
+                                     cache_folder=self.params.api_params['cache_folder'])
         self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis

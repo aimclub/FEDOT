@@ -35,9 +35,9 @@ class AssumptionsHandler:
 
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
-                .get(self.data, use_input_preprocessing=use_input_preprocessing) \
+                .get(self.data) \
                 .from_operations(available_operations)
-            initial_assumption = assumptions_builder.build()
+            initial_assumption = assumptions_builder.build(use_input_preprocessing=use_input_preprocessing)
         elif isinstance(initial_assumption, Pipeline):
             initial_assumption = [initial_assumption]
         return initial_assumption
