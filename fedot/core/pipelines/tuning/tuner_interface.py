@@ -42,7 +42,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
         self.n_jobs = n_jobs
-
+        self.was_tuned = False
         self.log = default_log(self)
 
     @abstractmethod

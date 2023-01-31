@@ -342,7 +342,7 @@ class ApiComposer:
                              f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
-
+        self.was_tuned = tuner.was_tuned
         return tuned_pipeline
 
 

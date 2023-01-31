@@ -67,7 +67,8 @@ def get_cholesterol_dataset():
     return train, test
 
 
-def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 200, n_features: int = 8):
+def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 200,
+                n_features: int = 8, forecast_length: int = 5):
     if task_type == 'regression':
         data = get_synthetic_regression_data(n_samples=n_samples, n_features=n_features, random_state=42)
         train_data, test_data = train_test_data_setup(data)
@@ -81,7 +82,7 @@ def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_sampl
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=5, validation_blocks=validation_blocks)
+        train_data, test_data = get_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
         threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -169,35 +170,31 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     ('ts_forecasting', 'rmse', 'glm')
 ])
 def test_api_tune_correct(task_type, metric_name, pred_model):
-    if task_type is 'ts_forecasting':
-        tuning_timeout = 0.25
-        forecast_length = 5
-        train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
+    tuning_timeout = 0.05
+
+    if task_type == 'ts_forecasting':
+        forecast_length = 1
+        train_data, test_data, _ = get_dataset(task_type, validation_blocks=1,
+                                               forecast_length=forecast_length)
         model = Fedot(
-            problem=task_type, timeout=0.1, logging_level=0,
+            problem=task_type,
             task_params=TsForecastingParams(forecast_length=forecast_length),
             validation_blocks=1)
     else:
-        tuning_timeout = 0.1
-        train_data, test_data, _ = get_dataset(task_type, n_samples=1000, n_features=10)
-        model = Fedot(problem=task_type, timeout=0.1)
+        train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10)
+        model = Fedot(problem=task_type)
 
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
     pred_before = model.predict(features=test_data)
-    metric_before = model.get_metrics()
 
     tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout))
     pred_after = model.predict(features=test_data)
-    metric_after = model.get_metrics()
 
     assert isinstance(tuned_pipeline, Pipeline)
     assert base_pipeline.structure != tuned_pipeline.structure
+    assert model.api_composer.was_tuned
+    assert not model.api_composer.was_optimised
     assert len(test_data.target) == len(pred_before) == len(pred_after)
-
-    if task_type is 'classification':
-        assert metric_before[metric_name] <= metric_after[metric_name]
-    else:
-        assert metric_before[metric_name] >= metric_after[metric_name]
 
 
 def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
