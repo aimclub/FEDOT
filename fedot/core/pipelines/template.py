@@ -340,18 +340,10 @@ class PipelineTemplate:
 
         if operation_object.operation_type == atomized_model_type():
             atomized_model = operation_object.next_pipeline_template
-            if operation_object.nodes_from:
-                node = PipelineNode(operation_type=atomized_model)
-            else:
-                node = PipelineNode(operation_type=atomized_model)
+            node = PipelineNode(operation_type=atomized_model)
         else:
-            if operation_object.nodes_from:
-                node = PipelineNode(operation_object.operation_type)
-            else:
-                node = PipelineNode(operation_object.operation_type)
-
+            node = PipelineNode(operation_object.operation_type)
             node.parameters = operation_object.custom_params
-
             node.rating = operation_object.rating
 
         if hasattr(operation_object,

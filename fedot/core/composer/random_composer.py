@@ -39,9 +39,8 @@ def nodes_to_pipeline(nodes: List[Node]) -> Pipeline:
 class RandomGraphFactory:
     def __init__(self,
                  primary_candidates: Sequence[Any], secondary_candidates: Sequence[Any],
-                 primary_node_func: Callable = PipelineNode, secondary_node_func: Callable = PipelineNode):
-        self.__primary_node_func = primary_node_func
-        self.__secondary_node_func = secondary_node_func
+                 node_func: Callable = PipelineNode):
+        self.__node_func = node_func
         self.__primary_candidates = list(primary_candidates)
         self.__secondary_candidates = list(secondary_candidates)
 
@@ -54,21 +53,21 @@ class RandomGraphFactory:
         # random primary nodes
         num_of_primary = randint(1, len(self.__primary_candidates))
         for _ in range(num_of_primary):
-            new_set.append(self.random_primary())
+            new_set.append(self.random_node())
 
         # random final node
         if len(new_set) > 1:
             parent_nodes = copy(new_set)
-            final_node = self.random_secondary(parent_nodes)
+            final_node = self.random_node(parent_nodes)
             new_set.append(final_node)
 
         return nodes_to_pipeline(new_set)
 
-    def random_primary(self):
-        return self.__primary_node_func(random.choice(self.__primary_candidates))
-
-    def random_secondary(self, parent_nodes):
-        return self.__secondary_node_func(random.choice(self.__secondary_candidates), parent_nodes)
+    def random_node(self, parent_nodes=None):
+        if parent_nodes:
+            return self.__node_func(random.choice(self.__secondary_candidates), parent_nodes)
+        else:
+            return self.__node_func(random.choice(self.__primary_candidates))
 
 
 class RandomSearchOptimizer(GraphOptimizer):

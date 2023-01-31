@@ -18,7 +18,7 @@ from test.unit.composer.test_composer import to_numerical
 def get_regression_pipeline():
     first = PipelineNode(operation_type='scaling')
     final = PipelineNode(operation_type='ridge',
-                          nodes_from=[first])
+                         nodes_from=[first])
 
     pipeline = Pipeline(final)
     return pipeline

@@ -171,8 +171,8 @@ def only_non_lagged_operations_are_primary(pipeline: Pipeline):
 
     # Check only primary nodes
     for node in pipeline.nodes:
-        if isinstance(node,
-                      PipelineNode) and node.is_primary and DataTypesEnum.ts not in node.operation.metadata.input_types:
+        if isinstance(node, PipelineNode) and node.is_primary and \
+                DataTypesEnum.ts not in node.operation.metadata.input_types:
             raise ValueError(
                 f'{ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes')
 

@@ -34,11 +34,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
     def _transform_to_pipeline_node(node: OptNode) -> Node:
         # deepcopy to avoid accidental information sharing between opt graphs & pipelines
         content = deepcopy(node.content)
-        if not node.nodes_from:
-            return PipelineNode(operation_type=content['name'], content=content)
-        else:
-            # `nodes_from` are assigned on the step of overall graph mapping
-            return PipelineNode(operation_type=content['name'], content=content)
+        return PipelineNode(operation_type=content['name'], content=content)
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:
         adapted_nodes = map_dag_nodes(self._transform_to_opt_node, adaptee.nodes)

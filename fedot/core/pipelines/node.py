@@ -439,3 +439,7 @@ def _combine_parents(parent_nodes: List[Node],
             target = prediction.target
 
     return parent_results, target
+
+
+PrimaryNode = PipelineNode
+SecondaryNode = PipelineNode
