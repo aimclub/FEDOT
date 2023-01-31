@@ -115,8 +115,10 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
+        initial_node_operation = initial_node.operation if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = PipelineBuilder().add_node(data_source_name).add_node(initial_node.operation).to_nodes()[0]
+            first_node = \
+                PipelineBuilder().add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
             data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
