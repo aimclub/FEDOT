@@ -184,7 +184,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
             task_params=TsForecastingParams(forecast_length=forecast_length),
             validation_blocks=1)
     else:
-        train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10, iris_dataset=True)
+        train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10, iris_dataset=False)
         model = Fedot(problem=task_type)
 
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
