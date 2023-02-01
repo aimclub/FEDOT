@@ -131,7 +131,7 @@ Extended examples:
 - Credit scoring problem, i.e. `binary classification task <https://github.com/aimclub/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/aimclub/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 - Spam detection, i.e. `natural language preprocessing <https://github.com/aimclub/FEDOT/blob/master/cases/spam_detection.py>`__
-- Movie rating prediction with `multi-modal data <https://github.com/aimclub/FEDOT/blob/master/cases/multi_modal_rating_prediction.py>`__
+- Wine variety prediction with `multi-modal data <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/multimodal_text_num_example.py>`__
 
 
 Also, several video tutorials are available `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
