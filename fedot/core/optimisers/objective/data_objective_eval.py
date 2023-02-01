@@ -132,6 +132,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node)
+            intermediate_graph.preprocessor = graph.preprocessor
             intermediate_graph.fit(
                 train_data,
                 time_constraint=self._time_constraint,

@@ -528,7 +528,7 @@ def test_data_from_csv_load_correctly():
 def test_api_params():
     """ Test checks if all params from api are processed and divided correctly"""
     default_int_value = 2
-    api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
+    fedot_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
                   'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
                   'max_depth': default_int_value, 'max_arity': default_int_value,
@@ -566,10 +566,13 @@ def test_api_params():
                                'early_stopping_iterations': default_int_value,
                                'early_stopping_timeout': default_int_value,
                                'validation_blocks': default_int_value,
-                               'optimizer_external_params': {'path': default_int_value}}
+                               'optimizer_external_params': {'path': default_int_value},
+                               'use_input_preprocessing': True,
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': True,
+                               'cache_folder': None}
     correct_tuner_params = {'with_tuning': True}
 
-    model = Fedot(**api_params)
+    model = Fedot(**fedot_params)
     api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)
 
     for key in correct_api_params.keys():

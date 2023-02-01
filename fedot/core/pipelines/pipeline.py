@@ -36,6 +36,7 @@ class Pipeline(GraphDelegate, Serializable):
 
     Args:
         nodes: :obj:`Node` object(s)
+        use_input_preprocessing: whether to do input preprocessing or not, True by default
     """
 
     def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_input_preprocessing: bool = True):

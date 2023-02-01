@@ -11,7 +11,6 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
-from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 
 
 class AtomizedModel(Operation):

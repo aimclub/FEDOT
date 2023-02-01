@@ -8,12 +8,10 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
-from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
-from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 @pytest.fixture(scope='session', autouse=True)

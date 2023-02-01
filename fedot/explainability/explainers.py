@@ -1,5 +1,7 @@
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.explainability.surrogate_explainer import SurrogateExplainer
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.data.data import InputData
 
 
 def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTypesEnum):
@@ -11,7 +13,6 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
         else:
             raise ValueError(f'Surrogate tree is not applicable for the {task_type} task')
         explainer = SurrogateExplainer(pipeline, surrogate=surrogate)
-
     else:
         raise ValueError(f'Explanation method {method} is not supported')
 
@@ -19,7 +20,7 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
 
 
 def explain_pipeline(pipeline: 'Pipeline', data: 'InputData', method: str = 'surrogate_dt',
-                     visualization: bool = False, **kwargs) -> 'Explainer':
+                     visualization: bool = False, **kwargs) -> SurrogateExplainer:
     """Create explanation for the `pipeline` according to the selected `method`.
     An `Explainer` instance is returned.
 

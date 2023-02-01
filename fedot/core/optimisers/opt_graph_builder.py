@@ -38,7 +38,7 @@ class OptGraphBuilder(GraphBuilder):
         :param params: parameters dictionary for the specific operation
         :return: self
         """
-        if not operation_type:
+        if operation_type is None:
             return self
         params = self._pack_params(operation_type, params)
         if branch_idx < len(self.heads):

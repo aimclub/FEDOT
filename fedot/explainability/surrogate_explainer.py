@@ -45,6 +45,7 @@ class SurrogateExplainer(Explainer):
 
         self.surrogate_str = surrogate
         self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
+        self.surrogate.preprocessor = model.preprocessor
 
     def explain(self, data: InputData, visualization: bool = False, **kwargs):
         try:

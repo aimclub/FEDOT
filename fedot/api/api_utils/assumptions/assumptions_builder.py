@@ -7,10 +7,10 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 class AssumptionsBuilder:
@@ -48,7 +48,7 @@ class AssumptionsBuilder:
 
     def build(self, initial_node: Optional[Node] = None, use_input_preprocessing: bool = True) -> List[Pipeline]:
         return [
-            builder.build(use_input_preprocessing)
+            builder.build(use_input_preprocessing=use_input_preprocessing)
             for builder in self.to_builders(initial_node, use_input_preprocessing)]
 
 
@@ -90,7 +90,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.build(use_input_preprocessing)):
+            if self.ops_filter.satisfies(candidate_builder.build(use_input_preprocessing=use_input_preprocessing)):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
@@ -115,7 +115,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
-        initial_node_operation = initial_node.operation if initial_node is not None else None
+        initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
             first_node = \
                 PipelineBuilder().add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]

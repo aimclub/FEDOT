@@ -26,7 +26,7 @@ class PredefinedModel:
                 use_input_preprocessing=use_input_preprocessing)[0]
         elif isinstance(self.predefined_model, str):
             model = PrimaryNode(self.predefined_model)
-            pipelines = Pipeline(model)
+            pipelines = Pipeline(model, use_input_preprocessing=use_input_preprocessing)
         else:
             raise ValueError(f'{type(self.predefined_model)} is not supported as Fedot model')
 

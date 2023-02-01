@@ -188,8 +188,8 @@ class Fedot:
 
         if self.params.api_params['preset'] != 'auto':
             self.params.update_available_operations_by_preset(self.train_data)
-        self.params.api_params['train_data'] = self.train_data
 
+        self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
             self.api_composer.set_tuner_requirements(**self.params.api_params)
@@ -197,7 +197,9 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model,
                                                     self.train_data,
-                                                    self.params.api_params['logger']).fit()
+                                                    self.params.api_params['logger'],
+                                                    use_input_preprocessing=self.params.api_params[
+                                                        'use_input_preprocessing']).fit()
         else:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
@@ -393,7 +395,7 @@ class Fedot:
         Args:
             path: path to ``json`` file with model
         """
-        self.current_pipeline = Pipeline()
+        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.api_params['use_input_preprocessing'])
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 

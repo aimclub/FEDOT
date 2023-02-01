@@ -50,5 +50,13 @@ class PreprocessingBuilder:
         return self.with_scaling()._builder
 
     def to_pipeline(self, use_input_preprocessing: bool = True) -> Optional[Pipeline]:
-        """ Return result as Pipeline. Scaling is applied final by default. """
-        return self.to_builder().to_pipeline(use_input_preprocessing)
+        """
+        Returns result as Pipeline. Scaling is applied final by default.
+
+        Args:
+            use_input_preprocessing: whether to enable preprocessing of initial data
+
+        Returns:
+            adapted graph as pipeline
+        """
+        return self.to_builder().build(use_input_preprocessing=use_input_preprocessing)
