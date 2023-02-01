@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class DummyPreprocessor(BasePreprocessor):
     """
-    Just uses base class methods as is, passing through input data without modification
+    Just passes through given input data without modification
     """
 
     def __init__(self):
