@@ -8,6 +8,7 @@ from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 from fedot.core.utilities.random import RandomStateHandler
@@ -16,11 +17,11 @@ from fedot.core.utilities.random import RandomStateHandler
 class ApiParams:
 
     def __init__(self):
-        self.api_params = None
-        self.log = None
-        self.task = None
-        self.task_params = None
-        self.metrics_name = None
+        self.api_params: dict = None
+        self.log: LoggerAdapter = None
+        self.task: Task = None
+        self.task_params: TaskParams = None
+        self.metric_name: Union[str, List[str]] = None
 
     def initialize_params(self, input_params: Dict[str, Any]):
         """ Merge input_params dictionary with several parameters for AutoML algorithm """
@@ -111,14 +112,15 @@ class ApiParams:
             random.seed(specified_seed)
             RandomStateHandler.MODEL_FITTING_SEED = specified_seed
 
-        if self.api_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
+        self.task_params = input_params['task_params']
+        if self.api_params['problem'] == 'ts_forecasting' and self.task_params is None:
             self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
-            input_params['task_params'] = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
+            self.task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
         if self.api_params['problem'] == 'clustering':
             raise ValueError('This type of task is not supported in API now')
 
-        self.task = self.get_task_params(self.api_params['problem'], input_params['task_params'])
+        self.task = ApiParams.get_task(self.api_params['problem'], self.task_params)
         self.metric_name = self.get_default_metric(self.api_params['problem'])
         self.api_params.pop('problem')
 
@@ -159,14 +161,16 @@ class ApiParams:
         return default_test_metric_dict[problem]
 
     @staticmethod
-    def get_task_params(problem: str, task_params: Optional[TaskParams] = None):
-        """ Return task parameters by machine learning problem name (string) """
+    def get_task(problem: str, task_params: Optional[TaskParams] = None):
+        """ Return task by the given ML problem name and the parameters """
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=task_params),
                      'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),
-                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
-                     }
-        return task_dict[problem]
+                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)}
+        try:
+            return task_dict[problem]
+        except ValueError as exc:
+            ValueError('Wrong type name of the given task')
 
 
 def check_timeout_vs_generations(api_params):

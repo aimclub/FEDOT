@@ -39,7 +39,6 @@ class BasePreprocessor(ABC):
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
-        self.helpers_were_initialized: bool = False
         self.main_target_source_name = None
 
     @abstractmethod

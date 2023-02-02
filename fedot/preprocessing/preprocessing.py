@@ -70,7 +70,7 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             data: with input data for preprocessing
         """
-        if self.helpers_were_initialized:
+        if self.binary_categorical_processors and self.types_correctors:
             # Preprocessors have been already initialized
             return None
 
@@ -83,7 +83,6 @@ class DataPreprocessor(BasePreprocessor):
                 self.types_correctors[data_source] = TableTypesCorrector()
         else:
             raise ValueError('Unknown type of data.')
-        self.helpers_were_initialized = True
 
     def _init_main_target_source_name(self, multi_data: MultiModalData):
         """

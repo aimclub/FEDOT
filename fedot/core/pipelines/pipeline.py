@@ -45,6 +45,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.computation_time = None
         self.log = default_log(self)
 
+        self.use_input_preprocessing = use_input_preprocessing  # used outside of the class
         # Define data preprocessor
         self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 

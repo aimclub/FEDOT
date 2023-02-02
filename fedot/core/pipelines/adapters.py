@@ -44,8 +44,9 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
         restored_nodes = map_dag_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
-        pipeline = Pipeline(restored_nodes)
-
         metadata = metadata or {}
+        use_input_preprocessing = metadata.get('use_input_preprocessing', True)
+        pipeline = Pipeline(restored_nodes, use_input_preprocessing=use_input_preprocessing)
         pipeline.computation_time = metadata.get('computation_time_in_seconds')
+
         return pipeline

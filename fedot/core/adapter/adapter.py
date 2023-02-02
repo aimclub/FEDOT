@@ -4,10 +4,10 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import TYPE_CHECKING, TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence, Union
 
+from fedot.core.adapter.adapt_registry import AdaptRegistry
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.adapter.adapt_registry import AdaptRegistry
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         else:
             return item
 
-    def restore(self, item: Union[OptGraph, Individual, PopulationT]) \
+    def restore(self, item: Union[OptGraph, Individual, PopulationT], **kwargs) \
             -> Union[DomainStructureType, Sequence[DomainStructureType]]:
         """Maps graphs from internal representation to domain graphs.
         Performs mapping only if argument has a type of internal representation.
@@ -93,7 +93,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
             OptGraph | Sequence: mapped domain graph or sequence of them
         """
         if type(item) is self.opt_graph_class:
-            return self._restore(item)
+            return self._restore(item, metadata=kwargs)
         elif isinstance(item, Individual):
             return self._restore(item.graph, item.metadata)
         elif isinstance(item, Sequence) and isinstance(item[0], Individual):

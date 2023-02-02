@@ -1,9 +1,8 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 from random import choice
 from typing import Sequence, Callable
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
-from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism
@@ -57,7 +56,9 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
         self.graph_optimizer_params.pop_size = self._pop_size.initial
-        self.initial_individuals = [Individual(graph) for graph in initial_graphs]
+        self.initial_individuals = [
+            Individual(graph, metadata={'use_input_preprocessing': getattr(graph, 'use_input_preprocessing', True)})
+            for graph in initial_graphs]
 
     def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """

@@ -42,7 +42,8 @@ class Regularization(Operator):
             parent_operator = ParentOperator(type_='regularization',
                                              operators='decremental_regularization',
                                              parent_individuals=ind)
-            subtree_inds = [Individual(OptGraph(deepcopy(ordered_subnodes_hierarchy(node))), parent_operator)
+            subtree_inds = [Individual(OptGraph(deepcopy(ordered_subnodes_hierarchy(node))), parent_operator,
+                                       metadata=ind.metadata)  # TODO: Is it legal
                             for node in ind.graph.nodes
                             if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node))
                             and node.descriptive_id not in prev_nodes_ids]

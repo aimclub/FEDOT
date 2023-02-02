@@ -66,7 +66,6 @@ def correct_preprocessing_params(pipeline, categorical_max_uniques_th: int = Non
         table_corrector.categorical_max_uniques_th = categorical_max_uniques_th
     pipeline.preprocessor.types_correctors.update({DEFAULT_SOURCE_NAME: table_corrector})
     pipeline.preprocessor.binary_categorical_processors.update({DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
-    pipeline.preprocessor.helpers_were_initialized = True
 
     return pipeline
 

@@ -152,15 +152,14 @@ class OptGraphBuilder(GraphBuilder):
             self.heads = [new_head]
         return self
 
-    def build(self) -> Optional[DomainStructureType]:
+    def build(self, **kwargs) -> Optional[DomainStructureType]:
         """ Adapt resulted graph to required graph class. """
         if not self.to_nodes():
             return None
         result_opt_graph = OptGraph(self.to_nodes())
         if self.graph_adapter:
-            return self.graph_adapter.restore(result_opt_graph)
-        else:
-            return result_opt_graph
+            return self.graph_adapter.restore(result_opt_graph, **kwargs)
+        return result_opt_graph
 
     def merge_with(self, following_builder) -> Optional['OptGraphBuilder']:
         return merge_opt_graph_builders(self, following_builder)

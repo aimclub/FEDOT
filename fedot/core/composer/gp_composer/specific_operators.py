@@ -85,8 +85,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pip
 
     node_final = SecondaryNode(choice(requirements.secondary),
                                nodes_from=[existing_pipeline.root_node, node_boost])
-    pipeline = Pipeline(node_final)
-    pipeline.preprocessor = existing_pipeline.preprocessor
+    pipeline = Pipeline(node_final, use_input_preprocessing=pipeline.use_input_preprocessing)
     return pipeline
 
 

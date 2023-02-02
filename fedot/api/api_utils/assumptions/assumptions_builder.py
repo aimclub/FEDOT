@@ -41,15 +41,15 @@ class AssumptionsBuilder:
     def from_operations(self, available_operations: List[str]):
         raise NotImplementedError('abstract')
 
-    def to_builders(self,
-                    initial_node: Optional[Node] = None,
+    def to_builders(self, initial_node: Optional[Node] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         raise NotImplementedError('abstract')
 
-    def build(self, initial_node: Optional[Node] = None, use_input_preprocessing: bool = True) -> List[Pipeline]:
+    def build(self, initial_node: Optional[Node] = None,
+              use_input_preprocessing: bool = True) -> List[Pipeline]:
         return [
             builder.build(use_input_preprocessing=use_input_preprocessing)
-            for builder in self.to_builders(initial_node, use_input_preprocessing)]
+            for builder in self.to_builders(initial_node, use_input_preprocessing=use_input_preprocessing)]
 
 
 class UniModalAssumptionsBuilder(AssumptionsBuilder):
@@ -80,8 +80,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                 self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
-    def to_builders(self,
-                    initial_node: Optional[Node] = None,
+    def to_builders(self, initial_node: Optional[Node] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
@@ -119,7 +118,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         for data_source_name, subbuilder in self._subbuilders:
             first_node = \
                 PipelineBuilder().add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
-            data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing)
+            data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
         # Then zip these alternatives together and add final node to get ensembles.
