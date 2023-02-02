@@ -25,7 +25,7 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict, init_parameters = self._get_parameters_for_tune(pipeline)
 
-        min_sec_number = 3
+        min_sec_number = round(max(min(3, self.max_seconds / 10), 1))
         with Timer() as global_tuner_timer:
 
             self.init_check(pipeline)
@@ -35,15 +35,18 @@ class PipelineTuner(HyperoptTuner):
 
             remaining_time = self.max_seconds - global_tuner_timer.seconds_from_start
             if remaining_time <= min_sec_number:
-                self.log.message('Tunner stopped after initial assumption due to the lack of time')
+                self.log.message('Tuner stopped after initial assumption due to the lack of time')
                 return pipeline
 
             try:
                 if parameters_dict:
                     # try searching using initial parameters (uses original search space with fixed initial parameters)
-                    trials, init_trials_num = self._search_near_initial_parameters(pipeline, parameters_dict,
-                                                                                   init_parameters,
-                                                                                   trials, show_progress)
+                    best, trials, init_trials_num = \
+                        self._search_near_initial_parameters(pipeline, parameters_dict,
+                                                             init_parameters,
+                                                             trials, show_progress)
+                    if init_parameters and best is not None:
+                        self.was_tuned = True
 
                     self.max_seconds = self.max_seconds - global_tuner_timer.seconds_from_start
                     if self.max_seconds > min_sec_number:
@@ -56,19 +59,20 @@ class PipelineTuner(HyperoptTuner):
                                     early_stop_fn=self.early_stop_fn,
                                     timeout=self.max_seconds)
                     else:
-                        self.log.message('Tunner stopped after initial search due to the lack of time')
+                        self.log.message('Tuner stopped after initial search due to the lack of time')
 
-                    best = space_eval(space=parameters_dict, hp_assignment=best)
-                    # check if best point was obtained using search space with fixed initial parameters
-                    is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
-                    if is_best_trial_with_init_params:
-                        best = {**best, **init_parameters}
+                    if best is not None:
+                        best = space_eval(space=parameters_dict, hp_assignment=best)
+                        # check if best point was obtained using search space with fixed initial parameters
+                        is_best_trial_with_init_params = trials.best_trial.get('tid') in range(init_trials_num)
+                        if is_best_trial_with_init_params:
+                            best = {**best, **init_parameters}
 
-                    tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
-                                                           parameters=best)
+                        tuned_pipeline = self.set_arg_pipeline(pipeline=pipeline,
+                                                               parameters=best)
 
-                    # Validation is the optimization do well
-                    self.was_tuned = True
+                        # Validation is the optimization do well
+                        self.was_tuned = True
 
                 else:
                     # TODO can be moved to the beginning
@@ -91,7 +95,7 @@ class PipelineTuner(HyperoptTuner):
         try_initial_parameters = initial_parameters and self.iterations > 1
         if not try_initial_parameters:
             init_trials_num = 0
-            return trials, init_trials_num
+            return None, trials, init_trials_num
 
         is_init_params_full = len(initial_parameters) == len(search_space)
         if self.iterations < 10 or is_init_params_full:
@@ -100,15 +104,15 @@ class PipelineTuner(HyperoptTuner):
             init_trials_num = min(int(self.iterations * 0.1), 10)
 
         # fmin updates trials with evaluation points tried out during the call
-        fmin(partial(self._objective, pipeline=pipeline, unchangeable_parameters=initial_parameters),
-             search_space,
-             trials=trials,
-             algo=self.algo,
-             max_evals=init_trials_num,
-             show_progressbar=show_progress,
-             early_stop_fn=self.early_stop_fn,
-             timeout=self.max_seconds)
-        return trials, init_trials_num
+        best = fmin(partial(self._objective, pipeline=pipeline, unchangeable_parameters=initial_parameters),
+                    search_space,
+                    trials=trials,
+                    algo=self.algo,
+                    max_evals=init_trials_num,
+                    show_progressbar=show_progress,
+                    early_stop_fn=self.early_stop_fn,
+                    timeout=self.max_seconds)
+        return best, trials, init_trials_num
 
     def _get_parameters_for_tune(self, pipeline: Pipeline) -> Tuple[dict, dict]:
         """
