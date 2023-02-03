@@ -62,8 +62,6 @@ def cgru_forecasting():
         'batch_size': 64,
         'num_epochs': 50}).build()
 
-
-    #pipeline=PipelineBuilder().add_node("lagged", params={'window_size': window_size}).add_node('ridge').build()
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data).predict[0]
 
