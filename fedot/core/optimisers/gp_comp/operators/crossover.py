@@ -91,6 +91,7 @@ class Crossover(Operator):
                                   parent_individuals=parent_individuals)
         return tuple(Individual(graph, operator,
                                 metadata={'use_input_preprocessing': getattr(graph, 'use_input_preprocessing', True)})
+                                # TODO: Is it legal?
                      for graph in new_graphs)
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
