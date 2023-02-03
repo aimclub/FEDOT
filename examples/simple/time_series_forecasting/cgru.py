@@ -48,7 +48,7 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 
 def cgru_forecasting():
     """ Example of cgru pipeline serialization """
-    horizon = 12
+    horizon = 2
     window_size = 200
     train_data, test_data = get_ts_data('salaries', horizon)
 
@@ -61,10 +61,11 @@ def cgru_forecasting():
         'cnn2_output_size': 32,
         'batch_size': 64,
         'num_epochs': 50}).build()
-    pipeline.fit(train_data)
-    prediction_before_export = pipeline.predict(test_data).predict[0]
 
-    print(f'Before export {prediction_before_export[:4]}')
+
+    #pipeline=PipelineBuilder().add_node("lagged", params={'window_size': window_size}).add_node('ridge').build()
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data).predict[0]
 
 
     plot_info = [
@@ -72,16 +73,16 @@ def cgru_forecasting():
          'series': np.concatenate([test_data.features]),
          'label': 'Actual time series'},
         {'idx': test_data.idx,
-         'series': np.ravel(prediction_before_export),
+         'series': np.ravel(prediction),
          'label': 'prediction'},
         get_border_line_info(test_data.idx[0],
-                             prediction_before_export,
+                             prediction,
                              np.ravel(np.concatenate([test_data.features, test_data.target])),
                              'Border line')
     ]
 
-    rmse = mean_squared_error(test_data.target, prediction_before_export, squared=False)
-    mae = mean_absolute_error(test_data.target, prediction_before_export)
+    rmse = mean_squared_error(test_data.target, prediction, squared=False)
+    mae = mean_absolute_error(test_data.target, prediction)
     print(f'RMSE - {rmse:.4f}')
     print(f'MAE - {mae:.4f}')
 

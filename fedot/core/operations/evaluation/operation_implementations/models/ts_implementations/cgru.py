@@ -1,14 +1,7 @@
-from copy import copy
-
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from tqdm import tqdm
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
-    prepare_target,
-    ts_to_table
-)
+
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -43,7 +36,7 @@ class CGRUImplementation(ModelImplementation):
         )
 
         self.optim_dict = {
-            'adam': torch.optim.Adam(self.model.parameters(), lr=self.learning_rate),
+            'adam': torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate),
             'sgd': torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
         }
 
@@ -196,5 +189,49 @@ class CGRUNetwork(nn.Module):
         x = x.permute(2, 0, 1)
         out, self.hidden_cell = self.gru(x, self.hidden_cell)
         predictions = self.linear(self.hidden_cell)
+
+        return predictions
+
+
+class LSTMNetwork(nn.Module):
+    """Model isn't used in composing due to same performance with GRU. Saved for further experiments"""
+    def __init__(self,
+                 hidden_size=200,
+                 cnn1_kernel_size=5,
+                 cnn1_output_size=16,
+                 cnn2_kernel_size=3,
+                 cnn2_output_size=32,
+                 ):
+        super().__init__()
+
+        self.hidden_size = hidden_size
+        self.conv_block1 = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
+            nn.ReLU()
+        )
+        self.conv_block2 = nn.Sequential(
+            nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
+            nn.ReLU()
+        )
+        self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
+        self.hidden_cell = None
+        self.linear = nn.Linear(self.hidden_size * 2, 1)
+
+    def init_linear(self, forecast_length):
+        self.linear = nn.Linear(self.hidden_size * 2, forecast_length)
+
+    def init_hidden(self, batch_size, device):
+        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(device),
+                            torch.zeros(1, batch_size, self.hidden_size).to(device))
+
+    def forward(self, x):
+        if self.hidden_cell is None:
+            raise Exception
+        x = self.conv_block1(x)
+        x = self.conv_block2(x)
+        x = x.permute(2, 0, 1)
+        out, self.hidden_cell = self.lstm(x, self.hidden_cell)
+        hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        predictions = self.linear(hidden_cat)
 
         return predictions
