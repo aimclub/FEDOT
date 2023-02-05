@@ -24,6 +24,28 @@ class TaskTypesEnum(Enum):
     ts_forecasting = 'ts_forecasting'
     clustering = 'clustering'  # not applicable as main task yet
 
+class PresetTypesEnum(Enum):
+```preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu'):
+            .. details:: possible ``preset`` options:
+                - ``best_quality`` -> All models that are available for this data type and task are used
+                - ``fast_train`` -> Models that learn quickly. This includes preprocessing operations
+                  (data operations) that only reduce the dimensionality of the data, but cannot increase it.
+                  For example, there are no polynomial features and one-hot encoding operations
+                - ``stable`` -> The most reliable preset in which the most stable operations are included.
+                - ``auto`` -> Automatically determine which preset should be used.
+                - ``gpu`` -> Models that use GPU resources for computation.
+                - ``ts`` -> A special preset with models for time series forecasting task.
+                - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.```
+    best_quality = 'best_quality'
+    fast_train = 'fast_train'
+    stable = 'stable'
+    auto = 'auto'
+    gpu = 'gpu'
+    ts = 'ts'
+    automl = 'automl'
+    
+
+
 
 @dataclass
 class Task:
