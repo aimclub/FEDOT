@@ -15,10 +15,11 @@ Automated way
     See the :doc:`API documentation </api/api>` for descriptions of these and others parameters.
 
 .. code:: python
-
+   import fedot
    # build model
    auto_model = Fedot(
-      problem='classification', timeout=timeout, preset='fast_train', 
+      problem=fedot.api.main.TaskTypesEnum.classification.value, timeout=timeout, 
+      preset=fedot.api.main.PresetTypesEnum.fast_train.value, 
       with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
       seed=42
    )
