@@ -126,6 +126,7 @@ class ApiComposer:
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             parallelization_mode=api_params['parallelization_mode'],
+            use_input_preprocessing=composer_params['use_input_preprocessing'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
@@ -191,6 +192,7 @@ class ApiComposer:
 
         self.tuner_requirements = PipelineComposerRequirements(
             n_jobs=api_params['n_jobs'],
+            use_input_preprocessing=composer_params['use_input_preprocessing'],
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
         )
@@ -203,7 +205,6 @@ class ApiComposer:
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
         available_operations = composer_params['available_operations']
-        use_input_preprocessing = composer_params['use_input_preprocessing']
         preset = composer_params['preset']
 
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
@@ -213,7 +214,8 @@ class ApiComposer:
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations,
-                                                                    use_input_preprocessing=use_input_preprocessing)
+                                                                    use_input_preprocessing=composer_params[
+                                                                        'use_input_preprocessing'])
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
 

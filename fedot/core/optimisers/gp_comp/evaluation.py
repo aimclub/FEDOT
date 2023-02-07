@@ -159,9 +159,7 @@ class BasePipelineEvaluationDispatcher(ObjectiveEvaluationDispatcher):
         eval_res = GraphEvalResult(
             uid_of_individual=uid_of_individual, fitness=fitness, graph=graph, metadata={
                 'computation_time_in_seconds': end_time - start_time,
-                'evaluation_time_iso': eval_time_iso,
-                'use_input_preprocessing': getattr(graph, 'use_input_preprocessing', True)
-                # TODO: Is it even needed here?
+                'evaluation_time_iso': eval_time_iso
             }
         )
         return eval_res

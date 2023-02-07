@@ -57,8 +57,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self.requirements.max_depth = self._graph_depth.initial
         self.graph_optimizer_params.pop_size = self._pop_size.initial
         self.initial_individuals = [
-            Individual(graph, metadata={'use_input_preprocessing': getattr(graph, 'use_input_preprocessing', True)})
-            for graph in initial_graphs]  # TODO: Is it legal?
+            Individual(graph, metadata={'use_input_preprocessing': requirements.use_input_preprocessing})
+            for graph in initial_graphs]  # TODO: Is it still legal?
 
     def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """

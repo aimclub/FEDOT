@@ -44,6 +44,7 @@ class ComposerRequirements:
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = -1
     parallelization_mode: str = 'populational'
+    use_input_preprocessing: bool = True
 
     show_progress: bool = True
     collect_intermediate_metric: bool = False
