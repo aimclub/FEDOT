@@ -23,7 +23,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.data_types import NAME_CLASS_FLOAT, NAME_CLASS_INT, \
     NAME_CLASS_STR
-from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features
+from test.unit.preprocessing.test_preprocessing_through_api import data_with_only_categorical_features
 
 np.random.seed(2021)
 

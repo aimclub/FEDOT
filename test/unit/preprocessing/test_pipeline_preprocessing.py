@@ -11,7 +11,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
-from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features, \
+from test.unit.preprocessing.test_preprocessing_through_api import data_with_only_categorical_features, \
     data_with_too_much_nans, data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, \
     data_with_nans_in_multi_target, data_with_categorical_target
 

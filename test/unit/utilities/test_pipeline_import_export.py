@@ -16,7 +16,7 @@ from test.unit.api.test_main_api import get_dataset
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
-from test.unit.preprocessing.test_preprocessing_though_api import \
+from test.unit.preprocessing.test_preprocessing_through_api import \
     data_with_spaces_and_nans_in_features
 from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_simple_ts_pipeline, get_ts_data
 

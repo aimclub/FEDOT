@@ -18,7 +18,7 @@ def data_with_only_categorical_features():
                          ["'c'", "1", "0"]], dtype=object)
     input_data = InputData(idx=[0, 1, 2], features=features,
                            target=np.array([0, 1, 2]),
-                           task=task,  data_type=DataTypesEnum.table,
+                           task=task, data_type=DataTypesEnum.table,
                            supplementary_data=supp_data)
 
     return input_data
@@ -182,6 +182,8 @@ def data_with_text_features_and_nans():
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
     return train_input
+
+
 # TODO: @andreygetmanov (test data with image features)
 
 
