@@ -259,9 +259,9 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
    :alt: Build Status
    :target: https://github.com/aimclub/FEDOT/actions
 
-.. |coverage| image:: https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg
+.. |coverage| image:: https://codecov.io/gh/aimclub/FEDOT/branch/master/graph/badge.svg
    :alt: Coverage Status
-   :target: https://codecov.io/gh/nccr-itmo/FEDOT
+   :target: https://codecov.io/gh/aimclub/FEDOT
 
 .. |pypi| image:: https://badge.fury.io/py/fedot.svg
    :alt: Supported Python Versions
