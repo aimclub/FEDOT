@@ -126,7 +126,7 @@ class ComposerBuilder:
     def _get_default_complexity_metrics() -> List[MetricsEnum]:
         return [ComplexityMetricsEnum.node_num]
 
-    def build(self) -> Composer:  # TODO: put kwargs here?
+    def build(self) -> Composer:
         multi_objective = len(self.metrics) > 1
         if not self.composer_requirements:
             self.composer_requirements = self._get_default_composer_params(self.task)

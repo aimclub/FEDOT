@@ -4,6 +4,7 @@ from fedot.core.adapter.adapter import DomainStructureType, BaseOptimizationAdap
 from fedot.core.dag.linked_graph import LinkedGraph
 from fedot.core.optimisers.graph import OptNode, OptGraph
 from fedot.core.optimisers.graph_builder import GraphBuilder
+from fedot.core.pipelines.adapters import PipelineAdapter
 
 
 class OptGraphBuilder(GraphBuilder):
@@ -152,13 +153,13 @@ class OptGraphBuilder(GraphBuilder):
             self.heads = [new_head]
         return self
 
-    def build(self, **kwargs) -> Optional[DomainStructureType]:
+    def build(self) -> Optional[DomainStructureType]:
         """ Adapt resulted graph to required graph class. """
         if not self.to_nodes():
             return None
         result_opt_graph = OptGraph(self.to_nodes())
         if self.graph_adapter:
-            return self.graph_adapter.restore(result_opt_graph, **kwargs)
+            return self.graph_adapter.restore(result_opt_graph)
         return result_opt_graph
 
     def merge_with(self, following_builder) -> Optional['OptGraphBuilder']:
@@ -187,6 +188,9 @@ def merge_opt_graph_builders(previous: OptGraphBuilder, following: OptGraphBuild
     if type(following.graph_adapter) is not type(previous.graph_adapter):
         raise ValueError('Adapters do not match: cannot perform merge')
 
+    if isinstance(previous.graph_adapter, PipelineAdapter):
+        following.graph_adapter.use_input_preprocessing = previous.graph_adapter.use_input_preprocessing
+
     lhs_nodes_final = previous.to_nodes()
     rhs_tmp_graph = LinkedGraph(following.to_nodes())
     rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
@@ -209,6 +213,5 @@ def merge_opt_graph_builders(previous: OptGraphBuilder, following: OptGraphBuild
     # Check that Graph didn't mess up with node types
     if not all(map(lambda n: isinstance(n, OptNode), rhs_tmp_graph.nodes)):
         raise ValueError("Expected Graph only with nodes of type 'OptNode'")
-
     merged_builder = OptGraphBuilder(following.graph_adapter, *rhs_tmp_graph.root_nodes())
     return merged_builder

@@ -81,7 +81,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         else:
             return item
 
-    def restore(self, item: Union[OptGraph, Individual, PopulationT], **kwargs) \
+    def restore(self, item: Union[OptGraph, Individual, PopulationT]) \
             -> Union[DomainStructureType, Sequence[DomainStructureType]]:
         """Maps graphs from internal representation to domain graphs.
         Performs mapping only if argument has a type of internal representation.
@@ -93,7 +93,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
             OptGraph | Sequence: mapped domain graph or sequence of them
         """
         if type(item) is self.opt_graph_class:
-            return self._restore(item, metadata=kwargs)
+            return self._restore(item)
         elif isinstance(item, Individual):
             return self._restore(item.graph, item.metadata)
         elif isinstance(item, Sequence) and isinstance(item[0], Individual):

@@ -48,7 +48,7 @@ class AssumptionsBuilder:
     def build(self, initial_node: Optional[Node] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:
         return [
-            builder.build(use_input_preprocessing=use_input_preprocessing)
+            builder.build()
             for builder in self.to_builders(initial_node, use_input_preprocessing=use_input_preprocessing)]
 
 
@@ -85,11 +85,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node)
+            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node,
+                                                  use_input_preprocessing=use_input_preprocessing)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.build(use_input_preprocessing=use_input_preprocessing)):
+            if self.ops_filter.satisfies(candidate_builder.build()):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
@@ -117,7 +118,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
             first_node = \
-                PipelineBuilder().add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
+                PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
+                    .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
             data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
@@ -126,7 +128,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         for pre_ensemble in zip(*subpipelines):
             ensemble_operation = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
-            ensemble_builder = PipelineBuilder(*ensemble_nodes) \
+            ensemble_builder = PipelineBuilder(*ensemble_nodes, use_input_preprocessing=use_input_preprocessing) \
                 .join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders
