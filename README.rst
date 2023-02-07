@@ -260,7 +260,7 @@ Jupyter ноутбуки с примерами находятся в репоз�
 
 .. |coverage| image:: https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg
    :alt: Coverage Status
-   :target: https://codecov.io/gh/nccr-itmo/FEDOT
+   :target: https://codecov.io/gh/aimclub/FEDOT
 
 .. |pypi| image:: https://badge.fury.io/py/fedot.svg
    :alt: Supported Python Versions
