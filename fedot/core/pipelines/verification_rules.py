@@ -105,8 +105,6 @@ def is_pipeline_contains_ts_operations(pipeline: Pipeline):
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
-    if 'cgru' in pipeline.descriptive_id:
-        print('cgru')
     task = Task(TaskTypesEnum.ts_forecasting)
     models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series

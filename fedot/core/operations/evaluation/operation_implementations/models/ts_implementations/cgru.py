@@ -1,7 +1,7 @@
 import numpy as np
+from torch.optim.lr_scheduler import MultiStepLR
 
 from fedot.core.data.data import InputData
-
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -36,7 +36,7 @@ class CGRUImplementation(ModelImplementation):
         )
 
         self.optim_dict = {
-            'adam': torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate),
+            'adamw': torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate),
             'sgd': torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
         }
 
@@ -48,6 +48,7 @@ class CGRUImplementation(ModelImplementation):
         self.std = None
         self.optimizer = self.optim_dict[params.get("optimizer")]
         self.criterion = self.loss_dict[params.get("loss")]()
+        self.scheduler = MultiStepLR(self.optimizer, milestones=[30, 80], gamma=0.5)
 
     @property
     def learning_rate(self) -> float:
@@ -179,7 +180,7 @@ class CGRUNetwork(nn.Module):
         self.linear = nn.Linear(self.hidden_size, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = torch.zeros(1, batch_size, self.hidden_size).to(device)
+        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size).to(device)
 
     def forward(self, x):
         if self.hidden_cell is None:
@@ -193,8 +194,9 @@ class CGRUNetwork(nn.Module):
         return predictions
 
 
-class LSTMNetwork(nn.Module):
+class CLSTMNetwork(nn.Module):
     """Model isn't used in composing due to same performance with GRU. Saved for further experiments"""
+
     def __init__(self,
                  hidden_size=200,
                  cnn1_kernel_size=5,
@@ -221,8 +223,8 @@ class LSTMNetwork(nn.Module):
         self.linear = nn.Linear(self.hidden_size * 2, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(device),
-                            torch.zeros(1, batch_size, self.hidden_size).to(device))
+        self.hidden_cell = (torch.randn(1, batch_size, self.hidden_size).to(device),
+                            torch.randn(1, batch_size, self.hidden_size).to(device))
 
     def forward(self, x):
         if self.hidden_cell is None:
