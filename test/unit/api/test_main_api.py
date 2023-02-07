@@ -529,18 +529,18 @@ def test_api_params():
     """ Test checks if all params from api are processed and divided correctly"""
     default_int_value = 2
     fedot_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
-                  'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
-                  'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
-                  'max_depth': default_int_value, 'max_arity': default_int_value,
-                  'early_stopping_iterations': default_int_value, 'early_stopping_timeout': default_int_value,
-                  'pop_size': default_int_value, 'num_of_generations': default_int_value,
-                  'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
-                  'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
-                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                  'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
-                  'metric': RegressionMetricsEnum.SMAPE,
-                  'collect_intermediate_metric': True, 'preset': 'fast_train',
-                  'optimizer_external_params': {'path': default_int_value}}
+                    'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
+                    'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
+                    'max_depth': default_int_value, 'max_arity': default_int_value,
+                    'early_stopping_iterations': default_int_value, 'early_stopping_timeout': default_int_value,
+                    'pop_size': default_int_value, 'num_of_generations': default_int_value,
+                    'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
+                    'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
+                    'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
+                    'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                    'metric': RegressionMetricsEnum.SMAPE,
+                    'collect_intermediate_metric': True, 'preset': 'fast_train',
+                    'optimizer_external_params': {'path': default_int_value}}
 
     correct_api_params = {'n_jobs': default_int_value,
                           'task': Task(task_type=TaskTypesEnum.ts_forecasting,

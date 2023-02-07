@@ -1,7 +1,7 @@
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.explainability.surrogate_explainer import SurrogateExplainer
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.data.data import InputData
 
 
 def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTypesEnum):
