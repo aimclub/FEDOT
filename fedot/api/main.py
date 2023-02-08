@@ -477,15 +477,15 @@ class Fedot:
                                                       validation_blocks=validation_blocks)
                 real = deepcopy(self.test_data)
 
-            # Work inplace - correct predictions
-            self.data_processor.correct_predictions(real=real,
-                                                    prediction=prediction)
+                # Work inplace - correct predictions
+                self.data_processor.correct_predictions(real=real,
+                                                        prediction=prediction)
 
-            real.target = np.ravel(real.target)
+                real.target = np.ravel(real.target)
 
-            metric_value = abs(metric_cls.metric(reference=real,
-                                                 predicted=prediction))
-            calculated_metrics[metric_name] = round(metric_value, 3)
+                metric_value = abs(metric_cls.metric(reference=real,
+                                                     predicted=prediction))
+                calculated_metrics[metric_name] = round(metric_value, 3)
 
         return calculated_metrics
 
