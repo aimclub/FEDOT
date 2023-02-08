@@ -126,7 +126,10 @@ class ApiComposer:
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             parallelization_mode=api_params['parallelization_mode'],
-            use_input_preprocessing=composer_params['use_input_preprocessing'],
+            static_individual_metadata={
+                k: v for k, v in composer_params.items()
+                if k in ['use_input_preprocessing']
+            },
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
@@ -192,7 +195,10 @@ class ApiComposer:
 
         self.tuner_requirements = PipelineComposerRequirements(
             n_jobs=api_params['n_jobs'],
-            use_input_preprocessing=composer_params['use_input_preprocessing'],
+            static_individual_metadata={
+                k: v for k, v in composer_params.items()
+                if k in ['use_input_preprocessing']
+            },
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
         )

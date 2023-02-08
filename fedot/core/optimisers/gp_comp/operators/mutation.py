@@ -85,7 +85,7 @@ class Mutation(Operator):
             if is_correct_graph:
                 parent_operator = ParentOperator(type_='mutation', operators=tuple(mutation_names),
                                                  parent_individuals=individual)
-                return Individual(new_graph, parent_operator, metadata=individual.metadata)  # TODO: Is it legal btw?
+                return Individual(new_graph, parent_operator, metadata=individual.metadata)
 
         self.log.debug('Number of mutation attempts exceeded. '
                        'Please check composer requirements for correctness.')
