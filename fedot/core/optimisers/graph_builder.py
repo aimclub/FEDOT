@@ -17,8 +17,12 @@ class GraphBuilder:
     OperationType = Union[str, Tuple[str, dict]]
 
     def __init__(self, graph_adapter: Optional[DomainStructureType] = None, *initial_nodes: Optional[GraphNode]):
-        """ Create builder with prebuilt nodes as origins of the branches.
-        :param graph_adapter: adapter to adapt built graph to particular graph type.
+        """
+        Create builder with prebuilt nodes as origins of the branches.
+            
+        Args:
+            graph_adapter: adapter to adapt built graph to particular graph type.
+            initial_nodes: variadic positional argument with initial graph nodes
         """
         self.graph_adapter = graph_adapter
         self.heads: List[GraphNode] = list(filter(None, initial_nodes))
@@ -95,7 +99,7 @@ class GraphBuilder:
         raise NotImplementedError()
 
     def add_skip_connection_edge(self, branch_idx_first: int, branch_idx_second: int,
-                                 node_idx_in_branch_first: int, node_idx_in_branch_second: int,):
+                                 node_idx_in_branch_first: int, node_idx_in_branch_second: int):
         """ Joins two nodes which are not placed sequential in one branch.
         Can be used only in the very end of graph building but before 'join_branches'.
         Edge is directed from the first node to the second.
