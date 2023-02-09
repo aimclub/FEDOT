@@ -267,6 +267,14 @@ class Node(LinkedGraphNode):
 
 
 class PipelineNode(Node):
+    """The class defines the interface of nodes modifying tha data flow in the :class:`Pipeline`
+
+    Args:
+        operation_type: operation defined in the operation repository
+        nodes_from: parent nodes where data comes from
+        node_data: ``dict`` with :class:`InputData` for fit and predict stage
+        kwargs: optional arguments (i.e. logger)
+    """
     def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
                  nodes_from: Optional[List['Node']] = None,
                  node_data: Optional[dict] = None,

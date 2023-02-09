@@ -12,7 +12,7 @@ DEFAULT_SOURCE_NAME = 'default'
 class PipelineStructureExplorer:
     """ Class for performing pipeline structure exploration.
     The class allows you to convert pipelines into a networkx graph and considers
-    all possible paths from primary Node (or primary Nodes) to root node. If at least
+    all possible paths from primary PipelineNode (or primary PipelineNodes) to root node. If at least
     one of the paths contains an invalid sequence of operations, the search performed
     by this class will detect it
     """
@@ -72,7 +72,7 @@ class PipelineStructureExplorer:
         Checking the path for operations take right places in the pipeline.
 
         :param graph: graph for checking paths
-        :param path: path in the graph from primary Node to root
+        :param path: path in the graph from primary PipelineNode to root
         :param tag_to_check: find appropriate operation by desired tag
         """
         operation_path, is_appropriate_operation, is_independent_operation = \
