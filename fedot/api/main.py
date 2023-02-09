@@ -434,7 +434,7 @@ class Fedot:
         """Gets quality metrics for the fitted graph
 
         Args:
-            target: the array with target values of test data. If None target specified for fit is used
+            target: the array with target values of test data. If None, target specified for fit is used
             metric_names: the names of required metrics.
             in_sample: used for time-series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
