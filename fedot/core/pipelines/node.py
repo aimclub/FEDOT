@@ -449,5 +449,8 @@ def _combine_parents(parent_nodes: List[Node],
     return parent_results, target
 
 
+# TODO: these two lines are used for backwards compatibility.
+#  It should be removed and replaced by a script for converting old-style pipelines (with PrimaryNode and SecondaryNode)
+#  to a new-style ones (only with PipelineNode).
 PrimaryNode = PipelineNode
 SecondaryNode = PipelineNode
