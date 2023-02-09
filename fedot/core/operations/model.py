@@ -43,10 +43,8 @@ class Model(Operation):
                 output_data.predict = output_data.predict.reshape((-1, 1))
                 predict_shape = output_data.predict.shape
             # Classification task or clustering
-            if output_mode == 'labels':
-                column_info = {'features': [TYPE_TO_ID[int]] * predict_shape[1]}
-            else:
-                column_info = {'features': [TYPE_TO_ID[float]] * predict_shape[1]}
+            target_type = int if output_mode == 'labels' else float
+            column_info = {'features': [TYPE_TO_ID[target_type]] * predict_shape[1]}
 
         # Add information about target
         target_shape = output_data.target.shape if output_data.target is not None else None

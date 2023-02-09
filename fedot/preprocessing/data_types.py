@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import copy
+from typing import TYPE_CHECKING, Tuple
 
 import numpy as np
 import pandas as pd
@@ -8,13 +9,10 @@ from golem.core.log import LoggerAdapter, default_log
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-NoneType = type(None)
-from typing import TYPE_CHECKING, Tuple
-
 if TYPE_CHECKING:
     from fedot.core.data.data import InputData
 
-_convertable_types = (bool, float, int, str, type(None))
+_convertable_types = (bool, float, int, str, type(None))  # preserve lexicographical order
 _types_ids = range(len(_convertable_types))
 
 TYPE_TO_ID = dict(zip(_convertable_types, _types_ids))
@@ -543,17 +541,17 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
     """
     updated_column_types = []
     for column_id, column_info in columns_types_info.items():
-        column_type_ids = column_info['types']
+        column_types_ids = column_info['types']
 
-        if len(column_type_ids) == 1:
+        if len(column_types_ids) == 1:
             # Column initially contain only one type
-            updated_column_types.append(column_type_ids[0])
-        elif len(column_type_ids) == 2 and TYPE_TO_ID[type(None)] in column_type_ids:
+            updated_column_types.append(column_types_ids[0])
+        elif len(column_types_ids) == 2 and TYPE_TO_ID[type(None)] in column_types_ids:
             # Column with one type and nans
-            filtered_types = [x for x in column_type_ids if x != TYPE_TO_ID[type(None)]]
+            filtered_types = [x for x in column_types_ids if x != TYPE_TO_ID[type(None)]]
             updated_column_types.append(filtered_types[0])
         else:
-            if any(column_type_id == TYPE_TO_ID[str] for column_type_id in column_type_ids):
+            if any(column_type_id == TYPE_TO_ID[str] for column_type_id in column_types_ids):
                 # Mixed-types column with string
                 new_column_type = converted_columns[column_id]
                 if new_column_type != -1:

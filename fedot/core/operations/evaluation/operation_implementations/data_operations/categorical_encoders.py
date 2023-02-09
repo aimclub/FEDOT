@@ -36,9 +36,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        features_type_ids = input_data.supplementary_data.column_types.get('features')
+        features_types_ids = input_data.supplementary_data.column_types.get('features')
         categorical_ids, non_categorical_ids = find_categorical_columns(features,
-                                                                        features_type_ids)
+                                                                        features_types_ids)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -84,7 +84,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
             # Calculate new binary columns number after encoding
             encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
-            numerical_columns.extend([TYPE_TO_ID[int]] * encoded_columns_number)
+            numerical_columns += [TYPE_TO_ID[int]] * encoded_columns_number
 
             output_data.encoded_idx = self.encoded_ids
             output_data.supplementary_data.column_types['features'] = numerical_columns

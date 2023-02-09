@@ -30,8 +30,7 @@ def convert_into_column(array: np.ndarray) -> np.ndarray:
     """ Perform conversion for data if it is necessary """
     if len(array.shape) == 1:
         return array.reshape(-1, 1)
-    else:
-        return array
+    return array
 
 
 def divide_data_categorical_numerical(input_data: InputData, categorical_ids: list,
