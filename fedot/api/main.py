@@ -435,7 +435,7 @@ class Fedot:
 
         Args:
             target: the array with target values of test data. If None target specified for fit is used
-            metric_names: the names of required metrics. If None metrics specified while initialisation are used
+            metric_names: the names of required metrics.
             in_sample: used for time-series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for in-sample forecast.
