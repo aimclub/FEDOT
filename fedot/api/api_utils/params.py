@@ -116,7 +116,7 @@ class ApiParams:
             input_params['task_params'] = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
         if self.api_params['problem'] == 'clustering':
-            raise ValueError('This type of task is not not supported in API now')
+            raise ValueError('This type of task is not supported in API now')
 
         self.task = self.get_task_params(self.api_params['problem'], input_params['task_params'])
         self.metric_name = self.get_default_metric(self.api_params['problem'])

@@ -1,6 +1,6 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
 
 import numpy as np
 import pandas as pd
@@ -392,7 +392,7 @@ class Fedot:
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
-        metric_names = self.params.metric_to_compose
+        metric_names = self.api_composer.metric_names
         # archive_history stores archives of the best models.
         # Each archive is sorted from the best to the worst model,
         # so the best_candidates is sorted too.
@@ -434,12 +434,12 @@ class Fedot:
         """Gets quality metrics for the fitted graph
 
         Args:
-            target: the array with target values of test data
-            metric_names: the names of required metrics
+            target: the array with target values of test data. If None, target specified for fit is used
+            metric_names: the names of required metrics.
             in_sample: used for time-series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for in-sample forecast.
-                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
+                If None uses number of validation blocks set during model initialisation
                 (default is 2).
 
         Returns:
@@ -458,7 +458,6 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        # TODO change to sklearn metrics
         metric_names = ensure_wrapped_in_sequence(metric_names)
 
         calculated_metrics = dict()
