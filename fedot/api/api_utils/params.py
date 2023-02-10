@@ -195,7 +195,8 @@ class ApiParams:
         except ValueError as exc:
             ValueError('Wrong type name of the given task')
 
-    def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) -> PipelineComposerRequirements:
+    def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
+            -> PipelineComposerRequirements:
 
         api_params, composer_params, _ = _divide_parameters(self._all_parameters)
         preset = self._all_parameters['preset']

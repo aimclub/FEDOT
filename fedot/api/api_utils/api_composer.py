@@ -51,6 +51,7 @@ class ApiComposer:
         # status flag indicating that tuner step was applied
         self.was_tuned = False
         self.tuner_requirements = None
+        self.init_cache()
 
     def obtain_metric(self, task: Task) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
@@ -74,9 +75,11 @@ class ApiComposer:
             metric_ids.append(metric)
         return metric_ids
 
-    def init_cache(self, use_pipelines_cache: bool = True,
-                   use_input_preprocessing: bool = True, use_preprocessing_cache: bool = True,
-                   cache_folder: Optional[Union[str, os.PathLike]] = None):
+    def init_cache(self):
+        use_pipelines_cache = self.params.get('use_pipelines_cache')
+        use_preprocessing_cache = self.params.get('use_preprocessing_cache')
+        use_input_preprocessing = self.preprocessing_cache
+        cache_folder = self.params.get('cache_folder')
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
@@ -97,7 +100,6 @@ class ApiComposer:
 
     def obtain_model(self) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        # api_params, composer_params, tuning_params = _divide_parameters(self.params._all_parameters)
         task: Task = self.params.get('task')
         train_data = self.params.get('train_data')
         timeout = self.params.get('timeout')
@@ -131,18 +133,15 @@ class ApiComposer:
 
         composer_requirements = self.params.init_composer_requirements(self.timer.timedelta_composing)
 
-        available_operations = list(chain(composer_requirements.primary,
-                                          composer_requirements.secondary))
-
         self.tuner_requirements = composer_requirements
 
         metric_functions = self.obtain_metric(task)
-        graph_generation_params = \
-            self.params.init_graph_generation_params(requirements=composer_requirements)
+        graph_generation_params = self.params.init_graph_generation_params(requirements=composer_requirements)
+
         self.log.message(f"AutoML configured."
                          f" Parameters tuning: {with_tuning}."
                          f" Time limit: {timeout} min."
-                         f" Set of candidate models: {available_operations}.")
+                         f" Set of candidate models: {self.params.get('available_operations')}.")
 
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
                                                                                      fitted_assumption,
