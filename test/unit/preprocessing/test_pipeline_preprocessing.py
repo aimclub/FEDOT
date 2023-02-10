@@ -48,7 +48,7 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
         target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
     input_data = InputData(idx=np.arange(9), features=features,
                            target=target, task=task, data_type=DataTypesEnum.table,
-                           supplementary_data=SupplementaryData(obligatorily_preprocessed=False))
+                           supplementary_data=SupplementaryData())
     return input_data
 
 

@@ -70,7 +70,7 @@ def get_lda_incorrect_data():
                            features=features,
                            target=target, task=task,
                            data_type=DataTypesEnum.table,
-                           supplementary_data=SupplementaryData(obligatorily_preprocessed=False))
+                           supplementary_data=SupplementaryData())
     return input_data
 
 

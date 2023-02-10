@@ -65,7 +65,7 @@ def empty_datasource():
     target = np.array([])
     input_data = InputData(idx=[], features=features, target=target,
                            task=task, data_type=DataTypesEnum.table,
-                           supplementary_data=SupplementaryData(obligatorily_preprocessed=False))
+                           supplementary_data=SupplementaryData())
     yield input_data, input_data
 
 

@@ -146,7 +146,7 @@ def data_with_binary_features_and_categorical_target():
     target = np.array(['red-blue', 'red-blue', 'green-blue', 'green-orange'])
     train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
                             task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(obligatorily_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
