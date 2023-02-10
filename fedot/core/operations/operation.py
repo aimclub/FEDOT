@@ -35,7 +35,7 @@ class Operation:
         if isinstance(params, dict):
             params = OperationParameters.from_operation_type(self.operation_type, **params)
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
-                                                     n_samples_data=kwargs.get('n_samples_data'))\
+                                                     n_samples_data=kwargs.get('n_samples_data')) \
             .correct(params.to_dict())
         params_for_fit = OperationParameters.from_operation_type(self.operation_type, **params_for_fit)
         try:
@@ -136,7 +136,7 @@ class Operation:
             prediction.supplementary_data.is_main_target = is_main_target
 
         prediction.supplementary_data.data_flow_length = data_flow_length
-        prediction.supplementary_data.was_preprocessed = True
+        prediction.supplementary_data.obligatorily_preprocessed = True
         return prediction
 
     @staticmethod

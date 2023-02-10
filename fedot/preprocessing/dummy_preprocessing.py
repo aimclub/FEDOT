@@ -32,10 +32,12 @@ class DummyPreprocessor(BasePreprocessor):
 
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
+        BasePreprocessor.mark_as_preprocessed(data, is_obligatory=False)
         return data
 
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
         InputData, MultiModalData]:
+        BasePreprocessor.mark_as_preprocessed(data, is_obligatory=False)
         return data
 
     def label_encoding_for_fit(self, data: InputData, source_name: str = ...):

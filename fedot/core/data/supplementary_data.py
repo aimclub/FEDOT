@@ -21,8 +21,10 @@ class SupplementaryData:
     features_mask: Optional[dict] = None
     # Last visited nodes
     previous_operations: Optional[list] = None
-    # Is there a data was preprocessed or not
-    was_preprocessed: bool = False
+    # Was the data obligatorily preprocessed before or not
+    obligatorily_preprocessed: bool = False
+    # Was the data optionally preprocessed before or not
+    optionally_preprocessed: bool = False
     # Collection with non-int indexes
     non_int_idx: Optional[list] = None
     # Dictionary with features and target column types

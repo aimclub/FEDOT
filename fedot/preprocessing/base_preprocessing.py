@@ -194,19 +194,21 @@ class BasePreprocessor(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def mark_as_preprocessed(data: Union[InputData, MultiModalData]):
+    def mark_as_preprocessed(data: Union[InputData, MultiModalData], *, is_obligatory: bool = True):
         """
-        Marks provided ``data`` as preprocessed, so it won't be preprocessed in further steps of an algorithm.
+        Marks provided ``data`` as preprocessed with ``type`` method,
+            so it won't be preprocessed in further steps of an algorithm.
 
         Args:
             data: data to be marked
+            is_obligatory: was the data obligatorily or optionally preprocessed
         """
-        if isinstance(data, InputData):
-            data.supplementary_data.was_preprocessed = True
-        else:
-            # Multimodal data
-            for values in data.values():
-                values.supplementary_data.was_preprocessed = True
+        values = [data] if isinstance(data, InputData) else data.values()
+        for input_data in values:
+            if is_obligatory:
+                input_data.supplementary_data.obligatorily_preprocessed = True
+            else:
+                input_data.supplementary_data.optionally_preprocessed = True
 
     @staticmethod
     def merge_preprocessors(api_preprocessor: 'BasePreprocessor',

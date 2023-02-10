@@ -144,6 +144,7 @@ class DataPreprocessor(BasePreprocessor):
             for data_source_name, values in data.items():
                 self._prepare_optional(pipeline, values, data_source_name)
 
+        BasePreprocessor.mark_as_preprocessed(data, is_obligatory=False)
         return data
 
     @copy_doc(BasePreprocessor.optional_prepare_for_predict)
@@ -156,6 +157,7 @@ class DataPreprocessor(BasePreprocessor):
             for data_source_name, values in data.items():
                 self._prepare_optional(pipeline, values, data_source_name)
 
+        BasePreprocessor.mark_as_preprocessed(data, is_obligatory=False)
         return data
 
     def _take_only_correct_features(self, data: InputData, source_name: str):
@@ -184,7 +186,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             obligatory-prepared ``data``
         """
-        if data.supplementary_data.was_preprocessed:
+        if data.supplementary_data.obligatorily_preprocessed:
             # Preprocessing was already done - return data
             return data
 
@@ -235,7 +237,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             obligatory-prepared data
         """
-        if data.supplementary_data.was_preprocessed:
+        if data.supplementary_data.obligatorily_preprocessed:
             # Preprocessing was already done - return data
             return data
 
@@ -267,7 +269,7 @@ class DataPreprocessor(BasePreprocessor):
             data: to be preprocessed
             source_name: name of the data source node
         """
-        if not data_type_is_table(data):
+        if not data_type_is_table(data) or data.supplementary_data.optionally_preprocessed:
             return data
 
         for has_problems, tag_to_check, action_if_no_tag in [
