@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import numpy as np
 
+from fedot.core.data.data import InputData
 from fedot.core.data.data import (process_target_and_features, array_to_input_data,
                                   get_df_from_csv, PathType, POSSIBLE_TABULAR_IDX_KEYWORDS, POSSIBLE_TS_IDX_KEYWORDS)
 from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
@@ -12,7 +13,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-class MultiModalData(dict):
+class MultiModalData(Dict[str, InputData]):
     """ Dictionary with InputData as values and primary node names as keys """
 
     def __init__(self, *arg, **kw):
