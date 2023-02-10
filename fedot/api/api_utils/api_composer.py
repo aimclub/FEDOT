@@ -21,6 +21,8 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
+from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
@@ -42,7 +44,6 @@ class ApiComposer:
         self.metrics = ApiMetrics(problem)
         self.pipelines_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
-        self.preset_name = None
         self.timer = None
         self.metric_names = None
         # status flag indicating that composer step was applied
@@ -85,22 +86,6 @@ class ApiComposer:
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 
-    @staticmethod
-    def _init_graph_generation_params(task: Task, preset: str, available_operations: List[str],
-                                      requirements: PipelineComposerRequirements):
-        advisor = PipelineChangeAdvisor(task)
-        graph_model_repo = PipelineOperationRepository() \
-            .from_available_operations(task=task, preset=preset,
-                                       available_operations=available_operations)
-        node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
-                                              graph_model_repository=graph_model_repo) \
-            if requirements else None
-        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                                        rules_for_constraint=rules_by_task(task.task_type),
-                                                        advisor=advisor,
-                                                        node_factory=node_factory)
-        return graph_generation_params
-
     # def set_tuner_requirements(self, **common_dict):
     #     api_params, composer_params, _ = _divide_parameters(common_dict)
     #
@@ -142,10 +127,9 @@ class ApiComposer:
         self.log.message(
             f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
+        self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs))
 
-        composer_requirements = self.params.init_composer_requirements(self.timer.timedelta_composing,
-                                                                       self.preset_name)
+        composer_requirements = self.params.init_composer_requirements(self.timer.timedelta_composing)
 
         available_operations = list(chain(composer_requirements.primary,
                                           composer_requirements.secondary))
@@ -154,10 +138,7 @@ class ApiComposer:
 
         metric_functions = self.obtain_metric(task)
         graph_generation_params = \
-            self._init_graph_generation_params(task=task,
-                                               preset=self.preset_name,
-                                               available_operations=available_operations,
-                                               requirements=composer_requirements)
+            self.params.init_graph_generation_params(requirements=composer_requirements)
         self.log.message(f"AutoML configured."
                          f" Parameters tuning: {with_tuning}."
                          f" Time limit: {timeout} min."

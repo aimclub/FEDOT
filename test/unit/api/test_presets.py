@@ -98,7 +98,7 @@ def test_auto_preset_converted_correctly():
                         initial_assumption=simple_init_assumption, pop_size=large_pop_size)
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
-    assert fedot_model.api_composer.preset_name == FAST_TRAIN_PRESET_NAME
+    assert fedot_model.params.get('preset') == FAST_TRAIN_PRESET_NAME
 
 
 def test_gpu_preset():

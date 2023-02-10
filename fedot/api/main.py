@@ -171,6 +171,8 @@ class Fedot:
 
         self.target = target
 
+        self.params.update_available_operations_by_preset(self.train_data)
+
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
@@ -181,9 +183,6 @@ class Fedot:
             recommendations = None
 
         self._init_remote_if_necessary()
-
-        if self.params.get('preset') != 'auto':
-            self.params.update_available_operations_by_preset(self.train_data)
 
         self.params.update(train_data=self.train_data)
 
@@ -197,8 +196,7 @@ class Fedot:
                                                     use_input_preprocessing=self.params.get(
                                                         'use_input_preprocessing')).fit()
         else:
-            self.current_pipeline, self.best_models, self.history = \
-                self.api_composer.obtain_model()
+            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model()
 
             if self.current_pipeline is None:
                 raise ValueError('No models were found')

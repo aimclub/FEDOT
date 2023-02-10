@@ -15,6 +15,11 @@ from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
+from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
@@ -49,8 +54,11 @@ class ApiParams:
         return params
 
     def update_available_operations_by_preset(self, data: InputData):
-        preset_operations = OperationsPreset(task=self.task, preset_name=self._all_parameters['preset'])
-        self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters, data.data_type)
+        preset = self._all_parameters.get('preset')
+        if preset != 'auto':
+            preset_operations = OperationsPreset(task=self.task, preset_name=preset)
+            self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters,
+                                                                                     data.data_type)
 
     def get_initial_params(self, input_params: Dict[str, Any]) -> Dict[str, Any]:
         params = self._parse_input_params(input_params)
@@ -91,11 +99,6 @@ class ApiParams:
         if self._all_parameters.get('available_operations') is not None:
             del self._all_parameters['available_operations']
         self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters, data_type)
-        param_dict = {
-            'task': self.task,
-            'logger': self.log
-        }
-        self._all_parameters = {**self._all_parameters, **param_dict}
 
     def _parse_input_params(self, input_params: Dict[str, Any]) -> Dict[str, Any]:
         """ Parses input params into different class fields """
@@ -192,10 +195,10 @@ class ApiParams:
         except ValueError as exc:
             ValueError('Wrong type name of the given task')
 
-    def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta],
-                                   preset: str) -> PipelineComposerRequirements:
+    def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) -> PipelineComposerRequirements:
 
         api_params, composer_params, _ = _divide_parameters(self._all_parameters)
+        preset = self._all_parameters['preset']
 
         task = api_params['task']
 
@@ -258,6 +261,23 @@ class ApiParams:
             mutation_types=ApiParams._get_default_mutations(task.task_type)
         )
         return optimizer_params
+
+    def init_graph_generation_params(self, requirements: PipelineComposerRequirements):
+        task = self._all_parameters['task']
+        preset = self._all_parameters['preset']
+        available_operations = self._all_parameters['available_operations']
+        advisor = PipelineChangeAdvisor(task)
+        graph_model_repo = PipelineOperationRepository() \
+            .from_available_operations(task=task, preset=preset,
+                                       available_operations=available_operations)
+        node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
+                                              graph_model_repository=graph_model_repo) \
+            if requirements else None
+        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
+                                                        rules_for_constraint=rules_by_task(task.task_type),
+                                                        advisor=advisor,
+                                                        node_factory=node_factory)
+        return graph_generation_params
 
     @staticmethod
     def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
