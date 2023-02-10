@@ -48,7 +48,7 @@ class Fedot:
 
                 - ``classification`` -> for classification task
                 - ``regression`` -> for regression task
-                - ``ts_forecasting`` -> for time serires forecasting task
+                - ``ts_forecasting`` -> for time series forecasting task
 
         timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time
         task_params: additional parameters of the task
@@ -117,29 +117,22 @@ class Fedot:
                  **composer_tuner_params
                  ):
 
-        # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
-        self.api_composer = ApiComposer(problem)
-        self.params = ApiParams()
-
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
                         'seed': seed, 'logging_level': logging_level,
                         'n_jobs': n_jobs, 'parallelization_mode': parallelization_mode}
-        self.params.initialize_params(input_params)
 
-        # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(use_pipelines_cache=self.params.api_params['use_pipelines_cache'],
-                                     use_input_preprocessing=self.params.api_params['use_input_preprocessing'],
-                                     use_preprocessing_cache=self.params.api_params['use_preprocessing_cache'],
-                                     cache_folder=self.params.api_params['cache_folder'])
+        # Classes for dealing with metrics, data sources and hyperparameters
+        self.params = ApiParams(input_params)
+        self.api_composer = ApiComposer(problem, self.params)
+
         self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
-                                               use_input_preprocessing=self.params.api_params[
-                                                   'use_input_preprocessing'])
+        self.data_processor = ApiDataProcessor(task=self.params.get('task'),
+                                               use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -174,10 +167,12 @@ class Fedot:
 
         MemoryAnalytics.start()
 
+        logger = self.params.get('logger')
+
         self.target = target
 
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-        if self.params.api_params['use_input_preprocessing']:
+        if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations = self.data_analyser.give_recommendation(self.train_data)
             self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
@@ -187,23 +182,23 @@ class Fedot:
 
         self._init_remote_if_necessary()
 
-        if self.params.api_params['preset'] != 'auto':
+        if self.params.get('preset') != 'auto':
             self.params.update_available_operations_by_preset(self.train_data)
 
-        self.params.api_params['train_data'] = self.train_data
+        self.params.update(train_data=self.train_data)
 
         if predefined_model is not None:
-            self.api_composer.set_tuner_requirements(**self.params.api_params)
+            # self.api_composer.set_tuner_requirements(**self.params.api_params)
 
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model,
                                                     self.train_data,
-                                                    self.params.api_params['logger'],
-                                                    use_input_preprocessing=self.params.api_params[
-                                                        'use_input_preprocessing']).fit()
+                                                    logger,
+                                                    use_input_preprocessing=self.params.get(
+                                                        'use_input_preprocessing')).fit()
         else:
             self.current_pipeline, self.best_models, self.history = \
-                self.api_composer.obtain_model(**self.params.api_params)
+                self.api_composer.obtain_model()
 
             if self.current_pipeline is None:
                 raise ValueError('No models were found')
@@ -212,15 +207,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                self.params.api_params['logger'].message('Final pipeline was fitted')
+                logger.message('Final pipeline was fitted')
             else:
-                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+                logger.message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+        logger.message(f'Final pipeline: {self.current_pipeline.structure}')
 
         MemoryAnalytics.finish()
 
@@ -306,7 +301,7 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
-        validation_blocks = validation_blocks or self.params.api_params.get('validation_blocks')
+        validation_blocks = validation_blocks or self.params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
@@ -336,7 +331,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.params.api_params['task'].task_type == TaskTypesEnum.classification:
+        if self.params.get('task').task_type == TaskTypesEnum.classification:
             self.test_data = self.data_processor.define_data(target=self.target,
                                                              features=features, is_predict=True)
 
@@ -387,7 +382,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
+        if self.params.get('task').task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
     def load(self, path):
@@ -396,7 +391,7 @@ class Fedot:
         Args:
             path: path to ``json`` file with model
         """
-        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.api_params['use_input_preprocessing'])
+        self.current_pipeline = Pipeline(use_input_preprocessing=self.get('use_input_preprocessing')
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
@@ -419,20 +414,23 @@ class Fedot:
             target: user-specified name of target variable for :obj:`MultiModalData`
 
         """
+        logger = self.params.get('logger')
+        task = self.params.get('task')
+
         if self.prediction is not None:
-            if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
+            if task.task_type == TaskTypesEnum.ts_forecasting:
                 in_sample = in_sample or self._is_in_sample_prediction
                 plot_forecast(self.test_data, self.prediction, in_sample, target)
-            elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
+            elif task.task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
-            elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:
+            elif task.task_type == TaskTypesEnum.classification:
                 self.predict_proba(self.test_data)
                 plot_roc_auc(self.test_data, self.prediction)
             else:
-                self.params.api_params['logger'].error('Not supported yet')
-                raise NotImplementedError(f"For task {self.params.api_params['task']} plot prediction is not supported")
+                logger.error('Not supported yet')
+                raise NotImplementedError(f"For task {task} plot prediction is not supported")
         else:
-            self.params.api_params['logger'].error('No prediction to visualize')
+            logger.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
 
     def get_metrics(self,
@@ -472,7 +470,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.metrics.get_metrics_mapping(metric_name) is NotImplemented:
-                self.params.api_params['logger'].warning(f'{metric_name} is not available as metric')
+                self.params.get('logger').warning(f'{metric_name} is not available as metric')
             else:
                 composer_metric = self.metrics.get_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
@@ -507,7 +505,7 @@ class Fedot:
             prediction = predicted_data.predict
         pd.DataFrame({'Index': predicted_data.idx,
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
-        self.params.api_params['logger'].message('Predictions was saved in current directory.')
+        self.params.get('logger').message('Predictions was saved in current directory.')
 
     def export_as_project(self, project_path='fedot_project.zip'):
         export_project_to_zip(zip_name=project_path, opt_history=self.history,
@@ -548,7 +546,7 @@ class Fedot:
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
         if remote.is_enabled and remote.remote_task_params is not None:
-            task = self.params.api_params['task']
+            task = self.params.get('task')
             if task.task_type is TaskTypesEnum.ts_forecasting:
                 task_str = \
                     f'Task(TaskTypesEnum.ts_forecasting, ' \
@@ -573,5 +571,5 @@ class Fedot:
                                                                   if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            n_jobs=self.params.api_params['n_jobs']
+            n_jobs=self.params.get('n_jobs'),
         )
