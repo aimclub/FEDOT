@@ -55,7 +55,7 @@ class ApiParams:
 
     def update_available_operations_by_preset(self, data: InputData):
         preset = self._all_parameters.get('preset')
-        if preset != 'auto':
+        if preset != AUTO_PRESET_NAME:
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
             self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters,
                                                                                      data.data_type)
@@ -107,27 +107,20 @@ class ApiParams:
         Log().reset_logging_level(input_params['logging_level'])
         self.log = default_log(prefix='FEDOT logger')
 
+        composer_tuner_params = self.set_default_params(input_params['composer_tuner_params'], input_params['problem'])
+
         simple_keys = ['problem', 'n_jobs', 'parallelization_mode', 'timeout']
         params = {k: input_params[k] for k in simple_keys}
 
-        default_evo_params = self.get_default_evo_params(params['problem'])
-        if input_params['composer_tuner_params'] is None:
-            evo_params = default_evo_params
-        else:
-            evo_params = {**default_evo_params, **input_params['composer_tuner_params']}
-        params.update(evo_params)
+        params = {**composer_tuner_params, **params}
 
-        if 'preset' not in input_params['composer_tuner_params']:
-            params['preset'] = 'auto'
-
-        # If early_stopping_generations is not specified,
-        # than estimate it as in time-based manner as: 0.33 * composing_timeout.
+        # If early_stopping_iterations is not specified,
+        # than estimate it as in time-based manner as: timeout / 3.
         # The minimal number of generations is 5.
-        if 'early_stopping_iterations' not in input_params['composer_tuner_params']:
-            if input_params['timeout']:
-                depending_on_timeout = int(input_params['timeout'] / 3)
-                params['early_stopping_iterations'] = \
-                    depending_on_timeout if depending_on_timeout > 5 else 5
+        if params['early_stopping_iterations'] is None:
+            if params['timeout']:
+                depending_on_timeout = int(params['timeout'] / 3)
+                params['early_stopping_iterations'] = max(depending_on_timeout, 5)
 
         specified_seed = input_params['seed']
         if specified_seed is not None:
@@ -148,29 +141,62 @@ class ApiParams:
         return params
 
     @staticmethod
-    def get_default_evo_params(problem: str):
-        """ Dictionary with default parameters for composer """
-        params = {'max_depth': 6,
-                  'max_arity': 3,
-                  'pop_size': 20,
-                  'num_of_generations': None,
-                  'keep_n_best': 1,
-                  'with_tuning': True,
-                  'preset': AUTO_PRESET_NAME,
-                  'genetic_scheme': None,
-                  'early_stopping_iterations': 30,
-                  'early_stopping_timeout': 10,
-                  'use_input_preprocessing': True,
-                  'use_pipelines_cache': True,
-                  'use_preprocessing_cache': True,
-                  'cache_folder': None}
+    def set_default_params(composer_tuner_params: dict, problem: str):
+        """ Sets default values for parameters which were not set by the user """
+        default_params_dict = ApiParams.get_default_params(problem)
 
+        for k, v in composer_tuner_params.items():
+            if k in default_params_dict:
+                default_params_dict[k] = v
+            else:
+                raise KeyError(f"Invalid key parameter {k}")
+        return default_params_dict
+
+    @staticmethod
+    def get_default_params(problem: str) -> dict:
+        """ Returns a dict with default parameters"""
         if problem in ['classification', 'regression']:
-            params['cv_folds'] = 5
+            cv_folds = 5
+            validation_blocks = None
+
         elif problem == 'ts_forecasting':
-            params['cv_folds'] = 3
-            params['validation_blocks'] = 2
-        return params
+            cv_folds = 3
+            validation_blocks = 2
+
+        default_params_dict = dict(train_data=None,
+                                   task=Task,
+                                   n_jobs=1,
+                                   parallelization_mode='populational',
+                                   show_progress=True,
+                                   logger=None,
+                                   max_depth=6,
+                                   max_arity=3,
+                                   pop_size=20,
+                                   num_of_generations=None,
+                                   keep_n_best=1,
+                                   available_operations=None,
+                                   metric=None,
+                                   validation_blocks=validation_blocks,
+                                   cv_folds=cv_folds,
+                                   genetic_scheme=None,
+                                   history_folder=None,
+                                   early_stopping_iterations=None,
+                                   early_stopping_timeout=10,
+                                   optimizer=None,
+                                   optimizer_external_params=None,
+                                   collect_intermediate_metric=False,
+                                   max_pipeline_fit_time=None,
+                                   initial_assumption=None,
+                                   preset=AUTO_PRESET_NAME,
+                                   use_pipelines_cache=True,
+                                   use_preprocessing_cache=True,
+                                   'use_input_preprocessing': True,
+                                   cache_folder=None,
+                                   keep_history=True,
+                                   history_dir=None,
+                                   with_tuning=False
+                                   )
+        return default_params_dict
 
     @staticmethod
     def get_default_metric(problem: str) -> Union[str, List[str]]:
@@ -198,66 +224,64 @@ class ApiParams:
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
             -> PipelineComposerRequirements:
 
-        api_params, composer_params, _ = _divide_parameters(self._all_parameters)
+        # api_params, composer_params, _ = _divide_parameters(self._all_parameters)
         preset = self._all_parameters['preset']
 
-        task = api_params['task']
+        task = self._all_parameters['task']
 
         # define available operations
-        if 'available_operations' not in composer_params or composer_params['available_operations'] is None:
+        if not self._all_parameters.get('available_operations'):
             available_operations = OperationsPreset(task, preset).filter_operations_by_preset()
             self._all_parameters['available_operations'] = available_operations
-        else:
-            available_operations = composer_params['available_operations']
 
         primary_operations, secondary_operations = \
-            PipelineOperationRepository.divide_operations(available_operations, task)
+            PipelineOperationRepository.divide_operations(self._all_parameters.get('available_operations'), task)
 
-        max_pipeline_fit_time = composer_params['max_pipeline_fit_time']
+        max_pipeline_fit_time = self._all_parameters['max_pipeline_fit_time']
         if max_pipeline_fit_time:
             max_pipeline_fit_time = datetime.timedelta(minutes=max_pipeline_fit_time)
 
         composer_requirements = PipelineComposerRequirements(
             primary=primary_operations,
             secondary=secondary_operations,
-            max_arity=composer_params['max_arity'],
-            max_depth=composer_params['max_depth'],
+            max_arity=self._all_parameters['max_arity'],
+            max_depth=self._all_parameters['max_depth'],
 
-            num_of_generations=composer_params['num_of_generations'],
+            num_of_generations=self._all_parameters['num_of_generations'],
             timeout=datetime_composing,
-            early_stopping_iterations=composer_params.get('early_stopping_iterations', None),
-            early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
+            early_stopping_iterations=self._all_parameters['early_stopping_iterations'],
+            early_stopping_timeout=self._all_parameters['early_stopping_timeout'],
             max_pipeline_fit_time=max_pipeline_fit_time,
-            n_jobs=api_params['n_jobs'],
-            parallelization_mode=api_params['parallelization_mode'],
+            n_jobs=self._all_parameters['n_jobs'],
+            parallelization_mode=self._all_parameters['parallelization_mode'],
             static_individual_metadata={
-                k: v for k, v in composer_params.items()
+                k: v for k, v in self._all_parameters.items()
                 if k in ['use_input_preprocessing']
             },
-            show_progress=api_params['show_progress'],
-            collect_intermediate_metric=composer_params['collect_intermediate_metric'],
-            keep_n_best=composer_params['keep_n_best'],
+            show_progress=self._all_parameters['show_progress'],
+            collect_intermediate_metric=self._all_parameters['collect_intermediate_metric'],
+            keep_n_best=self._all_parameters['keep_n_best'],
 
             keep_history=True,
-            history_dir=composer_params.get('history_folder'),
+            history_dir=self._all_parameters['history_folder'],
 
-            cv_folds=composer_params['cv_folds'],
-            validation_blocks=composer_params['validation_blocks'],
+            cv_folds=self._all_parameters['cv_folds'],
+            validation_blocks=self._all_parameters['validation_blocks'],
         )
         return composer_requirements
 
     def init_optimizer_parameters(self, multi_objective: bool) -> GPGraphOptimizerParameters:
-        _, composer_params, _ = _divide_parameters(self._all_parameters)
+        # _, composer_params, _ = _divide_parameters(self._all_parameters)
 
         task = self._all_parameters.get('task')
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if composer_params['genetic_scheme'] == 'steady_state':
+        if self._all_parameters['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
         optimizer_params = GPGraphOptimizerParameters(
             multi_objective=multi_objective,
-            pop_size=composer_params['pop_size'],
+            pop_size=self._all_parameters['pop_size'],
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=ApiParams._get_default_mutations(task.task_type)
         )
@@ -310,36 +334,3 @@ def check_timeout_vs_generations(params) -> Dict[str, Any]:
     else:
         raise ValueError(f'invalid "timeout" value: timeout={timeout}')
     return params
-
-
-def _divide_parameters(common_dict: dict) -> List[dict]:
-    """ Divide common dictionary into dictionary with parameters for API, Composer and Tuner
-
-    :param common_dict: dictionary with parameters for all AutoML modules
-    """
-    api_params_dict = dict(train_data=None, task=Task, timeout=5,
-                           n_jobs=1, parallelization_mode='populational',
-                           show_progress=True, logger=None)
-
-    composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
-                                keep_n_best=None, available_operations=None, metric=None,
-                                validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
-                                early_stopping_iterations=None, early_stopping_timeout=None, optimizer=None,
-                                optimizer_external_params=None, collect_intermediate_metric=False,
-                                max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
-                                use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
-                                keep_history=True, history_dir=None,  use_input_preprocessing=True)
-
-    tuner_params_dict = dict(with_tuning=False)
-
-    dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-    for k, v in common_dict.items():
-        is_unknown_key = True
-        for i, dct in enumerate(dict_list):
-            if k in dict_list[i]:
-                dict_list[i][k] = v
-                is_unknown_key = False
-        if is_unknown_key:
-            raise KeyError(f"Invalid key parameter {k}")
-
-    return dict_list

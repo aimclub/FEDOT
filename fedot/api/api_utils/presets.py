@@ -3,7 +3,7 @@ from typing import Optional
 
 from fedot.api.time import ApiTime
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
-    FAST_TRAIN_PRESET_NAME
+    FAST_TRAIN_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
@@ -30,7 +30,7 @@ class OperationsPreset:
         if self.preset_name is None and 'preset' in updated_params:
             self.preset_name = updated_params['preset']
 
-        if self.preset_name is not None and 'available_operations' not in api_params:
+        if self.preset_name is not None and api_params.get('available_operations') is None:
             available_operations = self.filter_operations_by_preset(data_type)
             updated_params['available_operations'] = available_operations
 
@@ -41,7 +41,7 @@ class OperationsPreset:
         appropriate ones
         """
         preset_name = self.preset_name
-        if 'auto' in preset_name:
+        if AUTO_PRESET_NAME in preset_name:
             available_operations = get_operations_for_task(self.task, data_type, mode='all')
             return available_operations
 

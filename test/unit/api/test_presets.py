@@ -74,7 +74,7 @@ def test_presets_inserting_in_params_correct():
     Check if operations from presets are correctly included in the dictionary
     with parameters for the composer
     """
-    composer_params = ApiParams.get_default_evo_params(problem='regression')
+    composer_params = ApiParams.get_default_params(problem='regression')
     source_candidates = composer_params.get('available_operations')
 
     task = Task(TaskTypesEnum.regression)
