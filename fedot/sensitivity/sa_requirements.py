@@ -1,7 +1,7 @@
 from collections import namedtuple
 from typing import List, Optional
 
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 
 HyperparamsAnalysisMetaParams = namedtuple('HyperparamsAnalysisMetaParams', ['analyze_method',
                                                                              'sample_method',
@@ -31,7 +31,7 @@ class SensitivityAnalysisRequirements:
                  hyperparams_analyze_method: str = 'sobol',
                  hyperparams_sample_method: str = 'saltelli',
                  hyperparams_analysis_samples_size: int = 100,
-                 replacement_nodes_to_replace_to: Optional[List[Node]] = None,
+                 replacement_nodes_to_replace_to: Optional[List[PipelineNode]] = None,
                  replacement_number_of_random_operations: Optional[int] = None,
                  visualization: bool = True,
                  is_save_results_to_json: bool = True):

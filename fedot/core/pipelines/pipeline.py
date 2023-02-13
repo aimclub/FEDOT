@@ -18,7 +18,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
-from fedot.core.pipelines.node import Node, PipelineNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
@@ -39,7 +39,7 @@ class Pipeline(GraphDelegate, Serializable):
         use_input_preprocessing: whether to do input preprocessing or not, True by default
     """
 
-    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_input_preprocessing: bool = True):
+    def __init__(self, nodes: Union[PipelineNode, Sequence[PipelineNode]] = (), use_input_preprocessing: bool = True):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
@@ -312,7 +312,7 @@ class Pipeline(GraphDelegate, Serializable):
         return self
 
     @property
-    def root_node(self) -> Optional[Node]:
+    def root_node(self) -> Optional[PipelineNode]:
         """Finds pipelines sink-node
 
         Returns:
@@ -412,7 +412,7 @@ class Pipeline(GraphDelegate, Serializable):
         PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
 
-def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):
+def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[PipelineNode]):
     """
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type

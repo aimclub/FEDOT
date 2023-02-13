@@ -12,7 +12,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Node, Pipeline
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 class RandomSearchComposer(Composer):
@@ -30,7 +30,7 @@ class RandomSearchComposer(Composer):
         return best_pipeline
 
 
-def nodes_to_pipeline(nodes: List[Node]) -> Pipeline:
+def nodes_to_pipeline(nodes: List[PipelineNode]) -> Pipeline:
     pipeline = Pipeline()
     [pipeline.add_node(nodes) for nodes in nodes]
     return pipeline

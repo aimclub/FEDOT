@@ -12,7 +12,7 @@ import numpy as np
 from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
-from fedot.core.pipelines.node import Node, PipelineNode
+from fedot.core.pipelines.node import PipelineNode
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -65,7 +65,7 @@ class PipelineTemplate:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline
 
-    def _extract_pipeline_structure(self, node: Node, operation_id: int, visited_nodes: List[Node]):
+    def _extract_pipeline_structure(self, node: PipelineNode, operation_id: int, visited_nodes: List[PipelineNode]):
         """
         Recursively go through the Pipeline from 'root_node' to PipelineNode's,
         creating a OperationTemplate with unique id for each Node. In addition,
@@ -94,7 +94,7 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: Optional[str] = None, root_node: Optional[Node] = None,
+    def export_pipeline(self, path: Optional[str] = None, root_node: Optional[PipelineNode] = None,
                         create_subdir: bool = True,
                         is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """
@@ -139,7 +139,7 @@ class PipelineTemplate:
 
         return json_data, dict_fitted_operations
 
-    def convert_to_dict(self, root_node: Node = None) -> dict:
+    def convert_to_dict(self, root_node: PipelineNode = None) -> dict:
         """ Generate pipeline description in a form of dictionary """
 
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))

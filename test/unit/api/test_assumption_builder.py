@@ -8,7 +8,7 @@ from fedot.api.api_utils.assumptions.assumptions_builder \
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import Node, PipelineNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -25,7 +25,7 @@ from test.unit.multimodal.data_generators import get_single_task_multimodal_tabu
 
 
 def pipeline_contains_one(pipeline: Pipeline, operation_name: str) -> bool:
-    def is_the_operation(node: Node):
+    def is_the_operation(node: PipelineNode):
         return node.operation.operation_type == operation_name
 
     return any(map(is_the_operation, pipeline.nodes))

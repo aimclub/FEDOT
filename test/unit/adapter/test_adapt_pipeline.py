@@ -7,7 +7,7 @@ from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.pipelines.node import Node, PipelineNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
@@ -46,7 +46,7 @@ def test_pipelines_adapt_properly(pipeline):
     adapter = PipelineAdapter()
     verifier = GraphVerifier(DEFAULT_DAG_RULES)
 
-    assert all(isinstance(node, Node) for node in pipeline.nodes)
+    assert all(isinstance(node, PipelineNode) for node in pipeline.nodes)
     assert _check_nodes_references_correct(pipeline)
     assert verifier(pipeline)
 

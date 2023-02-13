@@ -2,11 +2,11 @@ import os
 from typing import Tuple
 
 from fedot.core.operations.operation_template import OperationTemplateAbstract, check_existing_path
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 
 
 class AtomizedModelTemplate(OperationTemplateAbstract):
-    def __init__(self, node: Node = None, operation_id: int = None, nodes_from: list = None, path: str = None):
+    def __init__(self, node: PipelineNode = None, operation_id: int = None, nodes_from: list = None, path: str = None):
         # Need use the imports inside the class because of the problem of circular imports.
         from fedot.core.pipelines.pipeline import Pipeline
         from fedot.core.pipelines.template import PipelineTemplate
@@ -25,7 +25,7 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
         if node:
             self._operation_to_template(node, operation_id, nodes_from)
 
-    def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
+    def _operation_to_template(self, node: PipelineNode, operation_id: int, nodes_from: list):
         from fedot.core.pipelines.template import PipelineTemplate
 
         self.operation_id = operation_id
