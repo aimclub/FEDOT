@@ -120,8 +120,7 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def _preprocess(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default', *,
-                    is_fit_stage: bool = True) -> Union[
+    def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> Union[
         InputData, MultiModalData]:
         """
         Makes obligatory and optional (if needed) steps of data preprocessing
