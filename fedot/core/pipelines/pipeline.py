@@ -120,6 +120,57 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
+    def _preprocess(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default', *,
+                    is_fit_stage: bool = True) -> Union[
+        InputData, MultiModalData]:
+        """
+        Makes obligatory and optional (if needed) steps of data preprocessing
+
+        Args:
+            input_data: to be copied and preprocessed
+
+        Returns:
+            preprocessed copy of the original data
+        """
+        copied_input_data = deepcopy(input_data)
+        if is_fit_stage:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                           data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                          data=copied_input_data)
+        else:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
+                                                                               data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
+                                                                              data=copied_input_data)
+            copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+        return copied_input_data
+
+
+    def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
+                     output_mode: str = 'default') -> OutputData:
+        """
+        Postprocesses output of the model
+
+        Args:
+            copied_input_data: preprocessed copy of the original data
+            result: output of the model
+            output_mode: desired form of output for operations
+
+        Returns:
+            OutputData: postprocessed ``result`` parameter
+        """
+        result = self.preprocessor.restore_index(copied_input_data, result)
+        # Prediction should be converted into source labels (if it is needed)
+        if output_mode == 'labels':
+            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+        return result
+
+
     def fit(self, input_data: Union[InputData, MultiModalData],
             time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
         """
@@ -135,13 +186,8 @@ class Pipeline(GraphDelegate, Serializable):
         """
         self.replace_n_jobs_in_nodes(n_jobs)
 
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+        copied_input_data = self._preprocess(input_data)
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
@@ -224,23 +270,12 @@ class Pipeline(GraphDelegate, Serializable):
             raise ValueError(ex)
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
-                                                                           data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
-                                                                          data=copied_input_data)
-        copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+        copied_input_data = self._preprocess(input_data, output_mode, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
 
-        result = self.preprocessor.restore_index(copied_input_data, result)
-        # Prediction should be converted into source labels (if it is needed)
-        if output_mode == 'labels':
-            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+        result = self._postprocess(copied_input_data, result, output_mode)
         return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:

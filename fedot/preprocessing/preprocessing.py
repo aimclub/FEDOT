@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -475,9 +475,8 @@ class DataPreprocessor(BasePreprocessor):
             if len(transformed.shape) == 1:
                 transformed = transformed.reshape((-1, 1))
             return transformed
-        else:
-            # Return source column
-            return column_to_transform
+        # Else just return source column
+        return column_to_transform
 
     def _determine_target_converter(self):
         """
@@ -548,11 +547,10 @@ class DataPreprocessor(BasePreprocessor):
 
     @staticmethod
     @copy_doc(BasePreprocessor.restore_index)
-    def restore_index(input_data: InputData, result: OutputData):
-        if isinstance(input_data, InputData):
-            if input_data.supplementary_data.non_int_idx is not None:
-                result.idx = copy(input_data.supplementary_data.non_int_idx)
-                result.supplementary_data.non_int_idx = copy(input_data.idx)
+    def restore_index(input_data: Optional[InputData], result: OutputData):
+        if input_data is not None and input_data.supplementary_data.non_int_idx is not None:
+            result.idx = copy(input_data.supplementary_data.non_int_idx)
+            result.supplementary_data.non_int_idx = copy(input_data.idx)
         return result
 
     @copy_doc(BasePreprocessor.update_indices_for_time_series)
@@ -560,18 +558,10 @@ class DataPreprocessor(BasePreprocessor):
         if test_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             return test_data
 
-        if isinstance(test_data, MultiModalData):
-            # Process multimodal data - change indices in every data block
-            for input_data in test_data.values():
-                forecast_len = input_data.task.task_params.forecast_length
-                if forecast_len < len(input_data.idx):
-                    # Indices incorrect - there is a need to reassign them
-                    last_id = len(input_data.idx)
-                    input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
-        else:
-            # Simple input data
-            forecast_len = test_data.task.task_params.forecast_length
-            if forecast_len < len(test_data.idx):
-                last_id = len(test_data.idx)
-                test_data.idx = np.arange(last_id, last_id + test_data.task.task_params.forecast_length)
+        values = [test_data] if isinstance(test_data, InputData) else test_data.values()
+        for input_data in values:
+            forecast_len = input_data.task.task_params.forecast_length
+            if forecast_len < len(input_data.idx):
+                last_id = len(input_data.idx)
+                input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
