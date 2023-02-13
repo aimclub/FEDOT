@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import pandas as pd
 
@@ -17,7 +18,8 @@ datasets = {
     'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
-def get_ts_data(dataset: str = 'beer', horizon: int = 10, validation_blocks: int = 1):
+
+def get_ts_data(dataset: str = 'beer', horizon: int = 10, validation_blocks: Optional[int] = None):
     time_series = pd.read_csv(datasets[dataset])
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=horizon))

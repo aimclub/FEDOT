@@ -19,7 +19,7 @@ def cgru_forecasting():
 
     plot_info = [
         {'idx': np.concatenate([train_data.idx, test_data.idx]),
-         'series': np.concatenate([test_data.features]),
+         'series': np.concatenate([test_data.features, test_data.target]),
          'label': 'Actual time series'},
         {'idx': test_data.idx,
          'series': np.ravel(prediction),
