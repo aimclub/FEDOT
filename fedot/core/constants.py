@@ -15,7 +15,9 @@ AUTO_PRESET_NAME = 'auto'
 MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION = 100
 MIN_NUMBER_OF_GENERATIONS = 3
 
-FRACTION_OF_UNIQUE_VALUES = 0.95
+# constants for text processing
+FRACTION_OF_UNIQUE_VALUES_IN_TEXT = 0.6
+MIN_VOCABULARY_SIZE = 20
 
 default_data_split_ratio_by_task = {
     TaskTypesEnum.classification: 0.8,

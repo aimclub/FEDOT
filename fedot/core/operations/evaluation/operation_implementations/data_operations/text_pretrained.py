@@ -13,7 +13,7 @@ from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import gensim.downloader as api
-    from gensim.models import KeyedVectors
+    from gensim.models import KeyedVectors, Word2Vec
 except ModuleNotFoundError:
     warn_requirement('gensim')
     api = None
@@ -50,18 +50,21 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         return output_data
 
     @staticmethod
-    def vectorize_avg(text: str, embeddings):
+    def vectorize_avg(text: np.array, embeddings) -> np.array:
         """ Method converts text to an average of token vectors
 
-        :param text: str with text data
+        :param text: np.array with text data
         :param embeddings: gensim pretrained embeddings
         :return features: one-dimensional np.array with numbers
         """
+        def _arr2string(array: np.array) -> str:
+            return np.array2string(array).replace('[', '').replace(']', '').replace('"', '')
+
         embedding_dim = embeddings.vectors.shape[1]
         features = np.zeros([embedding_dim], dtype='float32')
         num_words = 0
 
-        for word in text.split():
+        for word in _arr2string(text).split():
             if word in embeddings:
                 features += embeddings[f'{word}']
                 num_words += 1
@@ -79,3 +82,18 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         if os.path.exists(model_path):
             self.logger.info('Embeddings are already downloaded. Loading model...')
             self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
+
+
+class TrainedEmbeddingsImplementation(DataOperationImplementation):
+
+    def __init__(self, **params: Optional[dict]):
+        self.params = params
+        self.logger = default_log(prefix='FEDOT logger')
+        super().__init__()
+
+    def fit(self, input_data: InputData):
+        pass
+
+    def transform(self, input_data: InputData) -> OutputData:
+        pass
+

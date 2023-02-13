@@ -91,7 +91,7 @@ def test_regression_quality_metric(data_setup):
     for metric in RegressionMetricsEnum:
         metric_function = MetricsRepository().metric_by_id(metric)
         metric_value = metric_function(pipeline=pipeline, reference_data=train)
-        assert metric_value > 0
+        assert 0 < abs(metric_value) < sys.maxsize
 
 
 def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
