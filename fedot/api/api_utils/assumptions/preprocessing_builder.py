@@ -56,9 +56,6 @@ class PreprocessingBuilder:
         """
         Returns result as Pipeline. Scaling is applied final by default.
 
-        Args:
-            use_input_preprocessing: whether to enable preprocessing of initial data
-
         Returns:
             adapted graph as pipeline
         """

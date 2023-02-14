@@ -1,6 +1,6 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd

@@ -162,7 +162,7 @@ class OptGraphBuilder(GraphBuilder):
 
 
 def _merge_adapters(adapter1: Optional[BaseOptimizationAdapter], adapter2: Optional[BaseOptimizationAdapter]) -> \
-Optional[BaseOptimizationAdapter]:
+        Optional[BaseOptimizationAdapter]:
     if adapter1 is None:
         return adapter2
     elif adapter2 is None:
