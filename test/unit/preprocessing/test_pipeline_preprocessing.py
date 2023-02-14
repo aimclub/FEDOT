@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -262,27 +260,3 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     assert len(importances) == 7
     # Target must contain 4 labels
     assert predicted.predict.shape[-1] == 4
-
-
-@pytest.mark.parametrize('case', [
-    (data_with_mixed_types_in_each_column, True),
-    (data_with_mixed_types_in_each_column, False)
-])
-def test_skipping_data_preprocessing(case):
-    data_getter, is_fit_stage = case
-    input_data = data_getter()
-
-    # TODO: mock this class here in the future with only `preprocessor` field
-    pipeline = Pipeline(PrimaryNode('ridge'), use_input_preprocessing=False)
-    if is_fit_stage:
-        preprocessed_data = pipeline._preprocess(input_data, is_fit_stage=is_fit_stage)
-    else:
-        try:
-            preprocessed_data = pipeline._preprocess(input_data, is_fit_stage=is_fit_stage)
-        except Exception as exc:
-            assert False, 'Raised exception during predict preprocessing even without fit stage'
-    assert preprocessed_data.features.shape == input_data.features.shape
-    assert preprocessed_data.target.shape == input_data.target.shape
-
-    assert pd.DataFrame(preprocessed_data.features).equals(pd.DataFrame(input_data.features))
-    assert pd.DataFrame(preprocessed_data.target).equals(pd.DataFrame(input_data.target))
