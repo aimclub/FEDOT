@@ -127,6 +127,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             input_data: to be copied and preprocessed
+            is_fit_stage: True when it's fitting stage
 
         Returns:
             preprocessed copy of the original data
@@ -149,7 +150,6 @@ class Pipeline(GraphDelegate, Serializable):
             copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
         return copied_input_data
 
-
     def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
                      output_mode: str = 'default') -> OutputData:
         """
@@ -168,7 +168,6 @@ class Pipeline(GraphDelegate, Serializable):
         if output_mode == 'labels':
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
-
 
     def fit(self, input_data: Union[InputData, MultiModalData],
             time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
@@ -269,7 +268,7 @@ class Pipeline(GraphDelegate, Serializable):
             raise ValueError(ex)
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = self._preprocess(input_data, output_mode, is_fit_stage=False)
+        copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
