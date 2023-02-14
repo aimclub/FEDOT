@@ -170,10 +170,10 @@ class Fedot:
         logger = self.params.get('logger')
 
         self.target = target
-
+        
+        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self.params.update_available_operations_by_preset(self.train_data)
 
-        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations = self.data_analyser.give_recommendation(self.train_data)
@@ -190,9 +190,7 @@ class Fedot:
             # self.api_composer.set_tuner_requirements(**self.params.api_params)
 
             # Fit predefined model and return it without composing
-            self.current_pipeline = PredefinedModel(predefined_model,
-                                                    self.train_data,
-                                                    logger,
+            self.current_pipeline = PredefinedModel(predefined_model, self.train_data, logger,
                                                     use_input_preprocessing=self.params.get(
                                                         'use_input_preprocessing')).fit()
         else:

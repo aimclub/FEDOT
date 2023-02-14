@@ -136,7 +136,6 @@ class ApiComposer:
         self.tuner_requirements = composer_requirements
 
         metric_functions = self.obtain_metric(task)
-        graph_generation_params = self.params.init_graph_generation_params(requirements=composer_requirements)
 
         self.log.message(f"AutoML configured."
                          f" Parameters tuning: {with_tuning}."
@@ -146,8 +145,7 @@ class ApiComposer:
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
                                                                                      fitted_assumption,
                                                                                      metric_functions,
-                                                                                     composer_requirements,
-                                                                                     graph_generation_params)
+                                                                                     composer_requirements)
         if with_tuning:
             best_pipeline = self.tune_final_pipeline(task, train_data,
                                                      metric_functions[0],
@@ -167,11 +165,11 @@ class ApiComposer:
                          fitted_assumption: Pipeline,
                          metric_functions: Sequence[MetricsEnum],
                          composer_requirements: PipelineComposerRequirements,
-                         graph_generation_params: GraphGenerationParams,
                          ) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         multi_objective = len(metric_functions) > 1
         optimizer_params = self.params.init_optimizer_parameters(multi_objective=multi_objective)
+        graph_generation_params = self.params.init_graph_generation_params(requirements=composer_requirements)
 
         gp_composer: GPComposer = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \

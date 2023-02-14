@@ -1,6 +1,6 @@
 import random
 import datetime
-from typing import Any, Dict, List, Optional, Union, Tuple, Sequence
+from typing import Any, Dict, List, Optional, Union, Sequence
 
 import numpy as np
 
@@ -33,16 +33,16 @@ class ApiParams:
         self.task: Task = None
         self.task_params: TaskParams = None
         self.metric_name: Union[str, List[str]] = None
-        self._all_parameters = self._initialize_params(input_params)
+        self._parameters = self._initialize_params(input_params)
 
     def get(self, key: str, default_value=None) -> Any:
-        return self._all_parameters.get(key, default_value)
+        return self._parameters.get(key, default_value)
 
     def update(self, **params):
-        self._all_parameters.update(**params)
+        self._parameters.update(**params)
 
     def to_dict(self):
-        return self._all_parameters
+        return self._parameters
 
     def _initialize_params(self, input_params: Dict[str, Any]) -> Dict[str, Any]:
         """ Merge input_params dictionary with several parameters for AutoML algorithm """
@@ -54,11 +54,11 @@ class ApiParams:
         return params
 
     def update_available_operations_by_preset(self, data: InputData):
-        preset = self._all_parameters.get('preset')
+        preset = self._parameters.get('preset')
         if preset != AUTO_PRESET_NAME:
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
-            self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters,
-                                                                                     data.data_type)
+            self._parameters = preset_operations.composer_params_based_on_preset(self._parameters,
+                                                                                 data.data_type)
 
     def get_initial_params(self, input_params: Dict[str, Any]) -> Dict[str, Any]:
         params = self._parse_input_params(input_params)
@@ -79,7 +79,7 @@ class ApiParams:
         """
         # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
-            self._all_parameters['cv_folds'] = None  # there are no support for multimodal data now
+            self._parameters['cv_folds'] = None  # there are no support for multimodal data now
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name],
                                                       recommendations[data_source_name])
@@ -90,15 +90,15 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
-        if 'preset' in self._all_parameters:
-            preset_name = ''.join((self._all_parameters['preset'], '*tree'))
+        if 'preset' in self._parameters:
+            preset_name = ''.join((self._parameters['preset'], '*tree'))
         else:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
 
-        if self._all_parameters.get('available_operations') is not None:
-            del self._all_parameters['available_operations']
-        self._all_parameters = preset_operations.composer_params_based_on_preset(self._all_parameters, data_type)
+        if self._parameters.get('available_operations') is not None:
+            del self._parameters['available_operations']
+        self._parameters = preset_operations.composer_params_based_on_preset(self._parameters, data_type)
 
     def _parse_input_params(self, input_params: Dict[str, Any]) -> Dict[str, Any]:
         """ Parses input params into different class fields """
@@ -190,7 +190,7 @@ class ApiParams:
                                    preset=AUTO_PRESET_NAME,
                                    use_pipelines_cache=True,
                                    use_preprocessing_cache=True,
-                                   'use_input_preprocessing': True,
+                                   use_input_preprocessing = True,
                                    cache_folder=None,
                                    keep_history=True,
                                    history_dir=None,
@@ -224,73 +224,71 @@ class ApiParams:
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
             -> PipelineComposerRequirements:
 
-        # api_params, composer_params, _ = _divide_parameters(self._all_parameters)
-        preset = self._all_parameters['preset']
+        preset = self._parameters['preset']
 
-        task = self._all_parameters['task']
+        task = self._parameters['task']
 
         # define available operations
-        if not self._all_parameters.get('available_operations'):
+        if not self._parameters.get('available_operations'):
             available_operations = OperationsPreset(task, preset).filter_operations_by_preset()
-            self._all_parameters['available_operations'] = available_operations
+            self._parameters['available_operations'] = available_operations
 
         primary_operations, secondary_operations = \
-            PipelineOperationRepository.divide_operations(self._all_parameters.get('available_operations'), task)
+            PipelineOperationRepository.divide_operations(self._parameters.get('available_operations'), task)
 
-        max_pipeline_fit_time = self._all_parameters['max_pipeline_fit_time']
+        max_pipeline_fit_time = self._parameters['max_pipeline_fit_time']
         if max_pipeline_fit_time:
             max_pipeline_fit_time = datetime.timedelta(minutes=max_pipeline_fit_time)
 
         composer_requirements = PipelineComposerRequirements(
             primary=primary_operations,
             secondary=secondary_operations,
-            max_arity=self._all_parameters['max_arity'],
-            max_depth=self._all_parameters['max_depth'],
+            max_arity=self._parameters['max_arity'],
+            max_depth=self._parameters['max_depth'],
 
-            num_of_generations=self._all_parameters['num_of_generations'],
+            num_of_generations=self._parameters['num_of_generations'],
             timeout=datetime_composing,
-            early_stopping_iterations=self._all_parameters['early_stopping_iterations'],
-            early_stopping_timeout=self._all_parameters['early_stopping_timeout'],
+            early_stopping_iterations=self._parameters['early_stopping_iterations'],
+            early_stopping_timeout=self._parameters['early_stopping_timeout'],
             max_pipeline_fit_time=max_pipeline_fit_time,
-            n_jobs=self._all_parameters['n_jobs'],
-            parallelization_mode=self._all_parameters['parallelization_mode'],
+            n_jobs=self._parameters['n_jobs'],
+            parallelization_mode=self._parameters['parallelization_mode'],
             static_individual_metadata={
-                k: v for k, v in self._all_parameters.items()
+                k: v for k, v in self._parameters.items()
                 if k in ['use_input_preprocessing']
             },
-            show_progress=self._all_parameters['show_progress'],
-            collect_intermediate_metric=self._all_parameters['collect_intermediate_metric'],
-            keep_n_best=self._all_parameters['keep_n_best'],
+            show_progress=self._parameters['show_progress'],
+            collect_intermediate_metric=self._parameters['collect_intermediate_metric'],
+            keep_n_best=self._parameters['keep_n_best'],
 
             keep_history=True,
-            history_dir=self._all_parameters['history_folder'],
+            history_dir=self._parameters['history_folder'],
 
-            cv_folds=self._all_parameters['cv_folds'],
-            validation_blocks=self._all_parameters['validation_blocks'],
+            cv_folds=self._parameters['cv_folds'],
+            validation_blocks=self._parameters['validation_blocks'],
         )
         return composer_requirements
 
     def init_optimizer_parameters(self, multi_objective: bool) -> GPGraphOptimizerParameters:
-        # _, composer_params, _ = _divide_parameters(self._all_parameters)
 
-        task = self._all_parameters.get('task')
+        task = self._parameters.get('task')
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if self._all_parameters['genetic_scheme'] == 'steady_state':
+        if self._parameters['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
         optimizer_params = GPGraphOptimizerParameters(
             multi_objective=multi_objective,
-            pop_size=self._all_parameters['pop_size'],
+            pop_size=self._parameters['pop_size'],
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=ApiParams._get_default_mutations(task.task_type)
         )
         return optimizer_params
 
     def init_graph_generation_params(self, requirements: PipelineComposerRequirements):
-        task = self._all_parameters['task']
-        preset = self._all_parameters['preset']
-        available_operations = self._all_parameters['available_operations']
+        task = self._parameters['task']
+        preset = self._parameters['preset']
+        available_operations = self._parameters['available_operations']
         advisor = PipelineChangeAdvisor(task)
         graph_model_repo = PipelineOperationRepository() \
             .from_available_operations(task=task, preset=preset,
