@@ -575,14 +575,11 @@ def test_api_params():
     model = Fedot(**fedot_params)
     api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)
 
-    for key in correct_api_params.keys():
-        assert correct_api_params[key] == api_params[key]
+    assert correct_api_params.items() <= api_params.items()
 
-    for key in correct_composer_params.keys():
-        assert correct_composer_params[key] == composer_params[key]
+    assert correct_composer_params.items() <= composer_params.items()
 
-    for key in correct_tuner_params.keys():
-        assert correct_tuner_params[key] == tuner_params[key]
+    assert correct_tuner_params.items() <= tuner_params.items()
 
 
 def test_unknown_param_raises_error():
