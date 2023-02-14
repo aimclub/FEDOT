@@ -1,6 +1,6 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.visualisation.opt_viz_extra import visualise_pareto
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
-from fedot.preprocessing.preprocessing import merge_preprocessors
+from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
@@ -98,6 +98,7 @@ class Fedot:
                 - ``ts`` -> A special preset with models for time series forecasting task.
                 - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
 
+        use_input_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
         cache_folder: path to the place where cache files should be stored (if any cache is enabled).
@@ -128,13 +129,16 @@ class Fedot:
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
-                                     self.params.api_params['use_preprocessing_cache'],
-                                     self.params.api_params['cache_folder'])
+        self.api_composer.init_cache(use_pipelines_cache=self.params.api_params['use_pipelines_cache'],
+                                     use_input_preprocessing=self.params.api_params['use_input_preprocessing'],
+                                     use_preprocessing_cache=self.params.api_params['use_preprocessing_cache'],
+                                     cache_folder=self.params.api_params['cache_folder'])
         self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
+        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
+                                               use_input_preprocessing=self.params.api_params[
+                                                   'use_input_preprocessing'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -172,12 +176,13 @@ class Fedot:
         self.target = target
 
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-
-        # Launch data analyser - it gives recommendations for data preprocessing
-        full_train_not_preprocessed = deepcopy(self.train_data)
-        recommendations = self.data_analyser.give_recommendation(self.train_data)
-        self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
-        self.params.accept_and_apply_recommendations(self.train_data, recommendations)
+        if self.params.api_params['use_input_preprocessing']:
+            # Launch data analyser - it gives recommendations for data preprocessing
+            recommendations = self.data_analyser.give_recommendation(self.train_data)
+            self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
+            self.params.accept_and_apply_recommendations(self.train_data, recommendations)
+        else:
+            recommendations = None
 
         self._init_remote_if_necessary()
 
@@ -192,7 +197,9 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model,
                                                     self.train_data,
-                                                    self.params.api_params['logger']).fit()
+                                                    self.params.api_params['logger'],
+                                                    use_input_preprocessing=self.params.api_params[
+                                                        'use_input_preprocessing']).fit()
         else:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
@@ -200,6 +207,7 @@ class Fedot:
             if self.current_pipeline is None:
                 raise ValueError('No models were found')
 
+            full_train_not_preprocessed = deepcopy(self.train_data)
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
@@ -208,8 +216,8 @@ class Fedot:
                 self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
-        self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
-                                                                 self.current_pipeline.preprocessor)
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
         self.params.api_params['logger'].message(f'Final pipeline: {self.current_pipeline.structure}')
 
@@ -360,7 +368,7 @@ class Fedot:
         self._check_forecast_applicable()
 
         forecast_length = self.train_data.task.task_params.forecast_length
-        horizon = horizon if horizon is not None else forecast_length
+        horizon = horizon or forecast_length
         if pre_history is None:
             pre_history = self.train_data
             pre_history.target = None
@@ -387,7 +395,7 @@ class Fedot:
         Args:
             path: path to ``json`` file with model
         """
-        self.current_pipeline = Pipeline()
+        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.api_params['use_input_preprocessing'])
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
@@ -552,16 +560,17 @@ class Fedot:
             if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target
 
-    def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
+    def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
+                                        full_train_not_preprocessed: Union[InputData, MultiModalData]):
         """Applies training procedure for obtained pipeline if dataset was clipped
         """
 
-        if recommendations:
+        if recommendations is not None:
             # if data was cut we need to refit pipeline on full data
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            n_jobs=self.params.api_params['n_jobs'],
+            n_jobs=self.params.api_params['n_jobs']
         )

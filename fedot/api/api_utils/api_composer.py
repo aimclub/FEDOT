@@ -80,13 +80,14 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
-    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool,
+    def init_cache(self, use_pipelines_cache: bool = True,
+                   use_input_preprocessing: bool = True, use_preprocessing_cache: bool = True,
                    cache_folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
-        if use_preprocessing_cache:
+        if use_input_preprocessing and use_preprocessing_cache:
             self.preprocessing_cache = PreprocessingCache(cache_folder)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
@@ -125,6 +126,10 @@ class ApiComposer:
             max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             parallelization_mode=api_params['parallelization_mode'],
+            static_individual_metadata={
+                k: v for k, v in composer_params.items()
+                if k in ['use_input_preprocessing']
+            },
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
@@ -190,6 +195,10 @@ class ApiComposer:
 
         self.tuner_requirements = PipelineComposerRequirements(
             n_jobs=api_params['n_jobs'],
+            static_individual_metadata={
+                k: v for k, v in composer_params.items()
+                if k in ['use_input_preprocessing']
+            },
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
         )
@@ -210,7 +219,9 @@ class ApiComposer:
         assumption_handler = AssumptionsHandler(train_data)
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
-                                                                    available_operations)
+                                                                    available_operations,
+                                                                    use_input_preprocessing=composer_params[
+                                                                        'use_input_preprocessing'])
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
 
@@ -365,7 +376,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 optimizer_external_params=None, collect_intermediate_metric=False,
                                 max_pipeline_fit_time=None, initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None,
-                                keep_history=True, history_dir=None)
+                                keep_history=True, history_dir=None, use_input_preprocessing=True)
 
     tuner_params_dict = dict(with_tuning=False)
 

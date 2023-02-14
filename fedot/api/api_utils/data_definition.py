@@ -11,13 +11,13 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-FeaturesType = Union[str, PathLike, np.ndarray, pd.DataFrame, InputData, dict, tuple]
+FeaturesType = Union[str, PathLike, np.ndarray, pd.DataFrame, InputData, MultiModalData, dict, tuple]
 TargetType = Union[str, PathLike, np.ndarray, pd.Series, dict]
 
 
 class DataDefiner:
 
-    def __init__(self, strategy) -> None:
+    def __init__(self, strategy: 'StrategyDefineData') -> None:
         self._strategy = strategy
 
     @property
@@ -31,7 +31,7 @@ class DataDefiner:
     def define_data(self, features: FeaturesType,
                     task: Task,
                     target: Optional[str] = None,
-                    is_predict: bool = False) -> None:
+                    is_predict: bool = False) -> Union[InputData, MultiModalData]:
         return self._strategy.define_data(features,
                                           task,
                                           target,
@@ -43,7 +43,7 @@ class StrategyDefineData(ABC):
     def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
                     task: Task,
                     target: str = None,
-                    is_predict: bool = False):
+                    is_predict: bool = False) -> Union[InputData, MultiModalData]:
         pass
 
 
@@ -167,8 +167,8 @@ class MultimodalStrategy(StrategyDefineData):
         return data
 
 
-def data_strategy_selector(features, target, task: Task = None, is_predict: bool = None):
-
+def data_strategy_selector(features: FeaturesType, target: Optional[str] = None, task: Task = None,
+                           is_predict: bool = None) -> Union[InputData, MultiModalData]:
     strategy = [strategy for cls, strategy in _strategy_dispatch.items() if isinstance(features, cls)][0]
 
     data = DataDefiner(strategy())

@@ -11,7 +11,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
-from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features, \
+from test.unit.preprocessing.test_preprocessing_through_api import data_with_only_categorical_features, \
     data_with_too_much_nans, data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, \
     data_with_nans_in_multi_target, data_with_categorical_target
 
@@ -48,7 +48,7 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
         target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
     input_data = InputData(idx=np.arange(9), features=features,
                            target=target, task=task, data_type=DataTypesEnum.table,
-                           supplementary_data=SupplementaryData(was_preprocessed=False))
+                           supplementary_data=SupplementaryData())
     return input_data
 
 

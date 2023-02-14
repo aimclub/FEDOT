@@ -89,7 +89,8 @@ class Crossover(Operator):
         operator = ParentOperator(type_='crossover',
                                   operators=str(crossover_type),
                                   parent_individuals=parent_individuals)
-        return tuple(Individual(graph, operator) for graph in new_graphs)
+        return tuple(Individual(graph, operator, metadata=self.requirements.static_individual_metadata)
+                     for graph in new_graphs)
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or

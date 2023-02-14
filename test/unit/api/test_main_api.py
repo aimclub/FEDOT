@@ -146,7 +146,7 @@ def data_with_binary_features_and_categorical_target():
     target = np.array(['red-blue', 'red-blue', 'green-blue', 'green-orange'])
     train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
                             task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -528,19 +528,19 @@ def test_data_from_csv_load_correctly():
 def test_api_params():
     """ Test checks if all params from api are processed and divided correctly"""
     default_int_value = 2
-    api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
-                  'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
-                  'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
-                  'max_depth': default_int_value, 'max_arity': default_int_value,
-                  'early_stopping_iterations': default_int_value, 'early_stopping_timeout': default_int_value,
-                  'pop_size': default_int_value, 'num_of_generations': default_int_value,
-                  'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
-                  'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
-                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                  'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
-                  'metric': RegressionMetricsEnum.SMAPE,
-                  'collect_intermediate_metric': True, 'preset': 'fast_train',
-                  'optimizer_external_params': {'path': default_int_value}}
+    fedot_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
+                    'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
+                    'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
+                    'max_depth': default_int_value, 'max_arity': default_int_value,
+                    'early_stopping_iterations': default_int_value, 'early_stopping_timeout': default_int_value,
+                    'pop_size': default_int_value, 'num_of_generations': default_int_value,
+                    'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
+                    'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
+                    'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
+                    'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                    'metric': RegressionMetricsEnum.SMAPE,
+                    'collect_intermediate_metric': True, 'preset': 'fast_train',
+                    'optimizer_external_params': {'path': default_int_value}}
 
     correct_api_params = {'n_jobs': default_int_value,
                           'task': Task(task_type=TaskTypesEnum.ts_forecasting,
@@ -567,20 +567,19 @@ def test_api_params():
                                'early_stopping_timeout': default_int_value,
                                'validation_blocks': default_int_value,
                                'optimizer_external_params': {'path': default_int_value},
-                               'use_pipelines_cache': True, 'use_preprocessing_cache': True, 'cache_folder': None}
+                               'use_input_preprocessing': True,
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': True,
+                               'cache_folder': None}
     correct_tuner_params = {'with_tuning': True}
 
-    model = Fedot(**api_params)
+    model = Fedot(**fedot_params)
     api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)
 
-    for key in correct_api_params.keys():
-        assert correct_api_params[key] == api_params[key]
+    assert correct_api_params.items() <= api_params.items()
 
-    for key in correct_composer_params.keys():
-        assert correct_composer_params[key] == composer_params[key]
+    assert correct_composer_params.items() <= composer_params.items()
 
-    for key in correct_tuner_params.keys():
-        assert correct_tuner_params[key] == tuner_params[key]
+    assert correct_tuner_params.items() <= tuner_params.items()
 
 
 def test_unknown_param_raises_error():

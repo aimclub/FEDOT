@@ -10,6 +10,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
@@ -25,14 +26,18 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task):
+    def __init__(self, task: Task, use_input_preprocessing: bool = True):
         self.task = task
-        self.preprocessor = DataPreprocessor()
 
-        # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encode'
-        # to encode features using label encoder). Parameters for transformation provided also
-        self.recommendations = {'cut': self.preprocessor.cut_dataset,
-                                'label_encoded': self.preprocessor.label_encoding_for_fit}
+        self._recommendations = {}
+        self.preprocessor = DummyPreprocessor()
+        if use_input_preprocessing:
+            self.preprocessor = DataPreprocessor()
+
+            # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'
+            # to encode features using label encoder). Parameters for transformation provided also
+            self._recommendations = {'cut': self.preprocessor.cut_dataset,
+                                     'label_encoded': self.preprocessor.label_encoding_for_fit}
 
     def define_data(self,
                     features: FeaturesType,
@@ -115,7 +120,6 @@ class ApiDataProcessor:
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
-            for name in recommendations:
-                rec = recommendations[name]
+            for name, rec in recommendations.items():
                 # Apply desired preprocessing function
-                self.recommendations[name](input_data, *rec.values())
+                self._recommendations[name](input_data, *rec.values())

@@ -44,6 +44,9 @@ class ComposerRequirements:
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = -1
     parallelization_mode: str = 'populational'
+    static_individual_metadata: dict = field(default_factory=lambda: {
+        'use_input_preprocessing': True
+    })
 
     show_progress: bool = True
     collect_intermediate_metric: bool = False

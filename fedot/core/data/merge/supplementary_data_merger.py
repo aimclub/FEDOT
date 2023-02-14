@@ -19,7 +19,8 @@ class SupplementaryDataMerger:
             data_flow_length=self.calculate_dataflow_len(),
             features_mask=self.prepare_parent_mask(),
             previous_operations=None,  # is set by Node after merge
-            was_preprocessed=self.all_preprocessed(),
+            obligatorily_preprocessed=self.all_preprocessed(),
+            optionally_preprocessed=self.all_preprocessed(is_obligatory=False),
             non_int_idx=None,  # is set elsewhere (by preprocessor or during pipeline fit/predict)
             column_types=self.merge_column_types()
         )
@@ -28,8 +29,11 @@ class SupplementaryDataMerger:
         """ Number of visited nodes is the max number among outputs plus 1 (the next operation). """
         return 1 + max(output.supplementary_data.data_flow_length for output in self.outputs)
 
-    def all_preprocessed(self) -> bool:
-        return all(output.supplementary_data.was_preprocessed for output in self.outputs)
+    def all_preprocessed(self, *, is_obligatory: bool = True) -> bool:
+        return all(
+            output.supplementary_data.obligatorily_preprocessed if is_obligatory
+            else output.supplementary_data.optionally_preprocessed
+            for output in self.outputs)
 
     def prepare_parent_mask(self) -> Dict:
         """ The method for OutputData from multiple parent nodes prepares a field

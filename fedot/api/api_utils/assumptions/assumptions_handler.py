@@ -25,19 +25,25 @@ class AssumptionsHandler:
 
     def propose_assumptions(self,
                             initial_assumption: Union[List[Pipeline], Pipeline, None],
-                            available_operations: List) -> List[Pipeline]:
+                            available_operations: List,
+                            use_input_preprocessing: bool = True) -> List[Pipeline]:
         """
         Method to propose initial assumptions if needed
 
-        :param initial_assumption: initial assumption given by user
-        :param available_operations: list of available operations defined by user
+        Args:
+            initial_assumption: initial assumption given by user
+            available_operations: list of available operations defined by user
+            use_input_preprocessing: whether to do preprocessing of initial data
+
+        Returns:
+            list of initial assumption pipelines
         """
 
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
                 .get(self.data) \
                 .from_operations(available_operations)
-            initial_assumption = assumptions_builder.build()
+            initial_assumption = assumptions_builder.build(use_input_preprocessing=use_input_preprocessing)
         elif isinstance(initial_assumption, Pipeline):
             initial_assumption = [initial_assumption]
         return initial_assumption

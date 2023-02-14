@@ -44,7 +44,8 @@ class SurrogateExplainer(Explainer):
             raise ValueError(f'{type(surrogate)} is not supported as a surrogate model')
 
         self.surrogate_str = surrogate
-        self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
+        self.surrogate = get_simple_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate],
+                                             model.use_input_preprocessing)
 
     def explain(self, data: InputData, visualization: bool = False, **kwargs):
         try:
@@ -93,11 +94,12 @@ class SurrogateExplainer(Explainer):
             print(f'Saved the plot to "{os.path.abspath(save_path)}"')
 
 
-def get_simple_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
+def get_simple_pipeline(model: str, custom_params: dict = None,
+                        use_input_preprocessing: bool = True) -> 'Pipeline':
     surrogate_node = PrimaryNode(model)
     if custom_params:
         surrogate_node.parameters = custom_params
-    return Pipeline(surrogate_node)
+    return Pipeline(surrogate_node, use_input_preprocessing=use_input_preprocessing)
 
 
 def fit_naive_surrogate_model(

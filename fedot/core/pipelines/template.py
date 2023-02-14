@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.repository.operation_types_repository import atomized_model_type
+from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -43,6 +45,7 @@ class PipelineTemplate:
         if pipeline is not None:
             self.depth = pipeline.depth
             self.metadata['computation_time_in_seconds'] = pipeline.computation_time
+            self.metadata['use_input_preprocessing'] = pipeline.use_input_preprocessing
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
@@ -54,7 +57,7 @@ class PipelineTemplate:
 
         self._pipeline_to_template(pipeline)
 
-    def _pipeline_to_template(self, pipeline):
+    def _pipeline_to_template(self, pipeline: 'Pipeline'):
         try:
             # TODO improve for graph with several roots
             self._extract_pipeline_structure(pipeline.root_node, 0, [])
@@ -228,7 +231,7 @@ class PipelineTemplate:
                     else:
                         continue
                     max_pipeline_idx = cur_pipeline_idx if cur_pipeline_idx > max_pipeline_idx else max_pipeline_idx
-            folder_name = f"{max_pipeline_idx+1}{suffix}"
+            folder_name = f"{max_pipeline_idx + 1}{suffix}"
 
         path_to_dir = os.path.join(path, folder_name)
         path_to_dir = path_to_dir
@@ -294,7 +297,7 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def convert_to_pipeline(self, pipeline, path: str = None, dict_fitted_operations: dict = None):
+    def convert_to_pipeline(self, pipeline: 'Pipeline', path: str = None, dict_fitted_operations: dict = None):
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
@@ -316,6 +319,9 @@ class PipelineTemplate:
             except ModuleNotFoundError as ex:
                 self.log.warning(f'Could not load preprocessor from file `{preprocessor_file}` '
                                  f'due to legacy incompatibility. Please refit the preprocessor.')
+        else:
+            pipeline.preprocessor = \
+                DataPreprocessor() if self.metadata['use_input_preprocessing'] else DummyPreprocessor()
 
     def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
@@ -392,7 +398,7 @@ class PipelineTemplate:
                 return data_preprocessor_path
         else:
             # dictionary with bytes of fitted operations
-            if self.data_preprocessor:
+            if self.data_preprocessor is not None:
                 bytes_container = BytesIO()
                 joblib.dump(self.data_preprocessor, bytes_container)
                 return bytes_container

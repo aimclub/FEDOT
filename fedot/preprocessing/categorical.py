@@ -1,8 +1,9 @@
 from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-
 from sklearn.preprocessing import LabelEncoder
+
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.preprocessing.data_types import NAME_CLASS_INT, FEDOT_STR_NAN
@@ -95,6 +96,19 @@ class BinaryCategoricalPreprocessor:
         for converted_column_id in self.binary_ids_to_convert:
             features_types[converted_column_id] = NAME_CLASS_INT
         return copied_data
+
+    def fit_transform(self, input_data: InputData) -> InputData:
+        """
+        Applies firstly :method:`fit` and then :method:`transform` methods of the class
+
+        Args:
+            input_data: to be trained on and transformed
+
+        Returns:
+            transformed ``input_data``
+        """
+        self.fit(input_data)
+        return self.transform(input_data)
 
     def _train_encoder(self, column: np.array, column_id: int):
         """ Convert labels in the column from string into int via Label encoding.

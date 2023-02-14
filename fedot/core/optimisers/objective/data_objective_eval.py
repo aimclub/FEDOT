@@ -131,7 +131,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
-            intermediate_graph = Pipeline(node)
+            intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
             intermediate_graph.fit(
                 train_data,
                 time_constraint=self._time_constraint,

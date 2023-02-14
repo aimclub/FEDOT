@@ -16,8 +16,10 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         fitted models) that can be used for reconstructing Pipelines.
     """
 
-    def __init__(self):
+    def __init__(self, use_input_preprocessing: bool = True):
         super().__init__(base_graph_class=Pipeline)
+
+        self.use_input_preprocessing = use_input_preprocessing
 
     @staticmethod
     def _transform_to_opt_node(node: Node) -> OptNode:
@@ -44,8 +46,9 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
         restored_nodes = map_dag_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
-        pipeline = Pipeline(restored_nodes)
+        pipeline = Pipeline(restored_nodes, use_input_preprocessing=self.use_input_preprocessing)
 
         metadata = metadata or {}
         pipeline.computation_time = metadata.get('computation_time_in_seconds')
+
         return pipeline

@@ -18,7 +18,7 @@ def data_with_only_categorical_features():
                          ["'c'", "1", "0"]], dtype=object)
     input_data = InputData(idx=[0, 1, 2], features=features,
                            target=np.array([0, 1, 2]),
-                           task=task,  data_type=DataTypesEnum.table,
+                           task=task, data_type=DataTypesEnum.table,
                            supplementary_data=supp_data)
 
     return input_data
@@ -43,7 +43,7 @@ def data_with_too_much_nans():
     target = np.array([[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -63,7 +63,7 @@ def data_with_spaces_and_nans_in_features():
     target = np.array([[0], [1], [2], [3], [4], [5]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -80,7 +80,7 @@ def data_with_nans_in_target_column():
     target = np.array([[0], [1], [np.nan], [np.nan], [4], [5]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -100,7 +100,7 @@ def data_with_nans_in_multi_target():
     target = np.array([[0, 2], [1, 3], [np.nan, np.nan], [3, np.nan], [4, 4], [5, 6]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -125,7 +125,7 @@ def data_with_categorical_target(with_nan: bool = False):
         target = np.array(['blue', 'da', 'ba', 'di'], dtype=str)
     train_input = InputData(idx=[0, 1, 2, 3], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -142,7 +142,7 @@ def data_with_text_features():
     target = np.array([[0], [1], [0], [1]])
     train_input = InputData(idx=[0, 1, 2, 3], features=features,
                             target=target, task=task, data_type=DataTypesEnum.text,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -161,7 +161,7 @@ def data_with_pseudo_text_features():
     target = np.array([[0], [1], [0], [1], [0]])
     train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
 
@@ -179,9 +179,11 @@ def data_with_text_features_and_nans():
     target = np.array([[0], [1], [0], [1], [0]])
     train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
                             target=target, task=task, data_type=DataTypesEnum.text,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=SupplementaryData())
 
     return train_input
+
+
 # TODO: @andreygetmanov (test data with image features)
 
 

@@ -4,10 +4,10 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import TYPE_CHECKING, TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence, Union
 
+from fedot.core.adapter.adapt_registry import AdaptRegistry
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.adapter.adapt_registry import AdaptRegistry
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 if TYPE_CHECKING:

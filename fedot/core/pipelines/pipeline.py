@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
-from typing import List, Optional, Tuple, Union, Sequence
+from typing import Optional, Tuple, Union, Sequence
 
 import func_timeout
 
@@ -25,7 +25,8 @@ from fedot.core.utilities.serializable import Serializable
 from fedot.core.utils import copy_doc
 from fedot.core.visualisation.graph_viz import NodeColorType
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
-from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
+from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -35,16 +36,18 @@ class Pipeline(GraphDelegate, Serializable):
 
     Args:
         nodes: :obj:`Node` object(s)
+        use_input_preprocessing: whether to do input preprocessing or not, True by default
     """
 
-    def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_input_preprocessing: bool = True):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
         self.log = default_log(self)
 
+        self.use_input_preprocessing = use_input_preprocessing  # used outside of the class
         # Define data preprocessor
-        self.preprocessor = DataPreprocessor()
+        self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """[Obsolete] Method used for training the pipeline without using saved information
@@ -117,6 +120,55 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
+    def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> Union[
+        InputData, MultiModalData]:
+        """
+        Makes obligatory and optional (if needed) steps of data preprocessing
+
+        Args:
+            input_data: to be copied and preprocessed
+            is_fit_stage: True when it's fitting stage
+
+        Returns:
+            preprocessed copy of the original data
+        """
+        copied_input_data = deepcopy(input_data)
+        if is_fit_stage:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                           data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                          data=copied_input_data)
+        else:
+            copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
+                                                                               data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
+                                                                              data=copied_input_data)
+            copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+        return copied_input_data
+
+    def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
+                     output_mode: str = 'default') -> OutputData:
+        """
+        Postprocesses output of the model
+
+        Args:
+            copied_input_data: preprocessed copy of the original data
+            result: output of the model
+            output_mode: desired form of output for operations
+
+        Returns:
+            OutputData: postprocessed ``result`` parameter
+        """
+        result = self.preprocessor.restore_index(copied_input_data, result)
+        # Prediction should be converted into source labels (if it is needed)
+        if output_mode == 'labels':
+            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+        return result
+
     def fit(self, input_data: Union[InputData, MultiModalData],
             time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
         """
@@ -132,13 +184,8 @@ class Pipeline(GraphDelegate, Serializable):
         """
         self.replace_n_jobs_in_nodes(n_jobs)
 
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+        copied_input_data = self._preprocess(input_data)
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
@@ -178,7 +225,7 @@ class Pipeline(GraphDelegate, Serializable):
             self.unfit_preprocessor()
 
     def unfit_preprocessor(self):
-        self.preprocessor = DataPreprocessor()
+        self.preprocessor = type(self.preprocessor)()
 
     def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
                             fold_id: Optional[int] = None):
@@ -221,23 +268,12 @@ class Pipeline(GraphDelegate, Serializable):
             raise ValueError(ex)
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
-                                                                           data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
-                                                                          data=copied_input_data)
-        copied_input_data = update_indices_for_time_series(copied_input_data)
+        copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
 
-        result = self.preprocessor.restore_index(copied_input_data, result)
-        # Prediction should be converted into source labels (if it is needed)
-        if output_mode == 'labels':
-            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+        result = self._postprocess(copied_input_data, result, output_mode)
         return result
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
@@ -368,7 +404,7 @@ class Pipeline(GraphDelegate, Serializable):
                         node.content['params']['num_threads'] = n_jobs
                         node.content['params']['n_jobs'] = n_jobs
 
-    @copy_doc(Graph)
+    @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
              node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
              node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,

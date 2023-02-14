@@ -1,8 +1,7 @@
 from typing import Optional, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import data_has_missing_values, data_has_categorical_features, \
-    data_has_text_features
+from fedot.core.data.data_preprocessing import data_has_text_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
@@ -16,22 +15,26 @@ class PreprocessingBuilder:
     Builder for constructing preprocessing part of pipeline during the preparation of an initial assumption.
     If data is multimodal, builder makes preprocessing pipeline for each data source iteratively.
     """
-    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: Node):
+
+    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: Node,
+                 use_input_preprocessing: bool = True):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(*initial_nodes)
+        self._builder = PipelineBuilder(*initial_nodes, use_input_preprocessing=use_input_preprocessing)
 
     @classmethod
     def builder_for_data(cls,
                          task_type: TaskTypesEnum,
                          data: Union[InputData, MultiModalData],
-                         *initial_nodes: Optional[Node]) -> PipelineBuilder:
+                         *initial_nodes: Optional[Node],
+                         use_input_preprocessing: bool = True) -> PipelineBuilder:
         if isinstance(data, MultiModalData):
             # if the data is unimodal, initial_nodes = tuple of None
             # if the data is multimodal, initial_nodes = tuple of 1 element (current data_source node)
             # so the whole data is reduced to the current data_source for an easier preprocessing
             data = data[str(initial_nodes[0])]
-        preprocessing_builder = cls(task_type, data.data_type, *initial_nodes)
+        preprocessing_builder = cls(task_type, data.data_type, *initial_nodes,
+                                    use_input_preprocessing=use_input_preprocessing)
         if data_has_text_features(data):
             preprocessing_builder = preprocessing_builder.with_text_vectorizer()
         return preprocessing_builder.to_builder()
@@ -50,5 +53,10 @@ class PreprocessingBuilder:
         return self.with_scaling()._builder
 
     def to_pipeline(self) -> Optional[Pipeline]:
-        """ Return result as Pipeline. Scaling is applied final by default. """
+        """
+        Returns result as Pipeline. Scaling is applied final by default.
+
+        Returns:
+            adapted graph as pipeline
+        """
         return self.to_builder().build()

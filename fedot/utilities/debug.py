@@ -41,13 +41,13 @@ def save_debug_info_for_pipeline(pipeline: 'Pipeline', train_data: 'InputData', 
         print(ex)
 
 
-def reproduce_fitting_error(pipeline_id: str, base_path=None):
+def reproduce_fitting_error(pipeline_id: str, base_path=None, use_input_preprocessing: bool = True):
     from fedot.core.pipelines.pipeline import Pipeline
 
     if not base_path:
         base_path = Path(default_fedot_data_dir(), 'debug_info')
 
-    pipeline = Pipeline()
+    pipeline = Pipeline(use_input_preprocessing=use_input_preprocessing)
     pipeline.load(str(Path(base_path, f'{pipeline_id}_pipeline', f'{pipeline_id}_pipeline.json')))
     with open(Path(base_path, f'{pipeline_id}_train_data.pkl'), 'rb') as file:
         train_data = pickle.load(file)

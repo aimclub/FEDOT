@@ -1,16 +1,16 @@
-from typing import List, Union, Optional, Set
+from typing import List, Union, Optional, Set, Tuple
 
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
-from fedot.core.log import default_log
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 class AssumptionsBuilder:
@@ -41,11 +41,15 @@ class AssumptionsBuilder:
     def from_operations(self, available_operations: List[str]):
         raise NotImplementedError('abstract')
 
-    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[Node] = None,
+                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         raise NotImplementedError('abstract')
 
-    def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
-        return [builder.build() for builder in self.to_builders(initial_node)]
+    def build(self, initial_node: Optional[Node] = None,
+              use_input_preprocessing: bool = True) -> List[Pipeline]:
+        return [
+            builder.build()
+            for builder in self.to_builders(initial_node, use_input_preprocessing=use_input_preprocessing)]
 
 
 class UniModalAssumptionsBuilder(AssumptionsBuilder):
@@ -76,11 +80,13 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                 self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
-    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[Node] = None,
+                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node)
+            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node,
+                                                  use_input_preprocessing=use_input_preprocessing)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
@@ -93,24 +99,28 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(self, data: MultiModalData, repository_name: str = "model"):
         super().__init__(data, repository_name)
         _subbuilders = []
-        for data_type, (data_source_name, values) in zip(self.data.data_type, self.data.items()):
+        for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
             _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
-        self._subbuilders = tuple(_subbuilders)
+        self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(_subbuilders)
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
-        for data_source, subbuilder in self._subbuilders:
+        for _, subbuilder in self._subbuilders:
             # Performs specific filter on image data operations
             if subbuilder.data_type is DataTypesEnum.image:
                 available_img_operations = ['data_source_img', 'cnn']
                 subbuilder.from_operations(available_img_operations)
         return self
 
-    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
+    def to_builders(self, initial_node: Optional[Node] = None,
+                    use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
+        initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = PipelineBuilder().add_node(data_source_name).add_node(initial_node).to_nodes()[0]
-            data_pipeline_alternatives = subbuilder.build(first_node)
+            first_node = \
+                PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
+                    .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
+            data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
         # Then zip these alternatives together and add final node to get ensembles.
@@ -118,7 +128,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         for pre_ensemble in zip(*subpipelines):
             ensemble_operation = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
-            ensemble_builder = PipelineBuilder(*ensemble_nodes).join_branches(ensemble_operation)
+            ensemble_builder = PipelineBuilder(*ensemble_nodes, use_input_preprocessing=use_input_preprocessing) \
+                .join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders
 

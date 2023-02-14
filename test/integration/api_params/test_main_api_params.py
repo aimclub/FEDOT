@@ -1,9 +1,10 @@
 import logging
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable, Union, Tuple
 
 import pytest
 
+from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.main import Fedot
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
@@ -69,3 +70,20 @@ def test_timeout(case: TimeoutParams):
         auto_model.fit(features=train_data, target='target')
         history: OptHistory = auto_model.history
         assert case.test_answer(history)
+
+
+@pytest.mark.parametrize('case', [
+    ('composer', {'use_input_preprocessing': False})
+])
+def test_main_api_params_of_type(case: Tuple[str, dict]):
+    param_type, input_params = case
+    if param_type == 'api':
+        param_type = 0
+    elif param_type == 'composer':
+        param_type = 1
+    else:
+        param_type = 2
+
+    model = Fedot(problem='ts_forecasting', **input_params)
+    parsed_params = _divide_parameters(model.params.api_params)[param_type]
+    assert input_params.items() <= parsed_params.items()
