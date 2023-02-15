@@ -26,10 +26,10 @@ class ApiParams:
 
     def __init__(self, input_params: Dict[str, Any], task: Task, n_jobs: int,
                  timeout: float):
-        self.log: LoggerAdapter = None
-        self.task: Task = None
-        self.n_jobs: int = n_jobs
-        self.timeout: int = timeout
+        self.log = default_log(self)
+        self.task = task
+        self.n_jobs = n_jobs
+        self.timeout = timeout
         self._parameters = self._set_default_params(input_params)
         self._check_timeout_vs_generations()
 
@@ -112,39 +112,35 @@ class ApiParams:
             depending_on_timeout = int(self.timeout / 3)
             early_stopping_iterations = max(depending_on_timeout, 5)
 
-        default_params_dict = dict(train_data=None,
-                                   task=Task,
-                                   n_jobs=1,
-                                   parallelization_mode='populational',
-                                   show_progress=True,
-                                   logger=None,
-                                   max_depth=6,
-                                   max_arity=3,
-                                   pop_size=20,
-                                   num_of_generations=None,
-                                   keep_n_best=1,
-                                   available_operations=None,
-                                   metric=None,
-                                   validation_blocks=validation_blocks,
-                                   cv_folds=cv_folds,
-                                   genetic_scheme=None,
-                                   history_folder=None,
-                                   early_stopping_iterations=early_stopping_iterations,
-                                   early_stopping_timeout=10,
-                                   optimizer=None,
-                                   optimizer_external_params=None,
-                                   collect_intermediate_metric=False,
-                                   max_pipeline_fit_time=None,
-                                   initial_assumption=None,
-                                   preset=AUTO_PRESET_NAME,
-                                   use_pipelines_cache=True,
-                                   use_preprocessing_cache=True,
-                                   use_input_preprocessing = True,
-                                   cache_folder=None,
-                                   keep_history=True,
-                                   history_dir=None,
-                                   with_tuning=False
-                                   )
+        default_params_dict = dict(
+            parallelization_mode='populational',
+            show_progress=True,
+            max_depth=6,
+            max_arity=3,
+            pop_size=20,
+            num_of_generations=None,
+            keep_n_best=1,
+            available_operations=None,
+            metric=None,
+            validation_blocks=validation_blocks,
+            cv_folds=cv_folds,
+            genetic_scheme=None,
+            early_stopping_iterations=early_stopping_iterations,
+            early_stopping_timeout=10,
+            optimizer=None,
+            optimizer_external_params=None,
+            collect_intermediate_metric=False,
+            max_pipeline_fit_time=None,
+            initial_assumption=None,
+            preset=AUTO_PRESET_NAME,
+            use_pipelines_cache=True,
+            use_preprocessing_cache=True,
+            use_input_preprocessing=True,
+            cache_folder=None,
+            keep_history=True,
+            history_dir=None,
+            with_tuning=False
+        )
         return default_params_dict
 
     def _check_timeout_vs_generations(self):
@@ -198,7 +194,7 @@ class ApiParams:
             keep_n_best=self._parameters['keep_n_best'],
 
             keep_history=True,
-            history_dir=self._parameters['history_folder'],
+            history_dir=self._parameters['history_dir'],
 
             cv_folds=self._parameters['cv_folds'],
             validation_blocks=self._parameters['validation_blocks'],

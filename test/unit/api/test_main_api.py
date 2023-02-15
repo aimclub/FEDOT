@@ -474,7 +474,7 @@ def test_custom_history_folder_define_correct():
 
     params = {
         **default_params,
-        'history_folder': custom_path,
+        'history_dir': custom_path,
         'timeout': None,
         'num_of_generations': 1,
         'pop_size': 3}
@@ -537,7 +537,7 @@ def test_api_params():
                     'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
                     'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
                     'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                    'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                    'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_dir': 'history',
                     'metric': RegressionMetricsEnum.SMAPE,
                     'collect_intermediate_metric': True, 'preset': 'fast_train',
                     'optimizer_external_params': {'path': default_int_value}}
@@ -552,7 +552,7 @@ def test_api_params():
                                'metric': RegressionMetricsEnum.SMAPE,
                                'cv_folds': default_int_value,
                                'genetic_scheme': GeneticSchemeTypesEnum.steady_state,
-                               'history_folder': 'history',
+                               'history_dir': 'history',
                                'initial_assumption': PipelineBuilder().add_node('lagged').add_node(
                                    'ridge').build(),
                                'max_arity': default_int_value,

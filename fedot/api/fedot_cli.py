@@ -149,7 +149,7 @@ keys_names = {'problem': 'problem',
               'tuning': 'with_tuning',
               'cv_folds': 'cv_folds',
               'val_bl': 'validation_blocks',
-              'hist_path': 'history_folder',
+              'hist_path': 'history_dir',
               'for_len': 'forecast_length'
               }
 
