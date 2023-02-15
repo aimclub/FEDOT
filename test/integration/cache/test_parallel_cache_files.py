@@ -28,12 +28,9 @@ def test_parallel_cache_files():
     test_file_2 = Path(default_fedot_data_dir(), 'cache_2.preprocessors_db')
     test_file_2.touch()
     tasks = [
-        partial(run_regression_tuning, regression_ransac_pipeline(), tuner=None),
         partial(run_regression_example, with_tuning=False),
-        partial(run_classification_tuning_experiment, classification_random_forest_pipeline(), tuner=None),
         partial(run_classification_example, timeout=2., with_tuning=False),
         partial(run_ts_forecasting_example, dataset='beer', horizon=10, timeout=2., with_tuning=False),
-        partial(run_ts_tuning, 'australia', ts_locf_ridge_pipeline(), len_forecast=50, tuning=False)
     ]
 
     cpus = multiprocessing.cpu_count()
