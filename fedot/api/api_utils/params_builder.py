@@ -1,24 +1,19 @@
-import random
 from typing import Optional
 
-import numpy as np
-
+from fedot.api.api_utils.params import ApiParams
 from fedot.core.constants import DEFAULT_FORECAST_LENGTH
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.repository.tasks import TaskParams, TsForecastingParams, Task, TaskTypesEnum
-from fedot.core.utilities.random import RandomStateHandler
 
 
 class ApiParamsBuilder:
     def __init__(self, problem: str, task_params: Optional[TaskParams] = None):
         self.task = self._get_task_with_params(problem, task_params)
-        self.seed = None
         self.n_jobs = -1
         self.params = {}
-        self.log = default_log(prefix='FEDOT logger')
         self.timeout = 5
-        self.parallelization_mode = 'populational'
+        self.log = default_log(self)
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None):
         if problem == 'ts_forecasting' and task_params is None:
@@ -35,19 +30,6 @@ class ApiParamsBuilder:
                      }
         return task_dict[problem]
 
-    def with_logging_level(self, logging_level: int):
-        # reset logging level for Singleton
-        Log().reset_logging_level(logging_level)
-        self.log = default_log(prefix='FEDOT logger')
-        return self
-
-    def with_seed(self, seed: int):
-        np.random.seed(seed)
-        random.seed(seed)
-        RandomStateHandler.MODEL_FITTING_SEED = seed
-        self.seed = seed
-        return self
-
     def with_n_jobs(self, n_jobs: int):
         self.n_jobs = determine_n_jobs(n_jobs)
         return self
@@ -56,13 +38,11 @@ class ApiParamsBuilder:
         self.params = params
         return self
 
-    def with_timeout(self, timeout: int):
+    def with_timeout(self, timeout: float):
         self.timeout = timeout
         return self
 
-    def with_parallelization_mode(self, parallelization_mode: str):
-        self.parallelization_mode = parallelization_mode
-        return self
-
     def build(self):
-        pass
+        api_params = ApiParams(input_params=self.params, n_jobs=self.n_jobs,
+                               timeout=self.timeout, task=self.task)
+        return api_params

@@ -1,8 +1,6 @@
 import datetime
 import gc
-import os
-from itertools import chain
-from typing import Callable, List, Optional, Sequence, Tuple, Union
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.evaluation import determine_n_jobs
@@ -21,7 +19,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
@@ -50,7 +47,6 @@ class ApiComposer:
         self.was_optimised = False
         # status flag indicating that tuner step was applied
         self.was_tuned = False
-        self.tuner_requirements = None
         self.init_cache()
 
     def obtain_metric(self, task: Task) -> Sequence[MetricType]:
@@ -89,20 +85,11 @@ class ApiComposer:
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 
-    # def set_tuner_requirements(self, **common_dict):
-    #     api_params, composer_params, _ = _divide_parameters(common_dict)
-    #
-    #     self.tuner_requirements = PipelineComposerRequirements(
-    #         n_jobs=api_params['n_jobs'],
-    #         cv_folds=composer_params['cv_folds'],
-    #         validation_blocks=composer_params['validation_blocks'],
-    #     )
-
     def obtain_model(self) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        task: Task = self.params.get('task')
+        task: Task = self.params.task
         train_data = self.params.get('train_data')
-        timeout = self.params.get('timeout')
+        timeout = self.params.timeout
         with_tuning = self.params.get('with_tuning')
         available_operations = self.params.get('available_operations')
         preset = self.params.get('preset')
@@ -117,23 +104,19 @@ class ApiComposer:
                                                                     use_input_preprocessing=self.params.get(
                                                                         'use_input_preprocessing'))
 
-        n_jobs = determine_n_jobs(self.params.get('n_jobs'))
-
         with self.timer.launch_assumption_fit():
             fitted_assumption = \
                 assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache,
-                                                                        eval_n_jobs=n_jobs)
+                                                                        eval_n_jobs=self.params.n_jobs)
 
         self.log.message(
             f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs))
+        self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 
         composer_requirements = self.params.init_composer_requirements(self.timer.timedelta_composing)
-
-        self.tuner_requirements = composer_requirements
 
         metric_functions = self.obtain_metric(task)
 
@@ -168,7 +151,7 @@ class ApiComposer:
                          ) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         multi_objective = len(metric_functions) > 1
-        optimizer_params = self.params.init_optimizer_parameters(multi_objective=multi_objective)
+        optimizer_params = self.params.init_optimizer_params(multi_objective=multi_objective)
         graph_generation_params = self.params.init_graph_generation_params(requirements=composer_requirements)
 
         gp_composer: GPComposer = ComposerBuilder(task=task) \

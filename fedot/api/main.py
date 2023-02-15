@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 from golem.core.dag.graph_utils import graph_structure
+from golem.core.log import default_log, Log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -15,7 +16,7 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.params_builder import ApiParamsBuilder
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData, OutputData
@@ -32,6 +33,8 @@ from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
+from fedot.core.utilities.random import set_random_seed
+
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -113,19 +116,18 @@ class Fedot:
                  seed=None, logging_level: int = logging.ERROR,
                  safe_mode=False,
                  n_jobs: int = -1,
-                 parallelization_mode: str = 'populational',
                  **composer_tuner_params
                  ):
 
+        set_random_seed(seed)
+        self.log = self._init_logger(logging_level)
         self.metrics = ApiMetrics(problem)
-        # Define parameters, that were set via init in init
-        input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
-                        'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'logging_level': logging_level,
-                        'n_jobs': n_jobs, 'parallelization_mode': parallelization_mode}
 
         # Classes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParams(input_params)
+        self.params = ApiParamsBuilder(problem, task_params)\
+            .with_timeout(timeout)\
+            .with_n_jobs(n_jobs)\
+            .with_composer_tuner_params(composer_tuner_params).build()
         self.api_composer = ApiComposer(problem, self.params)
 
         self.tuner_requirements = None
@@ -167,10 +169,8 @@ class Fedot:
 
         MemoryAnalytics.start()
 
-        logger = self.params.get('logger')
-
         self.target = target
-        
+
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self.params.update_available_operations_by_preset(self.train_data)
 
@@ -187,10 +187,8 @@ class Fedot:
         self.params.update(train_data=self.train_data)
 
         if predefined_model is not None:
-            # self.api_composer.set_tuner_requirements(**self.params.api_params)
-
             # Fit predefined model and return it without composing
-            self.current_pipeline = PredefinedModel(predefined_model, self.train_data, logger,
+            self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
                                                     use_input_preprocessing=self.params.get(
                                                         'use_input_preprocessing')).fit()
         else:
@@ -203,15 +201,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                logger.message('Final pipeline was fitted')
+                self.log.message('Final pipeline was fitted')
             else:
-                logger.message('Already fitted initial pipeline is used')
+                self.log.message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
-        logger.message(f'Final pipeline: {self.current_pipeline.structure}')
+        self.log.message(f'Final pipeline: {self.current_pipeline.structure}')
 
         MemoryAnalytics.finish()
 
@@ -223,6 +221,7 @@ class Fedot:
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
              cv_folds: int = None,
+             validation_blocks: int = None,
              n_jobs: int = None,
              show_progress: bool = False) -> Pipeline:
         """Method for hyperparameters tuning of current pipeline
@@ -233,6 +232,7 @@ class Fedot:
             iterations: numbers of tuning iterations
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach
             cv_folds: number of folds on data for cross-validation.
+            validation_blocks: number of validation blocks (used for time-series forecasting problem)
             n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
             show_progress: shows progress of tuning if true
 
@@ -244,19 +244,16 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         input_data = input_data or self.train_data
-
-        if metric_name is None:
-            metric_name = self.metrics.get_problem_metrics()[0]
-
-        if cv_folds is not None:
-            self.api_composer.tuner_requirements.cv_folds = cv_folds
-
-        if n_jobs is not None:
-            self.api_composer.tuner_requirements.n_jobs = n_jobs
+        metric_name = metric_name or self.metrics.get_problem_metrics()[0]
+        cv_folds = cv_folds or self.params.get('cv_folds')
+        validation_blocks = validation_blocks or self.params.get('validation_blocks')
+        n_jobs = n_jobs or self.params.n_jobs
 
         pipeline_tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \
-            .with_requirements(self.api_composer.tuner_requirements) \
+            .with_cv_folds(cv_folds) \
+            .with_validation_blocks(validation_blocks) \
+            .with_n_jobs(n_jobs) \
             .with_metric(self.metrics.get_metrics_mapping(metric_name)) \
             .with_iterations(iterations) \
             .with_timeout(timeout) \
@@ -327,7 +324,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.params.get('task').task_type == TaskTypesEnum.classification:
+        if self.params.task.task_type == TaskTypesEnum.classification:
             self.test_data = self.data_processor.define_data(target=self.target,
                                                              features=features, is_predict=True)
 
@@ -378,7 +375,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.params.get('task').task_type != TaskTypesEnum.ts_forecasting:
+        if self.params.task.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
     def load(self, path):
@@ -410,8 +407,7 @@ class Fedot:
             target: user-specified name of target variable for :obj:`MultiModalData`
 
         """
-        logger = self.params.get('logger')
-        task = self.params.get('task')
+        task = self.params.task
 
         if self.prediction is not None:
             if task.task_type == TaskTypesEnum.ts_forecasting:
@@ -423,10 +419,10 @@ class Fedot:
                 self.predict_proba(self.test_data)
                 plot_roc_auc(self.test_data, self.prediction)
             else:
-                logger.error('Not supported yet')
+                self.log.error('Not supported yet')
                 raise NotImplementedError(f"For task {task} plot prediction is not supported")
         else:
-            logger.error('No prediction to visualize')
+            self.log.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
 
     def get_metrics(self,
@@ -449,7 +445,7 @@ class Fedot:
             the values of quality metrics
         """
         if metric_names is None:
-            metric_names = self.params.metric_name
+            metric_names = self.metrics.get_problem_metrics()
 
         if target is not None:
             if self.test_data is None:
@@ -466,7 +462,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.metrics.get_metrics_mapping(metric_name) is NotImplemented:
-                self.params.get('logger').warning(f'{metric_name} is not available as metric')
+                self.log.warning(f'{metric_name} is not available as metric')
             else:
                 composer_metric = self.metrics.get_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
@@ -501,7 +497,7 @@ class Fedot:
             prediction = predicted_data.predict
         pd.DataFrame({'Index': predicted_data.idx,
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
-        self.params.get('logger').message('Predictions was saved in current directory.')
+        self.log.message('Predictions was saved in current directory.')
 
     def export_as_project(self, project_path='fedot_project.zip'):
         export_project_to_zip(zip_name=project_path, opt_history=self.history,
@@ -539,10 +535,16 @@ class Fedot:
 
         return explainer
 
+    @staticmethod
+    def _init_logger(logging_level: int):
+        # reset logging level for Singleton
+        Log().reset_logging_level(logging_level)
+        return default_log(prefix='FEDOT logger')
+
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
         if remote.is_enabled and remote.remote_task_params is not None:
-            task = self.params.get('task')
+            task = self.params.task
             if task.task_type is TaskTypesEnum.ts_forecasting:
                 task_str = \
                     f'Task(TaskTypesEnum.ts_forecasting, ' \
@@ -567,5 +569,5 @@ class Fedot:
                                                                   if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            n_jobs=self.params.get('n_jobs'),
+            n_jobs=self.params.n_jobs
         )
