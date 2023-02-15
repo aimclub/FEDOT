@@ -2,8 +2,8 @@ import json
 import os
 
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
-from fedot.core.repository.json_evaluation import eval_field_str, \
-    eval_strategy_str, read_field
+from fedot.core.repository.json_evaluation import import_enums_from_str, \
+    import_strategy_from_str, read_field
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
@@ -48,7 +48,7 @@ def test_search_in_repository_by_tag_correct():
 
 def test_eval_field_str():
     model_metadata = _model_metadata_example(mocked_path())
-    task_types = eval_field_str(model_metadata['tasks'])
+    task_types = import_enums_from_str(model_metadata['tasks'])
 
     assert len(task_types) == 1
     assert task_types[0] == TaskTypesEnum.classification
@@ -59,7 +59,7 @@ def test_eval_strategy_str():
 
     strategies_json = model_metadata['strategies']
 
-    strategy = eval_strategy_str(strategies_json)
+    strategy = import_strategy_from_str(strategies_json)
     assert strategy is SkLearnClassificationStrategy
 
 
