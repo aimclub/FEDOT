@@ -33,10 +33,8 @@ class BasePreprocessor(ABC):
         self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
         self.use_label_encoder: bool = False
         self.features_imputers: Dict[str, ImputationImplementation] = {}
-        self.ids_relevant_features: Dict[str, List[int]] = {}
+        self.ids_relevant_features: Dict[str, np.ndarray] = {}
 
-        # Cannot be processed due to incorrect types or large number of nans
-        self.ids_incorrect_features: Dict[str, List[int]] = {}
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}

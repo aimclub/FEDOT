@@ -107,13 +107,12 @@ class DataPreprocessor(BasePreprocessor):
         self._init_supplementary_preprocessors(data)
 
         if isinstance(data, InputData):
-            data = self._prepare_obligatory_unimodal_for_fit(data, source_name=DEFAULT_SOURCE_NAME)
+            data = self._prepare_obligatory_unimodal(data, source_name=DEFAULT_SOURCE_NAME)
 
         elif isinstance(data, MultiModalData):
             self._init_main_target_source_name(data)
             for data_source_name, values in data.items():
-                data[data_source_name] = self._prepare_obligatory_unimodal_for_fit(values,
-                                                                                   source_name=data_source_name)
+                data[data_source_name] = self._prepare_obligatory_unimodal(values, source_name=data_source_name)
 
         BasePreprocessor.mark_as_preprocessed(data)
         return data
@@ -122,12 +121,12 @@ class DataPreprocessor(BasePreprocessor):
     def obligatory_prepare_for_predict(self,
                                        data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
-            data = self._prepare_obligatory_unimodal_for_predict(data, source_name=DEFAULT_SOURCE_NAME)
+            data = self._prepare_obligatory_unimodal(data, source_name=DEFAULT_SOURCE_NAME, is_fit_stage=False)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
-                data[data_source_name] = self._prepare_obligatory_unimodal_for_predict(values,
-                                                                                       source_name=data_source_name)
+                data[data_source_name] = self._prepare_obligatory_unimodal(values, source_name=data_source_name,
+                                                                           is_fit_stage=False)
 
         BasePreprocessor.mark_as_preprocessed(data)
         return data
@@ -170,13 +169,14 @@ class DataPreprocessor(BasePreprocessor):
             source_name: name of the data source node
         """
         current_relevant_ids = self.ids_relevant_features[source_name]
-        if current_relevant_ids:
+        if len(current_relevant_ids):
             data.features = data.features[:, current_relevant_ids]
 
     @exclude_ts
     @exclude_multi_ts
     @exclude_image
-    def _prepare_obligatory_unimodal_for_fit(self, data: InputData, source_name: str) -> InputData:
+    def _prepare_obligatory_unimodal(self, data: InputData, source_name: str,
+                                     *, is_fit_stage: bool = True) -> InputData:
         """
         Processes InputData for pipeline fit method
 
@@ -204,19 +204,22 @@ class DataPreprocessor(BasePreprocessor):
         replace_inf_with_nans(data)
 
         # Find incorrect features which must be removed
-        self._find_features_full_of_nans(data, source_name)
+        if is_fit_stage:
+            self._find_features_lacking_nans(data, source_name)
         self._take_only_correct_features(data, source_name)
-        data = self._drop_rows_with_nan_in_target(data)
-
-        # Column types processing - launch after correct features selection
-        self.types_correctors[source_name].convert_data_for_fit(data)
-        if self.types_correctors[source_name].target_converting_has_errors:
+        if is_fit_stage:
             data = self._drop_rows_with_nan_in_target(data)
 
-        # Train Label Encoder for categorical target if necessary and apply it
-        if source_name not in self.target_encoders:
-            self._train_target_encoder(data, source_name)
-        data.target = self._apply_target_encoding(data, source_name)
+            # Column types processing - launch after correct features selection
+            self.types_correctors[source_name].convert_data_for_fit(data)
+            if self.types_correctors[source_name].target_converting_has_errors:
+                data = self._drop_rows_with_nan_in_target(data)
+            # Train Label Encoder for categorical target if necessary and apply it
+            if source_name not in self.target_encoders:
+                self._train_target_encoder(data, source_name)
+            data.target = self._apply_target_encoding(data, source_name)
+        else:
+            self.types_correctors[source_name].convert_data_for_predict(data)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
@@ -225,49 +228,10 @@ class DataPreprocessor(BasePreprocessor):
         elif data_type_is_table(data):
             data = self._clean_extra_spaces(data)
             # Process binary categorical features
-            data = self.binary_categorical_processors[source_name].fit_transform(data)
-
-        return data
-
-    @exclude_ts
-    @exclude_multi_ts
-    @exclude_image
-    def _prepare_obligatory_unimodal_for_predict(self, data: InputData, source_name: str) -> InputData:
-        """
-        Processes InputData for pipeline predict method
-
-        Args:
-            data: to be preprocessed
-            source_name: name of the data source node
-
-        Returns:
-            obligatory-prepared data
-        """
-        if data.supplementary_data.obligatorily_preprocessed:
-            # Preprocessing was already done - return data
-            return data
-
-        # Convert datetime data to numerical
-        data.features = np_datetime_to_numeric(data.features)
-        if data.target is not None:
-            data.target = np_datetime_to_numeric(data.target)
-
-        # Wrap indices in numpy array
-        data.idx = np.array(data.idx)
-
-        # Fix tables / time series sizes
-        data = self._correct_shapes(data)
-        replace_inf_with_nans(data)
-
-        # Perform preprocessing for types - launch after correct features selection
-        self._take_only_correct_features(data, source_name)
-        self.types_correctors[source_name].convert_data_for_predict(data)
-
-        if data_type_is_text(data):
-            replace_nans_with_empty_strings(data)
-        if data_type_is_table(data):
-            data = self._clean_extra_spaces(data)
-            data = self.binary_categorical_processors[source_name].transform(data)
+            if is_fit_stage:
+                data = self.binary_categorical_processors[source_name].fit_transform(data)
+            else:
+                data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 
@@ -294,27 +258,18 @@ class DataPreprocessor(BasePreprocessor):
                 if not has_tag:
                     data = action_if_no_tag(data, source_name)
 
-    def _find_features_full_of_nans(self, data: InputData, source_name: str):
+    def _find_features_lacking_nans(self, data: InputData, source_name: str):
         """
-        Finds features with more than ALLOWED_NAN_PERCENT of nan's
+        Finds features with less than ALLOWED_NAN_PERCENT of nan's
 
         Args:
             data: data to find columns with nan values
             source_name: name of the data source node
         """
-        # Initialize empty lists to fill it with indices
-        self.ids_relevant_features[source_name] = []
-        self.ids_incorrect_features[source_name] = []
-
         features = data.features
-        n_samples, n_columns = features.shape
-
-        for i in range(n_columns):
-            feature = features[:, i]
-            if np.sum(pd.isna(feature)) / n_samples < ALLOWED_NAN_PERCENT:
-                self.ids_relevant_features[source_name].append(i)
-            else:
-                self.ids_incorrect_features[source_name].append(i)
+        axes_except_cols = (0,) + tuple(range(2, features.ndim))
+        are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
+        self.ids_relevant_features[source_name] = np.nonzero(are_allowed)[0]
 
     @staticmethod
     def _drop_rows_with_nan_in_target(data: InputData) -> InputData:
