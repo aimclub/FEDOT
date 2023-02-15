@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
@@ -25,7 +26,7 @@ class Operation:
         self.operation_type = operation_type
 
         self._eval_strategy = None
-        self.operations_repo = None
+        self.operations_repo: OperationTypesRepository = None
         self.fitted_operation = None
 
         self.log = default_log(self)
@@ -163,7 +164,7 @@ class Operation:
 
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,
-                            operations_repo):
+                            operations_repo: OperationTypesRepository):
     """The function returns the strategy for the selected operation and task type.
     And if it is necessary, found acceptable strategy for operation
 
