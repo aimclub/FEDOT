@@ -187,7 +187,7 @@ class ApiParams:
             early_stopping_iterations=self._parameters['early_stopping_iterations'],
             early_stopping_timeout=self._parameters['early_stopping_timeout'],
             max_pipeline_fit_time=max_pipeline_fit_time,
-            n_jobs=self._parameters['n_jobs'],
+            n_jobs=self.n_jobs,
             parallelization_mode=self._parameters['parallelization_mode'],
             static_individual_metadata={
                 k: v for k, v in self._parameters.items()
