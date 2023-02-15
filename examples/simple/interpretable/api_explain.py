@@ -4,7 +4,7 @@ from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
 
-def run_api_explain_example(visualization=False, timeout=None):
+def run_api_explain_example(visualization=False, timeout=None, with_tuning=True):
     train_data = pd.read_csv(f'{fedot_project_root()}/cases/data/cancer/cancer_train.csv', index_col=0)
     figure_path = 'api_explain_example.png'
 
@@ -15,7 +15,7 @@ def run_api_explain_example(visualization=False, timeout=None):
     class_names = target.unique().astype(str).tolist()
 
     # Building simple pipeline
-    model = Fedot(problem='classification', timeout=timeout)
+    model = Fedot(problem='classification', timeout=timeout, with_tuning=with_tuning)
     model.fit(features=train_data, target=target_name, predefined_model='rf')
 
     # Current pipeline explaining

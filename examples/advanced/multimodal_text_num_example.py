@@ -6,7 +6,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 
 
-def run_multi_modal_example(file_path: str, visualization=False) -> float:
+def run_multi_modal_example(file_path: str, visualization=False, with_tuning=True) -> float:
     """
     This is an example of FEDOT use on multimodal data.
     The data is taken and adapted from Wine Reviews dataset (winemag-data_first150k):
@@ -26,7 +26,7 @@ def run_multi_modal_example(file_path: str, visualization=False) -> float:
     data = MultiModalData.from_csv(file_path=path, task=task, target_columns='variety', index_col=None)
     fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.7)
 
-    automl_model = Fedot(problem=task, timeout=10)
+    automl_model = Fedot(problem=task, timeout=10, with_tuning=with_tuning)
     automl_model.fit(features=fit_data,
                      target=fit_data.target)
 
