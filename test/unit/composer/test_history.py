@@ -202,7 +202,7 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     data_source = DataSourceSplitter().build(input_data)
     objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_source)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
-    dispatcher.set_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
+    dispatcher.set_graph_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)
 
     population = [Individual(graph_gen_params.adapter.adapt(pipeline))]

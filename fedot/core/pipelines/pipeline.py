@@ -21,7 +21,6 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
-from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum

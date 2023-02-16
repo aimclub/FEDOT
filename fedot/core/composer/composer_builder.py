@@ -134,7 +134,7 @@ class ComposerBuilder:
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
         if not self.optimizer_parameters:
-            self.optimizer_parameters = GPGraphOptimizerParameters(multi_objective=multi_objective)
+            self.optimizer_parameters = GPAlgorithmParameters(multi_objective=multi_objective)
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()

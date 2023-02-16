@@ -4,6 +4,7 @@ from typing import Union, Optional
 import numpy as np
 import pandas as pd
 from golem.core.log import default_log
+from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
@@ -24,7 +25,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 )
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utils import copy_doc
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_ts, exclude_multi_ts, exclude_image
