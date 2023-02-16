@@ -1,5 +1,6 @@
-from fedot.core.optimisers.graph import OptNode
-from fedot.core.optimisers.opt_graph_builder import OptGraphBuilder, merge_opt_graph_builders
+from golem.core.optimisers.graph import OptNode
+from golem.core.optimisers.opt_graph_builder import OptGraphBuilder, merge_opt_graph_builders
+
 from fedot.core.pipelines.adapters import PipelineAdapter
 
 
