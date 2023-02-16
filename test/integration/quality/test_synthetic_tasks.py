@@ -93,7 +93,8 @@ def test_synthetic_regression_automl():
                                              'pca',
                                              'ridge',
                                              'linear'],
-                       preset='best_quality')
+                       preset='best_quality',
+                       with_tuning=False)
     auto_model.fit(train_data)
 
     assert min(auto_model.history.historical_fitness[-1]) < 0.01

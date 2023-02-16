@@ -1,3 +1,7 @@
+import numpy
+
+numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.naive_bayes import BernoulliNB

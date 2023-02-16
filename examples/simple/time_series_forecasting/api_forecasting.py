@@ -19,7 +19,7 @@ datasets = {
 
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
-                               visualization=False):
+                               visualization=False, with_tuning=True):
     time_series = pd.read_csv(datasets[dataset])
 
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -42,6 +42,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   task_params=task.task_params,
                   timeout=timeout,
                   n_jobs=1,
+                  with_tuning=with_tuning,
                   cv_folds=2, validation_blocks=validation_blocks, preset='fast_train')
 
     # run AutoML model design in the same way

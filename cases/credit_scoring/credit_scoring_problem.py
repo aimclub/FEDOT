@@ -27,12 +27,13 @@ def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputDa
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                timeout: float = 5.0,
                                visualization=False,
-                               with_tuning=False,
-                               target='target'):
-
-    automl = Fedot(problem='classification', timeout=timeout, logging_level=logging.DEBUG,
+                               target='target',
+                               **composer_args):
+    automl = Fedot(problem='classification',
+                   timeout=timeout,
                    preset=BEST_QUALITY_PRESET_NAME,
-                   with_tuning=with_tuning)
+                   logging_level=logging.DEBUG,
+                   **composer_args)
     automl.fit(train_file_path, target=target)
     automl.predict(test_file_path)
     metrics = automl.get_metrics()

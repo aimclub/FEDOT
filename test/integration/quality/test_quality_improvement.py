@@ -18,8 +18,9 @@ def test_classification_quality_improvement():
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
+    with_tuning = False
 
-    baseline_model = Fedot(problem=problem, seed=50)
+    baseline_model = Fedot(problem=problem, seed=50, with_tuning=with_tuning)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     expected_baseline_quality = 0.823
 
@@ -29,10 +30,9 @@ def test_classification_quality_improvement():
 
     # Define parameters for composing
     timeout = 2
-    composer_params = {
-                       'num_of_generations': 20,
-        'with_tuning': True,
-        'preset': 'best_quality'}
+    composer_params = dict(num_of_generations=20,
+                           with_tuning=with_tuning,
+                           preset='best_quality')
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=50, logging_level=logging.DEBUG,
                        **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
@@ -54,12 +54,10 @@ def test_multiobjective_improvement():
     metrics = [quality_metric, complexity_metric]
 
     timeout = 2
-    composer_params = {
-        'num_of_generations': 20,
-        'with_tuning': False,
-        'preset': 'best_quality',
-        'metric': metrics,
-    }
+    composer_params = dict(num_of_generations=20,
+                           with_tuning=False,
+                           preset='best_quality',
+                           metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=50, logging_level=logging.DEBUG,
                        **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
