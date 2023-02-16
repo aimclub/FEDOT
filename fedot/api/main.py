@@ -184,15 +184,13 @@ class Fedot:
 
         self._init_remote_if_necessary()
 
-        self.params.update(train_data=self.train_data)
-
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
                                                     use_input_preprocessing=self.params.get(
                                                         'use_input_preprocessing')).fit()
         else:
-            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model()
+            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)
 
             if self.current_pipeline is None:
                 raise ValueError('No models were found')

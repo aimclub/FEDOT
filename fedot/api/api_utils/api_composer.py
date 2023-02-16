@@ -85,10 +85,9 @@ class ApiComposer:
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 
-    def obtain_model(self) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
         task: Task = self.params.task
-        train_data = self.params.get('train_data')
         timeout = self.params.timeout
         with_tuning = self.params.get('with_tuning')
         available_operations = self.params.get('available_operations')
