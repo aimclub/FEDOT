@@ -74,7 +74,7 @@ class ApiComposer:
     def init_cache(self):
         use_pipelines_cache = self.params.get('use_pipelines_cache')
         use_preprocessing_cache = self.params.get('use_preprocessing_cache')
-        use_input_preprocessing = self.preprocessing_cache
+        use_input_preprocessing = self.params.get('use_input_preprocessing')
         cache_folder = self.params.get('cache_folder')
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)

@@ -20,15 +20,14 @@ class ApiParamsBuilder:
             self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
             task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
-        if problem == 'clustering':
-            raise ValueError('This type of task is not not supported in API now')
-
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=task_params),
-                     'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),
                      'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
                      }
-        return task_dict[problem]
+        try:
+            return task_dict[problem]
+        except ValueError as exc:
+            ValueError('Wrong type name of the given task')
 
     def with_n_jobs(self, n_jobs: int):
         self.n_jobs = determine_n_jobs(n_jobs)

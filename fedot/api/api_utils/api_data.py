@@ -61,7 +61,7 @@ class ApiDataProcessor:
                 for key in data:
                     data[key].idx = idx
         except Exception as ex:
-            raise ValueError('Please specify the "features" as path to as path to csv file/'
+            raise ValueError('Please specify the "features" as path to csv file/'
                              'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
                              f'Exception: {ex}')
 

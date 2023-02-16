@@ -133,7 +133,7 @@ class Fedot:
         self.tuner_requirements = None
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.get('task'),
+        self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
@@ -382,7 +382,7 @@ class Fedot:
         Args:
             path: path to ``json`` file with model
         """
-        self.current_pipeline = Pipeline(use_input_preprocessing=self.get('use_input_preprocessing')
+        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
