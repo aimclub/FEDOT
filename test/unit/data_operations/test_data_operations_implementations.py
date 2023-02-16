@@ -16,7 +16,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     CutImplementation, LaggedTransformationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -275,8 +275,8 @@ def test_regression_data_operations():
         task_type=TaskTypesEnum.regression)
 
     for data_operation in operation_names:
-        node_data_operation = PrimaryNode(data_operation)
-        node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
+        node_data_operation = PipelineNode(data_operation)
+        node_final = PipelineNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
 
         # Fit and predict for pipeline
@@ -294,8 +294,8 @@ def test_classification_data_operations():
         task_type=TaskTypesEnum.classification)
 
     for data_operation in operation_names:
-        node_data_operation = PrimaryNode(data_operation)
-        node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
+        node_data_operation = PipelineNode(data_operation)
+        node_final = PipelineNode('logit', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
 
         # Fit and predict for pipeline
@@ -309,8 +309,8 @@ def test_classification_data_operations():
 def test_ts_forecasting_lagged_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    node_lagged = PrimaryNode('lagged')
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_lagged = PipelineNode('lagged')
+    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
     pipeline = Pipeline(node_ridge)
 
     pipeline.fit_from_scratch(train_input)
@@ -336,9 +336,9 @@ def test_ts_forecasting_smoothing_data_operation():
     model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
 
     for smoothing_operation in model_names:
-        node_smoothing = PrimaryNode(smoothing_operation)
-        node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
-        node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+        node_smoothing = PipelineNode(smoothing_operation)
+        node_lagged = PipelineNode('lagged', nodes_from=[node_smoothing])
+        node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
         pipeline = Pipeline(node_ridge)
 
         pipeline.fit_from_scratch(train_input)
@@ -372,8 +372,8 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
     for model_name in model_names:
-        node_data_operation = PrimaryNode(model_name)
-        node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
+        node_data_operation = PipelineNode(model_name)
+        node_final = PipelineNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
 
         # Fit and predict for pipeline
@@ -393,7 +393,7 @@ def test_feature_selection_of_single_features():
         task = Task(task_type)
 
         for data_operation in model_names:
-            node_data_operation = PrimaryNode(data_operation)
+            node_data_operation = PipelineNode(data_operation)
 
             assert node_data_operation.fitted_operation is None
 
@@ -416,8 +416,8 @@ def test_one_hot_encoding_new_category_in_test():
     train, test = train_test_data_setup(cat_data)
 
     # Create pipeline with encoding operation
-    one_hot_node = PrimaryNode('one_hot_encoding')
-    final_node = SecondaryNode('dt', nodes_from=[one_hot_node])
+    one_hot_node = PipelineNode('one_hot_encoding')
+    final_node = PipelineNode('dt', nodes_from=[one_hot_node])
     pipeline = Pipeline(final_node)
 
     pipeline.fit(train)
@@ -431,7 +431,7 @@ def test_knn_with_float_neighbors():
     Check pipeline with k-nn fit and predict correctly if n_neighbors value
     is float value
     """
-    node_knn = PrimaryNode('knnreg')
+    node_knn = PipelineNode('knnreg')
     node_knn.parameters = {'n_neighbors': 2.5}
     pipeline = Pipeline(node_knn)
 
@@ -449,7 +449,7 @@ def test_imputation_with_binary_correct():
     nan_data = get_nan_binary_data(task=Task(TaskTypesEnum.classification))
 
     # Create node with imputation operation
-    imputation_node = PrimaryNode('simple_imputation')
+    imputation_node = PipelineNode('simple_imputation')
     imputation_node.fit(nan_data)
     predicted = imputation_node.predict(nan_data)
 
@@ -467,7 +467,7 @@ def test_imputation_binary_features_with_equal_categories_correct():
     """
     nan_data = data_with_binary_int_features_and_equal_categories()
 
-    imputation_node = PrimaryNode('simple_imputation')
+    imputation_node = PipelineNode('simple_imputation')
     imputation_node.fit(nan_data)
     predicted = imputation_node.predict(nan_data)
 
@@ -483,7 +483,7 @@ def test_label_encoding_correct():
     cat_data = data_with_only_categorical_features()
     train_data, test_data = train_test_data_setup(cat_data)
 
-    encoding_node = PrimaryNode('label_encoding')
+    encoding_node = PipelineNode('label_encoding')
     encoding_node.fit(train_data)
 
     predicted_train = encoding_node.predict(train_data)
@@ -578,7 +578,7 @@ def test_poly_features_on_big_datasets():
     train_input.idx = np.arange(len(train_input.features))
     train_input.target = train_input.target[5: 20].reshape((-1, 1))
 
-    poly_node = Pipeline(PrimaryNode('poly_features'))
+    poly_node = Pipeline(PipelineNode('poly_features'))
     poly_node.fit(train_input)
     transformed_features = poly_node.predict(train_input)
 

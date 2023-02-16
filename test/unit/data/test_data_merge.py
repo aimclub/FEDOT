@@ -9,7 +9,7 @@ from examples.simple.regression.regression_with_tuning import get_regression_dat
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -155,10 +155,10 @@ def test_data_merge_in_pipeline():
     #  \     /
     #  scaling
 
-    node_scaling = PrimaryNode('scaling')
+    node_scaling = PipelineNode('scaling')
 
-    node_lin_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
-    node_final = SecondaryNode('ridge', nodes_from=[node_lin_ransac, node_scaling])
+    node_lin_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_scaling])
+    node_final = PipelineNode('ridge', nodes_from=[node_lin_ransac, node_scaling])
     pipeline = Pipeline(node_final)
 
     features_options = {'informative': 2, 'bias': 2.0}

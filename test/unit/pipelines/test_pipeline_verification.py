@@ -2,7 +2,7 @@ import pytest
 
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_isolated_components, has_no_isolated_nodes, \
     has_no_self_cycled_nodes
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import (verify_pipeline)
 from fedot.core.pipelines.verification_rules import has_correct_operations_for_task, has_final_operation_as_model, \
@@ -17,13 +17,13 @@ GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
 
 
 def valid_pipeline():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
-    third = SecondaryNode(operation_type='logit',
-                          nodes_from=[second])
-    last = SecondaryNode(operation_type='logit',
-                         nodes_from=[third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit',
+                          nodes_from=[first])
+    third = PipelineNode(operation_type='logit',
+                         nodes_from=[second])
+    last = PipelineNode(operation_type='logit',
+                        nodes_from=[third])
 
     pipeline = Pipeline()
     for node in [first, second, third, last]:
@@ -33,11 +33,11 @@ def valid_pipeline():
 
 
 def pipeline_with_cycle():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
-    third = SecondaryNode(operation_type='logit',
-                          nodes_from=[second, first])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit',
+                          nodes_from=[first])
+    third = PipelineNode(operation_type='logit',
+                         nodes_from=[second, first])
     second.nodes_from.append(third)
     pipeline = Pipeline()
     for node in [first, second, third]:
@@ -47,13 +47,13 @@ def pipeline_with_cycle():
 
 
 def pipeline_with_isolated_nodes():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
-    third = SecondaryNode(operation_type='logit',
-                          nodes_from=[second])
-    isolated = SecondaryNode(operation_type='logit',
-                             nodes_from=[])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit',
+                          nodes_from=[first])
+    third = PipelineNode(operation_type='logit',
+                         nodes_from=[second])
+    isolated = PipelineNode(operation_type='logit',
+                            nodes_from=[])
     pipeline = Pipeline()
 
     for node in [first, second, third, isolated]:
@@ -63,11 +63,11 @@ def pipeline_with_isolated_nodes():
 
 
 def pipeline_with_multiple_roots():
-    first = PrimaryNode(operation_type='logit')
-    root_first = SecondaryNode(operation_type='logit',
+    first = PipelineNode(operation_type='logit')
+    root_first = PipelineNode(operation_type='logit',
+                              nodes_from=[first])
+    root_second = PipelineNode(operation_type='logit',
                                nodes_from=[first])
-    root_second = SecondaryNode(operation_type='logit',
-                                nodes_from=[first])
     pipeline = Pipeline()
 
     for node in [first, root_first, root_second]:
@@ -76,22 +76,10 @@ def pipeline_with_multiple_roots():
     return pipeline
 
 
-def pipeline_with_secondary_nodes_only():
-    first = SecondaryNode(operation_type='logit',
-                          nodes_from=[])
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
-    pipeline = Pipeline()
-    pipeline.add_node(first)
-    pipeline.add_node(second)
-
-    return pipeline
-
-
 def pipeline_with_self_cycle():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit',
+                          nodes_from=[first])
     second.nodes_from.append(second)
 
     pipeline = Pipeline()
@@ -102,13 +90,13 @@ def pipeline_with_self_cycle():
 
 
 def pipeline_with_isolated_components():
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit',
-                           nodes_from=[first])
-    third = SecondaryNode(operation_type='logit',
-                          nodes_from=[])
-    fourth = SecondaryNode(operation_type='logit',
-                           nodes_from=[third])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit',
+                          nodes_from=[first])
+    third = PipelineNode(operation_type='logit',
+                         nodes_from=[])
+    fourth = PipelineNode(operation_type='logit',
+                          nodes_from=[third])
 
     pipeline = Pipeline()
     for node in [first, second, third, fourth]:
@@ -118,10 +106,10 @@ def pipeline_with_isolated_components():
 
 
 def pipeline_with_incorrect_root_operation():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='scaling',
-                          nodes_from=[first, second])
+    first = PipelineNode(operation_type='logit')
+    second = PipelineNode(operation_type='logit')
+    final = PipelineNode(operation_type='scaling',
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -129,10 +117,10 @@ def pipeline_with_incorrect_root_operation():
 
 
 def pipeline_with_incorrect_task_type():
-    first = PrimaryNode(operation_type='linear')
-    second = PrimaryNode(operation_type='linear')
-    final = SecondaryNode(operation_type='kmeans',
-                          nodes_from=[first, second])
+    first = PipelineNode(operation_type='linear')
+    second = PipelineNode(operation_type='linear')
+    final = PipelineNode(operation_type='kmeans',
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -140,9 +128,9 @@ def pipeline_with_incorrect_task_type():
 
 
 def pipeline_with_only_data_operations():
-    first = PrimaryNode(operation_type='one_hot_encoding')
-    second = SecondaryNode(operation_type='scaling', nodes_from=[first])
-    final = SecondaryNode(operation_type='ransac_lin_reg', nodes_from=[second])
+    first = PipelineNode(operation_type='one_hot_encoding')
+    second = PipelineNode(operation_type='scaling', nodes_from=[first])
+    final = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[second])
 
     pipeline = Pipeline(final)
 
@@ -152,10 +140,10 @@ def pipeline_with_only_data_operations():
 def pipeline_with_incorrect_data_flow():
     """ When combining the features in the presented pipeline, a table with 5
     columns will turn into a table with 10 columns """
-    first = PrimaryNode(operation_type='scaling')
-    second = PrimaryNode(operation_type='scaling')
+    first = PipelineNode(operation_type='scaling')
+    second = PipelineNode(operation_type='scaling')
 
-    final = SecondaryNode(operation_type='ridge', nodes_from=[first, second])
+    final = PipelineNode(operation_type='ridge', nodes_from=[first, second])
     pipeline = Pipeline(final)
     return pipeline
 
@@ -170,18 +158,18 @@ def ts_pipeline_with_incorrect_data_flow():
     """
 
     # First level
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
 
     # Second level
-    node_lagged_1 = SecondaryNode('lagged', nodes_from=[node_lagged])
-    node_lagged_2 = PrimaryNode('lagged')
+    node_lagged_1 = PipelineNode('lagged', nodes_from=[node_lagged])
+    node_lagged_2 = PipelineNode('lagged')
 
     # Third level
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+    node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
 
     # Fourth level - root node
-    node_final = SecondaryNode('ar', nodes_from=[node_ridge_1, node_ridge_2])
+    node_final = PipelineNode('ar', nodes_from=[node_ridge_1, node_ridge_2])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -195,11 +183,11 @@ def pipeline_with_incorrect_parent_number_for_decompose():
     For class_decompose connection with "logit" model needed
     """
 
-    node_scaling = PrimaryNode('scaling')
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_scaling])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    node_scaling = PipelineNode('scaling')
+    node_logit = PipelineNode('logit', nodes_from=[node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_scaling])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_logit])
     pipeline = Pipeline(node_rf)
     return pipeline
 
@@ -211,11 +199,11 @@ def pipeline_with_incorrect_parents_position_for_decompose():
          class_decompose -> rfr
     """
 
-    node_first = PrimaryNode('logit')
-    node_second = SecondaryNode('scaling', nodes_from=[node_first])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    node_first = PipelineNode('logit')
+    node_second = PipelineNode('scaling', nodes_from=[node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     pipeline = Pipeline(node_rf)
     return pipeline
 
@@ -226,26 +214,26 @@ def correct_decompose_pipeline():
     scaling                         rf
             class_decompose -> rfr
     """
-    node_first = PrimaryNode('scaling')
-    node_second = SecondaryNode('logit', nodes_from=[node_first])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    node_first = PipelineNode('scaling')
+    node_second = PipelineNode('logit', nodes_from=[node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     pipeline = Pipeline(node_rf)
     return pipeline
 
 
 def pipeline_with_correct_data_sources():
-    node_first = PrimaryNode('data_source/1')
-    node_second = PrimaryNode('data_source/2')
-    pipeline = Pipeline(SecondaryNode('linear', [node_first, node_second]))
+    node_first = PipelineNode('data_source/1')
+    node_second = PipelineNode('data_source/2')
+    pipeline = Pipeline(PipelineNode('linear', [node_first, node_second]))
     return pipeline
 
 
 def pipeline_with_incorrect_data_sources():
-    node_first = PrimaryNode('data_source/1')
-    node_second = PrimaryNode('scaling')
-    pipeline = Pipeline(SecondaryNode('linear', [node_first, node_second]))
+    node_first = PipelineNode('data_source/1')
+    node_second = PipelineNode('scaling')
+    pipeline = Pipeline(PipelineNode('linear', [node_first, node_second]))
     return pipeline
 
 
@@ -255,9 +243,9 @@ def pipeline_with_incorrect_resample_node():
                    model
         scaling  /
     """
-    resample_node = PrimaryNode(operation_type='resample')
-    scaling_node = PrimaryNode(operation_type='scaling')
-    pipeline = Pipeline(SecondaryNode(operation_type='logit', nodes_from=[resample_node, scaling_node]))
+    resample_node = PipelineNode(operation_type='resample')
+    scaling_node = PipelineNode(operation_type='scaling')
+    pipeline = Pipeline(PipelineNode(operation_type='logit', nodes_from=[resample_node, scaling_node]))
 
     return pipeline
 
@@ -293,13 +281,6 @@ def test_multi_root_pipeline_raise_exception():
 def test_pipeline_with_primary_nodes_correct():
     pipeline = valid_pipeline()
     assert has_primary_nodes(pipeline)
-
-
-def test_pipeline_without_primary_nodes_raise_exception():
-    pipeline = pipeline_with_secondary_nodes_only()
-    with pytest.raises(Exception) as exc:
-        assert has_primary_nodes(pipeline)
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline does not have primary nodes'
 
 
 def test_pipeline_with_self_cycled_nodes_raise_exception():
@@ -365,9 +346,9 @@ def test_only_non_lagged_operations_are_primary():
              linear -> final forecast
      ridge /
     """
-    node_lagged = PrimaryNode('lagged')
-    node_ridge = PrimaryNode('ridge')
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_ridge])
+    node_lagged = PipelineNode('lagged')
+    node_ridge = PipelineNode('ridge')
+    node_final = PipelineNode('linear', nodes_from=[node_lagged, node_ridge])
     incorrect_pipeline = Pipeline(node_final)
 
     with pytest.raises(Exception) as exc:
@@ -398,7 +379,7 @@ def test_decompose_parents_has_wright_positions():
 def test_decompose_operation_remove_in_pipeline():
     """
     In the process of evolution, edges and nodes may have been removed from the decompose pipeline.
-    Or a decompose node could be replaced with a new one. Such pipelines are incorrect.
+    Or decompose node could be replaced with a new one. Such pipelines are incorrect.
     In this test replacement the class_decompose with logit operation is performed
     """
     current_pipeline = correct_decompose_pipeline()

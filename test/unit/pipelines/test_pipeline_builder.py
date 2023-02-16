@@ -1,7 +1,7 @@
 from copy import copy
 
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder, merge_pipeline_builders
-from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from test.unit.dag.test_graph_utils import graphs_same
 
@@ -23,20 +23,20 @@ def test_pipeline_builder_with_empty_inputs():
 
 
 def test_pipeline_builder_with_prebuilt_nodes():
-    primary_a = PrimaryNode('operation_a')
-    primary_b = PrimaryNode('operation_b')
-    secondary_f = SecondaryNode('operation_f', nodes_from=[primary_b])
+    primary_a = PipelineNode('operation_a')
+    primary_b = PipelineNode('operation_b')
+    secondary_f = PipelineNode('operation_f', nodes_from=[primary_b])
 
     # create builder with prebuilt nodes
-    assert graphs_same(Pipeline(primary_a), PipelineBuilder(PrimaryNode('operation_a')).build())
+    assert graphs_same(Pipeline(primary_a), PipelineBuilder(PipelineNode('operation_a')).build())
     assert graphs_same(Pipeline(secondary_f), PipelineBuilder(copy(secondary_f)).build())
     # build two parallel branches
     assert graphs_same(Pipeline([primary_a, primary_b]), PipelineBuilder(primary_a, primary_b).build())
 
 
 def test_pipeline_builder_with_linear_structure():
-    primary_a = PrimaryNode('operation_a')
-    secondary_f = SecondaryNode('operation_f', nodes_from=[primary_a])
+    primary_a = PipelineNode('operation_a')
+    secondary_f = PipelineNode('operation_f', nodes_from=[primary_a])
 
     # build single node
     assert graphs_same(Pipeline(primary_a), PipelineBuilder().add_node('operation_a').build())
@@ -61,10 +61,10 @@ def test_pipeline_builder_with_linear_structure():
 
 
 def test_pipeline_builder_with_parallel_structure():
-    primary_a = PrimaryNode('operation_d')
-    secondary_f = SecondaryNode('operation_f', nodes_from=[primary_a])
-    primary_b = PrimaryNode('operation_b')
-    secondary_h = SecondaryNode('operation_h', nodes_from=[primary_b])
+    primary_a = PipelineNode('operation_d')
+    secondary_f = PipelineNode('operation_f', nodes_from=[primary_a])
+    primary_b = PipelineNode('operation_b')
+    secondary_h = PipelineNode('operation_h', nodes_from=[primary_b])
 
     # build two parallel sequences
     assert graphs_same(Pipeline([primary_a, primary_b]),
@@ -79,10 +79,10 @@ def test_pipeline_builder_with_parallel_structure():
 
 
 def test_pipeline_builder_with_joined_branches():
-    primary_a = PrimaryNode('operation_a')
-    secondary_f = SecondaryNode('operation_f', nodes_from=[primary_a])
-    secondary_a = SecondaryNode('operation_a', nodes_from=[primary_a])
-    joined_f = SecondaryNode('operation_f', nodes_from=[secondary_f, secondary_a])  # joined
+    primary_a = PipelineNode('operation_a')
+    secondary_f = PipelineNode('operation_f', nodes_from=[primary_a])
+    secondary_a = PipelineNode('operation_a', nodes_from=[primary_a])
+    joined_f = PipelineNode('operation_f', nodes_from=[secondary_f, secondary_a])  # joined
 
     # joined branch
     assert graphs_same(Pipeline([secondary_f, secondary_a]),
@@ -139,7 +139,7 @@ def test_pipeline_builder_merge_duplicate():
     # check that builder state is preserved after merge and can be reused
     assert graphs_same(
         builder_one_to_one.build(),
-        Pipeline(SecondaryNode('operation_f', nodes_from=[PrimaryNode('operation_a')]))
+        Pipeline(PipelineNode('operation_f', nodes_from=[PipelineNode('operation_a')]))
     )
 
 
@@ -211,11 +211,11 @@ def test_skip_connection_edge():
 
     pipeline_with_builder = pipe_builder.build()
 
-    node_scaling_1 = PrimaryNode('scaling')
-    node_knn = SecondaryNode('knn', nodes_from=[node_scaling_1])
-    node_scaling_2 = SecondaryNode('scaling', nodes_from=[node_knn])
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling_2])
-    node_rf = SecondaryNode('rf', nodes_from=[node_knn, node_logit])
+    node_scaling_1 = PipelineNode('scaling')
+    node_knn = PipelineNode('knn', nodes_from=[node_scaling_1])
+    node_scaling_2 = PipelineNode('scaling', nodes_from=[node_knn])
+    node_logit = PipelineNode('logit', nodes_from=[node_scaling_2])
+    node_rf = PipelineNode('rf', nodes_from=[node_knn, node_logit])
 
     pipeline_without_builder = Pipeline(node_rf)
 

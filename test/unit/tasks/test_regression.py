@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error as mse
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -35,10 +35,10 @@ def get_simple_composer_params() -> dict:
 
 
 def generate_pipeline() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_root = SecondaryNode('linear', nodes_from=[node_lasso, node_ridge])
+    node_scaling = PipelineNode('scaling')
+    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
+    node_root = PipelineNode('linear', nodes_from=[node_lasso, node_ridge])
     pipeline = Pipeline(node_root)
     return pipeline
 
@@ -87,11 +87,11 @@ def test_regression_pipeline_with_data_operation_fit_predict_correct():
     # ransac_lin_reg   lasso
     #        \         /
     #          scaling
-    node_scaling = PrimaryNode('scaling')
-    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_ransac])
-    node_root = SecondaryNode('linear', nodes_from=[node_lasso, node_ridge])
+    node_scaling = PipelineNode('scaling')
+    node_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_scaling])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_ransac])
+    node_root = PipelineNode('linear', nodes_from=[node_lasso, node_ridge])
     pipeline = Pipeline(node_root)
 
     pipeline.fit(train_data)

@@ -8,7 +8,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
 from test.unit.models.test_model import classification_dataset
@@ -52,6 +52,6 @@ def test_external_static_optimizer(data_fixture, request):
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 
-    expected_pipeline = Pipeline(PrimaryNode('logit'))
+    expected_pipeline = Pipeline(PipelineNode('logit'))
 
     assert obtained_pipeline.root_node.descriptive_id == expected_pipeline.root_node.descriptive_id

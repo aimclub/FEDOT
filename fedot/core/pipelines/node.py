@@ -28,18 +28,28 @@ class NodeMetadata:
     metric: Optional[float] = None
 
 
-class Node(LinkedGraphNode):
-    """Base class for node definition in :class:`Pipeline` structure
+class PipelineNode(LinkedGraphNode):
+    """The class defines the interface of nodes modifying tha data flow in the :class:`Pipeline`
 
     Args:
-        nodes_from: parent nodes which information comes from
-        operation_type: type of the operation defined in operation repository
-            the custom prefix can be added after ``/`` (to highlight the specific node)\n
-            **The prefix will be ignored at Implementation stage**
+        operation_type: operation defined in the operation repository
+        nodes_from: parent nodes where data comes from
+        node_data: ``dict`` with :class:`InputData` for fit and predict stage
+        kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, nodes_from: Optional[List['Node']],
-                 operation_type: Optional[Union[str, 'Operation']] = None, **kwargs):
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
+                 nodes_from: Optional[List['Node']] = None,
+                 node_data: Optional[dict] = None,
+                 **kwargs):
+        if node_data is None:
+            self._node_data = {}
+            self.direct_set = False
+        else:
+            self._node_data = node_data
+            # Was the data passed directly to the node or not
+            self.direct_set = True
+
         passed_content = kwargs.get('content')
         if passed_content:
             # Define operation, based on content dictionary
@@ -66,6 +76,11 @@ class Node(LinkedGraphNode):
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
+
+    @property
+    def is_primary(self):
+        if not self.nodes_from or len(self.nodes_from) == 0:
+            return True
 
     def _process_content_init(self, passed_content: dict) -> Operation:
         """ Updating content in the node """
@@ -160,13 +175,12 @@ class Node(LinkedGraphNode):
             self._fitted_operation = value
 
     def unfit(self):
-        """Sets :obj:`fitted_operation` to ``None``
-
-        Todo:
-            check how it would be rendered
+        """Sets ``node_data`` (if exists) and ``fitted_operation`` to ``None``
         """
 
         self.fitted_operation = None
+        if hasattr(self, 'node_data'):
+            self.node_data = None
 
     def fit(self, input_data: InputData) -> OutputData:
         """Runs training process in the node
@@ -177,6 +191,10 @@ class Node(LinkedGraphNode):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
+        self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
+
+        input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+
         if self.fitted_operation is None:
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
@@ -205,6 +223,9 @@ class Node(LinkedGraphNode):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
+        self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
+
+        input_data = self._get_input_data(input_data=input_data, parent_operation='predict')
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
@@ -213,127 +234,6 @@ class Node(LinkedGraphNode):
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
-
-    @property
-    def parameters(self) -> dict:
-        """Returns node custom parameters
-
-        Returns:
-            dict: of custom parameters
-        """
-        return self.content.get('params')
-
-    @parameters.setter
-    def parameters(self, params: dict):
-        """Sets custom parameters of the node
-
-        Args:
-            params: new parameters to be placed instead of existing
-        """
-        if params:
-            # The check for "default_params" is needed for backward compatibility.
-            if params == DEFAULT_PARAMS_STUB:
-                params = {}
-            # take nested composer params if they appeared
-            if 'nested_space' in params:
-                params = params['nested_space']
-            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
-            self.content['params'] = self._parameters.to_dict()
-
-    def __str__(self) -> str:
-        """Returns ``str`` representation of the node
-
-        Returns:
-            str: stringified node operation type
-        """
-
-        return str(self.operation.operation_type)
-
-    @property
-    def tags(self) -> Optional[List[str]]:
-        """Returns tags of operation in the node or empty list
-
-        Returns:
-            Optional[List[str]]: ``empty list`` if node is of atomized type and ``list of tags`` otherwise
-        """
-
-        if 'atomized' in self.operation.operation_type:
-            # There are no tags for atomized operation
-            return []
-
-        info = OperationTypesRepository(operation_type='all').operation_info_by_id(self.operation.operation_type)
-        if info is not None:
-            return info.tags
-
-
-class PrimaryNode(Node):
-    """Defines the interface of primary nodes where initial task data is located
-
-    Args:
-        operation_type: operation defined in the operation repository
-        node_data: ``dict`` with :class:`InputData` for fit and predict stage
-        kwargs: optional arguments (i.e. logger); ``nodes_from`` will be deleted if exists
-    """
-
-    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: Optional[dict] = None,
-                 **kwargs):
-        if 'nodes_from' in kwargs:
-            del kwargs['nodes_from']
-
-        super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
-
-        if node_data is None:
-            self._node_data = {}
-            self.direct_set = False
-        else:
-            self._node_data = node_data
-            # Was the data passed directly to the node or not
-            self.direct_set = True
-
-    def fit(self, input_data: InputData, **kwargs) -> OutputData:
-        """Fits the operation located in the primary node
-
-        Args:
-            input_data: data used for operation training
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
-        self.log.debug(f'Trying to fit primary node with operation: {self.operation}')
-
-        if self.direct_set:
-            input_data = self.node_data
-        else:
-            self.node_data = input_data
-        return super().fit(input_data)
-
-    def unfit(self):
-        """Sets ``node_data`` (if exists) and ``fitted_operation`` to ``None``
-        """
-
-        self.fitted_operation = None
-        if hasattr(self, 'node_data'):
-            self.node_data = None
-
-    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
-        """Predicts using the operation located in the primary node
-
-        Args:
-            input_data: data used for prediction
-            output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
-        self.log.debug(f'Predict in primary node by operation: {self.operation}')
-
-        if self.direct_set:
-            input_data = self.node_data
-        else:
-            self.node_data = input_data
-        return super().predict(input_data, output_mode)
 
     def get_data_from_node(self) -> dict:
         """Returns data if it was set to the nodes directly
@@ -368,52 +268,15 @@ class PrimaryNode(Node):
         else:
             self._node_data = value
 
-
-class SecondaryNode(Node):
-    """The class defines the interface of ``Secondary`` nodes modifying tha data flow in the :class:`Pipeline`
-
-    Args:
-        operation_type: operation defined in the operation repository
-        nodes_from: parent nodes where data comes from
-        kwargs: optional arguments (i.e. logger)
-    """
-
-    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
-                 nodes_from: Optional[List['Node']] = None, **kwargs):
-        super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
-
-    def fit(self, input_data: InputData, **kwargs) -> OutputData:
-        """Fits the operation located in the secondary node
-
-        Args:
-            input_data: data used for operation training
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
-        self.log.debug(f'Trying to fit secondary node with operation: {self.operation}')
-
-        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
-        return super().fit(input_data=secondary_input)
-
-    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
-        """Predicts using the operation located in the secondary node
-
-        Args:
-            input_data: data used for prediction
-            output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
-
-        Returns:
-            OutputData: values predicted on the provided ``input_data``
-        """
-
-        self.log.debug(f'Obtain prediction in secondary node with operation: {self.operation}')
-
-        secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='predict')
-
-        return super().predict(input_data=secondary_input, output_mode=output_mode)
+    def _get_input_data(self, input_data: InputData, parent_operation: str):
+        if self.nodes_from:
+            input_data = self._input_from_parents(input_data=input_data, parent_operation=parent_operation)
+        else:
+            if self.direct_set:
+                input_data = self.node_data
+            else:
+                self.node_data = input_data
+        return input_data
 
     def _input_from_parents(self, input_data: InputData, parent_operation: str) -> InputData:
         """Processes all the parent nodes via the current operation using ``input_data``
@@ -449,10 +312,61 @@ class SecondaryNode(Node):
         """
         return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
+    @property
+    def parameters(self) -> dict:
+        """Returns node custom parameters
 
-def _combine_parents(parent_nodes: List[Node],
+        Returns:
+            dict: of custom parameters
+        """
+        return self.content.get('params')
+
+    @parameters.setter
+    def parameters(self, params: dict):
+        """Sets custom parameters of the node
+
+        Args:
+            params: new parameters to be placed instead of existing
+        """
+        if params:
+            # The check for "default_params" is needed for backward compatibility.
+            if params == DEFAULT_PARAMS_STUB:
+                params = {}
+            # take nested composer params if they appeared
+            if 'nested_space' in params:
+                params = params['nested_space']
+            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
+            self.content['params'] = self._parameters.to_dict()
+
+    def __str__(self) -> str:
+        """Returns ``str`` representation of the node
+
+        Returns:
+            str: string field node operation type
+        """
+
+        return str(self.operation.operation_type)
+
+    @property
+    def tags(self) -> Optional[List[str]]:
+        """Returns tags of operation in the node or empty list
+
+        Returns:
+            Optional[List[str]]: ``empty list`` if node is of atomized type and ``list of tags`` otherwise
+        """
+
+        if 'atomized' in self.operation.operation_type:
+            # There are no tags for atomized operation
+            return []
+
+        info = OperationTypesRepository(operation_type='all').operation_info_by_id(self.operation.operation_type)
+        if info is not None:
+            return info.tags
+
+
+def _combine_parents(parent_nodes: List[PipelineNode],
                      input_data: Optional[InputData], parent_operation: str) -> Tuple[List[OutputData], np.array]:
-    """Сombines predictions from the ``parent_nodes``
+    """ Combines predictions from the ``parent_nodes``
 
     Args:
         parent_nodes: list of parent nodes, from which predictions will be combined
@@ -484,3 +398,10 @@ def _combine_parents(parent_nodes: List[Node],
             target = prediction.target
 
     return parent_results, target
+
+
+# TODO: these two lines are used for backwards compatibility.
+#  It should be removed and replaced by a script for converting old-style pipelines (with PrimaryNode and SecondaryNode)
+#  to a new-style ones (only with PipelineNode).
+PrimaryNode = PipelineNode
+SecondaryNode = PipelineNode

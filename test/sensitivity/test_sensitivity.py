@@ -6,7 +6,7 @@ import pytest
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
 from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
@@ -36,11 +36,11 @@ def scoring_dataset():
 
 
 def get_pipeline():
-    knn_node = PrimaryNode('knn')
-    lda_node = PrimaryNode('qda')
-    rf_node = PrimaryNode('rf')
+    knn_node = PipelineNode('knn')
+    lda_node = PipelineNode('qda')
+    rf_node = PipelineNode('rf')
 
-    final = SecondaryNode('rf', nodes_from=[knn_node, lda_node, rf_node])
+    final = PipelineNode('rf', nodes_from=[knn_node, lda_node, rf_node])
 
     pipeline = Pipeline(final)
 
@@ -152,12 +152,12 @@ def test_node_deletion_analyze():
 def test_node_deletion_sample_method():
     # given
     _, train_data, test_data, _, result_dir = given_data()
-    primary_first = PrimaryNode('knn')
-    primary_second = PrimaryNode('knn')
-    central = SecondaryNode('rf', nodes_from=[primary_first, primary_second])
-    secondary_first = SecondaryNode('lda', nodes_from=[central])
-    secondary_second = SecondaryNode('lda', nodes_from=[central])
-    root = SecondaryNode('logit', nodes_from=[secondary_first, secondary_second])
+    primary_first = PipelineNode('knn')
+    primary_second = PipelineNode('knn')
+    central = PipelineNode('rf', nodes_from=[primary_first, primary_second])
+    secondary_first = PipelineNode('lda', nodes_from=[central])
+    secondary_second = PipelineNode('lda', nodes_from=[central])
+    root = PipelineNode('logit', nodes_from=[secondary_first, secondary_second])
     pipeline_with_multiple_children = Pipeline(nodes=root)
 
     # when
@@ -189,7 +189,7 @@ def test_node_replacement_analyze_defined_nodes():
     # given
     pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
-    replacing_node = PrimaryNode('lda')
+    replacing_node = PipelineNode('lda')
 
     # when
     node_analysis_result = \

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 
@@ -77,9 +77,9 @@ def run_gapfilling_example():
     gap_data, real_data = get_array_with_gaps()
 
     # Filling in gaps using pipeline from FEDOT
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': 50}
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
     ridge_pipeline = Pipeline(node_ridge)
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
                                      pipeline=ridge_pipeline)

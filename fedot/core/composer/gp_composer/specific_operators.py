@@ -2,7 +2,7 @@ from random import choice, random
 from typing import List
 
 from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -52,9 +52,9 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pip
         data_source = preprocessing_primary_nodes[0]
     else:
         if task_type == TaskTypesEnum.ts_forecasting:
-            data_source = PrimaryNode('simple_imputation')
+            data_source = PipelineNode('simple_imputation')
         else:
-            data_source = PrimaryNode('scaling')
+            data_source = PipelineNode('scaling')
 
     decompose_parents = [existing_pipeline.root_node, data_source]
 
@@ -76,15 +76,15 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pip
 
         if is_non_lagged_ts_models_in_node:
             # if additional lagged node is required
-            lagged_node = SecondaryNode('lagged', nodes_from=[data_source])
+            lagged_node = PipelineNode('lagged', nodes_from=[data_source])
             decompose_parents = [existing_pipeline.root_node, lagged_node]
 
-    node_decompose = SecondaryNode(decompose_operation, nodes_from=decompose_parents)
+    node_decompose = PipelineNode(decompose_operation, nodes_from=decompose_parents)
 
-    node_boost = SecondaryNode(new_model, nodes_from=[node_decompose])
+    node_boost = PipelineNode(new_model, nodes_from=[node_decompose])
 
-    node_final = SecondaryNode(choice(requirements.secondary),
-                               nodes_from=[existing_pipeline.root_node, node_boost])
+    node_final = PipelineNode(choice(requirements.secondary),
+                              nodes_from=[existing_pipeline.root_node, node_boost])
     pipeline = Pipeline(node_final, use_input_preprocessing=pipeline.use_input_preprocessing)
     return pipeline
 

@@ -7,7 +7,7 @@ from sklearn.metrics import mean_absolute_percentage_error
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.ts_wrappers import fitted_values
@@ -40,10 +40,10 @@ def prepare_ts_for_in_sample(forecast_length: int, horizon: int):
 
 def get_simple_short_lagged_pipeline():
     # Create simple pipeline for forecasting
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     # Use 4 elements in time series as predictors
     node_lagged.parameters = {'window_size': 4}
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    node_final = PipelineNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -51,15 +51,15 @@ def get_simple_short_lagged_pipeline():
 
 def get_ts_pipelines_for_testing():
     """ Generate simple specific pipelines for testing """
-    node_lagged = PrimaryNode('sparse_lagged')
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    node_lagged = PipelineNode('sparse_lagged')
+    node_final = PipelineNode('linear', nodes_from=[node_lagged])
     sparse_lagged_pipeline = Pipeline(node_final)
 
-    node_lagged = PrimaryNode('lagged')
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    node_lagged = PipelineNode('lagged')
+    node_final = PipelineNode('linear', nodes_from=[node_lagged])
     lagged_pipeline = Pipeline(node_final)
 
-    arima_pipeline = Pipeline(PrimaryNode('arima'))
+    arima_pipeline = Pipeline(PipelineNode('arima'))
     return arima_pipeline, sparse_lagged_pipeline, lagged_pipeline
 
 

@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
@@ -25,7 +25,7 @@ path = os.path.join(folder, 'scoring_train.csv')
 start = datetime.now()
 data = InputData.from_csv(path)
 data.subset_indices([1, 2, 3, 4, 5, 20])
-pipeline = Pipeline(PrimaryNode('rf'))
+pipeline = Pipeline(PipelineNode('rf'))
 pipeline.fit_from_scratch(data)
 end = datetime.now()
 
@@ -57,7 +57,7 @@ evaluator.init(
     remote_task_params=remote_task_params
 )
 
-pipelines = [Pipeline(PrimaryNode('rf'))] * num_parallel
+pipelines = [Pipeline(PipelineNode('rf'))] * num_parallel
 fitted_pipelines = evaluator.compute_graphs(pipelines)
 
 [print(p.is_fitted) for p in fitted_pipelines]

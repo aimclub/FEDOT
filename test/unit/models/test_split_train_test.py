@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -20,7 +20,7 @@ CORRECT_MODEL_AUC_THR = 0.25
 
 
 def generate_pipeline() -> Pipeline:
-    pipeline = Pipeline(PrimaryNode('logit'))
+    pipeline = Pipeline(PipelineNode('logit'))
     return pipeline
 
 

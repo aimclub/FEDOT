@@ -2,7 +2,7 @@ from typing import List, Type, Union
 
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
@@ -29,7 +29,7 @@ class PipelineSensitivityAnalysis:
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: List[Union[Type[NodeAnalyzeApproach],
                                         Type[MultiOperationsHPAnalyze]]] = None,
-                 nodes_to_analyze: List[Node] = None,
+                 nodes_to_analyze: List[PipelineNode] = None,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None):
 
@@ -51,15 +51,14 @@ class PipelineSensitivityAnalysis:
                                             approaches=nodes_analyze_approaches,
                                             requirements=requirements,
                                             nodes_to_analyze=nodes_to_analyze,
-                                            path_to_save=path_to_save, log=log)
+                                            path_to_save=path_to_save)
 
         self._pipeline_analyze = PipelineAnalysis(pipeline=pipeline,
                                                   train_data=train_data,
                                                   test_data=test_data,
                                                   approaches=pipeline_analyze_approaches,
                                                   requirements=requirements,
-                                                  path_to_save=path_to_save,
-                                                  log=log)
+                                                  path_to_save=path_to_save)
 
     def analyze(self):
         """Applies defined sensitivity analysis approaches

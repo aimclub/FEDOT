@@ -5,7 +5,7 @@ import pandas as pd
 
 from fedot.api.main import Fedot
 from fedot.core.operations.atomized_model import AtomizedModel
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.utils import fedot_project_root
@@ -34,7 +34,7 @@ def run_additional_learning_example():
 
     prev_model.unfit()
     atomized_model = Pipeline(
-        SecondaryNode(operation_type=AtomizedModel(prev_model), nodes_from=[PrimaryNode('scaling')]))
+        PipelineNode(operation_type=AtomizedModel(prev_model), nodes_from=[PipelineNode('scaling')]))
     non_atomized_model = deepcopy(prev_model)
 
     train_data = train_data.head(5000)

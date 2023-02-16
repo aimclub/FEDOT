@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -120,10 +120,10 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
 
 def baseline_pipeline():
     pipeline = Pipeline()
-    last_node = SecondaryNode(operation_type='rf',
+    last_node = PipelineNode(operation_type='rf',
                               nodes_from=[])
     for requirement_model in ['knn', 'logit']:
-        new_node = PrimaryNode(requirement_model)
+        new_node = PipelineNode(requirement_model)
         pipeline.add_node(new_node)
         last_node.nodes_from.append(new_node)
     pipeline.add_node(last_node)

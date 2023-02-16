@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Sequence, Optional
 
 from fedot.core.dag.graph_utils import nodes_from_layer
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import ParetoFront
@@ -20,9 +19,8 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -81,28 +79,28 @@ def graph_example():
 
 def generate_pipeline_with_single_node():
     pipeline = Pipeline()
-    pipeline.add_node(PrimaryNode('knn'))
+    pipeline.add_node(PipelineNode('knn'))
 
     return pipeline
 
 
 def generate_so_complex_pipeline():
-    node_imp = PrimaryNode('simple_imputation')
-    node_lagged = SecondaryNode('lagged', nodes_from=[node_imp])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_ridge])
-    node_pca = SecondaryNode('pca', nodes_from=[node_decompose])
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_pca])
+    node_imp = PipelineNode('simple_imputation')
+    node_lagged = PipelineNode('lagged', nodes_from=[node_imp])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
+    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_ridge])
+    node_pca = PipelineNode('pca', nodes_from=[node_decompose])
+    node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_pca])
     pipeline = Pipeline(node_final)
     return pipeline
 
 
 def pipeline_with_custom_parameters(alpha_value):
-    node_scaling = PrimaryNode('scaling')
-    node_norm = PrimaryNode('normalization')
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_norm])
-    node_final = SecondaryNode('ridge', nodes_from=[node_dtreg, node_lasso])
+    node_scaling = PipelineNode('scaling')
+    node_norm = PipelineNode('normalization')
+    node_dtreg = PipelineNode('dtreg', nodes_from=[node_scaling])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_norm])
+    node_final = PipelineNode('ridge', nodes_from=[node_dtreg, node_lasso])
     node_final.parameters = {'alpha': alpha_value}
     pipeline = Pipeline(node_final)
 

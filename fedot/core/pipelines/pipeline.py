@@ -18,7 +18,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
@@ -39,7 +39,7 @@ class Pipeline(GraphDelegate, Serializable):
         use_input_preprocessing: whether to do input preprocessing or not, True by default
     """
 
-    def __init__(self, nodes: Union[Node, Sequence[Node]] = (), use_input_preprocessing: bool = True):
+    def __init__(self, nodes: Union[PipelineNode, Sequence[PipelineNode]] = (), use_input_preprocessing: bool = True):
         super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
@@ -312,7 +312,7 @@ class Pipeline(GraphDelegate, Serializable):
         return self
 
     @property
-    def root_node(self) -> Optional[Node]:
+    def root_node(self) -> Optional[PipelineNode]:
         """Finds pipelines sink-node
 
         Returns:
@@ -351,17 +351,17 @@ class Pipeline(GraphDelegate, Serializable):
 
     def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
         """In case of provided ``input_data`` is of type :class:`MultiModalData`
-        assigns :attr:`PrimaryNode.node_data` from the ``input_data``
+        assigns :attr:`PipelineNode.node_data` from the ``input_data`` if ``PipelineNode.nodes_from`` is None
 
         Args:
-            input_data: data to assign to :attr:`PrimaryNode.node_data`
+            input_data: data to assign to :attr:`PipelineNode.node_data`
 
         Returns:
             ``None`` in case of :class:`MultiModalData` and ``input_data`` otherwise
         """
 
         if isinstance(input_data, MultiModalData):
-            for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
+            for node in (n for n in self.nodes if (isinstance(n, PipelineNode) and n.is_primary)):
                 if node.operation.operation_type in input_data:
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
@@ -412,7 +412,7 @@ class Pipeline(GraphDelegate, Serializable):
         PipelineVisualizer(self).visualise(save_path, engine, node_color, dpi, node_size_scale, font_size_scale)
 
 
-def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):
+def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[PipelineNode]):
     """
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type
@@ -424,14 +424,5 @@ def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node])
     for node in nodes:
         if not isinstance(node, GraphNode):
             continue
-        if node.nodes_from and not isinstance(node, SecondaryNode):
-            operator.update_node(old_node=node,
-                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
-                                                        content=node.content))
-        # TODO: avoid internal access use operator.delete_node
-        elif not node.nodes_from and not operator.node_children(node) and node != operator.root_node:
+        if not node.nodes_from and not operator.node_children(node) and node != operator.root_node:
             operator.nodes.remove(node)
-        elif not node.nodes_from and not isinstance(node, PrimaryNode):
-            operator.update_node(old_node=node,
-                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
-                                                      content=node.content))

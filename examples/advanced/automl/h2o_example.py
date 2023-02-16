@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_a
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from test.unit.tasks.test_classification import get_iris_data
@@ -13,21 +13,21 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data, get_r
 
 
 def pipeline_h2o_class() -> Pipeline:
-    node = PrimaryNode('h2o_class')
+    node = PipelineNode('h2o_class')
     pipeline = Pipeline(node)
     return pipeline
 
 
 def pipeline_h2o_regr() -> Pipeline:
-    node = PrimaryNode('h2o_regr')
+    node = PipelineNode('h2o_regr')
     pipeline = Pipeline(node)
     return pipeline
 
 
 def pipeline_h2o_ts(window_size: int = 20):
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': window_size}
-    node_root = SecondaryNode('h2o_regr', nodes_from=[node_lagged])
+    node_root = PipelineNode('h2o_regr', nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)
 

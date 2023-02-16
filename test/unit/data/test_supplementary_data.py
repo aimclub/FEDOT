@@ -5,7 +5,7 @@ from fedot.core.data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -38,9 +38,9 @@ def outputs_table_with_different_types():
 
 def generate_straight_pipeline():
     """ Simple linear pipeline """
-    node_scaling = PrimaryNode('scaling')
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_linear = SecondaryNode('linear', nodes_from=[node_ridge])
+    node_scaling = PipelineNode('scaling')
+    node_ridge = PipelineNode('ridge', nodes_from=[node_scaling])
+    node_linear = PipelineNode('linear', nodes_from=[node_ridge])
     pipeline = Pipeline(node_linear)
     return pipeline
 

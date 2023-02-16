@@ -12,7 +12,7 @@ import numpy as np
 from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -65,9 +65,9 @@ class PipelineTemplate:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline
 
-    def _extract_pipeline_structure(self, node: Node, operation_id: int, visited_nodes: List[Node]):
+    def _extract_pipeline_structure(self, node: PipelineNode, operation_id: int, visited_nodes: List[PipelineNode]):
         """
-        Recursively go through the Pipeline from 'root_node' to PrimaryNode's,
+        Recursively go through the Pipeline from 'root_node' to PipelineNode's,
         creating a OperationTemplate with unique id for each Node. In addition,
         checking whether this Node has been visited yet.
         """
@@ -94,7 +94,7 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: Optional[str] = None, root_node: Optional[Node] = None,
+    def export_pipeline(self, path: Optional[str] = None, root_node: Optional[PipelineNode] = None,
                         create_subdir: bool = True,
                         is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """
@@ -139,7 +139,7 @@ class PipelineTemplate:
 
         return json_data, dict_fitted_operations
 
-    def convert_to_dict(self, root_node: Node = None) -> dict:
+    def convert_to_dict(self, root_node: PipelineNode = None) -> dict:
         """ Generate pipeline description in a form of dictionary """
 
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
@@ -340,18 +340,10 @@ class PipelineTemplate:
 
         if operation_object.operation_type == atomized_model_type():
             atomized_model = operation_object.next_pipeline_template
-            if operation_object.nodes_from:
-                node = SecondaryNode(operation_type=atomized_model)
-            else:
-                node = PrimaryNode(operation_type=atomized_model)
+            node = PipelineNode(operation_type=atomized_model)
         else:
-            if operation_object.nodes_from:
-                node = SecondaryNode(operation_object.operation_type)
-            else:
-                node = PrimaryNode(operation_object.operation_type)
-
+            node = PipelineNode(operation_object.operation_type)
             node.parameters = operation_object.custom_params
-
             node.rating = operation_object.rating
 
         if hasattr(operation_object,

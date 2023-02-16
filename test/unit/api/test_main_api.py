@@ -20,7 +20,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -267,8 +267,8 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     # Define pipeline for prediction
-    node_lagged = PrimaryNode('lagged')
-    pipeline = Pipeline(SecondaryNode('linear', nodes_from=[node_lagged]))
+    node_lagged = PipelineNode('lagged')
+    pipeline = Pipeline(PipelineNode('linear', nodes_from=[node_lagged]))
 
     model.fit(features=train_data.features,
               target=train_data.target,
@@ -412,7 +412,7 @@ def test_categorical_preprocessing_unidata_predefined():
 def test_categorical_preprocessing_unidata_predefined_linear():
     train_data, test_data = load_categorical_unimodal()
 
-    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline = Pipeline(nodes=PipelineNode('logit'))
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
 
@@ -425,7 +425,7 @@ def test_fill_nan_without_categorical():
     train_data.features = np.hstack((train_data.features[:, :2], train_data.features[:, 4:]))
     test_data.features = np.hstack((test_data.features[:, :2], test_data.features[:, 4:]))
 
-    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline = Pipeline(nodes=PipelineNode('logit'))
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
     prediction_train = pipeline.predict(train_data)

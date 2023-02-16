@@ -12,7 +12,7 @@ DEFAULT_SOURCE_NAME = 'default'
 class PipelineStructureExplorer:
     """ Class for performing pipeline structure exploration.
     The class allows you to convert pipelines into a networkx graph and considers
-    all possible paths from PrimaryNode (or PrimaryNodes) to root node. If at least
+    all possible paths from primary PipelineNode (or primary PipelineNodes) to root node. If at least
     one of the paths contains an invalid sequence of operations, the search performed
     by this class will detect it
     """
@@ -24,7 +24,7 @@ class PipelineStructureExplorer:
     def check_structure_by_tag(pipeline: 'Pipeline', tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
         """
         In the pipeline structure, a node with an operation with the appropriate tag is searched for.
-        In this case the operations must have priority in the pipeline - in the PrimaryNode or not far from it.
+        In this case the operations must have priority in the pipeline - in the primary Node or not far from it.
 
         Correct pipeline:
         operation with tag -> linear
@@ -72,7 +72,7 @@ class PipelineStructureExplorer:
         Checking the path for operations take right places in the pipeline.
 
         :param graph: graph for checking paths
-        :param path: path in the graph from PrimaryNode to root
+        :param path: path in the graph from primary PipelineNode to root
         :param tag_to_check: find appropriate operation by desired tag
         """
         operation_path, is_appropriate_operation, is_independent_operation = \

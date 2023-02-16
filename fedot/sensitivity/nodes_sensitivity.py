@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeAnalyzeApproach
@@ -34,7 +34,7 @@ class NodesAnalysis:
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, nodes_to_analyze: List[Node] = None):
+                 path_to_save=None, nodes_to_analyze: List[PipelineNode] = None):
 
         self.pipeline = pipeline
         self.train_data = train_data

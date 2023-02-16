@@ -10,7 +10,7 @@ from sklearn.tree._tree import TREE_LEAF
 from fedot.core.composer.metrics import Metric
 from fedot.core.composer.metrics import R2, F1
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.explainability.explainer_template import Explainer
@@ -96,7 +96,7 @@ class SurrogateExplainer(Explainer):
 
 def get_simple_pipeline(model: str, custom_params: dict = None,
                         use_input_preprocessing: bool = True) -> 'Pipeline':
-    surrogate_node = PrimaryNode(model)
+    surrogate_node = PipelineNode(model)
     if custom_params:
         surrogate_node.parameters = custom_params
     return Pipeline(surrogate_node, use_input_preprocessing=use_input_preprocessing)

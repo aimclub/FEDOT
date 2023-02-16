@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 
@@ -54,8 +54,8 @@ def get_arima_pipeline():
         arima
     """
 
-    node_1 = PrimaryNode('arima')
-    node_final = SecondaryNode('linear', nodes_from=[node_1])
+    node_1 = PipelineNode('arima')
+    node_final = PipelineNode('linear', nodes_from=[node_1])
 
     pipeline = Pipeline(node_final)
     return pipeline
@@ -68,18 +68,18 @@ def get_arima_nemo_pipeline():
         nemo  |
     """
 
-    node_arima = PrimaryNode('arima')
-    node_nemo = PrimaryNode('exog_ts')
-    node_final = SecondaryNode('ridge', nodes_from=[node_arima, node_nemo])
+    node_arima = PipelineNode('arima')
+    node_nemo = PipelineNode('exog_ts')
+    node_final = PipelineNode('ridge', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
 
 
 def return_working_pipeline():
-    node_lagged_1 = PrimaryNode('lagged/1')
-    node_exog = PrimaryNode('exog_ts')
+    node_lagged_1 = PipelineNode('lagged/1')
+    node_exog = PipelineNode('exog_ts')
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
+    node_final = PipelineNode('ridge', nodes_from=[node_lagged_1, node_exog])
     pipeline = Pipeline(node_final)
     return pipeline
 

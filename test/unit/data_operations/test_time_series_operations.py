@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     prepare_target,
     ts_to_table
 )
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -154,11 +154,11 @@ def test_sparse_matrix():
 def test_forecast_with_sparse_lagged():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
-    node_lagged = PrimaryNode('sparse_lagged')
+    node_lagged = PipelineNode('sparse_lagged')
     # Set window size for lagged transformation
     node_lagged.parameters = {'window_size': _WINDOW_SIZE}
 
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    node_final = PipelineNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
 
     pipeline.fit(input_data=MultiModalData({'sparse_lagged': train_source_ts}))
@@ -173,13 +173,13 @@ def test_forecast_with_exog():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
     # Source data for lagged node
-    node_lagged = PrimaryNode('lagged')
+    node_lagged = PipelineNode('lagged')
     # Set window size for lagged transformation
     node_lagged.parameters = {'window_size': _WINDOW_SIZE}
     # Exogenous variable for exog node
-    node_exog = PrimaryNode('exog_ts')
+    node_exog = PipelineNode('exog_ts')
 
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_exog])
+    node_final = PipelineNode('linear', nodes_from=[node_lagged, node_exog])
     pipeline = Pipeline(node_final)
 
     pipeline.fit(input_data=MultiModalData({'exog_ts': train_exog_ts,

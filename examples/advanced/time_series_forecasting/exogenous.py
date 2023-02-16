@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
@@ -93,24 +93,24 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
     if with_exog is True:
         # Example with exogenous time series
-        node_source = PrimaryNode('data_source_ts/1')
-        node_lagged = SecondaryNode('lagged', nodes_from=[node_source])
+        node_source = PipelineNode('data_source_ts/1')
+        node_lagged = PipelineNode('lagged', nodes_from=[node_source])
 
-        node_exog = PrimaryNode('exog_ts')
+        node_exog = PipelineNode('exog_ts')
 
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged, node_exog])
+        node_final = PipelineNode('ridge', nodes_from=[node_lagged, node_exog])
         pipeline = Pipeline(node_final)
     else:
         # Simple example without exogenous time series
-        node_source_1 = PrimaryNode('data_source_ts/1')
-        node_source_2 = PrimaryNode('data_source_ts/2')
+        node_source_1 = PipelineNode('data_source_ts/1')
+        node_source_2 = PipelineNode('data_source_ts/2')
 
-        node_lagged_1 = SecondaryNode('lagged', nodes_from=[node_source_1])
-        node_lagged_2 = SecondaryNode('lagged', nodes_from=[node_source_2])
+        node_lagged_1 = PipelineNode('lagged', nodes_from=[node_source_1])
+        node_lagged_2 = PipelineNode('lagged', nodes_from=[node_source_2])
 
-        node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-        node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
-        node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+        node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
+        node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
+        node_final = PipelineNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
         train_input_exog = None
         predict_input_exog = None
         pipeline = Pipeline(node_final)

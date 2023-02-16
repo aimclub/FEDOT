@@ -7,7 +7,7 @@ import joblib
 import numpy as np
 
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 
 
 class OperationTemplateAbstract(ABC):
@@ -25,7 +25,7 @@ class OperationTemplateAbstract(ABC):
         self.log = default_log(self)
 
     @abstractmethod
-    def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
+    def _operation_to_template(self, node: PipelineNode, operation_id: int, nodes_from: list):
         """
         Preprocessing for local fields
         :param node: current node
@@ -63,7 +63,7 @@ class OperationTemplateAbstract(ABC):
 
 
 class OperationTemplate(OperationTemplateAbstract):
-    def __init__(self, node: Node = None, operation_id: int = None,
+    def __init__(self, node: PipelineNode = None, operation_id: int = None,
                  nodes_from: list = None):
         super().__init__()
         self.operation_name = None
@@ -76,7 +76,7 @@ class OperationTemplate(OperationTemplateAbstract):
         if node:
             self._operation_to_template(node, operation_id, nodes_from)
 
-    def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
+    def _operation_to_template(self, node: PipelineNode, operation_id: int, nodes_from: list):
         self.operation_id = operation_id
         if not isinstance(node.operation, str):
             # for model-based operations
@@ -96,7 +96,7 @@ class OperationTemplate(OperationTemplateAbstract):
         self.nodes_from = nodes_from
         self.rating = node.rating
 
-    def _create_full_params(self, node: Node) -> dict:
+    def _create_full_params(self, node: PipelineNode) -> dict:
         wrapped_operations = ['base_estimator', 'estimator']
 
         params = {}
@@ -115,7 +115,7 @@ class OperationTemplate(OperationTemplateAbstract):
 
         return params
 
-    def _extract_fields_of_fitted_operation(self, node: Node):
+    def _extract_fields_of_fitted_operation(self, node: PipelineNode):
         if 'h2o' in self.operation_type:
             self.fitted_operation_path = os.path.join('fitted_operations', f"h2o_{self.operation_id}")
         else:
@@ -205,7 +205,7 @@ def check_existing_path(path: str):
         os.makedirs(path)
 
 
-def extract_operation_params(node: Node):
+def extract_operation_params(node: PipelineNode):
     params = node.parameters
 
     if 'dtype' in params:
@@ -214,9 +214,9 @@ def extract_operation_params(node: Node):
     return params
 
 
-def _extract_operation_name(node: Node):
+def _extract_operation_name(node: PipelineNode):
     return node.fitted_operation.__class__.__name__
 
 
-def _is_node_fitted(node: Node) -> bool:
+def _is_node_fitted(node: PipelineNode) -> bool:
     return bool(node.fitted_operation)

@@ -8,6 +8,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.node import PipelineNode
 
 
 def random_graph(graph_generation_params: GraphGenerationParams,
@@ -79,11 +80,17 @@ def equivalent_subtree(graph_first: Any, graph_second: Any) -> List[Tuple[Any, A
     def structural_equivalent_nodes(node_first, node_second):
         nodes = []
         is_same_type = type(node_first) == type(node_second)
-        node_first_childs = node_first.nodes_from
-        node_second_childs = node_second.nodes_from
+
+        # check if both nodes are primary or secondary
+        if isinstance(node_first, PipelineNode) and isinstance(node_second, PipelineNode):
+            is_same_pipeline_node_type = node_first.is_primary == node_second.is_primary
+            is_same_type = is_same_type and is_same_pipeline_node_type
+
+        node_first_children = node_first.nodes_from
+        node_second_children = node_second.nodes_from
         if is_same_type and (not node_first.nodes_from or
-                             node_first_childs and node_second_childs and
-                             len(node_first_childs) == len(node_second_childs)):
+                             node_first_children and node_second_children and
+                             len(node_first_children) == len(node_second_children)):
             nodes.append((node_first, node_second))
             if node_first.nodes_from:
                 for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):

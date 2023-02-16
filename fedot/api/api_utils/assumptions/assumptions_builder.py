@@ -6,7 +6,7 @@ from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -41,11 +41,11 @@ class AssumptionsBuilder:
     def from_operations(self, available_operations: List[str]):
         raise NotImplementedError('abstract')
 
-    def to_builders(self, initial_node: Optional[Node] = None,
+    def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         raise NotImplementedError('abstract')
 
-    def build(self, initial_node: Optional[Node] = None,
+    def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:
         return [
             builder.build()
@@ -80,7 +80,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                 self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
-    def to_builders(self, initial_node: Optional[Node] = None,
+    def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
@@ -111,7 +111,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
                 subbuilder.from_operations(available_img_operations)
         return self
 
-    def to_builders(self, initial_node: Optional[Node] = None,
+    def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []

@@ -8,7 +8,7 @@ from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.dag.linked_graph import LinkedGraph
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -20,7 +20,7 @@ def graph(request):
     if graph_type in [LinkedGraph, GraphDelegate]:
         node_type = LinkedGraphNode
     elif graph_type is Pipeline:
-        node_type = Node
+        node_type = PipelineNode
     else:
         node_type = OptNode
     nodes = []

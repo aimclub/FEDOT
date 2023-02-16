@@ -55,5 +55,6 @@ class PipelineOptNodeFactory(OptNodeFactory):
             return None
         return OptNode(content={'name': choice(candidates)})
 
-    def filter_specific_candidates(self, candidates: list):
+    @staticmethod
+    def filter_specific_candidates(candidates: list):
         return list(filter(lambda x: not check_for_specific_operations(x), candidates))

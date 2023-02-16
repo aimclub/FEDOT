@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
@@ -18,7 +18,7 @@ def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[Task
 
 
 def has_primary_nodes(pipeline: Pipeline):
-    if not any(node for node in pipeline.nodes if isinstance(node, PrimaryNode)):
+    if not any(node for node in pipeline.nodes if (isinstance(node, PipelineNode) and node.is_primary)):
         raise ValueError(f'{ERROR_PREFIX} Pipeline does not have primary nodes')
     return True
 
@@ -171,7 +171,8 @@ def only_non_lagged_operations_are_primary(pipeline: Pipeline):
 
     # Check only primary nodes
     for node in pipeline.nodes:
-        if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
+        if isinstance(node, PipelineNode) and node.is_primary and \
+                DataTypesEnum.ts not in node.operation.metadata.input_types:
             raise ValueError(
                 f'{ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes')
 
@@ -194,7 +195,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
 def has_correct_data_sources(pipeline: Pipeline):
     """ Checks that data sources and other nodes are not mixed """
 
-    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if isinstance(n, PrimaryNode)]
+    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if
+                                     (isinstance(n, PipelineNode) and n.is_primary)]
 
     if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
         raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
@@ -309,7 +311,7 @@ def __check_multitask_operation_location(pipeline: Pipeline, operations_for_clas
     # TODO refactor to implement check via PipelineStructureExplorer
     primary_operations = []
     for node in pipeline.nodes:
-        if isinstance(node, PrimaryNode):
+        if isinstance(node, PipelineNode) and node.is_primary:
             primary_operations.append(node.operation.operation_type)
 
     primary_operations = set(primary_operations)

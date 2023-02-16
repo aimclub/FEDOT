@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -21,7 +21,7 @@ def test_clean_text_preprocessing():
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.text)
 
-    preprocessing_pipeline = Pipeline(PrimaryNode('text_clean'))
+    preprocessing_pipeline = Pipeline(PipelineNode('text_clean'))
     preprocessing_pipeline.fit(input_data)
 
     predicted_output = preprocessing_pipeline.predict(input_data)

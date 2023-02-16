@@ -23,7 +23,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.keras imp
     fit_cnn,
     predict_cnn
 )
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -41,10 +41,10 @@ def check_predict_cnn_correct(model, dataset_to_validate):
 
 
 def pipeline_simple() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_svc = SecondaryNode('svc', nodes_from=[node_scaling])
-    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
-    node_final = SecondaryNode('rf', nodes_from=[node_svc, node_lda])
+    node_scaling = PipelineNode('scaling')
+    node_svc = PipelineNode('svc', nodes_from=[node_scaling])
+    node_lda = PipelineNode('lda', nodes_from=[node_scaling])
+    node_final = PipelineNode('rf', nodes_from=[node_svc, node_lda])
 
     pipeline = Pipeline(node_final)
 
@@ -52,10 +52,10 @@ def pipeline_simple() -> Pipeline:
 
 
 def pipeline_with_pca() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_pca = SecondaryNode('pca', nodes_from=[node_scaling])
-    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
-    node_final = SecondaryNode('rf', nodes_from=[node_pca, node_lda])
+    node_scaling = PipelineNode('scaling')
+    node_pca = PipelineNode('pca', nodes_from=[node_scaling])
+    node_lda = PipelineNode('lda', nodes_from=[node_scaling])
+    node_final = PipelineNode('rf', nodes_from=[node_pca, node_lda])
 
     pipeline = Pipeline(node_final)
 

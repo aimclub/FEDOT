@@ -2,7 +2,7 @@ from typing import List, Optional, TYPE_CHECKING, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ class OperationsCache(BaseCache):
     def __init__(self, cache_folder: Optional[str] = None):
         super().__init__(OperationsCacheDB(cache_folder))
 
-    def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
+    def save_nodes(self, nodes: Union[PipelineNode, List[PipelineNode]], fold_id: Optional[int] = None):
         """
         :param nodes: node/nodes to be cached
         :param fold_id: optional part of cache item UID
@@ -43,7 +43,7 @@ class OperationsCache(BaseCache):
         """
         self.save_nodes(pipeline.nodes, fold_id)
 
-    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
+    def try_load_nodes(self, nodes: Union[PipelineNode, List[PipelineNode]], fold_id: Optional[int] = None):
         """
         :param nodes: nodes which fitted state should be loaded from cache
         :param fold_id: optional part of cache item UID
@@ -69,7 +69,7 @@ class OperationsCache(BaseCache):
         self.try_load_nodes(pipeline.nodes, fold_id)
 
 
-def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
+def _get_structural_id(node: PipelineNode, fold_id: Optional[int] = None) -> str:
     """
     Gets unique id from node.
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -17,11 +17,11 @@ np.random.seed(1)
 
 def get_refinement_pipeline():
     """ Create 3-level pipeline with class_decompose node """
-    node_scaling = PrimaryNode('scaling')
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    node_scaling = PipelineNode('scaling')
+    node_logit = PipelineNode('logit', nodes_from=[node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_logit, node_scaling])
+    node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
+    node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_logit])
 
     pipeline = Pipeline(node_rf)
     return pipeline
@@ -29,10 +29,10 @@ def get_refinement_pipeline():
 
 def get_non_refinement_pipeline():
     """ Create 3-level pipeline without class_decompose node """
-    node_scaling = PrimaryNode('scaling')
-    node_rf = SecondaryNode('rf', nodes_from=[node_scaling])
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_rf = SecondaryNode('rf', nodes_from=[node_logit, node_rf])
+    node_scaling = PipelineNode('scaling')
+    node_rf = PipelineNode('rf', nodes_from=[node_scaling])
+    node_logit = PipelineNode('logit', nodes_from=[node_scaling])
+    node_rf = PipelineNode('rf', nodes_from=[node_logit, node_rf])
     pipeline = Pipeline(node_rf)
     return pipeline
 

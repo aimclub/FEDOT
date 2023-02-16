@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.operation_template import extract_operation_params
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
@@ -42,7 +42,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
         self.log = default_log(self)
 
-    def analyze(self, node: Node,
+    def analyze(self, node: PipelineNode,
                 is_dispersion_analysis: bool = False) -> Union[dict, float]:
 
         # check whether the pipeline is fitted
@@ -81,7 +81,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         return sampled_pipelines
 
-    def _apply_params_to_node(self, params: List[dict], node: Node) -> List[Pipeline]:
+    def _apply_params_to_node(self, params: List[dict], node: PipelineNode) -> List[Pipeline]:
         sampled_pipelines: List[Pipeline] = list()
         for sample in params:
             copied_pipeline = deepcopy(self._pipeline)
@@ -102,7 +102,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         return np.array(operation_response_matrix)
 
-    def _dispersion_analysis(self, node: Node, sample_size: int):
+    def _dispersion_analysis(self, node: PipelineNode, sample_size: int):
         samples: np.array = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
         transposed_samples = samples.T
         converted_samples = self.problem.convert_for_dispersion_analysis(transposed_samples)
@@ -119,7 +119,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         self._visualize_variance()
 
-    def _evaluate_variance(self, params: List[dict], samples, node: Node):
+    def _evaluate_variance(self, params: List[dict], samples, node: PipelineNode):
         # default values of param & loss
         param_name = list(params[0].keys())[0]
         default_param_value = extract_operation_params(node).get(param_name)

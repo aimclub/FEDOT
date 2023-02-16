@@ -3,7 +3,7 @@ from typing import Optional, Union
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import data_has_text_features
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -16,7 +16,7 @@ class PreprocessingBuilder:
     If data is multimodal, builder makes preprocessing pipeline for each data source iteratively.
     """
 
-    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: Node,
+    def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: PipelineNode,
                  use_input_preprocessing: bool = True):
         self.task_type = task_type
         self.data_type = data_type
@@ -26,7 +26,7 @@ class PreprocessingBuilder:
     def builder_for_data(cls,
                          task_type: TaskTypesEnum,
                          data: Union[InputData, MultiModalData],
-                         *initial_nodes: Optional[Node],
+                         *initial_nodes: Optional[PipelineNode],
                          use_input_preprocessing: bool = True) -> PipelineBuilder:
         if isinstance(data, MultiModalData):
             # if the data is unimodal, initial_nodes = tuple of None

@@ -4,7 +4,7 @@ from typing import Any, Optional, Dict
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph_utils import map_dag_nodes
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -22,7 +22,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         self.use_input_preprocessing = use_input_preprocessing
 
     @staticmethod
-    def _transform_to_opt_node(node: Node) -> OptNode:
+    def _transform_to_opt_node(node: PipelineNode) -> OptNode:
         # Prepare content for nodes, leave only simple data
         operation_name = str(node.operation)
         content = {'name': operation_name,
@@ -31,14 +31,10 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         return OptNode(deepcopy(content))
 
     @staticmethod
-    def _transform_to_pipeline_node(node: OptNode) -> Node:
+    def _transform_to_pipeline_node(node: OptNode) -> PipelineNode:
         # deepcopy to avoid accidental information sharing between opt graphs & pipelines
         content = deepcopy(node.content)
-        if not node.nodes_from:
-            return PrimaryNode(operation_type=content['name'], content=content)
-        else:
-            # `nodes_from` are assigned on the step of overall graph mapping
-            return SecondaryNode(operation_type=content['name'], content=content)
+        return PipelineNode(operation_type=content['name'], content=content)
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:
         adapted_nodes = map_dag_nodes(self._transform_to_opt_node, adaptee.nodes)

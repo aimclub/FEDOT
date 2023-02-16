@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -41,7 +41,7 @@ class NodeAnalysis:
         self.approaches_requirements = \
             SensitivityAnalysisRequirements() if approaches_requirements is None else approaches_requirements
 
-    def analyze(self, pipeline: Pipeline, node: Node,
+    def analyze(self, pipeline: Pipeline, node: PipelineNode,
                 train_data: InputData, test_data: InputData,
                 is_save: bool = False) -> dict:
 
@@ -111,7 +111,7 @@ class NodeAnalysis:
 
         return rating
 
-    def _save_results_to_json(self, node: Node, pipeline: Pipeline, results):
+    def _save_results_to_json(self, node: PipelineNode, pipeline: Pipeline, results):
         node_id = pipeline.nodes.index(node)
         node_type = node.operation.operation_type
         result_file = join(self.path_to_save, f'{node_id}{node_type}_sa_results.json')
@@ -149,7 +149,7 @@ class NodeAnalyzeApproach(ABC):
             makedirs(self._path_to_save)
 
     @abstractmethod
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
+    def analyze(self, node: PipelineNode, **kwargs) -> Union[List[dict], List[float]]:
         """Creates the difference metric(scorer, index, etc) of the changed
         graph in relation to the original one
 
@@ -189,7 +189,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         super().__init__(pipeline, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
+    def analyze(self, node: PipelineNode, **kwargs) -> Union[List[dict], List[float]]:
         """
         Args:
             node: :obj:`Node` object to analyze
@@ -211,7 +211,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
             return [loss]
 
-    def sample(self, node: Node):
+    def sample(self, node: PipelineNode):
         """
         Args:
             node: :obj:`Node` object to delete from :obj:`Pipeline` object
@@ -244,7 +244,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         super().__init__(pipeline, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
+    def analyze(self, node: PipelineNode, **kwargs) -> Union[List[dict], List[float]]:
         """
         Args:
             node: :obj:`Node` object to analyze
@@ -275,8 +275,8 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
         return loss_values
 
-    def sample(self, node: Node,
-               nodes_to_replace_to: Optional[List[Node]],
+    def sample(self, node: PipelineNode,
+               nodes_to_replace_to: Optional[List[PipelineNode]],
                number_of_random_operations: Optional[int] = None) -> Union[List[Pipeline], Pipeline]:
         """
         Args:
@@ -304,8 +304,8 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
         return samples
 
-    def _node_generation(self, node_type: Type[Node],
-                         number_of_operations=None) -> List[Node]:
+    def _node_generation(self, node_type: Type[PipelineNode],
+                         number_of_operations=None) -> List[PipelineNode]:
         task = self._train_data.task.task_type
         # Get models
         app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)

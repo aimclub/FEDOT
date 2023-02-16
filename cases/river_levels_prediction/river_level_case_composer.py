@@ -10,7 +10,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -156,10 +156,10 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
 if __name__ == '__main__':
     # Define pipeline to start composing with it
-    node_encoder = PrimaryNode('one_hot_encoding')
-    node_rans = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_rans])
-    node_final = SecondaryNode('linear', nodes_from=[node_scaling])
+    node_encoder = PipelineNode('one_hot_encoding')
+    node_rans = PipelineNode('ransac_lin_reg', nodes_from=[node_encoder])
+    node_scaling = PipelineNode('scaling', nodes_from=[node_rans])
+    node_final = PipelineNode('linear', nodes_from=[node_scaling])
 
     init_pipeline = Pipeline(node_final)
 

@@ -34,21 +34,21 @@ this way your pipeline and trained models will be saved in a folder in the follo
 
     from cases.data.data_utils import get_scoring_case_data_paths
     from fedot.core.pipelines.pipeline import Pipeline
-    from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+    from fedot.core.pipelines.node import PipelineNode
     from fedot.core.data.data import InputData
 
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
     pipeline = Pipeline()
-    node_logit = PrimaryNode('logit')
+    node_logit = PipelineNode('logit')
 
-    node_lda = PrimaryNode('lda')
+    node_lda = PipelineNode('lda')
     node_lda.parameters = {'n_components': 1}
 
-    node_xgboost = PrimaryNode('xgboost')
+    node_xgboost = PipelineNode('xgboost')
 
-    node_knn_second = SecondaryNode('knn')
+    node_knn_second = PipelineNode('knn')
     node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_logit, node_lda, node_xgboost]
 

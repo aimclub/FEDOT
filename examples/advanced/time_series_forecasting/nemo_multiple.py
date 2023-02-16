@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
@@ -53,9 +53,9 @@ def get_arima_nemo_pipeline():
         nemo  |
     """
 
-    node_arima = PrimaryNode('arima')
-    node_nemo = PrimaryNode('exog_ts')
-    node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
+    node_arima = PipelineNode('arima')
+    node_nemo = PipelineNode('exog_ts')
+    node_final = PipelineNode('linear', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -67,10 +67,10 @@ def get_stlarima_nemo_pipeline():
             nemo  |
     """
 
-    node_arima = PrimaryNode('stl_arima')
+    node_arima = PipelineNode('stl_arima')
     node_arima.parameters = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
-    node_nemo = PrimaryNode('exog_ts')
-    node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
+    node_nemo = PipelineNode('exog_ts')
+    node_final = PipelineNode('linear', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -84,13 +84,13 @@ def get_ridge_nemo_pipeline():
                           nemo  /
     """
 
-    node_lagged_1 = PrimaryNode('lagged/1')
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-    node_lagged_2 = PrimaryNode('lagged/2')
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
-    node_ridge_3 = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-    node_nemo = PrimaryNode('exog_ts')
-    node_final = SecondaryNode('linear', nodes_from=[node_ridge_3, node_nemo])
+    node_lagged_1 = PipelineNode('lagged/1')
+    node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
+    node_lagged_2 = PipelineNode('lagged/2')
+    node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
+    node_ridge_3 = PipelineNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    node_nemo = PipelineNode('exog_ts')
+    node_final = PipelineNode('linear', nodes_from=[node_ridge_3, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -100,7 +100,7 @@ def get_arima_pipeline():
         arima
     """
 
-    node_final = PrimaryNode('arima')
+    node_final = PipelineNode('arima')
 
     pipeline = Pipeline(node_final)
     return pipeline
@@ -111,7 +111,7 @@ def get_stlarima_pipeline():
         stl_arima
     """
 
-    node_final = PrimaryNode('stl_arima')
+    node_final = PipelineNode('stl_arima')
     node_final.parameters = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     pipeline = Pipeline(node_final)
     return pipeline
@@ -124,14 +124,14 @@ def get_ridge_pipeline():
         lagged -> ridge  |
     """
 
-    node_lagged_1 = PrimaryNode('lagged/1')
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_lagged_1 = PipelineNode('lagged/1')
+    node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
 
-    node_lagged_2 = PrimaryNode('lagged/2')
+    node_lagged_2 = PipelineNode('lagged/2')
 
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+    node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    node_final = PipelineNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
     pipeline = Pipeline(node_final)
     return pipeline
 

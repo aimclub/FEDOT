@@ -4,7 +4,7 @@ from typing import Union
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline
 
@@ -25,7 +25,7 @@ class PredefinedModel:
             pipelines = AssumptionsBuilder.get(self.data).from_operations().build(
                 use_input_preprocessing=use_input_preprocessing)[0]
         elif isinstance(self.predefined_model, str):
-            model = PrimaryNode(self.predefined_model)
+            model = PipelineNode(self.predefined_model)
             pipelines = Pipeline(model, use_input_preprocessing=use_input_preprocessing)
         else:
             raise ValueError(f'{type(self.predefined_model)} is not supported as Fedot model')

@@ -12,7 +12,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -56,12 +56,12 @@ def get_simple_linear_boosting_pipeline() -> Pipeline:
     """
     Returns simple linear graph with boosting
     """
-    node_scaling = PrimaryNode('scaling')
-    node_pf = SecondaryNode('poly_features', nodes_from=[node_scaling])
-    node_rf = SecondaryNode('rf', nodes_from=[node_pf])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_pf, node_rf])
-    node_linear = SecondaryNode('linear', nodes_from=[node_decompose])
-    final_node = SecondaryNode('logit', nodes_from=[node_linear, node_rf])
+    node_scaling = PipelineNode('scaling')
+    node_pf = PipelineNode('poly_features', nodes_from=[node_scaling])
+    node_rf = PipelineNode('rf', nodes_from=[node_pf])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[node_pf, node_rf])
+    node_linear = PipelineNode('linear', nodes_from=[node_decompose])
+    final_node = PipelineNode('logit', nodes_from=[node_linear, node_rf])
     pipeline = Pipeline(final_node)
     return pipeline
 
@@ -78,13 +78,13 @@ def get_ts_forecasting_graph_with_boosting() -> Pipeline:
     """
     Returns simple linear graph for ts forecasting with boosting
     """
-    node_init = PrimaryNode('smoothing')
-    node_model = SecondaryNode('clstm', nodes_from=[node_init])
-    node_lagged = SecondaryNode('lagged', nodes_from=[node_init])
-    node_decompose = SecondaryNode('decompose',
+    node_init = PipelineNode('smoothing')
+    node_model = PipelineNode('clstm', nodes_from=[node_init])
+    node_lagged = PipelineNode('lagged', nodes_from=[node_init])
+    node_decompose = PipelineNode('decompose',
                                    [node_model, node_lagged])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_decompose])
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_model])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_decompose])
+    node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_model])
     pipeline = Pipeline(node_final)
     return pipeline
 

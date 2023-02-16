@@ -6,7 +6,7 @@ import pandas as pd
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -58,10 +58,10 @@ def generate_linear_pipeline():
     decreases (rfe_lin_class), the types change while keeping the number of
     columns ('label_encoding')
     """
-    encoding_label = PrimaryNode('label_encoding')
-    poly_node = SecondaryNode('poly_features', nodes_from=[encoding_label])
-    rfe_node = SecondaryNode('rfe_lin_class', nodes_from=[poly_node])
-    final_node = SecondaryNode('dt', nodes_from=[rfe_node])
+    encoding_label = PipelineNode('label_encoding')
+    poly_node = PipelineNode('poly_features', nodes_from=[encoding_label])
+    rfe_node = PipelineNode('rfe_lin_class', nodes_from=[poly_node])
+    final_node = PipelineNode('dt', nodes_from=[rfe_node])
     pipeline = Pipeline(final_node)
 
     return pipeline
@@ -167,7 +167,7 @@ def test_complicated_table_types_processed_correctly():
     """ Checking correctness of table type detection and type conversions """
     train_data, test_data = data_with_complicated_types()
 
-    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=13)
     train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
@@ -215,7 +215,7 @@ def test_binary_pseudo_string_column_process_correctly():
 
     train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
 
-    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline)
     train_predicted = pipeline.fit(train_data)
 
@@ -227,7 +227,7 @@ def fit_predict_cycle_for_testing(idx: int):
     input_data = get_mixed_data_with_str_and_float_values(idx=idx)
     train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
 
-    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline)
     train_predicted = pipeline.fit(train_data)
     return train_predicted

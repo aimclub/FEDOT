@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -94,7 +94,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
             .build(dataset_to_compose)
         nodes = pipeline_evo_composed.nodes
         for node_index, node in enumerate(nodes):
-            if isinstance(node, PrimaryNode):
+            if isinstance(node, PipelineNode) and node.is_primary:
                 pipeline_evo_composed = tuner.tune_node(pipeline_evo_composed, node_index)
 
         pipeline_evo_composed.fit(input_data=dataset_to_compose)
