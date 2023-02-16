@@ -153,9 +153,7 @@ class SearchSpace:
 
             ]])},
             'cgru': {
-                'window_size': (hp.uniform, [1, 200]),
                 'hidden_size': (hp.uniform, [20, 200]),
-                'teacher_forcing': (hp.uniform, [0, 1]),
                 'learning_rate': (hp.uniform, [0.0005, 0.005]),
                 'cnn1_kernel_size': (hp.uniformint, [3, 8]),
                 'cnn1_output_size': (hp.choice, [[8, 16, 32, 64]]),

@@ -88,9 +88,9 @@
   "cgru": {
     "hidden_size": 200,
     "learning_rate": 0.001,
-    "cnn1_kernel_size": 10,
+    "cnn1_kernel_size": 5,
     "cnn1_output_size": 32,
-    "cnn2_kernel_size": 6,
+    "cnn2_kernel_size": 5,
     "cnn2_output_size": 64,
     "batch_size": 64,
     "num_epochs": 50,

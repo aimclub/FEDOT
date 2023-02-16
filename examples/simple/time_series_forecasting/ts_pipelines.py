@@ -29,11 +29,11 @@ def ts_ets_ridge_pipeline():
 
     Where cut - cut part of dataset, ets - exponential smoothing
    """
-    pip_builder = PipelineBuilder()\
+    pip_builder = PipelineBuilder() \
         .add_sequence(('cut', {'cut_part': 0.5}),
                       ('ets', {'error': 'add', 'trend': 'add', 'seasonal': 'add',
                                'damped_trend': False, 'seasonal_periods': 20}),
-                      branch_idx=0)\
+                      branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
     pipeline = pip_builder.build()
@@ -242,7 +242,7 @@ def ts_naive_average_ridge_pipeline():
     return pipeline
 
 
-def cgru_pipeline():
+def cgru_pipeline(window_size=200):
     """
     Return pipeline with the following structure:
 
@@ -254,7 +254,7 @@ def cgru_pipeline():
 
     pip_builder = PipelineBuilder() \
         .add_sequence('lagged', 'ridge', branch_idx=0) \
-        .add_sequence('lagged', 'cgru', branch_idx=1) \
+        .add_sequence(('lagged', {'window_size': window_size}), 'cgru', branch_idx=1) \
         .join_branches('ridge')
 
     pipeline = pip_builder.build()
