@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict, List, Optional, Union, Sequence
+from typing import Any, Dict, Optional, Union, Sequence
 
 from golem.core.log import LoggerAdapter
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
@@ -18,8 +18,7 @@ from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
-from fedot.core.utilities.random import RandomStateHandler
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class ApiParams:

@@ -42,7 +42,6 @@ class ApiComposer:
         self.pipelines_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.timer = None
-        self.metric_names = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
         # status flag indicating that tuner step was applied
@@ -141,8 +140,6 @@ class ApiComposer:
             .with_cache(self.pipelines_cache, self.preprocessing_cache) \
             .with_graph_generation_param(graph_generation_params=graph_generation_params) \
             .build()
-
-        self.metric_names = gp_composer.optimizer.objective.metric_names
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
 

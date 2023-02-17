@@ -43,6 +43,10 @@ class ApiMetrics:
         self.task: Task = task
         self.metric_functions: Sequence[MetricType] = self.obtain_metric(metrics)
 
+    @property
+    def metric_names(self):
+        return [str(metric) for metric in self.metric_functions]
+
     def get_problem_metrics(self) -> Union[str, Sequence[str]]:
         return ApiMetrics._task_dict[self.task.task_type]
 

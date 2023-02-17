@@ -131,8 +131,6 @@ class Fedot:
 
         self.api_composer = ApiComposer(problem, self.params, self.metrics)
 
-        self.tuner_requirements = None
-
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
@@ -243,7 +241,7 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         input_data = input_data or self.train_data
-        metric_name = metric_name or self.metrics.get_problem_metrics()[0]
+        metric_name = metric_name or self.metrics.metric_functions[0]
         cv_folds = cv_folds or self.params.get('cv_folds')
         validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
@@ -388,7 +386,7 @@ class Fedot:
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
-        metric_names = self.api_composer.metric_names
+        metric_names = self.metrics.metric_names
         # archive_history stores archives of the best models.
         # Each archive is sorted from the best to the worst model,
         # so the best_candidates is sorted too.
