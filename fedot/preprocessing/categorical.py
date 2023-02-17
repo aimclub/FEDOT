@@ -33,26 +33,23 @@ class BinaryCategoricalPreprocessor:
             return self
 
         binary_ids_to_convert = []
-        number_of_columns = input_data.features.shape[-1]
-        for column_id in range(number_of_columns):
-            pd_column = pd.Series(input_data.features[:, column_id], copy=True)
-            has_nan = pd_column.isna()
-            if has_nan.sum() and column_id in categorical_ids:
+        for column_id, column in enumerate(input_data.features.T):
+            pd_column = pd.Series(column, copy=True)
+            is_nan = pd_column.isna()
+            column_uniques = pd_column.unique()
+            if is_nan.sum() and column_id in categorical_ids:
                 # This categorical column has nans
-                replaced_column, _ = replace_nans_with_fedot_nans(pd_column, has_nan)
-                column_uniques = replaced_column.unique()
+                pd_column[is_nan] = FEDOT_STR_NAN
 
                 if len(column_uniques) <= 3:
                     # There is column with binary categories and gaps
                     self.binary_features_with_nans.append(column_id)
                     binary_ids_to_convert.append(column_id)
-                    self._train_encoder(replaced_column, column_id)
+                    self._train_encoder(pd_column, column_id)
             else:
-                column_uniques = pd_column.unique()
                 if len(column_uniques) <= 2 and column_id in categorical_ids:
                     # Column contains binary string feature
                     binary_ids_to_convert.append(column_id)
-
                     # Train encoder for current column
                     self._train_encoder(pd_column, column_id)
 
@@ -67,26 +64,15 @@ class BinaryCategoricalPreprocessor:
             # There are no binary categorical features
             return input_data
 
-        converted_features = []
-        number_of_columns = input_data.features.shape[-1]
-        for column_id in range(number_of_columns):
+        copied_data = deepcopy(input_data)
+        for column_id, column in enumerate(copied_data.features.T):
             if column_id in self.binary_ids_to_convert:
                 # If column contains nans - replace them with fedot nans special string
-                pd_column = pd.Series(input_data.features[:, column_id])
-                has_nan = pd_column.isna()
-                replaced_column, has_nan = replace_nans_with_fedot_nans(pd_column, has_nan)
+                nan_idxs: Tuple[np.ndarray, ...] = pd.isna(column).nonzero()
+                column[nan_idxs] = FEDOT_STR_NAN
 
                 # Convert into integers
-                converted_column = self._apply_encoder(replaced_column, column_id, has_nan)
-            else:
-                # Stay column the same
-                converted_column = input_data.features[:, column_id]
-
-            converted_features.append(converted_column.reshape((-1, 1)))
-
-        # Store transformed features
-        copied_data = deepcopy(input_data)
-        copied_data.features = np.hstack(converted_features)
+                column[:] = self._apply_encoder(column, column_id, nan_idxs)
 
         # Update features types
         features_types = copied_data.supplementary_data.column_types['features']
@@ -117,22 +103,16 @@ class BinaryCategoricalPreprocessor:
         # Store fitted label encoder for transform method
         self.binary_encoders.update({column_id: encoder})
 
-    def _apply_encoder(self, column: pd.Series, column_id: int, has_nan: pd.Series) -> np.ndarray:
+    def _apply_encoder(self, column: np.ndarray, column_id: int, nan_idxs: Tuple[np.ndarray, ...]) -> np.ndarray:
         """ Apply already fitted encoders """
         encoder = self.binary_encoders[column_id]
         # Extend encoder classes if the column contains categories not previously encountered
         encoder.classes_ = np.unique(np.concatenate((encoder.classes_, column)))
 
         converted = encoder.transform(column)
-        if len(has_nan) > 0:
+        if len(nan_idxs[0]):
             # Column has nans in its structure - after conversion replace it
             converted = converted.astype(float)
-            converted[has_nan] = np.nan
+            converted[nan_idxs] = np.nan
 
         return converted
-
-
-def replace_nans_with_fedot_nans(column: pd.Series, has_nan: pd.Series) -> Tuple[pd.Series, pd.Series]:
-    # Add new category - 'fedot_nan' after converting it will be replaced by nans
-    column[has_nan] = FEDOT_STR_NAN
-    return column, has_nan

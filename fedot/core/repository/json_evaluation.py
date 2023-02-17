@@ -1,7 +1,7 @@
 from importlib import import_module
 from typing import Union, TYPE_CHECKING, List
 
-# imports are required for the eval
+# imports are required beneath in the function
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -39,7 +39,7 @@ def import_enums_from_str(field_value: str) -> Union[List[DataTypesEnum],
     Returns:
         list of either class:`DataTypesEnum` or class:`TaskTypesEnum` values
     """
-    enums = [full_val.split('.') for full_val in field_value.strip('][').split(', ') if full_val != '']
+    enums = [full_val.split('.') for full_val in field_value.strip('][').split(', ') if full_val]
     return [
         getattr(globals()[data_type], value)
         for (data_type, value) in enums]

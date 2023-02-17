@@ -217,8 +217,8 @@ class TableTypesCorrector:
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
 
             data.supplementary_data.column_types['features'] = [
-                col_type
-                for col_id, col_type in enumerate(data.supplementary_data.column_types['features'])
+                col_type_id
+                for col_id, col_type_id in enumerate(data.supplementary_data.column_types['features'])
                 if col_id not in self.string_columns_transformation_failed
             ]
 
@@ -429,9 +429,7 @@ def define_column_types(table: np.ndarray):
     table_of_types[nans] = TYPE_TO_ID[type(None)]
 
     columns_info = {}
-    for column_id in range(n_columns):
-        col_types = table_of_types[:, column_id]
-
+    for column_id, col_types in enumerate(table_of_types.T):
         unique_col_types, unique_col_types_number = np.unique(col_types, return_counts=True)
 
         if len(unique_col_types) > 1:
@@ -445,7 +443,7 @@ def define_column_types(table: np.ndarray):
             ]
 
             # Store information about nans in the target
-            nan_ids = np.where(nans[:, column_id])[0]
+            nan_ids = np.nonzero(nans[:, column_id])[0]
             columns_info.update({column_id: {'types': unique_col_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
