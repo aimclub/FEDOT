@@ -121,14 +121,15 @@ class Fedot:
 
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
-        self.metrics = ApiMetrics(problem)
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParamsBuilder(problem, task_params)\
             .with_timeout(timeout)\
             .with_n_jobs(n_jobs)\
             .with_composer_tuner_params(composer_tuner_params).build()
-        self.api_composer = ApiComposer(problem, self.params)
+        self.metrics = ApiMetrics(self.params.task, self.params.get('metric'))
+
+        self.api_composer = ApiComposer(problem, self.params, self.metrics)
 
         self.tuner_requirements = None
 

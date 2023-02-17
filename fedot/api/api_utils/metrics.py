@@ -1,8 +1,12 @@
-from typing import Callable, Union, Sequence
+from typing import Callable, Union, Sequence, Optional
 
 from fedot.core.composer.metrics import Metric
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
-                                                              ComplexityMetricsEnum, RegressionMetricsEnum)
+                                                              ComplexityMetricsEnum, RegressionMetricsEnum, MetricType,
+                                                              MetricsEnum)
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class ApiMetrics:
@@ -12,11 +16,10 @@ class ApiMetrics:
     """
 
     _task_dict = {
-        'regression': ['rmse', 'mae'],
-        'classification': ['roc_auc', 'f1'],
-        'multiclassification': 'f1',
-        'clustering': 'silhouette',
-        'ts_forecasting': ['rmse', 'mae']
+        TaskTypesEnum.regression: ['rmse', 'mae'],
+        TaskTypesEnum.classification: ['roc_auc', 'f1'],
+        TaskTypesEnum.clustering: ['silhouette'],
+        TaskTypesEnum.ts_forecasting: ['rmse', 'mae']
     }
 
     _metrics_dict = {
@@ -36,16 +39,12 @@ class ApiMetrics:
         'node_num': ComplexityMetricsEnum.node_num
     }
 
-    def __init__(self, problem: str):
-        if '/' in problem:
-            # Solve multitask problem
-            self.main_problem, self.side_problem = problem.split('/')
-        else:
-            self.main_problem = problem
-            self.side_problem = None
+    def __init__(self, task: Task, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]):
+        self.task: Task = task
+        self.metric_functions: Sequence[MetricType] = self.obtain_metric(metrics)
 
     def get_problem_metrics(self) -> Union[str, Sequence[str]]:
-        return ApiMetrics._task_dict[self.main_problem]
+        return ApiMetrics._task_dict[self.task.task_type]
 
     @staticmethod
     def get_metrics_mapping(metric_name: Union[str, Callable]) -> Union[Metric, Callable]:
@@ -53,3 +52,21 @@ class ApiMetrics:
             # for custom metric
             return metric_name
         return ApiMetrics._metrics_dict[metric_name]
+
+    def obtain_metric(self, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]) -> Sequence[MetricType]:
+        """Chooses metric to use for quality assessment of pipeline during composition"""
+        if metrics is None:
+            metrics = MetricByTask.get_default_quality_metrics(self.task.task_type)
+
+        metric_ids = []
+        for specific_metric in ensure_wrapped_in_sequence(metrics):
+            metric = None
+            if isinstance(specific_metric, str) or isinstance(specific_metric, Callable):
+                # metric was defined by name (str) or metric is a custom function
+                metric = self.get_metrics_mapping(metric_name=specific_metric)
+            elif isinstance(specific_metric, MetricsEnum):
+                metric = specific_metric
+            if metric is None:
+                raise ValueError(f'Incorrect metric {specific_metric}')
+            metric_ids.append(metric)
+        return metric_ids

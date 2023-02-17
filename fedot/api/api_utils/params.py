@@ -24,13 +24,12 @@ from fedot.core.utilities.random import RandomStateHandler
 
 class ApiParams:
 
-    def __init__(self, input_params: Dict[str, Any], task: Task, n_jobs: int,
-                 timeout: float):
-        self.log = default_log(self)
-        self.task = task
-        self.n_jobs = n_jobs
+    def __init__(self, input_params: Dict[str, Any], task: Task, n_jobs: int, timeout: float):
+        self.log: LoggerAdapter = default_log(self)
+        self.task: Task = task
+        self.n_jobs: int = n_jobs
         self.timeout = timeout
-        self._parameters = self._set_default_params(input_params)
+        self._parameters: dict = self._set_default_params(input_params)
         self._check_timeout_vs_generations()
 
         self.composer_requirements = None
