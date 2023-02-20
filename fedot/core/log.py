@@ -73,6 +73,8 @@ class Log(metaclass=SingletonMeta):
         self.logger.setLevel(logging_level)
         for handler in self.handlers:
             handler.setLevel(logging_level)
+        for adapter in self.__log_adapters.values():
+            adapter.logging_level = logging_level
 
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages
