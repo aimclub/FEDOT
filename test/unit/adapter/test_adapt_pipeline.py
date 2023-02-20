@@ -47,22 +47,22 @@ def get_pipelines():
 
 
 def generate_so_complex_pipeline():
-    node_imp = PrimaryNode('simple_imputation')
-    node_lagged = SecondaryNode('lagged', nodes_from=[node_imp])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_ridge])
-    node_pca = SecondaryNode('pca', nodes_from=[node_decompose])
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_pca])
+    node_imp = PipelineNode('simple_imputation')
+    node_lagged = PipelineNode('lagged', nodes_from=[node_imp])
+    node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
+    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_ridge])
+    node_pca = PipelineNode('pca', nodes_from=[node_decompose])
+    node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_pca])
     pipeline = Pipeline(node_final)
     return pipeline
 
 
 def pipeline_with_custom_parameters(alpha_value):
-    node_scaling = PrimaryNode('scaling')
-    node_norm = PrimaryNode('normalization')
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_norm])
-    node_final = SecondaryNode('ridge', nodes_from=[node_dtreg, node_lasso])
+    node_scaling = PipelineNode('scaling')
+    node_norm = PipelineNode('normalization')
+    node_dtreg = PipelineNode('dtreg', nodes_from=[node_scaling])
+    node_lasso = PipelineNode('lasso', nodes_from=[node_norm])
+    node_final = PipelineNode('ridge', nodes_from=[node_dtreg, node_lasso])
     node_final.parameters = {'alpha': alpha_value}
     pipeline = Pipeline(node_final)
 
