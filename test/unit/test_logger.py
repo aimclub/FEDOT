@@ -119,3 +119,26 @@ def test_multiple_adapters_with_one_prefix():
 
     assert f'prefix_1 - {info_1}' in content
     assert f'prefix_1 - {info_2}' in content
+
+
+def test_reset_logging_level():
+    """ Checks that after resetting logging level it's also been reset in already initialized adapters. """
+    log = Log()
+    c = default_log('logger_1')
+    c.info('test_message_1')  # should be shown since logging level is info by default
+    log.reset_logging_level(50)
+
+    b = default_log('logger_2')
+    b.message('test_message_2')  # shouldn't be shown since logging level is critical now
+    c.message('test_message_3')  # shouldn't be shown since logging level is critical now
+
+    log.reset_logging_level(20)
+    b.message('test_message_4')  # should be shown since logging level is info now
+    c.message('test_message_5')   # should be shown since logging level is info now
+
+    content = ''
+    if Path(DEFAULT_LOG_PATH).exists():
+        content = Path(DEFAULT_LOG_PATH).read_text()
+
+    assert (lambda message: message in content, ['test_message_1', 'test_message_4', 'test_message_5'])
+    assert (lambda message: message not in content, ['test_message_2', 'test_message_3'])
