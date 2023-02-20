@@ -1,4 +1,4 @@
-from fedot.core.utilities.sequence_iterator import SequenceIterator, fibonacci_sequence
+from golem.core.utilities.sequence_iterator import SequenceIterator, fibonacci_sequence
 
 
 def test_iterator_without_constraints():

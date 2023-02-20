@@ -1,8 +1,8 @@
 import warnings
 from typing import Optional
 
-from fedot.core.utilities.random import RandomStateHandler
-from fedot.utilities.requirements_notificator import warn_requirement
+from golem.core.utilities.random import RandomStateHandler
+from golem.utilities.requirements_notificator import warn_requirement
 
 try:
     import cudf

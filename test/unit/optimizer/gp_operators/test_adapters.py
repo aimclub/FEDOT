@@ -1,10 +1,11 @@
 import numpy as np
+from golem.core.dag.graph_node import GraphNode
+from golem.core.optimisers.graph import OptNode
 
-from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.optimisers.graph import OptNode
 from test.unit.dag.test_graph_utils import find_first
-from test.unit.optimizer.gp_operators.test_gp_operators import pipeline_with_custom_parameters, generate_so_complex_pipeline
+from test.unit.optimizer.gp_operators.test_gp_operators import pipeline_with_custom_parameters, \
+    generate_so_complex_pipeline
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 

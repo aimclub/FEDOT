@@ -6,7 +6,6 @@ from typing import Sequence
 import numpy as np
 
 from fedot.api.main import Fedot
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings("ignore")
@@ -71,7 +70,7 @@ def test_multiobjective_improvement():
     assert complexity_improved
 
 
-def check_improvement(history: OptHistory):
+def check_improvement(history):
     first_pop = history.individuals[1]
     pareto_front = history.archive_history[-1]
 

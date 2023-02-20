@@ -1,9 +1,10 @@
 from typing import Union
 
+from golem.core.log import default_log
+from golem.core.utilities.singleton_meta import SingletonMeta
+
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
 from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
-from fedot.core.log import default_log
-from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 class BaseCache(metaclass=SingletonMeta):

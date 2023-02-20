@@ -1,6 +1,6 @@
 import warnings
 
-from fedot.utilities.requirements_notificator import warn_requirement
+from golem.utilities.requirements_notificator import warn_requirement
 
 try:
     import cudf

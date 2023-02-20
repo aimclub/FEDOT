@@ -1,8 +1,8 @@
 from uuid import UUID
 
 import pytest
+from golem.serializers import CLASS_PATH_KEY, Serializer
 
-from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from .shared_data import (

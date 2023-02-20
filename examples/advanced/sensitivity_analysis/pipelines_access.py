@@ -1,7 +1,8 @@
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -45,7 +46,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         primary=available_model_types,
         secondary=available_model_types,
     )
-    params = GPGraphOptimizerParameters(
+    params = GPAlgorithmParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state
     )
 

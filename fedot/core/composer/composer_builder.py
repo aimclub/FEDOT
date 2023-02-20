@@ -3,17 +3,19 @@ from multiprocessing import set_start_method
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Type, Union
 
+from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
+from golem.core.optimisers.optimizer import GraphOptimizer, AlgorithmParameters, GraphGenerationParams
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
-from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.optimisers.optimizer import GraphOptimizer, GraphOptimizerParameters, GraphGenerationParams
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
@@ -24,7 +26,6 @@ from fedot.core.repository.quality_metrics_repository import (
     MetricType
 )
 from fedot.core.repository.tasks import Task
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -44,7 +45,7 @@ class ComposerBuilder:
         self.metrics: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
 
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
-        self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
+        self.optimizer_parameters: Optional[AlgorithmParameters] = None
         self.optimizer_external_parameters: dict = {}
 
         self.composer_cls: Type[Composer] = GPComposer  # default composer class
@@ -70,7 +71,7 @@ class ComposerBuilder:
             self.optimizer_cls = optimizer_cls
         return self
 
-    def with_optimizer_params(self, parameters: Optional[GraphOptimizerParameters] = None,
+    def with_optimizer_params(self, parameters: Optional[AlgorithmParameters] = None,
                               external_parameters: Optional[Dict] = None,
                               dispatcher=None):
         if parameters is not None:
@@ -83,7 +84,7 @@ class ComposerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.composer_requirements = requirements
-        if self.composer_requirements.max_pipeline_fit_time:
+        if self.composer_requirements.max_graph_fit_time:
             set_multiprocess_start_method()
         return self
 
@@ -133,7 +134,7 @@ class ComposerBuilder:
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
         if not self.optimizer_parameters:
-            self.optimizer_parameters = GPGraphOptimizerParameters(multi_objective=multi_objective)
+            self.optimizer_parameters = GPAlgorithmParameters(multi_objective=multi_objective)
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()

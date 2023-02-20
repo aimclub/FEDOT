@@ -1,8 +1,8 @@
 import numpy as np
+from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     _sparse_matrix,
     prepare_target,

@@ -4,6 +4,16 @@ import os
 from itertools import chain
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
+from golem.core.log import default_log
+from golem.core.optimisers.genetic.evaluation import determine_n_jobs
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.core.optimisers.optimizer import GraphGenerationParams
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import OperationsPreset
@@ -15,14 +25,6 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
@@ -33,7 +35,6 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 
@@ -123,7 +124,7 @@ class ApiComposer:
             timeout=datetime_composing,
             early_stopping_iterations=composer_params.get('early_stopping_iterations', None),
             early_stopping_timeout=composer_params.get('early_stopping_timeout', None),
-            max_pipeline_fit_time=max_pipeline_fit_time,
+            max_graph_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             parallelization_mode=api_params['parallelization_mode'],
             static_individual_metadata={
@@ -145,12 +146,12 @@ class ApiComposer:
     @staticmethod
     def _init_optimizer_parameters(composer_params: dict,
                                    multi_objective: bool,
-                                   task_type: TaskTypesEnum) -> GPGraphOptimizerParameters:
+                                   task_type: TaskTypesEnum) -> GPAlgorithmParameters:
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        optimizer_params = GPGraphOptimizerParameters(
+        optimizer_params = GPAlgorithmParameters(
             multi_objective=multi_objective,
             pop_size=composer_params['pop_size'],
             genetic_scheme_type=genetic_scheme_type,
@@ -339,7 +340,7 @@ class ApiComposer:
             .with_metric(metric_function) \
             .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
             .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
-            .with_eval_time_constraint(composer_requirements.max_pipeline_fit_time) \
+            .with_eval_time_constraint(composer_requirements.max_graph_fit_time) \
             .with_requirements(composer_requirements) \
             .build(train_data)
 

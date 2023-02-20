@@ -4,10 +4,10 @@ from datetime import timedelta
 from typing import Callable, ClassVar
 
 import numpy as np
+from golem.core.log import default_log
+from golem.core.optimisers.objective import ObjectiveEvaluate
 from hyperopt.early_stop import no_progress_loss
 
-from fedot.core.log import default_log
-from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 

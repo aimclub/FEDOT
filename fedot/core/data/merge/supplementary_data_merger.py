@@ -1,8 +1,9 @@
 from typing import List, Dict
 
+from golem.core.log import default_log
+
 from fedot.core.data.data import OutputData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 

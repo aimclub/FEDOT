@@ -1,14 +1,15 @@
 from os import makedirs
 from os.path import exists, join
 
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
 from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
@@ -30,7 +31,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         num_of_generations=20,
     )
 
-    optimizer_parameters = GPGraphOptimizerParameters(
+    optimizer_parameters = GPAlgorithmParameters(
         pop_size=15,
         mutation_prob=0.8, crossover_prob=0.8,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

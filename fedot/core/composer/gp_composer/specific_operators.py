@@ -1,7 +1,8 @@
 from random import choice, random
 from typing import List
 
-from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
+from golem.core.optimisers.genetic.operators.mutation import Mutation
+
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger

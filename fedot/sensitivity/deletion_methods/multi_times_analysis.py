@@ -3,10 +3,10 @@ from os import makedirs
 from os.path import exists, join
 from typing import List, Optional, Type
 
+from golem.core.log import default_log
+
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeDeletionAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis

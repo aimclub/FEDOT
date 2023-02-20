@@ -1,9 +1,10 @@
 from copy import deepcopy
 from typing import Any, Optional, Dict
 
-from fedot.core.adapter import BaseOptimizationAdapter
-from fedot.core.dag.graph_utils import map_dag_nodes
-from fedot.core.optimisers.graph import OptGraph, OptNode
+from golem.core.adapter import BaseOptimizationAdapter
+from golem.core.dag.graph_utils import map_dag_nodes
+from golem.core.optimisers.graph import OptGraph, OptNode
+
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 

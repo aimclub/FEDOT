@@ -3,14 +3,15 @@ import os
 import sys
 from typing import Union
 
+from golem.core.log import default_log
+from golem.core.utilities.random import RandomStateHandler
+
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utilities.random import RandomStateHandler
 from fedot.remote.pipeline_run_config import PipelineRunConfig
 
 

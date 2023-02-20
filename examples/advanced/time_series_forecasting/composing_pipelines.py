@@ -3,6 +3,9 @@ from typing import Any, List
 
 import numpy as np
 import pandas as pd
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
@@ -11,9 +14,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
@@ -97,7 +97,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
         cv_folds=2,
         validation_blocks=2
     )
-    optimizer_parameters = GPGraphOptimizerParameters(
+    optimizer_parameters = GPAlgorithmParameters(
         pop_size=10,
         crossover_prob=0.8, mutation_prob=0.8,
         mutation_types=[parameter_change_mutation,

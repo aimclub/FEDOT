@@ -2,10 +2,10 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
+from golem.core.log import default_log
 from sklearn.utils import resample
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )

@@ -2,10 +2,10 @@ import os
 import random
 
 import numpy as np
+from golem.utilities.profiler.memory_profiler import MemoryProfiler
+from golem.utilities.profiler.time_profiler import TimeProfiler
 
 from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem, get_scoring_data
-from fedot.utilities.profiler.memory_profiler import MemoryProfiler
-from fedot.utilities.profiler.time_profiler import TimeProfiler
 
 random.seed(1)
 np.random.seed(1)

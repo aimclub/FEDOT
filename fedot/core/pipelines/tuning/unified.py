@@ -2,9 +2,9 @@ import logging
 from functools import partial
 from typing import Optional, Tuple
 
+from golem.core.optimisers.timer import Timer
 from hyperopt import Trials, fmin, space_eval
 
-from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import convert_params, get_node_operation_parameter_label
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner

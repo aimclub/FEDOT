@@ -5,13 +5,13 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+from golem.core.log import default_log
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
-from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
 

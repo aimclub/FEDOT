@@ -1,8 +1,7 @@
 import os
 
 import numpy as np
-
-from fedot.utilities.requirements_notificator import warn_requirement
+from golem.utilities.requirements_notificator import warn_requirement
 
 try:
     import tensorflow as tf

@@ -1,13 +1,14 @@
 from functools import partial
 from random import randint
 
-from fedot.core.optimisers.fitness.fitness import SingleObjFitness
-from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection, random_selection
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.fitness.fitness import SingleObjFitness
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum, Selection, random_selection
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.opt_history_objects.individual import Individual
+
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
+
 
 class RandomMetric:
     @staticmethod
@@ -20,7 +21,7 @@ def rand_population_gener_and_eval(pop_size=4):
     requirements = PipelineComposerRequirements(primary=models_set,
                                                 secondary=models_set, max_depth=1)
     pipeline_gener_params = get_pipeline_generation_params(requirements=requirements)
-    random_pipeline_function = partial(random_graph, pipeline_gener_params, requirements)
+    random_pipeline_function = partial(pipeline_gener_params.random_graph_factory, requirements)
     population = []
     while len(population) != pop_size:
         # to ensure uniqueness
@@ -42,7 +43,7 @@ def obj_function() -> float:
 def test_tournament_selection():
     num_of_inds = 40
     population = rand_population_gener_and_eval(pop_size=50)
-    requirements = GPGraphOptimizerParameters(selection_types=[SelectionTypesEnum.tournament], pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=[SelectionTypesEnum.tournament], pop_size=num_of_inds)
     selection = Selection(requirements)
     selected_individuals = selection(population)
     assert (all([ind in population for ind in selected_individuals]) and
@@ -61,7 +62,7 @@ def test_individuals_selection_random_individuals():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
     types = [SelectionTypesEnum.tournament]
-    requirements = GPGraphOptimizerParameters(selection_types=types, pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=types, pop_size=num_of_inds)
     selection = Selection(requirements)
     selected_individuals = selection.individuals_selection(individuals=population)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
@@ -73,7 +74,7 @@ def test_individuals_selection_equality_individuals():
     num_of_inds = 4
     population = rand_population_gener_and_eval(pop_size=1)
     types = [SelectionTypesEnum.tournament]
-    requirements = GPGraphOptimizerParameters(selection_types=types, pop_size=num_of_inds)
+    requirements = GPAlgorithmParameters(selection_types=types, pop_size=num_of_inds)
     population = [population[0] for _ in range(4)]
     selection = Selection(requirements)
     selected_individuals = selection.individuals_selection(individuals=population)

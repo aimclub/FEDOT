@@ -1,7 +1,8 @@
 from typing import List
 
-from fedot.core.optimisers.advisor import DefaultChangeAdvisor, RemoveType
-from fedot.core.optimisers.graph import OptNode
+from golem.core.optimisers.advisor import DefaultChangeAdvisor, RemoveType
+from golem.core.optimisers.graph import OptNode
+
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 

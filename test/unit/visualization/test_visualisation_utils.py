@@ -1,12 +1,13 @@
-from fedot.core.dag.graph_utils import distance_to_primary_level
-from fedot.core.dag.convert import graph_structure_as_nx_graph
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
-from fedot.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.dag.graph_utils import distance_to_primary_level
+from golem.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.visualisation.graph_viz import get_hierarchy_pos
+from golem.visualisation.opt_viz_extra import extract_objectives
+
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.visualisation.graph_viz import get_hierarchy_pos
-from fedot.core.visualisation.opt_viz_extra import extract_objectives
 
 
 def pipeline_first():  # tested pipeline

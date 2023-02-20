@@ -2,13 +2,11 @@ import json
 from copy import deepcopy
 from itertools import product
 
-import numpy as np
 import pytest
-
-from fedot.core.optimisers.fitness.fitness import *
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
-from fedot.core.optimisers.objective.objective import to_fitness
-from fedot.core.serializers import Serializer
+from golem.core.optimisers.fitness.fitness import *
+from golem.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from golem.core.optimisers.objective.objective import to_fitness
+from golem.serializers import Serializer
 
 
 def get_fitness_objects():

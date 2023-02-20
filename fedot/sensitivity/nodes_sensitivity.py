@@ -3,11 +3,11 @@ from os.path import join
 from typing import List, Optional, Type, Sequence
 
 import numpy as np
+from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.log import default_log
 from matplotlib import pyplot as plt
 
-from fedot.core.dag.convert import graph_structure_as_nx_graph
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir

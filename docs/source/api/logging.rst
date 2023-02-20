@@ -1,6 +1,6 @@
 Logging
 =======
 
-.. automodule:: fedot.core.log
+.. automodule:: golem.core.log
    :members:
    :no-undoc-members:

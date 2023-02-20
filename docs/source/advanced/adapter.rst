@@ -33,9 +33,9 @@ Framework users need to explicitly use the Adapter subsystem in two cases:
 
 * When they instantiate the framework for the new problem domain.
 
-  In this case they must implement their own Adapter, inheriting from the base Adapter (see :py:class:`fedot.core.adapter.adapter.BaseOptimizationAdapter`).
+  In this case they must implement their own Adapter, inheriting from the base Adapter (see :py:class:`golem.core.adapter.adapter.BaseOptimizationAdapter`).
 
 * When they define custom rules or operators *that work on internal optimization graphs*.
 
-  These can be graph verification rules (see :py:class:`fedot.core.dag.graph_verifier.GraphVerifier` class) or custom operators for the evolutionary optimizer. This use-case is less common, because external users usually define rules or operators that work with the domain graphs.
+  These can be graph verification rules (see :py:class:`golem.core.dag.graph_verifier.GraphVerifier` class) or custom operators for the evolutionary optimizer. This use-case is less common, because external users usually define rules or operators that work with the domain graphs.
   In this case users should mark these functions with ``@register_native`` decorator. This decorator tells the Adapter that the decorated function works directly on optimization graphs and does not require transformation of its arguments and/or return values.

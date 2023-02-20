@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
+from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
+from golem.core.dag.linked_graph_node import LinkedGraphNode
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy, distance_to_primary_level
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.model import Model

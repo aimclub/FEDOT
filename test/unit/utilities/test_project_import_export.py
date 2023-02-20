@@ -47,8 +47,9 @@ def test_export_project_correctly():
     assert path_to_zip.exists()
 
     with zipfile.ZipFile(path_to_zip) as zip_object:
-        assert {file.filename for file in zip_object.infolist()} == \
-               {LOG_NAME, 'train_data.csv', 'pipeline/', 'pipeline/pipeline.json', 'test_data.csv'}
+        actual = {file.filename for file in zip_object.infolist()}
+        expected = {LOG_NAME, 'train_data.csv', 'pipeline/', 'pipeline/pipeline.json', 'test_data.csv'}
+        assert actual == expected
 
 
 def test_import_project_correctly():

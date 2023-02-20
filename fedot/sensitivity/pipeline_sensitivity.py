@@ -2,8 +2,9 @@ import json
 from os.path import join
 from typing import List, Optional, Type
 
+from golem.core.log import default_log
+
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze

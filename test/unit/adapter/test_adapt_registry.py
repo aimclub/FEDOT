@@ -3,10 +3,10 @@ from functools import partial
 from typing import Tuple, Callable
 
 import pytest
+from golem.core.adapter import AdaptRegistry, register_native
+from golem.core.optimisers.fitness import Fitness, SingleObjFitness
+from golem.core.optimisers.graph import OptGraph, OptNode
 
-from fedot.core.adapter import AdaptRegistry, register_native
-from fedot.core.optimisers.fitness import Fitness, SingleObjFitness
-from fedot.core.optimisers.graph import OptGraph, OptNode
 from test.unit.adapter.mock_adapter import MockAdapter, MockDomainStructure
 from test.unit.dag.test_graph_utils import graphs_same
 

@@ -1,6 +1,6 @@
 Optimizations
 =============
 
-.. automodule:: fedot.core.optimisers.graph
+.. automodule:: golem.core.optimisers.graph
    :members:
    :no-undoc-members:

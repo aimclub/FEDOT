@@ -2,16 +2,15 @@ import random
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
+from golem.core.log import Log, LoggerAdapter, default_log
+from golem.core.utilities.random import RandomStateHandler
 
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log, default_log
-from fedot.core.log import LoggerAdapter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
-from fedot.core.utilities.random import RandomStateHandler
 
 
 class ApiParams:

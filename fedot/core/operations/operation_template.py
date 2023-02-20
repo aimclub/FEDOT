@@ -5,8 +5,8 @@ from typing import Any, Optional, Union
 
 import joblib
 import numpy as np
+from golem.core.log import default_log
 
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import PipelineNode
 
 

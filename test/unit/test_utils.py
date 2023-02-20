@@ -5,8 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save_file_to_csv
 
 

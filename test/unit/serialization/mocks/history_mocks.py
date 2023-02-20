@@ -1,7 +1,7 @@
 from typing import Union, List, Sequence
 
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
+from golem.core.dag.graph import Graph
+from golem.core.dag.graph_node import GraphNode
 
 
 class CustomMockNode(GraphNode):
@@ -9,6 +9,10 @@ class CustomMockNode(GraphNode):
         self._content = content
         self._nodes_from = nodes_from or []
         super().__init__()
+
+    @property
+    def name(self) -> str:
+        return 'mock_node'
 
     @property
     def nodes_from(self):

@@ -1,6 +1,6 @@
 Graph
 =====
 
-.. autoclass:: fedot.core.dag.graph.Graph
+.. autoclass:: golem.core.dag.graph.Graph
    :members:
    :no-undoc-members:

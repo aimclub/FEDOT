@@ -8,12 +8,13 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
+
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -50,7 +51,7 @@ def run_single(train_data,
         early_stopping_iterations=None,
         n_jobs=-1,
     )
-    gp_params = GPGraphOptimizerParameters(
+    gp_params = GPAlgorithmParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.generational,
         mutation_types=mutation_types,
         crossover_types=crossover_types,

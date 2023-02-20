@@ -1,8 +1,11 @@
 import multiprocessing
+import os
 import sqlite3
 from functools import partial
 from pathlib import Path
 from typing import Callable
+
+import psutil
 
 from examples.simple.classification.api_classification import run_classification_example
 from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
@@ -22,11 +25,23 @@ def run_example(target: Callable):
     target()
 
 
+def get_unused_pid() -> int:
+    busy_pids = set(psutil.pids())
+    for test_pid in range(1, 10000):
+        if test_pid not in busy_pids:
+            return test_pid
+    return -1
+
+
 def test_parallel_cache_files():
-    test_file_1 = Path(default_fedot_data_dir(), 'cache_1.operations_db')
+    # all files cache files in test dir must be removed
+    # if `cache_folder` api param wasn't specified explicitly
+    unused_test_pid = get_unused_pid()
+    test_file_1 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.operations_db')
     test_file_1.touch()
-    test_file_2 = Path(default_fedot_data_dir(), 'cache_2.preprocessors_db')
+    test_file_2 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.preprocessors_db')
     test_file_2.touch()
+
     tasks = [
         partial(run_regression_example, with_tuning=False),
         partial(run_classification_example, timeout=2., with_tuning=False),

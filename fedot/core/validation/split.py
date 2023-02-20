@@ -1,12 +1,12 @@
 from typing import Iterator, Optional, Tuple, Type
 
 import numpy as np
+from golem.core.log import LoggerAdapter, default_log
 from sklearn.model_selection import KFold, TimeSeriesSplit
 from sklearn.model_selection._split import _BaseKFold
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 

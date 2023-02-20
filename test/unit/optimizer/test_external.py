@@ -1,16 +1,17 @@
 import logging
-from typing import Any, Optional, Union, Sequence
+from typing import Optional, Union, Sequence
 
 import pytest
+from golem.core.dag.graph import Graph
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.objective.objective import Objective, ObjectiveFunction
+from golem.core.optimisers.optimization_parameters import OptimizationParameters
+from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, AlgorithmParameters
 
 from fedot.api.main import Fedot
-from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -24,9 +25,9 @@ class StaticOptimizer(GraphOptimizer):
     def __init__(self,
                  objective: Objective,
                  initial_graph: Union[Graph, Sequence[Graph]] = (),
-                 requirements: Optional[Any] = None,
+                 requirements: Optional[OptimizationParameters] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None,
+                 graph_optimizer_parameters: Optional[AlgorithmParameters] = None,
                  **kwargs):
         super().__init__(objective, initial_graph, requirements,
                          graph_generation_params, graph_optimizer_parameters)

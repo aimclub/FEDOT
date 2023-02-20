@@ -3,17 +3,17 @@ from datetime import timedelta
 from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
+from golem.core.log import default_log
+from golem.core.optimisers.fitness import Fitness
+from golem.core.optimisers.objective.objective import Objective, to_fitness
+from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.operations.model import Model
-from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
-from .objective import Objective, to_fitness
-from .objective_eval import ObjectiveEvaluate
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 

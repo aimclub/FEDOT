@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Callable, Union, Tuple
 
 import pytest
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.main import Fedot
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.repository.tasks import TsForecastingParams
 from test.unit.api.test_main_api import get_dataset
 
@@ -21,15 +21,15 @@ class TimeoutParams:
 TIMEOUT_CASES = [
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 3
+        test_answer=lambda hist: len(hist.individuals) == 1 + 2  # num of gens + initial and final gens
     ),
     TimeoutParams(
         test_input={'timeout': None, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 3
+        test_answer=lambda hist: len(hist.individuals) == 1 + 2
     ),
     TimeoutParams(
         test_input={'timeout': 0.1, 'num_of_generations': 15},
-        test_answer=lambda hist: len(hist.individuals) < 15
+        test_answer=lambda hist: len(hist.individuals) < 15 + 2
     ),
     TimeoutParams(
         test_input={'timeout': -2, 'num_of_generations': 15},
@@ -37,7 +37,7 @@ TIMEOUT_CASES = [
     ),
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 3},
-        test_answer=lambda hist: len(hist.individuals) == 5
+        test_answer=lambda hist: len(hist.individuals) == 3 + 2
     )
 ]
 

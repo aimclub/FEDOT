@@ -1,10 +1,10 @@
 from typing import Union, TYPE_CHECKING
 
 import numpy as np
+from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from .base_preprocessing import BasePreprocessor
 
 if TYPE_CHECKING:

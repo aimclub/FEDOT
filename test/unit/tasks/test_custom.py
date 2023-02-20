@@ -1,22 +1,25 @@
 import random
 
 import numpy as np
+from golem.core.adapter import DirectAdapter
+from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.dag.graph_delegate import GraphDelegate
+from golem.core.dag.linked_graph_node import LinkedGraphNode
+from golem.core.dag.verification_rules import has_no_self_cycled_nodes
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from golem.core.optimisers.genetic.operators.regularization import RegularizationTypesEnum
+from golem.core.optimisers.opt_node_factory import DefaultOptNodeFactory
+from golem.core.optimisers.optimization_parameters import GraphRequirements
 
-from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
-from fedot.core.adapter import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
-from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.dag.convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
+from golem.core.optimisers.objective.objective import Objective
+from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from golem.core.optimisers.optimizer import GraphGenerationParams
+
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 random.seed(1)
@@ -47,13 +50,11 @@ def test_custom_graph_opt():
     nodes_types = ['A', 'B', 'C', 'D']
     rules = [has_no_self_cycled_nodes]
 
-    requirements = PipelineComposerRequirements(
-        primary=nodes_types,
-        secondary=nodes_types,
+    requirements = GraphRequirements(
         num_of_generations=5,
         show_progress=False)
 
-    optimiser_parameters = GPGraphOptimizerParameters(
+    optimiser_parameters = GPAlgorithmParameters(
         pop_size=5,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[
@@ -66,7 +67,7 @@ def test_custom_graph_opt():
     graph_generation_params = GraphGenerationParams(
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules,
-        node_factory=PipelineOptNodeFactory(requirements=requirements))
+        node_factory=DefaultOptNodeFactory(available_node_types=nodes_types))
 
     objective = Objective({'custom': custom_metric})
     init_population = InitialPopulationGenerator(optimiser_parameters.pop_size,

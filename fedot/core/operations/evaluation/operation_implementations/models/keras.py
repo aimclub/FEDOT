@@ -3,9 +3,9 @@ import os
 from typing import Optional
 
 import numpy as np
+from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import tensorflow as tf
@@ -14,7 +14,7 @@ except ModuleNotFoundError:
     tf = None
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import LoggerAdapter, default_log
+from golem.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from sklearn import preprocessing
 

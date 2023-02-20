@@ -1,30 +1,13 @@
 import os
 import platform
 import tempfile
-
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 import pandas as pd
-
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
-
-
-def copy_doc(source_func: Callable) -> Callable:
-    """
-    Copies a docstring from the provided ``source_func`` to the wrapped function
-
-    :param source_func: function to copy the docstring from
-
-    :return: wrapped function with the same docstring as in the given ``source_func``
-    """
-    def wrapper(func: Callable) -> Callable:
-        func.__doc__ = source_func.__doc__
-        return func
-    return wrapper
 
 
 def fedot_project_root() -> Path:

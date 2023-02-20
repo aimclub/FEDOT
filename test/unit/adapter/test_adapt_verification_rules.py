@@ -1,9 +1,9 @@
 import pytest
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 
-from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.pipelines.verification_rules import *
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.verification_rules import *
 
 SOME_PIPELINE_RULES = (
     has_correct_operations_for_task,

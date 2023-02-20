@@ -1,8 +1,9 @@
 from copy import copy
-from typing import Optional, Dict, Any
+from typing import Optional
 
 import numpy as np
 import sklearn
+from golem.core.log import default_log
 from pkg_resources import parse_version
 from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression, RANSACRegressor
@@ -11,7 +12,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )

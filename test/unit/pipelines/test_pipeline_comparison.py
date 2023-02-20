@@ -2,8 +2,8 @@ import itertools
 from copy import deepcopy
 
 import pytest
+from golem.core.optimisers.genetic.gp_operators import equivalent_subtree
 
-from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
