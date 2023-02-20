@@ -1,6 +1,6 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
 
 import numpy as np
 import pandas as pd
@@ -213,13 +213,13 @@ class Fedot:
         return self.current_pipeline
 
     def tune(self,
-             input_data: InputData = None,
-             metric_name: str = None,
+             input_data: Optional[InputData] = None,
+             metric_name: Optional[Union[str, Callable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
-             cv_folds: int = None,
-             validation_blocks: int = None,
-             n_jobs: int = None,
+             cv_folds: Optional[int] = None,
+             validation_blocks: Optional[int] = None,
+             n_jobs: Optional[int] = None,
              show_progress: bool = False) -> Pipeline:
         """Method for hyperparameters tuning of current pipeline
 
@@ -241,17 +241,21 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         input_data = input_data or self.train_data
-        metric_name = metric_name or self.metrics.metric_functions[0]
         cv_folds = cv_folds or self.params.get('cv_folds')
         validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
+
+        if metric_name:
+            metric = self.metrics.get_metrics_mapping(metric_name)
+        else:
+            metric = self.metrics.metric_functions[0]
 
         pipeline_tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \
             .with_cv_folds(cv_folds) \
             .with_validation_blocks(validation_blocks) \
             .with_n_jobs(n_jobs) \
-            .with_metric(self.metrics.get_metrics_mapping(metric_name)) \
+            .with_metric(metric) \
             .with_iterations(iterations) \
             .with_timeout(timeout) \
             .build(input_data)
