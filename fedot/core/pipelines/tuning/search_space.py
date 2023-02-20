@@ -152,10 +152,8 @@ class SearchSpace:
                 }
 
             ]])},
-            'clstm': {
-                'window_size': (hp.uniform, [1, 200]),
+            'cgru': {
                 'hidden_size': (hp.uniform, [20, 200]),
-                'teacher_forcing': (hp.uniform, [0, 1]),
                 'learning_rate': (hp.uniform, [0.0005, 0.005]),
                 'cnn1_kernel_size': (hp.uniformint, [3, 8]),
                 'cnn1_output_size': (hp.choice, [[8, 16, 32, 64]]),
@@ -163,7 +161,7 @@ class SearchSpace:
                 'cnn2_output_size': (hp.choice, [[8, 16, 32, 64]]),
                 'batch_size': (hp.choice, [[64, 128]]),
                 'num_epochs': (hp.choice, [[10, 20, 50, 100]]),
-                'optimizer': (hp.choice, [['adam', 'sgd']]),
+                'optimizer': (hp.choice, [['adamw', 'sgd']]),
                 'loss': (hp.choice, [['mae', 'mse']])
             },
             'pca': {

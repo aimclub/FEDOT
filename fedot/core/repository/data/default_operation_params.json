@@ -85,18 +85,16 @@
     "max_trials": 100,
     "max_skips": 1000
   },
-  "clstm": {
-    "window_size": 24,
+  "cgru": {
     "hidden_size": 200,
     "learning_rate": 0.001,
     "cnn1_kernel_size": 5,
-    "cnn1_output_size": 16,
-    "cnn2_kernel_size": 3,
-    "cnn2_output_size": 32,
+    "cnn1_output_size": 32,
+    "cnn2_kernel_size": 5,
+    "cnn2_output_size": 64,
     "batch_size": 64,
-    "num_epochs": 10,
-    "teacher_forcing": 0.8,
-    "optimizer": "adam",
+    "num_epochs": 50,
+    "optimizer": "adamw",
     "loss": "mse"
   },
   "h2o_regr": {

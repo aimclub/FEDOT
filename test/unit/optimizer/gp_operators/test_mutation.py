@@ -70,7 +70,8 @@ def get_ts_forecasting_graph() -> OptGraph:
     """
     Returns simple linear graph for ts forecasting
     """
-    pipeline = PipelineBuilder().add_node('smoothing').add_node('clstm').build()
+    pipeline = PipelineBuilder().add_node('smoothing').add_node('ar').build()
+
     return PipelineAdapter().adapt(pipeline)
 
 
@@ -79,7 +80,7 @@ def get_ts_forecasting_graph_with_boosting() -> Pipeline:
     Returns simple linear graph for ts forecasting with boosting
     """
     node_init = PipelineNode('smoothing')
-    node_model = PipelineNode('clstm', nodes_from=[node_init])
+    node_model = PipelineNode('ar', nodes_from=[node_init])
     node_lagged = PipelineNode('lagged', nodes_from=[node_init])
     node_decompose = PipelineNode('decompose',
                                    [node_model, node_lagged])

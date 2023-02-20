@@ -86,13 +86,9 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
-
         if len(ids_to_process) > 0:
             features_to_process = np.array(features[:, ids_to_process])
             self.operation.fit(features_to_process)
-        else:
-            pass
-
         return self.operation
 
     def transform(self, input_data: InputData) -> OutputData:

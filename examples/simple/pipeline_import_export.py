@@ -19,7 +19,6 @@ def create_correct_path(path: str, dirname_flag: bool = False):
     for dirname in next(os.walk(os.path.curdir))[1]:
         if dirname.endswith(path):
             if dirname_flag:
-
                 last_el = dirname
             else:
                 file = os.path.join(dirname, path + '.json')

@@ -44,7 +44,7 @@ def _load_data(config):
     return train_data
 
 
-def fit_pipeline(config_file: Union[str, bytes]) -> bool:
+def fit_pipeline(config_file: Union[str, bytes], save_pipeline: bool = True) -> bool:
     logger = default_log(prefix='pipeline_fitting_logger')
 
     config = \
@@ -75,8 +75,9 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
         test_data = InputData.from_csv(config.test_data_path)
         pipeline.predict(test_data)
 
-    pipeline.save(path=os.path.join(config.output_path, 'fitted_pipeline'), create_subdir=False,
-                  is_datetime_in_path=False)
+    if save_pipeline:
+        pipeline.save(path=os.path.join(config.output_path, 'fitted_pipeline'), create_subdir=False,
+                      is_datetime_in_path=False)
 
     return True
 

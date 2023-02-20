@@ -29,11 +29,11 @@ def ts_ets_ridge_pipeline():
 
     Where cut - cut part of dataset, ets - exponential smoothing
    """
-    pip_builder = PipelineBuilder()\
+    pip_builder = PipelineBuilder() \
         .add_sequence(('cut', {'cut_part': 0.5}),
                       ('ets', {'error': 'add', 'trend': 'add', 'seasonal': 'add',
                                'damped_trend': False, 'seasonal_periods': 20}),
-                      branch_idx=0)\
+                      branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
     pipeline = pip_builder.build()
@@ -242,24 +242,19 @@ def ts_naive_average_ridge_pipeline():
     return pipeline
 
 
-def clstm_pipeline():
+def cgru_pipeline(window_size=200):
     """
     Return pipeline with the following structure:
 
-    .. image:: img_ts_pipelines/clstm_pipeline.png
+    .. image:: img_ts_pipelines/cgru_pipeline.png
       :width: 55%
 
-    Where clstm - convolutional long short-term memory model
+    Where cgru - convolutional long short-term memory model
     """
-    clstm_params = {'window_size': 29, 'hidden_size': 50, 'learning_rate': 0.004,
-                    'cnn1_kernel_size': 5, 'cnn1_output_size': 32,
-                    'cnn2_kernel_size': 4, 'cnn2_output_size': 32,
-                    'batch_size': 64, 'num_epochs': 3, 'teacher_forcing': 0.8,
-                    'optimizer': 'adam', 'loss': 'mse'}
 
     pip_builder = PipelineBuilder() \
         .add_sequence('lagged', 'ridge', branch_idx=0) \
-        .add_sequence(('clstm', clstm_params), branch_idx=1) \
+        .add_sequence(('lagged', {'window_size': window_size}), 'cgru', branch_idx=1) \
         .join_branches('ridge')
 
     pipeline = pip_builder.build()

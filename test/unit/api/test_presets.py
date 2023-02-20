@@ -89,7 +89,7 @@ def test_presets_inserting_in_params_correct():
 
 def test_auto_preset_converted_correctly():
     """ Checks that the proposed method of automatic preset detection correctly converts a preset """
-    tiny_timeout_value = 0.005
+    tiny_timeout_value = 0.001
     large_pop_size = 500
     data = data_with_binary_features_and_categorical_target()
 

@@ -13,8 +13,8 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
     ARIMAImplementation, STLForecastARIMAImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.clstm import \
-    CLSTMImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.cgru import \
+    CGRUImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -37,7 +37,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'ar': AutoRegImplementation,
         'stl_arima': STLForecastARIMAImplementation,
         'ets': ExpSmoothingImplementation,
-        'clstm': CLSTMImplementation,
+        'cgru': CGRUImplementation,
         'polyfit': PolyfitImplementation,
         'glm': GLMImplementation,
         'locf': RepeatLastValueImplementation,
