@@ -12,7 +12,7 @@ The framework includes the following components:
 
 Setup of the framework for the problem domain (e.g. domain of AutoML is realized by FEDOT) requires specification of the following domain specific components:
 
-* Graph Adapter (see page on :doc:`adapter`).
+* Graph Adapter.
 * Verification rules for the Graph Verifier.
 * Domain-specific operators, that transform graphs during optimization (e.g. evolutionary operators).
 * Domain-specific operations, that constitute the graph (e.g. ML operations for AutoML domain in FEDOT, or data variables for Bayesian networks learning in BAMT).

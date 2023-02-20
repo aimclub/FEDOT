@@ -5,7 +5,6 @@ Advanced usage
    :maxdepth: 1
 
    architecture
-   adapter
    automated_pipelines_design
    hyperparameters_tuning
    data_preprocessing
