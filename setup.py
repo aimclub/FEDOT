@@ -13,7 +13,7 @@ AUTHOR = 'NSS Lab'
 SHORT_DESCRIPTION = 'Automated machine learning framework for composite pipelines'
 README = Path(HERE, 'README_en.rst').read_text(encoding='utf-8')
 URL = 'https://github.com/nccr-itmo/FEDOT'
-REQUIRES_PYTHON = '>=3.7'
+REQUIRES_PYTHON = '>=3.8'
 LICENSE = 'BSD 3-Clause'
 
 
@@ -52,8 +52,8 @@ setuptools.setup(
     },
     classifiers=[
         'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9'
+        'Programming Language :: Python :: 3.10'
     ],
 )
