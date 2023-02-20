@@ -1,11 +1,10 @@
 import numpy as np
-from torch.optim.lr_scheduler import MultiStepLR
+from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.utilities.requirements_notificator import warn_requirement
 
 
 class TorchMock:
@@ -16,6 +15,7 @@ try:
     import torch
     import torch.nn as nn
 
+    from torch.optim.lr_scheduler import MultiStepLR
     from torch.utils.data import DataLoader, TensorDataset
 except ModuleNotFoundError:
     warn_requirement('torch')
