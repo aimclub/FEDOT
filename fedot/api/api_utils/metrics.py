@@ -41,7 +41,7 @@ class ApiMetrics:
 
     def __init__(self, task: Task, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]):
         self.task: Task = task
-        self.metric_functions: Sequence[MetricType] = self.obtain_metric(metrics)
+        self.metric_functions: Sequence[MetricType] = self.obtain_metrics(metrics)
 
     @property
     def metric_names(self):
@@ -57,7 +57,7 @@ class ApiMetrics:
             return metric_name
         return ApiMetrics._metrics_dict[metric_name]
 
-    def obtain_metric(self, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]) -> Sequence[MetricType]:
+    def obtain_metrics(self, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
         if metrics is None:
             metrics = MetricByTask.get_default_quality_metrics(self.task.task_type)

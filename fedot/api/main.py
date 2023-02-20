@@ -22,6 +22,8 @@ from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITE
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -245,10 +247,7 @@ class Fedot:
         validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
 
-        if metric_name:
-            metric = self.metrics.get_metrics_mapping(metric_name)
-        else:
-            metric = self.metrics.metric_functions[0]
+        metric = self.metrics.get_metrics_mapping(metric_name) if metric_name else self.metrics.metric_functions
 
         pipeline_tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \
@@ -445,8 +444,8 @@ class Fedot:
         Returns:
             the values of quality metrics
         """
-        if metric_names is None:
-            metric_names = self.metrics.get_problem_metrics()
+        if self.current_pipeline is None:
+            raise ValueError(NOT_FITTED_ERR_MSG)
 
         if target is not None:
             if self.test_data is None:
@@ -458,36 +457,30 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        metric_names = ensure_wrapped_in_sequence(metric_names)
+        if metric_names:
+            metrics = self.metrics.obtain_metrics(metric_names)
+            metric_names = [str(metric_name) for metric_name in metric_names]
+        else:
+            metrics = self.metrics.metric_functions
+            metric_names = self.metrics.metric_names
 
-        calculated_metrics = dict()
-        for metric_name in metric_names:
-            if self.metrics.get_metrics_mapping(metric_name) is NotImplemented:
-                self.log.warning(f'{metric_name} is not available as metric')
-            else:
-                composer_metric = self.metrics.get_metrics_mapping(metric_name)
-                metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
-                prediction = deepcopy(self.prediction)
-                if metric_name == "roc_auc":  # for roc-auc we need probabilities
-                    prediction.predict = self.predict_proba(self.test_data)
-                else:
-                    if in_sample is not None:
-                        self._is_in_sample_prediction = in_sample
-                    prediction.predict = self.predict(self.test_data, in_sample=self._is_in_sample_prediction,
-                                                      validation_blocks=validation_blocks)
-                real = deepcopy(self.test_data)
+        in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 
-                # Work inplace - correct predictions
-                self.data_processor.correct_predictions(real=real,
-                                                        prediction=prediction)
+        if in_sample:
+            validation_blocks = validation_blocks or self.params.get('validation_blocks')
+        else:
+            validation_blocks = None
 
-                real.target = np.ravel(real.target)
+        objective = MetricsObjective(metrics, is_multi_objective=True)
+        obj_eval = PipelineObjectiveEvaluate(objective=objective,
+                                             data_producer=lambda: (yield self.train_data, self.test_data),
+                                             validation_blocks=validation_blocks, eval_n_jobs=self.params.n_jobs,
+                                             do_unfit=False)
 
-                metric_value = abs(metric_cls.metric(reference=real,
-                                                     predicted=prediction))
-                calculated_metrics[metric_name] = round(metric_value, 3)
+        metrics = obj_eval.evaluate(self.current_pipeline).getValues()
+        metrics = {metric_name: round(abs(metric), 3) for (metric_name, metric) in zip(metric_names, metrics)}
 
-        return calculated_metrics
+        return metrics
 
     def save_predict(self, predicted_data: OutputData):
         # TODO unify with OutputData.save_to_csv()
