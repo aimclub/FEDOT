@@ -1,17 +1,17 @@
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from golem.core.optimisers.graph import OptNode
 
 
 def get_pipeline() -> Pipeline:
-    third_level_one = PrimaryNode('lda')
+    third_level_one = PipelineNode('lda')
 
-    second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
-    second_level_two = PrimaryNode('qda')
+    second_level_one = PipelineNode('qda', nodes_from=[third_level_one])
+    second_level_two = PipelineNode('qda')
 
-    first_level_one = SecondaryNode('knn', nodes_from=[second_level_one, second_level_two])
+    first_level_one = PipelineNode('knn', nodes_from=[second_level_one, second_level_two])
 
-    root = SecondaryNode(operation_type='logit', nodes_from=[first_level_one])
+    root = PipelineNode(operation_type='logit', nodes_from=[first_level_one])
     pipeline = Pipeline(root)
 
     return pipeline
@@ -34,7 +34,7 @@ def test_postproc_nodes():
     pipeline.connect_nodes(lda_node, qda_node)
 
     for node in pipeline.nodes:
-        assert(isinstance(node, PrimaryNode) or isinstance(node, SecondaryNode))
+        assert isinstance(node, PipelineNode)
 
 
 def test_postproc_opt_nodes():
