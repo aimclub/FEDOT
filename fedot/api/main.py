@@ -247,7 +247,7 @@ class Fedot:
         validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
 
-        metric = self.metrics.get_metrics_mapping(metric_name) if metric_name else self.metrics.metric_functions
+        metric = self.metrics.get_metrics_mapping(metric_name) if metric_name else self.metrics.metric_functions[0]
 
         pipeline_tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \
