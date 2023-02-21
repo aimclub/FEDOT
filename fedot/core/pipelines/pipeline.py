@@ -7,7 +7,7 @@ import func_timeout
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.graph_node import GraphNode
-from golem.core.dag.graph_utils import distance_to_primary_level
+from golem.core.dag.graph_utils import distance_to_primary_level, graph_structure
 from golem.core.dag.linked_graph import LinkedGraph
 from golem.core.log import default_log
 from golem.core.optimisers.timer import Timer
@@ -376,7 +376,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         print(
             'Pipeline structure:',
-            self.structure,
+            graph_structure(self),
             sep='\n'
         )
 
