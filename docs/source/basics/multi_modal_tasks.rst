@@ -81,9 +81,13 @@ The ``get_metrics()`` method estimates the quality of predictions according the 
 
     prediction = model.get_metrics()
 
-Example
+Examples
 ~~~~~~~~
 
-More details you can find in the following link:
+Tutorial on using FEDOT for multimodal data classification:
+
+* `Multimodal data classification notebook <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/7_multimodal_data.ipynb>`_
+
+Example of using FEDOT for multimodal data classification on Wine Reviews dataset:
 
 * `Multimodal wine data classification <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multimodal_text_num_example.py>`_
