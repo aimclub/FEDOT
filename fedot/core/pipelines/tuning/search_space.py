@@ -49,7 +49,8 @@ class PipelineSearchSpace(SearchSpace):
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 10]),
                 'min_samples_leaf': (hp.uniformint, [1, 15]),
-                'bootstrap': (hp.choice, [[True, False]])
+                'bootstrap': (hp.choice, [[True, False]]),
+                'max_depth': (hp.uniformint, [1, 8])
             },
             'lasso': {
                 'alpha': (hp.uniform, [0.01, 10.0])
@@ -62,7 +63,8 @@ class PipelineSearchSpace(SearchSpace):
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21]),
-                'bootstrap': (hp.choice, [[True, False]])
+                'bootstrap': (hp.choice, [[True, False]]),
+                'max_depth': (hp.uniformint, [1, 8])
             },
             'xgbreg': {
 
@@ -86,7 +88,7 @@ class PipelineSearchSpace(SearchSpace):
                 'epsilon': (hp.uniform, [1e-4, 1.0])
             },
             'dtreg': {
-                'max_depth': (hp.uniformint, [1, 11]),
+                'max_depth': (hp.uniformint, [1, 8]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21])
             },
@@ -98,7 +100,7 @@ class PipelineSearchSpace(SearchSpace):
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'dt': {
-                'max_depth': (hp.uniformint, [1, 11]),
+                'max_depth': (hp.uniformint, [1, 8]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21])
             },
@@ -285,6 +287,11 @@ class PipelineSearchSpace(SearchSpace):
                                             'glove-wiki-gigaword-100', 'word2vec-ruscorpora-300']])
             },
             'tfidf': {
+                'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3), (1, 4)]]),
+                'min_df': (hp.uniform, [0.0001, 0.01]),
+                'max_df': (hp.uniform, [0.9, 0.99])
+            },
+            'cntvect': {
                 'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3), (1, 4)]]),
                 'min_df': (hp.uniform, [0.0001, 0.01]),
                 'max_df': (hp.uniform, [0.9, 0.99])
