@@ -8,13 +8,12 @@ from fedot.core.utils import fedot_project_root
 
 def run_multi_modal_example(file_path: str, visualization=False, with_tuning=True) -> float:
     """
-    This is an example of FEDOT use on multimodal data.
-    The data is taken and adapted from Wine Reviews dataset (winemag-data_first150k):
-    https://www.kaggle.com/datasets/zynicide/wine-reviews
-    and contains information about wine country, region, price, etc.
-    Column that contains text features is 'description'.
-    Other columns contain numerical and categorical features.
-    The aim is to predict wine variety, so it's a classification task.
+    Runs FEDOT on multimodal data from the `Wine Reviews dataset
+    <https://www.kaggle.com/datasets/zynicide/wine-reviews>`_
+    The dataset contains information about wine country, region, price, etc.
+    with text features in the 'description' column and other columns containing
+    numerical and categorical features. The task is to predict the wine variety,
+    which is a classification task.
 
     Args:
         file_path: path to the file with multimodal data.
