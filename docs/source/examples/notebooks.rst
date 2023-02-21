@@ -22,10 +22,13 @@ This repository contains following notebooks:
 * `Using FEDOT for hybrid modeling with custom model tuning <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/6_hybrid_modelling.ipynb>`_
     Notebook contains examples of custom model specification for Time Series Forecasting problem.
 
+* `Using FEDOT for multimodal data classification <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/7_multimodal_data.ipynb>`_
+    A guide to FEDOT's functionality for multimodal data.
+
 FEDOT can be used in cloud services, e.g. `VK Cloud's ML Platform <https://mcs.mail.ru/>`_. This `repository <https://github.com/stockblog/webinar_automl_fedot>`_
 contains examples of FEDOT usage with JupyterLab and MLflow:
 
 * `Amazon Employee Access Challenge - classification problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Classification.ipynb>`_
 * `Molhack AIRI - Regression problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Regression.ipynb>`_
-* `Wine Reviews - Multimodal classification problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Timeseries%20Forecasting.ipynb>`_
-* `Sea level daily - Time Series Forecasting problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Multimodal%20Data.ipynb>`_
+* `Wine Reviews - Multimodal classification problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Multimodal%20Data.ipynb>`_
+* `Sea level daily - Time Series Forecasting problem <https://github.com/stockblog/webinar_automl_fedot/blob/main/FEDOT%20Tutorial%20-%20Timeseries%20Forecasting.ipynb>`_
