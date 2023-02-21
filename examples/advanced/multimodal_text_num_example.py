@@ -16,11 +16,13 @@ def run_multi_modal_example(file_path: str, visualization=False, with_tuning=Tru
     Other columns contain numerical and categorical features.
     The aim is to predict wine variety, so it's a classification task.
 
-    :param file_path: path to the file with multimodal data
-    :param visualization: if True, then final pipeline will be visualised
-    :param with_tuning: if True, then pipeline will be tuned
+    Args:
+        file_path: path to the file with multimodal data.
+        visualization: if True, then final pipeline will be visualised.
+        with_tuning: if True, then pipeline will be tuned.
 
-    :return: F1 metrics of the model
+    Returns:
+        F1 metrics of the model.
     """
     task = 'classification'
     path = Path(fedot_project_root(), file_path)
