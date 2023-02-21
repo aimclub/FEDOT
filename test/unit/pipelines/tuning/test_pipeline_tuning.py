@@ -523,6 +523,7 @@ def test_complex_search_space_tuning_correct():
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(PipelineTuner) \
         .with_metric(RegressionMetricsEnum.MSE) \
+        .with_iterations(100) \
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].parameters

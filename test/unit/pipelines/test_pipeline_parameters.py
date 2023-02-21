@@ -3,8 +3,6 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.repository import tasks
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 
 

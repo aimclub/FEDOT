@@ -5,8 +5,7 @@ from examples.advanced.automl.h2o_example import h2o_classification_pipeline_eva
     h2o_regression_pipeline_evaluation, h2o_ts_pipeline_evaluation
 from examples.advanced.automl.pipeline_from_automl import run_pipeline_from_automl
 from examples.advanced.automl.tpot_vs_fedot import run_tpot_vs_fedot_example
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import fedot_project_root
 
 

@@ -102,29 +102,6 @@ def test_node_repr_with_params():
     assert actual_node_description == expected_node_description
 
 
-def test_ordered_subnodes_hierarchy():
-    first_node = PipelineNode('knn')
-    second_node = PipelineNode('knn')
-    third_node = PipelineNode('lda', nodes_from=[first_node, second_node])
-    root = PipelineNode('logit', nodes_from=[third_node])
-
-    ordered_nodes = ordered_subnodes_hierarchy(root)
-
-    assert len(ordered_nodes) == 4
-    assert ordered_nodes == [root, third_node, first_node, second_node]
-
-
-def test_ordered_subnodes_cycle():
-    cycle_node = LinkedGraphNode('knn')
-    second_node = LinkedGraphNode('knn')
-    third_node = LinkedGraphNode('lda', nodes_from=[cycle_node, second_node])
-    root = LinkedGraphNode('logit', nodes_from=[third_node])
-    cycle_node.nodes_from = [root]
-
-    with pytest.raises(ValueError, match='cycle'):
-        ordered_subnodes_hierarchy(root)
-
-
 def test_node_return_correct_operation_info():
     node = PipelineNode('simple_imputation')
     operation_tags = node.tags

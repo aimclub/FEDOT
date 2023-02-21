@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -16,7 +16,7 @@ def test_pipeline_has_dummy_preprocessor_with_disabled_preprocessing():
     """
     Tests pipeline with disabled input data preprocessing has dummy preprocessor
     """
-    pipeline = Pipeline(PrimaryNode('ridge'), use_input_preprocessing=False)
+    pipeline = Pipeline(PipelineNode('ridge'), use_input_preprocessing=False)
     assert type(pipeline.preprocessor) is DummyPreprocessor
 
 
@@ -42,7 +42,7 @@ def test_disabled_pipeline_data_preprocessing(case: Tuple[Callable[[], InputData
     data_getter, is_fit_stage = case
     input_data = data_getter()
 
-    pipeline = Pipeline(PrimaryNode('ridge'), use_input_preprocessing=False)
+    pipeline = Pipeline(PipelineNode('ridge'), use_input_preprocessing=False)
     if is_fit_stage:
         preprocessed_data = pipeline._preprocess(input_data, is_fit_stage=is_fit_stage)
     else:
@@ -94,11 +94,11 @@ def test_data_preprocessor_performs_obligatory_data_preprocessing_only_once():
 def test_data_preprocessor_performs_optional_data_preprocessing_only_once():
     input_data = data_with_only_categorical_features()
     preprocessor = DataPreprocessor()
-    pipeline = Pipeline(PrimaryNode('ridge'))
+    pipeline = Pipeline(PipelineNode('ridge'))
 
     preprocessed_data = preprocessor.optional_prepare_for_fit(pipeline, input_data)
 
-    other_pipeline = Pipeline(PrimaryNode('dt'))
+    other_pipeline = Pipeline(PipelineNode('dt'))
     preprocessed_data_same = preprocessor.optional_prepare_for_fit(other_pipeline, preprocessed_data)
 
     assert id(preprocessed_data) == id(preprocessed_data_same)

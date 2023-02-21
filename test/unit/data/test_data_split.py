@@ -1,3 +1,5 @@
+from functools import partial
+
 import pandas as pd
 import numpy as np
 import pytest
@@ -10,6 +12,9 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
+from test.unit.pipelines.test_decompose_pipelines import get_classification_data
+from test.unit.tasks.test_forecasting import get_ts_data
 
 TABULAR_SIMPLE = {'train_features_size': (8, 5), 'test_features_size': (2, 5), 'test_idx': (8, 9)}
 TS_SIMPLE = {'train_features_size': (18,), 'test_features_size': (18,), 'test_idx': (18, 19)}
@@ -180,4 +185,23 @@ def test_multivariate_time_series_splitting_correct():
 
     for series_id, test_series_data in test_data.items():
         assert len(test_series_data.features) == 20
-        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))
+        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))\
+
+
+
+@pytest.mark.parametrize("cv_generator, data",
+                         [(partial(tabular_cv_generator, folds=5),
+                           get_classification_data()[0]),
+                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
+                           get_ts_data()[0])])
+def test_cv_generator_works_stable(cv_generator, data):
+    """ Test if ts cv generator works stable (always return same folds) """
+    idx_first = []
+    idx_second = []
+    for row in cv_generator(data=data):
+        idx_first.append(row[1].idx)
+    for row in cv_generator(data=data):
+        idx_second.append(row[1].idx)
+
+    for i in range(len(idx_first)):
+        assert np.all(idx_first[i] == idx_second[i])

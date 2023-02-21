@@ -1,4 +1,3 @@
-import itertools
 import os
 from functools import partial
 from itertools import chain
@@ -7,36 +6,25 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from golem.core.dag.graph import Graph
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
-from golem.core.optimisers.fitness import SingleObjFitness
-from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
-from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum, Crossover
-from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from golem.core.optimisers.graph import OptNode, OptGraph
-from golem.core.optimisers.opt_history_objects.individual import Individual
-from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
-from golem.core.optimisers.opt_history_objects.parent_operator import ParentOperator
-
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
 from fedot.core.utils import fedot_project_root
-from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
+from golem.core.dag.graph import Graph
+from golem.core.optimisers.fitness import SingleObjFitness
+from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
-from test.unit.visualization.test_composing_history import create_mock_graph_individual, generate_history
 
 
 def scaling_logit_rf_pipeline():
@@ -77,72 +65,6 @@ def _test_individuals_in_history(history: OptHistory):
             ids.update({id(i) for i in parent_operator.parent_individuals})
 
     assert len(uids) == len(ids)
-
-
-@pytest.mark.parametrize('generate_history', [[2, 10, create_mock_graph_individual]], indirect=True)
-def test_history_properties(generate_history):
-    generations_quantity = 2
-    pop_size = 10
-    history = generate_history
-    assert len(history.all_historical_quality()) == pop_size * generations_quantity
-    assert len(history.historical_fitness) == generations_quantity
-    assert len(history.historical_fitness[0]) == pop_size
-    assert len(history.all_historical_fitness) == pop_size * generations_quantity
-
-
-def test_parent_operator():
-    pipeline = Pipeline(PipelineNode('linear'))
-    adapter = PipelineAdapter()
-    ind = Individual(adapter.adapt(pipeline))
-    mutation_type = MutationTypesEnum.simple
-    operator_for_history = ParentOperator(type_='mutation',
-                                          operators=str(mutation_type),
-                                          parent_individuals=ind)
-
-    assert operator_for_history.parent_individuals[0] == ind
-    assert operator_for_history.type_ == 'mutation'
-
-
-def test_ancestor_for_mutation():
-    pipeline = Pipeline(PipelineNode('linear'))
-    adapter = PipelineAdapter()
-    parent_ind = Individual(adapter.adapt(pipeline))
-
-    available_operations = ['linear']
-    composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations,
-                                                         max_depth=2)
-
-    graph_params = get_pipeline_generation_params(requirements=composer_requirements,
-                                                  rules_for_constraint=DEFAULT_DAG_RULES)
-    parameters = GPAlgorithmParameters(mutation_types=[MutationTypesEnum.simple], mutation_prob=1)
-    mutation = Mutation(parameters, composer_requirements, graph_params)
-
-    mutation_result = mutation(parent_ind)
-
-    assert mutation_result.parent_operator
-    assert mutation_result.parent_operator.type_ == 'mutation'
-    assert len(mutation_result.parents) == 1
-    assert mutation_result.parents[0].uid == parent_ind.uid
-
-
-def test_ancestor_for_crossover():
-    adapter = PipelineAdapter()
-    parent_ind_first = Individual(adapter.adapt(Pipeline(PipelineNode('linear'))))
-    parent_ind_second = Individual(adapter.adapt(Pipeline(PipelineNode('ridge'))))
-
-    composer_requirements = PipelineComposerRequirements(max_depth=3)
-    graph_params = get_pipeline_generation_params(composer_requirements)
-    opt_parameters = GPAlgorithmParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
-    crossover = Crossover(opt_parameters, composer_requirements, graph_params)
-    crossover_results = crossover([parent_ind_first, parent_ind_second])
-
-    for crossover_result in crossover_results:
-        assert crossover_result.parent_operator
-        assert crossover_result.parent_operator.type_ == 'crossover'
-        assert len(crossover_result.parents) == 2
-        assert crossover_result.parents[0].uid == parent_ind_first.uid
-        assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
 @pytest.mark.parametrize('n_jobs', [1, 2])
@@ -212,24 +134,6 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     assert_intermediate_metrics(restored_pipeline)
 
 
-@pytest.mark.parametrize("cv_generator, data",
-                         [(partial(tabular_cv_generator, folds=5),
-                           get_classification_data()),
-                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
-                           get_ts_data()[0])])
-def test_cv_generator_works_stable(cv_generator, data):
-    """ Test if ts cv generator works stable (always return same folds) """
-    idx_first = []
-    idx_second = []
-    for row in cv_generator(data=data):
-        idx_first.append(row[1].idx)
-    for row in cv_generator(data=data):
-        idx_second.append(row[1].idx)
-
-    for i in range(len(idx_first)):
-        assert np.all(idx_first[i] == idx_second[i])
-
-
 def test_history_backward_compatibility():
     from fedot.core.optimisers.objective import init_backward_serialize_compat
     init_backward_serialize_compat()
@@ -257,39 +161,3 @@ def test_history_backward_compatibility():
                for parent_op in ind.operators_from_prev_generation
                for parent_ind in parent_op.parent_individuals)
     _test_individuals_in_history(history)
-
-
-def test_history_correct_serialization():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
-
-    history = OptHistory.load(test_history_path)
-    dumped_history_json = history.save()
-    reloaded_history = OptHistory.load(dumped_history_json)
-
-    assert history.individuals == reloaded_history.individuals
-    assert dumped_history_json == reloaded_history.save(), 'The history is not equal to itself after reloading!'
-    _test_individuals_in_history(reloaded_history)
-
-
-def test_history_save_custom_nodedata():
-    contents = [{'name': f'custom_{i}',
-                 'important_field': ['secret', 42],
-                 'matrix': np.random.randint(0, 100, (4 + 2 * i, 2 + i)).tolist()}
-                for i in range(10)]
-
-    graphs = [Individual(OptGraph(OptNode(content=content)), native_generation=i)
-              for i, content in enumerate(contents)]
-
-    history = OptHistory()
-    history.add_to_history(graphs[:3])
-    history.add_to_history(graphs[3:6])
-    history.add_to_history(graphs[6:])
-
-    saved = history.save()
-    reloaded = OptHistory.load(saved)
-    reloaded_inds = list(itertools.chain(*reloaded.individuals))
-
-    for i, ind in enumerate(reloaded_inds):
-        ind_content = ind.graph.root_node.content
-        assert ind_content == contents[i]
-        assert ind_content['matrix'] == contents[i]['matrix']

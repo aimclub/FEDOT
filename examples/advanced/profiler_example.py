@@ -17,8 +17,9 @@ if __name__ == '__main__':
     path = os.path.join(os.path.expanduser("~"), 'memory_profiler')
     full_path_train, full_path_test = get_scoring_data()
     arguments = {'train_file_path': full_path_train, 'test_file_path': full_path_test}
+    print(path)
     MemoryProfiler(run_credit_scoring_problem, kwargs=arguments, path=path,
-                   roots=[run_credit_scoring_problem], max_depth=8)
+                   roots=[run_credit_scoring_problem], max_depth=8, visualization=True)
 
     # EXAMPLE of TimeProfiler.
 
