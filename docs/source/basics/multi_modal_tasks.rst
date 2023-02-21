@@ -8,7 +8,7 @@ Introduction
 
 **Multimodal data** is data that has a different nature (tables, text, images, time series). Humans perceive the world in a multimodal way, so using this approach in machine learning can also work. Indeed, the sharing of several types of data improves the quality of the model at the expense of information that may be contained in one modality and absent in another.
 
-FEDOT's API supports multimodal data from the box. The only thing you need is to load data using MultiModalData class:
+FEDOT's API supports multimodal data from the box. The only thing you need is to load data using ``MultiModalData`` class:
 
 .. code-block:: python
 
@@ -45,6 +45,8 @@ In text format:
 .. code-block:: python
 
     model.current_pipeline.print_structure()
+
+Output:
 
 .. code-block:: text
 
