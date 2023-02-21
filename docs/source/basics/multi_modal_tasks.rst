@@ -1,9 +1,6 @@
 Multi-Modal Tasks
 =================
 
-Introduction
-~~~~~~~~~~~~
-
 **FEDOT** can solve not only classical tabular data problems, but also problems with multimodal data. In this section, we will consider the main features of the framework for solving such problems.
 
 **Multimodal data** is data that has a different nature (tables, text, images, time series). Humans perceive the world in a multimodal way, so using this approach in machine learning can also work. Indeed, the sharing of several types of data improves the quality of the model at the expense of information that may be contained in one modality and absent in another.
