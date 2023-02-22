@@ -170,9 +170,10 @@ class TextDataMerger(DataMerger):
         if any(len(pred.shape) > 2 for pred in predicts):
             raise ValueError('Merge of arrays with more than 2 dimensions is not supported')
         if len(predicts) > 1:
+            predicts = [predict.astype(str) for predict in predicts]
             result = predicts[0]
             for i in range(1, len(predicts)):
-                result += ' ' + predicts[i]
+                result = np.core.defchararray.add(result, predicts[i])
             return result
         return predicts[0]
 

@@ -36,6 +36,8 @@ def generate_output_texts(length=10, num_columns=1):
     return OutputData(idx,  task, data_type, features=features, predict=features, target=None)
 
 
+# len(params) is a number of input arrays, each element of params - number of columns in the corresponding array
+# FEDOT supports merging of text data with 1 column only, so ValueError is expected for (2, 1) and (2, 3, 1) cases
 @pytest.fixture(params=[(1,), (1, 1), (1, 1, 1), (2, 1), (2, 3, 1)],
                 ids=lambda cols: f'texts with {cols} columns')
 def output_texts(request):
