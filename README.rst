@@ -266,10 +266,6 @@ Jupyter ноутбуки с примерами находятся в репоз�
    :alt: Supported Python Versions
    :target: https://badge.fury.io/py/fedot
 
-.. |py_7| image:: https://img.shields.io/badge/python_3.7-passing-success
-   :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.7-passing-success
-
 .. |py_8| image:: https://img.shields.io/badge/python_3.8-passing-success
    :alt: Supported Python Versions
    :target: https://img.shields.io/badge/python_3.8-passing-success
