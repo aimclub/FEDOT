@@ -5,7 +5,7 @@ Architecture
 
 The framework includes the following components:
 
-* The core is GOLEM package providing GraphOptimizer, that outputs optimal graphs after evaluation process.
+* The core is `GOLEM package <https://github.com/aimclub/GOLEM>`_ providing GraphOptimizer, that outputs optimal graphs after evaluation process.
 * GraphOptimizer delegates fitness evaluation of the graphs to EvaluationDispatcher, that handles technical details like caching, multiprocessing, metadata collection etc.
 * Tuner optimizes hyper-parameters of the final Graph returned by the optimizer.
 * API facade that provides a way for the user to specify parameters of the task and the optimization process. It setups GraphOptimizer according to them and delegates `fit` calls to it.
