@@ -5,14 +5,14 @@ Architecture
 
 The framework includes the following components:
 
-* The core is the GraphOptimizer, that outputs optimal graphs after evaluation process.
+* The core is `GOLEM package <https://github.com/aimclub/GOLEM>`_ providing GraphOptimizer, that outputs optimal graphs after evaluation process.
 * GraphOptimizer delegates fitness evaluation of the graphs to EvaluationDispatcher, that handles technical details like caching, multiprocessing, metadata collection etc.
 * Tuner optimizes hyper-parameters of the final Graph returned by the optimizer.
 * API facade that provides a way for the user to specify parameters of the task and the optimization process. It setups GraphOptimizer according to them and delegates `fit` calls to it.
 
 Setup of the framework for the problem domain (e.g. domain of AutoML is realized by FEDOT) requires specification of the following domain specific components:
 
-* Graph Adapter (see page on :doc:`adapter`).
+* Graph Adapter.
 * Verification rules for the Graph Verifier.
 * Domain-specific operators, that transform graphs during optimization (e.g. evolutionary operators).
 * Domain-specific operations, that constitute the graph (e.g. ML operations for AutoML domain in FEDOT, or data variables for Bayesian networks learning in BAMT).
