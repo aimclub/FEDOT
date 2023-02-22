@@ -1,23 +1,14 @@
 import multiprocessing
-import os
 import sqlite3
 from functools import partial
 from pathlib import Path
 from typing import Callable
 
 import psutil
-from golem.core.tuning.sequential import SequentialTuner
-from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from examples.simple.classification.api_classification import run_classification_example
-from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
-from examples.simple.classification.classification_with_tuning import run_classification_tuning_experiment
 from examples.simple.regression.api_regression import run_regression_example
-from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from examples.simple.regression.regression_with_tuning import run_experiment as run_regression_tuning
 from examples.simple.time_series_forecasting.api_forecasting import run_ts_forecasting_example
-from examples.simple.time_series_forecasting.ts_pipelines import ts_locf_ridge_pipeline
-from examples.simple.time_series_forecasting.tuning_pipelines import run_experiment as run_ts_tuning
 from fedot.core.utils import default_fedot_data_dir
 
 
