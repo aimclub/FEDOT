@@ -167,8 +167,13 @@ class TSDataMerger(DataMerger):
 class TextDataMerger(DataMerger):
 
     def merge_predicts(self, predicts: List[np.array]) -> np.array:
+        if any(len(pred.shape) > 2 for pred in predicts):
+            raise ValueError('Merge of arrays with more than 2 dimensions is not supported')
         if len(predicts) > 1:
-            raise ValueError("Text tables and merge of text data is not supported")
+            result = predicts[0]
+            for i in range(1, len(predicts)):
+                result += ' ' + predicts[i]
+            return result
         return predicts[0]
 
     def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
