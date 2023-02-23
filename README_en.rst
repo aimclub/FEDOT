@@ -271,7 +271,7 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
    :alt: Supported Python Versions
    :target: https://img.shields.io/pypi/pyversions/fedot
 
-.. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
+.. |license| image:: https://img.shields.io/github/license/aimclub/FEDOT
    :alt: Supported Python Versions
    :target: https://github.com/aimclub/FEDOT/blob/master/LICENSE.md
 
