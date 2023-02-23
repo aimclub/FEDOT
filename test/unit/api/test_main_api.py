@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import pytest
+from golem.core.dag.graph_utils import graph_structure
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -173,7 +174,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     ('ts_forecasting', 'rmse', 'glm')
 ])
 def test_api_tune_correct(task_type, metric_name, pred_model):
-    tuning_timeout = 0.05
+    tuning_timeout = 0.2
 
     if task_type == 'ts_forecasting':
         forecast_length = 1
@@ -194,7 +195,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     pred_after = model.predict(features=test_data)
 
     assert isinstance(tuned_pipeline, Pipeline)
-    assert base_pipeline.structure != tuned_pipeline.structure
+    assert graph_structure(base_pipeline) != graph_structure(tuned_pipeline)
     assert model.api_composer.was_tuned
     assert not model.api_composer.was_optimised
     assert len(test_data.target) == len(pred_before) == len(pred_after)

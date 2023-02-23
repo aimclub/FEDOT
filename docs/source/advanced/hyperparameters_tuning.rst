@@ -1,8 +1,8 @@
 Tuning of Hyperparameters
 =========================
-FEDOT provides you with two ways for tuning of pipeline hyperparameters:
+To tune pipeline hyperparameters you can use GOLEM. There are two ways:
 
-1. Tuning of all models hyperparameters simultaneously. Implemented via ``PipelineTuner`` class.
+1. Tuning of all models hyperparameters simultaneously. Implemented via ``SimultaneousTuner`` class.
 
 2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline. Implemented via ``SequentialTuner`` class.
 
@@ -55,6 +55,8 @@ Tuner class
 Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is used by default.
 
 .. code-block:: python
+
+    from golem.core.tuning.sequential import SequentialTuner
 
     tuner = SequentialTuner
 
@@ -175,7 +177,7 @@ Search Space
 .. _with_search_space:
 
 To set search space use ``.with_search_space()``. By default, tuner uses search space specified in ``fedot/core/pipelines/tuning/search_space.py``
-To customize search space use ``SearchSpace`` class.
+To customize search space use ``PipelineSearchSpace`` class.
 
 .. code-block:: python
 
@@ -191,7 +193,7 @@ To customize search space use ``SearchSpace`` class.
             'weights': (hp.choice, [["uniform", "distance"]]),
             'p': (hp.choice, [[1, 2]])}
     }
-    search_space = SearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
+    search_space = PipelineSearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
             .with_search_space(search_space) \
@@ -265,19 +267,19 @@ Tuning all hyperparameters simultaniously
 
     import datetime
     import hyperopt
+    from golem.core.tuning.simultaneous import SimultaneousTuner
     from hyperopt import hp
     from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-    from fedot.core.pipelines.tuning.search_space import SearchSpace
+    from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-    from fedot.core.pipelines.tuning.unified import PipelineTuner
     from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
     from fedot.core.repository.tasks import TaskTypesEnum, Task
 
     task = Task(TaskTypesEnum.classification)
 
-    tuner = PipelineTuner
+    tuner = SimultaneousTuner
 
     requirements = PipelineComposerRequirements(cv_folds=2, n_jobs=2)
 
@@ -300,7 +302,7 @@ Tuning all hyperparameters simultaniously
             'weights': (hp.choice, [["uniform", "distance"]]),
             'p': (hp.choice, [[1, 2]])}
     }
-    search_space = SearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
+    search_space = PipelineSearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
 
     algo = hyperopt.rand.suggest
 
@@ -343,9 +345,9 @@ Sequential tuning
 .. code-block:: python
 
     import datetime
+    from golem.core.tuning.sequential import SequentialTuner
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-    from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
     from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
@@ -406,9 +408,9 @@ Tuning of a node
 .. code-block:: python
 
     import datetime
+    from golem.core.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-    from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
     from fedot.core.repository.tasks import TaskTypesEnum, Task

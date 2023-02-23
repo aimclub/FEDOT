@@ -3,6 +3,8 @@ import logging
 
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
@@ -10,7 +12,6 @@ from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
@@ -84,7 +85,7 @@ def test_tuner_cv_correct():
 
     simple_pipeline = get_simple_ts_pipeline()
     tuner = TunerBuilder(time_series.task)\
-        .with_tuner(PipelineTuner)\
+        .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(folds) \
         .with_validation_blocks(validation_blocks)\

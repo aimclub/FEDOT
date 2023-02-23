@@ -3,6 +3,7 @@ from copy import copy
 from datetime import timedelta
 
 import numpy as np
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.data.data import InputData
@@ -10,7 +11,6 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -26,7 +26,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
     :param pipeline: pipeline to fit and make prediction
     :param iterations: amount of iterations to process
     :param tuner: if tuning after composing process is required or not. tuner -
-    NodesTuner or PipelineTuner.
+    SimultaneousTuner or SequentialTuner.
     :param tuner_iterations: amount of iterations for tuning
     """
 
@@ -93,8 +93,8 @@ if __name__ == '__main__':
 
     init_pipeline = Pipeline(node_final)
 
-    # Available tuners for application: PipelineTuner, NodesTuner
+    # Available tuners for application: SimultaneousTuner, SequentialTuner
     run_river_experiment(file_path='../data/river_levels/station_levels.csv',
                          pipeline=init_pipeline,
                          iterations=20,
-                         tuner=PipelineTuner)
+                         tuner=SimultaneousTuner)

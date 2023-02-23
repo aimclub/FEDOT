@@ -7,7 +7,7 @@ import func_timeout
 from golem.core.dag.graph import Graph
 from golem.core.dag.graph_delegate import GraphDelegate
 from golem.core.dag.graph_node import GraphNode
-from golem.core.dag.graph_utils import distance_to_primary_level
+from golem.core.dag.graph_utils import distance_to_primary_level, graph_structure
 from golem.core.dag.linked_graph import LinkedGraph
 from golem.core.log import default_log
 from golem.core.optimisers.timer import Timer
@@ -370,22 +370,13 @@ class Pipeline(GraphDelegate, Serializable):
             return None
         return input_data
 
-    @property
-    def structure(self) -> str:
-        """ Structural information about the pipeline
-
-            Returns:
-                string with pipeline structure
-        """
-        return '\n'.join([str(self), *(f'{node.operation.operation_type} - {node.parameters}' for node in self.nodes)])
-
     def print_structure(self):
         """ Prints structure of the pipeline
         """
 
         print(
             'Pipeline structure:',
-            self.structure,
+            graph_structure(self),
             sep='\n'
         )
 

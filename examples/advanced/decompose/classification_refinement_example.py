@@ -1,13 +1,13 @@
 import random
 
 import numpy as np
+from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -67,7 +67,7 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
 
     if with_tuning:
         tuner = TunerBuilder(task) \
-            .with_tuner(PipelineTuner)\
+            .with_tuner(SimultaneousTuner)\
             .with_metric(ClassificationMetricsEnum.ROCAUC)\
             .with_iterations(30) \
             .build(train_dataset)

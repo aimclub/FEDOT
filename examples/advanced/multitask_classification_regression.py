@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -10,7 +11,6 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -67,7 +67,7 @@ def launch_multitask_example(with_tuning: bool = False):
 
     if with_tuning:
         tuner = TunerBuilder(train_input.task)\
-            .with_tuner(PipelineTuner)\
+            .with_tuner(SimultaneousTuner)\
             .with_metric(RegressionMetricsEnum.MAE)\
             .with_iterations(100)\
             .with_timeout(timedelta(minutes=2))\

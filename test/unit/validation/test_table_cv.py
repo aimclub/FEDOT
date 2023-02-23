@@ -4,6 +4,8 @@ from datetime import timedelta
 from functools import partial
 
 import pytest
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -18,7 +20,6 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -85,7 +86,7 @@ def test_tuner_cv_classification_correct():
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
-    tuner = TunerBuilder(dataset.task).with_tuner(PipelineTuner)\
+    tuner = TunerBuilder(dataset.task).with_tuner(SimultaneousTuner)\
         .with_metric(ClassificationMetricsEnum.ROCAUC)\
         .with_cv_folds(folds) \
         .with_iterations(1) \

@@ -2,12 +2,13 @@ from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, Union, Optional
 
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
@@ -49,11 +50,11 @@ class AtomizedModel(Operation):
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        tuner = TunerBuilder(input_data.task) \
-            .with_tuner(PipelineTuner) \
-            .with_metric(metric_function) \
-            .with_iterations(iterations) \
-            .with_timeout(timedelta(minutes=timeout)) \
+        tuner = TunerBuilder(input_data.task)\
+            .with_tuner(SimultaneousTuner)\
+            .with_metric(metric_function)\
+            .with_iterations(iterations)\
+            .with_timeout(timedelta(minutes=timeout))\
             .build(input_data)
         tuned_pipeline = tuner.tune(self.pipeline)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)

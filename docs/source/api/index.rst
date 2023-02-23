@@ -15,4 +15,3 @@ Modules
    repository
    sensitivity
    synthetic_dataset_generator
-   tuning

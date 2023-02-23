@@ -5,6 +5,8 @@ import numpy as np
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.tuning.sequential import SequentialTuner
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -14,7 +16,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum

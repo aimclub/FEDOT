@@ -4,6 +4,8 @@ from time import time
 
 import numpy as np
 import pytest
+from golem.core.tuning.sequential import SequentialTuner
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
@@ -14,10 +16,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     GLMImplementation
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.search_space import SearchSpace
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
@@ -154,7 +154,7 @@ def get_not_default_search_space():
             'n_components': (hp.uniform, [0.2, 0.8])
         }
     }
-    return SearchSpace(custom_search_space=custom_search_space)
+    return PipelineSearchSpace(custom_search_space=custom_search_space)
 
 
 def custom_maximized_metrics(real_data: InputData, pred_data: OutputData):
@@ -170,14 +170,14 @@ def custom_minimized_metrics(real_data: InputData, pred_data: OutputData):
 def run_pipeline_tuner(train_data,
                        pipeline,
                        loss_function,
-                       search_space=SearchSpace(),
+                       search_space=PipelineSearchSpace(),
                        cv=None,
                        algo=tpe.suggest,
                        iterations=1,
                        early_stopping_rounds=None):
     # Pipeline tuning
     pipeline_tuner = TunerBuilder(train_data.task) \
-        .with_tuner(PipelineTuner) \
+        .with_tuner(SimultaneousTuner) \
         .with_metric(loss_function) \
         .with_cv_folds(cv) \
         .with_iterations(iterations) \
@@ -192,7 +192,7 @@ def run_pipeline_tuner(train_data,
 def run_sequential_tuner(train_data,
                          pipeline,
                          loss_function,
-                         search_space=SearchSpace(),
+                         search_space=PipelineSearchSpace(),
                          cv=None,
                          algo=tpe.suggest,
                          iterations=1,
@@ -214,7 +214,7 @@ def run_sequential_tuner(train_data,
 def run_node_tuner(train_data,
                    pipeline,
                    loss_function,
-                   search_space=SearchSpace(),
+                   search_space=PipelineSearchSpace(),
                    cv=None,
                    node_index=0,
                    algo=tpe.suggest,
@@ -253,7 +253,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request):
-    """ Test PipelineTuner for pipeline based on hyperopt library """
+    """ Test SimultaneousTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     cvs = [None, 2]
 
@@ -284,7 +284,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset):
 
 
 def test_pipeline_tuner_with_initial_params(classification_dataset):
-    """ Test PipelineTuner based on hyperopt library for pipeline with initial parameters """
+    """ Test SimultaneousTuner based on hyperopt library for pipeline with initial parameters """
     # a model
     node = PipelineNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
                                                               'learning_rate': 0.03,
@@ -303,10 +303,10 @@ def test_pipeline_tuner_with_initial_params(classification_dataset):
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
-    """ Test PipelineTuner with different search spaces """
+    """ Test SimultaneousTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-    search_spaces = [SearchSpace(), get_not_default_search_space()]
+    search_spaces = [PipelineSearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
         pipeline_tuner, _ = run_pipeline_tuner(train_data=train_data,
@@ -352,7 +352,7 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
     """ Test SequentialTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-    search_spaces = [SearchSpace(), get_not_default_search_space()]
+    search_spaces = [PipelineSearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
         sequential_tuner, _ = run_sequential_tuner(train_data=train_data,
@@ -398,7 +398,7 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
     """ Test SequentialTuner for particular node with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-    search_spaces = [SearchSpace(), get_not_default_search_space()]
+    search_spaces = [PipelineSearchSpace(), get_not_default_search_space()]
 
     for search_space in search_spaces:
         node_tuner, _ = run_node_tuner(train_data=train_data,
@@ -414,15 +414,15 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
 
 @pytest.mark.parametrize('n_steps', [100, 133, 217, 300])
 def test_ts_pipeline_with_stats_model(n_steps):
-    """ Tests PipelineTuner for time series forecasting task with AR model """
+    """ Tests SimultaneousTuner for time series forecasting task with AR model """
     train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
 
     ar_pipeline = Pipeline(PipelineNode('ar'))
 
-    for search_space in [SearchSpace(), get_not_default_search_space()]:
+    for search_space in [PipelineSearchSpace(), get_not_default_search_space()]:
         # Tune AR model
         tuner_ar = TunerBuilder(train_data.task) \
-            .with_tuner(PipelineTuner) \
+            .with_tuner(SimultaneousTuner) \
             .with_metric(RegressionMetricsEnum.MSE) \
             .with_iterations(3) \
             .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
@@ -464,13 +464,13 @@ def test_early_stop_in_tuning(data_fixture, request):
 
 
 def test_search_space_correctness_after_customization():
-    default_search_space = SearchSpace()
+    default_search_space = PipelineSearchSpace()
 
     custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
-    custom_search_space_without_replace = SearchSpace(custom_search_space=custom_search_space,
-                                                      replace_default_search_space=False)
-    custom_search_space_with_replace = SearchSpace(custom_search_space=custom_search_space,
-                                                   replace_default_search_space=True)
+    custom_search_space_without_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                                              replace_default_search_space=False)
+    custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                                           replace_default_search_space=True)
 
     default_params = default_search_space.get_node_params(node_id=0,
                                                           operation_name='gbr')
@@ -486,15 +486,15 @@ def test_search_space_correctness_after_customization():
 
 
 def test_search_space_get_operation_parameter_range():
-    default_search_space = SearchSpace()
+    default_search_space = PipelineSearchSpace()
     gbr_operations = ['loss', 'learning_rate', 'max_depth', 'min_samples_split',
                       'min_samples_leaf', 'subsample', 'max_features', 'alpha']
 
     custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
-    custom_search_space_without_replace = SearchSpace(custom_search_space=custom_search_space,
-                                                      replace_default_search_space=False)
-    custom_search_space_with_replace = SearchSpace(custom_search_space=custom_search_space,
-                                                   replace_default_search_space=True)
+    custom_search_space_without_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                                              replace_default_search_space=False)
+    custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                                           replace_default_search_space=True)
 
     default_operations = default_search_space.get_operation_parameter_range('gbr')
     custom_without_replace_operations = custom_search_space_without_replace.get_operation_parameter_range('gbr')
@@ -506,7 +506,7 @@ def test_search_space_get_operation_parameter_range():
 
 
 def test_complex_search_space():
-    space = SearchSpace()
+    space = PipelineSearchSpace()
     for i in range(20):
         operation_parameters = space.parameters_per_operation.get("glm")
         new_value = hp_sample(operation_parameters["nested_space"])
@@ -515,13 +515,13 @@ def test_complex_search_space():
 
 
 def test_complex_search_space_tuning_correct():
-    """ Tests PipelineTuner for time series forecasting task with GLM model that has a complex glm search space"""
+    """ Tests SimultaneousTuner for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
 
     glm_pipeline = Pipeline(PipelineNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
-        .with_tuner(PipelineTuner) \
+        .with_tuner(SimultaneousTuner) \
         .with_metric(RegressionMetricsEnum.MSE) \
         .with_iterations(100) \
         .build(train_data)

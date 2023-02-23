@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
@@ -8,7 +9,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -72,9 +72,9 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
     if tuning:
         tuner = TunerBuilder(task)\
-            .with_tuner(PipelineTuner)\
+            .with_tuner(SimultaneousTuner)\
             .with_metric(RegressionMetricsEnum.MSE)\
-            .with_iterations(100) \
+            .with_iterations(300) \
             .build(train_data)
         pipeline = tuner.tune(pipeline)
         pipeline.fit(train_data)

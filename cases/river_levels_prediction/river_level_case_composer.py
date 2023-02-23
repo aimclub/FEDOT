@@ -3,6 +3,8 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
@@ -14,8 +16,8 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -65,7 +67,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
     :param file_to_save: path to the file and file name to save report
     :param iterations: amount of iterations to process
     :param tuner: if tuning after composing process is required or not. tuner -
-    NodesTuner or PipelineTuner.
+    SequentialTuner or SimultaneousTuner.
     """
 
     # Read dataframe and prepare train and test data
@@ -163,9 +165,9 @@ if __name__ == '__main__':
 
     init_pipeline = Pipeline(node_final)
 
-    # Available tuners for application: PipelineTuner, NodesTuner
+    # Available tuners for application: SimultaneousTuner, SequentialTuner
     run_river_composer_experiment(file_path='../data/river_levels/station_levels.csv',
                                   init_pipeline=init_pipeline,
                                   file_to_save='data/river_levels/old_composer_new_preprocessing_report.csv',
                                   iterations=20,
-                                  tuner=PipelineTuner)
+                                  tuner=SimultaneousTuner)

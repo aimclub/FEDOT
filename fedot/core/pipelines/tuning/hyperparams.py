@@ -3,7 +3,7 @@ import random
 from golem.core.log import default_log
 from hyperopt.pyll.stochastic import sample as hp_sample
 
-from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 
 
 class ParametersChanger:
@@ -23,7 +23,7 @@ class ParametersChanger:
         """ Function return a dictionary with new parameters values """
 
         # Get available parameters for operation
-        params_list = SearchSpace().get_operation_parameter_range(self.operation_name)
+        params_list = PipelineSearchSpace().get_operation_parameter_range(self.operation_name)
 
         if params_list is None:
             params_dict = None
@@ -84,9 +84,9 @@ class ParametersChanger:
     def _random_change(parameter_name, **kwargs):
         """ Randomly selects a parameter value from a specified range """
 
-        space = SearchSpace().get_operation_parameter_range(operation_name=kwargs['operation_name'],
-                                                            parameter_name=parameter_name,
-                                                            label=parameter_name)
+        space = PipelineSearchSpace().get_operation_parameter_range(operation_name=kwargs['operation_name'],
+                                                                    parameter_name=parameter_name,
+                                                                    label=parameter_name)
         # Randomly choose new value
         new_value = hp_sample(space)
         return {parameter_name: new_value}

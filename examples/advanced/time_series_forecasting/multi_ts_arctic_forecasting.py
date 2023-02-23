@@ -4,6 +4,8 @@ from copy import deepcopy
 import numpy as np
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from golem.core.tuning.simultaneous import SimultaneousTuner
+
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
@@ -13,7 +15,6 @@ from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridg
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     RegressionMetricsEnum
 
@@ -82,7 +83,7 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
 
     # tuning composed pipeline
     tuner = TunerBuilder(task)\
-        .with_tuner(PipelineTuner)\
+        .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_iterations(50)\
         .build(train_data)

@@ -3,6 +3,9 @@ from typing import Optional
 
 import numpy as np
 import pytest
+from golem.core.tuning.sequential import SequentialTuner
+from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.tuning.tuner_interface import HyperoptTuner
 from hyperopt import tpe, rand
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -10,11 +13,8 @@ from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.tuning.search_space import SearchSpace
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricType
 from test.unit.optimizer.test_pipeline_objective_eval import pipeline_first_test
 from test.unit.pipelines.tuning.test_pipeline_tuning import get_not_default_search_space
@@ -36,14 +36,14 @@ def test_tuner_builder_with_default_params():
     tuner = TunerBuilder(data.task).build(data)
     objective_evaluate = get_objective_evaluate(ClassificationMetricsEnum.ROCAUC_penalty, data)
     assert isinstance(tuner, HyperoptTuner)
-    assert np.isclose(tuner.objective_evaluate.evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
-    assert isinstance(tuner.search_space, SearchSpace)
+    assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
+    assert isinstance(tuner.search_space, PipelineSearchSpace)
     assert tuner.iterations == DEFAULT_TUNING_ITERATIONS_NUMBER
     assert tuner.algo == tpe.suggest
     assert tuner.max_seconds == 300
 
 
-@pytest.mark.parametrize('tuner_class', [PipelineTuner, SequentialTuner])
+@pytest.mark.parametrize('tuner_class', [SimultaneousTuner, SequentialTuner])
 def test_tuner_builder_with_custom_params(tuner_class):
     data = get_classification_data()
     pipeline = pipeline_first_test()
@@ -71,7 +71,7 @@ def test_tuner_builder_with_custom_params(tuner_class):
         .build(data)
 
     assert isinstance(tuner, tuner_class)
-    assert np.isclose(tuner.objective_evaluate.evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
+    assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
     assert tuner.search_space == search_space
     assert tuner.iterations == iterations
     assert tuner.algo == algo

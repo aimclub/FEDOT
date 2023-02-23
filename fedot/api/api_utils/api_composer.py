@@ -9,9 +9,9 @@ from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.optimisers.optimizer import GraphGenerationParams
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
@@ -28,9 +28,9 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
@@ -336,7 +336,7 @@ class ApiComposer:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = TunerBuilder(task) \
-            .with_tuner(PipelineTuner) \
+            .with_tuner(SimultaneousTuner) \
             .with_metric(metric_function) \
             .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
             .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
