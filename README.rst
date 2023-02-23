@@ -12,7 +12,7 @@
    :stub-columns: 1
 
    * - package
-     - | |pypi| |py_7| |py_8| |py_9|
+     - | |pypi| |python|
    * - tests
      - | |build| |coverage|
    * - docs
@@ -266,19 +266,11 @@ Jupyter ноутбуки с примерами находятся в репоз�
    :alt: Supported Python Versions
    :target: https://badge.fury.io/py/fedot
 
-.. |py_7| image:: https://img.shields.io/badge/python_3.7-passing-success
+.. |python| image:: https://img.shields.io/pypi/pyversions/fedot.svg
    :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.7-passing-success
+   :target: https://img.shields.io/pypi/pyversions/fedot
 
-.. |py_8| image:: https://img.shields.io/badge/python_3.8-passing-success
-   :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.8-passing-success
-
-.. |py_9| image:: https://img.shields.io/badge/python_3.9-passing-success
-   :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.9-passing-success
-
-.. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
+.. |license| image:: https://img.shields.io/github/license/aimclub/FEDOT
    :alt: Supported Python Versions
    :target: https://github.com/aimclub/FEDOT/blob/master/LICENSE.md
 

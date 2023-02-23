@@ -3,7 +3,6 @@ thegolem @ git+https://github.com/aimclub/GOLEM.git@stable#egg=thegolem
 
 # Data
 numpy>=1.16.0, !=1.24.0
-pandas>=1.1.0, <1.3.0; python_version == '3.7'
 pandas>=1.3.0; python_version >='3.8'
 
 # Models and frameworks
@@ -14,8 +13,6 @@ xgboost>=1.4.0 # to prevent warnings
 statsmodels>=0.12.0
 ete3>=3.1.0
 networkx>=2.4, !=2.7.*, !=2.8.1, !=2.8.2, !=2.8.3
-scikit_learn
-scikit_learn>=1.0.0; python_version == '3.7'
 scikit_learn>=1.0.0; python_version >= '3.8'
 
 # Analysis and optimizations
@@ -24,7 +21,6 @@ SALib>=1.3.0
 scikit-optimize>=0.7.4
 
 # Plotting
-matplotlib==3.0.2; python_version == '3.7'
 matplotlib>=3.3.1; python_version >= '3.8'
 pyvis==0.2.1
 seaborn>=0.9.0
