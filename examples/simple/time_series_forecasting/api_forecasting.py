@@ -1,7 +1,5 @@
 import logging
-from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
@@ -20,8 +18,7 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
-                               visualization=False):
+def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
     time_series = pd.read_csv(datasets[dataset])
 
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -43,7 +40,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
                                visualization=False, with_tuning=True):
-    train_data, test_data = get_ts_data(dataset, horizon, 2)
+    train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
@@ -57,7 +54,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data_vb)
+    in_sample_forecast = model.predict(test_data)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
 
