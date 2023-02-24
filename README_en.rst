@@ -31,8 +31,8 @@
 
 It provides automatic generative design of machine learning pipelines for various real-world problems. The core of FEDOT is based on an evolutionary approach and supports classification (binary and multiclass), regression, clustering, and time series prediction problems.
 
-.. image:: /docs/pipeline_small.png
-   :alt: The structure of the modeling pipeline that can be optimised by FEDOT
+.. image:: /docs/fedot-workflow.png
+   :alt: The structure of the AutoML workflow in FEDOT
 
 The key feature of the framework is the complex management of interactions between various blocks of pipelines. It is represented as a graph that defines connections between data preprocessing and model blocks.
 
