@@ -1,11 +1,16 @@
 import numpy as np
 from typing import Dict, Tuple, Any
 
+from fedot.core.composer.meta_rules import get_cv_folds_number, get_recommended_preset
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
+
+
+meta_rules = [get_cv_folds_number,
+              get_recommended_preset]
 
 
 class DataAnalyser:
@@ -23,19 +28,18 @@ class DataAnalyser:
         self.max_cat_cardinality = 50
 
     # TODO implement correct logic to process multimodal data
-    def give_recommendation(self, input_data: InputData, source_name: str = DEFAULT_SOURCE_NAME) -> Dict:
+    def give_recommendations(self, input_data: InputData) -> Dict:
         """
         Gives a recommendation of cutting dataset or using label encoding
         :param input_data: data for preprocessing
-        :param source_name: name of data source node
         :return : dict with str recommendations
         """
 
         recommendations = {}
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                recommendations[data_source_name] = self.give_recommendation(input_data[data_source_name],
-                                                                             data_source_name)
+                recommendations[data_source_name] = self.give_recommendations(input_data[data_source_name],
+                                                                              data_source_name)
         elif isinstance(input_data, InputData) and input_data.data_type == DataTypesEnum.table:
             if self.safe_mode:
                 is_cut_needed, border = self.control_size(input_data)
@@ -44,6 +48,17 @@ class DataAnalyser:
                 is_label_encoding_needed = self.control_categorical(input_data)
                 if is_label_encoding_needed:
                     recommendations['label_encoded'] = {}
+
+            recommendation_with_meta_rules = self._give_recommendations_with_meta_rules(input_data=input_data)
+            recommendations.update(recommendation_with_meta_rules)
+
+        return recommendations
+
+    @staticmethod
+    def _give_recommendations_with_meta_rules(input_data: InputData):
+        recommendations = dict()
+        for rule in meta_rules:
+            recommendations.update(rule(input_data=input_data))
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:

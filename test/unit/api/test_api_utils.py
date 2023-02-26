@@ -59,7 +59,7 @@ def test_predefined_initial_assumption():
                                                         target=train_input.target,
                                                         is_predict=False)
     old_params = deepcopy(model.params)
-    recommendations = model.data_analyser.give_recommendation(model.train_data)
+    recommendations = model.data_analyser.give_recommendations(model.train_data)
     model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
     model.params.accept_and_apply_recommendations(model.train_data, recommendations)
 

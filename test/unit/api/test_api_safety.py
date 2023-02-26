@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.data_analyser import DataAnalyser
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -44,7 +44,7 @@ def test_safety_label_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
+    recs = api_safety.give_recommendations(data)
     api_preprocessor.accept_and_apply_recommendations(data, recs)
     assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
@@ -58,7 +58,7 @@ def test_recommendations_works_correct_in_final_fit():
 
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
+    recs = api_safety.give_recommendations(data)
     api_preprocessor.accept_and_apply_recommendations(data, recs)
 
     data_new = get_small_cat_data()
@@ -78,7 +78,7 @@ def test_no_safety_needed_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
+    recs = api_safety.give_recommendations(data)
     api_preprocessor.accept_and_apply_recommendations(data, recs)
     assert data.features.shape[0] * data.features.shape[1] == 24
     assert data.features.shape[1] == 3
