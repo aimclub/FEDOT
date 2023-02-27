@@ -191,8 +191,7 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
                                                                  recommendations=recommendations_for_data)
             self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                         recommendations=recommendations_for_params,
-                                                         use_meta_rules=self.params.api_params['use_meta_rules'])
+                                                         recommendations=recommendations_for_params)
         else:
             recommendations = None
 
