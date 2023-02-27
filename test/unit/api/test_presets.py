@@ -1,4 +1,4 @@
-from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.main import Fedot
 from fedot.core.constants import FAST_TRAIN_PRESET_NAME
@@ -74,7 +74,7 @@ def test_presets_inserting_in_params_correct():
     Check if operations from presets are correctly included in the dictionary
     with parameters for the composer
     """
-    composer_params = ApiParams.get_default_params(problem='regression')
+    composer_params = ApiParamsRepository.default_params_for_task(TaskTypesEnum.regression)
     source_candidates = composer_params.get('available_operations')
 
     task = Task(TaskTypesEnum.regression)

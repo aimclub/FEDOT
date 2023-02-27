@@ -8,6 +8,7 @@ from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTyp
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
+from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
@@ -31,7 +32,9 @@ class ApiParams:
         self.task: Task = self._get_task_with_params(problem, task_params)
         self.n_jobs: int = determine_n_jobs(n_jobs)
         self.timeout = timeout
-        self._parameters: dict = self._set_default_params(input_params)
+
+        self._params_repository = ApiParamsRepository(self.task.task_type)
+        self._parameters: dict = self._params_repository.check_and_set_default_params(input_params)
         self._check_timeout_vs_generations()
 
         self.composer_requirements = None
@@ -98,68 +101,8 @@ class ApiParams:
         except ValueError as exc:
             ValueError('Wrong type name of the given task')
 
-    def _set_default_params(self, composer_tuner_params: dict) -> dict:
-        """ Sets default values for parameters which were not set by the user """
-        default_params_dict = self._get_default_params()
-
-        for k, v in composer_tuner_params.items():
-            if k in default_params_dict:
-                default_params_dict[k] = v
-            else:
-                raise KeyError(f"Invalid key parameter {k}")
-        return default_params_dict
-
-    def _get_default_params(self) -> dict:
-        """ Returns a dict with default parameters"""
-        if self.task.task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
-            cv_folds = 5
-            validation_blocks = None
-
-        elif self.task.task_type == TaskTypesEnum.ts_forecasting:
-            cv_folds = 3
-            validation_blocks = 2
-
-        # If early_stopping_iterations is not specified,
-        # than estimate it as in time-based manner as: timeout / 3.
-        # The minimal number of generations is 5.
-        early_stopping_iterations = None
-        if self.timeout:
-            depending_on_timeout = int(self.timeout / 3)
-            early_stopping_iterations = max(depending_on_timeout, 5)
-
-        default_params_dict = dict(
-            parallelization_mode='populational',
-            show_progress=True,
-            max_depth=6,
-            max_arity=3,
-            pop_size=20,
-            num_of_generations=None,
-            keep_n_best=1,
-            available_operations=None,
-            metric=None,
-            validation_blocks=validation_blocks,
-            cv_folds=cv_folds,
-            genetic_scheme=None,
-            early_stopping_iterations=early_stopping_iterations,
-            early_stopping_timeout=10,
-            optimizer=None,
-            optimizer_external_params=None,
-            collect_intermediate_metric=False,
-            max_pipeline_fit_time=None,
-            initial_assumption=None,
-            preset=AUTO_PRESET_NAME,
-            use_pipelines_cache=True,
-            use_preprocessing_cache=True,
-            use_input_preprocessing=True,
-            cache_folder=None,
-            keep_history=True,
-            history_dir=None,
-            with_tuning=False
-        )
-        return default_params_dict
-
     def _check_timeout_vs_generations(self):
-        num_of_generations = self._parameters['num_of_generations']
+        num_of_generations = self._parameters.get('num_of_generations')
         if self.timeout in [-1, None]:
             self.timeout = None
             if num_of_generations is None:
@@ -183,43 +126,19 @@ class ApiParams:
         primary_operations, secondary_operations = \
             PipelineOperationRepository.divide_operations(self._parameters.get('available_operations'), self.task)
 
-        max_pipeline_fit_time = self._parameters['max_pipeline_fit_time']
-        if max_pipeline_fit_time:
-            max_pipeline_fit_time = datetime.timedelta(minutes=max_pipeline_fit_time)
-
+        composer_requirements_params = self._params_repository.get_params_for_composer_requirements(self._parameters)
         self.composer_requirements = PipelineComposerRequirements(
             primary=primary_operations,
             secondary=secondary_operations,
-            max_arity=self._parameters['max_arity'],
-            max_depth=self._parameters['max_depth'],
-
-            num_of_generations=self._parameters['num_of_generations'],
             timeout=datetime_composing,
-            early_stopping_iterations=self._parameters['early_stopping_iterations'],
-            early_stopping_timeout=self._parameters['early_stopping_timeout'],
-            max_graph_fit_time=max_pipeline_fit_time,
-            n_jobs=self.n_jobs,
-            parallelization_mode=self._parameters['parallelization_mode'],
-            static_individual_metadata={
-                k: v for k, v in self._parameters.items()
-                if k in ['use_input_preprocessing']
-            },
-            show_progress=self._parameters['show_progress'],
-            collect_intermediate_metric=self._parameters['collect_intermediate_metric'],
-            keep_n_best=self._parameters['keep_n_best'],
-
-            keep_history=True,
-            history_dir=self._parameters['history_dir'],
-
-            cv_folds=self._parameters['cv_folds'],
-            validation_blocks=self._parameters['validation_blocks'],
+            n_jobs=self.n_jobs, **composer_requirements_params
         )
         return self.composer_requirements
 
     def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if self._parameters['genetic_scheme'] == 'steady_state':
+        if self._parameters.get('genetic_scheme') == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
         self.optimizer_params = GPAlgorithmParameters(

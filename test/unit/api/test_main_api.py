@@ -583,12 +583,11 @@ def test_api_params():
 
 
 def test_unknown_param_raises_error():
-    api_params = {'problem': 'classification', 'unknown': 2}
+    api_params = {'problem': 'classification', 'unknown_1': 2, 'unknown_2': 2}
     try:
-        model = Fedot(**api_params)
-        _divide_parameters(model.params.to_dict())
+        _ = Fedot(**api_params)
     except KeyError as e:
-        assert str(e) == "'Invalid key parameter unknown'"
+        assert str(e) == '"Invalid key parameters {\'unknown_1\', \'unknown_2\'}"'
 
 
 def test_default_forecast():
