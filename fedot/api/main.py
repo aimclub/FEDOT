@@ -15,7 +15,7 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.params_builder import ApiParamsBuilder
+from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData, OutputData
@@ -122,10 +122,7 @@ class Fedot:
         self.log = self._init_logger(logging_level)
 
         # Classes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParamsBuilder(problem, task_params)\
-            .with_timeout(timeout)\
-            .with_n_jobs(n_jobs)\
-            .with_composer_tuner_params(composer_tuner_params).build()
+        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
         self.metrics = ApiMetrics(self.params.task, self.params.get('metric'))
 
         self.api_composer = ApiComposer(problem, self.params, self.metrics)
@@ -244,7 +241,7 @@ class Fedot:
         validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
 
-        metric = self.metrics.get_metrics_mapping(metric_name) if metric_name else self.metrics.metric_functions[0]
+        metric = self.metrics.obtain_metrics(metric_name)[0] if metric_name else self.metrics.metric_functions[0]
 
         pipeline_tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \

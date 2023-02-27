@@ -3,6 +3,8 @@ from typing import Any, List, Optional
 
 from golem.core.utilities.data_structures import ComparableEnum as Enum
 
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH
+
 
 @dataclass
 class TaskParams:

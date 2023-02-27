@@ -2,6 +2,7 @@ import datetime
 from typing import Any, Dict, Optional, Union, Sequence
 
 from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
@@ -9,7 +10,7 @@ from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
-from fedot.core.constants import AUTO_PRESET_NAME
+from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -19,15 +20,16 @@ from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams, TsForecastingParams
 
 
 class ApiParams:
 
-    def __init__(self, input_params: Dict[str, Any], task: Task, n_jobs: int, timeout: float):
+    def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
+                 n_jobs: int = -1, timeout: float = 5):
         self.log: LoggerAdapter = default_log(self)
-        self.task: Task = task
-        self.n_jobs: int = n_jobs
+        self.task: Task = self._get_task_with_params(problem, task_params)
+        self.n_jobs: int = determine_n_jobs(n_jobs)
         self.timeout = timeout
         self._parameters: dict = self._set_default_params(input_params)
         self._check_timeout_vs_generations()
@@ -81,6 +83,20 @@ class ApiParams:
         if self._parameters.get('available_operations') is not None:
             del self._parameters['available_operations']
         self._parameters = preset_operations.composer_params_based_on_preset(self._parameters, data_type)
+
+    def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None):
+        if problem == 'ts_forecasting' and task_params is None:
+            self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
+            task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
+
+        task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
+                     'classification': Task(TaskTypesEnum.classification, task_params=task_params),
+                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
+                     }
+        try:
+            return task_dict[problem]
+        except ValueError as exc:
+            ValueError('Wrong type name of the given task')
 
     def _set_default_params(self, composer_tuner_params: dict) -> dict:
         """ Sets default values for parameters which were not set by the user """
