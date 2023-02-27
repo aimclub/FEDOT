@@ -5,7 +5,6 @@ from copy import deepcopy
 import pytest
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
-from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
@@ -42,8 +41,7 @@ def test_output_binary_classification_correct():
     model.predict(test_data)
     metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
 
-    assert metrics['roc_auc'] >= 0.6
-    assert metrics['f1'] >= 0.6
+    assert all(value >= 0.6 for value in list(metrics.values()))
 
 
 def test_predefined_initial_assumption():

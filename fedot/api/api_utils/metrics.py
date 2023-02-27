@@ -15,13 +15,6 @@ class ApiMetrics:
     both for composer and tuner
     """
 
-    _task_dict = {
-        TaskTypesEnum.regression: ['rmse', 'mae'],
-        TaskTypesEnum.classification: ['roc_auc', 'f1'],
-        TaskTypesEnum.clustering: ['silhouette'],
-        TaskTypesEnum.ts_forecasting: ['rmse', 'mae']
-    }
-
     _metrics_dict = {
         'acc': ClassificationMetricsEnum.accuracy,
         'roc_auc': ClassificationMetricsEnum.ROCAUC,
@@ -34,7 +27,7 @@ class ApiMetrics:
         'smape': RegressionMetricsEnum.SMAPE,
         'r2': RegressionMetricsEnum.R2,
         'rmse': RegressionMetricsEnum.RMSE,
-        'rmse_pen': RegressionMetricsEnum.RMSE_penalty,
+        'rmse_penalty': RegressionMetricsEnum.RMSE_penalty,
         'silhouette': ClusteringMetricsEnum.silhouette,
         'node_num': ComplexityMetricsEnum.node_num
     }
@@ -45,10 +38,11 @@ class ApiMetrics:
 
     @property
     def metric_names(self):
-        return [str(metric) for metric in self.metric_functions]
+        return ApiMetrics.get_metric_names(self.metric_functions)
 
-    def get_problem_metrics(self) -> Union[str, Sequence[str]]:
-        return ApiMetrics._task_dict[self.task.task_type]
+    @staticmethod
+    def get_metric_names(metrics: Sequence[MetricType]) -> Sequence[str]:
+        return [str(metric) for metric in metrics]
 
     @staticmethod
     def get_metrics_mapping(metric_name: Union[str, Callable]) -> Union[Metric, Callable]:
@@ -67,7 +61,7 @@ class ApiMetrics:
             metric = None
             if isinstance(specific_metric, str) or isinstance(specific_metric, Callable):
                 # metric was defined by name (str) or metric is a custom function
-                metric = self.get_metrics_mapping(metric_name=specific_metric)
+                metric = ApiMetrics.get_metrics_mapping(metric_name=specific_metric)
             elif isinstance(specific_metric, MetricsEnum):
                 metric = specific_metric
             if metric is None:

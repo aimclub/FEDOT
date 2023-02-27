@@ -160,10 +160,10 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     model = Fedot(problem=task_type, **default_params)
     fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
-    metric = model.get_metrics()
+    metric = model.get_metrics(metric_names=metric_name)
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
-    assert metric[metric_name] > 0
+    assert all(value > 0 for value in list(metric.values()))
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
@@ -277,7 +277,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
-    assert metric['rmse'] >= 0
+    assert all(value > 0 for value in list(metric.values()))
 
 
 def test_api_check_data_correct():

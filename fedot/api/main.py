@@ -459,7 +459,7 @@ class Fedot:
 
         if metric_names:
             metrics = self.metrics.obtain_metrics(metric_names)
-            metric_names = [str(metric_name) for metric_name in metric_names]
+            metric_names = self.metrics.get_metric_names(metrics)
         else:
             metrics = self.metrics.metric_functions
             metric_names = self.metrics.metric_names

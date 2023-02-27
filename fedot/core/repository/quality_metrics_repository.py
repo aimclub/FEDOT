@@ -10,7 +10,8 @@ from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss,
 
 
 class MetricsEnum(Enum):
-    pass
+    def __str__(self):
+        return self.name
 
 
 G = TypeVar('G', bound=Graph, covariant=True)
@@ -49,7 +50,7 @@ class RegressionMetricsEnum(QualityMetricsEnum):
     SMAPE = 'smape'
     MAE = 'mae'
     R2 = 'r2'
-    RMSE_penalty = 'rmse_pen'
+    RMSE_penalty = 'rmse_penalty'
 
 
 class MetricsRepository:
