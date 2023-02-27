@@ -8,7 +8,7 @@ def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
     str_num = input_data.features.shape[0]
     available_cv_folds = list(reversed(range(1, 10)))
     for num in available_cv_folds:
-        if str_num/num > 400:
+        if str_num/num > 1000:
             return {'cv_folds': num}
     return {'cv_folds': 1}
 
@@ -16,13 +16,21 @@ def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
 def get_recommended_preset(input_data: InputData, input_params: Dict) -> Dict[str, Optional[str]]:
     """ Get appropriate preset for `input_data` and `input_params`. """
     preset = None
+
+    # since there is enough time for optimization on such amount of data heavy models can be used
+    if input_params['timeout'] >= 60 \
+            and input_data.features.shape[0]*input_data.features.shape[1] < 300000:
+        preset = 'best_quality'
+
     # to avoid overfitting for small datasets
-    if input_data.features.shape[0] < 500:
+    if input_data.features.shape[0] < 5000:
         preset = 'fast_train'
+
     # to avoid stagnation due to too long evaluation of one population
     if input_params['timeout'] < 10 \
             and input_data.features.shape[0]*input_data.features.shape[1] > 300000:
         preset = 'fast_train'
+
     return {'preset': preset}
 
 
