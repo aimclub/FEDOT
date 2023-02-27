@@ -1,11 +1,8 @@
 from typing import Dict, Optional
 
-from golem.core.adapter import register_native
-
 from fedot.core.data.data import InputData
 
 
-@register_native
 def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
     """ Cross-validation folds are available from 1 to 10. """
     str_num = input_data.features.shape[0]
@@ -16,7 +13,6 @@ def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
     return {'cv_folds': 1}
 
 
-@register_native
 def get_recommended_preset(input_data: InputData, input_params: Dict) -> Dict[str, Optional[str]]:
     """ Get appropriate preset for `input_data` and `input_params`. """
     preset = None
@@ -30,7 +26,6 @@ def get_recommended_preset(input_data: InputData, input_params: Dict) -> Dict[st
     return {'preset': preset}
 
 
-@register_native
 def get_early_stopping_generations(input_params: Dict) -> Dict[str, Optional[int]]:
     """ Get number of early stopping generations depending on timeout. """
     # If early_stopping_generations is not specified,
