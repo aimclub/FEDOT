@@ -1,11 +1,12 @@
 from typing import Callable, Union, Sequence, Optional
 
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+
 from fedot.core.composer.metrics import Metric
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum, MetricType,
                                                               MetricsEnum)
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 

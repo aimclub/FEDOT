@@ -5,9 +5,7 @@ from typing import List, Optional, Sequence, Tuple
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
-from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
@@ -19,18 +17,10 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
-from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.tasks import Task
-from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class ApiComposer:

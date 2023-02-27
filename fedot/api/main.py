@@ -8,7 +8,6 @@ from golem.core.dag.graph_utils import graph_structure
 from golem.core.log import default_log, Log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -27,16 +26,14 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
+from fedot.core.utils import set_random_seed
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
-from fedot.core.utilities.random import set_random_seed
-
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -208,7 +205,7 @@ class Fedot:
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             self.data_processor.preprocessor, self.current_pipeline.preprocessor)
 
-        self.log.message(f'Final pipeline: {self.current_pipeline.structure}')
+        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
 
         MemoryAnalytics.finish()
 

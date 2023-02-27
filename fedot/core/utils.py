@@ -1,10 +1,13 @@
 import os
 import platform
+import random
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+from golem.core.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -78,3 +81,11 @@ def make_pipeline_generator(pipeline):
         if node not in visited_nodes:
             visited_nodes.append(node)
             yield node
+
+
+def set_random_seed(seed: Optional[int]):
+    """ Sets random seed for evaluation of models"""
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
+        RandomStateHandler.MODEL_FITTING_SEED = seed

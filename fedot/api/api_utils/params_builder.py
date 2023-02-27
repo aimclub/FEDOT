@@ -1,9 +1,10 @@
 from typing import Optional
 
+from golem.core.log import default_log
+from golem.core.optimisers.genetic.evaluation import determine_n_jobs
+
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.constants import DEFAULT_FORECAST_LENGTH
-from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.repository.tasks import TaskParams, TsForecastingParams, Task, TaskTypesEnum
 
 

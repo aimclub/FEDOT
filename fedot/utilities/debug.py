@@ -15,7 +15,6 @@ def is_test_session():
     return 'PYTEST_CURRENT_TEST' in os.environ
 
 
-
 def is_recording_mode():
     return 'FEDOT_RECORDING_MODE' in os.environ
 

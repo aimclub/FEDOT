@@ -1,19 +1,20 @@
 import datetime
 from typing import Any, Dict, Optional, Union, Sequence
 
-from golem.core.log import LoggerAdapter
+from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -180,7 +181,7 @@ class ApiParams:
             timeout=datetime_composing,
             early_stopping_iterations=self._parameters['early_stopping_iterations'],
             early_stopping_timeout=self._parameters['early_stopping_timeout'],
-            max_pipeline_fit_time=max_pipeline_fit_time,
+            max_graph_fit_time=max_pipeline_fit_time,
             n_jobs=self.n_jobs,
             parallelization_mode=self._parameters['parallelization_mode'],
             static_individual_metadata={
@@ -199,13 +200,13 @@ class ApiParams:
         )
         return self.composer_requirements
 
-    def init_optimizer_params(self, multi_objective: bool) -> GPGraphOptimizerParameters:
+    def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if self._parameters['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        self.optimizer_params = GPGraphOptimizerParameters(
+        self.optimizer_params = GPAlgorithmParameters(
             multi_objective=multi_objective,
             pop_size=self._parameters['pop_size'],
             genetic_scheme_type=genetic_scheme_type,
