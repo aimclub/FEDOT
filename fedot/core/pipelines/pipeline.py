@@ -240,6 +240,7 @@ class Pipeline(GraphDelegate, Serializable):
         Returns:
             bool: indicating if at least one node was loaded
         """
+
         if cache is not None:
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:

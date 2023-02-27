@@ -392,7 +392,6 @@ def _combine_parents(parent_nodes: List[PipelineNode],
             parent_results.append(prediction)
         else:
             raise NotImplementedError()
-
         if input_data is None:
             # InputData was set to primary nodes
             target = prediction.target

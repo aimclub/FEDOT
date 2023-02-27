@@ -79,6 +79,6 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
 
 def check_for_specific_operations(operation_id: str):
     if ('data_source' in operation_id or
-            'exog_ts' == operation_id or 'custom' in operation_id):
+            'exog_ts' in operation_id or 'custom' in operation_id):
         return True
     return False

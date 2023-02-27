@@ -158,12 +158,12 @@
 		"scaling": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "feature_scaling"]
+			"tags": ["simple", "feature_scaling", "non_applicable_for_ts"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "feature_scaling"]
+			"tags": ["simple", "feature_scaling", "non_applicable_for_ts"]
 		},
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
@@ -224,7 +224,7 @@
 		},
 		"isolation_forest_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "filtering"]
+			"tags": ["non_linear", "filtering", "non_applicable_for_ts"]
 		},
 		"isolation_forest_class": {
 			"meta": "classification_preprocessing",
@@ -232,11 +232,11 @@
 		},
 		"rfe_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non-default"]
+			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non-default", "non_applicable_for_ts"]
 		},
 		"rfe_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non-default"]
+			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non-default", "non_applicable_for_ts"]
 		},
 		"rfe_lin_class": {
 			"meta": "classification_preprocessing",
