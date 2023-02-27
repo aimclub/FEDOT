@@ -112,6 +112,7 @@ class Fedot:
                 - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
 
         use_input_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
+        use_meta_rules: bool indicating whether to change set params according to FEDOT meta rules
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
         cache_dir: path to the place where cache files should be stored (if any cache is enabled).
@@ -184,9 +185,10 @@ class Fedot:
 
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
-            recommendations = self.data_analyser.give_recommendations(self.train_data)
-            self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
-            self.params.accept_and_apply_recommendations(self.train_data, recommendations)
+            recommendations_for_data, recommendations_for_params = \
+                self.data_analyser.give_recommendations(self.train_data)
+            self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations_for_data)
+            self.params.accept_and_apply_recommendations(self.train_data, recommendations_for_params)
         else:
             recommendations = None
 
