@@ -12,7 +12,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.data_analyser import DataAnalyser
+from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
@@ -144,7 +144,7 @@ class Fedot:
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
-        self.data_analyser = DataAnalyser(safe_mode=safe_mode)
+        self.data_analyser = InputAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
@@ -186,9 +186,13 @@ class Fedot:
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations_for_data, recommendations_for_params = \
-                self.data_analyser.give_recommendations(self.train_data)
-            self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations_for_data)
-            self.params.accept_and_apply_recommendations(self.train_data, recommendations_for_params)
+                self.data_analyser.give_recommendations(input_data=self.train_data,
+                                                        input_params=self.params.api_params)
+            self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                 recommendations=recommendations_for_data)
+            self.params.accept_and_apply_recommendations(input_data=self.train_data,
+                                                         recommendations=recommendations_for_params,
+                                                         use_meta_rules=self.params.api_params['use_meta_rules'])
         else:
             recommendations = None
 

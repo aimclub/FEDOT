@@ -47,13 +47,15 @@ class ApiParams(UserDict):
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
             self.data = preset_operations.composer_params_based_on_preset(self.data, data.data_type)
 
-    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict,
+                                         use_meta_rules: bool = True):
         """
         Accepts recommendations for api params from DataAnalyser
 
         Args:
             input_data: data for preprocessing
             recommendations: dict with recommendations
+            use_meta_rules: bool indicating whether to change set params according to FEDOT meta rules
         """
         # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
@@ -67,10 +69,11 @@ class ApiParams(UserDict):
                 self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
 
             # update api params with recommendations obtained using meta rules
-            for key in self.api_params:
-                if key not in recommendations:
-                    continue
-                self.api_params.update({key: recommendations[key]})
+            if use_meta_rules:
+                for key in self.api_params:
+                    if key not in recommendations:
+                        continue
+                    self.api_params.update({key: recommendations[key]})
 
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """

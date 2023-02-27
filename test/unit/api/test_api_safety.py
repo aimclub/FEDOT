@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.data_analyser import DataAnalyser
+from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -12,7 +12,7 @@ from test.unit.api.test_main_api import default_params
 
 def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
     """ Create a DataAnalyser object with small max dataset size and small max cardinality for categorical features"""
-    safety_module = DataAnalyser(safe_mode=True)
+    safety_module = InputAnalyser(safe_mode=True)
     preprocessor = ApiDataProcessor(Task(TaskTypesEnum.classification))
     safety_module.max_size = max_size
     safety_module.max_cat_cardinality = max_cat_cardinality
