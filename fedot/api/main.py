@@ -68,25 +68,35 @@ class Fedot:
 
         safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
             instead of oneHot encoder if summary cardinality of categorical features is high.
+
         n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
         parallelization_mode: type of evaluation for candidate solution groups (populational or sequential)
+
+        initial_assumption: initial assumption for composer
+        available_operations: list of model names to use
+
+        metric:  metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``
+        collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+        cv_folds: number of folds for cross-validation
+        validation_blocks: number of validation blocks for time series forecasting
+
+        show_progress: bool indicating whether to show progress using tqdm/tuner or not
+
+        num_of_generations: number of generations for composer
+        early_stopping_iterations: composer will stop after ``n`` generation without improving
+        early_stopping_timeout: stagnation timeout in minutes: composer will stop after ``n`` minutes without improving
+        max_pipeline_fit_time: time constraint for operation fitting (in minutes)
+
         max_depth: max depth of the pipeline
         max_arity: max arity of the pipeline nodes
         pop_size: population size for composer
-        num_of_generations: number of generations for composer
         keep_n_best: Number of the best individuals of previous generation to keep in next generation.
-        available_operations: list of model names to use
-        early_stopping_iterations: composer will stop after ``n`` generation without improving
-        early_stopping_timeout: stagnation timeout in minutes: composer will stop after ``n`` minutes without improving
-        with_tuning: allow hyperparameters tuning for the model
-        cv_folds: number of folds for cross-validation
-        validation_blocks: number of validation blocks for time series forecasting
-        max_pipeline_fit_time: time constraint for operation fitting (in minutes)
-        initial_assumption: initial assumption for composer
         genetic_scheme: name of the genetic scheme
+
+        with_tuning: allow hyperparameters tuning for the model
+
         history_dir: name of the folder for composing history
-        metric:  metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``
-        collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+
         preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu'):
 
             .. details:: possible ``preset`` options:
@@ -105,7 +115,6 @@ class Fedot:
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
         cache_folder: path to the place where cache files should be stored (if any cache is enabled).
-        show_progress: bool indicating whether to show progress using tqdm/tuner or not
     """
 
     def __init__(self,
