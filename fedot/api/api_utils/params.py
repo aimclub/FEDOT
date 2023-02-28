@@ -137,15 +137,10 @@ class ApiParams:
 
     def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
 
-        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if self._parameters.get('genetic_scheme') == 'steady_state':
-            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params()
 
         self.optimizer_params = GPAlgorithmParameters(
-            multi_objective=multi_objective,
-            pop_size=self._parameters['pop_size'],
-            genetic_scheme_type=genetic_scheme_type,
-            mutation_types=ApiParams._get_default_mutations(self.task.task_type)
+            multi_objective=multi_objective, **gp_algorithm_parameters
         )
         return self.optimizer_params
 
@@ -164,19 +159,3 @@ class ApiParams:
                                                              advisor=advisor,
                                                              node_factory=node_factory)
         return self.graph_generation_params
-
-    @staticmethod
-    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
-        mutations = [parameter_change_mutation,
-                     MutationTypesEnum.single_change,
-                     MutationTypesEnum.single_drop,
-                     MutationTypesEnum.single_add]
-
-        # TODO remove workaround after boosting mutation fix
-        if task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(boosting_mutation)
-        # TODO remove workaround after validation fix
-        if task_type is not TaskTypesEnum.ts_forecasting:
-            mutations.append(MutationTypesEnum.single_edge)
-
-        return mutations

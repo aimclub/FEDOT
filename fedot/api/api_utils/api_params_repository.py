@@ -1,5 +1,11 @@
 import datetime
+from typing import Sequence
 
+
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
+
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -102,3 +108,32 @@ class ApiParamsRepository:
 
         composer_requirements_params['static_individual_metadata'] = static_individual_metadata
         return composer_requirements_params
+
+    def get_params_for_gp_algorithm_params(self, params: dict) -> dict:
+        gp_algorithm_params_keys = ['genetic_scheme', 'pop_size']
+        gp_algorithm_params = {'pop_size': params.get('pop_size')}
+        for k in gp_algorithm_params_keys:
+            gp_algorithm_params[k] = params[k]
+
+        gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.parameter_free
+        if params.get('genetic_scheme') == 'steady_state':
+            gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
+
+        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type)
+        return gp_algorithm_params
+
+    @staticmethod
+    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
+        mutations = [parameter_change_mutation,
+                     MutationTypesEnum.single_change,
+                     MutationTypesEnum.single_drop,
+                     MutationTypesEnum.single_add]
+
+        # TODO remove workaround after boosting mutation fix
+        if task_type == TaskTypesEnum.ts_forecasting:
+            mutations.append(boosting_mutation)
+        # TODO remove workaround after validation fix
+        if task_type is not TaskTypesEnum.ts_forecasting:
+            mutations.append(MutationTypesEnum.single_edge)
+
+        return mutations
