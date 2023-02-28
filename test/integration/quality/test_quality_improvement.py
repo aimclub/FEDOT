@@ -38,7 +38,7 @@ def test_classification_quality_improvement():
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
-    assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= expected_baseline_quality
+    assert auto_metrics['roc_auc_pen'] > baseline_metrics['roc_auc_pen'] >= expected_baseline_quality
 
 
 def test_multiobjective_improvement():

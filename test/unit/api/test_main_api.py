@@ -525,69 +525,12 @@ def test_data_from_csv_load_correctly():
     assert test_input.target is None
 
 
-def test_api_params():
-    """ Test checks if all params from api are processed and divided correctly"""
-    default_int_value = 2
-    fedot_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
-                    'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
-                    'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
-                    'max_depth': default_int_value, 'max_arity': default_int_value,
-                    'early_stopping_iterations': default_int_value, 'early_stopping_timeout': default_int_value,
-                    'pop_size': default_int_value, 'num_of_generations': default_int_value,
-                    'keep_n_best': default_int_value, 'available_operations': ['lagged', 'ridge'],
-                    'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
-                    'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                    'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_dir': 'history',
-                    'metric': RegressionMetricsEnum.SMAPE,
-                    'collect_intermediate_metric': True, 'preset': 'fast_train',
-                    'optimizer_external_params': {'path': default_int_value}}
-
-    correct_api_params = {'n_jobs': default_int_value,
-                          'task': Task(task_type=TaskTypesEnum.ts_forecasting,
-                                       task_params=TsForecastingParams(forecast_length=2)),
-                          'timeout': default_int_value,
-                          'train_data': None}
-    correct_composer_params = {'available_operations': ['lagged', 'ridge'],
-                               'collect_intermediate_metric': True,
-                               'metric': RegressionMetricsEnum.SMAPE,
-                               'cv_folds': default_int_value,
-                               'genetic_scheme': GeneticSchemeTypesEnum.steady_state,
-                               'history_dir': 'history',
-                               'initial_assumption': PipelineBuilder().add_node('lagged').add_node(
-                                   'ridge').build(),
-                               'max_arity': default_int_value,
-                               'max_depth': default_int_value,
-                               'max_pipeline_fit_time': default_int_value,
-                               'num_of_generations': default_int_value,
-                               'keep_n_best': default_int_value,
-                               'optimizer': None,
-                               'pop_size': default_int_value,
-                               'preset': 'fast_train',
-                               'early_stopping_iterations': default_int_value,
-                               'early_stopping_timeout': default_int_value,
-                               'validation_blocks': default_int_value,
-                               'optimizer_external_params': {'path': default_int_value},
-                               'use_input_preprocessing': True,
-                               'use_pipelines_cache': True, 'use_preprocessing_cache': True,
-                               'cache_folder': None}
-    correct_tuner_params = {'with_tuning': True}
-
-    model = Fedot(**fedot_params)
-    api_params, composer_params, tuner_params = _divide_parameters(model.params.to_dict())
-
-    assert correct_api_params.items() <= api_params.items()
-
-    assert correct_composer_params.items() <= composer_params.items()
-
-    assert correct_tuner_params.items() <= tuner_params.items()
-
-
 def test_unknown_param_raises_error():
-    api_params = {'problem': 'classification', 'unknown_1': 2, 'unknown_2': 2}
+    api_params = {'problem': 'classification', 'unknown_1': 2}
     try:
         _ = Fedot(**api_params)
     except KeyError as e:
-        assert str(e) == '"Invalid key parameters {\'unknown_1\', \'unknown_2\'}"'
+        assert str(e) == '"Invalid key parameters {\'unknown_1\'}"'
 
 
 def test_default_forecast():

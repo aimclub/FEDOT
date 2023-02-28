@@ -15,6 +15,15 @@ class ApiParamsRepository:
     for different data classes used while model composition.
      """
 
+    COMPOSER_REQUIREMENTS_KEYS = ['max_arity', 'max_depth', 'num_of_generations',
+                                  'early_stopping_iterations', 'early_stopping_timeout',
+                                  'max_pipeline_fit_time', 'parallelization_mode',
+                                  'use_input_preprocessing', 'show_progress',
+                                  'collect_intermediate_metric', 'keep_n_best',
+                                  'keep_history', 'history_dir', 'cv_folds', 'validation_blocks']
+
+    METADATA_KEYS = ['use_input_preprocessing']
+
     def __init__(self, task_type: TaskTypesEnum):
         self.task_type = task_type
         self.default_params = ApiParamsRepository.default_params_for_task(self.task_type)
@@ -77,20 +86,14 @@ class ApiParamsRepository:
 
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:
-        composer_requirements_keys = ['max_arity', 'max_depth', 'num_of_generations',
-                                      'early_stopping_iterations', 'early_stopping_timeout',
-                                      'max_pipeline_fit_time', 'parallelization_mode',
-                                      'use_input_preprocessing', 'show_progress',
-                                      'collect_intermediate_metric', 'keep_n_best',
-                                      'keep_history', 'history_dir', 'cv_folds', 'validation_blocks']
-        composer_requirements_params = {}
-        for k in composer_requirements_keys:
-            if k in params:
-                composer_requirements_params[k] = params[k]
+
+        composer_requirements_params = {k: v for k, v in params.items()
+                                        if k in ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
 
         max_pipeline_fit_time = composer_requirements_params.get('max_pipeline_fit_time')
         if max_pipeline_fit_time:
             composer_requirements_params['max_graph_fit_time'] = datetime.timedelta(minutes=max_pipeline_fit_time)
+        composer_requirements_params.pop('max_pipeline_fit_time', None)
 
         composer_requirements_params = ApiParamsRepository.set_static_individual_metadata(composer_requirements_params)
 
@@ -98,24 +101,17 @@ class ApiParamsRepository:
 
     @staticmethod
     def set_static_individual_metadata(composer_requirements_params: dict) -> dict:
-        metadata_keys = ['use_input_preprocessing']
-        static_individual_metadata = {}
-        for k, v in composer_requirements_params.items():
-            if k in metadata_keys:
-                static_individual_metadata[k] = v
-        for k in metadata_keys:
+        static_individual_metadata = {k: v for k, v in composer_requirements_params.items()
+                                      if k in ApiParamsRepository.METADATA_KEYS}
+        for k in ApiParamsRepository.METADATA_KEYS:
             composer_requirements_params.pop(k)
 
         composer_requirements_params['static_individual_metadata'] = static_individual_metadata
         return composer_requirements_params
 
     def get_params_for_gp_algorithm_params(self, params: dict) -> dict:
-        gp_algorithm_params_keys = ['genetic_scheme', 'pop_size']
-        gp_algorithm_params = {'pop_size': params.get('pop_size')}
-        for k in gp_algorithm_params_keys:
-            gp_algorithm_params[k] = params[k]
-
-        gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.parameter_free
+        gp_algorithm_params = {'pop_size': params.get('pop_size'),
+                               'genetic_scheme_type': GeneticSchemeTypesEnum.parameter_free}
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
@@ -127,13 +123,11 @@ class ApiParamsRepository:
         mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
-                     MutationTypesEnum.single_add]
+                     MutationTypesEnum.single_add,
+                     MutationTypesEnum.single_edge]
 
         # TODO remove workaround after boosting mutation fix
         if task_type == TaskTypesEnum.ts_forecasting:
             mutations.append(boosting_mutation)
-        # TODO remove workaround after validation fix
-        if task_type is not TaskTypesEnum.ts_forecasting:
-            mutations.append(MutationTypesEnum.single_edge)
 
         return mutations

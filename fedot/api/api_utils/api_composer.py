@@ -3,7 +3,6 @@ import gc
 from typing import List, Optional, Sequence, Tuple
 
 from golem.core.log import default_log
-from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
@@ -18,14 +17,13 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.tasks import Task
 
 
 class ApiComposer:
 
-    def __init__(self, problem: str, api_params: ApiParams, metrics: ApiMetrics):
+    def __init__(self, api_params: ApiParams, metrics: ApiMetrics):
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
@@ -63,9 +61,7 @@ class ApiComposer:
         fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
 
         multi_objective = len(self.metrics.metric_functions) > 1
-        self.params.init_composer_requirements(self.timer.timedelta_composing)
-        self.params.init_optimizer_params(multi_objective=multi_objective)
-        self.params.init_graph_generation_params(requirements=self.params.composer_requirements)
+        self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)
 
         self.log.message(f"AutoML configured."
                          f" Parameters tuning: {with_tuning}."
@@ -110,7 +106,8 @@ class ApiComposer:
 
         return fitted_assumption
 
-    def compose_pipeline(self, task: Task, train_data: InputData, fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+    def compose_pipeline(self, task: Task, train_data: InputData, fitted_assumption: Pipeline) \
+            -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = ComposerBuilder(task=task) \
             .with_requirements(self.params.composer_requirements) \

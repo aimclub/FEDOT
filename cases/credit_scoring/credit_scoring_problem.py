@@ -44,9 +44,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     if visualization:
         automl.current_pipeline.show()
 
-    print(f'Composed ROC AUC is {round(metrics["roc_auc"], 3)}')
+    print(f'Composed ROC AUC is {round(metrics["roc_auc_pen"], 3)}')
 
-    return metrics["roc_auc"]
+    return metrics["roc_auc_pen"]
 
 
 def get_scoring_data():

@@ -1,16 +1,13 @@
 import datetime
-from typing import Any, Dict, Optional, Union, Sequence
+from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
-from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -113,6 +110,11 @@ class ApiParams:
         else:
             raise ValueError(f'invalid "timeout" value: timeout={self.timeout}')
 
+    def init_params_for_composing(self, datetime_composing: Optional[datetime.timedelta], multi_objective: bool):
+        self.init_composer_requirements(datetime_composing)
+        self.init_optimizer_params(multi_objective=multi_objective)
+        self.init_graph_generation_params(requirements=self.composer_requirements)
+
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
             -> PipelineComposerRequirements:
 
@@ -127,17 +129,15 @@ class ApiParams:
             PipelineOperationRepository.divide_operations(self._parameters.get('available_operations'), self.task)
 
         composer_requirements_params = self._params_repository.get_params_for_composer_requirements(self._parameters)
-        self.composer_requirements = PipelineComposerRequirements(
-            primary=primary_operations,
-            secondary=secondary_operations,
-            timeout=datetime_composing,
-            n_jobs=self.n_jobs, **composer_requirements_params
-        )
+        self.composer_requirements = PipelineComposerRequirements(primary=primary_operations,
+                                                                  secondary=secondary_operations,
+                                                                  timeout=datetime_composing,
+                                                                  n_jobs=self.n_jobs, **composer_requirements_params)
         return self.composer_requirements
 
     def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
 
-        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params()
+        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self._parameters)
 
         self.optimizer_params = GPAlgorithmParameters(
             multi_objective=multi_objective, **gp_algorithm_parameters

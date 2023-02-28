@@ -134,7 +134,7 @@ class Fedot:
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
         self.metrics = ApiMetrics(self.params.task, self.params.get('metric'))
 
-        self.api_composer = ApiComposer(problem, self.params, self.metrics)
+        self.api_composer = ApiComposer(self.params, self.metrics)
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
@@ -460,12 +460,8 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        if metric_names:
-            metrics = self.metrics.obtain_metrics(metric_names)
-            metric_names = self.metrics.get_metric_names(metrics)
-        else:
-            metrics = self.metrics.metric_functions
-            metric_names = self.metrics.metric_names
+        metrics = self.metrics.obtain_metrics(metric_names) if metric_names else self.metrics.metric_functions
+        metric_names = self.metrics.get_metric_names(metrics)
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 

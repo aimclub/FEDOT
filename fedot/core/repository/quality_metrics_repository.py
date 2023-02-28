@@ -11,7 +11,7 @@ from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss,
 
 class MetricsEnum(Enum):
     def __str__(self):
-        return self.name
+        return self.value
 
 
 G = TypeVar('G', bound=Graph, covariant=True)
