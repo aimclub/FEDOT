@@ -48,6 +48,7 @@ class ApiParams:
         return self._parameters
 
     def update_available_operations_by_preset(self, data: InputData):
+        """ Updates available_operations by preset and data type"""
         preset = self._parameters.get('preset')
         if preset != AUTO_PRESET_NAME:
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
@@ -58,8 +59,9 @@ class ApiParams:
         """
         Accepts recommendations for api params from DataAnalyser
 
-        :param input_data - data for preprocessing
-        :param recommendations - dict with recommendations
+        Args:
+            input_data: data for preprocessing
+            recommendations: dict with recommendations
         """
         # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
@@ -84,7 +86,8 @@ class ApiParams:
             del self._parameters['available_operations']
         self._parameters = preset_operations.composer_params_based_on_preset(self._parameters, data_type)
 
-    def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None):
+    def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
+        """ Creates Task from problem name and task_params"""
         if problem == 'ts_forecasting' and task_params is None:
             self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
             task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
@@ -111,13 +114,15 @@ class ApiParams:
             raise ValueError(f'invalid "timeout" value: timeout={self.timeout}')
 
     def init_params_for_composing(self, datetime_composing: Optional[datetime.timedelta], multi_objective: bool):
+        """ Method to initialize ``PipelineComposerRequirements``, ``GPAlgorithmParameters``,
+        ``GraphGenerationParams``"""
         self.init_composer_requirements(datetime_composing)
         self.init_optimizer_params(multi_objective=multi_objective)
         self.init_graph_generation_params(requirements=self.composer_requirements)
 
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
             -> PipelineComposerRequirements:
-
+        """ Method to initialize ``PipelineComposerRequirements``"""
         preset = self._parameters['preset']
 
         # define available operations
@@ -136,7 +141,7 @@ class ApiParams:
         return self.composer_requirements
 
     def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
-
+        """Method to initialize ``GPAlgorithmParameters``"""
         gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self._parameters)
 
         self.optimizer_params = GPAlgorithmParameters(
@@ -144,7 +149,8 @@ class ApiParams:
         )
         return self.optimizer_params
 
-    def init_graph_generation_params(self, requirements: PipelineComposerRequirements):
+    def init_graph_generation_params(self, requirements: PipelineComposerRequirements) -> GraphGenerationParams:
+        """Method to initialize ``GraphGenerationParameters``"""
         preset = self._parameters['preset']
         available_operations = self._parameters['available_operations']
         advisor = PipelineChangeAdvisor(self.task)

@@ -526,11 +526,11 @@ def test_data_from_csv_load_correctly():
 
 
 def test_unknown_param_raises_error():
-    api_params = {'problem': 'classification', 'unknown_1': 2}
+    api_params = {'problem': 'classification', 'unknown': 2}
     try:
         _ = Fedot(**api_params)
     except KeyError as e:
-        assert str(e) == '"Invalid key parameters {\'unknown_1\'}"'
+        assert str(e) == '"Invalid key parameters {\'unknown\'}"'
 
 
 def test_default_forecast():

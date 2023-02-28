@@ -12,7 +12,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 class ApiParamsRepository:
     """Repository storing possible Api parameters and their default values. Also returns parameters required
-    for different data classes used while model composition.
+    for data classes (``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``)
+    used while model composition.
      """
 
     COMPOSER_REQUIREMENTS_KEYS = ['max_arity', 'max_depth', 'num_of_generations',
@@ -22,7 +23,7 @@ class ApiParamsRepository:
                                   'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir', 'cv_folds', 'validation_blocks']
 
-    METADATA_KEYS = ['use_input_preprocessing']
+    STATIC_INDIVIDUAL_METADATA_KEYS = ['use_input_preprocessing']
 
     def __init__(self, task_type: TaskTypesEnum):
         self.task_type = task_type
@@ -86,7 +87,7 @@ class ApiParamsRepository:
 
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:
-
+        """ Returns dict with parameters suitable for ``PipelineComposerParameters``"""
         composer_requirements_params = {k: v for k, v in params.items()
                                         if k in ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
 
@@ -101,15 +102,17 @@ class ApiParamsRepository:
 
     @staticmethod
     def set_static_individual_metadata(composer_requirements_params: dict) -> dict:
+        """ Returns dict with representing ``static_individual_metadata`` for ``PipelineComposerParameters``"""
         static_individual_metadata = {k: v for k, v in composer_requirements_params.items()
-                                      if k in ApiParamsRepository.METADATA_KEYS}
-        for k in ApiParamsRepository.METADATA_KEYS:
+                                      if k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS}
+        for k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS:
             composer_requirements_params.pop(k)
 
         composer_requirements_params['static_individual_metadata'] = static_individual_metadata
         return composer_requirements_params
 
     def get_params_for_gp_algorithm_params(self, params: dict) -> dict:
+        """ Returns dict with parameters suitable for ``GPAlgorithmParameters``"""
         gp_algorithm_params = {'pop_size': params.get('pop_size'),
                                'genetic_scheme_type': GeneticSchemeTypesEnum.parameter_free}
         if params.get('genetic_scheme') == 'steady_state':

@@ -50,7 +50,7 @@ class RegressionMetricsEnum(QualityMetricsEnum):
     SMAPE = 'smape'
     MAE = 'mae'
     R2 = 'r2'
-    RMSE_penalty = 'rmse_penalty'
+    RMSE_penalty = 'rmse_pen'
 
 
 class MetricsRepository:

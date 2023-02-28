@@ -82,6 +82,7 @@ class ApiComposer:
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
     def propose_and_fit_initial_assumption(self, train_data: InputData) -> Pipeline:
+        """ Method for obtaining and fitting initial assumption"""
         available_operations = self.params.get('available_operations')
         preset = self.params.get('preset')
 
