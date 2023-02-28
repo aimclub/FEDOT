@@ -307,25 +307,24 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        _, n_cols = data.features.shape
-        for column_id in range(n_cols):
+        for column_id, column in enumerate(data.features.T):
             # For every int/float column perform check
             column_type = data.supplementary_data.column_types['features'][column_id]
             if column_type in [TYPE_TO_ID[int], TYPE_TO_ID[float]]:
-                numerical_column = pd.Series(data.features[:, column_id])
+                pd_column = pd.Series(column)
 
                 # Calculate number of unique values except nans
-                unique_numbers = len(numerical_column.dropna().unique())
+                unique_numbers = len(pd_column.dropna().unique())
 
                 if 2 < unique_numbers < self.categorical_max_uniques_th:
                     # Column need to be transformed into categorical (string) one
                     self.numerical_into_str.append(column_id)
 
                     # Convert into string
-                    converted_array = convert_num_column_into_string_array(numerical_column)
+                    converted_array = convert_num_column_into_string_array(pd_column)
 
-                    # Store converted column into features table
-                    data.features[:, column_id] = converted_array
+                    # Store converted column into feature column
+                    column[:] = converted_array
 
                     # Update information about column types (in-place)
                     features_types = data.supplementary_data.column_types['features']
@@ -337,13 +336,14 @@ class TableTypesCorrector:
             # There is no transformation for current table
             return data
 
-        _, n_cols = data.features.shape
-        for column_id in range(n_cols):
+        for column_id, column in enumerate(data.features.T):
             if column_id in self.numerical_into_str:
-                numerical_column = pd.Series(data.features[:, column_id])
+                pd_column = pd.Series(column)
                 # Column must be converted into categorical
-                converted_array = convert_num_column_into_string_array(numerical_column)
-                data.features[:, column_id] = converted_array
+                converted_array = convert_num_column_into_string_array(pd_column)
+
+                # Store converted column into feature column
+                column[:] = converted_array
 
                 # Update information about column types (in-place)
                 features_types = data.supplementary_data.column_types['features']
