@@ -18,7 +18,6 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.tasks import Task
 
 
 class ApiComposer:
@@ -32,7 +31,7 @@ class ApiComposer:
         self.timer = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
-        # status flag indicating that tuner step was applied
+        # status flag indicating that tuner step was applied`
         self.was_tuned = False
         self.init_cache()
 
@@ -52,7 +51,6 @@ class ApiComposer:
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        task: Task = self.params.task
         timeout: float = self.params.timeout
         with_tuning = self.params.get('with_tuning')
 
@@ -68,10 +66,9 @@ class ApiComposer:
                          f" Time limit: {timeout} min."
                          f" Set of candidate models: {self.params.get('available_operations')}.")
 
-        best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
-                                                                                     fitted_assumption)
+        best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(train_data, fitted_assumption)
         if with_tuning:
-            best_pipeline = self.tune_final_pipeline(task, train_data, best_pipeline)
+            best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
             gp_composer.history.tuning_result = adapter.adapt(best_pipeline)
@@ -107,10 +104,10 @@ class ApiComposer:
 
         return fitted_assumption
 
-    def compose_pipeline(self, task: Task, train_data: InputData, fitted_assumption: Pipeline) \
+    def compose_pipeline(self, train_data: InputData, fitted_assumption: Pipeline) \
             -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
-        gp_composer: GPComposer = ComposerBuilder(task=task) \
+        gp_composer: GPComposer = ComposerBuilder(task=self.params.task) \
             .with_requirements(self.params.composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
             .with_optimizer(self.params.get('optimizer')) \
@@ -141,10 +138,10 @@ class ApiComposer:
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, task: Task, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
+    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
-        tuner = TunerBuilder(task) \
+        tuner = TunerBuilder(self.params.task) \
             .with_tuner(SimultaneousTuner) \
             .with_metric(self.metrics.metric_functions) \
             .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \

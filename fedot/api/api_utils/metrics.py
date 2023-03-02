@@ -28,7 +28,7 @@ class ApiMetrics:
         'smape': RegressionMetricsEnum.SMAPE,
         'r2': RegressionMetricsEnum.R2,
         'rmse': RegressionMetricsEnum.RMSE,
-        'rmse_penalty': RegressionMetricsEnum.RMSE_penalty,
+        'rmse_pen': RegressionMetricsEnum.RMSE_penalty,
         'silhouette': ClusteringMetricsEnum.silhouette,
         'node_num': ComplexityMetricsEnum.node_num
     }
@@ -42,8 +42,8 @@ class ApiMetrics:
         return ApiMetrics.get_metric_names(self.metric_functions)
 
     @staticmethod
-    def get_metric_names(metrics: Sequence[MetricType]) -> Sequence[str]:
-        return [str(metric) for metric in metrics]
+    def get_metric_names(metrics: Union[MetricType, Sequence[MetricType]]) -> Sequence[str]:
+        return [str(metric) for metric in ensure_wrapped_in_sequence(metrics)]
 
     @staticmethod
     def get_metrics_mapping(metric_name: Union[str, Callable]) -> Union[Metric, Callable]:

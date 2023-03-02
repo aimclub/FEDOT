@@ -474,13 +474,13 @@ class Fedot:
         else:
             validation_blocks = None
 
-        objective = MetricsObjective(metrics, is_multi_objective=True)
+        objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
                                              data_producer=lambda: (yield self.train_data, self.test_data),
                                              validation_blocks=validation_blocks, eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
 
-        metrics = obj_eval.evaluate(self.current_pipeline).getValues()
+        metrics = obj_eval.evaluate(self.current_pipeline).values
         metrics = {metric_name: round(abs(metric), 3) for (metric_name, metric) in zip(metric_names, metrics)}
 
         return metrics
