@@ -89,7 +89,7 @@ def get_complex_class_pipeline():
     first = PipelineNode(operation_type='knn')
     second = PipelineNode(operation_type='pca')
     final = PipelineNode(operation_type='logit',
-                          nodes_from=[first, second])
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -99,7 +99,7 @@ def get_complex_class_pipeline():
 def get_pipeline_with_no_params_to_tune():
     first = PipelineNode(operation_type='scaling')
     final = PipelineNode(operation_type='bernb',
-                          nodes_from=[first])
+                         nodes_from=[first])
 
     pipeline = Pipeline(final)
 
@@ -287,8 +287,8 @@ def test_pipeline_tuner_with_initial_params(classification_dataset):
     """ Test SimultaneousTuner based on hyperopt library for pipeline with initial parameters """
     # a model
     node = PipelineNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
-                                                              'learning_rate': 0.03,
-                                                              'min_child_weight': 2}})
+                                                               'learning_rate': 0.03,
+                                                               'min_child_weight': 2}})
     pipeline = Pipeline(node)
     pipeline_tuner, tuned_pipeline = run_pipeline_tuner(train_data=classification_dataset,
                                                         pipeline=pipeline,

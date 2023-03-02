@@ -18,8 +18,7 @@ class ApiParamsRepository:
 
     COMPOSER_REQUIREMENTS_KEYS = ['max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
-                                  'max_pipeline_fit_time', 'parallelization_mode',
-                                  'use_input_preprocessing', 'show_progress',
+                                  'parallelization_mode', 'use_input_preprocessing', 'show_progress',
                                   'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir', 'cv_folds', 'validation_blocks']
 
@@ -91,10 +90,9 @@ class ApiParamsRepository:
         composer_requirements_params = {k: v for k, v in params.items()
                                         if k in ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
 
-        max_pipeline_fit_time = composer_requirements_params.get('max_pipeline_fit_time')
+        max_pipeline_fit_time = params.get('max_pipeline_fit_time')
         if max_pipeline_fit_time:
             composer_requirements_params['max_graph_fit_time'] = datetime.timedelta(minutes=max_pipeline_fit_time)
-        composer_requirements_params.pop('max_pipeline_fit_time', None)
 
         composer_requirements_params = ApiParamsRepository.set_static_individual_metadata(composer_requirements_params)
 
