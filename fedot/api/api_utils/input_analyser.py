@@ -65,7 +65,7 @@ class InputAnalyser:
 
         return recommendations_for_data, recommendations_for_params
 
-    def _give_recommendations_for_data(self, input_data: Union[InputData, MultiModalData]) -> Dict:
+    def _give_recommendations_for_data(self, input_data: InputData) -> Dict:
         """
         Gives a recommendation of cutting dataset or using label encoding
         :param input_data: data for preprocessing
@@ -83,7 +83,7 @@ class InputAnalyser:
         return recommendations_for_data
 
     @staticmethod
-    def _give_recommendations_with_meta_rules(input_data: Union[InputData, MultiModalData], input_params: Dict):
+    def _give_recommendations_with_meta_rules(input_data: InputData, input_params: Dict):
         recommendations = dict()
         for rule in meta_rules:
             if 'input_params' in signature(rule).parameters:
