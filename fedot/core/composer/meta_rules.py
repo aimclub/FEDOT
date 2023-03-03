@@ -7,7 +7,7 @@ def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
     """ Cross-validation folds are available from 1 to 10. """
     row_num = input_data.features.shape[0]
     if row_num < 1000:
-        return {'cv_folds': 1}
+        return {'cv_folds': None}
     elif row_num < 20000:
         return {'cv_folds': 3}
     else:
@@ -18,18 +18,19 @@ def get_recommended_preset(input_data: InputData, input_params: Dict) -> Dict[st
     """ Get appropriate preset for `input_data` and `input_params`. """
     preset = None
 
-    # since there is enough time for optimization on such amount of data heavy models can be used
-    if input_params['timeout'] >= 60 \
-            and input_data.features.shape[0]*input_data.features.shape[1] < 300000:
-        preset = 'best_quality'
+    if input_params['timeout']:
+        # since there is enough time for optimization on such amount of data heavy models can be used
+        if input_params['timeout'] >= 60 and \
+                input_data.features.shape[0]*input_data.features.shape[1] < 300000:
+            preset = 'best_quality'
+
+        # to avoid stagnation due to too long evaluation of one population
+        if input_params['timeout'] < 10 \
+                and input_data.features.shape[0] * input_data.features.shape[1] > 300000:
+            preset = 'fast_train'
 
     # to avoid overfitting for small datasets
     if input_data.features.shape[0] < 5000:
-        preset = 'fast_train'
-
-    # to avoid stagnation due to too long evaluation of one population
-    if input_params['timeout'] < 10 \
-            and input_data.features.shape[0]*input_data.features.shape[1] > 300000:
         preset = 'fast_train'
 
     return {'preset': preset}

@@ -193,7 +193,7 @@ class Fedot:
             self.params.accept_and_apply_recommendations(input_data=self.train_data,
                                                          recommendations=recommendations_for_params)
         else:
-            recommendations = None
+            recommendations_for_data = None
 
         self._init_remote_if_necessary()
 
@@ -211,7 +211,7 @@ class Fedot:
             full_train_not_preprocessed = deepcopy(self.train_data)
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+                self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
                 self.log.message('Final pipeline was fitted')
             else:
                 self.log.message('Already fitted initial pipeline is used')

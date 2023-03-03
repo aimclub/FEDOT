@@ -44,8 +44,8 @@ def test_safety_label_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendations(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
     assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
     assert data.features[0, 0] != 'a'
@@ -58,14 +58,14 @@ def test_recommendations_works_correct_in_final_fit():
 
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendations(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
 
     data_new = get_small_cat_data()
-    if recs:
+    if recs_for_data:
         # if data was cut we need to refit pipeline on full data
         api_preprocessor.accept_and_apply_recommendations(data_new,
-                                                          {k: v for k, v in recs.items()
+                                                          {k: v for k, v in recs_for_data.items()
                                                            if k != 'cut'})
 
     assert data_new.features.shape[1] == 3
@@ -78,8 +78,8 @@ def test_no_safety_needed_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
-    recs = api_safety.give_recommendations(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
     assert data.features.shape[0] * data.features.shape[1] == 24
     assert data.features.shape[1] == 3
     assert data.features[0, 0] == 'a'
