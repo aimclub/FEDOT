@@ -39,7 +39,10 @@ class ApiParamsRepository:
             cv_folds = 3
             validation_blocks = 2
 
-        default_params_dict = dict(
+        # Dict with allowed keyword attributes for Api and their default values. If None - default value set
+        # in dataclasses ``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``
+        # will be used.
+        default_param_values_dict = dict(
             parallelization_mode='populational',
             show_progress=True,
             max_depth=6,
@@ -68,7 +71,7 @@ class ApiParamsRepository:
             history_dir=None,
             with_tuning=False
         )
-        return default_params_dict
+        return default_param_values_dict
 
     def check_and_set_default_params(self, params: dict) -> dict:
         """ Sets default values for parameters which were not set by the user
