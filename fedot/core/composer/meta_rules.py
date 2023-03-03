@@ -5,12 +5,13 @@ from fedot.core.data.data import InputData
 
 def get_cv_folds_number(input_data: InputData) -> Dict[str, Optional[int]]:
     """ Cross-validation folds are available from 1 to 10. """
-    str_num = input_data.features.shape[0]
-    available_cv_folds = list(reversed(range(1, 10)))
-    for num in available_cv_folds:
-        if str_num/num > 1000:
-            return {'cv_folds': num}
-    return {'cv_folds': 1}
+    row_num = input_data.features.shape[0]
+    if row_num < 1000:
+        return {'cv_folds': 1}
+    elif row_num < 20000:
+        return {'cv_folds': 3}
+    else:
+        return {'cv_folds': 5}
 
 
 def get_recommended_preset(input_data: InputData, input_params: Dict) -> Dict[str, Optional[str]]:
