@@ -82,8 +82,7 @@ class ApiParams:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
 
-        if self._parameters.get('available_operations') is not None:
-            del self._parameters['available_operations']
+        self._parameters.pop('available_operations', None)
         self._parameters = preset_operations.composer_params_based_on_preset(self._parameters, data_type)
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
@@ -154,12 +153,11 @@ class ApiParams:
         preset = self._parameters['preset']
         available_operations = self._parameters['available_operations']
         advisor = PipelineChangeAdvisor(self.task)
-        graph_model_repo = PipelineOperationRepository() \
-            .from_available_operations(task=self.task, preset=preset,
-                                       available_operations=available_operations)
-        node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
-                                              graph_model_repository=graph_model_repo) \
-            if requirements else None
+        graph_model_repo = (PipelineOperationRepository()
+                            .from_available_operations(task=self.task, preset=preset,
+                                                       available_operations=available_operations))
+        node_factory = (PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
+                                               graph_model_repository=graph_model_repo) if requirements else None)
         self.graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
                                                              rules_for_constraint=rules_by_task(self.task.task_type),
                                                              advisor=advisor,

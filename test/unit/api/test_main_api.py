@@ -163,7 +163,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     metric = model.get_metrics(metric_names=metric_name)
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
-    assert all(value > 0 for value in list(metric.values()))
+    assert all(value > 0 for value in metric.values())
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
@@ -277,7 +277,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
-    assert all(value > 0 for value in list(metric.values()))
+    assert all(value > 0 for value in metric.values())
 
 
 def test_api_check_data_correct():
@@ -467,10 +467,10 @@ def test_unshuffled_data():
     assert pipeline is not None
 
 
-def test_custom_history_folder_define_correct():
+def test_custom_history_dir_define_correct():
     train_data, test_data, _ = get_dataset('ts_forecasting')
 
-    custom_path = os.path.join(os.path.abspath(os.getcwd()), 'history_folder')
+    custom_path = os.path.join(os.path.abspath(os.getcwd()), 'history_dir')
 
     params = {
         **default_params,

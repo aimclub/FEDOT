@@ -12,11 +12,11 @@ class PreprocessingCache(BaseCache):
     Usage of that class makes sense only if you have table data.
     Stores/loads `DataPreprocessor`'s encoders and imputers for pipelines to decrease optional preprocessing time.
 
-    :param cache_folder: path to the place where cache files should be stored.
+    :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_folder: Optional[str] = None):
-        super().__init__(PreprocessingCacheDB(cache_folder))
+    def __init__(self, cache_dir: Optional[str] = None):
+        super().__init__(PreprocessingCacheDB(cache_dir))
 
     def try_load_preprocessor(self, pipeline: 'Pipeline', fold_id: Union[int, None]):
         """

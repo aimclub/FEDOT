@@ -39,13 +39,13 @@ class ApiComposer:
         use_pipelines_cache = self.params.get('use_pipelines_cache')
         use_preprocessing_cache = self.params.get('use_preprocessing_cache')
         use_input_preprocessing = self.params.get('use_input_preprocessing')
-        cache_folder = self.params.get('cache_folder')
+        cache_dir = self.params.get('cache_dir')
         if use_pipelines_cache:
-            self.pipelines_cache = OperationsCache(cache_folder)
+            self.pipelines_cache = OperationsCache(cache_dir)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
         if use_input_preprocessing and use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(cache_folder)
+            self.preprocessing_cache = PreprocessingCache(cache_dir)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 
@@ -107,16 +107,16 @@ class ApiComposer:
     def compose_pipeline(self, train_data: InputData, fitted_assumption: Pipeline) \
             -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
-        gp_composer: GPComposer = ComposerBuilder(task=self.params.task) \
-            .with_requirements(self.params.composer_requirements) \
-            .with_initial_pipelines(fitted_assumption) \
-            .with_optimizer(self.params.get('optimizer')) \
+        gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
+            .with_requirements(self.params.composer_requirements)
+            .with_initial_pipelines(fitted_assumption)
+            .with_optimizer(self.params.get('optimizer'))
             .with_optimizer_params(parameters=self.params.optimizer_params,
-                                   external_parameters=self.params.get('optimizer_external_params')) \
-            .with_metrics(self.metrics.metric_functions) \
-            .with_cache(self.pipelines_cache, self.preprocessing_cache) \
-            .with_graph_generation_param(graph_generation_params=self.params.graph_generation_params) \
-            .build()
+                                   external_parameters=self.params.get('optimizer_external_params'))
+            .with_metrics(self.metrics.metric_functions)
+            .with_cache(self.pipelines_cache, self.preprocessing_cache)
+            .with_graph_generation_param(graph_generation_params=self.params.graph_generation_params)
+            .build())
 
         if self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs):
             # Launch pipeline structure composition
@@ -141,14 +141,14 @@ class ApiComposer:
     def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
-        tuner = TunerBuilder(self.params.task) \
-            .with_tuner(SimultaneousTuner) \
-            .with_metric(self.metrics.metric_functions) \
-            .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
-            .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
-            .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time) \
-            .with_requirements(self.params.composer_requirements) \
-            .build(train_data)
+        tuner = (TunerBuilder(self.params.task)
+            .with_tuner(SimultaneousTuner)
+            .with_metric(self.metrics.metric_functions)
+            .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
+            .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
+            .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
+            .with_requirements(self.params.composer_requirements)
+            .build(train_data))
 
         if self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline

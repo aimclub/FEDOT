@@ -22,10 +22,10 @@ def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/Fedot
     """
-    temp_folder = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
-    default_data_path = os.path.join(temp_folder, 'FEDOT')
+    temp_dir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+    default_data_path = os.path.join(temp_dir, 'FEDOT')
 
-    if 'FEDOT' not in os.listdir(temp_folder):
+    if 'FEDOT' not in os.listdir(temp_dir):
         os.mkdir(default_data_path)
 
     return default_data_path

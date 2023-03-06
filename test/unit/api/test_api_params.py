@@ -37,7 +37,7 @@ fedot_params_full = dict(parallelization_mode='populational',
                          use_pipelines_cache=True,
                          use_preprocessing_cache=True,
                          use_input_preprocessing=True,
-                         cache_folder='cache',
+                         cache_dir='cache',
                          keep_history=True,
                          history_dir='history',
                          with_tuning=False)
@@ -55,9 +55,9 @@ params_with_missings = dict(parallelization_mode='populational',
                             history_dir='history',
                             with_tuning=False)
 
-correct_composer_attributes = [field.name for field in dataclasses.fields(PipelineComposerRequirements)]
+correct_composer_attributes = {field.name for field in dataclasses.fields(PipelineComposerRequirements)}
 
-correct_gp_algorithm_attributes = [field.name for field in dataclasses.fields(GPAlgorithmParameters)]
+correct_gp_algorithm_attributes = {field.name for field in dataclasses.fields(GPAlgorithmParameters)}
 
 
 def get_api_params_repository(task_type: Optional[TaskTypesEnum] = None):
@@ -71,8 +71,7 @@ def test_correctly_sets_default_params(input_params):
     params_repository = get_api_params_repository()
     output_params = params_repository.check_and_set_default_params(input_params)
     default_params = params_repository.default_params_for_task(params_repository.task_type)
-    for k in output_params.keys():
-        assert k in default_params
+    assert output_params.keys() <= default_params.keys()
     for k, v in default_params.items():
         if k not in input_params and v is not None:
             assert output_params[k] == default_params[k]
@@ -92,5 +91,6 @@ def test_filter_params_correctly(input_params, case, correct_keys):
         output_params = params_repository.get_params_for_composer_requirements(input_params)
     elif case == 'gp_algo':
         output_params = params_repository.get_params_for_gp_algorithm_params(input_params)
-    assert all(key in correct_keys for key in output_params.keys())
-    assert not any(key in correct_keys and key not in output_params.keys() for key in input_params)
+    assert output_params.keys() <= correct_keys
+    # check all correct parameter in input params are in output params
+    assert (input_params.keys() & correct_keys) <= output_params.keys()

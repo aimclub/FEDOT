@@ -60,7 +60,7 @@ class ApiMetrics:
         metric_ids = []
         for specific_metric in ensure_wrapped_in_sequence(metrics):
             metric = None
-            if isinstance(specific_metric, str) or isinstance(specific_metric, Callable):
+            if isinstance(specific_metric, (str, Callable)):
                 # metric was defined by name (str) or metric is a custom function
                 metric = ApiMetrics.get_metrics_mapping(metric_name=specific_metric)
             elif isinstance(specific_metric, MetricsEnum):

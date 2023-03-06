@@ -114,7 +114,7 @@ class Fedot:
         use_input_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
-        cache_folder: path to the place where cache files should be stored (if any cache is enabled).
+        cache_dir: path to the place where cache files should be stored (if any cache is enabled).
 
         optimizer: ``golem.core.optimisers.optimizer.GraphOptimizer`` to specify custom optimizer.
             ``golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`` is used by default.

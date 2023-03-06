@@ -16,13 +16,13 @@ class ApiParamsRepository:
     used while model composition.
      """
 
-    COMPOSER_REQUIREMENTS_KEYS = ['max_arity', 'max_depth', 'num_of_generations',
+    COMPOSER_REQUIREMENTS_KEYS = {'max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
                                   'parallelization_mode', 'use_input_preprocessing', 'show_progress',
                                   'collect_intermediate_metric', 'keep_n_best',
-                                  'keep_history', 'history_dir', 'cv_folds', 'validation_blocks']
+                                  'keep_history', 'history_dir', 'cv_folds', 'validation_blocks'}
 
-    STATIC_INDIVIDUAL_METADATA_KEYS = ['use_input_preprocessing']
+    STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
 
     def __init__(self, task_type: TaskTypesEnum):
         self.task_type = task_type
@@ -66,7 +66,7 @@ class ApiParamsRepository:
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
-            cache_folder=None,
+            cache_dir=None,
             keep_history=True,
             history_dir=None,
             with_tuning=False
@@ -76,22 +76,23 @@ class ApiParamsRepository:
     def check_and_set_default_params(self, params: dict) -> dict:
         """ Sets default values for parameters which were not set by the user
         and raises KeyError for invalid parameter keys"""
-        allowed_keys = set(self.default_params.keys())
-        invalid_keys = set(params.keys()) - allowed_keys
+        allowed_keys = self.default_params.keys()
+        invalid_keys = params.keys() - allowed_keys
         if invalid_keys:
             raise KeyError(f"Invalid key parameters {invalid_keys}")
 
         else:
-            for k, v in self.default_params.items():
-                if k not in params and v is not None:
+            missing_params = self.default_params.keys() - params.keys()
+            for k in missing_params:
+                if (v := self.default_params[k]) is not None:
                     params[k] = v
         return params
 
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:
         """ Returns dict with parameters suitable for ``PipelineComposerParameters``"""
-        composer_requirements_params = {k: v for k, v in params.items()
-                                        if k in ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
+        composer_requirements_params = {k: params[k] for k in
+                                        params.keys() & ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
 
         max_pipeline_fit_time = params.get('max_pipeline_fit_time')
         if max_pipeline_fit_time:
@@ -104,8 +105,9 @@ class ApiParamsRepository:
     @staticmethod
     def set_static_individual_metadata(composer_requirements_params: dict) -> dict:
         """ Returns dict with representing ``static_individual_metadata`` for ``PipelineComposerParameters``"""
-        static_individual_metadata = {k: v for k, v in composer_requirements_params.items()
-                                      if k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS}
+        static_individual_metadata = {k: composer_requirements_params[k] for k in
+                                      composer_requirements_params.items() &
+                                      ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS}
         for k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS:
             composer_requirements_params.pop(k)
 
