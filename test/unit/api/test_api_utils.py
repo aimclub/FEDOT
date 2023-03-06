@@ -64,7 +64,7 @@ def test_predefined_initial_assumption():
     model.params.accept_and_apply_recommendations(model.train_data, recommendations)
 
     assert model.params.get('initial_assumption') is not None
-    assert len(old_params.to_dict()) == len(model.params.to_dict())
+    assert len(old_params) == len(model.params)
 
 
 @pytest.mark.parametrize('train_input', [
