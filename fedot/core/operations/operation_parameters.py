@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Iterable
+from typing import Iterable
 
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 

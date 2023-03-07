@@ -5,7 +5,6 @@ from copy import deepcopy
 import pytest
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
-from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
@@ -42,8 +41,7 @@ def test_output_binary_classification_correct():
     model.predict(test_data)
     metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
 
-    assert metrics['roc_auc'] >= 0.6
-    assert metrics['f1'] >= 0.6
+    assert all(value >= 0.6 for value in metrics.values())
 
 
 def test_predefined_initial_assumption():
@@ -65,8 +63,8 @@ def test_predefined_initial_assumption():
     model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
     model.params.accept_and_apply_recommendations(model.train_data, recommendations)
 
-    assert model.params.api_params['initial_assumption'] is not None
-    assert len(old_params.api_params) == len(model.params.api_params)
+    assert model.params.get('initial_assumption') is not None
+    assert len(old_params) == len(model.params)
 
 
 @pytest.mark.parametrize('train_input', [
@@ -130,4 +128,4 @@ def test_api_composer_available_operations():
                   pop_size=500
                   )
     model.fit(train_data)
-    assert model.params.api_params['available_operations'] == available_operations
+    assert model.params.get('available_operations') == available_operations

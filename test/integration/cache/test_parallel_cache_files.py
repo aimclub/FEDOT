@@ -26,7 +26,7 @@ def get_unused_pid() -> int:
 
 def test_parallel_cache_files():
     # all files cache files in test dir must be removed
-    # if `cache_folder` api param wasn't specified explicitly
+    # if `cache_dir` api param wasn't specified explicitly
     unused_test_pid = get_unused_pid()
     test_file_1 = Path(default_fedot_data_dir(), f'cache_{unused_test_pid}.operations_db')
     test_file_1.touch()

@@ -1,7 +1,7 @@
 import traceback
 from typing import Union
 
-from golem.core.log import Log
+from golem.core.log import LoggerAdapter
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.core.data.data import InputData
@@ -11,7 +11,7 @@ from fedot.core.pipelines.verification import verify_pipeline
 
 
 class PredefinedModel:
-    def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: Log,
+    def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: LoggerAdapter,
                  use_input_preprocessing: bool = True):
         self.predefined_model = predefined_model
         self.data = data

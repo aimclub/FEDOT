@@ -1,10 +1,13 @@
 import os
 import platform
+import random
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+from golem.core.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -19,10 +22,10 @@ def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/Fedot
     """
-    temp_folder = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
-    default_data_path = os.path.join(temp_folder, 'FEDOT')
+    temp_dir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+    default_data_path = os.path.join(temp_dir, 'FEDOT')
 
-    if 'FEDOT' not in os.listdir(temp_folder):
+    if 'FEDOT' not in os.listdir(temp_dir):
         os.mkdir(default_data_path)
 
     return default_data_path
@@ -78,3 +81,11 @@ def make_pipeline_generator(pipeline):
         if node not in visited_nodes:
             visited_nodes.append(node)
             yield node
+
+
+def set_random_seed(seed: Optional[int]):
+    """ Sets random seed for evaluation of models"""
+    if seed is not None:
+        np.random.seed(seed)
+        random.seed(seed)
+        RandomStateHandler.MODEL_FITTING_SEED = seed

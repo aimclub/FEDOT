@@ -22,7 +22,7 @@ Can I change path to cacher's database files?
 ---------------------------------------------
 
     *Using* :doc:`FEDOT’s main API </api/api>` *you can change*
-    ``cache_folder`` *parameter with your custom path to
+    ``cache_dir`` *parameter with your custom path to
     the database files.*
     
     *So, setting it would look like:*
@@ -31,5 +31,5 @@ Can I change path to cacher's database files?
 
        your_custom_path = ...
        ...
-       model = Fedot(..., cache_folder=your_custom_path, ...)
+       model = Fedot(..., cache_dir=your_custom_path, ...)
        ...

@@ -1,57 +1,63 @@
-import random
-from typing import Any, Dict, List, Optional, Union
+import datetime
+from collections import UserDict
+from typing import Any, Dict, Optional, Union
 
-import numpy as np
-from golem.core.log import Log, LoggerAdapter, default_log
-from golem.core.utilities.random import RandomStateHandler
+from golem.core.log import LoggerAdapter, default_log
+from golem.core.optimisers.genetic.evaluation import determine_n_jobs
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.optimisers.optimizer import GraphGenerationParams
 
+from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
+from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams, TsForecastingParams
 
 
-class ApiParams:
+class ApiParams(UserDict):
 
-    def __init__(self):
-        self.api_params: dict = None
-        self.log: LoggerAdapter = None
-        self.task: Task = None
-        self.task_params: TaskParams = None
-        self.metric_name: Union[str, List[str]] = None
+    def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
+                 n_jobs: int = -1, timeout: float = 5):
+        self.log: LoggerAdapter = default_log(self)
+        self.task: Task = self._get_task_with_params(problem, task_params)
+        self.n_jobs: int = determine_n_jobs(n_jobs)
+        self.timeout = timeout
 
-    def initialize_params(self, input_params: Dict[str, Any]):
-        """ Merge input_params dictionary with several parameters for AutoML algorithm """
-        self.get_initial_params(input_params)
+        self._params_repository = ApiParamsRepository(self.task.task_type)
+        parameters: dict = self._params_repository.check_and_set_default_params(input_params)
+        super().__init__(parameters)
+        self._check_timeout_vs_generations()
 
-        # Final check for correctness for timeout and generations
-        self.api_params = check_timeout_vs_generations(self.api_params)
+        self.composer_requirements = None
+        self.graph_generation_params = None
+        self.optimizer_params = None
 
     def update_available_operations_by_preset(self, data: InputData):
-        preset_operations = OperationsPreset(task=self.task, preset_name=self.api_params['preset'])
-        self.api_params = preset_operations.composer_params_based_on_preset(self.api_params, data.data_type)
-
-    def get_initial_params(self, input_params: Dict[str, Any]):
-        self._parse_input_params(input_params)
-
-        param_dict = {
-            'task': self.task,
-            'logger': self.log
-        }
-        self.api_params = {**self.api_params, **param_dict}
+        """ Updates available_operations by preset and data type"""
+        preset = self.get('preset')
+        if preset != AUTO_PRESET_NAME:
+            preset_operations = OperationsPreset(task=self.task, preset_name=preset)
+            self.data = preset_operations.composer_params_based_on_preset(self.data, data.data_type)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
         Accepts recommendations for api params from DataAnalyser
 
-        :param input_data - data for preprocessing
-        :param recommendations - dict with recommendations
+        Args:
+            input_data: data for preprocessing
+            recommendations: dict with recommendations
         """
         # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
-            self.api_params['cv_folds'] = None  # there are no support for multimodal data now
+            self['cv_folds'] = None  # there are no support for multimodal data now
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name],
                                                       recommendations[data_source_name])
@@ -62,126 +68,90 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
-        if 'preset' in self.api_params:
-            preset_name = ''.join((self.api_params['preset'], '*tree'))
+        if 'preset' in self:
+            preset_name = ''.join((self['preset'], '*tree'))
         else:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
 
-        if self.api_params.get('available_operations') is not None:
-            del self.api_params['available_operations']
-        self.api_params = preset_operations.composer_params_based_on_preset(self.api_params, data_type)
-        param_dict = {
-            'task': self.task,
-            'logger': self.log
-        }
-        self.api_params = {**self.api_params, **param_dict}
+        self.pop('available_operations', None)
+        self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
 
-    def _parse_input_params(self, input_params: Dict[str, Any]):
-        """ Parses input params into different class fields """
-
-        # reset logging level for Singleton
-        Log().reset_logging_level(input_params['logging_level'])
-        self.log = default_log(prefix='FEDOT logger')
-
-        simple_keys = ['problem', 'n_jobs', 'parallelization_mode', 'timeout']
-        self.api_params = {k: input_params[k] for k in simple_keys}
-
-        default_evo_params = self.get_default_evo_params(self.api_params['problem'])
-        if input_params['composer_tuner_params'] is None:
-            evo_params = default_evo_params
-        else:
-            evo_params = {**default_evo_params, **input_params['composer_tuner_params']}
-        self.api_params.update(evo_params)
-        if 'preset' not in input_params['composer_tuner_params']:
-            self.api_params['preset'] = 'auto'
-
-        # If early_stopping_generations is not specified,
-        # than estimate it as in time-based manner as: 0.33 * composing_timeout.
-        # The minimal number of generations is 5.
-        if 'early_stopping_iterations' not in input_params['composer_tuner_params']:
-            if input_params['timeout']:
-                depending_on_timeout = int(input_params['timeout'] / 3)
-                self.api_params['early_stopping_iterations'] = \
-                    depending_on_timeout if depending_on_timeout > 5 else 5
-
-        specified_seed = input_params['seed']
-        if specified_seed is not None:
-            np.random.seed(specified_seed)
-            random.seed(specified_seed)
-            RandomStateHandler.MODEL_FITTING_SEED = specified_seed
-
-        self.task_params = input_params['task_params']
-        if self.api_params['problem'] == 'ts_forecasting' and self.task_params is None:
+    def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
+        """ Creates Task from problem name and task_params"""
+        if problem == 'ts_forecasting' and task_params is None:
             self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
-            self.task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
+            task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
-        if self.api_params['problem'] == 'clustering':
-            raise ValueError('This type of task is not supported in API now')
-
-        self.task = ApiParams.get_task(self.api_params['problem'], self.task_params)
-        self.metric_name = self.get_default_metric(self.api_params['problem'])
-        self.api_params.pop('problem')
-
-    @staticmethod
-    def get_default_evo_params(problem: str):
-        """ Dictionary with default parameters for composer """
-        params = {'max_depth': 6,
-                  'max_arity': 3,
-                  'pop_size': 20,
-                  'num_of_generations': None,
-                  'keep_n_best': 1,
-                  'with_tuning': True,
-                  'preset': AUTO_PRESET_NAME,
-                  'genetic_scheme': None,
-                  'early_stopping_iterations': 30,
-                  'early_stopping_timeout': 10,
-                  'use_input_preprocessing': True,
-                  'use_pipelines_cache': True,
-                  'use_preprocessing_cache': True,
-                  'cache_folder': None}
-
-        if problem in ['classification', 'regression']:
-            params['cv_folds'] = 5
-        elif problem == 'ts_forecasting':
-            params['cv_folds'] = 3
-            params['validation_blocks'] = 2
-        return params
-
-    @staticmethod
-    def get_default_metric(problem: str) -> Union[str, List[str]]:
-        default_test_metric_dict = {
-            'regression': ['rmse', 'mae'],
-            'classification': ['roc_auc', 'f1'],
-            'multiclassification': 'f1',
-            'clustering': 'silhouette',
-            'ts_forecasting': ['rmse', 'mae']
-        }
-        return default_test_metric_dict[problem]
-
-    @staticmethod
-    def get_task(problem: str, task_params: Optional[TaskParams] = None):
-        """ Return task by the given ML problem name and the parameters """
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=task_params),
-                     'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),
-                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)}
+                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
+                     }
         try:
             return task_dict[problem]
         except ValueError as exc:
             ValueError('Wrong type name of the given task')
 
+    def _check_timeout_vs_generations(self):
+        num_of_generations = self.get('num_of_generations')
+        if self.timeout in [-1, None]:
+            self.timeout = None
+            if num_of_generations is None:
+                raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+        elif self.timeout > 0:
+            if num_of_generations is None:
+                self['num_of_generations'] = 10000
+        else:
+            raise ValueError(f'invalid "timeout" value: timeout={self.timeout}')
 
-def check_timeout_vs_generations(api_params):
-    timeout = api_params['timeout']
-    num_of_generations = api_params['num_of_generations']
-    if timeout in [-1, None]:
-        api_params['timeout'] = None
-        if num_of_generations is None:
-            raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
-    elif timeout > 0:
-        if num_of_generations is None:
-            api_params['num_of_generations'] = 10000
-    else:
-        raise ValueError(f'invalid "timeout" value: timeout={timeout}')
-    return api_params
+    def init_params_for_composing(self, datetime_composing: Optional[datetime.timedelta], multi_objective: bool):
+        """ Method to initialize ``PipelineComposerRequirements``, ``GPAlgorithmParameters``,
+        ``GraphGenerationParams``"""
+        self.init_composer_requirements(datetime_composing)
+        self.init_optimizer_params(multi_objective=multi_objective)
+        self.init_graph_generation_params(requirements=self.composer_requirements)
+
+    def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
+            -> PipelineComposerRequirements:
+        """ Method to initialize ``PipelineComposerRequirements``"""
+        preset = self['preset']
+
+        # define available operations
+        if not self.get('available_operations'):
+            available_operations = OperationsPreset(self.task, preset).filter_operations_by_preset()
+            self['available_operations'] = available_operations
+
+        primary_operations, secondary_operations = \
+            PipelineOperationRepository.divide_operations(self.get('available_operations'), self.task)
+
+        composer_requirements_params = self._params_repository.get_params_for_composer_requirements(self.data)
+        self.composer_requirements = PipelineComposerRequirements(primary=primary_operations,
+                                                                  secondary=secondary_operations,
+                                                                  timeout=datetime_composing,
+                                                                  n_jobs=self.n_jobs, **composer_requirements_params)
+        return self.composer_requirements
+
+    def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
+        """Method to initialize ``GPAlgorithmParameters``"""
+        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self.data)
+
+        self.optimizer_params = GPAlgorithmParameters(
+            multi_objective=multi_objective, **gp_algorithm_parameters
+        )
+        return self.optimizer_params
+
+    def init_graph_generation_params(self, requirements: PipelineComposerRequirements) -> GraphGenerationParams:
+        """Method to initialize ``GraphGenerationParameters``"""
+        preset = self['preset']
+        available_operations = self['available_operations']
+        advisor = PipelineChangeAdvisor(self.task)
+        graph_model_repo = (PipelineOperationRepository()
+                            .from_available_operations(task=self.task, preset=preset,
+                                                       available_operations=available_operations))
+        node_factory = (PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
+                                               graph_model_repository=graph_model_repo) if requirements else None)
+        self.graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
+                                                             rules_for_constraint=rules_by_task(self.task.task_type),
+                                                             advisor=advisor,
+                                                             node_factory=node_factory)
+        return self.graph_generation_params
