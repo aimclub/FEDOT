@@ -91,8 +91,8 @@ class ApiParamsRepository:
     @staticmethod
     def get_params_for_composer_requirements(params: dict) -> dict:
         """ Returns dict with parameters suitable for ``PipelineComposerParameters``"""
-        composer_requirements_params = {k: params[k] for k in
-                                        params.keys() & ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
+        composer_requirements_params = {k: v for k, v in params.items()
+                                        if k in ApiParamsRepository.COMPOSER_REQUIREMENTS_KEYS}
 
         max_pipeline_fit_time = params.get('max_pipeline_fit_time')
         if max_pipeline_fit_time:
@@ -105,9 +105,8 @@ class ApiParamsRepository:
     @staticmethod
     def set_static_individual_metadata(composer_requirements_params: dict) -> dict:
         """ Returns dict with representing ``static_individual_metadata`` for ``PipelineComposerParameters``"""
-        static_individual_metadata = {k: composer_requirements_params[k] for k in
-                                      composer_requirements_params.items() &
-                                      ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS}
+        static_individual_metadata = {k: v for k, v in composer_requirements_params.items()
+                                      if k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS}
         for k in ApiParamsRepository.STATIC_INDIVIDUAL_METADATA_KEYS:
             composer_requirements_params.pop(k)
 

@@ -256,15 +256,15 @@ class Fedot:
 
         metric = self.metrics.obtain_metrics(metric_name)[0] if metric_name else self.metrics.metric_functions[0]
 
-        pipeline_tuner = TunerBuilder(self.params.task) \
-            .with_tuner(SimultaneousTuner) \
-            .with_cv_folds(cv_folds) \
-            .with_validation_blocks(validation_blocks) \
-            .with_n_jobs(n_jobs) \
-            .with_metric(metric) \
-            .with_iterations(iterations) \
-            .with_timeout(timeout) \
-            .build(input_data)
+        pipeline_tuner = (TunerBuilder(self.params.task)
+                          .with_tuner(SimultaneousTuner)
+                          .with_cv_folds(cv_folds)
+                          .with_validation_blocks(validation_blocks)
+                          .with_n_jobs(n_jobs)
+                          .with_metric(metric)
+                          .with_iterations(iterations)
+                          .with_timeout(timeout)
+                          .build(input_data))
 
         self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress)
         self.api_composer.was_tuned = pipeline_tuner.was_tuned
@@ -543,9 +543,8 @@ class Fedot:
         if remote.is_enabled and remote.remote_task_params is not None:
             task = self.params.task
             if task.task_type is TaskTypesEnum.ts_forecasting:
-                task_str = \
-                    f'Task(TaskTypesEnum.ts_forecasting, ' \
-                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
+                task_str = (f'Task(TaskTypesEnum.ts_forecasting, '
+                            f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))')
             else:
                 task_str = f'Task({str(task.task_type)})'
             remote.remote_task_params.task_type = task_str

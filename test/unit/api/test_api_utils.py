@@ -41,7 +41,7 @@ def test_output_binary_classification_correct():
     model.predict(test_data)
     metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
 
-    assert all(value >= 0.6 for value in list(metrics.values()))
+    assert all(value >= 0.6 for value in metrics.values())
 
 
 def test_predefined_initial_assumption():
