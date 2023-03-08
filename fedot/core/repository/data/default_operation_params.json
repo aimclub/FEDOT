@@ -50,17 +50,8 @@
     "sparse_transform": true,
     "use_svd": false
   },
-  "ar": {
-    "lag_1": 7,
-    "lag_2": 12
-  },
-  "arima": {
-    "p": 2,
-    "d": 0,
-    "q": 2
-  },
   "ets": {
-    "error":"add",
+    "error": "add",
     "trend": null,
     "seasonal": null,
     "damped_trend": false,
@@ -72,6 +63,23 @@
   "glm": {
     "family": "gaussian",
     "link": "identity"
+  },
+  "auto_arima": {
+    "season_length": 24,
+    "nmodels": 4
+  },
+  "auto_ces": {
+    "season_length": 24
+  },
+  "auto_theta": {
+    "season_length": 24
+  },
+  "auto_ets": {
+    "model": "ZZZ",
+    "season_length": 7
+  },
+  "ar": {
+    "lags": 12
   },
   "ransac_lin_reg": {
     "min_samples": 0.4,

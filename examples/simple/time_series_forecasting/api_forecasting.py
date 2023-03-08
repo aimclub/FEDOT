@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import pandas as pd
@@ -40,31 +41,34 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
                                visualization=False, with_tuning=True):
-    train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
-    # init model for the time series forecasting
+    # train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
+    # # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=horizon)).task_params,
+                                   TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
                   n_jobs=1,
                   with_tuning=with_tuning,
                   cv_folds=2, validation_blocks=validation_blocks, preset='fast_train')
 
-    # run AutoML model design in the same way
-    pipeline = model.fit(train_data)
-
-    # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data)
-    print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
-
-    # plot forecasting result
-    if visualization:
-        pipeline.show()
-        model.plot_prediction()
+    # # run AutoML model design in the same way
+    # pipeline = model.fit(train_data)
+    #
+    # # use model to obtain two-step in-sample forecast
+    # in_sample_forecast = model.predict(test_data)
+    # print('Metrics for two-step in-sample forecast: ',
+    #       model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+    #
+    # # plot forecasting result
+    # if visualization:
+    #     pipeline.show()
+    #     model.plot_prediction()
 
     # use model to obtain one-step forecast
     train_data, test_data = get_ts_data(dataset, horizon)
+    start_time = datetime.datetime.now()
+    model.fit(train_data, predefined_model='auto_arima')
+    print(datetime.datetime.now() - start_time)
     simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
@@ -77,8 +81,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     if visualization:
         model.plot_prediction()
 
-    return in_sample_forecast, simple_forecast, out_of_sample_forecast
+    return simple_forecast, out_of_sample_forecast
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='salaries', horizon=10, timeout=10., visualization=True)
+    run_ts_forecasting_example(dataset='stackoverflow', horizon=10, timeout=1., visualization=True)

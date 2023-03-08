@@ -39,6 +39,7 @@ class PredefinedModel:
         try:
             self.pipeline.fit(self.data)
         except Exception as ex:
+            raise ex
             fit_failed_info = f'Predefined model fit was failed due to: {ex}.'
             advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
             self.log.message(fit_failed_info)

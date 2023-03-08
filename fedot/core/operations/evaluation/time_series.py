@@ -7,16 +7,19 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation, \
     NumericalDerivativeFilterImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
-    RepeatLastValueImplementation, NaiveAverageForecastImplementation
-from fedot.core.operations.evaluation.operation_implementations.models. \
-    ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
     ARIMAImplementation, STLForecastARIMAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.cgru import \
     CGRUImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
+    RepeatLastValueImplementation, NaiveAverageForecastImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsforecasting import \
+    AutoARIMAImplementation, AutoETSImplementation, GARCHImplementation, AutoThetaImplementation, AutoRegImplementation, \
+    AutoCESImplementation
+from fedot.core.operations.evaluation.operation_implementations.models. \
+    ts_implementations.statsmodels import GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -33,6 +36,11 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
+        'garch': GARCHImplementation,
+        'auto_arima': AutoARIMAImplementation,
+        'auto_theta': AutoThetaImplementation,
+        'auto_ets': AutoETSImplementation,
+        'auto_ces': AutoCESImplementation,
         'arima': ARIMAImplementation,
         'ar': AutoRegImplementation,
         'stl_arima': STLForecastARIMAImplementation,
