@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES_IN_TEXT, MIN_VOCABULARY_SIZE
-from fedot.core.log import default_log
+from golem.core.log import default_log
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 ALLOWED_NAN_PERCENT = 0.9
@@ -149,24 +149,18 @@ class TimeSeriesDataDetector(DataDetector):
 
     @staticmethod
     def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
-        """ Prepares MultiModal data for time series forecasting task in a form of dictionary
-
+        """ Prepares MultiModal text data in a form of dictionary
         :param dataframe: pandas DataFrame to process
-        :param columns: column names, which should be used as features in forecasting
-
-        :return multi_modal_ts_data: dictionary with numpy arrays
+        :param columns: list of text columns' names
+        :return multimodal_text_data: dictionary with numpy arrays of text data
         """
-        multi_modal_ts_data = {}
+        multi_modal_text_data = {}
+
         for column_name in columns:
-            feature_ts = np.array(dataframe[column_name])
-            idx = list(dataframe['datetime'])
+            text_feature = np.array(dataframe[column_name])
+            multi_modal_text_data.update({column_name: text_feature})
 
-            # Will be the same
-            multi_modal_ts_data.update({column_name: feature_ts})
-
-        multi_modal_ts_data['idx'] = np.asarray(idx)
-
-        return multi_modal_ts_data
+        return multi_modal_text_data
 
     @staticmethod
     def new_key_name(data_part_key: str) -> str:

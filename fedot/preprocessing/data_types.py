@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from golem.core.log import LoggerAdapter, default_log
 
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 NoneType = type(None)
