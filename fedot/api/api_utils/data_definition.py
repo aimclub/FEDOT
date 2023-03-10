@@ -89,6 +89,11 @@ class PandasStrategy(StrategyDefineData):
         features[datetime_features.columns] = datetime_features.applymap(pd.Timestamp.timestamp)  # with seconds unit
         #features[datetime_features.columns] = datetime_features.to_numpy().astype(np.timedelta64) / np.timedelta64(1, 's')
         # TODO: compare performance of approaches
+        
+        #features[datetime_features.columns] = datetime_features.to_numpy().astype(float)
+        # Possible and easy solution, but assumes timestamp unit is 'nanoseconds',
+        #   will lead to the same fitting behaviour as in NumpyStrategy
+
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target_array),
                                    task=task)
