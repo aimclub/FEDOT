@@ -1,7 +1,6 @@
 import numpy as np
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
-from examples.simple.pipeline_import_export import create_correct_path
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -49,11 +48,10 @@ def tpot_classification_pipeline_evaluation():
     print(f'Before export {prediction_before_export[:4]}')
 
     # Export it
-    pipeline.save(path=pipeline_path)
+    pipeline.save(path=pipeline_path, create_subdir=False)
 
     # Import pipeline
-    json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline.from_serialized(json_path_load)
+    new_pipeline = Pipeline().load(pipeline_path)
 
     predicted_output_after_export = new_pipeline.predict(test_data, output_mode="full_probs")
     prediction_after_export = predicted_output_after_export.predict[:, 0]
@@ -80,11 +78,10 @@ def tpot_regression_pipeline_evaluation():
     print(f'Before export {results.predict[:4]}')
 
     # Export it
-    pipeline.save(path=pipeline_path)
+    pipeline.save(path=pipeline_path, create_subdir=False)
 
     # Import pipeline
-    json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline.from_serialized(json_path_load)
+    new_pipeline = Pipeline().load(pipeline_path)
 
     predicted_output_after_export = new_pipeline.predict(test_data)
     prediction_after_export = predicted_output_after_export.predict[:4]
@@ -106,11 +103,10 @@ def tpot_ts_pipeline_evaluation():
     print(f'Before export {test_pred.predict[:4]}')
 
     # Export it
-    pipeline.save(path=pipeline_path)
+    pipeline.save(path=pipeline_path, create_subdir=False)
 
     # Import pipeline
-    json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline.from_serialized(json_path_load)
+    new_pipeline = Pipeline().load(pipeline_path)
 
     predicted_output_after_export = new_pipeline.predict(test_data)
     prediction_after_export = predicted_output_after_export.predict[:4]

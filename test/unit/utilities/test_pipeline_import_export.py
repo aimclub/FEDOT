@@ -50,26 +50,11 @@ def create_func_delete_files(paths):
 
     def wrapper():
         for path in paths:
-            path = create_correct_path(path, True)
+            path = os.path.abspath(path)
             if path is not None and os.path.isdir(path):
                 shutil.rmtree(path)
 
     return wrapper
-
-
-def create_correct_path(path: str, dirname_flag: bool = False):
-    """
-    Create path with time which was created during the testing process.
-    """
-
-    for dirname in next(os.walk(os.path.curdir))[1]:
-        if dirname.endswith(path):
-            if dirname_flag:
-                return dirname
-            else:
-                file = os.path.abspath(os.path.join(dirname, path + '.json'))
-                return file
-    return None
 
 
 def create_json_models_files():
@@ -164,12 +149,10 @@ def create_four_depth_pipeline():
 
 def test_export_pipeline_to_json_correctly():
     pipeline = create_pipeline()
-    json_actual, fitted_models_dict = pipeline.save('test_export_pipeline_to_json_correctly',
-                                                    create_subdir=False)
+    path = 'test_export_pipeline_to_json_correctly'
+    json_actual, fitted_models_dict = pipeline.save(path, create_subdir=False)
 
-    json_path_load = create_correct_path('test_export_pipeline_to_json_correctly')
-
-    with open(json_path_load) as json_file:
+    with open(os.path.join(path, path + '.json')) as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected, indent=4)
@@ -177,28 +160,28 @@ def test_export_pipeline_to_json_correctly():
 
 
 def test_pipeline_template_to_json_correctly():
-    json_path_load = create_correct_path('test_pipeline_convert_to_json')
+    path = 'test_pipeline_convert_to_json'
 
     pipeline = create_pipeline()
     pipeline_template = PipelineTemplate(pipeline)
     json_actual = pipeline_template.convert_to_dict(root_node=pipeline.root_node)
 
-    with open(json_path_load, 'r') as json_file:
+    with open(os.path.join(path, path + '.json'), 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_fitted_pipeline_cache_correctness_after_export_and_import():
+    path = 'test_fitted_pipeline_cache_correctness_after_export_and_import'
     train_data, test_data = get_classification_data()
 
     pipeline = create_classification_pipeline_with_preprocessing()
     pipeline.fit(train_data)
-    pipeline.save('test_fitted_pipeline_cache_correctness_after_export_and_import', create_subdir=False)
+    pipeline.save(path, create_subdir=False)
     prediction = pipeline.predict(test_data)
 
-    json_load_path = create_correct_path('test_fitted_pipeline_cache_correctness_after_export_and_import')
-    new_pipeline = Pipeline.from_serialized(json_load_path)
+    new_pipeline = Pipeline().load(path)
 
     new_prediction = new_pipeline.predict(test_data)
 
@@ -207,9 +190,9 @@ def test_fitted_pipeline_cache_correctness_after_export_and_import():
 
 
 def test_import_json_to_pipeline_correctly():
-    json_path_load = create_correct_path('test_pipeline_convert_to_json')
+    path = 'test_pipeline_convert_to_json'
 
-    pipeline = Pipeline.from_serialized(json_path_load)
+    pipeline = Pipeline().load(path)
     json_actual, _ = pipeline.save('test_import_json_to_pipeline_correctly_1', create_subdir=False)
 
     pipeline_expected = create_pipeline()
@@ -219,11 +202,11 @@ def test_import_json_to_pipeline_correctly():
 
 
 def test_import_json_template_to_pipeline_correctly():
-    json_path_load = create_correct_path('test_pipeline_convert_to_json')
+    path = 'test_pipeline_convert_to_json'
 
     pipeline = Pipeline()
     pipeline_template = PipelineTemplate(pipeline)
-    pipeline_template.import_pipeline(json_path_load)
+    pipeline_template.import_pipeline(path)
     json_actual = pipeline_template.convert_to_dict()
 
     pipeline_expected = create_pipeline()
@@ -234,39 +217,39 @@ def test_import_json_template_to_pipeline_correctly():
 
 
 def test_import_json_to_fitted_pipeline_correctly():
-    json_path_load = create_correct_path('test_fitted_pipeline_convert_to_json')
+    path = 'test_fitted_pipeline_convert_to_json'
 
-    pipeline = Pipeline.from_serialized(json_path_load)
+    pipeline = Pipeline().load(path)
     json_actual, _ = pipeline.save('test_import_json_to_fitted_pipeline_correctly', create_subdir=False)
 
-    with open(json_path_load, 'r') as json_file:
+    with open(os.path.join(path, path + '.json'), 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected, indent=4)
 
 
 def test_import_json_to_fitted_pipeline_template_correctly():
-    json_path_load = create_correct_path('test_fitted_pipeline_convert_to_json')
+    path = 'test_fitted_pipeline_convert_to_json'
 
     pipeline = Pipeline()
     pipeline_template = PipelineTemplate(pipeline)
-    pipeline_template.import_pipeline(json_path_load)
+    pipeline_template.import_pipeline(path)
     json_actual = pipeline_template.convert_to_dict(pipeline.root_node)
 
-    with open(json_path_load, 'r') as json_file:
+    with open(os.path.join(path, path + '.json'), 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_empty_pipeline_to_json_correctly():
-    json_path_load = create_correct_path('test_empty_pipeline_convert_to_json')
+    path = 'test_empty_pipeline_convert_to_json'
 
     pipeline = Pipeline()
     pipeline_template = PipelineTemplate(pipeline)
     json_actual = pipeline_template.convert_to_dict()
 
-    with open(json_path_load, 'r') as json_file:
+    with open(os.path.join(path, path + '.json'), 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
@@ -295,7 +278,7 @@ def test_export_import_for_one_pipeline_object_correctly():
     pipeline_fitted_after = create_pipeline()
     pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_1', create_subdir=False)
 
-    json_path_load_2 = create_correct_path('test_export_import_for_one_pipeline_object_correctly_2')
+    json_path_load_2 = 'test_export_import_for_one_pipeline_object_correctly_2'
     pipeline_fitted_after.load(json_path_load_2)
 
     json_second, dict_fitted = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3',
@@ -311,10 +294,10 @@ def test_absolute_relative_paths_correctly_no_exception():
     pipeline.save('test_absolute_relative_paths_correctly_no_exception', create_subdir=False)
     pipeline.save(os.path.abspath('test_absolute_relative_paths_correctly_no_exception'), create_subdir=False)
 
-    json_path_load = create_correct_path('test_absolute_relative_paths_correctly_no_exception')
-    json_path_load_abs = os.path.abspath(json_path_load)
-    pipeline.load(json_path_load)
-    pipeline.load(json_path_load_abs)
+    path_load = 'test_absolute_relative_paths_correctly_no_exception'
+    path_load_abs = os.path.abspath(path_load)
+    pipeline.load(path_load)
+    pipeline.load(path_load_abs)
 
 
 def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
@@ -324,7 +307,7 @@ def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
 
     train_data, _ = get_classification_data()
 
-    pipeline = Pipeline.from_serialized(json_path_load)
+    pipeline = Pipeline().load(json_path_load)
 
     pipeline.fit(train_data)
 
@@ -400,9 +383,10 @@ def test_one_hot_encoder_serialization():
     pipeline.fit(train_data)
     prediction_before_export = pipeline.predict(test_data)
 
-    pipeline.save('test_export_one_hot_encoding_operation', create_subdir=False)
+    path = 'test_export_one_hot_encoding_operation'
+    pipeline.save(path, create_subdir=False)
 
-    pipeline_after = Pipeline.from_serialized(create_correct_path('test_export_one_hot_encoding_operation'))
+    pipeline_after = Pipeline().load(path)
     prediction_after_export = pipeline_after.predict(test_data)
 
     assert np.array_equal(prediction_before_export.features, prediction_after_export.features)
@@ -420,7 +404,7 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     Pipeline doesn't contain any preprocessing operation in its structure. So, imputation and gap-filling
     (imputation) should be performed as preprocessing
     """
-    save_path = 'test_pipeline_with_preprocessing_serialized_correctly'
+    path = 'test_pipeline_with_preprocessing_serialized_correctly'
 
     scaling_node = PipelineNode('scaling')
     single_node_pipeline = Pipeline(PipelineNode('ridge', nodes_from=[scaling_node]))
@@ -433,9 +417,9 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     before_output = single_node_pipeline.predict(mixed_input)
     mae_before = mean_absolute_error(mixed_input.target, before_output.predict)
 
-    single_node_pipeline.save(path=save_path, create_subdir=False)
+    single_node_pipeline.save(path=path, create_subdir=False)
 
-    pipeline_after = Pipeline.from_serialized(create_correct_path(save_path))
+    pipeline_after = Pipeline().load(path)
 
     after_output = pipeline_after.predict(mixed_input)
     mae_after = mean_absolute_error(mixed_input.target, after_output.predict)
@@ -448,14 +432,14 @@ def test_multimodal_pipeline_serialized_correctly():
     Checks that MultiModal pipelining together with complex preprocessing
     (gap filling and categorical encoding) is serialized correctly
     """
-    save_path = 'test_multimodal_pipeline_serialized_correctly'
+    path = 'test_multimodal_pipeline_serialized_correctly'
     mm_data, pipeline = get_single_task_multimodal_tabular_data()
 
     pipeline.fit(mm_data)
     before_save_predicted_labels = pipeline.predict(mm_data, output_mode='labels')
-    pipeline.save(path=save_path, create_subdir=False)
+    pipeline.save(path=path, create_subdir=False)
 
-    pipeline_loaded = Pipeline.from_serialized(create_correct_path(save_path))
+    pipeline_loaded = Pipeline().load(path)
     after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
 
     assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)
@@ -469,9 +453,12 @@ def test_old_serialized_paths_load_correctly():
     """
     path = os.path.join(fedot_project_root(), 'test', 'data', 'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
 
-    pipeline_loaded = Pipeline.from_serialized(path)
+    pipeline_loaded_from_serialized = Pipeline.from_serialized(path)
+    pipeline_loaded = Pipeline().load(path)
 
+    assert pipeline_loaded_from_serialized.nodes is not None
     assert pipeline_loaded.nodes is not None
+    assert [str(node) for node in pipeline_loaded.nodes] == [str(node) for node in pipeline_loaded_from_serialized.nodes]
 
 
 def test_load_though_api_perform_correctly():
@@ -483,10 +470,11 @@ def test_load_though_api_perform_correctly():
     predictions = model.predict(input_data)
 
     # Save pipeline
-    obtained_pipeline.save('test_load_though_api_perform_correctly', create_subdir=False)
+    path = 'test_load_though_api_perform_correctly'
+    obtained_pipeline.save(path, create_subdir=False)
 
     loaded_model = Fedot(problem='regression')
-    loaded_model.load(create_correct_path('test_load_though_api_perform_correctly'))
+    loaded_model.load(path)
     loaded_predictions = loaded_model.predict(input_data)
 
     assert np.array_equal(predictions, loaded_predictions)
