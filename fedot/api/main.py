@@ -41,93 +41,137 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 class Fedot:
     """Main class for FEDOT API.
 
-    Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
+    Facade for
+    :class:`ApiParams`, :class:`ApiDataProcessor`, :class:`ApiComposer`, :class:`ApiMetrics`,
+    :class:`~fedot.api.api_utils.assumptions.assumptions_handler.AssumptionsHandler`.
 
     Args:
-        problem: the name of modelling problem to solve
+        problem: name of the modelling problem to solve.
 
-            .. details:: possible ``problem`` options:
+            .. details:: Possible options:
 
                 - ``classification`` -> for classification task
                 - ``regression`` -> for regression task
                 - ``ts_forecasting`` -> for time series forecasting task
 
-        timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time
-        task_params: additional parameters of the task
-        seed: value for fixed random seed
-        logging_level: logging levels are the same as in 'logging'
+        timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time.
+        task_params: additional parameters of the task.
+        seed: value for a fixed random seed.
+        logging_level: logging levels are the same as in 'logging'.
 
-            .. details:: possible ``logging_level`` options:
+            .. details:: Possible options:
 
-                    - ``50`` -> critical
-                    - ``40`` -> error
-                    - ``30`` -> warning
-                    - ``20`` -> info
-                    - ``10`` -> debug
-                    - ``0`` -> nonset
+                - ``50`` -> critical
+                - ``40`` -> error
+                - ``30`` -> warning
+                - ``20`` -> info
+                - ``10`` -> debug
+                - ``0`` -> nonset
 
         safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
-            instead of oneHot encoder if summary cardinality of categorical features is high.
+            instead of OneHot encoder if summary cardinality of categorical features is high.
+            Default value is ``False``.
 
-        n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
-        parallelization_mode: type of evaluation for candidate solution groups (populational or sequential)
+        n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
+        parallelization_mode (str): type of evaluation for groups of individuals (``'populational'`` or
+            ``'sequential'``). Default value is ``'populational'``.
 
-        initial_assumption: initial assumption for composer
-        available_operations: list of model names to use
+        initial_assumption (Union[Pipeline, List[Pipeline]]): initial assumption(s) for composer.
+            Can be either a single :class:`Pipeline` or sequence of ones. Default values are task-specific and
+            selected by the method :meth:`~fedot.api.api_utils.assumptions.task_assumptions.TaskAssumptions.for_task`.
 
-        metric:  metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``
-        collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
-        cv_folds: number of folds for cross-validation
-        validation_blocks: number of validation blocks for time series forecasting
+        available_operations (List[str])): list of model names to use. Pick the names according to the `repositories \
+            <https://github.com/aimclub/FEDOT/tree/master/fedot/core/repository/data>`_.
 
-        show_progress: bool indicating whether to show progress using tqdm/tuner or not
+        metric (Union[str, Callable, fedot.core.repository.quality_metrics_repository.MetricsEnum, List[str, \
+            Callable, fedot.core.repository.quality_metrics_repository.MetricsEnum]):
+            metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``.
 
-        num_of_generations: number of generations for composer
-        early_stopping_iterations: composer will stop after ``n`` generation without improving
-        early_stopping_timeout: stagnation timeout in minutes: composer will stop after ``n`` minutes without improving
-        max_pipeline_fit_time: time constraint for operation fitting (in minutes)
+            .. details:: Default value depends on a given task:
 
-        max_depth: max depth of the pipeline
-        max_arity: max arity of the pipeline nodes
-        pop_size: population size for composer
-        keep_n_best: Number of the best individuals of previous generation to keep in next generation.
-        genetic_scheme: name of the genetic scheme
+                - ``ROC AUC`` -> for classification
+                - ``RMSE`` -> for regression & time series forecasting
 
-        with_tuning: allow hyperparameters tuning for the model
+            .. details:: Available metrics are listed in the following enumerations:
 
-        history_dir: name of the folder for composing history
+                - classification -> \
+                    :class:`~fedot.core.repository.quality_metrics_repository.ClassificationMetricsEnum`
+                - regression & time series forcasting -> \
+                    :class:`~fedot.core.repository.quality_metrics_repository.RegressionMetricsEnum`
+                - pipeline complexity (task-independent)-> \
+                    :class:`~fedot.core.repository.quality_metrics_repository.ComplexityMetricsEnum`
 
-        preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu'):
+        collect_intermediate_metric (bool): save metrics for intermediate (non-root) nodes in composed
+            :class:`Pipeline`.
 
-            .. details:: possible ``preset`` options:
+        cv_folds (int): number of folds for cross-validation.
 
-                - ``best_quality`` -> All models that are available for this data type and task are used
-                - ``fast_train`` -> Models that learn quickly. This includes preprocessing operations
+            .. details:: Default value depends on the given ``problem``:
+
+                - ``5`` -> for classification and regression tasks
+                - ``3`` -> for time series forecasting task
+
+        validation_blocks (int): number of validation blocks for time series forecasting. Default value is ``2``.
+
+        show_progress (bool): indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
+
+        num_of_generations (int): number of evolutionary generations for composer. Defaults to ``None`` - no limit.
+        early_stopping_iterations (int): composer will stop after `n` generation without improving.
+        early_stopping_timeout (int): stagnation timeout in minutes: composer will stop after `n` minutes
+            without improving. Defaults to ``10``.
+        max_pipeline_fit_time (int): time constraint for operation fitting (in minutes).
+            Defaults to ``None`` - no limit. Once the limit is reached, the candidate pipeline will be dropped.
+
+        max_depth (int): max depth of the pipeline. Defaults to ``6``.
+        max_arity (int): max arity of the pipeline nodes. Defaults to ``3``.
+        pop_size (int): size of population (generation) during composing. Defaults to ``20``.
+        keep_n_best (int): number of the best individuals in generation that survive during the evolution.
+             Defaults to ``1``.
+        genetic_scheme (str): name of the genetic scheme. Defaults to ``steady_state``.
+
+        with_tuning (bool): flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
+            Defaults to ``True``.
+
+        preset (str): name of the preset for model building (e.g. ``'best_quality'``, ``'fast_train'``, ``'gpu'``).
+            Default value is ``'auto'``.
+
+            .. details:: Possible options:
+
+                - ``'best_quality'`` -> All models that are available for this data type and task are used
+                - ``'fast_train'`` -> Models that learn quickly. This includes preprocessing operations
                   (data operations) that only reduce the dimensionality of the data, but cannot increase it.
                   For example, there are no polynomial features and one-hot encoding operations
-                - ``stable`` -> The most reliable preset in which the most stable operations are included.
-                - ``auto`` -> Automatically determine which preset should be used.
-                - ``gpu`` -> Models that use GPU resources for computation.
-                - ``ts`` -> A special preset with models for time series forecasting task.
-                - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
+                - ``'stable'`` -> The most reliable preset in which the most stable operations are included
+                - ``'auto'`` -> Automatically determine which preset should be used
+                - ``'gpu'`` -> Models that use GPU resources for computation
+                - ``'ts'`` -> A special preset with models for time series forecasting task
+                - ``'automl'`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations
 
-        use_input_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
-        use_meta_rules: bool indicating whether to change set params according to FEDOT meta rules
-        use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
-        use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
-        cache_dir: path to the place where cache files should be stored (if any cache is enabled).
+        use_input_preprocessing (bool): indicates whether to do preprocessing of further given data.
+            Defaults to ``True``.
+        use_meta_rules (bool): indicates whether to change set params according to FEDOT meta rules.
+        use_pipelines_cache (bool): indicates whether to use pipeline structures caching. Defaults to ``True``.
+        use_preprocessing_cache (bool): bool indicating whether to use optional preprocessors caching.
+            Defaults to ``True``.
+        cache_dir (str): path to the directory containing cache files (if any cache is enabled).
+            By default, creates a folder named "GOLEM" in temporary system files of the OS.
+        history_dir (str): relative or absolute path of the folder for composing history. Has the same default value
+            as ``cache_dir``. A relative path is relative to the default value.
 
-        optimizer: ``golem.core.optimisers.optimizer.GraphOptimizer`` to specify custom optimizer.
-            ``golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`` is used by default.
-        optimizer_external_params: additional parameters for custom optimizer (if needed).
+        optimizer (Type[golem.core.optimisers.optimizer.GraphOptimizer]): inherit from
+            :class:`~golem.core.optimisers.optimizer.GraphOptimizer` to specify a custom optimizer.
+            Default optimizer is :class:`~golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
+            See the `example \
+<https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_.
+        optimizer_external_params (Dict[str, Any]): additional parameters for custom optimizer (if needed).
     """
 
     def __init__(self,
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed=None, logging_level: int = logging.ERROR,
-                 safe_mode=False,
+                 seed: Optional[int] = None, logging_level: int = logging.ERROR,
+                 safe_mode: bool = False,
                  n_jobs: int = -1,
                  **composer_tuner_params
                  ):
@@ -238,17 +282,17 @@ class Fedot:
         """Method for hyperparameters tuning of current pipeline
 
         Args:
-            input_data: data for tuning pipeline
-            metric_name: name of metric for quality tuning
-            iterations: numbers of tuning iterations
-            timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach
+            input_data: data for tuning pipeline.
+            metric_name: name of metric for quality tuning.
+            iterations: numbers of tuning iterations.
+            timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
             cv_folds: number of folds on data for cross-validation.
-            validation_blocks: number of validation blocks (used for time-series forecasting problem)
-            n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's)
-            show_progress: shows progress of tuning if true
+            validation_blocks: number of validation blocks (used for time-series forecasting problem).
+            n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's).
+            show_progress: shows progress of tuning if ``True``.
 
         Returns:
-            Pipeline object
+            :class:`Pipeline` object.
 
         """
         if self.current_pipeline is None:
@@ -289,17 +333,17 @@ class Fedot:
         If ``in_sample=True`` performs in-sample forecast using features as sample.
 
         Args:
-            features: the array with features of test data
-            save_predictions: if ``True`` - save predictions as csv-file in working directory
+            features: the array with features of test data.
+            save_predictions: if ``True`` - save predictions as csv-file in working directory.
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
                 If ``validation_blocks = None`` uses number of validation blocks set during model initialization
-                (default is 2).
+                (default is ``2``).
 
 
         Returns:
-            the array with prediction values
+            The array with prediction values.
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -325,12 +369,12 @@ class Fedot:
         """Predicts the probability of new target using already fitted classification model
 
         Args:
-            features: the array with features of test data
-            save_predictions: if ``True`` - save predictions as csv-file in working directory
-            probs_for_all_classes: if ``True`` - return probability for each class even for binary case
+            features: the array with features of test data.
+            save_predictions: if ``True`` - save predictions as ``.csv`` file in working directory.
+            probs_for_all_classes: if ``True`` - return probability for each class even for binary classification.
 
         Returns:
-            the array with prediction values
+            The array with prediction values.
         """
 
         if self.current_pipeline is None:
@@ -359,12 +403,12 @@ class Fedot:
         out-of-sample forecast is applied (not supported for multi-modal data).
 
         Args:
-            pre_history: the array with features for pre-history of the forecast
-            horizon: num of steps to forecast
-            save_predictions: if ``True`` save predictions as csv-file in working directory
+            pre_history: the array with features for pre-history of the forecast.
+            horizon: amount of steps to forecast.
+            save_predictions: if ``True`` save predictions as csv-file in working directory.
 
         Returns:
-            the array with prediction values
+            The array with prediction values.
         """
         self._check_forecast_applicable()
 
@@ -394,7 +438,7 @@ class Fedot:
         """Loads saved graph from disk
 
         Args:
-            path: path to ``json`` file with model
+            path: path to ``json`` file with model.
         """
         self.current_pipeline = Pipeline(use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.current_pipeline.load(path)
@@ -414,9 +458,9 @@ class Fedot:
         """Plots the prediction obtained from graph
 
         Args:
-            in_sample: if current prediction is in_sample (for time-series forecasting).
-            Plots predictions as future values
-            target: user-specified name of target variable for :obj:`MultiModalData`
+            in_sample: if current prediction is in_sample (for time-series forecasting), plots predictions as future
+                values.
+            target: user-specified name of target variable for :class:`MultiModalData`.
 
         """
         task = self.params.task
@@ -445,16 +489,15 @@ class Fedot:
         """Gets quality metrics for the fitted graph
 
         Args:
-            target: the array with target values of test data. If None, target specified for fit is used
+            target: the array with target values of test data. If ``None``, target specified for fit is used.
             metric_names: the names of required metrics.
-            in_sample: used for time-series forecasting.
+            in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
-            validation_blocks: number of validation blocks for in-sample forecast.
-                If None uses number of validation blocks set during model initialisation
-                (default is 2).
+            validation_blocks: number of validation blocks for time series in-sample forecast.
+                If ``None``, uses number of validation blocks set during model initialization (default is ``2``).
 
         Returns:
-            the values of quality metrics
+            The values of quality metrics.
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -524,7 +567,7 @@ class Fedot:
             method: explanation method, defaults to ``surrogate_dt``
             visualization: print and plot the explanation simultaneously, defaults to ``True``.
         Notes:
-            The explanation can be retrieved later by executing :obj:`explainer.visualize()`
+            The explanation can be retrieved later by executing :obj:`explainer.visualize()`.
         """
         pipeline = self.current_pipeline
         if features is None:

@@ -4,6 +4,7 @@ from typing import List, Optional, Type, Sequence
 
 import numpy as np
 from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.dag.graph import Graph
 from golem.core.log import default_log
 from matplotlib import pyplot as plt
 
@@ -132,7 +133,7 @@ class NodesAnalysis:
         return gathered_results
 
 
-def get_nodes_degrees(graph: 'Graph') -> Sequence[int]:
+def get_nodes_degrees(graph: Graph) -> Sequence[int]:
     """Nodes degree as the number of edges the node has:
         ``degree = #input_edges + #out_edges``
 
