@@ -187,7 +187,7 @@ class Fedot:
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations_for_data, recommendations_for_params = \
                 self.data_analyser.give_recommendations(input_data=self.train_data,
-                                                        input_params=self.params.api_params)
+                                                        input_params=self.params)
             self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
                                                                  recommendations=recommendations_for_data)
             self.params.accept_and_apply_recommendations(input_data=self.train_data,

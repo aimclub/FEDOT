@@ -67,10 +67,10 @@ class ApiParams(UserDict):
                 self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
 
             # update api params with recommendations obtained using meta rules
-            for key in self.api_params:
+            for key in self:
                 if key not in recommendations:
                     continue
-                self.api_params.update({key: recommendations[key]})
+                self.update({key: recommendations[key]})
 
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
