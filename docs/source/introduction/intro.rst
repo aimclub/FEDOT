@@ -33,5 +33,5 @@ Once FEDOT finds the best solution you have an opportunity to save it[link] and 
 
 Framework uses ML models mostly from sklearn, statsmodels and keras libraries.
 
-To see more information about FEDOT features go to the `features <https://fedot.readthedocs.io/en/latest/introduction/fedot_features.html>`_ page.
-To see a quickstart guide go to the `quickstart <https://fedot.readthedocs.io/en/latest/introduction/tutorial/quickstart.html>`_ page.
+To see more information about FEDOT features go to the :doc:`features </introduction/fedot_features>` page.
+To see a quickstart guide go to the :doc:`quickstart </introduction/tutorial/quickstart>` page.

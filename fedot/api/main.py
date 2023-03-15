@@ -57,7 +57,7 @@ class Fedot:
         timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time.
         task_params: additional parameters of the task.
         seed: value for a fixed random seed.
-        logging_level: logging levels are the same as in 'logging'.
+        logging_level: logging levels are the same as in `logging <https://docs.python.org/3/library/logging.html>`_.
 
             .. details:: Possible options:
 

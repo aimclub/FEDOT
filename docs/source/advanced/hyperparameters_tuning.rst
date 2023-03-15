@@ -9,7 +9,7 @@ To tune pipeline hyperparameters you can use GOLEM. There are two ways:
 More information about these approaches can be found
 `here <https://towardsdatascience.com/hyperparameters-tuning-for-machine-learning-model-ensembles-8051782b538b>`_.
 
-If ``with_tuning`` flag is set to ``True`` when using `FEDOT API`_, simultaneous hyperparameters tuning is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
+If ``with_tuning`` flag is set to ``True`` when using :doc:`FEDOT API </api/api>`, simultaneous hyperparameters tuning is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
 
 Simple example
 ~~~~~~~~~~~~~~
@@ -476,5 +476,3 @@ Another examples can be found here:
 **Multitask**
 
 * `Multitask pipeline: classification and regression <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
-
-.. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
