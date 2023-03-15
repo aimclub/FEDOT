@@ -91,6 +91,6 @@ autodoc_default_options = {
     'ignore-module-all': True,
 }
 autoclass_content = 'class'
-autodoc_typehints = 'signature'
+autodoc_typehints = 'description'
 autodoc_typehints_format = 'short'
 autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz']
