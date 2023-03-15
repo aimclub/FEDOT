@@ -23,7 +23,10 @@ copyright = '2020-{}, NSS Lab'.format(datetime.datetime.now().year)
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.7.0'
+version_info = {}
+with open('../../fedot/version.py') as fp:
+    exec(fp.read(), version_info)
+release = version_info['__version__']
 
 # -- General configuration ---------------------------------------------------
 
@@ -40,6 +43,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.autodoc.typehints',
     'sphinx.ext.graphviz',
+    'sphinx.ext.intersphinx',
     'sphinxcontrib.details.directive',
     'sphinx.ext.todo',
     'autodocsumm',
@@ -91,6 +95,10 @@ autodoc_default_options = {
     'ignore-module-all': True,
 }
 autoclass_content = 'class'
-autodoc_typehints = 'signature'
+autodoc_typehints = 'description'
 autodoc_typehints_format = 'short'
-autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz']
+autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz', 'h2o', 'tpot']
+
+intersphinx_mapping = {
+    'golem': ('https://thegolem.readthedocs.io/en/latest/', None),
+}

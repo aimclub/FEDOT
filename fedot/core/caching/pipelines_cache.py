@@ -1,3 +1,4 @@
+import sqlite3
 from typing import List, Optional, TYPE_CHECKING, Union
 
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -5,7 +6,6 @@ from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
 from fedot.core.pipelines.node import PipelineNode
-from fedot.utilities.debug import is_test_session
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -15,11 +15,11 @@ class OperationsCache(BaseCache):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
-    :param cache_folder: path to the place where cache files should be stored.
+    :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_folder: Optional[str] = None):
-        super().__init__(OperationsCacheDB(cache_folder))
+    def __init__(self, cache_dir: Optional[str] = None):
+        super().__init__(OperationsCacheDB(cache_dir))
 
     def save_nodes(self, nodes: Union[PipelineNode, List[PipelineNode]], fold_id: Optional[int] = None):
         """
@@ -35,7 +35,8 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            self.log.warning(f'Nodes can not be saved: {ex}. Continue', raise_if_test=True)
+            unexpected_exc = not (isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
+            self.log.warning(f'Nodes can not be saved: {ex}. Continue', exc=ex, raise_if_test=unexpected_exc)
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -61,7 +62,7 @@ class OperationsCache(BaseCache):
                 else:
                     nodes_lst[idx].fitted_operation = None
         except Exception as ex:
-            self.log.warning(f'Cache can not be loaded: {ex}. Continue.', raise_if_test=True)
+            self.log.warning(f'Cache can not be loaded: {ex}. Continue.', exc=ex, raise_if_test=True)
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """

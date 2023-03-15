@@ -1,15 +1,14 @@
 import logging
 from dataclasses import dataclass
-from typing import Callable, Union, Tuple
+from typing import Callable, Union
 
 import pytest
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
-from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
-from test.unit.api.test_main_api import get_dataset
+from test.integration.api.test_main_api import get_dataset
 
 
 @dataclass
@@ -72,18 +71,8 @@ def test_timeout(case: TimeoutParams):
         assert case.test_answer(history)
 
 
-@pytest.mark.parametrize('case', [
-    ('composer', {'use_input_preprocessing': False})
-])
-def test_main_api_params_of_type(case: Tuple[str, dict]):
-    param_type, input_params = case
-    if param_type == 'api':
-        param_type = 0
-    elif param_type == 'composer':
-        param_type = 1
-    else:
-        param_type = 2
-
+@pytest.mark.parametrize('input_params', [{'use_input_preprocessing': False}])
+def test_main_api_params_of_type(input_params: dict):
     model = Fedot(problem='ts_forecasting', **input_params)
-    parsed_params = _divide_parameters(model.params.api_params)[param_type]
+    parsed_params = model.params
     assert input_params.items() <= parsed_params.items()

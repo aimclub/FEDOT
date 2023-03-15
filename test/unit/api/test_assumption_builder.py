@@ -15,12 +15,11 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from test.integration.api.test_main_api \
+    import get_dataset
 from test.unit.dag.test_graph_utils import graphs_same
-
 from test.unit.data_operations.test_data_operations_implementations \
     import get_time_series, get_small_regression_dataset
-from test.unit.api.test_main_api \
-    import get_dataset, load_categorical_unimodal
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 
 
@@ -79,9 +78,7 @@ def test_preprocessing_builder_no_data():
 def test_preprocessing_builder_with_data():
     # TableTypesCorrector fills in .supplementary_data needed for preprocessing_builder
     data_reg = TableTypesCorrector().convert_data_for_fit(get_small_regression_dataset()[0])
-    data_cats = TableTypesCorrector().convert_data_for_fit(load_categorical_unimodal()[0])
     data_ts, _, _ = get_time_series()
-    data_ts_gaps = get_test_ts_gaps_data()
 
     assert pipeline_contains_all(preprocess(TaskTypesEnum.regression, data_reg), 'scaling')
 
@@ -110,7 +107,7 @@ def test_assumptions_builder_unsuitable_available_operations():
     available_operations = ['linear', 'xgboost', 'lagged']
 
     default_builder = UniModalAssumptionsBuilder(train_input)
-    checked_builder = UniModalAssumptionsBuilder(train_input)\
+    checked_builder = UniModalAssumptionsBuilder(train_input) \
         .from_operations(available_operations)
 
     assert default_builder.build() == checked_builder.build()
@@ -139,7 +136,7 @@ def impl_test_assumptions_builder_suitable_available_operations(task, train_inpu
     baseline_operation = baseline_pipeline.root_node.operation.operation_type
     available_operations.remove(baseline_operation)
 
-    checked_builder = AssumptionsBuilder.get(train_input)\
+    checked_builder = AssumptionsBuilder.get(train_input) \
         .from_operations(available_operations)
     checked_pipeline = checked_builder.build()[0]
 

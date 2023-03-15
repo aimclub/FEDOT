@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import pandas as pd
 from golem.core.log import default_log
@@ -10,9 +8,9 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
-from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
     correct_preprocessing_params
 
@@ -38,7 +36,7 @@ def get_mixed_data_with_str_and_float_values(idx: int = None):
 
 
 def get_data_with_string_columns():
-    file_path = os.path.join(project_root_path, 'test/data/data_with_mixed_column.csv')
+    file_path = fedot_project_root().joinpath('test/data/data_with_mixed_column.csv')
     df = pd.read_csv(file_path)
 
     task = Task(TaskTypesEnum.classification)
@@ -258,9 +256,9 @@ def test_str_numbers_with_dots_and_commas_in_predict():
     converted to ints even if it contains str with dots/commas"""
     task = Task(TaskTypesEnum.classification)
     features = np.array([['8,5'],
-                        ['4.9'],
-                        ['3,2'],
-                        ['6.1']], dtype=object)
+                         ['4.9'],
+                         ['3,2'],
+                         ['6.1']], dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes']])
     input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)

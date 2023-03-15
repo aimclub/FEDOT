@@ -49,13 +49,13 @@ class NodeAnalysis:
 
         Args:
             is_save: whether the certain node analysis result is needed to ba saved
-            pipeline: :obj:`Pipeline` containing the analyzed :obj:`Node`
-            node: :obj:`Node` object to analyze in :obj:`Pipeline`
+            pipeline: :obj:`Pipeline` containing the analyzed :obj:`PipelineNode`
+            node: :obj:`PipelineNode` object to analyze in :obj:`Pipeline`
             train_data: data used for :obj:`Pipeline` training
             test_data: data used for :obj:`Pipeline` validation
 
         Returns:
-            dict:  :obj:`Node` analysis result per approach
+            dict:  :obj:`PipelineNode` analysis result per approach
         """
 
         results = dict()
@@ -125,7 +125,7 @@ class NodeAnalyzeApproach(ABC):
     """Base class for analysis approach.
 
     Args:
-        pipeline: :obj:`Pipeline` containing the analyzed :obj:`Node`
+        pipeline: :obj:`Pipeline` containing the analyzed :obj:`PipelineNode`
         train_data: data used for :obj:`Pipeline` training
         test_data: data used for :obj:`Pipeline` validation
         path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity``
@@ -192,7 +192,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def analyze(self, node: PipelineNode, **kwargs) -> Union[List[dict], List[float]]:
         """
         Args:
-            node: :obj:`Node` object to analyze
+            node: :obj:`PipelineNode` object to analyze
 
         Returns:
             the ratio of modified pipeline score to origin score
@@ -214,7 +214,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def sample(self, node: PipelineNode):
         """
         Args:
-            node: :obj:`Node` object to delete from :obj:`Pipeline` object
+            node: :obj:`PipelineNode` object to delete from :obj:`Pipeline` object
         Retuens:
             :obj:`Pipeline`: pipeline without node
         """
@@ -247,7 +247,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
     def analyze(self, node: PipelineNode, **kwargs) -> Union[List[dict], List[float]]:
         """
         Args:
-            node: :obj:`Node` object to analyze
+            node: :obj:`PipelineNode` object to analyze
 
         Returns:
             the ratio of modified pipeline score to origin score
@@ -280,7 +280,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
                number_of_random_operations: Optional[int] = None) -> Union[List[Pipeline], Pipeline]:
         """
         Args:
-            node: :obj:`Node` object to replace
+            node: :obj:`PipelineNode` object to replace
             nodes_to_replace_to: nodes provided for old_node replacement
             number_of_random_operations: number of replacement operations,
                 if ``nodes_to_replace_to`` not provided
@@ -314,7 +314,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             task_type=task)
 
         # Unit two lists
-        app_operations = app_models
+        app_operations = app_models + app_data_operations
         if number_of_operations:
             random_operations = random.sample(app_operations, number_of_operations)
         else:
@@ -350,7 +350,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
         self.log.info(f'NodeReplacementAnalysis for '
-                         f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
+                      f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
         return 'NodeReplaceOperationAnalyze'

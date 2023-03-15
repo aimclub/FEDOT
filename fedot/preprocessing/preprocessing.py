@@ -7,7 +7,8 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
+from fedot.core.data.data import InputData, np_datetime_to_numeric
+from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -87,7 +88,7 @@ class DataPreprocessor(BasePreprocessor):
     def _init_main_target_source_name(self, multi_data: MultiModalData):
         """
         Defines main_target_source_name for MultiModal data branches with main target and the side ones
-        
+
         Args:
             multi_data: `MultiModalData`
         """
@@ -118,8 +119,8 @@ class DataPreprocessor(BasePreprocessor):
         return data
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_predict)
-    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def obligatory_prepare_for_predict(self,
+                                       data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
             data = self._prepare_obligatory_unimodal_for_predict(data, source_name=DEFAULT_SOURCE_NAME)
 
@@ -132,8 +133,8 @@ class DataPreprocessor(BasePreprocessor):
         return data
 
     @copy_doc(BasePreprocessor.optional_prepare_for_fit)
-    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_fit(self, pipeline,
+                                 data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         self._init_supplementary_preprocessors(data)
 
         if isinstance(data, InputData):
@@ -148,8 +149,8 @@ class DataPreprocessor(BasePreprocessor):
         return data
 
     @copy_doc(BasePreprocessor.optional_prepare_for_predict)
-    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_predict(self, pipeline,
+                                     data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
             self._prepare_optional(pipeline, data, DEFAULT_SOURCE_NAME)
         else:
@@ -163,7 +164,7 @@ class DataPreprocessor(BasePreprocessor):
     def _take_only_correct_features(self, data: InputData, source_name: str):
         """
         Takes only correct features from the table
-        
+
         Args:
             data: to take correct features from
             source_name: name of the data source node
@@ -178,11 +179,11 @@ class DataPreprocessor(BasePreprocessor):
     def _prepare_obligatory_unimodal_for_fit(self, data: InputData, source_name: str) -> InputData:
         """
         Processes InputData for pipeline fit method
-        
+
         Args:
             data: to be preprocessed
             source_name: name of the data source node
-        
+
         Returns:
             obligatory-prepared ``data``
         """
@@ -190,8 +191,13 @@ class DataPreprocessor(BasePreprocessor):
             # Preprocessing was already done - return data
             return data
 
-        # Wrap indices in numpy array
-        data.idx = np.array(data.idx)
+        # Convert datetime data to numerical
+        data.features = np_datetime_to_numeric(data.features)
+        if data.target is not None:
+            data.target = np_datetime_to_numeric(data.target)
+
+        # Wrap indices in numpy array if needed
+        data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
         data = self._correct_shapes(data)
@@ -229,17 +235,22 @@ class DataPreprocessor(BasePreprocessor):
     def _prepare_obligatory_unimodal_for_predict(self, data: InputData, source_name: str) -> InputData:
         """
         Processes InputData for pipeline predict method
-        
+
         Args:
             data: to be preprocessed
             source_name: name of the data source node
-        
+
         Returns:
             obligatory-prepared data
         """
         if data.supplementary_data.obligatorily_preprocessed:
             # Preprocessing was already done - return data
             return data
+
+        # Convert datetime data to numerical
+        data.features = np_datetime_to_numeric(data.features)
+        if data.target is not None:
+            data.target = np_datetime_to_numeric(data.target)
 
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
@@ -263,7 +274,7 @@ class DataPreprocessor(BasePreprocessor):
     def _prepare_optional(self, pipeline, data: InputData, source_name: str):
         """
         Performs optional fitting/preprocessing for unimodal data
-        
+
         Args:
             pipeline: determines if optional preprocessing is needed
             data: to be preprocessed
@@ -309,10 +320,10 @@ class DataPreprocessor(BasePreprocessor):
     def _drop_rows_with_nan_in_target(data: InputData) -> InputData:
         """
         Drops rows with nans in target column
-        
+
         Args:
             data: to be modified
-        
+
         Returns:
             modified ``data``
         """
@@ -339,7 +350,7 @@ class DataPreprocessor(BasePreprocessor):
         """
         Removes extra spaces from data.
             Transforms cells in columns from ' x ' to 'x'
-        
+
         Args:
             data: to be stripped
 
@@ -381,7 +392,7 @@ class DataPreprocessor(BasePreprocessor):
 
         Args:
             data: data for fill in the gaps
-        
+
         Returns:
             imputed ``data``
         """
@@ -403,7 +414,7 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             data: data to be transformed
             source_name: name of the data source node
-        
+
         Returns:
             encoded ``data``
         """
@@ -421,7 +432,7 @@ class DataPreprocessor(BasePreprocessor):
     def _train_target_encoder(self, data: InputData, source_name: str):
         """
         Trains `LabelEncoder` if the ``data``'s target consists of strings
-        
+
         Args:
             data: data to be encoded
             source_name: name of the data source node
@@ -444,7 +455,7 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             data: data to be encoded
             source_name: name of the data source node
-        
+
         Returns:
             encoded ``data``'s target
         """
@@ -483,7 +494,7 @@ class DataPreprocessor(BasePreprocessor):
         Determines which encoder target to use.
         Applicable for inverse target transformation (if there are several targets in
             single MultiModal pipeline).
-        
+
         Returns:
             selected data source name
         """
@@ -497,11 +508,11 @@ class DataPreprocessor(BasePreprocessor):
     def _correct_shapes(data: InputData) -> InputData:
         """
         Corrects shapes of tabular data or time series.
-        
+
         Args:
             data: time series or tabular. In the first case must be 1d-array, in the second case must be
                 two-dimensional arrays or array of (n, 1) for texts.
-        
+
         Returns:
             corrected tabular data
         """

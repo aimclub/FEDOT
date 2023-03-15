@@ -14,7 +14,7 @@
    * - package
      - | |pypi| |python|
    * - tests
-     - | |build| |coverage|
+     - | |build| |integration| |coverage|
    * - docs
      - |docs|
    * - license
@@ -25,6 +25,10 @@
      - | |tg|
    * - languages
      - | |eng| |rus|
+   * - mirror
+     - | |gitlab|
+   * - funding
+     - | |ITMO| |NCCR|
 .. end-badges
 
 **FEDOT** is an open-source framework for automated modeling and machine learning (AutoML) problems. This framework is distributed under the 3-Clause BSD license.
@@ -45,23 +49,16 @@ More details about FEDOT are available in the next video:
    :target: http://www.youtube.com/watch?v=RjbuV6i6de4
    :alt: Introducing Fedot
 
-FEDOT Features
+FEDOT concepts
 ==============
 
-The main features of the framework are as follows:
-
-- **Flexibility.** FEDOT is highly flexible: it can be used to automate the construction of solutions for various problems, data types, and models;
-- **Integration with ML libraries.** FEDOT supports widely used ML libraries (Scikit-Learn, Catboost, Xgboost, etc.) and allows you to integrate custom ones;
-- **Extensibility for new domains.** Pipeline optimization algorithms are data- and task-independent, yet you can use special templates for a specific task class or data type (time series forecasting, NLP, tabular data, etc.) to increase the efficiency;
-- **No limits.** The framework is versatile and is not limited to specific modeling tasks, for example, it can be used in ODE or PDE;
-- **Support of hyper-parameter tuning.** Hyper-parameter tuning methods are supported. Custom methods can also be integrated in FEDOT;
-- **Reproducibility.** You can export the resulting pipelines in JSON format for experiment reproducibility.
-
-Compared to other frameworks:
-
-- There are no limits to specific modeling tasks, therefore FEDOT claims versatility and expandability;
-- Allows managing the complexity of models and thereby achieving better results.
-- Allows building pipelines using different types of input data (texts, images, tables, etc.) and consisting of various models.
+- **Flexibility.** FEDOT can be used to automate the construction of solutions for various `problems <https://fedot.readthedocs.io/en/master/introduction/fedot_features/main_features.html#involved-tasks>`_, `data types <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation_features.html#data-nature>`_ (texts, images, tables), and `models <https://fedot.readthedocs.io/en/master/advanced/automated_pipelines_design.html>`_;
+- **Extensibility.** Pipeline optimization algorithms are data- and task-independent, yet you can use `special strategies <https://fedot.readthedocs.io/en/master/api/strategies.html>`_ for specific tasks or data types (time-series forecasting, NLP, tabular data, etc.) to increase the efficiency;
+- **Integrability.** FEDOT supports widely used ML libraries (Scikit-learn, CatBoost, XGBoost, etc.) and allows you to integrate `custom ones <https://fedot.readthedocs.io/en/master/api/strategies.html#module-fedot.core.operations.evaluation.custom>`_;
+- **Tuningability.** Various `hyper-parameters tuning methods <https://fedot.readthedocs.io/en/master/advanced/hyperparameters_tuning.html>`_ are supported including models' custom evaluation metrics and search spaces;
+- **Versatility.** FEDOT is `not limited to specific modeling tasks <https://fedot.readthedocs.io/en/master/advanced/architecture.html>`_, for example, it can be used in ODE or PDE;
+- **Reproducibility.** Resulting pipelines can be `exported separately as JSON <https://fedot.readthedocs.io/en/master/advanced/pipeline_import_export.html>`_ or `together with your input data as ZIP archive <https://fedot.readthedocs.io/en/master/advanced/project_import_export.html>`_ for experiments reproducibility;
+- **Customizability.** FEDOT allows `managing models complexity <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation_features.html#models-used>`_ and thereby achieving desired quality.
 
 Installation
 ============
@@ -183,21 +180,14 @@ Current R&D and future plans
 Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
 The major ongoing tasks and plans:
 
-* Effective and ready-to-use pipeline templates for certain tasks and data types;
-* Integration with GPU via Rapids framework;
-* Alternative optimization methods of fixed-shaped pipelines;
-* Integration with MLFlow for import and export of the pipelines;
-* Improvement of the high-level API.
-
-
-Also, we are doing several research tasks related to AutoML time-series benchmarking and multi-modal modeling.
+* Implementation of meta-learning based at GNN and RL (see `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__)
+* Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
+* Support for more complicated pipeline design patters, especially for time series forecasting.
 
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
 Documentation
 =============
-
-The general description is available in the `FEDOT.Docs <https://itmo-nss-team.github.io/FEDOT.Miscellaneous>`__ repository.
 
 Also, a detailed FEDOT API description is available in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 
@@ -213,8 +203,9 @@ We acknowledge the contributors for their important impact and the participants 
 
 Side Projects
 =============
+- The optimisation core implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__ repository.
 - The prototype of the web-GUI for FEDOT is available in the `FEDOT.WEB <https://github.com/aimclub/FEDOT.Web>`__ repository.
-
+- The prototype of FEDOT-based meta-AutoML in the `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__ repository.
 
 Contacts
 ========
@@ -257,7 +248,11 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
 
 .. |build| image:: https://github.com/aimclub/FEDOT/workflows/Build/badge.svg?branch=master
    :alt: Build Status
-   :target: https://github.com/aimclub/FEDOT/actions
+   :target: https://github.com/aimclub/FEDOT/actions/workflows/unit-build.yml
+
+.. |integration| image:: https://github.com/aimclub/FEDOT/workflows/Integration/badge.svg?branch=master
+   :alt: Integration Build Status
+   :target: https://github.com/aimclub/FEDOT/actions/workflows/integration-build.yml
 
 .. |coverage| image:: https://codecov.io/gh/aimclub/FEDOT/branch/master/graph/badge.svg
    :alt: Coverage Status
@@ -281,3 +276,15 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
 .. |tg| image:: https://img.shields.io/badge/Telegram-Group-blue.svg
           :target: https://t.me/FEDOT_helpdesk
           :alt: Telegram Chat
+
+.. |ITMO| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/ITMO_badge_rus.svg
+   :alt: Acknowledgement to ITMO
+   :target: https://itmo.ru
+
+.. |NCCR| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/NCCR_badge.svg
+   :alt: Acknowledgement to NCCR
+   :target: https://actcognitive.org/
+
+.. |gitlab| image:: https://camo.githubusercontent.com/9bd7b8c5b418f1364e72110a83629772729b29e8f3393b6c86bff237a6b784f6/68747470733a2f2f62616467656e2e6e65742f62616467652f6769746c61622f6d6972726f722f6f72616e67653f69636f6e3d6769746c6162
+   :alt: GitLab mirror for this repository
+   :target: https://gitlab.actcognitive.org/itmo-nss-team/FEDOT

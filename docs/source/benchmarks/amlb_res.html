@@ -1,0 +1,719 @@
+<style type="text/css">
+ #T_benchmark table {
+  border: 1px solid #e1e4e5;
+  text-align: center;
+  font-size: .9rem;
+}
+#T_benchmark  th {
+  border: 1px solid #e1e4e5;
+  text-align: center;
+  font-size: .9rem;
+}
+#T_benchmark  td {
+  border: 1px solid #e1e4e5;
+  text-align: center;
+  font-size: .9rem;
+}
+#T_benchmark th {
+  padding: 8px 16px;
+}
+#T_benchmark  td {
+  padding: 8px 16px;
+}
+#T_benchmark tr {
+  background-color: #fff;
+}
+#T_benchmark tbody tr:nth-child(odd) {
+  background-color: #f3f6f6;
+}
+#T_benchmarkrow0_col2, #T_benchmarkrow0_col3, #T_benchmarkrow1_col3, #T_benchmarkrow2_col3, #T_benchmarkrow3_col0, #T_benchmarkrow4_col3, #T_benchmarkrow5_col3, #T_benchmarkrow6_col3, #T_benchmarkrow7_col3, #T_benchmarkrow8_col2, #T_benchmarkrow9_col3, #T_benchmarkrow10_col3, #T_benchmarkrow11_col3, #T_benchmarkrow12_col1, #T_benchmarkrow13_col3, #T_benchmarkrow14_col3, #T_benchmarkrow15_col3, #T_benchmarkrow16_col3, #T_benchmarkrow17_col2, #T_benchmarkrow18_col3, #T_benchmarkrow19_col3, #T_benchmarkrow20_col3, #T_benchmarkrow21_col1, #T_benchmarkrow21_col2, #T_benchmarkrow22_col3, #T_benchmarkrow23_col1, #T_benchmarkrow24_col1, #T_benchmarkrow24_col2, #T_benchmarkrow24_col3, #T_benchmarkrow25_col3, #T_benchmarkrow26_col3, #T_benchmarkrow27_col2, #T_benchmarkrow27_col3, #T_benchmarkrow28_col2, #T_benchmarkrow29_col2, #T_benchmarkrow30_col2, #T_benchmarkrow31_col2 {
+  color: blue;
+  font-weight: bold;
+}
+</style>
+<div style="overflow: auto;">
+ <table id="T_benchmark" style="width: 100%; border-collapse: collapse; font-family: Lato,proxima-nova,Helvetica Neue,Arial,sans-serif;">
+  <caption>
+   Classification statistics
+  </caption>
+  <thead>
+   <tr>
+    <th class="blank">
+    </th>
+    <th class="index_name level0">
+     framework
+    </th>
+    <th class="col_heading level0 col0">
+     AutoGluon
+    </th>
+    <th class="col_heading level0 col1">
+     FEDOT
+    </th>
+    <th class="col_heading level0 col2">
+     H2O
+    </th>
+    <th class="col_heading level0 col3">
+     LAMA
+    </th>
+   </tr>
+   <tr>
+    <th class="index_name level0">
+     Dataset name
+    </th>
+    <th class="index_name level1">
+     Metric name
+    </th>
+    <th class="blank col0">
+    </th>
+    <th class="blank col1">
+    </th>
+    <th class="blank col2">
+    </th>
+    <th class="blank col3">
+    </th>
+   </tr>
+  </thead>
+  <tbody>
+   <tr>
+    <th class="row_heading level0 row0" id="T_benchmarklevel0_row0">
+     APSFailure
+    </th>
+    <th class="row_heading level1 row0" id="T_benchmarklevel1_row0">
+     auc
+    </th>
+    <td class="data row0 col0" id="T_benchmarkrow0_col0">
+     0.990
+    </td>
+    <td class="data row0 col1" id="T_benchmarkrow0_col1">
+     0.991
+    </td>
+    <td class="data row0 col2" id="T_benchmarkrow0_col2">
+     0.992
+    </td>
+    <td class="data row0 col3" id="T_benchmarkrow0_col3">
+     0.992
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row1" id="T_benchmarklevel0_row1">
+     Amazon_employee_access
+    </th>
+    <th class="row_heading level1 row1" id="T_benchmarklevel1_row1">
+     auc
+    </th>
+    <td class="data row1 col0" id="T_benchmarkrow1_col0">
+     0.857
+    </td>
+    <td class="data row1 col1" id="T_benchmarkrow1_col1">
+     0.865
+    </td>
+    <td class="data row1 col2" id="T_benchmarkrow1_col2">
+     0.873
+    </td>
+    <td class="data row1 col3" id="T_benchmarkrow1_col3">
+     0.879
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row2" id="T_benchmarklevel0_row2">
+     Australian
+    </th>
+    <th class="row_heading level1 row2" id="T_benchmarklevel1_row2">
+     auc
+    </th>
+    <td class="data row2 col0" id="T_benchmarkrow2_col0">
+     0.940
+    </td>
+    <td class="data row2 col1" id="T_benchmarkrow2_col1">
+     0.939
+    </td>
+    <td class="data row2 col2" id="T_benchmarkrow2_col2">
+     0.938
+    </td>
+    <td class="data row2 col3" id="T_benchmarkrow2_col3">
+     0.945
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row3" id="T_benchmarklevel0_row3">
+     Covertype
+    </th>
+    <th class="row_heading level1 row3" id="T_benchmarklevel1_row3">
+     neg_logloss
+    </th>
+    <td class="data row3 col0" id="T_benchmarkrow3_col0">
+     -0.071
+    </td>
+    <td class="data row3 col1" id="T_benchmarkrow3_col1">
+     -0.117
+    </td>
+    <td class="data row3 col2" id="T_benchmarkrow3_col2">
+     -0.265
+    </td>
+    <td class="data row3 col3" id="T_benchmarkrow3_col3">
+     nan
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row4" id="T_benchmarklevel0_row4">
+     Fashion-MNIST
+    </th>
+    <th class="row_heading level1 row4" id="T_benchmarklevel1_row4">
+     neg_logloss
+    </th>
+    <td class="data row4 col0" id="T_benchmarkrow4_col0">
+     -0.329
+    </td>
+    <td class="data row4 col1" id="T_benchmarkrow4_col1">
+     -0.373
+    </td>
+    <td class="data row4 col2" id="T_benchmarkrow4_col2">
+     -0.380
+    </td>
+    <td class="data row4 col3" id="T_benchmarkrow4_col3">
+     -0.248
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row5" id="T_benchmarklevel0_row5">
+     Jannis
+    </th>
+    <th class="row_heading level1 row5" id="T_benchmarklevel1_row5">
+     neg_logloss
+    </th>
+    <td class="data row5 col0" id="T_benchmarkrow5_col0">
+     -0.728
+    </td>
+    <td class="data row5 col1" id="T_benchmarkrow5_col1">
+     -0.737
+    </td>
+    <td class="data row5 col2" id="T_benchmarkrow5_col2">
+     -0.691
+    </td>
+    <td class="data row5 col3" id="T_benchmarkrow5_col3">
+     -0.664
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row6" id="T_benchmarklevel0_row6">
+     KDDCup09_appetency
+    </th>
+    <th class="row_heading level1 row6" id="T_benchmarklevel1_row6">
+     auc
+    </th>
+    <td class="data row6 col0" id="T_benchmarkrow6_col0">
+     0.804
+    </td>
+    <td class="data row6 col1" id="T_benchmarkrow6_col1">
+     0.822
+    </td>
+    <td class="data row6 col2" id="T_benchmarkrow6_col2">
+     0.829
+    </td>
+    <td class="data row6 col3" id="T_benchmarkrow6_col3">
+     0.850
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row7" id="T_benchmarklevel0_row7">
+     MiniBooNE
+    </th>
+    <th class="row_heading level1 row7" id="T_benchmarklevel1_row7">
+     auc
+    </th>
+    <td class="data row7 col0" id="T_benchmarkrow7_col0">
+     0.982
+    </td>
+    <td class="data row7 col1" id="T_benchmarkrow7_col1">
+     0.981
+    </td>
+    <td class="data row7 col2" id="T_benchmarkrow7_col2">
+     nan
+    </td>
+    <td class="data row7 col3" id="T_benchmarkrow7_col3">
+     0.988
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row8" id="T_benchmarklevel0_row8">
+     Shuttle
+    </th>
+    <th class="row_heading level1 row8" id="T_benchmarklevel1_row8">
+     neg_logloss
+    </th>
+    <td class="data row8 col0" id="T_benchmarkrow8_col0">
+     -0.001
+    </td>
+    <td class="data row8 col1" id="T_benchmarkrow8_col1">
+     -0.001
+    </td>
+    <td class="data row8 col2" id="T_benchmarkrow8_col2">
+     -0.000
+    </td>
+    <td class="data row8 col3" id="T_benchmarkrow8_col3">
+     -0.001
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row9" id="T_benchmarklevel0_row9">
+     Volkert
+    </th>
+    <th class="row_heading level1 row9" id="T_benchmarklevel1_row9">
+     neg_logloss
+    </th>
+    <td class="data row9 col0" id="T_benchmarkrow9_col0">
+     -0.917
+    </td>
+    <td class="data row9 col1" id="T_benchmarkrow9_col1">
+     -1.097
+    </td>
+    <td class="data row9 col2" id="T_benchmarkrow9_col2">
+     -0.976
+    </td>
+    <td class="data row9 col3" id="T_benchmarkrow9_col3">
+     -0.806
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row10" id="T_benchmarklevel0_row10">
+     adult
+    </th>
+    <th class="row_heading level1 row10" id="T_benchmarklevel1_row10">
+     auc
+    </th>
+    <td class="data row10 col0" id="T_benchmarkrow10_col0">
+     0.910
+    </td>
+    <td class="data row10 col1" id="T_benchmarkrow10_col1">
+     0.925
+    </td>
+    <td class="data row10 col2" id="T_benchmarkrow10_col2">
+     0.931
+    </td>
+    <td class="data row10 col3" id="T_benchmarkrow10_col3">
+     0.932
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row11" id="T_benchmarklevel0_row11">
+     bank-marketing
+    </th>
+    <th class="row_heading level1 row11" id="T_benchmarklevel1_row11">
+     auc
+    </th>
+    <td class="data row11 col0" id="T_benchmarkrow11_col0">
+     0.931
+    </td>
+    <td class="data row11 col1" id="T_benchmarkrow11_col1">
+     0.935
+    </td>
+    <td class="data row11 col2" id="T_benchmarkrow11_col2">
+     0.939
+    </td>
+    <td class="data row11 col3" id="T_benchmarkrow11_col3">
+     0.940
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row12" id="T_benchmarklevel0_row12">
+     blood-transfusion
+    </th>
+    <th class="row_heading level1 row12" id="T_benchmarklevel1_row12">
+     auc
+    </th>
+    <td class="data row12 col0" id="T_benchmarkrow12_col0">
+     0.690
+    </td>
+    <td class="data row12 col1" id="T_benchmarkrow12_col1">
+     0.759
+    </td>
+    <td class="data row12 col2" id="T_benchmarkrow12_col2">
+     0.754
+    </td>
+    <td class="data row12 col3" id="T_benchmarkrow12_col3">
+     0.750
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row13" id="T_benchmarklevel0_row13">
+     car
+    </th>
+    <th class="row_heading level1 row13" id="T_benchmarklevel1_row13">
+     neg_logloss
+    </th>
+    <td class="data row13 col0" id="T_benchmarkrow13_col0">
+     -0.117
+    </td>
+    <td class="data row13 col1" id="T_benchmarkrow13_col1">
+     -0.011
+    </td>
+    <td class="data row13 col2" id="T_benchmarkrow13_col2">
+     -0.003
+    </td>
+    <td class="data row13 col3" id="T_benchmarkrow13_col3">
+     -0.002
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row14" id="T_benchmarklevel0_row14">
+     christine
+    </th>
+    <th class="row_heading level1 row14" id="T_benchmarklevel1_row14">
+     auc
+    </th>
+    <td class="data row14 col0" id="T_benchmarkrow14_col0">
+     0.804
+    </td>
+    <td class="data row14 col1" id="T_benchmarkrow14_col1">
+     0.812
+    </td>
+    <td class="data row14 col2" id="T_benchmarkrow14_col2">
+     0.815
+    </td>
+    <td class="data row14 col3" id="T_benchmarkrow14_col3">
+     0.830
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row15" id="T_benchmarklevel0_row15">
+     cnae-9
+    </th>
+    <th class="row_heading level1 row15" id="T_benchmarklevel1_row15">
+     neg_logloss
+    </th>
+    <td class="data row15 col0" id="T_benchmarkrow15_col0">
+     -0.332
+    </td>
+    <td class="data row15 col1" id="T_benchmarkrow15_col1">
+     -0.211
+    </td>
+    <td class="data row15 col2" id="T_benchmarkrow15_col2">
+     -0.262
+    </td>
+    <td class="data row15 col3" id="T_benchmarkrow15_col3">
+     -0.156
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row16" id="T_benchmarklevel0_row16">
+     connect-4
+    </th>
+    <th class="row_heading level1 row16" id="T_benchmarklevel1_row16">
+     neg_logloss
+    </th>
+    <td class="data row16 col0" id="T_benchmarkrow16_col0">
+     -0.502
+    </td>
+    <td class="data row16 col1" id="T_benchmarkrow16_col1">
+     -0.456
+    </td>
+    <td class="data row16 col2" id="T_benchmarkrow16_col2">
+     -0.338
+    </td>
+    <td class="data row16 col3" id="T_benchmarkrow16_col3">
+     -0.337
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row17" id="T_benchmarklevel0_row17">
+     credit-g
+    </th>
+    <th class="row_heading level1 row17" id="T_benchmarklevel1_row17">
+     auc
+    </th>
+    <td class="data row17 col0" id="T_benchmarkrow17_col0">
+     0.795
+    </td>
+    <td class="data row17 col1" id="T_benchmarkrow17_col1">
+     0.778
+    </td>
+    <td class="data row17 col2" id="T_benchmarkrow17_col2">
+     0.798
+    </td>
+    <td class="data row17 col3" id="T_benchmarkrow17_col3">
+     0.796
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row18" id="T_benchmarklevel0_row18">
+     dilbert
+    </th>
+    <th class="row_heading level1 row18" id="T_benchmarklevel1_row18">
+     neg_logloss
+    </th>
+    <td class="data row18 col0" id="T_benchmarkrow18_col0">
+     -0.148
+    </td>
+    <td class="data row18 col1" id="T_benchmarkrow18_col1">
+     -0.159
+    </td>
+    <td class="data row18 col2" id="T_benchmarkrow18_col2">
+     -0.103
+    </td>
+    <td class="data row18 col3" id="T_benchmarkrow18_col3">
+     -0.033
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row19" id="T_benchmarklevel0_row19">
+     fabert
+    </th>
+    <th class="row_heading level1 row19" id="T_benchmarklevel1_row19">
+     neg_logloss
+    </th>
+    <td class="data row19 col0" id="T_benchmarkrow19_col0">
+     -0.788
+    </td>
+    <td class="data row19 col1" id="T_benchmarkrow19_col1">
+     -0.895
+    </td>
+    <td class="data row19 col2" id="T_benchmarkrow19_col2">
+     -0.792
+    </td>
+    <td class="data row19 col3" id="T_benchmarkrow19_col3">
+     -0.766
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row20" id="T_benchmarklevel0_row20">
+     guillermo
+    </th>
+    <th class="row_heading level1 row20" id="T_benchmarklevel1_row20">
+     auc
+    </th>
+    <td class="data row20 col0" id="T_benchmarkrow20_col0">
+     0.900
+    </td>
+    <td class="data row20 col1" id="T_benchmarkrow20_col1">
+     0.891
+    </td>
+    <td class="data row20 col2" id="T_benchmarkrow20_col2">
+     nan
+    </td>
+    <td class="data row20 col3" id="T_benchmarkrow20_col3">
+     0.926
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row21" id="T_benchmarklevel0_row21">
+     jasmine
+    </th>
+    <th class="row_heading level1 row21" id="T_benchmarklevel1_row21">
+     auc
+    </th>
+    <td class="data row21 col0" id="T_benchmarkrow21_col0">
+     0.883
+    </td>
+    <td class="data row21 col1" id="T_benchmarkrow21_col1">
+     0.888
+    </td>
+    <td class="data row21 col2" id="T_benchmarkrow21_col2">
+     0.888
+    </td>
+    <td class="data row21 col3" id="T_benchmarkrow21_col3">
+     0.880
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row22" id="T_benchmarklevel0_row22">
+     jungle chess
+    </th>
+    <th class="row_heading level1 row22" id="T_benchmarklevel1_row22">
+     neg_logloss
+    </th>
+    <td class="data row22 col0" id="T_benchmarkrow22_col0">
+     -0.431
+    </td>
+    <td class="data row22 col1" id="T_benchmarkrow22_col1">
+     -0.193
+    </td>
+    <td class="data row22 col2" id="T_benchmarkrow22_col2">
+     -0.240
+    </td>
+    <td class="data row22 col3" id="T_benchmarkrow22_col3">
+     -0.149
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row23" id="T_benchmarklevel0_row23">
+     kc1
+    </th>
+    <th class="row_heading level1 row23" id="T_benchmarklevel1_row23">
+     auc
+    </th>
+    <td class="data row23 col0" id="T_benchmarkrow23_col0">
+     0.822
+    </td>
+    <td class="data row23 col1" id="T_benchmarkrow23_col1">
+     0.843
+    </td>
+    <td class="data row23 col2" id="T_benchmarkrow23_col2">
+     nan
+    </td>
+    <td class="data row23 col3" id="T_benchmarkrow23_col3">
+     0.831
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row24" id="T_benchmarklevel0_row24">
+     kr-vs-kp
+    </th>
+    <th class="row_heading level1 row24" id="T_benchmarklevel1_row24">
+     auc
+    </th>
+    <td class="data row24 col0" id="T_benchmarkrow24_col0">
+     0.999
+    </td>
+    <td class="data row24 col1" id="T_benchmarkrow24_col1">
+     1.000
+    </td>
+    <td class="data row24 col2" id="T_benchmarkrow24_col2">
+     1.000
+    </td>
+    <td class="data row24 col3" id="T_benchmarkrow24_col3">
+     1.000
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row25" id="T_benchmarklevel0_row25">
+     mfeat-factors
+    </th>
+    <th class="row_heading level1 row25" id="T_benchmarklevel1_row25">
+     neg_logloss
+    </th>
+    <td class="data row25 col0" id="T_benchmarkrow25_col0">
+     -0.161
+    </td>
+    <td class="data row25 col1" id="T_benchmarkrow25_col1">
+     -0.094
+    </td>
+    <td class="data row25 col2" id="T_benchmarkrow25_col2">
+     -0.093
+    </td>
+    <td class="data row25 col3" id="T_benchmarkrow25_col3">
+     -0.082
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row26" id="T_benchmarklevel0_row26">
+     nomao
+    </th>
+    <th class="row_heading level1 row26" id="T_benchmarklevel1_row26">
+     auc
+    </th>
+    <td class="data row26 col0" id="T_benchmarkrow26_col0">
+     0.995
+    </td>
+    <td class="data row26 col1" id="T_benchmarkrow26_col1">
+     0.994
+    </td>
+    <td class="data row26 col2" id="T_benchmarkrow26_col2">
+     0.996
+    </td>
+    <td class="data row26 col3" id="T_benchmarkrow26_col3">
+     0.997
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row27" id="T_benchmarklevel0_row27">
+     numerai28_6
+    </th>
+    <th class="row_heading level1 row27" id="T_benchmarklevel1_row27">
+     auc
+    </th>
+    <td class="data row27 col0" id="T_benchmarkrow27_col0">
+     0.517
+    </td>
+    <td class="data row27 col1" id="T_benchmarkrow27_col1">
+     0.529
+    </td>
+    <td class="data row27 col2" id="T_benchmarkrow27_col2">
+     0.531
+    </td>
+    <td class="data row27 col3" id="T_benchmarkrow27_col3">
+     0.531
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row28" id="T_benchmarklevel0_row28">
+     phoneme
+    </th>
+    <th class="row_heading level1 row28" id="T_benchmarklevel1_row28">
+     auc
+    </th>
+    <td class="data row28 col0" id="T_benchmarkrow28_col0">
+     0.965
+    </td>
+    <td class="data row28 col1" id="T_benchmarkrow28_col1">
+     0.965
+    </td>
+    <td class="data row28 col2" id="T_benchmarkrow28_col2">
+     0.968
+    </td>
+    <td class="data row28 col3" id="T_benchmarkrow28_col3">
+     0.965
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row29" id="T_benchmarklevel0_row29">
+     segment
+    </th>
+    <th class="row_heading level1 row29" id="T_benchmarklevel1_row29">
+     neg_logloss
+    </th>
+    <td class="data row29 col0" id="T_benchmarkrow29_col0">
+     -0.094
+    </td>
+    <td class="data row29 col1" id="T_benchmarkrow29_col1">
+     -0.062
+    </td>
+    <td class="data row29 col2" id="T_benchmarkrow29_col2">
+     -0.060
+    </td>
+    <td class="data row29 col3" id="T_benchmarkrow29_col3">
+     -0.061
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row30" id="T_benchmarklevel0_row30">
+     sylvine
+    </th>
+    <th class="row_heading level1 row30" id="T_benchmarklevel1_row30">
+     auc
+    </th>
+    <td class="data row30 col0" id="T_benchmarkrow30_col0">
+     0.985
+    </td>
+    <td class="data row30 col1" id="T_benchmarkrow30_col1">
+     0.988
+    </td>
+    <td class="data row30 col2" id="T_benchmarkrow30_col2">
+     0.989
+    </td>
+    <td class="data row30 col3" id="T_benchmarkrow30_col3">
+     0.988
+    </td>
+   </tr>
+   <tr>
+    <th class="row_heading level0 row31" id="T_benchmarklevel0_row31">
+     vehicle
+    </th>
+    <th class="row_heading level1 row31" id="T_benchmarklevel1_row31">
+     neg_logloss
+    </th>
+    <td class="data row31 col0" id="T_benchmarkrow31_col0">
+     -0.515
+    </td>
+    <td class="data row31 col1" id="T_benchmarkrow31_col1">
+     -0.354
+    </td>
+    <td class="data row31 col2" id="T_benchmarkrow31_col2">
+     -0.331
+    </td>
+    <td class="data row31 col3" id="T_benchmarkrow31_col3">
+     -0.404
+    </td>
+   </tr>
+  </tbody>
+ </table>
+</div>

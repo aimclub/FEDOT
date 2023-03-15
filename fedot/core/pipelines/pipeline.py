@@ -35,8 +35,8 @@ class Pipeline(GraphDelegate, Serializable):
     """Base class used for composite model structure definition
 
     Args:
-        nodes: :obj:`Node` object(s)
-        use_input_preprocessing: whether to do input preprocessing or not, True by default
+        nodes: :obj:`PipelineNode` object(s)
+        use_input_preprocessing: whether to do input preprocessing or not, ``True`` by default.
     """
 
     def __init__(self, nodes: Union[PipelineNode, Sequence[PipelineNode]] = (), use_input_preprocessing: bool = True):
@@ -62,7 +62,7 @@ class Pipeline(GraphDelegate, Serializable):
 
     def _fit_with_time_limit(self, input_data: Optional[InputData],
                              time: timedelta) -> OutputData:
-        """Runs training process in all of the pipeline nodes starting with root with time limit.
+        """Runs training process in all the pipeline nodes starting with root with time limit.
 
         Todo:
             unresolved sentence
@@ -120,8 +120,8 @@ class Pipeline(GraphDelegate, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> Union[
-        InputData, MultiModalData]:
+    def _preprocess(self, input_data: Union[InputData, MultiModalData], *, is_fit_stage: bool = True) -> \
+            Union[InputData, MultiModalData]:
         """
         Makes obligatory and optional (if needed) steps of data preprocessing
 
@@ -410,7 +410,7 @@ def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Pipeli
         via GraphOperator, if any of them are of GraphNode type
 
     Args:
-        nodes: :obj:`Node` object(s)
+        nodes: :obj:`PipelineNode` object(s)
     """
 
     for node in nodes:

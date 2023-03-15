@@ -21,6 +21,6 @@ Task specification includes definition of the objective, initial population, req
 
 Optimization of AutoML models includes the following components:
 
-* Pipeline, that defines the wiring of ML operations and data flow (see :py:class:`fedot.core.pipelines.pipeline.Pipeline`).
-* InputData with DataPreprocessor (see :py:class:`fedot.core.data.data.InputData` and :doc:`data_preprocessing`), that handle data loading from various formats & preprocessing of the data for ML operations.
+* Pipeline, that defines the wiring of ML operations and data flow (see :py:class:`~fedot.core.pipelines.pipeline.Pipeline`).
+* InputData with DataPreprocessor (see :py:class:`~fedot.core.data.data.InputData` and :doc:`data_preprocessing`), that handle data loading from various formats & preprocessing of the data for ML operations.
 * OperationRepository defines the list of available ML operations and their implementations.

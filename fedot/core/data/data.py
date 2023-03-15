@@ -8,21 +8,13 @@ from typing import List, Optional, Tuple, Union, Iterable, Any
 
 import numpy as np
 import pandas as pd
-
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
-
-#: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
-#: and :py:meth:`MultiModalData.from_csv`.
-POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
-#: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
-#: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
-POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
 
 try:
     import cv2
 except ModuleNotFoundError:
-    warn_requirement('opencv-python')
+    warn_requirement('opencv-python', 'fedot[extra]')
     cv2 = None
 
 from fedot.core.data.array_utilities import atleast_2d
@@ -30,6 +22,13 @@ from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+#: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
+#: and :py:meth:`MultiModalData.from_csv`.
+POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
+#: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
+#: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
+POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
 
 PathType = Union[os.PathLike, str]
 
@@ -40,11 +39,11 @@ class Data:
     Base Data type class
     """
 
-    idx: np.array
+    idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: np.array
-    target: Optional[np.array] = None
+    features: np.ndarray
+    target: Optional[np.ndarray] = None
 
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
@@ -333,19 +332,19 @@ class Data:
 
         if len(fields_to_use) > 1:
             fields_to_combine = []
-            for field in fields_to_use:
-                fields_to_combine.append(np.array(df_data[field]))
+            for field_to_use in fields_to_use:
+                fields_to_combine.append(np.array(df_data[field_to_use]))
                 # Unite if the element of text data is divided into strings
-                if isinstance(df_data[field][0], list):
-                    df_data[field] = [' '.join(piece) for piece in df_data[field]]
+                if isinstance(df_data[field_to_use][0], list):
+                    df_data[field_to_use] = [' '.join(piece) for piece in df_data[field_to_use]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
-            field = df_data[fields_to_use[0]]
-            # process field with nested list
-            if isinstance(field[0], list):
-                field = [' '.join(piece) for piece in field]
-            features = np.array(field)
+            field_to_use = df_data[fields_to_use[0]]
+            # process field_to_use with nested list
+            if isinstance(field_to_use[0], list):
+                field_to_use = [' '.join(piece) for piece in field_to_use]
+            features = np.array(field_to_use)
 
         if is_multilabel:
             target = df_data[label]
@@ -583,6 +582,25 @@ def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Itera
     return np.arange(0, len(data_frame))
 
 
+def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
+    """
+    Change data's datetime type to integer with milliseconds unit.
+
+    Args:
+        data: table data for converting.
+
+    Returns:
+        The same table data with datetimes (if existed) converted to integer
+    """
+    orig_shape = data.shape
+    out_dtype = np.int64 if 'datetime' in str((dt := data.dtype)) else dt
+    features_df = pd.DataFrame(data, copy=False).infer_objects()
+    date_cols = features_df.select_dtypes('datetime')
+    converted_cols = date_cols.to_numpy(np.int64) // 1e6  # to 'ms' unit from 'ns'
+    features_df[date_cols.columns] = converted_cols
+    return features_df.to_numpy(out_dtype).reshape(orig_shape)
+
+
 def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
@@ -606,7 +624,6 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
                     possible_idx_keywords: Optional[List[str]] = None, *,
                     columns_to_drop: Optional[List[Union[str, int]]] = None,
                     columns_to_use: Optional[List[Union[str, int]]] = None):
-
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
             if is_column_name_suitable_for_index(column_name):

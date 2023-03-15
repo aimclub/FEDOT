@@ -154,16 +154,17 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visu
                      exog_variable=exog_variable,
                      len_forecast=len_forecast)
 
-    pipelines = {'ARIMA': {
-        'tr_nodes_data': {"arima": train_input},
-        'pr_nodes_data': {"arima": predict_input},
-        'model': get_arima_pipeline()
-    },
-        'STL_ARIMA': {
-            'tr_nodes_data': {"stl_arima": train_input},
-            'pr_nodes_data': {"stl_arima": predict_input},
-            'model': get_stlarima_pipeline()
-        },
+    pipelines = {
+        'ARIMA':
+            {'tr_nodes_data': {"arima": train_input},
+             'pr_nodes_data': {"arima": predict_input},
+             'model': get_arima_pipeline()
+             },
+        'STL_ARIMA':
+            {'tr_nodes_data': {"stl_arima": train_input},
+             'pr_nodes_data': {"stl_arima": predict_input},
+             'model': get_stlarima_pipeline()
+             },
         'RIDGE':
             {'tr_nodes_data': {"lagged/1": train_input, "lagged/2": train_input},
              'pr_nodes_data': {"lagged/1": predict_input, "lagged/2": predict_input},
@@ -269,14 +270,16 @@ def create_errors_df():
 
 
 def add_data_to_errors_df(df, error_name, point, errors):
-    df = df.append({'POINT': point,
-                    'RIDGE': errors['RIDGE_' + error_name],
-                    'RIDGE_NEMO': errors['RIDGE_NEMO_' + error_name],
-                    'ARIMA': errors['ARIMA_' + error_name],
-                    'ARIMA_NEMO': errors['ARIMA_NEMO_' + error_name],
-                    'STL_ARIMA': errors['STL_ARIMA_' + error_name],
-                    'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_' + error_name],
-                    }, ignore_index=True)
+    more_data = pd.DataFrame({
+        'POINT': point,
+        'RIDGE': errors['RIDGE_' + error_name],
+        'RIDGE_NEMO': errors['RIDGE_NEMO_' + error_name],
+        'ARIMA': errors['ARIMA_' + error_name],
+        'ARIMA_NEMO': errors['ARIMA_NEMO_' + error_name],
+        'STL_ARIMA': errors['STL_ARIMA_' + error_name],
+        'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_' + error_name],
+    }, index=[0])
+    df = pd.concat([df, more_data], ignore_index=True)
     return df
 
 

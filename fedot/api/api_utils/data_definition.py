@@ -81,7 +81,7 @@ class PandasStrategy(StrategyDefineData):
 
         if isinstance(target, str) and target in features.columns:
             target_array = features[target]
-            features = features.drop(columns=[target])
+            features = features.drop(columns=target)
         else:
             target_array = target
 
@@ -121,7 +121,6 @@ class CsvStrategy(StrategyDefineData):
                     is_predict: bool = False) -> InputData:
         # CSV files as input data, by default - table data
 
-        data_type = DataTypesEnum.table
         if task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting format - time series
             data = InputData.from_csv_time_series(task=task,
@@ -133,7 +132,7 @@ class CsvStrategy(StrategyDefineData):
             # CSV files as input data
             data = InputData.from_csv(features, task=task,
                                       target_columns=target,
-                                      data_type=data_type)
+                                      data_type=DataTypesEnum.table)
         return data
 
 
@@ -155,9 +154,9 @@ class MultimodalStrategy(StrategyDefineData):
                     idx=None) -> MultiModalData:
 
         # change data type to InputData
-        for source in features:
-            if not isinstance(features[source], InputData):
-                features[source] = array_to_input_data(features_array=features[source], target_array=target,
+        for source, inner_data in features.items():
+            if not isinstance(inner_data, InputData):
+                features[source] = array_to_input_data(features_array=inner_data, target_array=target,
                                                        task=task, idx=idx)
         # create labels for data sources
         sources = dict((f'{self.source_name_by_type.get(features[data_part_key].data_type.name)}/{data_part_key}',

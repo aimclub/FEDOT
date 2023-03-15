@@ -9,7 +9,7 @@ try:
     from cuml import KMeans
     import cudf
 except ModuleNotFoundError:
-    warn_requirement('cudf / cuml')
+    warn_requirement('cudf / cuml', 'cudf / cuml')
     cudf = None
     KMeans = None
 

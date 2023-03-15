@@ -1,18 +1,18 @@
 import numpy as np
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import default_params
+from test.integration.api.test_main_api import TESTS_MAIN_API_DEFAULT_PARAMS
 
 
 def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
     """ Create a DataAnalyser object with small max dataset size and small max cardinality for categorical features"""
-    safety_module = DataAnalyser(safe_mode=True)
+    safety_module = InputAnalyser(safe_mode=True)
     preprocessor = ApiDataProcessor(Task(TaskTypesEnum.classification))
     safety_module.max_size = max_size
     safety_module.max_cat_cardinality = max_cat_cardinality
@@ -44,8 +44,8 @@ def test_safety_label_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
     assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
     assert data.features[0, 0] != 'a'
@@ -58,14 +58,14 @@ def test_recommendations_works_correct_in_final_fit():
 
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
 
     data_new = get_small_cat_data()
-    if recs:
+    if recs_for_data:
         # if data was cut we need to refit pipeline on full data
         api_preprocessor.accept_and_apply_recommendations(data_new,
-                                                          {k: v for k, v in recs.items()
+                                                          {k: v for k, v in recs_for_data.items()
                                                            if k != 'cut'})
 
     assert data_new.features.shape[1] == 3
@@ -78,8 +78,8 @@ def test_no_safety_needed_correct():
     """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
-    recs = api_safety.give_recommendation(data)
-    api_preprocessor.accept_and_apply_recommendations(data, recs)
+    recs_for_data, _ = api_safety.give_recommendations(data)
+    api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
     assert data.features.shape[0] * data.features.shape[1] == 24
     assert data.features.shape[1] == 3
     assert data.features[0, 0] == 'a'
@@ -100,19 +100,19 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     model.predict(features=data)
 
     # there should be only tree like models + data operations
-    assert len(model.params.api_params['available_operations']) == 5
-    assert 'logit' not in model.params.api_params['available_operations']
+    assert len(model.params.get('available_operations')) == 5
+    assert 'logit' not in model.params.get('available_operations')
 
 
 def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
     """
     Test if safe mode in API use OneHotEncoder with small data with small cardinality
     """
-    model = Fedot(problem="classification", **default_params)
+    model = Fedot(problem="classification", **TESTS_MAIN_API_DEFAULT_PARAMS)
     model.data_analyser.max_size = 1000
     data = get_small_cat_data()
     model.fit(features=data, predefined_model='auto')
 
     model.predict(features=data)
     # there should be all light models + data operations
-    assert 'logit' in model.params.api_params['available_operations']
+    assert 'logit' in model.params.get('available_operations')

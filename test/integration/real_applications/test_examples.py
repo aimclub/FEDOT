@@ -1,6 +1,4 @@
-import os
 from datetime import timedelta
-from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -22,8 +20,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def test_multiclass_example():
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/multiclass_classification.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/multiclass_classification.csv')
 
     pipeline = get_model(file_path_train, cur_lead_time=timedelta(seconds=5))
     assert pipeline is not None
@@ -47,16 +44,15 @@ def test_gapfilling_example():
 
 
 def test_exogenous_ts_example():
-    project_root_path = str(fedot_project_root())
-    path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
+    path = fedot_project_root().joinpath('test/data/simple_sea_level.csv')
     run_exogenous_experiment(path_to_file=path,
                              len_forecast=50, with_exog=True)
 
 
 def test_nemo_multiple_points_example():
-    project_root_path = str(fedot_project_root())
-    path = os.path.join(project_root_path, 'test/data/ssh_points_grid_simple.csv')
-    exog_path = os.path.join(project_root_path, 'test/data/ssh_nemo_points_grid_simple.csv')
+    project_root_path = fedot_project_root()
+    path = project_root_path.joinpath('test/data/ssh_points_grid_simple.csv')
+    exog_path = project_root_path.joinpath('test/data/ssh_nemo_points_grid_simple.csv')
     run_multiple_example(path_to_file=path,
                          path_to_exog_file=exog_path,
                          out_path=None,

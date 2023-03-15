@@ -2,9 +2,9 @@ import sys
 from abc import abstractmethod
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
-                             mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
-                             silhouette_score, roc_curve, auc)
+from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absolute_error,
+                             mean_absolute_percentage_error, mean_squared_error, mean_squared_log_error,
+                             precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -188,15 +188,17 @@ class SMAPE(QualityMetric):
 class F1(QualityMetric):
     default_value = 0
     output_mode = 'labels'
+    binary_averaging_mode = 'binary'
+    multiclass_averaging_mode = 'weighted'
 
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
         n_classes = reference.num_classes
         if n_classes > 2:
-            additional_params = {'average': 'weighted'}
+            additional_params = {'average': F1.multiclass_averaging_mode}
         else:
-            additional_params = {'average': 'micro'}
+            additional_params = {'average': F1.binary_averaging_mode}
         return f1_score(y_true=reference.target, y_pred=predicted.predict,
                         **additional_params)
 

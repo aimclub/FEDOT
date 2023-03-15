@@ -168,6 +168,6 @@ if __name__ == '__main__':
     # Available tuners for application: SimultaneousTuner, SequentialTuner
     run_river_composer_experiment(file_path='../data/river_levels/station_levels.csv',
                                   init_pipeline=init_pipeline,
-                                  file_to_save='data/river_levels/old_composer_new_preprocessing_report.csv',
+                                  file_to_save='../data/river_levels/old_composer_new_preprocessing_report.csv',
                                   iterations=20,
                                   tuner=SimultaneousTuner)

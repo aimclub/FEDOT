@@ -11,9 +11,11 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class CustomModelStrategy(EvaluationStrategy):
     """
     This class defines the default model container for custom of domain-specific implementations
-    :param str operation_type: rudimentary of parent - type of the operation defined in operation or
-           data operation repositories
-    :param dict params: hyperparameters to fit the model with
+
+    Args:
+        operation_type: rudimentary of parent - type of the operation defined in operation or
+            data operation repositories
+        params: hyperparameters to fit the model with
     """
 
     def __init__(self, operation_type: Optional[str], params: Optional[OperationParameters] = None):

@@ -27,9 +27,10 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
     This class defines the certain classical models implementation for time
     series forecasting (e.g. AR, ARIMA)
 
-    :param str operation_type: str type of the operation defined in operation or
-    data operation repositories
-    :param dict params: hyperparameters to fit the model with
+    Args:
+        operation_type: str type of the operation defined in operation or
+            data operation repositories
+        params: hyperparameters to fit the model with
     """
 
     __operations_by_types = {
@@ -99,9 +100,10 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
     This class defines the certain data operation implementation for time series
     forecasting
 
-    :param str operation_type: str type of the operation defined in operation or
-    data operation repositories
-    :param dict params: hyperparameters to fit the model with
+    Args:
+        operation_type: str type of the operation defined in operation or
+            data operation repositories
+        params: hyperparameters to fit the model with
     """
 
     __operations_by_types = {

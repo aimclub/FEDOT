@@ -85,4 +85,4 @@ but significantly looses in ROC AUC. Apparently, there is a better way to go.
 
 Next, we can try to create another ML pipeline by hand and see if it gives higher scores.
 Or we can let FEDOT do it for us using evolutionary search.
-See :doc:`/introduction/tutorial/composing_pipelines/automated_creation` for details.
+See :doc:`automated_creation` for details.

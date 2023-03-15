@@ -9,6 +9,7 @@ from golem.core.dag.graph_verifier import GraphVerifier
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.graph import OptNode
 
+from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -184,7 +185,7 @@ def test_changes_to_transformed_dont_affect_origin(pipeline):
     assert opt_graph.descriptive_id == restored_pipeline.descriptive_id
 
     changed_node = choice(restored_pipeline.nodes)
-    changed_node.content['name'] = 'yet_another_operation'
+    changed_node.content['name'] = Operation('yet_another_operation')
     changed_node.content['params'].update({'new_hyperparam': 4242})
 
     # assert that changes to the restored graph don't affect original graph

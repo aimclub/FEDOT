@@ -15,7 +15,7 @@ try:
     import gensim.downloader as api
     from gensim.models import KeyedVectors
 except ModuleNotFoundError:
-    warn_requirement('gensim')
+    warn_requirement('gensim', 'fedot[extra]')
     api = None
     KeyedVectors = None
 

@@ -1,25 +1,21 @@
 Tabular data
 ------------
 
-The subset of PMLB benchmarks was evaluated for FEDOT, `TPOT <http://epistasislab.github.io/tpot/>`__, `MLBox <https://github.com/AxeldeRomblay/MLBox>`__ and XGboost baseline. The results and metadata are presented below.
+Here are overall classification problem results across state-of-the-art AutoML frameworks
+using `AutoMlBenchmark <https://github.com/openml/automlbenchmark>`__ test suite:
 
-|Metadata for datasets|
+.. raw:: html
+   :file: amlb_res.html
 
-.. |Metadata for datasets| image:: img_benchmarks/fedot_meta.png
-   :width: 80%
 
-|Metrics for prediction|
+The results are obtained using sever based on Xeon Cascadelake (2900MHz)
+with 12 cores and 24GB memory for experiments with the local infrastructure. 1h8c configuration was used for AMLB.
 
-.. |Metrics for prediction| image:: img_benchmarks/fedot_classregr.png
-   :width: 80%
+Despite the obtained metrics being a bit different from AMLB's `paper <https://arxiv.org/abs/2207.12560>`__
+the results confirm that FEDOT is competitive with SOTA solutions.
 
-As we can see from the table, the results obtained during the experiments demonstrate the advantage of composite pipelines created by the FEDOT over less sophisticated competitors. The only exception is a single case for regression and classification problems respectively, where the maximum value of the quality metric was obtained using a static pipeline.
+The statistical analysis was conducted using the Friedman t-test.
+The results of experiments and analysis confirm that FEDOT results are statistically indistinguishable
+from SOTA competitors H2O, AutoGluon and LAMA (see below).
 
-Also, the comparison was conducted against the state-of-the-art AutoGluon framework.
-
-|Comparison of FEDOT and AutoGluon|
-
-.. |Comparison of FEDOT and AutoGluon| image:: img_benchmarks/fedot_class_gluon.png
-   :width: 80%
-
-There is a small advantage of the FEDOT for F1 and ROC AUC metrics, but the other metrics are near equal.
+.. image:: img_benchmarks/stats.png

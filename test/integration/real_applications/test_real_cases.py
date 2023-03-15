@@ -1,4 +1,3 @@
-import os
 import random
 
 import numpy as np
@@ -19,22 +18,15 @@ np.random.seed(1)
 
 
 def test_credit_scoring_problem():
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
-    file_path_test = file_path_train
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+    full_path_train = full_path_test = fedot_project_root().joinpath('test/data/simple_classification.csv')
 
     roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y')
     assert roc_auc_test > 0.5
 
 
 def test_metocean_forecasting_problem():
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
-    file_path_test = file_path_train
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+    full_path_train = fedot_project_root().joinpath('test/data/simple_time_series.csv')
+    full_path_test = full_path_train
 
     rmse = run_metocean_forecasting_problem(full_path_train,
                                             full_path_test,
@@ -72,8 +64,7 @@ def test_river_levels_problem():
 
     init_pipeline = Pipeline(node_final)
 
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/station_levels.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/station_levels.csv')
 
     run_river_experiment(file_path=file_path_train,
                          pipeline=init_pipeline,
@@ -88,9 +79,7 @@ def test_river_levels_problem():
 
 def test_spam_detection_problem():
     """ Simple launch of spam detection case """
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/spam_detection.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/spam_detection.csv')
 
     # Classification task based on text data
     run_text_problem_from_saved_meta_file(file_path_train)
-
