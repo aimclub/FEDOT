@@ -67,7 +67,7 @@ class ApiParams(UserDict):
                 self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
 
             # update api params with recommendations obtained using meta rules
-            for key in self:
+            for key in self.data.keys():
                 if key not in recommendations:
                     continue
                 self.update({key: recommendations[key]})
