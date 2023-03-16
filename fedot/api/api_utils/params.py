@@ -95,7 +95,7 @@ class ApiParams(UserDict):
                      }
         try:
             return task_dict[problem]
-        except ValueError as exc:
+        except ValueError as _:
             ValueError('Wrong type name of the given task')
 
     def _check_timeout_vs_generations(self):

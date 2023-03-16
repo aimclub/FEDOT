@@ -96,7 +96,7 @@ def get_ts_forecasting_graph_with_boosting() -> Pipeline:
     node_model = PipelineNode('ar', nodes_from=[node_init])
     node_lagged = PipelineNode('lagged', nodes_from=[node_init])
     node_decompose = PipelineNode('decompose',
-                                   [node_model, node_lagged])
+                                  [node_model, node_lagged])
     node_ridge = PipelineNode('ridge', nodes_from=[node_decompose])
     node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_model])
     pipeline = Pipeline(node_final)

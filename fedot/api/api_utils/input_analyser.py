@@ -4,13 +4,14 @@ from inspect import signature
 import numpy as np
 from typing import Dict, Tuple, Any, Union
 
+from golem.core.log import default_log
+
 from fedot.core.composer.meta_rules import get_cv_folds_number, get_recommended_preset, \
     get_early_stopping_generations
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 
 
 meta_rules = [get_cv_folds_number,
@@ -32,6 +33,7 @@ class InputAnalyser:
         self.safe_mode = safe_mode
         self.max_size = 50000000
         self.max_cat_cardinality = 50
+        self._log = default_log('InputAnalyzer')
 
     def give_recommendations(self, input_data: Union[InputData, MultiModalData], input_params=None) \
             -> Tuple[Dict, Dict]:
@@ -82,18 +84,17 @@ class InputAnalyser:
                 recommendations_for_data['label_encoded'] = {}
         return recommendations_for_data
 
-    @staticmethod
-    def _give_recommendations_with_meta_rules(input_data: InputData, input_params: Dict):
+    def _give_recommendations_with_meta_rules(self, input_data: InputData, input_params: Dict):
         recommendations = dict()
         for rule in meta_rules:
             if 'input_params' in signature(rule).parameters:
                 rule = partial(rule, input_params=input_params)
             if 'input_data' in signature(rule).parameters:
                 rule = partial(rule, input_data=input_data)
-            cur_recommendation = rule()
+            cur_recommendation = rule(log=self._log)
             # if there is recommendation to change parameter
             if list(cur_recommendation.values())[0]:
-                recommendations.update(rule(input_data=input_data))
+                recommendations.update(cur_recommendation)
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:

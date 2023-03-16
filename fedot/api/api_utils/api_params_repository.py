@@ -19,8 +19,8 @@ class ApiParamsRepository:
 
     COMPOSER_REQUIREMENTS_KEYS = {'max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
-                                  'parallelization_mode', 'use_input_preprocessing', 'show_progress',
-                                  'collect_intermediate_metric', 'keep_n_best',
+                                  'parallelization_mode', 'use_input_preprocessing',
+                                  'show_progress', 'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir', 'cv_folds', 'validation_blocks'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
@@ -67,6 +67,7 @@ class ApiParamsRepository:
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
+            use_meta_rules=False,
             cache_dir=None,
             keep_history=True,
             history_dir=None,
