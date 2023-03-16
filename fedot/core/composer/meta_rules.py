@@ -18,7 +18,8 @@ def get_cv_folds_number(input_data: InputData, log: LoggerAdapter) -> Dict[str, 
     return {'cv_folds': cv_folds}
 
 
-def get_recommended_preset(input_data: InputData, input_params: ApiParams, log: LoggerAdapter) -> Dict[str, Optional[str]]:
+def get_recommended_preset(input_data: InputData, input_params: ApiParams, log: LoggerAdapter) \
+        -> Dict[str, Optional[str]]:
     """ Get appropriate preset for `input_data` and `input_params`. """
     preset = None
 
