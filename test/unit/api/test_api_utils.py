@@ -59,9 +59,9 @@ def test_predefined_initial_assumption():
                                                         target=train_input.target,
                                                         is_predict=False)
     old_params = deepcopy(model.params)
-    recommendations = model.data_analyser.give_recommendation(model.train_data)
-    model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
-    model.params.accept_and_apply_recommendations(model.train_data, recommendations)
+    recs_for_data, _ = model.data_analyser.give_recommendations(model.train_data)
+    model.data_processor.accept_and_apply_recommendations(model.train_data, recs_for_data)
+    model.params.accept_and_apply_recommendations(model.train_data, recs_for_data)
 
     assert model.params.get('initial_assumption') is not None
     assert len(old_params) == len(model.params)

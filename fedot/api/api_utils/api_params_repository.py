@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 from typing import Sequence
 
 
@@ -18,8 +19,8 @@ class ApiParamsRepository:
 
     COMPOSER_REQUIREMENTS_KEYS = {'max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
-                                  'parallelization_mode', 'use_input_preprocessing', 'show_progress',
-                                  'collect_intermediate_metric', 'keep_n_best',
+                                  'parallelization_mode', 'use_input_preprocessing',
+                                  'show_progress', 'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir', 'cv_folds', 'validation_blocks'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
@@ -66,6 +67,7 @@ class ApiParamsRepository:
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
+            use_meta_rules=False,
             cache_dir=None,
             keep_history=True,
             history_dir=None,
@@ -120,11 +122,11 @@ class ApiParamsRepository:
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
-        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type)
+        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
         return gp_algorithm_params
 
     @staticmethod
-    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
+    def _get_default_mutations(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
         mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
@@ -133,6 +135,6 @@ class ApiParamsRepository:
 
         # TODO remove workaround after boosting mutation fix
         if task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(boosting_mutation)
+            mutations.append(partial(boosting_mutation, params=params))
 
         return mutations

@@ -66,6 +66,12 @@ class ApiParams(UserDict):
                 self.log.info("Change preset due to label encoding")
                 self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
 
+            # update api params with recommendations obtained using meta rules
+            for key in self.data.keys():
+                if key not in recommendations:
+                    continue
+                self.update({key: recommendations[key]})
+
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
         if 'preset' in self:
@@ -89,7 +95,7 @@ class ApiParams(UserDict):
                      }
         try:
             return task_dict[problem]
-        except ValueError as exc:
+        except ValueError:
             ValueError('Wrong type name of the given task')
 
     def _check_timeout_vs_generations(self):

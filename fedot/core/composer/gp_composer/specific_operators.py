@@ -1,7 +1,7 @@
 from random import choice, random
 from typing import List
 
-from golem.core.optimisers.genetic.operators.mutation import Mutation
+from golem.core.optimisers.genetic.operators.base_mutations import get_mutation_prob
 
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -10,14 +10,14 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_params, **kwargs) -> Pipeline:
+def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params, parameters, **kwargs) -> Pipeline:
     """
     This type of mutation is passed over all nodes and changes
     hyperparameters of the operations with probability - 'node mutation probability'
     which is initialised inside the function
     """
-    node_mutation_probability = Mutation.get_mutation_prob(mut_id=opt_params.mutation_strength,
-                                                           node=pipeline.root_node)
+    node_mutation_probability = get_mutation_prob(mut_id=parameters.mutation_strength,
+                                                  node=pipeline.root_node)
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
             operation_name = node.operation.operation_type
@@ -34,11 +34,11 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_para
     return pipeline
 
 
-def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pipeline:
+def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwargs) -> Pipeline:
     """ This type of mutation adds the additional 'boosting' cascade to the existing pipeline """
 
     # TODO: refactor next line to get task_type more obviously
-    task_type = params.advisor.task.task_type
+    task_type = graph_gen_params.advisor.task.task_type
     decompose_operations = OperationTypesRepository('data_operation').suitable_operation(
         task_type=task_type, tags=['decompose'])
     decompose_operation = decompose_operations[0]

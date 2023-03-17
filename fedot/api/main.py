@@ -12,7 +12,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
@@ -112,6 +112,7 @@ class Fedot:
                 - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
 
         use_input_preprocessing: bool indicating whether to do preprocessing of further given data, enabled by default.
+        use_meta_rules: bool indicating whether to change set params according to FEDOT meta rules
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
         cache_dir: path to the place where cache files should be stored (if any cache is enabled).
@@ -143,7 +144,7 @@ class Fedot:
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
-        self.data_analyser = DataAnalyser(safe_mode=safe_mode)
+        self.data_analyser = InputAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
@@ -184,11 +185,15 @@ class Fedot:
 
         if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
-            recommendations = self.data_analyser.give_recommendation(self.train_data)
-            self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
-            self.params.accept_and_apply_recommendations(self.train_data, recommendations)
+            recommendations_for_data, recommendations_for_params = \
+                self.data_analyser.give_recommendations(input_data=self.train_data,
+                                                        input_params=self.params)
+            self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                 recommendations=recommendations_for_data)
+            self.params.accept_and_apply_recommendations(input_data=self.train_data,
+                                                         recommendations=recommendations_for_params)
         else:
-            recommendations = None
+            recommendations_for_data = None
 
         self._init_remote_if_necessary()
 
@@ -206,7 +211,7 @@ class Fedot:
             full_train_not_preprocessed = deepcopy(self.train_data)
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+                self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
                 self.log.message('Final pipeline was fitted')
             else:
                 self.log.message('Already fitted initial pipeline is used')
