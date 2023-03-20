@@ -56,7 +56,7 @@ class ApiComposer:
 
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
-        fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
+        initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
 
         multi_objective = len(self.metrics.metric_functions) > 1
         self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)
@@ -66,7 +66,11 @@ class ApiComposer:
                          f" Time limit: {timeout} min."
                          f" Set of candidate models: {self.params.get('available_operations')}.")
 
-        best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(train_data, fitted_assumption)
+        best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(
+            train_data,
+            initial_assumption,
+            fitted_assumption
+        )
         if with_tuning:
             best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
         if gp_composer.history:
@@ -78,9 +82,10 @@ class ApiComposer:
         self.log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
-    def propose_and_fit_initial_assumption(self, train_data: InputData) -> Pipeline:
+    def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """ Method for obtaining and fitting initial assumption"""
         available_operations = self.params.get('available_operations')
+
         preset = self.params.get('preset')
 
         assumption_handler = AssumptionsHandler(train_data)
@@ -102,14 +107,14 @@ class ApiComposer:
 
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 
-        return fitted_assumption
+        return initial_assumption, fitted_assumption
 
-    def compose_pipeline(self, train_data: InputData, fitted_assumption: Pipeline) \
-            -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+    def compose_pipeline(self, train_data: InputData, initial_assumption: Sequence[Pipeline],
+                         fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
             .with_requirements(self.params.composer_requirements)
-            .with_initial_pipelines(fitted_assumption)
+            .with_initial_pipelines(initial_assumption)
             .with_optimizer(self.params.get('optimizer'))
             .with_optimizer_params(parameters=self.params.optimizer_params,
                                    external_parameters=self.params.get('optimizer_external_params'))
