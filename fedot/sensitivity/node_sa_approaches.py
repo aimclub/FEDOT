@@ -314,7 +314,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             task_type=task)
 
         # Unit two lists
-        app_operations = app_models
+        app_operations = app_models + app_data_operations
         if number_of_operations:
             random_operations = random.sample(app_operations, number_of_operations)
         else:
@@ -350,7 +350,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
         self.log.info(f'NodeReplacementAnalysis for '
-                         f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
+                      f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
         return 'NodeReplaceOperationAnalyze'

@@ -72,7 +72,7 @@ class NodesAnalysis:
                         test_data=self.test_data)
             operation_types.append(node.operation.operation_type)
 
-            nodes_results[f'id = {self.pipeline.nodes.index(node)}, ' \
+            nodes_results[f'id = {self.pipeline.nodes.index(node)}, '
                           f'operation = {node.content["name"].operation_type}'] = node_result
 
         if self.requirements.visualization:
