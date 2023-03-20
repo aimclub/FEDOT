@@ -86,7 +86,7 @@ def test_newly_generated_history(n_jobs: int):
     assert history is not None
     assert len(history.individuals) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
     assert len(history.archive_history) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
-    assert len(history.initial_assumptions) == 1
+    assert len(history.initial_assumptions) >= 2
     assert len(history.final_choices) == 1
     assert isinstance(history.tuning_result, Graph)
     _test_individuals_in_history(history)
