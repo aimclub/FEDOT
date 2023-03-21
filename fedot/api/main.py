@@ -154,7 +154,7 @@ class Fedot:
         use_preprocessing_cache (bool): bool indicating whether to use optional preprocessors caching.
             Defaults to ``True``.
         cache_dir (str): path to the directory containing cache files (if any cache is enabled).
-            By default, creates a folder named "GOLEM" in temporary system files of the OS.
+            By default, creates a folder named "FEDOT" in temporary system files of the OS.
         history_dir (str): relative or absolute path of the folder for composing history. Has the same default value
             as ``cache_dir``. A relative path is relative to the default value.
 
