@@ -1,6 +1,6 @@
 name: Mirror repo to GitLab
 
-on: [push, pull_request, delete]
+on: [ push, delete ]
 
 jobs:
   call-nss-ops-mirror-workflow:
