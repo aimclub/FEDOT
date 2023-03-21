@@ -25,6 +25,10 @@
      - | |tg|
    * - languages
      - | |eng| |rus|
+   * - mirror
+     - | |gitlab|
+   * - funding
+     - | |ITMO| |NCCR|
 .. end-badges
 
 **FEDOT** is an open-source framework for automated modeling and machine learning (AutoML) problems. This framework is distributed under the 3-Clause BSD license.
@@ -281,3 +285,15 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
 .. |tg| image:: https://img.shields.io/badge/Telegram-Group-blue.svg
           :target: https://t.me/FEDOT_helpdesk
           :alt: Telegram Chat
+
+.. |ITMO| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/ITMO_badge_rus.svg
+   :alt: Acknowledgement to ITMO
+   :target: https://itmo.ru
+
+.. |NCCR| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/NCCR_badge.svg
+   :alt: Acknowledgement to NCCR
+   :target: https://actcognitive.org/
+
+.. |gitlab| image:: https://camo.githubusercontent.com/9bd7b8c5b418f1364e72110a83629772729b29e8f3393b6c86bff237a6b784f6/68747470733a2f2f62616467656e2e6e65742f62616467652f6769746c61622f6d6972726f722f6f72616e67653f69636f6e3d6769746c6162
+   :alt: GitLab mirror for this repository
+   :target: https://gitlab.actcognitive.org/itmo-nss-team/FEDOT

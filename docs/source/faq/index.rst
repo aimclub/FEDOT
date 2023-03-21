@@ -7,5 +7,6 @@ And answers for them
    :maxdepth: 1
 
    abstract
+   features
    api_usage
    problem_solving
