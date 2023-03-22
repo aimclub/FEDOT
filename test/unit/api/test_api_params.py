@@ -79,11 +79,9 @@ def test_correctly_sets_default_params(input_params):
             assert output_params[k] == input_params[k]
 
 
-@pytest.mark.parametrize('input_params, case, correct_keys',
-                         [(fedot_params_full, 'composer', correct_composer_attributes),
-                          (params_with_missings, 'composer', correct_composer_attributes),
-                          (fedot_params_full, 'gp_algo', correct_gp_algorithm_attributes),
-                          (params_with_missings, 'gp_algo', correct_gp_algorithm_attributes)])
+@pytest.mark.parametrize('input_params', [fedot_params_full, params_with_missings])
+@pytest.mark.parametrize('case, correct_keys', [('composer', correct_composer_attributes),
+                                                ('gp_algo', correct_gp_algorithm_attributes)])
 def test_filter_params_correctly(input_params, case, correct_keys):
     params_repository = get_api_params_repository()
     input_params = params_repository.check_and_set_default_params(input_params)

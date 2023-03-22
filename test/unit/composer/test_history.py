@@ -1,10 +1,14 @@
 import os
-from functools import partial
 from itertools import chain
 from pathlib import Path
 
 import numpy as np
 import pytest
+from golem.core.dag.graph import Graph
+from golem.core.optimisers.fitness import SingleObjFitness
+from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
+from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
@@ -18,11 +22,6 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
 from fedot.core.utils import fedot_project_root
-from golem.core.dag.graph import Graph
-from golem.core.optimisers.fitness import SingleObjFitness
-from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
-from golem.core.optimisers.opt_history_objects.individual import Individual
-from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
 
@@ -86,7 +85,7 @@ def test_newly_generated_history(n_jobs: int):
     assert history is not None
     assert len(history.individuals) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
     assert len(history.archive_history) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
-    assert len(history.initial_assumptions) == 1
+    assert len(history.initial_assumptions) >= 2
     assert len(history.final_choices) == 1
     assert isinstance(history.tuning_result, Graph)
     _test_individuals_in_history(history)

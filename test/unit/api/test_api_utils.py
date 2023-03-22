@@ -4,7 +4,8 @@ from copy import deepcopy
 
 import pytest
 
-from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
+from examples.simple.classification.classification_pipelines import (classification_pipeline_with_balancing,
+                                                                     classification_pipeline_without_balancing)
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
@@ -47,23 +48,18 @@ def test_output_binary_classification_correct():
 def test_predefined_initial_assumption():
     """ Check if predefined initial assumption and other api params don't lose while preprocessing is performing"""
     train_input, _, _ = get_dataset(task_type='classification')
-    initial_pipeline = classification_pipeline_without_balancing()
+    initial_pipelines = [classification_pipeline_without_balancing(), classification_pipeline_with_balancing()]
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
-    model = Fedot(problem='classification', timeout=1.,
+    model = Fedot(problem='classification', timeout=.1,
                   logging_level=logging.DEBUG, available_operations=available_operations,
-                  initial_assumption=initial_pipeline)
-    model.target = train_input.target
-    model.train_data = model.data_processor.define_data(features=train_input.features,
-                                                        target=train_input.target,
-                                                        is_predict=False)
+                  initial_assumption=initial_pipelines)
     old_params = deepcopy(model.params)
-    recs_for_data, _ = model.data_analyser.give_recommendations(model.train_data)
-    model.data_processor.accept_and_apply_recommendations(model.train_data, recs_for_data)
-    model.params.accept_and_apply_recommendations(model.train_data, recs_for_data)
+    model.fit(train_input)
 
-    assert model.params.get('initial_assumption') is not None
+    assert len(initial_pipelines) == len(model.params.get('initial_assumption'))
+    assert len(model.params.get('initial_assumption')) == len(model.history.initial_assumptions)
     assert len(old_params) == len(model.params)
 
 
