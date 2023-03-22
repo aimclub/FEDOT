@@ -1,52 +1,46 @@
+from datetime import datetime
+from typing import Optional, Type
+
 import numpy as np
 import pandas as pd
-from fedot.api.api_utils.data_definition import PandasStrategy, NumpyStrategy
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
 import pytest
-from datetime import datetime
-from typing import Optional
+
+from fedot.api.api_utils.data_definition import PandasStrategy, NumpyStrategy, StrategyDefineData, FeaturesType
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 _DATE = '2000-01-01T10:00:00.100'
 _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
+
 def _array_to_input_data(features_array: np.ndarray,
-                        target_array: np.ndarray,
-                        idx: Optional[np.ndarray] = None,
-                        task: Task = Task(TaskTypesEnum.classification),
-                        data_type: Optional[DataTypesEnum] = None):
+                         target_array: np.ndarray,
+                         idx: Optional[np.ndarray] = None,
+                         task: Task = Task(TaskTypesEnum.classification),
+                         data_type: Optional[DataTypesEnum] = None):
     return features_array
 
-@pytest.mark.parametrize('features', [
-    pd.DataFrame([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), _DATE, 42., 42]
-    ]),
-    pd.DataFrame([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 42., 42]
-    ]),
-    pd.DataFrame([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE)]
-    ]),
-    pd.DataFrame(pd.date_range(_DATE, periods=3, freq='D'))
-])
-def test_pandas_strategy(features: pd.DataFrame, monkeypatch):
-    monkeypatch.setattr('fedot.api.api_utils.data_definition.array_to_input_data', _array_to_input_data)
-    date_features_indexes = features.columns.get_indexer(features.select_dtypes('datetime').columns)
-    try:
-        defined_data: np.ndarray = PandasStrategy.define_data(None, features, Task(TaskTypesEnum.classification))
-    except TypeError as te:
-        assert False, te
-    else:
-        assert 'int' in pd.Series(defined_data[:, date_features_indexes].ravel()).infer_objects().dtype
 
-## TODO: should it be considered anyway?
-# def test_numpy_strategy():
-#     features = np.array([
-#         *pd.date_range("2018-01-01", periods=3, freq="D"),
-#         'string'
-#     ], dtype=object)
-#     try:
-#         defined_data = NumpyStrategy.define_data(None, features, Task(TaskTypesEnum.classification))
-#         assert defined_data.features.dtype == 'float64'
-#     except TypeError as te:
-#         assert False, te
+@pytest.mark.parametrize('strategy, features', [
+    [PandasStrategy, pd.DataFrame([
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), _DATE, 42., 42]
+    ])],
+    [PandasStrategy, pd.DataFrame([
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 42]
+    ])],
+    [PandasStrategy, pd.DataFrame([
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE)]
+    ])],
+    [PandasStrategy, pd.DataFrame(pd.date_range(_DATE, periods=3, freq='D'))],
+
+    [NumpyStrategy, np.array([
+        [*pd.date_range("2018-01-01", periods=3, freq="D"), 'string']
+    ], dtype=object)]
+])
+def test_pandas_strategy(strategy: Type[StrategyDefineData], features: FeaturesType, monkeypatch):
+    monkeypatch.setattr('fedot.api.api_utils.data_definition.array_to_input_data', _array_to_input_data)
+    date_features = pd.DataFrame(features).infer_objects().select_dtypes('datetime')
+
+    ## Test these
+    defined_data: np.ndarray = strategy.define_data(None, features, Task(TaskTypesEnum.classification))
+    assert 'int' in str(pd.Series(defined_data[:, date_features.columns].ravel()).infer_objects().dtype)
