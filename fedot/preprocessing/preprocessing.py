@@ -190,8 +190,8 @@ class DataPreprocessor(BasePreprocessor):
             # Preprocessing was already done - return data
             return data
 
-        # Wrap indices in numpy array
-        data.idx = np.array(data.idx)
+        # Wrap indices in numpy array if needed
+        data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
         data = self._correct_shapes(data)
