@@ -111,6 +111,10 @@ class NumpyStrategy(StrategyDefineData):
         else:
             target_array = target
 
+        if features.dtype == object:
+            date_cols_idxs = (df := pd.DataFrame(features)).select_dtypes('datetime')
+            features[:, date_cols_idxs.columns] = df[date_cols_idxs.columns].to_numpy(np.int64) // 10**6  # 'ns' to 'ms'
+
         data = array_to_input_data(features_array=features,
                                    target_array=target_array,
                                    task=task)
