@@ -10,9 +10,9 @@ from typing import Optional
 _DATE = '2000-01-01T10:00:00.100'
 _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
-def _array_to_input_data(features_array: np.array,
-                        target_array: np.array,
-                        idx: Optional[np.array] = None,
+def _array_to_input_data(features_array: np.ndarray,
+                        target_array: np.ndarray,
+                        idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: Optional[DataTypesEnum] = None):
     return features_array
@@ -31,12 +31,13 @@ def _array_to_input_data(features_array: np.array,
 ])
 def test_pandas_strategy(features: pd.DataFrame, monkeypatch):
     monkeypatch.setattr('fedot.api.api_utils.data_definition.array_to_input_data', _array_to_input_data)
+    date_features_indexes = features.columns.get_indexer(features.select_dtypes('datetime').columns)
     try:
-        date_features_indexes = features.columns.get_indexer(features.select_dtypes('datetime').columns)
         defined_data: np.ndarray = PandasStrategy.define_data(None, features, Task(TaskTypesEnum.classification))
-        assert pd.Series(defined_data[:, date_features_indexes].ravel()).infer_objects().dtype == 'float64'
     except TypeError as te:
         assert False, te
+    else:
+        assert 'int' in pd.Series(defined_data[:, date_features_indexes].ravel()).infer_objects().dtype
 
 ## TODO: should it be considered anyway?
 # def test_numpy_strategy():

@@ -85,13 +85,8 @@ class PandasStrategy(StrategyDefineData):
         else:
             target_array = target
 
-        datetime_features = features.select_dtypes('datetime')
-        #features[datetime_features.columns] = datetime_features.applymap(pd.Timestamp.timestamp)  # 's' unit always
-        #features[datetime_features.columns] = datetime_features.to_numpy().astype(np.timedelta64) / np.timedelta64(1, 's')
-        #features[datetime_features.columns] = datetime_features.to_numpy().astype(np.timedelta64(1, 's'))        
-        features[datetime_features.columns] = datetime_features.to_numpy().astype(float)  # 'ns' unit always
-        # Possible and easy solution, but assumes timestamp unit is 'nanoseconds',
-        #   will lead to the same fitting behaviour as in NumpyStrategy
+        datetime_features = features.infer_objects().select_dtypes('datetime')
+        features[datetime_features.columns] = datetime_features.to_numpy(np.int64) // 10**6  # to 'ms' unit from 'ns'
 
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target_array),
@@ -129,7 +124,6 @@ class CsvStrategy(StrategyDefineData):
                     is_predict: bool = False) -> InputData:
         # CSV files as input data, by default - table data
 
-        data_type = DataTypesEnum.table
         if task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting format - time series
             data = InputData.from_csv_time_series(task=task,
@@ -141,7 +135,7 @@ class CsvStrategy(StrategyDefineData):
             # CSV files as input data
             data = InputData.from_csv(features, task=task,
                                       target_columns=target,
-                                      data_type=data_type)
+                                      data_type=DataTypesEnum.table)
         return data
 
 
