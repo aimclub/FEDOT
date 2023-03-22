@@ -11,7 +11,7 @@ How does FEDOT avoid data leakage and bias?
     To deal with potential bias, additional metrics can be passed to optimiser using ``metric`` parameter.
 
 Which algorithms are available as building block for optimiser?
---------------------------------------------------------------------------------------
+---------------------------------------------------------------
 
     The names and metadata of available ML models can be obtained from
     `JSON <https://github.com/aimclub/FEDOT/blob/master/fedot/core/repository/data/model_repository.json>`__ file,
