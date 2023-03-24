@@ -6,5 +6,6 @@ FEDOT Features
    :maxdepth: 1
 
    tasks
-   automation
+   composing_method
    data_nature
+   automation

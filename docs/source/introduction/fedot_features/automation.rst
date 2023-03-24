@@ -1,4 +1,4 @@
-Flexible automation
+AutoML capabilities
 -------------------
 
 FEDOT is capable of setting its 'automation rate' by omitting some of its parameters.
