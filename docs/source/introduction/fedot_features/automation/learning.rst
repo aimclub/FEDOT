@@ -1,5 +1,5 @@
-AutoML capabilities
--------------------
+Learning
+--------
 
 FEDOT is capable of setting its 'automation rate' by omitting some of its parameters.
 For example, if you just create the FEDOT instance and call the ``fit`` method with the appropriate dataset on it,

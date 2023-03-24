@@ -3,10 +3,9 @@ FEDOT Features
 
 .. toctree::
    :glob:
-   :maxdepth: 1
+   :maxdepth: 2
 
    tasks
    composing_method
-   data_nature
    data_preprocessing
-   automation
+   automation/index
