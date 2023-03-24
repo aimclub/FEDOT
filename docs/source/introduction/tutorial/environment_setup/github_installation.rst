@@ -44,5 +44,7 @@ The GitHub way
       .. code-block::
       
          $ pip install .[extra]
+      
+      .. include:: ./extra_remark.rst
 
 .. |Step 1| image:: github_download.png
