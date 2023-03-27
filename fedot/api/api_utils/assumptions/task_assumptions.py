@@ -58,10 +58,7 @@ class TSForecastingAssumptions(TaskAssumptions):
                 PipelineBuilder()
                     .add_branch('polyfit', 'lagged')
                     .grow_branches(None, 'ridge')
-                    .join_branches('ridge'),
-            'smoothing_ar':
-                PipelineBuilder()
-                    .add_sequence('smoothing', 'ar'),
+                    .join_branches('ridge')
         }
 
     def ensemble_operation(self) -> str:
@@ -108,7 +105,6 @@ class ClassificationAssumptions(TaskAssumptions):
         return {
             'rf': PipelineBuilder().add_node('rf'),
             'logit': PipelineBuilder().add_node('logit'),
-            'cnn': PipelineBuilder().add_node('cnn'),
         }
 
     def ensemble_operation(self) -> str:

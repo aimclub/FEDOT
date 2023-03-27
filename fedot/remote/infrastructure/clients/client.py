@@ -12,7 +12,7 @@ G = TypeVar('G', bound=Serializable)
 
 class Client:
     """
-    Base class for remote evaluation client. It allow fitting the pipelines in external system instead local one.
+    Base class for remote evaluation client. It allows to fit the pipelines in external system instead local one.
     """
 
     def __init__(self, connect_params: dict, exec_params: dict, output_path: Optional[str] = None):
