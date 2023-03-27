@@ -48,17 +48,20 @@ class TSForecastingAssumptions(TaskAssumptions):
         return {
             'glm_ridge':
                 PipelineBuilder()
-                    .add_branch('glm', 'lagged')
-                    .add_node('ridge', branch_idx=1)
-                    .join_branches('ridge'),
+                .add_branch('glm', 'lagged')
+                .add_node('ridge', branch_idx=1)
+                .join_branches('ridge'),
             'lagged_ridge':
                 PipelineBuilder()
-                    .add_sequence('lagged', 'ridge'),
+                .add_sequence('lagged', 'ridge'),
             'polyfit_ridge':
                 PipelineBuilder()
-                    .add_branch('polyfit', 'lagged')
-                    .grow_branches(None, 'ridge')
-                    .join_branches('ridge')
+                .add_branch('polyfit', 'lagged')
+                .grow_branches(None, 'ridge')
+                .join_branches('ridge'),
+            'smoothing_ar':
+                PipelineBuilder()
+                .add_sequence('smoothing', 'ar'),
         }
 
     def ensemble_operation(self) -> str:
