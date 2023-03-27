@@ -11,8 +11,9 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
 from hyperopt import hp
 
+from cases.tuner_comparison.regression_test_pipelines import get_pipelines_for_regression
 from cases.tuner_comparison.test_pipelines_clssification import get_pipelines_for_classification
-from fedot.core.composer.metrics import ROCAUC
+from fedot.core.composer.metrics import ROCAUC, SMAPE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluate
@@ -61,6 +62,66 @@ search_space_dict = \
                 'hyperopt-dist': hp.uniformint,
                 'sampling-scope': [1, 21],
                 'type': 'discrete'}
+        },
+        'knnreg': {
+                'n_neighbors': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 50],
+                    'type': 'discrete'}
+            },
+        'svr': {
+            'C': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [1e-4, 25.0],
+                'type': 'continuous'},
+            'epsilon': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [1e-4, 1],
+                'type': 'continuous'},
+            'tol': {
+                'hyperopt-dist': hp.loguniform,
+                'sampling-scope': [1e-5, 1e-1],
+                'type': 'continuous'}
+        },
+        'rfr': {
+            'max_features': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.05, 1.0],
+                'type': 'continuous'},
+            'min_samples_split': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [2, 21],
+                'type': 'discrete'},
+            'min_samples_leaf': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 15],
+                'type': 'discrete'}
+        },
+        'dtreg': {
+            'max_depth': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 11],
+                'type': 'discrete'},
+            'min_samples_split': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [2, 21],
+                'type': 'discrete'},
+            'min_samples_leaf': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 21],
+                'type': 'discrete'}
+        },
+        'ridge': {
+            'alpha': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.01, 10.0],
+                'type': 'continuous'}
+        },
+        'lasso': {
+            'alpha': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.01, 10.0],
+                'type': 'continuous'}
         }
     }
 
@@ -85,11 +146,23 @@ def create_folder(save_path):
         os.makedirs(save_path)
 
 
-def run_classification(data_path: os.PathLike, tuner_cls: Type[BaseTuner], iterations: int, launch_num: int):
+def get_pipelines_for_task(task: str):
+    if task == 'classification':
+        return get_pipelines_for_classification()
+    elif task == 'regression':
+        return get_pipelines_for_regression()
+
+
+def get_metric_for_task(task: str):
+    metric_by_task = {'classification': ROCAUC.get_value, 'regression': SMAPE.get_value}
+    return metric_by_task[task]
+
+
+def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner], iterations: int, launch_num: int):
     n_jobs = -1
-    pipelines = get_pipelines_for_classification()
+    pipelines = get_pipelines_for_task(task)
     train_data, test_data = get_data_for_experiment(data_path)
-    metric = ROCAUC.get_value
+    metric = get_metric_for_task(task)
     objective_eval = get_objective_evaluate(metric, train_data, n_jobs)
     adapter = PipelineAdapter()
     search_space = PipelineSearchSpace(custom_search_space=search_space_dict, replace_default_search_space=True)
@@ -97,7 +170,7 @@ def run_classification(data_path: os.PathLike, tuner_cls: Type[BaseTuner], itera
     column_names = ['pipeline_type', 'init_metric', 'final_metric', 'tuning_time', 'iter_num', 'dataset']
     df = pd.DataFrame(columns=column_names)
 
-    dir_to_save = f'{tuner_cls.__name__}_{iterations}'
+    dir_to_save = os.path.join(task, f'{tuner_cls.__name__}_{iterations}')
     create_folder(dir_to_save)
     dataset_name = os.path.basename(data_path)
     path_to_save = f'{dir_to_save}/{dataset_name}'
@@ -136,14 +209,13 @@ def run_classification(data_path: os.PathLike, tuner_cls: Type[BaseTuner], itera
 
 
 if __name__ == '__main__':
-    classification_datasets = ['class_cnae-9.csv',
-                               'class_Amazon_employee_access.csv']
+    task = 'classification'
+    datasets = os.listdir(f'{task}_data')
     tuners = [IOptTuner, SimultaneousTuner]
     iters_num = [20, 100]
     Log().reset_logging_level(45)
-    for dataset in classification_datasets:
+    for dataset in datasets:
         for tuner in tuners:
             for iter_num in iters_num:
-                path = Path('classification_data', dataset)
-                dataframe = run_classification(path, tuner, iterations=iter_num, launch_num=30)
-
+                path = Path('{task}_data', dataset)
+                dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30)
