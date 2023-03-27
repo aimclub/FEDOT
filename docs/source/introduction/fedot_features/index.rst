@@ -6,6 +6,6 @@ FEDOT Features
    :maxdepth: 2
 
    tasks
-   composing_method
+   composition_method
    data_preprocessing
    automation/index
