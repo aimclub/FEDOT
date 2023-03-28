@@ -1,7 +1,7 @@
 Dimensionality reduction
 ------------------------
 
-Currently FEDOT supports only Feature selection algorithms, but not the extractions ones.  
+Currently FEDOT supports only Feature selection algorithms provided by scikit-learn, but not the extraction ones.  
 
 ..
-    [А что по ITMO_FS у нас кст? Вроде нигде не используется на 28.03.2023]
+    [А что по ITMO_FS у нас, кстати? Вроде нигде не используется на 28.03.2023]
