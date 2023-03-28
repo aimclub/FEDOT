@@ -7,4 +7,5 @@ AutoML capabilities
 
    learning
    data_nature
+   dimensionality_reduction
    composing
