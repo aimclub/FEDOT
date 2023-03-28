@@ -1,5 +1,5 @@
-Intro to FEDOT
-==============
+What is FEDOT
+=============
 
 .. |FEDOT logo| image:: img_intro/fedot_logo.png
    :width: 100%
@@ -27,11 +27,12 @@ FEDOT supports a full life-сyсle of machine learning task that includes prepro
     prediction = model.predict(features=x_test)
     metrics = model.get_metrics(target=y_test)
 
-Once FEDOT finds the best solution you have an opportunity to save it[link] and look closer to the solution and optimization process if needed.
+Once FEDOT finds the best solution you have an opportunity :doc:`to save it <../basics/pipeline_save_load>` and look closer to the solution and optimization process if needed.
 
 |Example of solution|
 
 Framework uses ML models mostly from sklearn, statsmodels and keras libraries.
 
-To see more information about FEDOT features go to the :doc:`features </introduction/fedot_features>` page.
-To see a quickstart guide go to the :doc:`quickstart </introduction/tutorial/quickstart>` page.
+You can investigate more FEDOT's concepts :doc:`here </basics/concepts>`.
+
+There is a :doc:`quickstart guide for beginers </introduction/tutorial/quickstart>`.
