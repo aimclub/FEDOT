@@ -20,7 +20,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
             return RemoveType.with_parents
         if 'data_source' in operation_id:
             return RemoveType.with_direct_children
-        return RemoveType.node_only
+        return RemoveType.node_rewire
 
     def propose_change(self, node: OptNode, possible_operations: List[str]) -> List[str]:
         """
