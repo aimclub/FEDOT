@@ -140,13 +140,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         """
         copied_data = deepcopy(input_data)
         if self.categorical_ids:
-            # If categorical features are exists - transform them inplace in InputData
-            for categorical_id in self.categorical_ids:
-                categorical_column = input_data.features[:, categorical_id]
-                nan_idxs: Tuple[np.ndarray, ...] = pd.isna(categorical_column).nonzero()
-
-                transformed = self._apply_label_encoder(categorical_column, categorical_id, nan_idxs)
-                copied_data.features[:, categorical_id] = transformed
+            # If categorical features exists - transform them inplace in InputData
+            self._apply_label_encoder(copied_data.features)
 
         output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
@@ -173,24 +168,25 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
             self.encoders.update({categorical_id: le})
 
-    def _apply_label_encoder(self, categorical_column: np.ndarray, categorical_id: int,
-                             nan_idxs: Tuple[np.ndarray, ...]) -> np.ndarray:
-        """ Apply fitted LabelEncoder for column transformation
-
-        :param categorical_column: numpy array with categorical features
-        :param categorical_id: index of current categorical column
-        :param nan_idxs: indices of gap elements in the ``categorical_column``
+    def _apply_label_encoder(self, data: np.ndarray):
         """
-        column_encoder = self.encoders[categorical_id]
-        column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, categorical_column)))
+        Applies fitted LabelEncoder for all categorical features inplace
 
-        transformed_column = column_encoder.transform(categorical_column)
-        if len(nan_idxs[0]):
-            # Store np.nan values
-            transformed_column = transformed_column.astype(object)
-            transformed_column[nan_idxs] = np.nan
+        Args:
+            data: numpy array with all features
+        """
+        categorical_columns = data[:, self.categorical_ids]
+        for column_id, column in zip(self.categorical_ids, categorical_columns.T):
+            column_encoder = self.encoders[column_id]
+            column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, column)))
 
-        return transformed_column
+            transformed_column = column_encoder.transform(column)
+            nan_idxs: Tuple[np.ndarray, ...] = pd.isna(column).nonzero()
+            if len(nan_idxs[0]):
+                # Store np.nan values
+                transformed_column = transformed_column.astype(object)
+                transformed_column[nan_idxs] = np.nan
+            data[:, column_id] = transformed_column
 
     def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """

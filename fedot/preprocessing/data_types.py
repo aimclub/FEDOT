@@ -142,7 +142,7 @@ class TableTypesCorrector:
         for mixed_column_id in features_with_mixed_types:
             column_info = self.features_columns_info[mixed_column_id]
 
-            if column_info.get('str_number') > 0 or column_info.get('float_number') > 0:
+            if column_info.get('str_number') or column_info.get('float_number'):
                 # There are string elements in the array
                 mixed_column = features[:, mixed_column_id]
                 updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
@@ -170,7 +170,7 @@ class TableTypesCorrector:
         for mixed_column_id in target_with_mixed_types:
             column_info = self.target_columns_info[mixed_column_id]
 
-            if column_info.get('str_number') > 0:
+            if column_info.get('str_number'):
                 # There are string elements in the array
                 mixed_column = target[:, mixed_column_id]
                 updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
@@ -307,28 +307,21 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        for column_id, column in enumerate(data.features.T):
-            # For every int/float column perform check
-            column_type = data.supplementary_data.column_types['features'][column_id]
-            if column_type in [TYPE_TO_ID[int], TYPE_TO_ID[float]]:
-                pd_column = pd.Series(column)
-
-                # Calculate number of unique values except nans
-                unique_numbers = len(pd_column.dropna().unique())
-
-                if 2 < unique_numbers < self.categorical_max_uniques_th:
-                    # Column need to be transformed into categorical (string) one
-                    self.numerical_into_str.append(column_id)
-
-                    # Convert into string
-                    converted_array = convert_num_column_into_string_array(pd_column)
-
-                    # Store converted column into feature column
-                    column[:] = converted_array
-
-                    # Update information about column types (in-place)
-                    features_types = data.supplementary_data.column_types['features']
-                    features_types[column_id] = TYPE_TO_ID[str]
+        features_types = data.supplementary_data.column_types['features']
+        is_numeric_type = np.isin(features_types, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+        numeric_type_ids = np.nonzero(is_numeric_type)[0]
+        num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
+        nuniques = num_df.nunique(dropna=True)
+        # reduce dataframe to include only categorical features
+        num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
+        cat_col_ids = num_df.columns
+        # Convert into string
+        data.features[:, cat_col_ids] = num_df.apply(convert_num_column_into_string_array).to_numpy()
+        # Columns need to be transformed into categorical (string) ones
+        self.numerical_into_str.extend(cat_col_ids)
+        for column_id in cat_col_ids:
+            # Update information about column types (in-place)
+            features_types[column_id] = TYPE_TO_ID[str]
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
@@ -336,18 +329,16 @@ class TableTypesCorrector:
             # There is no transformation for current table
             return data
 
-        for column_id, column in enumerate(data.features.T):
-            if column_id in self.numerical_into_str:
-                pd_column = pd.Series(column)
-                # Column must be converted into categorical
-                converted_array = convert_num_column_into_string_array(pd_column)
-
-                # Store converted column into feature column
-                column[:] = converted_array
-
-                # Update information about column types (in-place)
-                features_types = data.supplementary_data.column_types['features']
-                features_types[column_id] = TYPE_TO_ID[str]
+        # Get numerical columns
+        num_df = pd.DataFrame(data.features[:, self.numerical_into_str], columns=self.numerical_into_str)
+        
+        # Convert and apply categorical transformation
+        data.features[:, self.numerical_into_str] = num_df.apply(convert_num_column_into_string_array).to_numpy()
+        
+        # Update information about column types (in-place)
+        features_types = data.supplementary_data.column_types['features']
+        for column_id in self.numerical_into_str:
+            features_types[column_id] = TYPE_TO_ID[str]
 
     def _into_numeric_features_transformation_for_fit(self, data: InputData):
         """
@@ -396,7 +387,7 @@ class TableTypesCorrector:
             # There is no transformation for current table
             return data
 
-        n_rows, n_cols = data.features.shape
+        _, n_cols = data.features.shape
         for column_id in range(n_cols):
             if column_id in self.categorical_into_float and column_id not in self.string_columns_transformation_failed:
                 string_column = pd.Series(data.features[:, column_id])
@@ -418,8 +409,7 @@ def define_column_types(table: np.ndarray):
     if table is None:
         return {}
 
-    _, n_columns = table.shape
-
+    #df_of_types = pd.DataFrame(table_of_types).transform()
     nans = pd.isna(table)
     table_of_types = np.empty_like(table, dtype=np.int8)
     table_of_types[~nans] = [
@@ -428,43 +418,39 @@ def define_column_types(table: np.ndarray):
     ]
     table_of_types[nans] = TYPE_TO_ID[type(None)]
 
-    columns_info = {}
-    for column_id, col_types in enumerate(table_of_types.T):
-        unique_col_types, unique_col_types_number = np.unique(col_types, return_counts=True)
+    table_of_types = pd.DataFrame(table_of_types)
 
-        if len(unique_col_types) > 1:
-            numbers = [
-                unique_col_types_number[unique_col_types == TYPE_TO_ID[t]]
-                for t in [str, int, float]
-            ]
-            str_number, int_number, float_number = [
-                number.item() if len(number) else 0
-                for number in numbers
-            ]
+    # Build dataframe with unique types for each column
+    uniques = table_of_types.apply([pd.unique]).rename(index={'unique': 'types'})
 
-            # Store information about nans in the target
-            nan_ids = np.nonzero(nans[:, column_id])[0]
-            columns_info.update({column_id: {'types': unique_col_types,
-                                             'str_number': str_number,
-                                             'int_number': int_number,
-                                             'float_number': float_number,
-                                             'nan_number': len(nan_ids),
-                                             'nan_ids': nan_ids}})
-        else:
-            # There is only one type, or several types such as int and float
-            columns_info.update({column_id: {'types': unique_col_types}})
-    return columns_info
+    # Build dataframe with amount of each type
+    counts_index_mapper = {
+        TYPE_TO_ID[str]: 'str_number',
+        TYPE_TO_ID[int]: 'int_number',
+        TYPE_TO_ID[float]: 'float_number',
+        TYPE_TO_ID[type(None)]: 'nan_number'
+    }
+    types_counts = (
+        table_of_types
+        .apply(pd.value_counts, dropna=False)
+        .reindex(counts_index_mapper.keys(), copy=False)
+        .replace(np.nan, 0)
+        .rename(index=counts_index_mapper, copy=False)
+        .astype(int)
+    )
+
+    # Build dataframe with nans indices
+    nans_ids = pd.DataFrame(nans).apply(np.where).rename(index={0: 'nan_ids'})
+    return pd.concat([uniques, types_counts, nans_ids]).to_dict()
 
 
 def find_mixed_types_columns(columns_info: dict):
     """ Search for columns with several types in them """
-    columns_with_mixed_types = []
-    for column_id, information in columns_info.items():
-        column_types = information['types']
-        if len(column_types) > 1:
-            columns_with_mixed_types.append(column_id)
-
-    return columns_with_mixed_types
+    return [
+        col_id 
+        for col_id, col_info in columns_info.items()
+        if len(col_info['types']) > 1
+    ]
 
 
 def apply_type_transformation(table: np.ndarray, column_types: list, log: LoggerAdapter):
@@ -510,9 +496,8 @@ def _obtain_new_column_type(column_info: dict):
     if column_info['float_number'] > 0 or column_info['nan_number'] > 0:
         # Even if one of types are float - all elements should be converted into float
         return float
-    else:
-        # It is available to convert numerical into integer type
-        return int
+    # It is available to convert numerical into integer type
+    return int
 
 
 def _convert_predict_column_into_desired_type(table: np.ndarray, current_column: np.ndarray,
@@ -549,7 +534,7 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
             filtered_types = [x for x in column_types_ids if x != TYPE_TO_ID[type(None)]]
             updated_column_types.append(filtered_types[0])
         else:
-            if any(column_type_id == TYPE_TO_ID[str] for column_type_id in column_types_ids):
+            if TYPE_TO_ID[str] in column_types_ids:
                 # Mixed-types column with string
                 new_column_type = converted_columns[column_id]
                 if new_column_type != -1:
