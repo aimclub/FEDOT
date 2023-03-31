@@ -194,8 +194,6 @@ Any contribution is welcome. Our R&D team is open for cooperation with other sci
 Documentation
 =============
 
-The general description is available in the `FEDOT.Docs <https://itmo-nss-team.github.io/FEDOT.Miscellaneous>`__ repository.
-
 Also, a detailed FEDOT API description is available in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 
 Contribution Guide
