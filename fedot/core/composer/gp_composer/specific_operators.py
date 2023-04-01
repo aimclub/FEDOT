@@ -133,17 +133,19 @@ def bagging_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pipe
     )
 
     mutable_candidates = [n for n in pipeline.nodes if str(n) in mutable_models]
-    mutable_node = choice(mutable_candidates)
 
-    replaced_node_index = pipeline.nodes.index(mutable_node)
-    replaced_node = pipeline.nodes[replaced_node_index]
+    if mutable_candidates:
+        mutable_node = choice(mutable_candidates)
 
-    bag_model = 'bag_' + mutable_node.name
-    bag_params = {
-        'model_params': replaced_node.parameters,
-    }
+        replaced_node_index = pipeline.nodes.index(mutable_node)
+        replaced_node = pipeline.nodes[replaced_node_index]
 
-    new_node = PipelineBuilder().add_node(bag_model, params=bag_params).build().nodes[0]
-    pipeline.update_node(old_node=replaced_node, new_node=new_node)
+        bag_model = 'bag_' + mutable_node.name
+        bag_params = {
+            'model_params': replaced_node.parameters,
+        }
+
+        new_node = PipelineBuilder().add_node(bag_model, params=bag_params).build().nodes[0]
+        pipeline.update_node(old_node=replaced_node, new_node=new_node)
 
     return pipeline

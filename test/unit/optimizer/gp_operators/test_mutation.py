@@ -203,3 +203,23 @@ def test_bagging_mutation_changes_pipeline():
 
     assert model_params == mut_model_params
     assert bagging_params == mut_bagging_params
+
+
+def test_bagging_mutation_with_not_allowed_model():
+    init_pipeline = PipelineBuilder() \
+        .add_node('knn') \
+        .build()
+
+    requirements = PipelineComposerRequirements()
+
+    pipeline = bagging_mutation(
+        init_pipeline,
+        requirements,
+        get_pipeline_generation_params(
+            requirements=requirements,
+            rules_for_constraint=DEFAULT_DAG_RULES,
+            task=Task(TaskTypesEnum.classification)
+        )
+    )
+
+    assert init_pipeline == pipeline

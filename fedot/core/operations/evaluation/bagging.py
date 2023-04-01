@@ -70,10 +70,10 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types.keys():
             if self._model_params:
-                self._bagging_params['base_estimator'] = self._operations_by_types[operation_type](
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type](
                     **self._model_params)
             else:
-                self._bagging_params['base_estimator'] = self._operations_by_types[operation_type]()
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type]()
 
             return self.bagging_operation(**self._bagging_params)
 
