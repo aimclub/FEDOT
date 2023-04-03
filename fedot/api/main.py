@@ -47,7 +47,6 @@ class Fedot:
 
     Args:
         problem: name of the modelling problem to solve.
-
             .. details:: Possible options:
 
                 - ``classification`` -> for classification task
@@ -89,8 +88,8 @@ class Fedot:
 
             .. details:: Default value depends on a given task:
 
-                - ``ROC AUC`` -> for classification
-                - ``RMSE`` -> for regression & time series forecasting
+                - ``roc_auc`` -> for classification
+                - ``rmse`` -> for regression & time series forecasting
 
             .. details:: Available metrics are listed in the following enumerations:
 
