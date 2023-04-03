@@ -13,7 +13,7 @@ like moving average smoothing or Gaussian smoothing are used as well.
 Simple examples
 ~~~~~~~~~~~~~~~
 
-You can find all available ``Fedot`` parameters in `FEDOT API`_.
+You can find all available API parameters in :class:`~fedot.api.main.Fedot` reference.
 
 Automated
 ---------
@@ -92,9 +92,9 @@ Manual
 
 Use FEDOT in manual mode to fit your own pipeline for time-series forecasting.
 
-Examples of time-series pipelines can be found `here`_.
+Examples of time-series pipelines can be found :doc:`here</examples/ts_pipelines>`.
 
-See how to tune pipeline hyperparameters in `Tuning of Hyperparameters`_.
+See how to tune pipeline hyperparameters in :doc:`/advanced/hyperparameters_tuning`.
 
 .. code-block:: python
 
@@ -646,7 +646,3 @@ Examples
 
 * `Case: river level forecasting with composer <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
 * `Case: river level forecasting (manual) <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
-
-.. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
-.. _here: https://fedot.readthedocs.io/en/latest/examples/ts_pipelines.html
-.. _Tuning of Hyperparameters: https://fedot.readthedocs.io/en/latest/advanced/hyperparameters_tuning.html

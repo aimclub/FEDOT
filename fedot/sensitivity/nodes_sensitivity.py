@@ -4,6 +4,7 @@ from typing import List, Optional, Type, Sequence
 
 import numpy as np
 from golem.core.dag.convert import graph_structure_as_nx_graph
+from golem.core.dag.graph import Graph
 from golem.core.log import default_log
 from matplotlib import pyplot as plt
 
@@ -71,7 +72,7 @@ class NodesAnalysis:
                         test_data=self.test_data)
             operation_types.append(node.operation.operation_type)
 
-            nodes_results[f'id = {self.pipeline.nodes.index(node)}, ' \
+            nodes_results[f'id = {self.pipeline.nodes.index(node)}, '
                           f'operation = {node.content["name"].operation_type}'] = node_result
 
         if self.requirements.visualization:
@@ -132,7 +133,7 @@ class NodesAnalysis:
         return gathered_results
 
 
-def get_nodes_degrees(graph: 'Graph') -> Sequence[int]:
+def get_nodes_degrees(graph: Graph) -> Sequence[int]:
     """Nodes degree as the number of edges the node has:
         ``degree = #input_edges + #out_edges``
 

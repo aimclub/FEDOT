@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.autodoc.typehints',
     'sphinx.ext.graphviz',
+    'sphinx.ext.intersphinx',
     'sphinxcontrib.details.directive',
     'sphinx.ext.todo',
     'autodocsumm',
@@ -91,6 +92,10 @@ autodoc_default_options = {
     'ignore-module-all': True,
 }
 autoclass_content = 'class'
-autodoc_typehints = 'signature'
+autodoc_typehints = 'description'
 autodoc_typehints_format = 'short'
 autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz']
+
+intersphinx_mapping = {
+    'golem': ('https://thegolem.readthedocs.io/en/latest/', None),
+}

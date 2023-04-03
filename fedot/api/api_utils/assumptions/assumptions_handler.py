@@ -19,7 +19,8 @@ class AssumptionsHandler:
         """
         Class for handling operations related with assumptions
 
-        :param data: data for pipelines
+        Args:
+            data: data for pipelines.
         """
         self.log = default_log(self)
         self.data = data

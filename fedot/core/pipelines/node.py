@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple, Union
 
@@ -19,7 +21,7 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 @register_serializable
 @dataclass
 class NodeMetadata:
-    """Dataclass. :class:`Node` metadata
+    """Dataclass. :class:`PipelineNode` metadata
 
     Args:
         metric: quality score
@@ -38,8 +40,8 @@ class PipelineNode(LinkedGraphNode):
         kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
-                 nodes_from: Optional[List['Node']] = None,
+    def __init__(self, operation_type: Optional[Union[str, Operation]] = None,
+                 nodes_from: Optional[List[PipelineNode]] = None,
                  node_data: Optional[dict] = None,
                  **kwargs):
         if node_data is None:

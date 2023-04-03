@@ -2,13 +2,13 @@ import datetime
 from functools import partial
 from typing import Sequence
 
-
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utils import default_fedot_data_dir
 
 
 class ApiParamsRepository:
@@ -68,9 +68,9 @@ class ApiParamsRepository:
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
             use_meta_rules=False,
-            cache_dir=None,
+            cache_dir=default_fedot_data_dir(),
             keep_history=True,
-            history_dir=None,
+            history_dir=default_fedot_data_dir(),
             with_tuning=False
         )
         return default_param_values_dict

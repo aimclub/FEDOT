@@ -8,34 +8,34 @@ of the composite model we introduce the composite model Sensitivity Analysis (SA
 analysis of composite models includes structure analysis and sensitivity analysis of hyperparameters.
 
 Structural Analysis means structure modification of some sort like Node deletion,
-replacement or anything else(see `NodeAnalyzeApproach`_). Within FEDOT, you can apply such an analysis
-to the model by using `PipelineAnalysis`_ or `NodeAnalysis`_. The difference is:
+replacement or anything else (see :ref:`Node Structure Analysis`).
+Within FEDOT, you can apply such an analysis to the model by using :ref:`Pipeline Non-Structure Analysis`
+or :ref:`Pipeline Structure Analysis`. The difference is:
 
-* ``PipelineAnalysis`` allows you to apply several approaches to several (all or defined) Nodes;
+* :ref:`Pipeline Non-Structure Analysis` allows you to apply several approaches to several (all or defined) Nodes;
 
-* ``NodeAnalysis`` allows you to apply several approaches to one Node;
+* :ref:`Pipeline Structure Analysis` allows you to apply several approaches to one Node;
 
 * additionally, you may use every approach directly.
 
 Sensitivity Analysis of hyperparameters is conducted with the Sobol method based on dispersion analysis.
 Currently you may analyze hyperparameters of the certain node or all nodes together. The specificity of such
-analysis is that some hyperparameters may be dobbled due to components duplication, but have different influence.
+analysis is that some hyperparameters may be doubled due to components duplication, but have different influence.
 
 
 PipelineSensitivityAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 FEDOT allows you to apply all the available SA approaches to all (or certain) the components of the composite
-model via ``PipelineSensitivityAnalysis``
-
+model via :class:`~fedot.sensitivity.pipeline_sensitivity_facade.PipelineSensitivityAnalysis`:
 
 .. code-block:: python
 
      from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.pipeline_sensitivity import PipelineStructureAnalyze
-     from fedot.sensitivity.node_sensitivity import \
-     NodeDeletionAnalyze, NodeReplaceModelAnalyze
+     from fedot.sensitivity.node_sa_approaches import \
+     NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
      pipeline = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
@@ -50,9 +50,11 @@ model via ``PipelineSensitivityAnalysis``
 PipelineStructureAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Conduct only composite model structure analysis via ``NodesAnalysis``,
-which analyzes nodes separately from each other. Currently, the
-application of ``NodeDeletionAnalyze`` and ``NodeReplaceModelAnalyze``
+Conduct only composite model structure analysis via :class:`fedot.sensitivity.nodes_sensitivity.NodesAnalysis`,
+which analyzes nodes separately from each other. Currently, the application of
+:class:`~fedot.sensitivity.node_sa_approaches.NodeDeletionAnalyze`
+and
+:class:`~fedot.sensitivity.node_sa_approaches.NodeReplaceOperationAnalyze`
 gives node a rating, thus you understand the influence of the component
 on the composite model. The rating corresponds to:
 
@@ -71,13 +73,13 @@ on the composite model. The rating corresponds to:
      from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.pipeline_sensitivity import PipelineStructureAnalyze
-     from fedot.sensitivity.node_sensitivity import \
-     NodeDeletionAnalyze, NodeReplaceModelAnalyze
+     from fedot.sensitivity.node_sa_approaches import \
+     NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
      pipeline = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
-     approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
+     approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
      analysis_result = NodesAnalysis(pipeline=pipeline,
                                      train_data=train_data,
                                      test_data=test_data,
@@ -94,14 +96,14 @@ NodeAnalysis
 
      from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
-     from fedot.sensitivity.node_sensitivity import \
-     NodeDeletionAnalyze, NodeAnalysis, NodeReplaceModelAnalyze
+     from fedot.sensitivity.node_sa_approaches import \
+     NodeDeletionAnalyze, NodeAnalysis, NodeReplaceOperationAnalyze
 
      pipeline = Pipeline()
      node_id_to_analyze = 2
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
-     approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze, OneOperationHPAnalyze]
+     approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze, OneOperationHPAnalyze]
 
      node_result = NodeAnalysis(approaches=approaches). \
                 analyze(pipeline=self.pipeline, node_id=node_id_to_analyze,
@@ -119,27 +121,27 @@ Result file example:
      {
         "id = 0, model = knn": {
             "NodeDeletionAnalyze": 1.0,
-            "NodeReplaceModelAnalyze": 0.9542077536133998
+            "NodeReplaceOperationAnalyze": 0.9542077536133998
         },
         "id = 1, model = qda": {
             "NodeDeletionAnalyze": 1.0,
-            "NodeReplaceModelAnalyze": 0.9970282317979198
+            "NodeReplaceOperationAnalyze": 0.9970282317979198
         },
         "id = 2, model = xgboost": {
             "NodeDeletionAnalyze": 0.9836552748885586,
-            "NodeReplaceModelAnalyze": 0.9766310955018235
+            "NodeReplaceOperationAnalyze": 0.9766310955018235
         },
         "id = 3, model = knn": {
             "NodeDeletionAnalyze": 1.0312035661218424,
-            "NodeReplaceModelAnalyze": 1.0068890990139132
+            "NodeReplaceOperationAnalyze": 1.0068890990139132
         },
         "id = 4, model = logit": {
             "NodeDeletionAnalyze": 1.052005943536404,
-            "NodeReplaceModelAnalyze": 0.9717682020802377
+            "NodeReplaceOperationAnalyze": 0.9717682020802377
         },
         "id = 5, model = xgboost": {
             "NodeDeletionAnalyze": 0.9227340267459138,
-            "NodeReplaceModelAnalyze": 0.965959746048899
+            "NodeReplaceOperationAnalyze": 0.965959746048899
         }
     }
 
@@ -161,8 +163,3 @@ What if to replace original model(in red) to the certain one
    :width: 45%
 .. |id_1| image:: img/qda_id_1_replacement.jpg
    :width: 45%
-
-
-.. _PipelineAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.pipeline_sensitivity.PipelineAnalysis
-.. _NodeAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.node_sensitivity.NodeAnalysis
-.. _NodeAnalyzeApproach: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.node_sensitivity.NodeAnalyzeApproach
