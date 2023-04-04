@@ -1,7 +1,7 @@
 Main Concepts
 =============
 
-The main concepts of the framework are the follows:
+The main framework concepts are as follows::
 
 - **Flexibility.** FEDOT can be used to automate the construction of solutions for various problems, data types (texts, images, tables), and models;
 - **Integrability.** FEDOT supports widely used ML libraries (Scikit-learn, CatBoost, XGBoost, etc.) and allows you to integrate custom ones;

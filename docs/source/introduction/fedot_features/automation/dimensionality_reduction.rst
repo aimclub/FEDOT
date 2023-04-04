@@ -1,7 +1,16 @@
-Dimensionality reduction
-------------------------
+Dimensionality operations
+-------------------------
 
-Currently FEDOT supports only feature selection algorithms provided by scikit-learn, but there aren't extraction ones.  
+FEDOT supports bunch of dimension preprocessing operations that can be be added to the pipeline as a node.
 
-..
-    [А что по ITMO_FS у нас, кстати? Вроде нигде не используется на 28.03.2023]
+Feature selection
+^^^^^^^^^^^^^^^^^
+
+There are different linear and non-linear algorithms for regression and classification tasks
+which uses scikit-learn's Recursive Feature Elimination (RFE).
+
+Feature extraction
+^^^^^^^^^^^^^^^^^^
+
+Currently there are PCA (kernel methods supported), fast ICA and
+polynomial features algorithms for generating new features. 

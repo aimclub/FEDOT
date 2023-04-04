@@ -27,7 +27,7 @@ FEDOT supports a full life-сyсle of machine learning task that includes prepro
     prediction = model.predict(features=x_test)
     metrics = model.get_metrics(target=y_test)
 
-Once FEDOT finds the best solution you have an opportunity :doc:`to save it <../basics/pipeline_save_load>` and look closer to the solution and optimization process if needed.
+Once FEDOT finds the best solution you have an opportunity :doc:`to save it </basics/pipeline_save_load>` and look closer to the solution and optimization process if needed.
 
 |Example of solution|
 
