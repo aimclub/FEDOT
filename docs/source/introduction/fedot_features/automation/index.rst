@@ -8,4 +8,4 @@ AutoML capabilities
    learning
    data_nature
    dimensionality_reduction
-   used_models
+   models_used
