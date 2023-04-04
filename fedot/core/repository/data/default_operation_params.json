@@ -50,13 +50,6 @@
     "sparse_transform": true,
     "use_svd": false
   },
-  "ets": {
-    "error": "add",
-    "trend": null,
-    "seasonal": null,
-    "damped_trend": false,
-    "seasonal_periods": 7
-  },
   "polyfit": {
     "degree": 2
   },
@@ -74,12 +67,19 @@
   "auto_theta": {
     "season_length": 24
   },
+  "mstl": {
+    "season_length": 24
+  },
   "auto_ets": {
     "model": "ZZZ",
-    "season_length": 7
+    "season_length": 24
   },
-  "ar": {
-    "lags": 12
+  "window_average": {
+    "window_size": 24
+  },
+  "seasonal_window_average": {
+    "window_size": 24,
+    "season_length": 12
   },
   "ransac_lin_reg": {
     "min_samples": 0.4,
@@ -133,12 +133,6 @@
   "pca": {
     "svd_solver": "full",
     "n_components": 0.7
-  },
-  "ts_naive_average": {
-    "part_for_averaging": 1.0
-  },
-  "locf": {
-    "part_for_repeat": -1
   },
   "word2vec_pretrained": {
     "model_name": "glove-twitter-25"

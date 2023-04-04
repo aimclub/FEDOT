@@ -28,11 +28,11 @@ class PipelineSearchSpace(SearchSpace):
             'adareg': {
 
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
-                'loss': (hp.choice, [["linear", "square", "exponential"]])
+                'loss': (hp.choice, [['linear', 'square', 'exponential']])
             },
             'gbr': {
 
-                'loss': (hp.choice, [["ls", "lad", "huber", "quantile"]]),
+                'loss': (hp.choice, [['ls', 'lad', 'huber', 'quantile']]),
                 'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'max_depth': (hp.uniformint, [1, 11]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
@@ -45,7 +45,7 @@ class PipelineSearchSpace(SearchSpace):
                 'C': (hp.uniform, [1e-2, 10.0])
             },
             'rf': {
-                'criterion': (hp.choice, [["gini", "entropy"]]),
+                'criterion': (hp.choice, [['gini', 'entropy']]),
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 10]),
                 'min_samples_leaf': (hp.uniformint, [1, 15]),
@@ -80,7 +80,7 @@ class PipelineSearchSpace(SearchSpace):
                 'min_child_weight': (hp.uniform, [1, 21])
             },
             'svr': {
-                'loss': (hp.choice, [["epsilon_insensitive", "squared_epsilon_insensitive"]]),
+                'loss': (hp.choice, [['epsilon_insensitive', 'squared_epsilon_insensitive']]),
                 'tol': (hp.loguniform, [np.log(1e-5), np.log(1e-1)]),
                 'C': (hp.uniform, [1e-4, 25.0]),
                 'epsilon': (hp.uniform, [1e-4, 1.0])
@@ -104,35 +104,17 @@ class PipelineSearchSpace(SearchSpace):
             },
             'knnreg': {
                 'n_neighbors': (hp.uniformint, [1, 50]),
-                'weights': (hp.choice, [["uniform", "distance"]]),
+                'weights': (hp.choice, [['uniform', 'distance']]),
                 'p': (hp.choice, [[1, 2]])
             },
             'knn': {
                 'n_neighbors': (hp.uniformint, [1, 50]),
-                'weights': (hp.choice, [["uniform", "distance"]]),
+                'weights': (hp.choice, [['uniform', 'distance']]),
                 'p': (hp.choice, [[1, 2]])
-            },
-            'arima': {
-                'p': (hp.uniformint, [1, 7]),
-                'd': (hp.uniformint, [0, 2]),
-                'q': (hp.uniformint, [1, 5])
-            },
-            'stl_arima': {
-                'p': (hp.uniformint, [1, 7]),
-                'd': (hp.uniformint, [0, 2]),
-                'q': (hp.uniformint, [1, 5]),
-                'period': (hp.uniformint, [1, 365])
             },
             'ar': {
                 'lag_1': (hp.uniform, [2, 200]),
                 'lag_2': (hp.uniform, [2, 800])
-            },
-            'ets': {
-                'error': (hp.choice, [['add', 'mul']]),
-                'trend': (hp.choice, [[None, 'add', 'mul']]),
-                'seasonal': (hp.choice, [[None, 'add', 'mul']]),
-                'damped_trend': (hp.choice, [[True, False]]),
-                'seasonal_periods': (hp.uniform, [1, 100])
             },
             'glm': {'nested_space': (hp.choice, [[
                 {
@@ -277,8 +259,7 @@ class PipelineSearchSpace(SearchSpace):
                 'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),
                 'shrinkage': (hp.uniform, [0.1, 0.9])
             },
-            'ts_naive_average': {'part_for_averaging': (hp.uniform, [0.1, 1])},
-            'locf': {'part_for_repeat': (hp.uniform, [0.01, 0.5])},
+            'repeat_last': {'part_for_repeat': (hp.uniform, [0.01, 0.5])},
             'word2vec_pretrained': {
                 'model_name': (hp.choice, [['glove-twitter-25', 'glove-twitter-50',
                                             'glove-wiki-gigaword-100', 'word2vec-ruscorpora-300']])
@@ -287,6 +268,28 @@ class PipelineSearchSpace(SearchSpace):
                 'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3)]]),
                 'min_df': (hp.uniform, [0.0001, 0.1]),
                 'max_df': (hp.uniform, [0.9, 0.99])
+            },
+            'auto_arima': {
+                'season_length': (hp.uniform, [7, 48]),
+            },
+            'auto_ces': {
+                'season_length': (hp.uniform, [7, 48]),
+            },
+            'auto_theta': {
+                'season_length': (hp.uniform, [7, 48]),
+            },
+            'mstl': {
+                'season_length': (hp.uniform, [7, 48]),
+            },
+            'auto_ets': {
+                'season_length': (hp.uniform, [7, 48]),
+            },
+            'window_average': {
+                'window_size': (hp.uniform, [7, 48]),
+            },
+            'seasonal_window_average': {
+                'window_size': (hp.uniform, [7, 96]),
+                'season_length': (hp.uniform, [7, 48]),
             },
         }
 

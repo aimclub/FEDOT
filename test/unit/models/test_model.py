@@ -328,7 +328,7 @@ def test_pca_model_fit_with_wide_table():
     assert 'n_components' in params.changed_parameters.keys()
 
 
-def test_ts_naive_average_forecast_correctly():
+def test_history_average_forecast_correctly():
     """ Check if forecasted time series has correct indices """
     train_input, predict_input, _ = synthetic_univariate_ts()
 
@@ -345,7 +345,7 @@ def test_ts_naive_average_forecast_correctly():
     assert np.array_equal(predict_forecast.predict, np.array([[65, 65, 65, 65]]))
 
 
-def test_locf_forecast_correctly():
+def test_repeat_last_forecast_correctly():
     """ Testing naive LOCF model """
     train_input, predict_input, _ = synthetic_univariate_ts()
     model = RepeatLastValueImplementation(OperationParameters(part_for_repeat=0.2))

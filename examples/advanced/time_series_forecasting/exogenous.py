@@ -7,6 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -20,43 +21,29 @@ warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast(pipeline, train: InputData, predict: InputData,
-                  train_exog: InputData, predict_exog: InputData):
+
+def plot_results(actual_time_series, predicted_values, len_train_data, y_name='Parameter'):
     """
-    Function for predicting values in a time series
+    Function for drawing plot with predictions
 
-    :return predicted_values: numpy array, forecast of model
+    :param actual_time_series: the entire array with one-dimensional data
+    :param predicted_values: array with predicted values
+    :param len_train_data: number of elements in the training sample
+    :param y_name: name of the y axis
     """
 
-    # Fit it
-    start_time = timeit.default_timer()
-
-    second_node_name = 'exog_ts'
-
-    if train_exog is None:
-        second_node_name = 'data_source_ts/2'
-        train_exog = train
-        predict_exog = predict
-
-    train_dataset = MultiModalData({
-        'data_source_ts/1': train,
-        second_node_name: train_exog})
-
-    predict_dataset = MultiModalData({
-        'data_source_ts/1': predict,
-        second_node_name: predict_exog})
-
-    pipeline.fit_from_scratch(train_dataset)
-    amount_of_seconds = timeit.default_timer() - start_time
-
-    print(f'\nIt takes {amount_of_seconds:.2f} seconds to train pipeline\n')
-
-    # Predict
-    predicted_values = pipeline.predict(predict_dataset)
-    predicted_values = predicted_values.predict
-
-    return predicted_values
-
+    plt.plot(np.arange(0, len(actual_time_series)),
+             actual_time_series, label='Actual values', c='green')
+    plt.plot(np.arange(len_train_data, len_train_data + len(predicted_values)),
+             predicted_values, label='Predicted', c='blue')
+    # Plot black line which divide our array into train and test
+    plt.plot([len_train_data, len_train_data],
+             [min(actual_time_series), max(actual_time_series)], c='black', linewidth=1)
+    plt.ylabel(y_name, fontsize=15)
+    plt.xlabel('Time index', fontsize=15)
+    plt.legend(fontsize=15)
+    plt.grid()
+    plt.show()
 
 def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
                              visualization=False) -> None:
@@ -69,71 +56,97 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     :param visualization: is it needed to make visualizations
     """
 
+    # Read the file
     df = pd.read_csv(path_to_file)
-    time_series = np.array(df['Level'])
-    exog_variable = np.array(df['Neighboring level'])
+    df['Date'] = pd.to_datetime(df['Date'])
 
-    # Source time series
-    train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
-                                                                 features=time_series,
-                                                                 target=time_series,
-                                                                 task=Task(TaskTypesEnum.ts_forecasting,
-                                                                           TsForecastingParams(
-                                                                               forecast_length=len_forecast)),
-                                                                 data_type=DataTypesEnum.ts))
+    # Specify forecast length
+    len_forecast = 250
 
-    # Exogenous time series
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
+    # Got train, test parts, and the entire data
+    true_values = np.array(df['Level'])
+    train_array = true_values[:-len_forecast]
+    test_array = true_values[-len_forecast:]
 
-    predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
-                                   features=exog_variable, target=time_series,
-                                   task=task, data_type=DataTypesEnum.ts)
+    exog_arr = np.array(df['Neighboring level'])
+    exog_train = exog_arr[:-len_forecast]
+    exog_test = exog_arr[-len_forecast:]
 
-    train_input_exog, predict_input_exog = train_test_data_setup(predict_input_exog)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=250))
 
-    if with_exog is True:
-        # Example with exogenous time series
-        node_source = PipelineNode('data_source_ts/1')
-        node_lagged = PipelineNode('lagged', nodes_from=[node_source])
+    # Data for lagged transformation
+    train_lagged = InputData(idx=np.arange(0, len(train_array)),
+                             features=train_array,
+                             target=train_array,
+                             task=task,
+                             data_type=DataTypesEnum.ts)
+    start_forecast = len(train_array)
+    end_forecast = start_forecast + len_forecast
+    predict_lagged = InputData(idx=np.arange(start_forecast, end_forecast),
+                               features=train_array,
+                               target=test_array,
+                               task=task,
+                               data_type=DataTypesEnum.ts)
 
+    # Data for exog operation
+    train_exog = InputData(idx=np.arange(0, len(exog_train)),
+                           features=exog_train,
+                           target=train_array,
+                           task=task,
+                           data_type=DataTypesEnum.ts)
+    start_forecast = len(exog_train)
+    end_forecast = start_forecast + len_forecast
+    predict_exog = InputData(idx=np.arange(start_forecast, end_forecast),
+                             features=exog_test,
+                             target=test_array,
+                             task=task,
+                             data_type=DataTypesEnum.ts)
+
+    if with_exog:
+        train_dataset = MultiModalData({
+            'lagged': train_lagged,
+            'exog_ts': train_exog
+        })
+
+        predict_dataset = MultiModalData({
+            'lagged': predict_lagged,
+            'exog_ts': predict_exog
+        })
+
+        # Create a pipeline with different data sources in th nodes
+        node_lagged = PipelineNode('lagged')
         node_exog = PipelineNode('exog_ts')
-
-        node_final = PipelineNode('ridge', nodes_from=[node_lagged, node_exog])
-        pipeline = Pipeline(node_final)
+        node_ridge = PipelineNode('ridge', nodes_from=[node_lagged, node_exog])
+        pipeline = Pipeline(node_ridge)
     else:
+        train_dataset = train_lagged
+        predict_dataset = predict_lagged
+
         # Simple example without exogenous time series
-        node_source_1 = PipelineNode('data_source_ts/1')
-        node_source_2 = PipelineNode('data_source_ts/2')
-
-        node_lagged_1 = PipelineNode('lagged', nodes_from=[node_source_1])
-        node_lagged_2 = PipelineNode('lagged', nodes_from=[node_source_2])
-
-        node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
-        node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
-        node_final = PipelineNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-        train_input_exog = None
-        predict_input_exog = None
+        node_lagged = PipelineNode('lagged')
+        node_final = PipelineNode('ridge', nodes_from=[node_lagged])
         pipeline = Pipeline(node_final)
 
-    predicted = make_forecast(pipeline, train_input, predict_input, train_input_exog, predict_input_exog)
+    # Fit it
+    fedot = Fedot(problem='classification', timeout=5, initial_assumption=pipeline)
+    fedot.fit(train_dataset)
+    pipeline.fit(predict_dataset)
 
-    predicted = np.ravel(np.array(predicted))
-    test_data = np.ravel(predict_input.target)
-
-    print(f'Predicted values: {predicted[:5]}')
-    print(f'Actual values: {test_data[:5]}')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    print(f'RMSE - {mse_before:.4f}')
-    print(f'MAE - {mae_before:.4f}\n')
+    # Predict
+    predicted = pipeline.predict(predict_dataset)
+    predicted_values = np.ravel(np.array(predicted.predict))
 
     if visualization:
-        plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-        plt.plot(range(len(train_input.target), len(time_series)), predicted, label='Forecast')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        pipeline.show()
+        # Plot predictions and true values
+        plot_results(actual_time_series=true_values,
+                     predicted_values=predicted_values,
+                     len_train_data=len(train_array),
+                     y_name='Sea level, m')
+
+    # Print MAE metric
+    print(f'Mean absolute error: {mean_absolute_error(test_array, predicted_values):.3f}')
 
 
 if __name__ == '__main__':

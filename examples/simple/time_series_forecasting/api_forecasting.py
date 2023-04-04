@@ -49,7 +49,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   timeout=timeout,
                   n_jobs=1,
                   with_tuning=with_tuning,
-                  cv_folds=2, validation_blocks=validation_blocks, preset='fast_train')
+                  cv_folds=2, validation_blocks=validation_blocks)
 
     # # run AutoML model design in the same way
     # pipeline = model.fit(train_data)
@@ -67,7 +67,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     # use model to obtain one-step forecast
     train_data, test_data = get_ts_data(dataset, horizon)
     start_time = datetime.datetime.now()
-    model.fit(train_data, predefined_model='auto_arima')
+    model.fit(train_data)
     print(datetime.datetime.now() - start_time)
     simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
@@ -85,4 +85,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='stackoverflow', horizon=10, timeout=1., visualization=True)
+    run_ts_forecasting_example(dataset='australia', horizon=20, timeout=10, visualization=True)

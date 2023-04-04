@@ -2,7 +2,7 @@ import datetime
 from copy import copy
 from typing import Optional
 
-from statsforecast.models import AutoARIMA, AutoETS, GARCH, AutoTheta, AutoRegressive, AutoCES
+from statsforecast.models import AutoARIMA, AutoETS, GARCH, AutoTheta, AutoRegressive, AutoCES, MSTL
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
@@ -20,7 +20,7 @@ class StatsForecastingImplementation(ModelImplementation):
     def fit(self, input_data: InputData):
         start_time = datetime.datetime.now()
         self.model.fit(y=input_data.features)
-        print(datetime.datetime.now() - start_time)
+        print('statsforecasting')
         return self.model
 
     def predict(self, input_data: InputData) -> OutputData:
@@ -74,13 +74,13 @@ class AutoRegImplementation(StatsForecastingImplementation):
         self.model = AutoRegressive(**params.to_dict())
 
 
-class GARCHImplementation(StatsForecastingImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        self.model = GARCH(**params.to_dict())
-
-
 class AutoCESImplementation(StatsForecastingImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = AutoCES(**params.to_dict())
+
+
+class MSTLImplementation(StatsForecastingImplementation):
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        self.model = MSTL(**params.to_dict())

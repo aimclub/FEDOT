@@ -140,18 +140,6 @@
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
-    "arima": {
-      "meta": "ts_model",
-      "presets": ["ts"],
-      "tags": [
-        "simple",
-        "interpretable",
-        "non_lagged",
-        "linear",
-        "new_data_refit"
-      ],
-	  "input_type": "[DataTypesEnum.ts]"
-    },
     "cgru": {
       "meta": "ts_model",
       "presets": ["ts"],
@@ -340,18 +328,6 @@
         "non_multi", "non_linear"
       ]
     },
-    "stl_arima": {
-      "meta": "ts_model",
-      "presets": ["ts"],
-      "tags": [
-        "simple",
-        "interpretable",
-        "non_lagged",
-        "linear",
-        "new_data_refit"
-      ],
-	  "input_type": "[DataTypesEnum.ts]"
-    },
     "glm": {
       "meta": "ts_model",
       "presets": [
@@ -374,7 +350,6 @@
         "ts"
       ],
       "tags": [
-        "simple",
         "interpretable",
         "non_lagged"
       ],
@@ -419,7 +394,7 @@
       ],
       "input_type": "[DataTypesEnum.ts]"
     },
-    "garch": {
+    "mstl": {
       "meta": "ts_model",
       "presets": [
         "fast_train",
@@ -432,7 +407,7 @@
       ],
       "input_type": "[DataTypesEnum.ts]"
     },
-    "ets": {
+    "history_average": {
       "meta": "ts_model",
       "presets": [
         "fast_train",
@@ -441,32 +416,61 @@
       "tags": [
         "simple",
         "interpretable",
-        "non_lagged",
-        "non_linear"
+        "non_lagged"
       ],
       "input_type": "[DataTypesEnum.ts]"
     },
-    "locf": {
+    "repeat_last": {
       "meta": "ts_model",
-      "presets": ["fast_train", "ts"],
+      "presets": [
+        "fast_train",
+        "ts"
+      ],
       "tags": [
-        "non_linear",
         "simple",
         "interpretable",
         "non_lagged"
       ],
-	  "input_type": "[DataTypesEnum.ts]"
+      "input_type": "[DataTypesEnum.ts]"
     },
-    "ts_naive_average": {
+    "random_walk": {
       "meta": "ts_model",
-      "presets": ["fast_train", "ts"],
+      "presets": [
+        "fast_train",
+        "ts"
+      ],
       "tags": [
-        "non_linear",
         "simple",
         "interpretable",
         "non_lagged"
       ],
-	  "input_type": "[DataTypesEnum.ts]"
+      "input_type": "[DataTypesEnum.ts]"
+    },
+    "window_average": {
+      "meta": "ts_model",
+      "presets": [
+        "fast_train",
+        "ts"
+      ],
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
+      ],
+      "input_type": "[DataTypesEnum.ts]"
+    },
+    "seasonal_window_average": {
+      "meta": "ts_model",
+      "presets": [
+        "fast_train",
+        "ts"
+      ],
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
+      ],
+      "input_type": "[DataTypesEnum.ts]"
     },
     "svc": {
       "meta": "custom_class",

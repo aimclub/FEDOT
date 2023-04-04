@@ -206,17 +206,17 @@ def ts_stl_arima_pipeline():
     return pipeline
 
 
-def ts_locf_ridge_pipeline():
+def ts_repeat_last_ridge_pipeline():
     """
     Pipeline with naive LOCF (last observation carried forward) model
     and lagged features
 
-    .. image:: img_ts_pipelines/ts_locf_ridge_pipeline.png
+    .. image:: img_ts_pipelines/ts_repeat_last_ridge_pipeline.png
       :width: 55%
 
     """
     pip_builder = PipelineBuilder() \
-        .add_sequence('locf', branch_idx=0) \
+        .add_sequence('repeat_last', branch_idx=0) \
         .add_sequence('lagged', branch_idx=1) \
         .join_branches('ridge')
 
@@ -224,17 +224,17 @@ def ts_locf_ridge_pipeline():
     return pipeline
 
 
-def ts_naive_average_ridge_pipeline():
+def history_average_ridge_pipeline():
     """
     Pipeline with simple forecasting model (the forecast is mean value for known
     part)
 
-    .. image:: img_ts_pipelines/ts_naive_average_ridge_pipeline.png
+    .. image:: img_ts_pipelines/history_average_ridge_pipeline.png
       :width: 55%
 
     """
     pip_builder = PipelineBuilder() \
-        .add_sequence('ts_naive_average', branch_idx=0) \
+        .add_sequence('history_average', branch_idx=0) \
         .add_sequence('lagged', branch_idx=1) \
         .join_branches('ridge')
 
