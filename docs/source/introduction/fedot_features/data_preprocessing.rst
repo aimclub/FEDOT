@@ -6,10 +6,10 @@ FEDOT uses two types of preprocessing: obligatory and optional.
 .. note::
 
     Preprocessing is optional (see ``use_input_preprocessing`` :doc:`main API parameter </api/api>`),
-    so you can save some time if you have already preprocessed dataset.
+    so you can save some time if your dataset (input data) is already preprocessed.
 
-**The first one**, as you might guess, cares about something important that can break or just complicate 
-your program, these are:
+**Obligatory preprocessing**, as you might guess, solves major problems that can disrupt or complicate data processing,
+such as:
 
 .. list-table:: Obligatory preprocessing
    :widths: 25 5
@@ -26,7 +26,7 @@ your program, these are:
    * - extra spaces in categorical features
      - trim
 
-**The second one** depends on composed pipeline structure, and is applied only if
+**Optional preprocessing** depends on composed pipeline structure, and is applied only if
 it is necessary for the next model from a processing queue to work.
 
 .. list-table:: Optional preprocessing
@@ -46,6 +46,9 @@ But depending on the pipeline structure, it might be ommited:
    :width: 100%
    :alt: Optional preprocessing condition
 
+.. seealso::
+    :doc:`Extended explanation </advanced/data_preprocessing>`
+
 .. note::
 
-    Both of the technics applied only once.
+    Both obligatory and optional preprocessing are applied only once.
