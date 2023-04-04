@@ -81,7 +81,7 @@ class InputAnalyser:
                 recommendations_for_data['cut'] = {'border': border}
             is_label_encoding_needed = self.control_categorical(input_data)
             if is_label_encoding_needed:
-                recommendations_for_data['label_encoded'] = True
+                recommendations_for_data['label_encoded'] = {}
         return recommendations_for_data
 
     def _give_recommendations_with_meta_rules(self, input_data: InputData, input_params: Dict):
