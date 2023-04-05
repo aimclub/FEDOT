@@ -26,6 +26,9 @@ def _array_to_input_data(features_array: np.ndarray,
         [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), _DATE, 42., 42]
     ])],
     [PandasStrategy, pd.DataFrame([
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), _DATE, 42., 42]
+    ], dtype=object)],
+    [PandasStrategy, pd.DataFrame([
         [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 42]
     ])],
     [PandasStrategy, pd.DataFrame([
@@ -34,8 +37,18 @@ def _array_to_input_data(features_array: np.ndarray,
     [PandasStrategy, pd.DataFrame(pd.date_range(_DATE, periods=3, freq='D'))],
 
     [NumpyStrategy, np.array([
-        [*pd.date_range("2018-01-01", periods=3, freq="D"), 'string']
-    ], dtype=object)]
+        [_DATE, datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 54, 54.]
+    ], dtype=object)],
+    [NumpyStrategy, np.array([
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 54]
+    ], dtype=object)],
+    [NumpyStrategy, np.array([
+        [*pd.date_range(_DATE, periods=3, freq='D').to_numpy(), 54, 54.]
+    ], dtype=object)],
+    [NumpyStrategy, np.array([
+        [*pd.date_range(_DATE, periods=3, freq='D').to_numpy()]
+    ], dtype=np.datetime64)],
+    [NumpyStrategy, pd.date_range(_DATE, periods=3, freq='D').to_numpy().reshape(-1, 1)]
 ])
 def test_pandas_strategy(strategy: Type[StrategyDefineData], features: FeaturesType, monkeypatch):
     monkeypatch.setattr('fedot.api.api_utils.data_definition.array_to_input_data', _array_to_input_data)
