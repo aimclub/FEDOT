@@ -259,8 +259,7 @@ class PipelineSearchSpace(SearchSpace):
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
                 'border_count': (hp.uniformint, [2, 255]),
-                'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)]),
-                'loss_function': (hp.choice, [['Logloss', 'CrossEntropy']])
+                'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'catboostreg': {
                 'max_depth': (hp.uniformint, [1, 11]),
