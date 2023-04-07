@@ -19,14 +19,18 @@ def get_complete_dataset(dir_name):
                 results_df.append(df)
     final_df = pd.concat(results_df, ignore_index=True, axis=0)
     final_df = final_df.replace({'class_Amazon_employee_access.csv': 'Amazon_employee_access',
-                                'class_cnae-9.csv': 'class_cnae-9'})
+                                 'class_cnae-9.csv': 'class_cnae-9'})
+    is_regression = dir_name == 'regression'
+    final_df['metric_improvement'] = final_df['final_metric'] - final_df['init_metric']
+    if is_regression:
+        final_df['metric_improvement'] = -final_df['metric_improvement']
+
     return final_df
 
 
 def plot_metric_improvements(results_df):
-    df['Metric improvement'] = df['final_metric'] - df['init_metric']
     with sns.axes_style("darkgrid"):
-        sns.catplot(x='tuner', y='Metric improvement',
+        sns.catplot(x='tuner', y='metric_improvement',
                     hue='pipeline_type', col='iter_num',
                     row='dataset',
                     palette='Spectral',
@@ -37,8 +41,9 @@ def plot_metric_improvements(results_df):
 
 
 def plot_tuning_time(results_df):
-    results_df['Case'] = results_df.apply(lambda x: f'Pipeline: {str(x["pipeline_type"])}; dataset: {str(x["dataset"])}',
-                                  axis=1)
+    results_df['Case'] = results_df.apply(
+        lambda x: f'Pipeline: {str(x["pipeline_type"])}; dataset: {str(x["dataset"])}',
+        axis=1)
     with sns.axes_style("darkgrid"):
         sns.catplot(y='tuning_time', x='tuner',
                     hue='iter_num',
@@ -52,7 +57,28 @@ def plot_tuning_time(results_df):
         plt.show()
 
 
+def get_metric_statistics(results_df):
+    iopt_mean = (results_df[results_df.tuner == 'IOptTuner']
+                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
+                 .rename(columns={'metric_improvement': 'IOpt mean'}))
+    iopt_std = (results_df[results_df.tuner == 'IOptTuner']
+                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].std()
+                .rename(columns={'metric_improvement': 'IOpt std'}))
+
+    hopt_mean = (results_df[results_df.tuner == 'SimultaneousTuner']
+                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
+                 .rename(columns={'metric_improvement': 'Hyperopt mean'}))
+    hopt_std = (results_df[results_df.tuner == 'SimultaneousTuner']
+                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].std()
+                .rename(columns={'metric_improvement': 'Hyperopt std'}))
+
+    stats_df = pd.concat([iopt_mean, hopt_mean, iopt_std, hopt_std], axis=1)
+    pd.set_option('display.max_columns', None)
+    return stats_df
+
+
 if __name__ == '__main__':
-    df = get_complete_dataset('')
+    df = get_complete_dataset('classification')
+    print(get_metric_statistics(df))
     plot_metric_improvements(df)
     plot_tuning_time(df)

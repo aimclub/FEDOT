@@ -1,6 +1,6 @@
-import logging
 import os
 import timeit
+from datetime import timedelta
 from pathlib import Path
 from typing import Type
 
@@ -11,8 +11,8 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
 from hyperopt import hp
 
+from cases.tuner_comparison.classification_test_pipelines import get_pipelines_for_classification
 from cases.tuner_comparison.regression_test_pipelines import get_pipelines_for_regression
-from cases.tuner_comparison.test_pipelines_clssification import get_pipelines_for_classification
 from fedot.core.composer.metrics import ROCAUC, SMAPE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -126,8 +126,8 @@ search_space_dict = \
     }
 
 
-def get_data_for_experiment(data_path):
-    data = InputData.from_csv(file_path=data_path)
+def get_data_for_experiment(data_path, task):
+    data = InputData.from_csv(file_path=data_path, task=task)
     train_data, test_data = train_test_data_setup(data)
     return train_data, test_data
 
@@ -161,7 +161,7 @@ def get_metric_for_task(task: str):
 def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner], iterations: int, launch_num: int):
     n_jobs = -1
     pipelines = get_pipelines_for_task(task)
-    train_data, test_data = get_data_for_experiment(data_path)
+    train_data, test_data = get_data_for_experiment(data_path, task)
     metric = get_metric_for_task(task)
     objective_eval = get_objective_evaluate(metric, train_data, n_jobs)
     adapter = PipelineAdapter()
@@ -175,7 +175,11 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
     dataset_name = os.path.basename(data_path)
     path_to_save = f'{dir_to_save}/{dataset_name}'
 
-    tuner = tuner_cls(objective_eval, search_space, adapter, iterations, n_jobs)
+    additional_params = {}
+    if tuner_cls == SimultaneousTuner:
+        additional_params['timeout'] = timedelta(minutes=250)
+
+    tuner = tuner_cls(objective_eval, search_space, adapter, iterations, n_jobs, **additional_params)
 
     for pipeline_type, pipeline in pipelines.items():
 
@@ -210,12 +214,13 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
 
 if __name__ == '__main__':
     task = 'classification'
-    datasets = os.listdir(f'{task}_data')
-    tuners = [IOptTuner, SimultaneousTuner]
-    iters_num = [20, 100]
+    datasets = os.listdir(f'{task}_data')[-1:]
+    tuners = [IOptTuner]
+    iters_num = [100]
     Log().reset_logging_level(45)
     for dataset in datasets:
         for tuner in tuners:
+            # print(tuner == SimultaneousTuner)
             for iter_num in iters_num:
-                path = Path('{task}_data', dataset)
+                path = Path(f'{task}_data', dataset)
                 dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30)
