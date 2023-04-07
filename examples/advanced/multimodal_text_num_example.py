@@ -32,7 +32,7 @@ def run_multi_modal_example(file_path: str, visualization=False, with_tuning=Tru
                      target=fit_data.target)
 
     prediction = automl_model.predict(predict_data)
-    metrics = automl_model.get_metrics()
+    metrics = automl_model.get_metrics(metric_names='f1')
 
     if visualization:
         automl_model.current_pipeline.show()
