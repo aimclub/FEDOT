@@ -105,6 +105,7 @@ class ClassificationAssumptions(TaskAssumptions):
         return {
             'rf': PipelineBuilder().add_node('rf'),
             'logit': PipelineBuilder().add_node('logit'),
+            'catboost': PipelineBuilder().add_node('catboost'),
         }
 
     def ensemble_operation(self) -> str:
