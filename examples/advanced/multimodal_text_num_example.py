@@ -31,7 +31,7 @@ def run_multi_modal_example(file_path: str, visualization=False, with_tuning=Tru
     automl_model.fit(features=fit_data,
                      target=fit_data.target)
 
-    prediction = automl_model.predict(predict_data)
+    _ = automl_model.predict(predict_data)
     metrics = automl_model.get_metrics(metric_names='f1')
 
     if visualization:
