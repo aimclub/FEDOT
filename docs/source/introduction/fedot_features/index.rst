@@ -7,7 +7,7 @@ Here are distinctive characteristics of our AutoML framework.
    :glob:
    :maxdepth: 2
 
-   tasks
+   involved_tasks
    model_building
    data_preprocessing
    automation/index
