@@ -8,6 +8,6 @@ Here are distinctive characteristics of our AutoML framework.
    :maxdepth: 2
 
    involved_tasks
-   model_building
+   pipeline_building
    data_preprocessing
    automation/index
