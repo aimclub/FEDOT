@@ -8,7 +8,7 @@ Modules
    api
    composer
    data
-   eval_strategy
+   evaluations
    node
    operation
    pipeline
