@@ -52,13 +52,13 @@ More details about FEDOT are available in the next video:
 FEDOT concepts
 ==============
 
-- **Flexibility.** FEDOT can be used to automate the construction of solutions for various problems, data types (texts, images, tables), and models;
-- **Extensibility.** Pipeline optimization algorithms are data- and task-independent, yet you can use special templates for a specific task class or data type (time series forecasting, NLP, tabular data, etc.) to increase the efficiency;
-- **Integrability.** FEDOT supports widely used ML libraries (Scikit-learn, CatBoost, XGBoost, etc.) and allows you to integrate custom ones;
-- **Tuningability.** Hyper-parameters tuning methods are supported. Custom methods can also be integrated in FEDOT;
-- **Versatility.** FEDOT is not limited to specific modeling tasks, for example, it can be used in ODE or PDE;
-- **Reproducibility.** You can export the resulting pipelines in JSON format for experiment reproducibility;
-- **Customizability.** FEDOT allows managing the complexity of models and thereby achieving better results;
+- **Flexibility.** FEDOT can be used to automate the construction of solutions for various `problems <https://fedot.readthedocs.io/en/master/introduction/fedot_features/involved_tasks.html>`_, `data types <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation/data_nature.html>`_ (texts, images, tables), and `models <https://fedot.readthedocs.io/en/master/advanced/automated_pipelines_design.html>`_;
+- **Extensibility.** Pipeline optimization algorithms are data- and task-independent, yet you can use `special strategies <https://fedot.readthedocs.io/en/master/api/strategies.html>`_ for specific tasks or data types (time-series forecasting, NLP, tabular data, etc.) to increase the efficiency;
+- **Integrability.** FEDOT supports widely used ML libraries (Scikit-learn, CatBoost, XGBoost, etc.) and allows you to integrate `custom ones <https://fedot.readthedocs.io/en/master/api/strategies.html#module-fedot.core.operations.evaluation.custom>`_;
+- **Tuningability.** Various `hyper-parameters tuning methods <https://fedot.readthedocs.io/en/master/advanced/hyperparameters_tuning.html>`_ are supported including models' custom evaluation metrics and search spaces;
+- **Versatility.** FEDOT is `not limited to specific modeling tasks <https://fedot.readthedocs.io/en/master/advanced/architecture.html>`_, for example, it can be used in ODE or PDE;
+- **Reproducibility.** Resulting pipelines can be `exported separately as JSON <https://fedot.readthedocs.io/en/master/advanced/pipeline_import_export.html>`_ or `together with your input data as ZIP archive <https://fedot.readthedocs.io/en/master/advanced/project_import_export.html>`_ for experiments reproducibility;
+- **Customizability.** FEDOT allows `managing models complexity <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation/models_used.html>`_ and thereby achieving desired quality.
 
 Installation
 ============
