@@ -8,7 +8,8 @@ Modules
    api
    composer
    data
-   evaluations
+   strategies
+   transformations
    node
    operation
    pipeline
