@@ -42,7 +42,7 @@ AutoML
 
 Text
 """"
-.. automodule:: fedot.core.operations.evaluation.gpu.regression
+.. automodule:: fedot.core.operations.evaluation.text
    :members:
    :no-undoc-members:
 
