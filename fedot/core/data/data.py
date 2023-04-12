@@ -11,13 +11,6 @@ import pandas as pd
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
 
-#: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
-#: and :py:meth:`MultiModalData.from_csv`.
-POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
-#: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
-#: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
-POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
-
 try:
     import cv2
 except ModuleNotFoundError:
@@ -29,6 +22,14 @@ from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+#: The list of keyword for auto-detecting csv *tabular* data index. Used in :py:meth:`Data.from_csv`
+#: and :py:meth:`MultiModalData.from_csv`.
+POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
+#: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
+#: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
+POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
+
 
 PathType = Union[os.PathLike, str]
 
