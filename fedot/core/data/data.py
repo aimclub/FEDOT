@@ -8,7 +8,6 @@ from typing import List, Optional, Tuple, Union, Iterable, Any
 
 import numpy as np
 import pandas as pd
-
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
 
@@ -583,6 +582,28 @@ def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Itera
     return np.arange(0, len(data_frame))
 
 
+def features_datetime_to_int(features: Union[np.ndarray, pd.DataFrame]) -> Union[np.ndarray, pd.DataFrame]:
+    """
+    Change datetime feature columns type to integer with milliseconds unit.
+
+    Args:
+        features: table data for converting.
+
+    Returns:
+        The same table data with datetimes (if existed) converted to integer
+    """
+    date_cols = pd.DataFrame(features).infer_objects().select_dtypes('datetime')
+    converted_cols = date_cols.to_numpy(np.int64) // 10 ** 6  # to 'ms' unit from 'ns'
+    if isinstance(features, pd.DataFrame):
+        features[date_cols.columns] = converted_cols
+    elif isinstance(features, np.ndarray):
+        if np.issubdtype(features.dtype, np.datetime64):
+            features = converted_cols
+        else:
+            features[:, date_cols.columns] = converted_cols
+    return features
+
+
 def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
@@ -606,7 +627,6 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
                     possible_idx_keywords: Optional[List[str]] = None, *,
                     columns_to_drop: Optional[List[Union[str, int]]] = None,
                     columns_to_use: Optional[List[Union[str, int]]] = None):
-
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
             if is_column_name_suitable_for_index(column_name):
