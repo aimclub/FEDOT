@@ -592,11 +592,12 @@ def data_with_datetime_to_numeric_np(data: Union[np.ndarray, pd.DataFrame]) -> n
     Returns:
         The same table data with datetimes (if existed) converted to integer
     """
+    orig_shape = data.shape
     features_df = pd.DataFrame(data).infer_objects()
     date_cols = features_df.select_dtypes('datetime')
     converted_cols = date_cols.to_numpy(np.int64) // 10 ** 6  # to 'ms' unit from 'ns'
     features_df[date_cols.columns] = converted_cols
-    return features_df.to_numpy()
+    return features_df.to_numpy().reshape(orig_shape)
 
 
 def array_to_input_data(features_array: np.array,
