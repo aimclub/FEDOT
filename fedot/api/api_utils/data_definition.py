@@ -6,7 +6,7 @@ from typing import Union, Optional
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, array_to_input_data, features_datetime_to_int
+from fedot.core.data.data import InputData, array_to_input_data, data_with_datetime_to_numeric_np
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -63,7 +63,7 @@ class TupleStrategy(StrategyDefineData):
                     task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
-        features[0][:] = features_datetime_to_int(features[0])
+        features[0][:] = data_with_datetime_to_numeric_np(features[0])
 
         data = array_to_input_data(features_array=features[0],
                                    target_array=features[1],
@@ -87,9 +87,9 @@ class PandasStrategy(StrategyDefineData):
         else:
             target_array = target
 
-        features = features_datetime_to_int(features)
+        features = data_with_datetime_to_numeric_np(features)
 
-        data = array_to_input_data(features_array=np.asarray(features),
+        data = array_to_input_data(features_array=features,
                                    target_array=np.asarray(target_array),
                                    task=task)
         return data
@@ -112,7 +112,7 @@ class NumpyStrategy(StrategyDefineData):
         else:
             target_array = target
 
-        features = features_datetime_to_int(features)
+        features = data_with_datetime_to_numeric_np(features)
 
         data = array_to_input_data(features_array=features,
                                    target_array=target_array,
@@ -160,11 +160,11 @@ class MultimodalStrategy(StrategyDefineData):
                     idx=None) -> MultiModalData:
 
         # change data type to InputData
-        for inner_data in features.values():
+        for source, inner_data in features.items():
             if not isinstance(inner_data, InputData):
-                converted_data = features_datetime_to_int(inner_data)
-                inner_data[:] = array_to_input_data(features_array=converted_data, target_array=target,
-                                                    task=task, idx=idx)
+                converted_data = data_with_datetime_to_numeric_np(inner_data)
+                features[source] = array_to_input_data(features_array=converted_data, target_array=target,
+                                                       task=task, idx=idx)
         # create labels for data sources
         sources = dict((f'{self.source_name_by_type.get(features[data_part_key].data_type.name)}/{data_part_key}',
                         data_part)

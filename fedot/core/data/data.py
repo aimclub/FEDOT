@@ -582,26 +582,21 @@ def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Itera
     return np.arange(0, len(data_frame))
 
 
-def features_datetime_to_int(features: Union[np.ndarray, pd.DataFrame]) -> Union[np.ndarray, pd.DataFrame]:
+def data_with_datetime_to_numeric_np(data: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
     """
-    Change datetime feature columns type to integer with milliseconds unit.
+    Change data's datetime type to integer with milliseconds unit.
 
     Args:
-        features: table data for converting.
+        data: table data for converting.
 
     Returns:
         The same table data with datetimes (if existed) converted to integer
     """
-    date_cols = pd.DataFrame(features).infer_objects().select_dtypes('datetime')
+    features_df = pd.DataFrame(data).infer_objects()
+    date_cols = features_df.select_dtypes('datetime')
     converted_cols = date_cols.to_numpy(np.int64) // 10 ** 6  # to 'ms' unit from 'ns'
-    if isinstance(features, pd.DataFrame):
-        features[date_cols.columns] = converted_cols
-    elif isinstance(features, np.ndarray):
-        if np.issubdtype(features.dtype, np.datetime64):
-            features = converted_cols
-        else:
-            features[:, date_cols.columns] = converted_cols
-    return features
+    features_df[date_cols.columns] = converted_cols
+    return features_df.to_numpy()
 
 
 def array_to_input_data(features_array: np.array,

@@ -1,13 +1,11 @@
 from datetime import datetime
-from typing import Type
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from fedot.api.api_utils.data_definition import FeaturesType
-from fedot.core.data.data import InputData, array_to_input_data, features_datetime_to_int
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.data import data_with_datetime_to_numeric_np
 
 _DATE = '2000-01-01T10:00:00.100'
 _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
@@ -40,15 +38,8 @@ _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
     np.array([
         [*pd.date_range(_DATE, periods=3, freq='D').to_numpy()]
     ], dtype=np.datetime64),
-    pd.date_range(_DATE, periods=3, freq='D').to_numpy().reshape(-1, 1)
+    pd.date_range(_DATE, periods=3, freq='D').to_numpy()
 ])
-def test_pandas_strategy(features: FeaturesType):
-    date_features = pd.DataFrame(features).infer_objects().select_dtypes('datetime')
-
-    ## Test these
-    features = features_datetime_to_int(features)
-    if isinstance(features, pd.DataFrame):
-        result_arr = features[date_features.columns].to_numpy()
-    else:
-        result_arr = features[:, date_features.columns]
-    assert 'int' in str(pd.Series(result_arr.ravel()).infer_objects().dtype)
+def test_datetime_erasure(features: FeaturesType):
+    result = data_with_datetime_to_numeric_np(features)
+    assert 'datetime' not in str(pd.DataFrame(result).infer_objects().dtypes)
