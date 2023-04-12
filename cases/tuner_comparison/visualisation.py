@@ -78,7 +78,7 @@ def get_metric_statistics(results_df):
 
 
 if __name__ == '__main__':
-    df = get_complete_dataset('classification')
+    df = get_complete_dataset('regression')
     print(get_metric_statistics(df))
     plot_metric_improvements(df)
     plot_tuning_time(df)

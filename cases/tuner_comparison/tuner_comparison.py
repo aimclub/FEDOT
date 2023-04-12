@@ -213,14 +213,13 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
 
 
 if __name__ == '__main__':
-    task = 'classification'
-    datasets = os.listdir(f'{task}_data')[-1:]
-    tuners = [IOptTuner]
-    iters_num = [100]
+    task = 'regression'
+    datasets = os.listdir(f'{task}_data')
+    tuners = [SimultaneousTuner, IOptTuner]
+    iters_num = [20, 100]
     Log().reset_logging_level(45)
     for dataset in datasets:
         for tuner in tuners:
-            # print(tuner == SimultaneousTuner)
             for iter_num in iters_num:
                 path = Path(f'{task}_data', dataset)
                 dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30)
