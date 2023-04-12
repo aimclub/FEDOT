@@ -332,19 +332,19 @@ class Data:
 
         if len(fields_to_use) > 1:
             fields_to_combine = []
-            for field in fields_to_use:
-                fields_to_combine.append(np.array(df_data[field]))
+            for field_to_use in fields_to_use:
+                fields_to_combine.append(np.array(df_data[field_to_use]))
                 # Unite if the element of text data is divided into strings
-                if isinstance(df_data[field][0], list):
-                    df_data[field] = [' '.join(piece) for piece in df_data[field]]
+                if isinstance(df_data[field_to_use][0], list):
+                    df_data[field_to_use] = [' '.join(piece) for piece in df_data[field_to_use]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
-            field = df_data[fields_to_use[0]]
-            # process field with nested list
-            if isinstance(field[0], list):
-                field = [' '.join(piece) for piece in field]
-            features = np.array(field)
+            field_to_use = df_data[fields_to_use[0]]
+            # process field_to_use with nested list
+            if isinstance(field_to_use[0], list):
+                field_to_use = [' '.join(piece) for piece in field_to_use]
+            features = np.array(field_to_use)
 
         if is_multilabel:
             target = df_data[label]
