@@ -6,7 +6,7 @@ from typing import Union, Optional
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, array_to_input_data
+from fedot.core.data.data import InputData, array_to_input_data, features_datetime_to_int
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -63,6 +63,8 @@ class TupleStrategy(StrategyDefineData):
                     task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
+        features[0][:] = features_datetime_to_int(features[0])
+
         data = array_to_input_data(features_array=features[0],
                                    target_array=features[1],
                                    task=task)
@@ -81,12 +83,11 @@ class PandasStrategy(StrategyDefineData):
 
         if isinstance(target, str) and target in features.columns:
             target_array = features[target]
-            features = features.drop(columns=[target])
+            features = features.drop(columns=target)
         else:
             target_array = target
 
-        datetime_features = features.infer_objects().select_dtypes('datetime')
-        features[datetime_features.columns] = datetime_features.to_numpy(np.int64) // 10**6  # to 'ms' unit from 'ns'
+        features = features_datetime_to_int(features)
 
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target_array),
@@ -111,11 +112,7 @@ class NumpyStrategy(StrategyDefineData):
         else:
             target_array = target
 
-        if features.dtype == object:
-            date_cols = pd.DataFrame(features).infer_objects().select_dtypes('datetime')
-            features[:, date_cols.columns] = date_cols.to_numpy(np.int64) // 10**6  # 'ns' to 'ms'
-        elif features.dtype.type == np.datetime64:
-            features = features.astype(np.int64) // 10**6
+        features = features_datetime_to_int(features)
 
         data = array_to_input_data(features_array=features,
                                    target_array=target_array,
@@ -163,10 +160,11 @@ class MultimodalStrategy(StrategyDefineData):
                     idx=None) -> MultiModalData:
 
         # change data type to InputData
-        for source in features:
-            if not isinstance(features[source], InputData):
-                features[source] = array_to_input_data(features_array=features[source], target_array=target,
-                                                       task=task, idx=idx)
+        for inner_data in features.values():
+            if not isinstance(inner_data, InputData):
+                converted_data = features_datetime_to_int(inner_data)
+                inner_data[:] = array_to_input_data(features_array=converted_data, target_array=target,
+                                                    task=task, idx=idx)
         # create labels for data sources
         sources = dict((f'{self.source_name_by_type.get(features[data_part_key].data_type.name)}/{data_part_key}',
                         data_part)
