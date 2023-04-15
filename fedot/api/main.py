@@ -12,8 +12,8 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
+from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
@@ -161,8 +161,7 @@ class Fedot:
             :class:`~golem.core.optimisers.optimizer.GraphOptimizer` to specify a custom optimizer.
             Default optimizer is :class:`~golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
             See the `example \
-<https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_.
-        optimizer_external_params (Dict[str, Any]): additional parameters for custom optimizer (if needed).
+<https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_
     """
 
     def __init__(self,

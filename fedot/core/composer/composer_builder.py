@@ -1,12 +1,11 @@
 import platform
 from multiprocessing import set_start_method
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Type, Union
+from typing import List, Optional, Sequence, Type, Union
 
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from golem.core.optimisers.optimizer import GraphOptimizer, AlgorithmParameters, GraphGenerationParams
 from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -17,6 +16,7 @@ from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -46,7 +46,6 @@ class ComposerBuilder:
 
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimizer_parameters: Optional[AlgorithmParameters] = None
-        self.optimizer_external_parameters: dict = {}
 
         self.composer_cls: Type[Composer] = GPComposer  # default composer class
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
@@ -72,12 +71,9 @@ class ComposerBuilder:
         return self
 
     def with_optimizer_params(self, parameters: Optional[AlgorithmParameters] = None,
-                              external_parameters: Optional[Dict] = None,
                               dispatcher=None):
         if parameters is not None:
             self.optimizer_parameters = parameters
-        if external_parameters is not None:
-            self.optimizer_external_parameters = external_parameters
         if dispatcher is not None:
             self.optimizer_parameters = dispatcher
         return self
@@ -157,8 +153,7 @@ class ComposerBuilder:
                                        initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=self.graph_generation_params,
-                                       graph_optimizer_params=self.optimizer_parameters,
-                                       **self.optimizer_external_parameters)
+                                       graph_optimizer_params=self.optimizer_parameters)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,

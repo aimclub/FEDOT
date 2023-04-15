@@ -13,7 +13,6 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
-
 fedot_params_full = dict(parallelization_mode='populational',
                          show_progress=True,
                          max_depth=4,
@@ -29,7 +28,6 @@ fedot_params_full = dict(parallelization_mode='populational',
                          early_stopping_iterations=2,
                          early_stopping_timeout=None,
                          optimizer=EvoGraphOptimizer,
-                         optimizer_external_params=dict(),
                          collect_intermediate_metric=False,
                          max_pipeline_fit_time=7,
                          initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),

@@ -59,7 +59,6 @@ class ApiParamsRepository:
             early_stopping_iterations=None,
             early_stopping_timeout=10,
             optimizer=None,
-            optimizer_external_params=None,
             collect_intermediate_metric=False,
             max_pipeline_fit_time=None,
             initial_assumption=None,
