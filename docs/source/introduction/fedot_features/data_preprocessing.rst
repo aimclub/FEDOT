@@ -26,8 +26,8 @@ such as:
    * - extra spaces in categorical features
      - trim
 
-**Optional preprocessing** depends on composed pipeline structure, and is applied only if
-it is necessary for the next model from a processing queue to work.
+**Optional preprocessing** depends on a composed pipeline structure, and is applied only if
+it is necessary for a next model from a processing queue to work.
 
 .. list-table:: Optional preprocessing
    :widths: 10 5
