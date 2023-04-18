@@ -39,22 +39,10 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
     Split tabular InputData into two parts: with numerical and categorical features
     using list with ids of categorical and numerical features.
     """
-
-    if len(categorical_ids) > 0 and len(non_categorical_ids) > 0:
-        # Both categorical and numerical features
-        numerical_input = input_data.subset_features(non_categorical_ids)
-        categorical_input = input_data.subset_features(categorical_ids)
+    numerical_input = input_data.subset_features(non_categorical_ids)
+    categorical_input = input_data.subset_features(categorical_ids)
+    if not (numerical_input or categorical_input):
         return numerical_input, categorical_input
-
-    elif len(categorical_ids) == 0 and len(non_categorical_ids) > 0:
-        # Only numerical
-        numerical_input = input_data.subset_features(non_categorical_ids)
-        return numerical_input, None
-
-    elif len(categorical_ids) > 0 and len(non_categorical_ids) == 0:
-        # Only categorical
-        categorical_input = input_data.subset_features(categorical_ids)
-        return None, categorical_input
     else:
         prefix = 'InputData contains no categorical and no numerical features.'
         raise ValueError(f'{prefix} Check data for Nans and inf values')
