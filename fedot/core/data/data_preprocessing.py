@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 import numpy as np
 import pandas as pd
@@ -55,28 +55,29 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
         # Only categorical
         categorical_input = input_data.subset_features(categorical_ids)
         return None, categorical_input
-
     else:
         prefix = 'InputData contains no categorical and no numerical features.'
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def find_categorical_columns(table: np.ndarray, column_types: dict = None):
+def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[List[int]] = None):
     """
     Method for finding categorical and non-categorical columns in tabular data
 
-    :param table: tabular data for string columns types determination
-    :param column_types: list with column types. If None, perform default checking
-    :return categorical_ids: indices of categorical columns in table
-    :return non_categorical_ids: indices of non categorical columns in table
+    Args:
+        table: tabular data for string columns types determination.
+        column_type_ids: list with column types. If None, perform default checking.
+    Returns:
+        categorical_ids: indices of categorical columns in table.
+        non_categorical_ids: indices of non categorical columns in table.
     """
-    if column_types is None:
+    if column_type_ids is None:
         # Define if data contains string columns for "unknown table"
         return force_categorical_determination(table)
 
     categorical_ids = []
     non_categorical_ids = []
-    for col_id, col_type_id in enumerate(column_types):
+    for col_id, col_type_id in enumerate(column_type_ids):
         if col_type_id == TYPE_TO_ID[str]:
             categorical_ids.append(col_id)
         else:
@@ -113,8 +114,8 @@ def data_has_categorical_features(data: InputData) -> bool:
     if data.data_type is not DataTypesEnum.table:
         return False
 
-    features_types = data.supplementary_data.column_types.get('features')
-    cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
+    column_type_ids = data.supplementary_data.column_types.get('features')
+    cat_ids, non_cat_ids = find_categorical_columns(data.features, column_type_ids)
     data_has_categorical_columns = len(cat_ids) > 0
 
     data.numerical_idx = non_cat_ids

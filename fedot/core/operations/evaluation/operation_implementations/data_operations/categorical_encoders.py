@@ -36,9 +36,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        features_types_ids = input_data.supplementary_data.column_types.get('features')
+        column_type_ids = input_data.supplementary_data.column_types.get('features')
         categorical_ids, non_categorical_ids = find_categorical_columns(features,
-                                                                        features_types_ids)
+                                                                        column_type_ids)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -124,9 +124,9 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = None
 
     def fit(self, input_data: InputData):
-        features_types = input_data.supplementary_data.column_types.get('features')
+        column_type_ids = input_data.supplementary_data.column_types.get('features')
         self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
-                                                                                  features_types)
+                                                                                  column_type_ids)
 
         # If there are categorical features - process it
         if self.categorical_ids:
