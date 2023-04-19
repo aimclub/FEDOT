@@ -41,7 +41,7 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
     """
     numerical_input = input_data.subset_features(non_categorical_ids)
     categorical_input = input_data.subset_features(categorical_ids)
-    if not (numerical_input or categorical_input):
+    if numerical_input or categorical_input:
         return numerical_input, categorical_input
     else:
         prefix = 'InputData contains no categorical and no numerical features.'
