@@ -9,7 +9,7 @@ from fedot.api.main import Fedot
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-class GraphDepthSurrogateModel(SurrogateModel):
+class GraphLenSurrogateModel(SurrogateModel):
     def __call__(self, graph, **kwargs: Any):
         # example how we can get input data from objective
         input_data = kwargs.get('objective').__self__.input_data
@@ -27,7 +27,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   n_jobs=-1,
                   with_tuning=with_tuning,
                   cv_folds=2, validation_blocks=validation_blocks, preset='fast_train',
-                  optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphDepthSurrogateModel()))
+                  optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphLenSurrogateModel()))
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
