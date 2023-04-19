@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Tuple
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
@@ -120,8 +120,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}
-        self.categorical_ids = None
-        self.non_categorical_ids = None
+        self.categorical_ids: List[int] = None
+        self.non_categorical_ids: List[int] = None
 
     def fit(self, input_data: InputData):
         column_type_ids = input_data.supplementary_data.column_types.get('features')
@@ -181,8 +181,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
             column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, column)))
 
             transformed_column = column_encoder.transform(column)
-            nan_idxs: Tuple[np.ndarray, ...] = pd.isna(column).nonzero()
-            if len(nan_idxs[0]):
+            nan_idxs = np.flatnonzero(pd.isna(column))
+            if len(nan_idxs):
                 # Store np.nan values
                 transformed_column = transformed_column.astype(object)
                 transformed_column[nan_idxs] = np.nan

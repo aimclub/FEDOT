@@ -269,7 +269,7 @@ class DataPreprocessor(BasePreprocessor):
         features = data.features
         axes_except_cols = (0,) + tuple(range(2, features.ndim))
         are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
-        self.ids_relevant_features[source_name] = np.nonzero(are_allowed)[0]
+        self.ids_relevant_features[source_name] = np.flatnonzero(are_allowed)
 
     @staticmethod
     def _drop_rows_with_nan_in_target(data: InputData) -> InputData:

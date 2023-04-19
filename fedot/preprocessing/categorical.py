@@ -105,13 +105,13 @@ class BinaryCategoricalPreprocessor:
         binary_columns = data[:, self.binary_ids_to_convert]
         for column_id, column in zip(self.binary_ids_to_convert, binary_columns.T):
             encoder = self.binary_encoders[column_id]
-            nan_idxs: Tuple[np.ndarray, ...] = pd.isna(column).nonzero()
+            nan_idxs = np.flatnonzero(pd.isna(column))
             column[nan_idxs] = FEDOT_STR_NAN
             # Extend encoder classes if the column contains categories not previously encountered
             encoder.classes_ = np.unique(np.concatenate((encoder.classes_, column)))
 
             converted = encoder.transform(column)
-            if len(nan_idxs[0]):
+            if len(nan_idxs):
                 # Column has nans in its structure - after conversion replace it
                 converted = converted.astype(float)
                 converted[nan_idxs] = np.nan
