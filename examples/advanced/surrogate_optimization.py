@@ -13,6 +13,7 @@ class GraphLenSurrogateModel(SurrogateModel):
     def __call__(self, graph, **kwargs: Any):
         # example how we can get input data from objective
         input_data = kwargs.get('objective').__self__.input_data
+        print(len(input_data))  # for pep8
         return [len(graph.nodes)]
 
 
@@ -33,7 +34,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data)
+    model.predict(test_data)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
 
