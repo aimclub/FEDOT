@@ -2,18 +2,18 @@ from functools import partial
 from typing import Any
 
 from golem.core.optimisers.meta.surrogate_model import SurrogateModel
-from golem.core.optimisers.meta.surrogate_optimizer import SurrogateOptimizer
+from golem.core.optimisers.meta.surrogate_optimizer import SurrogateEachNgenOptimizer
 
 from examples.simple.time_series_forecasting.api_forecasting import get_ts_data
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-class SingleValueSurrogateModel(SurrogateModel):
+class GraphDepthSurrogateModel(SurrogateModel):
     def __call__(self, graph, **kwargs: Any):
         # example how we can get input data from objective
-        input_data = kwargs.get('objective').__self__._data_producer.args[0]
-        return [0]
+        input_data = kwargs.get('objective').__self__.input_data
+        return [len(graph.nodes)]
 
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
@@ -27,7 +27,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   n_jobs=-1,
                   with_tuning=with_tuning,
                   cv_folds=2, validation_blocks=validation_blocks, preset='fast_train',
-                  optimizer=partial(SurrogateOptimizer, surrogate_model=SingleValueSurrogateModel()))
+                  optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphDepthSurrogateModel()))
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
