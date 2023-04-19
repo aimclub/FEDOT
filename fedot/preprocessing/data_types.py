@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Tuple, Optional, Dict
 
 import numpy as np
 import pandas as pd
@@ -128,17 +128,12 @@ class TableTypesCorrector:
         table = np.delete(table, self.columns_to_del, 1)
         return table
 
-    def features_types_converting(self, features: np.ndarray) -> np.array:
+    def features_types_converting(self, features: np.ndarray) -> np.ndarray:
         """ Convert all elements in the data in every feature column into one type
 
         :param features: tabular features array
         """
         features_with_mixed_types = find_mixed_types_columns(self.features_columns_info)
-
-        if not features_with_mixed_types:
-            return features
-
-        # There are mixed-types columns in features table - convert them
         for mixed_column_id in features_with_mixed_types:
             column_info = self.features_columns_info[mixed_column_id]
 
@@ -309,7 +304,7 @@ class TableTypesCorrector:
         """
         features_types = data.supplementary_data.column_types['features']
         is_numeric_type = np.isin(features_types, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
-        numeric_type_ids = np.nonzero(is_numeric_type)[0]
+        numeric_type_ids = np.flatnonzero(is_numeric_type)
         num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
         nuniques = num_df.nunique(dropna=True)
         # reduce dataframe to include only categorical features
@@ -401,7 +396,7 @@ class TableTypesCorrector:
                 features_types[column_id] = TYPE_TO_ID[float]
 
 
-def define_column_types(table: np.ndarray):
+def define_column_types(table: Optional[np.ndarray]) -> Dict:
     """ Prepare information about types per columns. For each column store unique
     types, which column contains. If column with mixed type contain str object
     additional field 'str_ids' with indices of string objects is prepared
@@ -409,16 +404,8 @@ def define_column_types(table: np.ndarray):
     if table is None:
         return {}
 
-    #df_of_types = pd.DataFrame(table_of_types).transform()
-    nans = pd.isna(table)
-    table_of_types = np.empty_like(table, dtype=np.int8)
-    table_of_types[~nans] = [
-        TYPE_TO_ID[type(x.item() if isinstance(x, (np.ndarray, np.generic)) else x)]
-        for x in table[~nans]
-    ]
-    table_of_types[nans] = TYPE_TO_ID[type(None)]
-
-    table_of_types = pd.DataFrame(table_of_types)
+    table_of_types = pd.DataFrame(table, copy=True)
+    table_of_types = table_of_types.applymap(lambda el: TYPE_TO_ID[type(None if pd.isna(el) else el)]).astype(np.int8)
 
     # Build dataframe with unique types for each column
     uniques = table_of_types.apply([pd.unique]).rename(index={'unique': 'types'})
@@ -440,7 +427,9 @@ def define_column_types(table: np.ndarray):
     )
 
     # Build dataframe with nans indices
-    nans_ids = pd.DataFrame(nans).apply(np.where).rename(index={0: 'nan_ids'})
+    nans_ids = (table_of_types == TYPE_TO_ID[type(None)]).apply(np.where).rename(index={0: 'nan_ids'})
+
+    # Combine all dataframes
     return pd.concat([uniques, types_counts, nans_ids]).to_dict()
 
 
