@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from fedot.api.api_utils.data_definition import FeaturesType
-from fedot.core.data.data import data_with_datetime_to_numeric_np
+from fedot.core.data.data import np_datetime_to_numeric
 
 _DATE = '2000-01-01T10:00:00.100'
 _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
@@ -41,5 +41,5 @@ _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
     pd.date_range(_DATE, periods=3, freq='D').to_numpy()
 ])
 def test_datetime_erasure(features: FeaturesType):
-    result = data_with_datetime_to_numeric_np(features)
+    result = np_datetime_to_numeric(features)
     assert 'datetime' not in str(pd.DataFrame(result).infer_objects().dtypes)

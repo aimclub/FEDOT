@@ -583,7 +583,7 @@ def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Itera
     return np.arange(0, len(data_frame))
 
 
-def data_with_datetime_to_numeric_np(data: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
+def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
     """
     Change data's datetime type to integer with milliseconds unit.
 
