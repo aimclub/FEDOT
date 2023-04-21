@@ -40,11 +40,11 @@ class Data:
     Base Data type class
     """
 
-    idx: np.array
+    idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: np.array
-    target: Optional[np.array] = None
+    features: np.ndarray
+    target: Optional[np.ndarray] = None
 
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
@@ -594,11 +594,12 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
         The same table data with datetimes (if existed) converted to integer
     """
     orig_shape = data.shape
-    features_df = pd.DataFrame(data).infer_objects()
+    orig_dtype = object if 'datetime' in str((dt := data.dtype)) else dt
+    features_df = pd.DataFrame(data, copy=False).infer_objects()
     date_cols = features_df.select_dtypes('datetime')
     converted_cols = date_cols.to_numpy(np.int64) // 10 ** 6  # to 'ms' unit from 'ns'
     features_df[date_cols.columns] = converted_cols
-    return features_df.to_numpy().reshape(orig_shape)
+    return features_df.to_numpy(orig_dtype).reshape(orig_shape)
 
 
 def array_to_input_data(features_array: np.array,
