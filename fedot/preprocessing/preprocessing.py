@@ -23,6 +23,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
 )
+from fedot.core.data.data import InputData, np_datetime_to_numeric
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
@@ -190,6 +191,11 @@ class DataPreprocessor(BasePreprocessor):
             # Preprocessing was already done - return data
             return data
 
+        # Convert datetime data to numerical
+        data.features = np_datetime_to_numeric(data.features)
+        if data.target is not None:
+            data.target = np_datetime_to_numeric(data.target)  # TODO: А нужно ли конвертировать таргет из даты в число?
+
         # Wrap indices in numpy array if needed
         data.idx = np.asarray(data.idx)
 
@@ -240,6 +246,11 @@ class DataPreprocessor(BasePreprocessor):
         if data.supplementary_data.obligatorily_preprocessed:
             # Preprocessing was already done - return data
             return data
+
+        # Convert datetime data to numerical
+        data.features = np_datetime_to_numeric(data.features)
+        if data.target is not None:
+            data.target = np_datetime_to_numeric(data.target)
 
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
