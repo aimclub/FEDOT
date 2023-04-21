@@ -596,7 +596,7 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
     out_dtype = np.int64 if 'datetime' in str((dt := data.dtype)) else dt
     features_df = pd.DataFrame(data, copy=False).infer_objects()
     date_cols = features_df.select_dtypes('datetime')
-    converted_cols = date_cols.to_numpy(np.int64) // 10 ** 6  # to 'ms' unit from 'ns'
+    converted_cols = date_cols.to_numpy(np.int64) // 1e6  # to 'ms' unit from 'ns'
     features_df[date_cols.columns] = converted_cols
     return features_df.to_numpy(out_dtype).reshape(orig_shape)
 
