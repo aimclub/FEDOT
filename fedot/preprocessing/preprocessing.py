@@ -7,7 +7,8 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
+from fedot.core.data.data import InputData, np_datetime_to_numeric
+from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -23,7 +24,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
 )
-from fedot.core.data.data import InputData, np_datetime_to_numeric
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
