@@ -16,7 +16,7 @@ def test_clean_text_preprocessing():
     ]
 
     input_data = InputData(features=np.array(test_text),
-                           target=[0, 1, 1, 0],
+                           target=np.array([0, 1, 1, 0]),
                            idx=np.arange(0, len(test_text)),
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.text)
