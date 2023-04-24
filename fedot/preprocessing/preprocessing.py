@@ -194,7 +194,7 @@ class DataPreprocessor(BasePreprocessor):
         # Convert datetime data to numerical
         data.features = np_datetime_to_numeric(data.features)
         if data.target is not None:
-            data.target = np_datetime_to_numeric(data.target)  # TODO: А нужно ли конвертировать таргет из даты в число?
+            data.target = np_datetime_to_numeric(data.target)
 
         # Wrap indices in numpy array if needed
         data.idx = np.asarray(data.idx)
