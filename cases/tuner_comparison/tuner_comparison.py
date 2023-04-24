@@ -179,7 +179,7 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
     if tuner_cls == SimultaneousTuner:
         additional_params['timeout'] = timedelta(minutes=250)
 
-    tuner = tuner_cls(objective_eval, search_space, adapter, iterations, n_jobs, **additional_params)
+    tuner = tuner_cls(objective_eval, search_space, adapter, iterations=iterations, n_jobs=n_jobs, **additional_params)
 
     for pipeline_type, pipeline in pipelines.items():
 
