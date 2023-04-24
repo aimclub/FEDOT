@@ -13,7 +13,7 @@ class GraphLenSurrogateModel(SurrogateModel):
     def __call__(self, graph, **kwargs: Any):
         # example how we can get input data from objective
         input_data = kwargs.get('objective').__self__.input_data
-        print(len(input_data))  # for pep8
+        print(input_data.features.shape)  # for pep8
         return [len(graph.nodes)]
 
 
