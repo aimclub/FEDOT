@@ -21,20 +21,15 @@ from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 
 
 def initial_pipeline():
-
     lag1 = PipelineNode('lagged')
     lag1.parameters = {'window_size': 360}
     lag2 = PipelineNode('lagged')
     r1 = PipelineNode('ridge', nodes_from=[lag1])
     r2 = PipelineNode('ridge', nodes_from=[lag2])
     r3 = PipelineNode('ridge', nodes_from=[r1, r2])
-
     crop_node1 = PipelineNode('crop_range', nodes_from=[r3])
-
-    node_final = PipelineNode('ridge', nodes_from=[crop_node1])
     pipeline = Pipeline(crop_node1)
     pipeline.show()
-    pipeline.print_structure()
     return pipeline
 
 
@@ -45,7 +40,6 @@ def calculate_metrics(target, predicted):
 
 
 def compose_pipeline(pipeline, train_data, task):
-    # pipeline structure optimization
     composer_requirements = PipelineComposerRequirements(
         max_arity=10, max_depth=10,
         num_of_generations=30,
@@ -82,10 +76,10 @@ def tune_pipeline(pipeline, train_data, task):
 
 df = pd.read_csv('../../data/ts/osisaf_ice_conc.csv')
 len_forecast = 1095
-time_series = np.array(df['50_40'])
+time_series = np.array(df['85_15'])
 
 task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
-train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
+train_input, predict_input = train_test_data_setup(InputData(idx=np.array(range(len(time_series))),
                                                              features=time_series,
                                                              target=time_series,
                                                              task=task,

@@ -26,7 +26,7 @@ def test_lazy_load():
 def test_search_in_repository_by_tag_and_metainfo_correct():
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
-                                                 tags=['ml'])
+                                              tags=['ml'])
 
         assert 'linear' in model_names
         assert len(model_names) == 15
