@@ -8,5 +8,4 @@ Here are distinctive characteristics of our AutoML framework.
    :maxdepth: 2
 
    main
-   data_preprocessing
-   automation/index
+   automation
