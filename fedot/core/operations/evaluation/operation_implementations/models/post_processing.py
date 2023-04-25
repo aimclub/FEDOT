@@ -34,11 +34,16 @@ class CropToDataRangeImplementation(ModelImplementation):
         sigma_min = self.params.get('sigma_min')
         sigma_max = self.params.get('sigma_max')
 
-        min_value = np.nanmin(np.array(input_data.target))
-        min_value = min_value + min_value * sigma_min
+        min_value = self.params.get('min_value')
+        max_value = self.params.get('max_value')
 
-        max_value = np.nanmax(np.array(input_data.target))
-        max_value = max_value + max_value * sigma_max
+        if not min_value:
+            min_value = np.nanmin(np.array(input_data.target))
+            min_value = min_value + min_value * sigma_min
+
+        if not max_value:
+            max_value = np.nanmax(np.array(input_data.target))
+            max_value = max_value + max_value * sigma_max
 
         source_features[source_features > max_value] = max_value
         source_features[source_features < min_value] = min_value

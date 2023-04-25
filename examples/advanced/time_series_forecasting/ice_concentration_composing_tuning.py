@@ -28,6 +28,7 @@ def initial_pipeline():
     r2 = PipelineNode('ridge', nodes_from=[lag2])
     r3 = PipelineNode('ridge', nodes_from=[r1, r2])
     crop_node1 = PipelineNode('crop_range', nodes_from=[r3])
+    crop_node1.parameters = {'min_value': 0, 'max_value': 1}
     pipeline = Pipeline(crop_node1)
     pipeline.show()
     return pipeline
@@ -76,7 +77,7 @@ def tune_pipeline(pipeline, train_data, task):
 
 df = pd.read_csv('../../data/ts/osisaf_ice_conc.csv')
 len_forecast = 1095
-time_series = np.array(df['85_15'])
+time_series = np.array(df['110_70'])
 
 task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
 train_input, predict_input = train_test_data_setup(InputData(idx=np.array(range(len(time_series))),
