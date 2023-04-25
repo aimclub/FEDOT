@@ -33,6 +33,6 @@ Once FEDOT finds the best solution you have an opportunity :doc:`to save it </ba
 
 Framework uses ML models mostly from sklearn, statsmodels and keras libraries.
 
-You can explore more concepts :doc:`here </basics/concepts>`.
+You can explore more concepts :doc:`here </basics/main_concepts>`.
 
 There is a :doc:`quickstart guide for beginers </introduction/tutorial/quickstart>`.
