@@ -1,5 +1,5 @@
 AutoML capabilities
-===================
+-------------------
 
 FEDOT is capable of setting its 'automation rate' by omitting some of its parameters.
 For example, if you just create the FEDOT instance and call the ``fit`` method with the appropriate dataset on it,
@@ -13,7 +13,7 @@ Other than that, you can utilize more AutoML means.
 
 
 Data nature
------------
+^^^^^^^^^^^
 
 FEDOT uses specific data processing according to the source
 of the input data (whether it is pandas DataFrame, or numpy array, or just a path to the dataset, etc).
@@ -32,12 +32,12 @@ It means that you can pass it different types of datasets
 
 
 Dimensional operations
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 FEDOT supports bunch of dimensionality preprocessing operations that can be be added to the pipeline as a node.
 
 Feature selection
-^^^^^^^^^^^^^^^^^
+"""""""""""""""""
 
 There are different linear and non-linear algorithms for regression and classification tasks
 which uses scikit-learn's Recursive Feature Elimination (RFE).
@@ -57,7 +57,7 @@ which uses scikit-learn's Recursive Feature Elimination (RFE).
      - RFE via Decision tree classifier
 
 Feature extraction
-^^^^^^^^^^^^^^^^^^
+""""""""""""""""""
 
 These algorithms are used for generating new features.
 
@@ -80,7 +80,7 @@ These algorithms are used for generating new features.
      - Time-series to sparse table transformation
 
 Feature expansion
-^^^^^^^^^^^^^^^^^
+"""""""""""""""""
 
 These methods expands specific features to a bigger amount
 
@@ -94,7 +94,7 @@ These methods expands specific features to a bigger amount
 
 
 Models used
------------
+^^^^^^^^^^^
 
 Using the parameter ``preset`` of the :doc:`main API </api/api>` you can specify
 what models are available during the learning process. 
