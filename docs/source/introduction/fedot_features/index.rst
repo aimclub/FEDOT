@@ -7,5 +7,5 @@ Here are distinctive characteristics of our AutoML framework.
    :glob:
    :maxdepth: 2
 
-   main
-   automation
+   main_features
+   automation_features
