@@ -52,13 +52,13 @@ FEDOT предоставляет возможность использовать
 Концепции FEDOT'а
 =================
 
-- **Гибкость.** FEDOT может быть использован для автоматизации поиска решений для различных `классов задач <https://fedot.readthedocs.io/en/master/introduction/fedot_features/main.html>`_, `типов данных <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation/data_nature.html>`_ (тексты, изображения, таблицы), и `моделей <https://fedot.readthedocs.io/en/master/advanced/automated_pipelines_design.html>`_;
+- **Гибкость.** FEDOT может быть использован для автоматизации поиска решений для различных `классов задач <https://fedot.readthedocs.io/en/master/introduction/fedot_features/main.html#involved-tasks>`_, `типов данных <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation.html#data-nature>`_ (тексты, изображения, таблицы), и `моделей <https://fedot.readthedocs.io/en/master/advanced/automated_pipelines_design.html>`_;
 - **Расширяемость.** Алгоритмы для оптимизации пайплайнов не зависят от вида данных и задач, однако можно использовать `специальные стратегии <https://fedot.readthedocs.io/en/master/api/strategies.html>`_ для определенных классов задач или типов данных (прогнозирование временных рядов, NLP, табличные данные и т.д.) для повышения эффективности;
 - **Интегрируемость.** FEDOT поддерживает широко используемые библиотеки МО (Scikit-learn, CatBoost, XGBoost и т.д.) и позволяет интегрировать `пользовательские библиотеки <https://fedot.readthedocs.io/en/master/api/strategies.html#module-fedot.core.operations.evaluation.custom>`_;
 - **Тюнингуемость.** Поддерживаются различные методы `настройки гиперпараметров <https://fedot.readthedocs.io/en/master/advanced/hyperparameters_tuning.html>`_, включая пользовательские метрики оценивания и пространства параметров моделей;
 - **Универсальность.** FEDOT `не ограничивается конкретными задачами моделирования <https://fedot.readthedocs.io/en/master/advanced/architecture.html>`_, например, его можно использовать в ODE или PDE;
 - **Воспроизводимость.** Получаемые паплайны можно `экспортировать в формате JSON отдельно <https://fedot.readthedocs.io/en/master/advanced/pipeline_import_export.html>`_ или `вместе с входными данными в формате архива ZIP <https://fedot.readthedocs.io/en/master/advanced/project_import_export.html>`_, для воспроизведения экспериментов;
-- **Кастомизируемость.** FEDOT позволяет `настраивать сложность моделей <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation/models_used.html>`_, тем самым, получать необходимое качество.
+- **Кастомизируемость.** FEDOT позволяет `настраивать сложность моделей <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation.html#models-used>`_, тем самым, получать необходимое качество.
 
 Установка
 =========
