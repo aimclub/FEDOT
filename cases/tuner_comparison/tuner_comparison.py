@@ -2,7 +2,7 @@ import os
 import timeit
 from datetime import timedelta
 from pathlib import Path
-from typing import Type
+from typing import Type, Optional
 
 import pandas as pd
 from golem.core.log import Log
@@ -14,6 +14,7 @@ from hyperopt import hp
 from cases.tuner_comparison.classification_test_pipelines import get_pipelines_for_classification
 from cases.tuner_comparison.regression_test_pipelines import get_pipelines_for_regression
 from fedot.core.composer.metrics import ROCAUC, SMAPE
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluate
@@ -158,7 +159,12 @@ def get_metric_for_task(task: str):
     return metric_by_task[task]
 
 
-def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner], iterations: int, launch_num: int):
+def run_experiment(task: str,
+                   data_path: os.PathLike,
+                   tuner_cls: Type[BaseTuner],
+                   iterations: int,
+                   launch_num: int,
+                   get_timeout: bool = False):
     n_jobs = -1
     pipelines = get_pipelines_for_task(task)
     train_data, test_data = get_data_for_experiment(data_path, task)
@@ -174,6 +180,8 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
     create_folder(dir_to_save)
     dataset_name = os.path.basename(data_path)
     path_to_save = f'{dir_to_save}/{dataset_name}'
+    if get_timeout:
+        path_to_save = f'{dir_to_save}/mean_time_{dataset_name}'
 
     additional_params = {}
     if tuner_cls == SimultaneousTuner:
@@ -185,12 +193,20 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
 
         pipeline.fit(train_data)
         init_metric = abs(metric(pipeline, test_data))
+        if tuner_cls == SimultaneousTuner and get_timeout:
+            mean_time = pd.read_csv(Path(f'{task}', 'mean_time.csv'))
+            tuner.timeout = mean_time[(mean_time.pipeline_type == pipeline_type)
+                                       & (mean_time.iterations == iterations)
+                                       & (mean_time.dataset_name == dataset_name)
+                                       & (mean_time.tuner == IOptTuner)]
+            tuner.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
 
         for i in range(launch_num):
             print(f'\nLaunch: {i+1}/{launch_num}\n'
                   f'On dataset: {dataset_name}\n'
                   f'Pipeline: {pipeline_type}\n'
-                  f'Tuner {tuner_cls.__name__} with {iterations} iterations\n')
+                  f'Tuner {tuner_cls.__name__} with {tuner.iterations} iterations\n'
+                  f'Timeout {tuner.timeout}\n')
 
             start = timeit.default_timer()
             tuned_pipeline = tuner.tune(pipeline, show_progress=False)
@@ -215,7 +231,7 @@ def run_experiment(task: str, data_path: os.PathLike, tuner_cls: Type[BaseTuner]
 if __name__ == '__main__':
     task = 'regression'
     datasets = os.listdir(f'{task}_data')
-    tuners = [SimultaneousTuner, IOptTuner]
+    tuners = [SimultaneousTuner]
     iters_num = [20, 100]
     Log().reset_logging_level(45)
     for dataset in datasets:

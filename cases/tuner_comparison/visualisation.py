@@ -57,7 +57,7 @@ def plot_tuning_time(results_df):
         plt.show()
 
 
-def get_metric_statistics(results_df):
+def get_metric_statistics(results_df, task):
     iopt_mean = (results_df[results_df.tuner == 'IOptTuner']
                  .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
                  .rename(columns={'metric_improvement': 'IOpt mean'}))
@@ -74,11 +74,27 @@ def get_metric_statistics(results_df):
 
     stats_df = pd.concat([iopt_mean, hopt_mean, iopt_std, hopt_std], axis=1)
     pd.set_option('display.max_columns', None)
+    stats_df.to_csv(os.path.join(task, 'statistics.csv'))
+    return stats_df
+
+
+def get_mean_time(results_df, task):
+    iopt_mean = (results_df[results_df.tuner == 'IOptTuner']
+                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['tuning_time']].mean()
+                 .rename(columns={'tuning_time': 'IOpt time mean'}))
+    hopt_mean = (results_df[results_df.tuner == 'SimultaneousTuner']
+                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['tuning_time']].mean()
+                 .rename(columns={'tuning_time': 'Hyperopt time mean'}))
+    stats_df = pd.concat([iopt_mean, hopt_mean], axis=1)
+    pd.set_option('display.max_columns', None)
+    stats_df.to_csv(os.path.join(task, 'mean_time.csv'))
     return stats_df
 
 
 if __name__ == '__main__':
-    df = get_complete_dataset('regression')
-    print(get_metric_statistics(df))
+    task = 'classification'
+    df = get_complete_dataset(task)
+    print(get_metric_statistics(df, task))
+    print(get_mean_time(df, task))
     plot_metric_improvements(df)
     plot_tuning_time(df)
