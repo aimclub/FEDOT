@@ -8,6 +8,6 @@ This section contains introductory information about the framework, its capabili
    :glob:
    :maxdepth: 1
 
-   intro
-   fedot_features
+   what_is_fedot
+   fedot_features/index
    tutorial/quickstart

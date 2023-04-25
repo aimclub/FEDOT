@@ -13,6 +13,4 @@ Installation with optional dependencies for image and text processing, and for D
 
   $ pip install fedot[extra]
 
-.. include:: activating_venv.rst
-
-And that's it.
+.. include:: ./extra_remark.rst

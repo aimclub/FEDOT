@@ -9,7 +9,7 @@ and reproducibility of the experiments.
 .. toctree::
    :maxdepth: 1
 
-   concepts
+   main_concepts
    tabular_data
    ts_forecasting
    multi_modal_tasks
