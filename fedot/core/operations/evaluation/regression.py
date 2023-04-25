@@ -14,6 +14,8 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.post_processing import \
+    CropToDataRangeImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -101,7 +103,8 @@ class FedotRegressionStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'knnreg': FedotKnnRegImplementation
+        'knnreg': FedotKnnRegImplementation,
+        'crop_range': CropToDataRangeImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

@@ -234,6 +234,10 @@ class PipelineSearchSpace(SearchSpace):
                 'order': (hp.uniform, [1, 3]),
                 'window_size': (hp.uniform, [3, 20])
             },
+            'crop_range': {
+                'sigma_min': (hp.uniform, [-0.05, 0.05]),
+                'sigma_max': (hp.uniform, [-0.05, 0.05])
+            },
             'cut': {
                 'cut_part': (hp.uniform, [0, 0.9])
             },

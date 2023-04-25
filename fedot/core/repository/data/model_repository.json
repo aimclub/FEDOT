@@ -34,7 +34,7 @@
         "ml",
         "custom"
       ],
-      "tasks": "[TaskTypesEnum.regression]"
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
     "sklearn_class": {
       "accepted_node_types": [
@@ -227,6 +227,14 @@
       "tags": [
         "simple",
         "correct_params",
+        "non_linear"
+      ]
+    },
+    "crop_range": {
+      "meta": "custom_regr",
+      "presets": ["fast_train", "ts"],
+      "tags": [
+        "simple",
         "non_linear"
       ]
     },
