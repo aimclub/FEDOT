@@ -154,12 +154,19 @@ class ComposerBuilder:
             .with_initial_graphs(self.initial_population) \
             .with_custom_generation_function(self.initial_population_generation_function)()
 
-        optimiser = self.optimizer_cls(objective=objective,
-                                       initial_graphs=initial_population,
-                                       requirements=self.composer_requirements,
-                                       graph_generation_params=self.graph_generation_params,
-                                       graph_optimizer_params=self.optimizer_parameters,
-                                       **self.external_params)
+        if self.external_params:
+            optimiser = self.optimizer_cls(objective=objective,
+                                           initial_graphs=initial_population,
+                                           requirements=self.composer_requirements,
+                                           graph_generation_params=self.graph_generation_params,
+                                           graph_optimizer_params=self.optimizer_parameters,
+                                           **self.external_params)
+        else:
+            optimiser = self.optimizer_cls(objective=objective,
+                                           initial_graphs=initial_population,
+                                           requirements=self.composer_requirements,
+                                           graph_generation_params=self.graph_generation_params,
+                                           graph_optimizer_params=self.optimizer_parameters)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
