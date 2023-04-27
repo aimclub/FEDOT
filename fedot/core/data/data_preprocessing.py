@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -48,7 +48,7 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[List[int]] = None):
+def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[np.ndarray] = None):
     """
     Method for finding categorical and non-categorical columns in tabular data
 
@@ -63,13 +63,9 @@ def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[List[i
         # Define if data contains string columns for "unknown table"
         return force_categorical_determination(table)
 
-    categorical_ids = []
-    non_categorical_ids = []
-    for col_id, col_type_id in enumerate(column_type_ids):
-        if col_type_id == TYPE_TO_ID[str]:
-            categorical_ids.append(col_id)
-        else:
-            non_categorical_ids.append(col_id)
+    is_str = np.isin(column_type_ids, TYPE_TO_ID[str])
+    categorical_ids = np.flatnonzero(is_str).tolist()
+    non_categorical_ids = np.flatnonzero(~is_str).tolist()
 
     return categorical_ids, non_categorical_ids
 

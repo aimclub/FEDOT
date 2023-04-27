@@ -37,12 +37,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
         features = input_data.features
         column_type_ids = input_data.supplementary_data.column_types.get('features')
-        categorical_ids, non_categorical_ids = find_categorical_columns(features,
-                                                                        column_type_ids)
-
-        # Indices of columns with categorical and non-categorical features
-        self.categorical_ids = categorical_ids
-        self.non_categorical_ids = non_categorical_ids
+        self.categorical_ids, self.non_categorical_ids = find_categorical_columns(features, column_type_ids)
 
         # If there are categorical features - process it
         if self.categorical_ids:

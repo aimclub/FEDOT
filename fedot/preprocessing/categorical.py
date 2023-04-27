@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -28,9 +27,6 @@ class BinaryCategoricalPreprocessor:
         column_type_ids = input_data.supplementary_data.column_types['features']
         categorical_ids, _ = find_categorical_columns(input_data.features,
                                                       column_type_ids)
-        if len(categorical_ids) == 0:
-            # There is no need to process categorical features
-            return self
 
         binary_ids_to_convert = []
         for column_id, column in zip(categorical_ids, input_data.features[:, categorical_ids].T):

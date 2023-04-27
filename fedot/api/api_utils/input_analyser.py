@@ -1,9 +1,8 @@
 from functools import partial
 from inspect import signature
-
-import numpy as np
 from typing import Dict, Tuple, Any, Union
 
+import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.composer.meta_rules import get_cv_folds_number, get_recommended_preset, \
@@ -118,11 +117,5 @@ class InputAnalyser:
         """
 
         categorical_ids, _ = find_categorical_columns(input_data.features)
-        all_cardinality = 0
-        need_label = False
-        for idx in categorical_ids:
-            all_cardinality += np.unique(input_data.features[:, idx].astype(str)).shape[0]
-            if all_cardinality > self.max_cat_cardinality:
-                need_label = True
-                break
-        return need_label
+        uniques = np.unique(input_data.features[:, categorical_ids].astype(str))
+        return len(uniques) > self.max_cat_cardinality
