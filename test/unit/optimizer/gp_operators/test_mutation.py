@@ -2,6 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from golem.core.optimisers.genetic.operators.base_mutations import MutationStrengthEnum
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.data.data import InputData
@@ -16,7 +17,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.genetic.operators.mutation import Mutation, MutationStrengthEnum
+from golem.core.optimisers.genetic.operators.mutation import Mutation
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.optimizer import GraphGenerationParams
 from test.unit.composer.test_composer import to_numerical
