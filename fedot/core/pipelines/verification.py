@@ -9,7 +9,7 @@ from golem.core.dag.verification_rules import (
     has_no_cycle,
     has_no_isolated_nodes,
     has_no_self_cycled_nodes,
-    has_root
+    has_one_root
 )
 from golem.core.optimisers.graph import OptGraph
 
@@ -30,7 +30,7 @@ from fedot.core.pipelines.verification_rules import (
 )
 from fedot.core.repository.tasks import TaskTypesEnum
 
-common_rules = [has_root,
+common_rules = [has_one_root,
                 has_no_cycle,
                 has_no_self_cycled_nodes,
                 has_no_isolated_nodes,
