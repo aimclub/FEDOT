@@ -120,6 +120,7 @@ class ApiComposer:
                                    .with_metrics(self.metrics.metric_functions)
                                    .with_cache(self.pipelines_cache, self.preprocessing_cache)
                                    .with_graph_generation_param(self.params.graph_generation_params)
+                                   .with_external_params(self.params.data)
                                    .build())
 
         if self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs):

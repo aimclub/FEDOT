@@ -53,7 +53,7 @@ class ComposerBuilder:
 
         self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
         self.initial_population_generation_function: Optional[GenerationFunction] = None
-
+        self.external_params = None
         self._keep_history: bool = True
         self._full_history_dir: Optional[Path] = None
 
@@ -94,6 +94,11 @@ class ComposerBuilder:
 
     def with_initial_pipelines(self, initial_pipelines: Union[Pipeline, Sequence[Pipeline]]):
         self.initial_population = initial_pipelines
+        return self
+
+    def with_external_params(self, params):
+        if 'optimizer_external_params' in params:
+            self.external_params = params['optimizer_external_params']
         return self
 
     def with_initial_pipelines_generation_function(self, generation_function: GenerationFunction):
@@ -153,7 +158,8 @@ class ComposerBuilder:
                                        initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=self.graph_generation_params,
-                                       graph_optimizer_params=self.optimizer_parameters)
+                                       graph_optimizer_params=self.optimizer_parameters,
+                                       **self.external_params)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,

@@ -30,6 +30,7 @@ class GPComposer(Composer):
                  preprocessing_cache: Optional[PreprocessingCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
+        self.external_params = None
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
 
