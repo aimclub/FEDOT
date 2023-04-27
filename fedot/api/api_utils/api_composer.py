@@ -113,15 +113,14 @@ class ApiComposer:
                          fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
-            .with_requirements(self.params.composer_requirements)
-            .with_initial_pipelines(initial_assumption)
-            .with_optimizer(self.params.get('optimizer'))
-            .with_optimizer_params(parameters=self.params.optimizer_params,
-                                   external_parameters=self.params.get('optimizer_external_params'))
-            .with_metrics(self.metrics.metric_functions)
-            .with_cache(self.pipelines_cache, self.preprocessing_cache)
-            .with_graph_generation_param(graph_generation_params=self.params.graph_generation_params)
-            .build())
+                                   .with_requirements(self.params.composer_requirements)
+                                   .with_initial_pipelines(initial_assumption)
+                                   .with_optimizer(self.params.get('optimizer'))
+                                   .with_optimizer_params(parameters=self.params.optimizer_params)
+                                   .with_metrics(self.metrics.metric_functions)
+                                   .with_cache(self.pipelines_cache, self.preprocessing_cache)
+                                   .with_graph_generation_param(self.params.graph_generation_params)
+                                   .build())
 
         if self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs):
             # Launch pipeline structure composition

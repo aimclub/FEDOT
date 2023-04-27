@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 from typing import Optional, Union, Sequence
 
 import pytest
@@ -32,7 +33,7 @@ class StaticOptimizer(GraphOptimizer):
         super().__init__(objective, initial_graph, requirements,
                          graph_generation_params, graph_optimizer_parameters)
         self.change_types = []
-        self.node_name = kwargs.get('node_name') or 'logit'
+        self.node_name = kwargs.get('node_name') or 'rf'
 
     def optimise(self, objective: ObjectiveFunction):
         graph = OptGraph(OptNode(self.node_name))
@@ -47,9 +48,8 @@ def test_external_static_optimizer(data_fixture, request):
     automl = Fedot(problem='classification', timeout=0.2, logging_level=logging.DEBUG,
                    preset='fast_train',
                    with_tuning=False,
-                   optimizer=StaticOptimizer,
-                   pop_size=2,
-                   optimizer_external_params={'node_name': 'logit'})
+                   optimizer=partial(StaticOptimizer, node_name='logit'),
+                   pop_size=2)
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 
