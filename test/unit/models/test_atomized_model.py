@@ -11,7 +11,7 @@ from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
-from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
+from test.unit.utilities.test_pipeline_import_export import create_func_delete_files
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -109,14 +109,13 @@ def create_input_data():
 def test_save_load_atomized_pipeline_correctly():
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    json_actual, _ = pipeline.save('test_save_load_atomized_pipeline_correctly', create_subdir=False)
+    path = 'test_save_load_atomized_pipeline_correctly'
+    json_actual, _ = pipeline.save(path, create_subdir=False)
 
-    json_path_load = create_correct_path('test_save_load_atomized_pipeline_correctly')
-
-    with open(json_path_load, 'r') as json_file:
+    with open(os.path.join(path, path + '.json'), 'r') as json_file:
         json_expected = json.load(json_file)
 
-    pipeline_loaded = Pipeline.from_serialized(json_path_load)
+    pipeline_loaded = Pipeline().load(path)
 
     assert pipeline.length == pipeline_loaded.length
     assert json_actual == json.dumps(json_expected, indent=4)
@@ -124,16 +123,15 @@ def test_save_load_atomized_pipeline_correctly():
 
 def test_save_load_fitted_atomized_pipeline_correctly():
     train_data, test_data = create_input_data()
+    path = 'test_save_load_fitted_atomized_pipeline_correctly'
 
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
     pipeline.fit(train_data)
     before_save_predicted = pipeline.predict(test_data)
-    json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly', create_subdir=False)
+    json_actual, _ = pipeline.save(path, create_subdir=False)
 
-    json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
-
-    pipeline_loaded = Pipeline.from_serialized(json_path_load)
+    pipeline_loaded = Pipeline().load(path)
     json_expected, _ = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded',
                                             create_subdir=False)
 

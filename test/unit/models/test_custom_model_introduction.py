@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 
 from examples.advanced.time_series_forecasting.custom_model_tuning import get_fitting_custom_pipeline
-from examples.simple.pipeline_import_export import create_correct_path
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -194,15 +193,14 @@ def test_save_pipeline_with_custom():
     pipeline = get_centered_pipeline()
     pipeline.fit_from_scratch(train_input)
 
-    pipeline.save(path='test_pipeline', create_subdir=False)
-    json_path_load = create_correct_path('test_pipeline')
-    new_pipeline = Pipeline.from_serialized(json_path_load)
+    path = 'test_pipeline'
+    pipeline.save(path=path, create_subdir=False)
+    new_pipeline = Pipeline().load(path)
     predicted_output_after_export = new_pipeline.predict(predict_input)
     prediction_after_export = np.array(predicted_output_after_export.predict)
 
     # recursive deleting
-    dir_ = os.path.dirname(json_path_load)
-    shutil.rmtree(dir_)
+    shutil.rmtree(path)
 
     assert prediction_after_export is not None
 
