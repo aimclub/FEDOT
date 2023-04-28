@@ -41,6 +41,10 @@
     "poly_degree": 2,
     "order": 1
   },
+  "crop_range": {
+    "sigma_min": 0,
+    "sigma_max": 0
+  },
   "cut": {
     "cut_part": 0.5
   },
