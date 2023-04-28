@@ -65,11 +65,11 @@ search_space_dict = \
                 'type': 'discrete'}
         },
         'knnreg': {
-                'n_neighbors': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 50],
-                    'type': 'discrete'}
-            },
+            'n_neighbors': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 50],
+                'type': 'discrete'}
+        },
         'svr': {
             'C': {
                 'hyperopt-dist': hp.uniform,
@@ -182,31 +182,38 @@ def run_experiment(task: str,
     path_to_save = f'{dir_to_save}/{dataset_name}'
     if get_timeout:
         path_to_save = f'{dir_to_save}/mean_time_{dataset_name}'
-
-    additional_params = {}
-    if tuner_cls == SimultaneousTuner:
-        additional_params['timeout'] = timedelta(minutes=250)
-
-    tuner = tuner_cls(objective_eval, search_space, adapter, iterations=iterations, n_jobs=n_jobs, **additional_params)
+    num_iter = iterations
 
     for pipeline_type, pipeline in pipelines.items():
 
         pipeline.fit(train_data)
         init_metric = abs(metric(pipeline, test_data))
-        if tuner_cls == SimultaneousTuner and get_timeout:
-            mean_time = pd.read_csv(Path(f'{task}', 'mean_time.csv'))
-            tuner.timeout = mean_time[(mean_time.pipeline_type == pipeline_type)
-                                       & (mean_time.iterations == iterations)
-                                       & (mean_time.dataset_name == dataset_name)
-                                       & (mean_time.tuner == IOptTuner)]
-            tuner.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
 
         for i in range(launch_num):
-            print(f'\nLaunch: {i+1}/{launch_num}\n'
+            additional_params = {}
+            if tuner_cls == SimultaneousTuner:
+                additional_params['timeout'] = timedelta(minutes=250)
+                additional_params['early_stopping_rounds'] = DEFAULT_TUNING_ITERATIONS_NUMBER
+                if get_timeout:
+                    mean_time = pd.read_csv(Path(f'{task}', 'mean_time.csv'))
+                    seconds = mean_time[(mean_time.pipeline_type == pipeline_type)
+                                        & (mean_time.iter_num == num_iter)
+                                        & (mean_time.dataset == dataset_name)]['IOpt time mean'].values[0]
+                    additional_params['timeout'] = timedelta(seconds=seconds)
+                    additional_params['early_stopping_rounds'] = DEFAULT_TUNING_ITERATIONS_NUMBER
+                    iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
+
+            tuner = tuner_cls(objective_eval,
+                              search_space,
+                              adapter, iterations=iterations, n_jobs=n_jobs,
+                              **additional_params)
+
+            print(f'\nLaunch: {i + 1}/{launch_num}\n'
                   f'On dataset: {dataset_name}\n'
                   f'Pipeline: {pipeline_type}\n'
-                  f'Tuner {tuner_cls.__name__} with {tuner.iterations} iterations\n'
-                  f'Timeout {tuner.timeout}\n')
+                  f'Tuner {tuner_cls.__name__} with {iterations} iterations\n')
+            if tuner_cls == SimultaneousTuner:
+                print(f'Timeout {tuner.max_seconds}\n')
 
             start = timeit.default_timer()
             tuned_pipeline = tuner.tune(pipeline, show_progress=False)
@@ -238,4 +245,4 @@ if __name__ == '__main__':
         for tuner in tuners:
             for iter_num in iters_num:
                 path = Path(f'{task}_data', dataset)
-                dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30)
+                dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30, get_timeout=True)
