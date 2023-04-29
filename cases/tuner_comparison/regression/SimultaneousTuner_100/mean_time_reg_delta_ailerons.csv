@@ -1,0 +1,4 @@
+,pipeline_type,init_metric,final_metric,tuning_time,iter_num,dataset
+0,linear,188.76484605919097,186.55831111264973,39.20073040004354,100,reg_delta_ailerons.csv
+1,branched,62.23480775330945,59.85648964608192,185.29488679999486,100,reg_delta_ailerons.csv
+2,complex,189.97174445340602,56.9700389132091,757.9707789999666,100,reg_delta_ailerons.csv

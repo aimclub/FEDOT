@@ -1,0 +1,2 @@
+,pipeline_type,init_metric,final_metric,tuning_time,iter_num,dataset
+0,linear,134.35494327089623,134.4169565026745,238.98419769993052,100,reg_pol.csv
