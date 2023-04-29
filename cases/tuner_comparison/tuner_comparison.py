@@ -166,7 +166,7 @@ def run_experiment(task: str,
                    launch_num: int,
                    get_timeout: bool = False):
     n_jobs = -1
-    pipelines = get_pipelines_for_task(task)
+    pipelines = {'complex': get_pipelines_for_task(task)['complex']}
     train_data, test_data = get_data_for_experiment(data_path, task)
     metric = get_metric_for_task(task)
     objective_eval = get_objective_evaluate(metric, train_data, n_jobs)
