@@ -31,7 +31,7 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params
                 if new_params is not None:
                     node.parameters = new_params
             except Exception as ex:
-                pipeline.log.error(ex)
+                pipeline.log.error(f'Parameter change mutation for {pipeline} was failed with exception {ex}')
     return pipeline
 
 
