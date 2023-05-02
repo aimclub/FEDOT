@@ -36,14 +36,16 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
             params: operation's init and fitting hyperparameters
 
             .. details:: explanation of params
+                - ``bagging_params`` - params belong to bagging operation:
+                    - ``n_estimators`` - numbers of base learner in bagging structure
+                    - ``bootstrap`` - whether samples are drawn with replacement. If False, sampling without replacement
+                                      is performed.
+                    - ``oob_score`` - whether to use out-of-bag samples to estimate the generalization error.
+                                      Only available if bootstrap=True.
+                    - ``n_jobs`` - the number of jobs to run in parallel
 
-                - ``numbers_of_learners`` - numbers of base learner in bagging structure
-                - ``bootstrap`` - whether samples are drawn with replacement. If False, sampling without replacement
-                                  is performed.
-                - ``oob_score`` - whether to use out-of-bag samples to estimate the generalization error.
-                                  Only available if bootstrap=True.
-                - ``model_params`` - model's fitting params
-                - ``n_jobs`` - the number of jobs to run in parallel
+                - ``model_params`` - model's fitting params, which is used in bagging
+
 
     """
 
@@ -91,7 +93,12 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
 
         self._model_params = params.get('model_params')
         # TODO: sklearn param base_estimator will change to estimator in future since 1.4
-        self._bagging_params = params.get('bagging_params')
+
+        self._bagging_params = {}
+
+        for param in params.keys():
+            if param != 'model_params':
+                self._bagging_params.update({param: params.get(param)})
 
         return params
 
@@ -145,9 +152,9 @@ class SkLearnBaggingClassificationStrategy(SkLearnBaggingStrategy):
         self.operation_impl = self._convert_to_operation(operation_type)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        if self.output_mode == 'labels':
+        if self.output_mode in ['default', 'labels']:
             prediction = trained_operation.predict(predict_data.features)
-        elif self.output_mode in ['probs', 'full_probs', 'default'] and predict_data.task:
+        elif self.output_mode in ['probs', 'full_probs'] and predict_data.task:
             prediction = trained_operation.predict_proba(predict_data.features)
         else:
             raise ValueError(f'Output model {self.output_mode} is not supported')

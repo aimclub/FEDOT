@@ -176,12 +176,10 @@
     "whiten": "unit-variance"
   },
   "bag_dt": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": false,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": false,
+    "n_jobs": 1,
     "model_params": {
       "max_depth": null,
       "min_samples_split": 2,
@@ -189,12 +187,10 @@
     }
   },
   "bag_dtreg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": false,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": false,
+    "n_jobs": 1,
     "model_params": {
       "max_depth": null,
       "min_samples_split": 2,
@@ -202,92 +198,74 @@
     }
   },
   "bag_adareg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": null
   },
   "bag_catboost": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": {
       "allow_writing_files": false,
       "verbose": false
     }
   },
   "bag_xgboost": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": null
   },
   "bag_lgbm": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": null
   },
   "bag_lgbmxt": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": {
       "extra_tree": true
     }
   },
   "bag_catboostreg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": {
       "allow_writing_files": false,
       "verbose": false
     }
   },
   "bag_xgboostreg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": null
   },
   "bag_lgbmreg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": null
   },
   "bag_lgbmxtreg": {
-    "bagging_params": {
-      "n_estimators": 25,
-      "bootstrap": true,
-      "oob_score": true,
-      "n_jobs": 1
-    },
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "n_jobs": 1,
     "model_params": {
       "extra_tree": true
     }

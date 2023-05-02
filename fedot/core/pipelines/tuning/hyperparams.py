@@ -6,6 +6,8 @@ from golem.core.tuning.hyperopt_tuner import get_parameter_hyperopt_space
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class ParametersChanger:
@@ -27,11 +29,17 @@ class ParametersChanger:
         # Get available parameters for operation
         params_list = PipelineSearchSpace().get_parameters_for_operation(self.operation_name)
 
+        if self._is_bagging(self.operation_name):
+            params_list.remove('model_params')
+
         if not params_list:
             params_dict = None
         else:
             # Get new values for all parameters
             params_dict = self.new_params_dict(params_list)
+
+        if self._is_bagging(self.operation_name):
+            params_dict.update({'model_params': self.current_params['model_params']})
 
         return params_dict
 
@@ -96,3 +104,18 @@ class ParametersChanger:
         sigma = kwargs['current_value'] * 0.3
         new_value = random.normalvariate(kwargs['current_value'], sigma)
         return {parameter_name: new_value}
+
+    @staticmethod
+    def _is_bagging(operation_name):
+        cls_ops = OperationTypesRepository().suitable_operation(
+            task_type=TaskTypesEnum.classification, tags=['bagging']
+        )
+
+        reg_ops = OperationTypesRepository().suitable_operation(
+            task_type=TaskTypesEnum.regression, tags=['bagging']
+        )
+
+        if operation_name in cls_ops or operation_name in reg_ops:
+            return True
+
+        return False

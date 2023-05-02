@@ -81,7 +81,7 @@ def test_boosting_regression_operation():
 def test_bagging_classification_operation():
     train_data, test_data = get_classification_data()
     # poor params to accelerate the time
-    params = {'bagging_params': {'n_estimators': 3, 'n_jobs': -1}}
+    params = {'n_estimators': 3, 'n_jobs': -1}
 
     model_names = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification, tags=['bagging']
@@ -104,7 +104,7 @@ def test_bagging_regression_operation():
     train_data, test_data = train_test_data_setup(data)
 
     # poor params to accelerate the time
-    params = {'bagging_params': {'n_estimators': 3, 'n_jobs': -1}}
+    params = {'n_estimators': 3, 'n_jobs': -1}
 
     model_names = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.regression, tags=['bagging']

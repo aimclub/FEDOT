@@ -10,7 +10,8 @@ from golem.core.optimisers.genetic.operators.mutation import Mutation
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, bagging_mutation
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, bagging_mutation, \
+    parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
@@ -174,12 +175,10 @@ def test_no_opt_or_graph_nodes_after_mutation():
 
 def test_bagging_mutation_changes_pipeline():
     init_pipeline = PipelineBuilder() \
-        .add_node('scaling') \
         .add_node('lgbm', params={"num_leaves": 16}) \
         .build()
 
     bag_pipeline = PipelineBuilder() \
-        .add_node('scaling') \
         .add_node('bag_lgbm', params={"model_params": {"num_leaves": 16}}) \
         .build()
 
@@ -195,14 +194,14 @@ def test_bagging_mutation_changes_pipeline():
         )
     )
 
-    model_params = bag_pipeline.nodes[0].parameters["model_params"]["num_leaves"]
-    bagging_params = bag_pipeline.nodes[0].parameters["bagging_params"]
+    init_params = init_pipeline.nodes[0].parameters
+    bag_params = bag_pipeline.nodes[0].parameters
+    mut_params = pipeline.nodes[0].parameters
 
-    mut_model_params = pipeline.nodes[0].parameters["model_params"]["num_leaves"]
-    mut_bagging_params = pipeline.nodes[0].parameters["bagging_params"]
-
-    assert model_params == mut_model_params
-    assert bagging_params == mut_bagging_params
+    assert init_params['model_params']['num_leaves'] == mut_params['model_params']['num_leaves']
+    assert bag_params["n_estimators"] == mut_params["n_estimators"]
+    assert bag_params["bootstrap"] == mut_params["bootstrap"]
+    assert bag_params["oob_score"] == mut_params["oob_score"]
 
 
 def test_bagging_mutation_with_not_allowed_model():
@@ -223,3 +222,28 @@ def test_bagging_mutation_with_not_allowed_model():
     )
 
     assert init_pipeline == pipeline
+
+
+def test_parameter_change_mutation_for_bagging_model():
+    init_params = {
+        "n_estimators": 3,
+        "n_jobs": -1,
+        "model_params": {"num_leaves": 16}
+    }
+
+    bag_pipeline = PipelineBuilder() \
+        .add_node('bag_lgbm', params=init_params) \
+        .build()
+
+    params_before = bag_pipeline.nodes[0].parameters
+
+    mutation_params = GPAlgorithmParameters()
+    new_pipeline = parameter_change_mutation(bag_pipeline, None, None, mutation_params)
+
+    params_after = new_pipeline.nodes[0].parameters
+
+    assert params_before["n_estimators"] != params_after["n_estimators"]
+    assert params_before["model_params"]["num_leaves"] == params_after["model_params"]["num_leaves"]
+
+
+
