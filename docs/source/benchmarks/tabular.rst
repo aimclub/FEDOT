@@ -23,3 +23,11 @@ Also, the comparison was conducted against the state-of-the-art AutoGluon framew
    :width: 80%
 
 There is a small advantage of the FEDOT for F1 and ROC AUC metrics, but the other metrics are near equal.
+
+There are even more overall classification problem results across popular AutoML frameworks: 
+
+.. csv-table:: Classification statistics
+   :file: amlb_res.csv
+   :align: center
+   :widths: auto
+   :header-rows: 1
