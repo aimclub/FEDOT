@@ -29,8 +29,8 @@ _ = classification_dataset
 
 def sample_pipeline():
     return Pipeline(PipelineNode(operation_type='logit',
-                                  nodes_from=[PipelineNode(operation_type='rf'),
-                                              PipelineNode(operation_type='scaling')]))
+                                 nodes_from=[PipelineNode(operation_type='rf'),
+                                             PipelineNode(operation_type='scaling')]))
 
 
 def get_classification_data():
