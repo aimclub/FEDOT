@@ -1,17 +1,14 @@
 from datetime import timedelta
-from typing import Optional, Union, Iterable
 
 import numpy as np
 import pytest
-from golem.core.optimisers.fitness import Fitness
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import HyperoptTuner
 from hyperopt import tpe, rand
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData
-from fedot.core.optimisers.objective.data_objective_eval import get_pipeline_evaluator
+from fedot.core.optimisers.objective import get_pipeline_evaluator
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricType

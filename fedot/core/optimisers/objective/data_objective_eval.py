@@ -12,7 +12,6 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
-from fedot.core.optimisers.objective import MetricsObjective
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.optimisers.objective.data_source_splitter import DataSource, DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
@@ -173,3 +172,24 @@ def get_pipeline_evaluator(metrics: Union[MetricType, Iterable[MetricType]],
     data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     return objective_evaluate
+
+
+def get_pipeline_fitness(pipeline: Pipeline,
+                         metrics: Union[MetricType, Iterable[MetricType]],
+                         data: InputData,
+                         cv_folds: Optional[int] = None,
+                         validation_blocks: Optional[int] = None) -> Fitness:
+    """Helper function for simplifying Pipeline evaluation.
+
+    Args:
+        pipeline: Pipeline for evaluation
+        metrics: one or many metrics to be evaluated and included in Fitness object.
+        data: data for evaluation.
+        cv_folds: number of folds for cross validation of Pipeline, optional.
+        validation_blocks: Number of validation blocks, optional, used only for time series validation.
+
+    Returns:
+        Fitness object
+    """
+    fitness = get_pipeline_evaluator(metrics, data, cv_folds, validation_blocks).evaluate(pipeline)
+    return fitness
