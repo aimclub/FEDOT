@@ -21,7 +21,7 @@ dilbert,neg_logloss,-0.148,-0.159,-0.05,-0.033
 fabert,neg_logloss,-0.788,-0.895,-0.752,-0.766
 guillermo,auc,0.9,0.891,,
 jasmine,auc,0.883,0.888,0.887,0.88
-jungle_chess_2pcs_raw_endgame_complete,neg_logloss,-0.431,-0.193,,
+jungle chess,neg_logloss,-0.431,-0.193,,
 kc1,auc,0.822,0.843,,0.831
 kr-vs-kp,auc,0.999,1.0,,1.0
 mfeat-factors,neg_logloss,-0.161,-0.094,,-0.082
