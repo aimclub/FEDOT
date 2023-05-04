@@ -170,7 +170,9 @@ def get_pipeline_evaluator(metrics: Union[MetricType, Iterable[MetricType]],
     """
     objective = MetricsObjective(metrics)
     data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    objective_evaluate = PipelineObjectiveEvaluate(objective,
+                                                   data_producer, validation_blocks=validation_blocks,
+                                                   do_unfit=False)
     return objective_evaluate
 
 
