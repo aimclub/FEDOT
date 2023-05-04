@@ -1,3 +1,5 @@
+from typing import Optional, Dict, Tuple, Callable, List
+
 import numpy as np
 from golem.core.tuning.search_space import SearchSpace
 from hyperopt import hp
@@ -13,7 +15,7 @@ class PipelineSearchSpace(SearchSpace):
     """
 
     def __init__(self,
-                 custom_search_space: dict = None,
+                 custom_search_space: Optional[Dict[str, Dict[str, Tuple[Callable, List]]]] = None,
                  replace_default_search_space: bool = False):
         self.custom_search_space = custom_search_space
         self.replace_default_search_space = replace_default_search_space
@@ -291,11 +293,10 @@ class PipelineSearchSpace(SearchSpace):
         }
 
         if self.custom_search_space is not None:
-            for operation in self.custom_search_space.keys():
-                if self.replace_default_search_space:
-                    parameters_per_operation[operation] = self.custom_search_space[operation]
-                else:
-                    for key, value in self.custom_search_space[operation].items():
-                        parameters_per_operation[operation][key] = value
+            if self.replace_default_search_space:
+                parameters_per_operation.update(self.custom_search_space)
+            else:
+                for operation_name, operation_dct in self.custom_search_space.items():
+                    parameters_per_operation[operation_name].update(operation_dct)
 
         return parameters_per_operation

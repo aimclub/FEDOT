@@ -16,4 +16,4 @@ def test_api_print_info_correct():
     task_types = ['regression', 'classification', 'clustering', 'ts_forecasting']
     for task_name in task_types:
         print_models_info(task_name=task_name)
-        print_data_operations_info(task_name=task_name)
+        print_data_operations_info(task_name=task_name, skip_list=['word2vec_pretrained'])

@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -15,17 +17,21 @@ def print_models_info(task_name):
 
     # Filter operations
     repository_operations_list = _filter_operations_by_type(repository, task)
+    search_space = PipelineSearchSpace()
     for model in repository_operations_list:
         if model.id != 'custom':
-            hyperparameters = PipelineSearchSpace().get_operation_parameter_range(str(model.id))
+            hyperparameters = search_space.get_operation_parameter_range(str(model.id))
             implementation_info = model.current_strategy(task)(model.id).implementation_info
-            print(f"Model name - '{model.id}'")
-            print(f"Available hyperparameters to optimize with tuner - {hyperparameters}")
-            print(f"Strategy implementation - {model.current_strategy(task)}")
-            print(f"Model implementation - {implementation_info}\n")
+            info_lst = [
+                f"Model name - '{model.id}'",
+                f"Available hyperparameters to optimize with tuner - {hyperparameters}",
+                f"Strategy implementation - {model.current_strategy(task)}",
+                f"Model implementation - {implementation_info}\n"
+            ]
+            print('\n'.join(info_lst))
 
 
-def print_data_operations_info(task_name):
+def print_data_operations_info(task_name, skip_list: Optional[List[str]] = None):
     """ Function display data operations and information about it for considered task
 
     :param task_name: name of available task type
@@ -34,15 +40,20 @@ def print_data_operations_info(task_name):
     task = _get_task_by_name(task_name)
 
     repository = OperationTypesRepository(operation_type='data_operation')
-    # Filter operations
     repository_operations_list = _filter_operations_by_type(repository, task)
+    if skip_list is not None:
+        repository_operations_list = list(filter(lambda op: op.id not in skip_list, repository_operations_list))
+    search_space = PipelineSearchSpace()
     for operation in repository_operations_list:
-        hyperparameters = PipelineSearchSpace().get_operation_parameter_range(str(operation.id))
+        hyperparameters = search_space.get_operation_parameter_range(str(operation.id))
         implementation_info = operation.current_strategy(task)(operation.id).implementation_info
-        print(f"Data operation name - '{operation.id}'")
-        print(f"Available hyperparameters to optimize with tuner - {hyperparameters}")
-        print(f"Strategy implementation - {operation.current_strategy(task)}")
-        print(f"Operation implementation - {implementation_info}\n")
+        info_lst = [
+            f"Data operation name - '{operation.id}'",
+            f"Available hyperparameters to optimize with tuner - {hyperparameters}",
+            f"Strategy implementation - {operation.current_strategy(task)}",
+            f"Operation implementation - {implementation_info}\n"
+        ]
+        print('\n'.join(info_lst))
 
 
 def _filter_operations_by_type(repository, task):
