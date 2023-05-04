@@ -1,6 +1,6 @@
 import traceback
 from datetime import timedelta
-from typing import Callable, Iterable, Optional, Tuple
+from typing import Optional, Union, Iterable
 
 import numpy as np
 from golem.core.log import default_log
@@ -12,10 +12,11 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
+from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.optimisers.objective.data_source_splitter import DataSource, DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.quality_metrics_repository import MetricType
 from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
-
-DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
 
 class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
@@ -150,3 +151,47 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     @property
     def input_data(self):
         return self._data_producer.args[0]
+
+
+def get_pipeline_evaluator(metrics: Union[MetricType, Iterable[MetricType]],
+                           data: InputData,
+                           cv_folds: Optional[int] = None,
+                           validation_blocks: Optional[int] = None) -> PipelineObjectiveEvaluate:
+    """Helper function for simplifying Pipeline evaluation.
+
+    Args:
+        metrics: one or many metrics to be evaluated and included in Fitness object.
+        data: data for evaluation.
+        cv_folds: number of folds for cross validation of Pipeline, optional.
+        validation_blocks: Number of validation blocks, optional, used only for time series validation.
+
+    Returns:
+        Callable object that can evaluate Pipelines
+    """
+    objective = MetricsObjective(metrics)
+    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective,
+                                                   data_producer, validation_blocks=validation_blocks,
+                                                   do_unfit=False)
+    return objective_evaluate
+
+
+def get_pipeline_fitness(pipeline: Pipeline,
+                         metrics: Union[MetricType, Iterable[MetricType]],
+                         data: InputData,
+                         cv_folds: Optional[int] = None,
+                         validation_blocks: Optional[int] = None) -> Fitness:
+    """Helper function for simplifying Pipeline evaluation.
+
+    Args:
+        pipeline: Pipeline for evaluation
+        metrics: one or many metrics to be evaluated and included in Fitness object.
+        data: data for evaluation.
+        cv_folds: number of folds for cross validation of Pipeline, optional.
+        validation_blocks: Number of validation blocks, optional, used only for time series validation.
+
+    Returns:
+        Fitness object
+    """
+    fitness = get_pipeline_evaluator(metrics, data, cv_folds, validation_blocks).evaluate(pipeline)
+    return fitness

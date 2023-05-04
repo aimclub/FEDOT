@@ -4,7 +4,6 @@ from functools import partial
 
 import numpy as np
 import pytest
-
 from golem.core.optimisers.fitness import SingleObjFitness
 
 from fedot.core.data.data import InputData
@@ -157,9 +156,9 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
 def test_pipeline_objective_evaluate_for_timeseries_cv(folds, actual_value):
     forecast_len, validation_blocks, time_series = configure_experiment()
+    simple_pipeline = get_simple_ts_pipeline()
     objective = MetricsObjective(RegressionMetricsEnum.MSE)
     data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
-    simple_pipeline = get_simple_ts_pipeline()
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     metric_value = objective_evaluate.evaluate(simple_pipeline).value
     assert np.isclose(metric_value, actual_value)

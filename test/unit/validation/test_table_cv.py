@@ -1,12 +1,9 @@
 import logging
 import os
 from datetime import timedelta
-from functools import partial
 
 import pytest
 from golem.core.tuning.simultaneous import SimultaneousTuner
-
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import KFold, StratifiedKFold
 
@@ -14,16 +11,15 @@ from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import get_pipeline_fitness
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
-from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.split import tabular_cv_generator
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
@@ -33,8 +29,8 @@ _ = classification_dataset
 
 def sample_pipeline():
     return Pipeline(PipelineNode(operation_type='logit',
-                                  nodes_from=[PipelineNode(operation_type='rf'),
-                                              PipelineNode(operation_type='scaling')]))
+                                 nodes_from=[PipelineNode(operation_type='rf'),
+                                             PipelineNode(operation_type='scaling')]))
 
 
 def get_classification_data():
@@ -46,13 +42,11 @@ def get_classification_data():
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
 
-    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=5)
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
-    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), cv_folds)
-    actual_values = objective_eval(pipeline).values
-    all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
+    fitness = get_pipeline_fitness(pipeline, metrics, classification_dataset, cv_folds=5)
+    all_metrics_correct = all(0 < abs(x) <= 1 for x in fitness.values)
 
     assert all_metrics_correct
 
