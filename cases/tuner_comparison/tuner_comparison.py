@@ -237,7 +237,7 @@ def run_experiment(task: str,
 
 if __name__ == '__main__':
     task = 'regression'
-    datasets = os.listdir(f'{task}_data')
+    datasets = os.listdir(f'{task}_data')[1:]
     tuners = [SimultaneousTuner]
     iters_num = [20, 100]
     Log().reset_logging_level(45)
