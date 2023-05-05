@@ -2,7 +2,13 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from golem.core.dag.graph_node import GraphNode
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.base_mutations import MutationStrengthEnum
+from golem.core.optimisers.genetic.operators.mutation import Mutation
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.data.data import InputData
@@ -14,13 +20,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from golem.core.dag.graph_node import GraphNode
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
-from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.genetic.operators.mutation import Mutation
-from golem.core.optimisers.graph import OptGraph, OptNode
-from golem.core.optimisers.optimizer import GraphGenerationParams
-from test.unit.composer.test_composer import to_numerical
+from test.integration.composer.test_composer import to_numerical
 from test.unit.dag.test_graph_utils import find_first
 from test.unit.tasks.test_forecasting import get_ts_data
 

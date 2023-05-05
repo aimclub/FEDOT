@@ -1,7 +1,8 @@
 import os
-from fedot.core.utils import fedot_project_root
+
 from fedot.api.fedot_cli import create_parser, separate_argparse_to_fedot, preprocess_keys, run_fedot, \
     arguments_dicts
+from fedot.core.utils import fedot_project_root
 
 project_root_path = str(fedot_project_root())
 ts_train_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')

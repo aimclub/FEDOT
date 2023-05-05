@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from golem.core.dag.graph_utils import graph_structure
-from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -22,13 +21,11 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.integration.models.test_split_train_test import get_synthetic_input_data
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_synthetic_classification_data, get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data

@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import default_params
+from test.integration.api.test_main_api import default_params
 
 
 def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):

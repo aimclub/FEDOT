@@ -27,7 +27,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.models.test_model import classification_dataset_with_redundant_features
+from test.integration.models.test_model import classification_dataset_with_redundant_features
 
 
 def check_predict_cnn_correct(model, dataset_to_validate):

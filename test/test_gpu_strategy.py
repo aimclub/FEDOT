@@ -1,11 +1,11 @@
 from typing import Tuple
 
-from fedot.core.data.data import InputData, OutputData
-
-from test.unit.models.test_split_train_test import get_synthetic_input_data
-from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
-from fedot.core.operations.evaluation.gpu.classification import CuMLClassificationStrategy
 from cuml.svm import SVC
+
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.gpu.classification import CuMLClassificationStrategy
+from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
+from test.integration.models.test_split_train_test import get_synthetic_input_data
 
 
 def get_synthetic_data() -> Tuple[InputData, InputData]:

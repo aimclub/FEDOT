@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
-from test.unit.api.test_api_cli_params import project_root_path
+from test.integration.api.test_api_cli_params import project_root_path
 
 
 def load_train_test_dataframes() -> (pd.DataFrame, pd.DataFrame):

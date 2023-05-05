@@ -15,12 +15,11 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from test.integration.api.test_main_api \
+    import get_dataset, load_categorical_unimodal
 from test.unit.dag.test_graph_utils import graphs_same
-
 from test.unit.data_operations.test_data_operations_implementations \
     import get_time_series, get_small_regression_dataset
-from test.unit.api.test_main_api \
-    import get_dataset, load_categorical_unimodal
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 
 
@@ -110,7 +109,7 @@ def test_assumptions_builder_unsuitable_available_operations():
     available_operations = ['linear', 'xgboost', 'lagged']
 
     default_builder = UniModalAssumptionsBuilder(train_input)
-    checked_builder = UniModalAssumptionsBuilder(train_input)\
+    checked_builder = UniModalAssumptionsBuilder(train_input) \
         .from_operations(available_operations)
 
     assert default_builder.build() == checked_builder.build()
@@ -139,7 +138,7 @@ def impl_test_assumptions_builder_suitable_available_operations(task, train_inpu
     baseline_operation = baseline_pipeline.root_node.operation.operation_type
     available_operations.remove(baseline_operation)
 
-    checked_builder = AssumptionsBuilder.get(train_input)\
+    checked_builder = AssumptionsBuilder.get(train_input) \
         .from_operations(available_operations)
     checked_pipeline = checked_builder.build()[0]
 

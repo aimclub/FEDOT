@@ -251,10 +251,6 @@ def test_multi_objective_composer(data_fixture, request):
     assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
 
 
-def dummy_quality_metric(*args, **kwargs):
-    return 1.0  # stagnating
-
-
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
     # TODO: i358 Should be integrational
@@ -263,7 +259,7 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
     available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
 
-    quality_metric = dummy_quality_metric
+    quality_metric = lambda *args, **kwargs: 1.0
     max_depth = 5
     num_gen = 3
     req = PipelineComposerRequirements(primary=available_primary_model_types, secondary=available_secondary_model_types,

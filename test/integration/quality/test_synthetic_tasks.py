@@ -12,7 +12,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.composer.test_composer import to_numerical
+from test.integration.composer.test_composer import to_numerical
 
 
 def get_regression_pipeline():

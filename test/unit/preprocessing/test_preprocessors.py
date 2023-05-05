@@ -12,7 +12,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
-from test.unit.api.test_api_cli_params import project_root_path
+from test.integration.api.test_api_cli_params import project_root_path
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
     correct_preprocessing_params
 
@@ -258,9 +258,9 @@ def test_str_numbers_with_dots_and_commas_in_predict():
     converted to ints even if it contains str with dots/commas"""
     task = Task(TaskTypesEnum.classification)
     features = np.array([['8,5'],
-                        ['4.9'],
-                        ['3,2'],
-                        ['6.1']], dtype=object)
+                         ['4.9'],
+                         ['3,2'],
+                         ['6.1']], dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes']])
     input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)

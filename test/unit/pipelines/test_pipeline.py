@@ -20,8 +20,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from test.integration.models.test_model import classification_dataset_with_redundant_features
 from test.unit.dag.test_graph_operator import get_pipeline
-from test.unit.models.test_model import classification_dataset_with_redundant_features
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -179,7 +179,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = PipelineNode(operation_type='lda')
     third = PipelineNode(operation_type='knn')
     final = PipelineNode(operation_type='logit',
-                          nodes_from=[first, second, third])
+                         nodes_from=[first, second, third])
 
     pipeline = Pipeline()
     for node in [first, second, third, final]:
@@ -190,7 +190,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     third = deepcopy(third)
 
     final_shuffled = PipelineNode(operation_type='logit',
-                                   nodes_from=[third, first, second])
+                                  nodes_from=[third, first, second])
 
     pipeline_shuffled = Pipeline()
     # change order of nodes in list
@@ -265,7 +265,7 @@ def test_pipeline_str():
     second = PipelineNode(operation_type='lda')
     third = PipelineNode(operation_type='knn')
     final = PipelineNode(operation_type='rf',
-                          nodes_from=[first, second, third])
+                         nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
@@ -283,7 +283,7 @@ def test_pipeline_repr():
     second = PipelineNode(operation_type='lda')
     third = PipelineNode(operation_type='knn')
     final = PipelineNode(operation_type='rf',
-                          nodes_from=[first, second, third])
+                         nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
@@ -313,7 +313,7 @@ def test_delete_node_with_redirection():
     second = PipelineNode(operation_type='lda')
     third = PipelineNode(operation_type='knn', nodes_from=[first, second])
     final = PipelineNode(operation_type='rf',
-                          nodes_from=[third])
+                         nodes_from=[third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
@@ -329,7 +329,7 @@ def test_delete_primary_node():
     second = PipelineNode(operation_type='lda')
     third = PipelineNode(operation_type='knn', nodes_from=[first])
     final = PipelineNode(operation_type='rf',
-                          nodes_from=[second, third])
+                         nodes_from=[second, third])
     pipeline = Pipeline(final)
 
     # when
