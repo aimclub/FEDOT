@@ -31,7 +31,7 @@ def print_models_info(task_name):
             print('\n'.join(info_lst))
 
 
-def print_data_operations_info(task_name, skip_list: Optional[List[str]] = None):
+def print_data_operations_info(task_name):
     """ Function display data operations and information about it for considered task
 
     :param task_name: name of available task type
@@ -41,8 +41,6 @@ def print_data_operations_info(task_name, skip_list: Optional[List[str]] = None)
 
     repository = OperationTypesRepository(operation_type='data_operation')
     repository_operations_list = _filter_operations_by_type(repository, task)
-    if skip_list is not None:
-        repository_operations_list = list(filter(lambda op: op.id not in skip_list, repository_operations_list))
     search_space = PipelineSearchSpace()
     for operation in repository_operations_list:
         hyperparameters = search_space.get_operation_parameter_range(str(operation.id))
