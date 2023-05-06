@@ -786,9 +786,8 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'}
             },
             'bag_dt': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'n_estimators': (hp.uniformint, [3, 100]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'min_samples_split': (hp.uniformint, [2, 21]),
@@ -797,8 +796,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_dtreg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'min_samples_split': (hp.uniformint, [2, 21]),
@@ -807,8 +805,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_adareg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                     'loss': (hp.choice, [["linear", "square", "exponential"]])
@@ -816,8 +813,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_catboost': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
@@ -829,8 +825,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_xgboost': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 7]),
                     'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
@@ -840,8 +835,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_lgbm': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'class_weight': (hp.choice, [[None, 'balanced']]),
                     'num_leaves': (hp.uniformint, [2, 256]),
@@ -854,8 +848,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_lgbmxt': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'class_weight': (hp.choice, [[None, 'balanced']]),
                     'num_leaves': (hp.uniformint, [2, 256]),
@@ -868,8 +861,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_catboostreg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
@@ -880,8 +872,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_xgboostreg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'max_depth': (hp.uniformint, [1, 7]),
                     'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
@@ -891,8 +882,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_lgbmreg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
@@ -904,8 +894,7 @@ class PipelineSearchSpace(SearchSpace):
             },
             'bag_lgbmxtreg': {
                 'n_estimators': (hp.uniformint, [3, 50]),
-                'bootstrap': (hp.choice, [[True, False]]),
-                'oob_score': (hp.choice, [[True, False]]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
                 'model_params': {
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),

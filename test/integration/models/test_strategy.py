@@ -89,7 +89,8 @@ def test_bagging_classification_operation():
 
     for model_name in model_names:
         pipeline = PipelineBuilder().add_node(model_name, params=params).build()
-        pipeline.fit(train_data)
+        # TODO: Fix after solving the issue №1096
+        pipeline.fit(train_data, n_jobs=-1)
         predicted_output = pipeline.predict(test_data, output_mode='labels')
         metric = roc_auc(test_data.target, predicted_output.predict)
 
@@ -112,7 +113,8 @@ def test_bagging_regression_operation():
 
     for model_name in model_names:
         pipeline = PipelineBuilder().add_node(model_name, params=params).build()
-        pipeline.fit(train_data)
+        # TODO: Fix after solving the issue №1096
+        pipeline.fit(train_data, n_jobs=-1)
         predicted_output = pipeline.predict(test_data)
         metric = mean_squared_error(test_data.target, predicted_output.predict)
         rmse_threshold = np.std(test_data.target) ** 2

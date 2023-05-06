@@ -178,7 +178,8 @@
   "bag_dt": {
     "n_estimators": 25,
     "bootstrap": true,
-    "oob_score": false,
+    "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "max_depth": null,
@@ -189,7 +190,8 @@
   "bag_dtreg": {
     "n_estimators": 25,
     "bootstrap": true,
-    "oob_score": false,
+    "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "max_depth": null,
@@ -201,6 +203,7 @@
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": null
   },
@@ -208,6 +211,7 @@
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "allow_writing_files": false,
@@ -218,20 +222,33 @@
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": null
+    "model_params": {
+      "eval_metric": "mlogloss",
+      "nthread": -1
+    }
   },
   "bag_lgbm": {
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": null
+    "model_params": {
+      "num_leaves": 32,
+      "colsample_bytree": 0.8,
+      "subsample": 0.8,
+      "subsample_freq": 10,
+      "learning_rate": 0.03,
+      "n_estimators": 100
+    }
   },
   "bag_lgbmxt": {
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "extra_tree": true
@@ -241,6 +258,7 @@
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "allow_writing_files": false,
@@ -251,20 +269,28 @@
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": null
+    "model_params": {
+      "nthread": -1
+    }
   },
   "bag_lgbmreg": {
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": null
+    "model_params": {
+      "eval_metric": "mlogloss",
+      "nthread": -1
+    }
   },
   "bag_lgbmxtreg": {
     "n_estimators": 25,
     "bootstrap": true,
     "oob_score": true,
+    "max_samples": 0.6,
     "n_jobs": 1,
     "model_params": {
       "extra_tree": true

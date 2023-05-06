@@ -88,7 +88,7 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         elif isinstance(params, dict):
             params = OperationParameters.from_operation_type(operation_type, **params)
         elif isinstance(params, OperationParameters):
-            if params.get('model_params') or params.get('bagging_params'):
+            if params.get('model_params'):
                 params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
         self._model_params = params.get('model_params')
