@@ -180,6 +180,7 @@
     "bootstrap": true,
     "oob_score": true,
     "max_samples": 0.6,
+    "dynamic_selection_technique": null,
     "n_jobs": 1,
     "model_params": {
       "max_depth": null,
@@ -213,6 +214,7 @@
     "oob_score": true,
     "max_samples": 0.6,
     "n_jobs": 1,
+    "dynamic_selection_technique": null,
     "model_params": {
       "allow_writing_files": false,
       "verbose": false
@@ -223,6 +225,7 @@
     "bootstrap": true,
     "oob_score": true,
     "max_samples": 0.6,
+    "dynamic_selection_technique": null,
     "n_jobs": 1,
     "model_params": {
       "eval_metric": "mlogloss",
@@ -234,6 +237,7 @@
     "bootstrap": true,
     "oob_score": true,
     "max_samples": 0.6,
+    "dynamic_selection_technique": null,
     "n_jobs": 1,
     "model_params": {
       "num_leaves": 32,
@@ -249,6 +253,7 @@
     "bootstrap": true,
     "oob_score": true,
     "max_samples": 0.6,
+    "dynamic_selection_technique": null,
     "n_jobs": 1,
     "model_params": {
       "extra_tree": true

@@ -7,7 +7,15 @@ from sklearn.ensemble import BaggingClassifier, BaggingRegressor, AdaBoostRegres
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from deslib.dcs.mcb import MCB
+from deslib.dcs.ola import OLA
+from deslib.des.des_p import DESP
+from deslib.des.knora_e import KNORAE
+from deslib.des.knora_u import KNORAU
+from deslib.des.meta_des import METADES
+
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
@@ -64,16 +72,24 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         'bag_lgbmxt': LGBMClassifier
     }
 
+    _ds_techniques_by_types = {
+        'knora': KNORAU,
+        'kne': KNORAE,
+        'desp': DESP,
+        'ola': OLA,
+        'mcb': MCB,
+    }
+
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
         self.operation_impl = None
         self.bagging_operation = None
+        self._ds_technique = None
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types.keys():
             if self._model_params:
-                self._bagging_params['estimator'] = self._operations_by_types[operation_type](
-                    **self._model_params)
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type](**self._model_params)
             else:
                 self._bagging_params['estimator'] = self._operations_by_types[operation_type]()
 
@@ -97,8 +113,11 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         self._bagging_params = {}
 
         for param in params.keys():
-            if param != 'model_params':
+            if param != 'model_params' and param != 'dynamic_selection_technique':
                 self._bagging_params.update({param: params.get(param)})
+
+        if params.get('dynamic_selection_technique'):
+            self._ds_technique = params.get('dynamic_selection_technique')
 
         return params
 
@@ -117,10 +136,19 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         """
         operation_implementation = self.operation_impl
 
+        if self._ds_technique:
+            train_data, dsel_data = train_test_data_setup(train_data, split_ratio=0.5)
+
         # TODO: Fix RandomStateHandler()
         # with RandomStateHandler():
         #     operation_implementation.fit(train_data.features, train_data.target)
         operation_implementation.fit(train_data.features, train_data.target)
+
+        if self._ds_technique:
+            dynamic_selection = self._ds_techniques_by_types[self._ds_technique](operation_implementation)
+            dynamic_selection.fit(dsel_data.features, dsel_data.target)
+
+            return dynamic_selection
 
         return operation_implementation
 
