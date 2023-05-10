@@ -166,7 +166,7 @@ def run_experiment(task: str,
                    launch_num: int,
                    get_timeout: bool = False):
     n_jobs = -1
-    pipelines = {'complex': get_pipelines_for_task(task)['complex']}
+    pipelines = get_pipelines_for_task(task)
     train_data, test_data = get_data_for_experiment(data_path, task)
     metric = get_metric_for_task(task)
     objective_eval = get_objective_evaluate(metric, train_data, n_jobs)
@@ -236,8 +236,8 @@ def run_experiment(task: str,
 
 
 if __name__ == '__main__':
-    task = 'regression'
-    datasets = os.listdir(f'{task}_data')[1:]
+    task = 'classification'
+    datasets = os.listdir(f'{task}_data')
     tuners = [SimultaneousTuner]
     iters_num = [20, 100]
     Log().reset_logging_level(45)
