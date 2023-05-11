@@ -15,7 +15,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
-from test.integration.api.test_api_cli_params import project_root_path
+from fedot.core.utils import fedot_project_root
 
 
 def get_multitask_pipeline():
@@ -27,9 +27,9 @@ def get_multitask_pipeline():
 
 def prepare_multitask_data() -> Tuple[MultiModalData, MultiModalData]:
     """ Load data for multitask regression / classification pipeline """
-    ex_data = os.path.join(project_root_path, 'examples/data')
-    train_df = pd.read_csv(os.path.join(ex_data, 'train_synthetic_regression_classification.csv'))
-    test_df = pd.read_csv(os.path.join(ex_data, 'test_synthetic_regression_classification.csv'))
+    ex_data = fedot_project_root().joinpath('examples/data')
+    train_df = pd.read_csv(ex_data.joinpath('train_synthetic_regression_classification.csv'))
+    test_df = pd.read_csv(ex_data.joinpath('test_synthetic_regression_classification.csv'))
 
     # Data for classification
     class_task = Task(TaskTypesEnum.classification)

@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import timedelta
 from functools import partial
 
@@ -22,8 +21,8 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator
-from test.integration.api.test_api_cli_params import project_root_path
 from test.integration.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
@@ -37,7 +36,7 @@ def sample_pipeline():
 
 
 def get_classification_data():
-    file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    file_path = fedot_project_root().joinpath('test/data/simple_classification.csv')
     input_data = InputData.from_csv(file_path, task=Task(TaskTypesEnum.classification))
     return input_data
 

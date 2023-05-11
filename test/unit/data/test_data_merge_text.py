@@ -1,8 +1,6 @@
-import os
-
+import numpy as np
 import pandas as pd
 import pytest
-import numpy as np
 
 from fedot.core.data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
@@ -12,8 +10,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def load_sample_text(file_path=None, label_col='label'):
-    base_dir = str(fedot_project_root())
-    file_path = file_path or os.path.join(base_dir, 'cases', 'data', 'spam', 'spamham.csv')
+    file_path = file_path or fedot_project_root().joinpath('cases', 'data', 'spam', 'spamham.csv')
     df_text = pd.read_csv(file_path)
     df_text = df_text.sample(frac=1).reset_index(drop=True)
 
@@ -33,7 +30,7 @@ def generate_output_texts(length=10, num_columns=1):
         features = np.hstack([np.expand_dims(features, axis=-1)] * num_columns)
     idx = np.arange(0, length)
 
-    return OutputData(idx,  task, data_type, features=features, predict=features, target=None)
+    return OutputData(idx, task, data_type, features=features, predict=features, target=None)
 
 
 # len(params) is a number of input arrays, each element of params - number of columns in the corresponding array

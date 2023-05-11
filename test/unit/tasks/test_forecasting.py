@@ -1,4 +1,4 @@
-import os
+from copy import deepcopy
 from copy import deepcopy
 from random import seed
 from typing import Optional
@@ -41,8 +41,7 @@ def get_ts_data(n_steps: int = 80, forecast_length: int = 5, validation_blocks: 
     :param forecast_length: the length of forecast
     :param validation_blocks: number of validation blocks
     """
-    project_root_path = str(fedot_project_root())
-    file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
+    file_path = fedot_project_root().joinpath('test/data/simple_time_series.csv')
     df = pd.read_csv(file_path)
 
     time_series = np.array(df['sea_height'])[:n_steps]
@@ -64,8 +63,7 @@ def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):
     :param n_steps: number of elements in time series to take
     :param forecast_length: the length of forecast
     """
-    project_root_path = str(fedot_project_root())
-    file_path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
+    file_path = fedot_project_root().joinpath('test/data/simple_sea_level.csv')
     df = pd.read_csv(file_path)
 
     time_series = np.array(df.iloc[:n_steps, 1])
@@ -297,7 +295,7 @@ def test_ts_forecasting_with_multiple_series_in_lagged():
     """ Test pipeline predict correctly when lagged operation get several time series """
     horizon = 3
     n_steps = 50
-    train_data, test_data = get_ts_data(n_steps=n_steps + horizon,  forecast_length=horizon)
+    train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
     pipeline = get_multiple_ts_pipeline()
     pipeline.fit(train_data)
