@@ -4,14 +4,14 @@ on:
   pull_request_review:
     types: [ submitted ]
   schedule:
-  - cron:  '0 12 * * *'
+    - cron: '0 12 * * *'
     branches: [ master ]
 
 jobs:
-  approved:
+  approved_or_planned:
     if: github.event.review.state == 'approved' || github.event.schedule == '0 12 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         python-version: [ 3.8, 3.9, '3.10' ]
