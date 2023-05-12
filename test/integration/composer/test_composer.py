@@ -259,7 +259,7 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
     available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
 
-    quality_metric = lambda *args, **kwargs: 1.0
+    quality_metric = lambda *args, **kwargs: 1.0  # noqa
     max_depth = 5
     num_gen = 3
     req = PipelineComposerRequirements(primary=available_primary_model_types, secondary=available_secondary_model_types,

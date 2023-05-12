@@ -16,7 +16,7 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.integration.api.test_main_api \
-    import get_dataset, load_categorical_unimodal
+    import get_dataset
 from test.unit.dag.test_graph_utils import graphs_same
 from test.unit.data_operations.test_data_operations_implementations \
     import get_time_series, get_small_regression_dataset
