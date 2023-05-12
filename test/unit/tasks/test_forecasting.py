@@ -1,5 +1,4 @@
 from copy import deepcopy
-from copy import deepcopy
 from random import seed
 from typing import Optional
 
@@ -254,7 +253,7 @@ def test_ts_single_pipeline_model_without_multioutput_support():
 def test_exception_if_incorrect_forecast_length():
     with pytest.raises(ValueError) as exc:
         _, _ = get_ts_data(forecast_length=0)
-    assert str(exc.value) == f'Forecast length should be more then 0'
+    assert str(exc.value) == 'Forecast length should be more then 0'
 
 
 def test_multistep_out_of_sample_forecasting():

@@ -1,5 +1,3 @@
-from typing import Optional, List
-
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum

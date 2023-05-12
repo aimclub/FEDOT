@@ -78,9 +78,7 @@ def test_preprocessing_builder_no_data():
 def test_preprocessing_builder_with_data():
     # TableTypesCorrector fills in .supplementary_data needed for preprocessing_builder
     data_reg = TableTypesCorrector().convert_data_for_fit(get_small_regression_dataset()[0])
-    data_cats = TableTypesCorrector().convert_data_for_fit(load_categorical_unimodal()[0])
     data_ts, _, _ = get_time_series()
-    data_ts_gaps = get_test_ts_gaps_data()
 
     assert pipeline_contains_all(preprocess(TaskTypesEnum.regression, data_reg), 'scaling')
 

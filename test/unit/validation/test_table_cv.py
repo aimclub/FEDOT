@@ -86,11 +86,11 @@ def test_tuner_cv_classification_correct():
     simple_pipeline = pipeline_simple()
     tuner = (
         TunerBuilder(dataset.task).with_tuner(SimultaneousTuner)
-            .with_metric(ClassificationMetricsEnum.ROCAUC)
-            .with_cv_folds(folds)
-            .with_iterations(1)
-            .with_timeout(timedelta(minutes=1))
-            .build(dataset)
+        .with_metric(ClassificationMetricsEnum.ROCAUC)
+        .with_cv_folds(folds)
+        .with_iterations(1)
+        .with_timeout(timedelta(minutes=1))
+        .build(dataset)
     )
     tuned = tuner.tune(simple_pipeline)
     assert tuned
