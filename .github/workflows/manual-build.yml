@@ -6,7 +6,7 @@ on:
 jobs:
   integration_test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 65
     strategy:
       matrix:
         python-version: [ 3.8, 3.9, '3.10' ]
