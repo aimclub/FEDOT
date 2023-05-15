@@ -224,7 +224,7 @@ class OperationTypesRepository:
 
         Args:
             metadata: information about meta of the operation
-        
+
         Returns:
             available strategies for current metadata
         """

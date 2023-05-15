@@ -12,6 +12,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
+from test.unit.data.test_data_merge import unequal_outputs_table  # noqa, fixture
+
 
 @pytest.fixture()
 def outputs_table_with_different_types():

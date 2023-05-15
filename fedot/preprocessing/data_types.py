@@ -354,8 +354,8 @@ class TableTypesCorrector:
         # If column contains a lot of '?' or 'x' as nans equivalents
         # add it remove list
         is_of_mistakes = (
-                (self.acceptable_failed_rate_bottom <= failed_ratio)
-                & (failed_ratio < self.acceptable_failed_rate_top))
+            (self.acceptable_failed_rate_bottom <= failed_ratio) &
+            (failed_ratio < self.acceptable_failed_rate_top))
         self.string_columns_transformation_failed.update(dict.fromkeys(is_of_mistakes[is_of_mistakes].index))
 
     def _into_numeric_features_transformation_for_predict(self, data: InputData):
@@ -392,11 +392,11 @@ def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:
     }
     types_counts = (
         table_of_types
-            .apply(pd.value_counts, dropna=False)
-            .reindex(counts_index_mapper.keys(), copy=False)
-            .replace(np.nan, 0)
-            .rename(index=counts_index_mapper, copy=False)
-            .astype(int)
+        .apply(pd.value_counts, dropna=False)
+        .reindex(counts_index_mapper.keys(), copy=False)
+        .replace(np.nan, 0)
+        .rename(index=counts_index_mapper, copy=False)
+        .astype(int)
     )
 
     # Build dataframe with nans indices

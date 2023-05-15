@@ -54,8 +54,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                              MultiModalData]:
+    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]
+                                       ) -> Union[InputData, MultiModalData]:
         """
         Performs obligatory preprocessing for pipeline's predict method.
 
@@ -68,8 +68,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                  MultiModalData]:
+    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]
+                                 ) -> Union[InputData, MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline fitting.
 
@@ -83,8 +83,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                      MultiModalData]:
+    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]
+                                     ) -> Union[InputData, MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline predict stage.
         Preprocessor must be already fitted.
@@ -135,8 +135,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> \
-            Union[InputData, MultiModalData]:
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]
+                                ) -> Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for fit
 
@@ -150,8 +150,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> \
-            Union[InputData, MultiModalData]:
+    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]
+                                    ) -> Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for predict
 
@@ -178,8 +178,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                   MultiModalData]:
+    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]
+                                       ) -> Union[InputData, MultiModalData]:
         """
         Replaces indices for time series for predict stage
 
