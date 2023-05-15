@@ -47,7 +47,7 @@ def generate_straight_pipeline():
     return pipeline
 
 
-def test_parent_mask_correct(unequal_outputs_table):
+def test_parent_mask_correct(unequal_outputs_table):  # noqa, fixture
     """ Test correctness of function for tables mask generation """
     correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
 
