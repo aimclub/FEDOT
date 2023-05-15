@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import copy
-from typing import TYPE_CHECKING, Tuple, Optional, List, Dict
+from typing import TYPE_CHECKING, Tuple, Optional, List, Dict, Sequence
 
 import numpy as np
 import pandas as pd
@@ -199,14 +199,9 @@ class TableTypesCorrector:
 
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
 
-            # data.supplementary_data.column_types['features'] = [
-            #     col_type_id
-            #     for col_id, col_type_id in enumerate(data.supplementary_data.column_types['features'])
-            #     if col_id not in self.string_columns_transformation_failed
-            # ]
             data.supplementary_data.column_types['features'] = np.delete(
                 data.supplementary_data.column_types['features'],
-                list(self.string_columns_transformation_failed.keys())
+                list(self.string_columns_transformation_failed)
             )
 
     def _check_columns_vs_types_number(self, table: np.ndarray, column_types: list):
@@ -422,7 +417,7 @@ def _select_from_rows_if_any(frame: pd.DataFrame, rows_to_select: List[str]) -> 
     return frame.loc[:, _cols_have_any]
 
 
-def apply_type_transformation(table: np.ndarray, column_types: list, log: LoggerAdapter):
+def apply_type_transformation(table: np.ndarray, column_types: Sequence, log: LoggerAdapter):
     """
     Apply transformation for columns in dataset into desired type. Perform
     transformation on predict stage when column types were already determined
@@ -435,8 +430,7 @@ def apply_type_transformation(table: np.ndarray, column_types: list, log: Logger
             return int
         elif current_type_id == TYPE_TO_ID[str]:
             return str
-        else:
-            return float
+        return float
 
     if table is None:
         # Occurs if for predict stage there is no target info
@@ -470,12 +464,12 @@ def _obtain_new_column_type(column_info: pd.Series):
 
 
 def _convert_predict_column_into_desired_type(table: np.ndarray, current_column: np.ndarray,
-                                              column_id: int, current_type, log: LoggerAdapter):
+                                              column_id: int, current_type: type, log: LoggerAdapter):
     try:
         table[:, column_id] = current_column.astype(current_type)
         if current_type is str:
-            is_any_comma = any(map(lambda el: ',' in el, current_column))
-            is_any_dot = any(map(lambda el: '.' in el, current_column))
+            is_any_comma = any(',' in el for el in current_column)
+            is_any_dot = any('.' in el for el in current_column)
             # Most likely case: '20,000' must be converted into '20.000'
             if is_any_comma and is_any_dot:
                 warning = f'Column {column_id} contains both "." and ",". Standardize it.'
@@ -515,21 +509,20 @@ def _generate_list_with_types(columns_types_info: pd.DataFrame,
     return np.array(updated_column_types)
 
 
-def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type):
+def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type: type):
     """ Process column values one by one and try to convert them into desirable type.
     If not successful replace with np.nan """
 
     def _process_str_numbers_with_dots_and_commas(value: str):
         """ Try to process str with replacing ',' by '.' in case it was meant to be a number """
         value = value.replace(',', '.')
+        new_value = np.nan
         try:
             # Since "10.6" can not be converted to 10 straightforward using int()
             if current_type is int:
                 new_value = int(float(value))
-            else:
-                new_value = current_type(value)
         except ValueError:
-            return np.nan
+            pass
         return new_value
 
     new_column = []
