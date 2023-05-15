@@ -197,8 +197,8 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             if cols_number_added > 0:
                 # There are new columns in the table
                 col_types = output_data.supplementary_data.column_types['features']
-                col_types += [TYPE_TO_ID[float]] * cols_number_added
-                output_data.supplementary_data.column_types['features'] = col_types
+                new_types = [TYPE_TO_ID[float]] * cols_number_added
+                output_data.supplementary_data.column_types['features'] = np.append(col_types, new_types)
 
 
 class ScalingImplementation(EncodedInvariantImplementation):
