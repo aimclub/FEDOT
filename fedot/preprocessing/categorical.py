@@ -63,9 +63,8 @@ class BinaryCategoricalPreprocessor:
         self._apply_encoder(copied_data.features)
 
         # Update features types
-        features_types = copied_data.supplementary_data.column_types['features']
-        for converted_column_id in self.binary_ids_to_convert:
-            features_types[converted_column_id] = TYPE_TO_ID[int]
+        feature_types = copied_data.supplementary_data.column_types['features']
+        feature_types[self.binary_ids_to_convert] = TYPE_TO_ID[int]
         return copied_data
 
     def fit_transform(self, input_data: InputData) -> InputData:

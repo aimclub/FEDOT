@@ -10,9 +10,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
-from test.unit.tasks.test_regression import get_synthetic_regression_data
-
 from test.unit.data.test_data_merge import unequal_outputs_table  # noqa, fixture
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 @pytest.fixture()
@@ -21,15 +20,15 @@ def outputs_table_with_different_types():
     task = Task(TaskTypesEnum.regression)
     idx = [0, 1, 2]
     target = [1, 2, 10]
-    data_info_first = SupplementaryData(column_types={'features': [TYPE_TO_ID[str], TYPE_TO_ID[float]],
-                                                      'target': [TYPE_TO_ID[int]]})
+    data_info_first = SupplementaryData(column_types={'features': np.array([TYPE_TO_ID[str], TYPE_TO_ID[float]]),
+                                                      'target': np.array([TYPE_TO_ID[int]])})
     output_first = OutputData(idx=idx, features=None,
                               predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
                               task=task, target=target, data_type=DataTypesEnum.table,
                               supplementary_data=data_info_first)
 
-    data_info_second = SupplementaryData(column_types={'features': [TYPE_TO_ID[float]],
-                                                       'target': [TYPE_TO_ID[int]]})
+    data_info_second = SupplementaryData(column_types={'features': np.array([TYPE_TO_ID[float]]),
+                                                       'target': np.array([TYPE_TO_ID[int]])})
     output_second = OutputData(idx=idx, features=None,
                                predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
                                task=task, target=target, data_type=DataTypesEnum.table,

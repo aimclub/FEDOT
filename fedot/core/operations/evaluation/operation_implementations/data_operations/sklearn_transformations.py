@@ -89,7 +89,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         """
 
         _, n_cols = output_data.predict.shape
-        output_data.supplementary_data.column_types['features'] = [TYPE_TO_ID[float]] * n_cols
+        output_data.supplementary_data.column_types['features'] = np.array([TYPE_TO_ID[float]] * n_cols)
         return output_data
 
 
@@ -196,9 +196,9 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             cols_number_added = output_data.predict.shape[1] - source_features_shape[1]
             if cols_number_added > 0:
                 # There are new columns in the table
-                col_types = output_data.supplementary_data.column_types['features']
+                feature_types = output_data.supplementary_data.column_types['features']
                 new_types = [TYPE_TO_ID[float]] * cols_number_added
-                output_data.supplementary_data.column_types['features'] = np.append(col_types, new_types)
+                output_data.supplementary_data.column_types['features'] = np.append(feature_types, new_types)
 
 
 class ScalingImplementation(EncodedInvariantImplementation):

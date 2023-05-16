@@ -77,16 +77,14 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         """ Update column types after applying feature selection operations """
         if len(source_features_shape) < 2:
             return output_data
-        else:
-            if self.features_columns_number > 1:
-                cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
-                if cols_number_removed > 0:
-                    # There are several columns, which were dropped
-                    col_types = output_data.supplementary_data.column_types['features']
+        if self.features_columns_number > 1:
+            cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
+            if cols_number_removed:
+                # There are several columns, which were dropped
+                feature_types = output_data.supplementary_data.column_types['features']
 
-                    # Calculate
-                    remained_column_types = np.array(col_types)[self.remain_features_mask]
-                    output_data.supplementary_data.column_types['features'] = list(remained_column_types)
+                # Calculate
+                output_data.supplementary_data.column_types['features'] = feature_types[self.remain_features_mask]
 
     def _make_new_table(self, features):
         """

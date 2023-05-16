@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.data.data import OutputData
@@ -83,7 +84,7 @@ class SupplementaryDataMerger:
 
         # Concatenate types for features columns and
         #  choose target type of the main target as the new target type
-        new_features_types = []
+        new_feature_types = []
         new_target_types = None
         for output in self.outputs:
             if output.supplementary_data.column_types is None:
@@ -92,12 +93,10 @@ class SupplementaryDataMerger:
                 output.supplementary_data.column_types = table_corr.prepare_column_types_info(output.predict,
                                                                                               output.target,
                                                                                               output.task)
-            col_types = output.supplementary_data.column_types['features']
-            new_features_types.extend(col_types)
+            feature_types = output.supplementary_data.column_types['features']
+            new_feature_types.extend(feature_types)
 
             if output.supplementary_data.is_main_target:
                 # Target can be None for predict stage
                 new_target_types = output.supplementary_data.column_types.get('target')
-
-        column_types = {'features': new_features_types, 'target': new_target_types}
-        return column_types
+        return {'features': np.array(new_feature_types), 'target': new_target_types}

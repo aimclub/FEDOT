@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import copy
 from typing import TYPE_CHECKING, Tuple, Optional, List, Dict, Sequence
 
 import numpy as np
@@ -93,8 +92,8 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
-        self.features_types = copy(data.supplementary_data.column_types['features'])
-        self.target_types = copy(data.supplementary_data.column_types['target'])
+        self.features_types = data.supplementary_data.column_types['features'].copy()
+        self.target_types = data.supplementary_data.column_types['target'].copy()
 
         self._retain_columns_info_without_types_conflicts(data)
         return data
@@ -289,8 +288,8 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        features_types = data.supplementary_data.column_types['features']
-        is_numeric_type = np.isin(features_types, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+        feature_types = data.supplementary_data.column_types['features']
+        is_numeric_type = np.isin(feature_types, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
         numeric_type_ids = np.flatnonzero(is_numeric_type)
         num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
         nuniques = num_df.nunique(dropna=True)
@@ -302,7 +301,7 @@ class TableTypesCorrector:
         # Columns need to be transformed into categorical (string) ones
         self.numerical_into_str.extend(cat_col_ids.difference(self.numerical_into_str))
         # Update information about column types (in-place)
-        features_types[cat_col_ids] = TYPE_TO_ID[str]
+        feature_types[cat_col_ids] = TYPE_TO_ID[str]
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
@@ -317,8 +316,8 @@ class TableTypesCorrector:
         data.features[:, self.numerical_into_str] = num_df.apply(convert_num_column_into_string_array).to_numpy()
 
         # Update information about column types (in-place)
-        features_types = data.supplementary_data.column_types['features']
-        features_types[self.numerical_into_str] = TYPE_TO_ID[str]
+        feature_types = data.supplementary_data.column_types['features']
+        feature_types[self.numerical_into_str] = TYPE_TO_ID[str]
 
     def _into_numeric_features_transformation_for_fit(self, data: InputData):
         """
@@ -344,8 +343,8 @@ class TableTypesCorrector:
         self.categorical_into_float.extend(is_numeric_ids.difference(self.categorical_into_float))
 
         # Update information about column types (in-place)
-        features_types = data.supplementary_data.column_types['features']
-        features_types[is_numeric_ids] = TYPE_TO_ID[float]
+        feature_types = data.supplementary_data.column_types['features']
+        feature_types[is_numeric_ids] = TYPE_TO_ID[float]
 
         # The columns consists mostly of truly str values and has a few ints/floats in it
         is_mixed = (self.acceptable_failed_rate_top <= failed_ratio) & (failed_ratio != 1)
@@ -366,8 +365,8 @@ class TableTypesCorrector:
         data.features[:, str_cols_ids] = str_cols_df.apply(pd.to_numeric, errors='coerce').to_numpy()
 
         # Update information about column types (in-place)
-        features_types = data.supplementary_data.column_types['features']
-        features_types[str_cols_ids] = TYPE_TO_ID[float]
+        feature_types = data.supplementary_data.column_types['features']
+        feature_types[str_cols_ids] = TYPE_TO_ID[float]
 
 
 def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:

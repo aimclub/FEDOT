@@ -11,7 +11,7 @@ from fedot.preprocessing.data_types import TYPE_TO_ID
 
 def data_with_only_categorical_features():
     """ Generate tabular data with only categorical features. All of them are binary. """
-    supp_data = SupplementaryData(column_types={'features': [TYPE_TO_ID[str]] * 3})
+    supp_data = SupplementaryData(column_types={'features': np.array([TYPE_TO_ID[str]] * 3)})
     task = Task(TaskTypesEnum.regression)
     features = np.array([["'a'", "0", "1"],
                          ["'b'", "1", "0"],

@@ -127,13 +127,14 @@ class LaggedImplementation(DataOperationImplementation):
         """Update column types after lagged transformation. All features becomes ``float``
         """
 
-        features_n_rows, features_n_cols = output_data.predict.shape
-        features_column_types = [TYPE_TO_ID[float]] * features_n_cols
-        column_types = {'features': features_column_types}
+        _, features_n_cols = output_data.predict.shape
+        feature_types = np.array([TYPE_TO_ID[float]] * features_n_cols)
+        column_types = {'features': feature_types}
 
         if output_data.target is not None and len(output_data.target.shape) > 1:
-            target_n_rows, target_n_cols = output_data.target.shape
-            column_types.update({'target': [TYPE_TO_ID[float]] * target_n_cols})
+            _, target_n_cols = output_data.target.shape
+            target_types = np.array([TYPE_TO_ID[float]] * target_n_cols)
+            column_types['target'] = target_types
         output_data.supplementary_data.column_types = column_types
 
     def _apply_transformation_for_fit(self, input_data: InputData, features: np.array, target: np.array,
