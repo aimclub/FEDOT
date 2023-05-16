@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class SupplementaryData:
     # Collection with non-int indexes
     non_int_idx: Optional[list] = None
     # Dictionary with features and target column types
-    column_types: Optional[dict] = None
+    column_types: Optional[Dict[str, np.ndarray]] = None
 
     @property
     def compound_mask(self):
