@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.integration.api.test_main_api import default_params
+from test.integration.api.test_main_api import TESTS_MAIN_API_DEFAULT_PARAMS
 
 
 def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
@@ -108,7 +108,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
     """
     Test if safe mode in API use OneHotEncoder with small data with small cardinality
     """
-    model = Fedot(problem="classification", **default_params)
+    model = Fedot(problem="classification", **TESTS_MAIN_API_DEFAULT_PARAMS)
     model.data_analyser.max_size = 1000
     data = get_small_cat_data()
     model.fit(features=data, predefined_model='auto')
