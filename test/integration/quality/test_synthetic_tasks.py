@@ -12,7 +12,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.integration.composer.test_composer import to_numerical
+from test.integration.composer.test_composer import to_categorical_codes
 
 
 def get_regression_pipeline():
@@ -29,7 +29,7 @@ def get_regression_data():
     file = '../../data/simple_regression_train.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
-    input_data.idx = to_numerical(categorical_ids=input_data.idx)
+    input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
     return input_data
 
 

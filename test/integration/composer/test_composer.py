@@ -31,8 +31,8 @@ from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
-def to_numerical(categorical_ids: np.ndarray):
-    encoded = pd.factorize(categorical_ids)[0]
+def to_categorical_codes(categorical_ids: np.ndarray):
+    encoded = pd.Categorical(categorical_ids).codes
     return encoded
 
 
@@ -47,7 +47,7 @@ def file_data_setup():
     file = 'test/data/advanced_classification.csv'
     test_file_path = Path(fedot_project_root(), file)
     input_data = InputData.from_csv(test_file_path)
-    input_data.idx = to_numerical(categorical_ids=input_data.idx)
+    input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
     return input_data
 
 
@@ -227,10 +227,10 @@ def test_multi_objective_composer(data_fixture, request):
 
     composer = (
         ComposerBuilder(task=Task(task_type))
-        .with_requirements(req)
-        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))
-        .with_optimizer_params(params)
-        .build()
+            .with_requirements(req)
+            .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))
+            .with_optimizer_params(params)
+            .build()
     )
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
@@ -270,10 +270,10 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
                                    pop_size=10)
     composer = (
         ComposerBuilder(task=Task(TaskTypesEnum.classification))
-        .with_requirements(req)
-        .with_optimizer_params(params)
-        .with_metrics(quality_metric)
-        .build()
+            .with_requirements(req)
+            .with_optimizer_params(params)
+            .with_metrics(quality_metric)
+            .build()
     )
 
     composer.compose_pipeline(data=dataset_to_compose)
