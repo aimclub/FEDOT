@@ -290,9 +290,9 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
-            column_type_ids = input_data.supplementary_data.column_types.get('features')
+            feature_type_ids = input_data.supplementary_data.column_types['features']
             self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
-                                                                                      column_type_ids)
+                                                                                      feature_type_ids)
             numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
                                                                        self.non_categorical_ids)
 

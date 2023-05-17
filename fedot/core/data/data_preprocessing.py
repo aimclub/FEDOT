@@ -54,7 +54,7 @@ def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[np.nda
 
     Args:
         table: tabular data for string columns types determination.
-        column_type_ids: list with column types. If None, perform default checking.
+        column_type_ids: list with column type ids. If None, perform default checking.
     Returns:
         categorical_ids: indices of categorical columns in table.
         non_categorical_ids: indices of non categorical columns in table.

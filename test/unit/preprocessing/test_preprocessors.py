@@ -156,10 +156,10 @@ def test_column_types_process_correctly():
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 
-    features_types_ids = predicted.supplementary_data.column_types['features']
-    assert len(features_types_ids) == predicted.predict.shape[1]
+    feature_type_ids = predicted.supplementary_data.column_types['features']
+    assert len(feature_type_ids) == predicted.predict.shape[1]
     # All output values are float
-    assert all(feature_type_id == TYPE_TO_ID[float] for feature_type_id in features_types_ids)
+    assert (feature_type_ids == TYPE_TO_ID[float]).all()
 
 
 def test_complicated_table_types_processed_correctly():

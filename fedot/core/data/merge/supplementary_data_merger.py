@@ -76,7 +76,7 @@ class SupplementaryDataMerger:
         features_mask = {'input_ids': input_ids, 'flow_lens': flow_lens}
         return features_mask
 
-    def merge_column_types(self) -> Dict:
+    def merge_column_types(self) -> Dict[str, np.ndarray]:
         """ Store information about column types in tabular data for merged data """
         if self.main_output.data_type is not DataTypesEnum.table:
             # Data is not tabular

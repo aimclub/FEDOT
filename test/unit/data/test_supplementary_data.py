@@ -118,11 +118,11 @@ def test_define_types_after_merging(outputs_table_with_different_types):
     merged_data = DataMerger.get(outputs).merge()
     updated_info = merged_data.supplementary_data
 
-    features_types = updated_info.column_types['features']
-    target_types = updated_info.column_types['target']
+    feature_type_ids = updated_info.column_types['features']
+    target_type_ids = updated_info.column_types['target']
 
     # Target type must stay the same
     ancestor_target_type = outputs[0].supplementary_data.column_types['target'][0]
-    assert target_types[0] == ancestor_target_type
-    assert len(features_types) == 3
-    assert tuple(features_types) == (TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])
+    assert target_type_ids[0] == ancestor_target_type
+    assert len(feature_type_ids) == 3
+    assert tuple(feature_type_ids) == (TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])

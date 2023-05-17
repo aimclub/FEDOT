@@ -12,9 +12,9 @@ if TYPE_CHECKING:
     from fedot.core.data.data import InputData
 
 _convertable_types = (bool, float, int, str, type(None))  # preserve lexicographical order
-_types_ids = range(len(_convertable_types))
+_type_ids = range(len(_convertable_types))
 
-TYPE_TO_ID = dict(zip(_convertable_types, _types_ids))
+TYPE_TO_ID = dict(zip(_convertable_types, _type_ids))
 
 _TYPES = 'types'
 _FLOAT_NUMBER = 'float_number'
@@ -64,8 +64,8 @@ class TableTypesCorrector:
         self.target_converting_has_errors = False
 
         # Lists with column types for converting calculated on source input data
-        self.features_types = None
-        self.target_types = None
+        self.feature_type_ids = None
+        self.target_type_ids = None
         self.log = default_log(self)
 
     def convert_data_for_fit(self, data: InputData):
@@ -78,7 +78,7 @@ class TableTypesCorrector:
         self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
-        data.features = self.features_types_converting(features=data.features)
+        data.features = self.feature_types_converting(features=data.features)
         # Remain only correct columns
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
 
@@ -92,8 +92,8 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
-        self.features_types = data.supplementary_data.column_types['features'].copy()
-        self.target_types = data.supplementary_data.column_types['target'].copy()
+        self.feature_type_ids = data.supplementary_data.column_types['features'].copy()
+        self.target_type_ids = data.supplementary_data.column_types.get('target', np.array()).copy()
 
         self._retain_columns_info_without_types_conflicts(data)
         return data
@@ -103,8 +103,8 @@ class TableTypesCorrector:
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
-        data.features = apply_type_transformation(data.features, self.features_types, self.log)
-        data.target = apply_type_transformation(data.target, self.target_types, self.log)
+        data.features = apply_type_transformation(data.features, self.feature_type_ids, self.log)
+        data.target = apply_type_transformation(data.target, self.target_type_ids, self.log)
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
@@ -126,7 +126,7 @@ class TableTypesCorrector:
         table = np.delete(table, self.columns_to_del, 1)
         return table
 
-    def features_types_converting(self, features: np.ndarray) -> np.ndarray:
+    def feature_types_converting(self, features: np.ndarray) -> np.ndarray:
         """ Convert all elements in the data in every feature column into one type
 
         :param features: tabular features array
@@ -173,20 +173,20 @@ class TableTypesCorrector:
         if self.features_columns_info.empty:
             # Information about column types is empty - there is a need to launch algorithm to collect info
             self.features_columns_info = define_column_types(predictors)
-            predictors = self.features_types_converting(features=predictors)
+            predictors = self.feature_types_converting(features=predictors)
         if self.target_columns_info.empty and task.task_type is not TaskTypesEnum.ts_forecasting:
             self.target_columns_info = define_column_types(target)
             target = self.target_types_converting(target=target, task=task)
 
-        features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
-        self._check_columns_vs_types_number(predictors, features_types)
+        feature_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
+        self._check_columns_vs_types_number(predictors, feature_types)
 
         if target is None or task.task_type is TaskTypesEnum.ts_forecasting:
-            return {'features': features_types}
+            return {'features': feature_types}
         else:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
             self._check_columns_vs_types_number(target, target_types)
-            return {'features': features_types, 'target': target_types}
+            return {'features': feature_types, 'target': target_types}
 
     def _retain_columns_info_without_types_conflicts(self, data: InputData):
         """ Update information in supplementary info - retain info only about remained columns.

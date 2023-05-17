@@ -168,11 +168,11 @@ def get_mixed_data(task=None, extended=False):
                              [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
-        features_types = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[int],
-                                   TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[str]])
-        target_types = np.array([TYPE_TO_ID[int]])
-        supp_data = SupplementaryData(column_types={'features': features_types,
-                                                    'target': target_types})
+        feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[int],
+                                  TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[str]])
+        target_type_ids = np.array([TYPE_TO_ID[int]])
+        supp_data = SupplementaryData(column_types={'features': feature_type_ids,
+                                                    'target': target_type_ids})
     else:
         features = np.array([[1, '0', 1],
                              [2, '1', 0],
@@ -180,10 +180,10 @@ def get_mixed_data(task=None, extended=False):
                              [7, '1', 1],
                              [8, '1', 1],
                              [9, '0', 0]], dtype=object)
-        features_types = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
-        target_types = np.array([TYPE_TO_ID[int]])
-        supp_data = SupplementaryData(column_types={'features': features_types,
-                                                    'target': target_types})
+        feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
+        target_type_ids = np.array([TYPE_TO_ID[int]])
+        supp_data = SupplementaryData(column_types={'features': feature_type_ids,
+                                                    'target': target_type_ids})
 
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=features,
@@ -202,8 +202,8 @@ def get_nan_binary_data(task=None):
     Binary int columns must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
-    features_types = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
-    supp_data = SupplementaryData(column_types={'features': features_types})
+    feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
+    supp_data = SupplementaryData(column_types={'features': feature_type_ids})
     features = np.array([[1, '0', 0],
                          [np.nan, np.nan, np.nan],
                          [0, '2', 1],

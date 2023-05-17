@@ -402,7 +402,7 @@ class DataPreprocessor(BasePreprocessor):
             data: data to be encoded
             source_name: name of the data source node
         """
-        categorical_ids, _ = find_categorical_columns(data.target, data.supplementary_data.column_types['target'])
+        categorical_ids, _ = find_categorical_columns(data.target, data.supplementary_data.column_types.get('target'))
 
         if categorical_ids:
             # Target is categorical

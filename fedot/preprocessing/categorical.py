@@ -24,9 +24,9 @@ class BinaryCategoricalPreprocessor:
         Find indices of columns which are contains categorical values. Binary features and at the same time
         has str objects. If there are such features - convert it into int
         """
-        column_type_ids = input_data.supplementary_data.column_types['features']
+        feature_type_ids = input_data.supplementary_data.column_types['features']
         categorical_ids, _ = find_categorical_columns(input_data.features,
-                                                      column_type_ids)
+                                                      feature_type_ids)
 
         binary_ids_to_convert = []
         for column_id, column in zip(categorical_ids, input_data.features[:, categorical_ids].T):
