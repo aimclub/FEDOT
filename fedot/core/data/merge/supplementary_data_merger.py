@@ -88,7 +88,7 @@ class SupplementaryDataMerger:
         new_target_types = None
         for output in self.outputs:
             if output.supplementary_data.column_types is None:
-                self.log.debug(f'Perform determination of column types in DataMerger')
+                self.log.debug('Perform determination of column types in DataMerger')
                 table_corr = TableTypesCorrector()
                 output.supplementary_data.column_types = table_corr.prepare_column_types_info(output.predict,
                                                                                               output.target,
