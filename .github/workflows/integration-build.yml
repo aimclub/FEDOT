@@ -8,7 +8,7 @@ on:
 jobs:
   scheduled:
     runs-on: ubuntu-latest
-    timeout-minutes: 65
+    timeout-minutes: 95
     strategy:
       matrix:
         python-version: [ 3.8, 3.9, '3.10' ]
