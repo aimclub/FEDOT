@@ -3,7 +3,6 @@ name: Integration build
 on:
   schedule:
     - cron: '0 12 * * *'
-    branches: [ master ]
 
 jobs:
   scheduled:
