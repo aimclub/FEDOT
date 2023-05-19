@@ -5,7 +5,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 
-def get_complete_dataset(dir_name):
+def get_complete_dataset(dir_name, mean_time: bool = False):
     results_df = []
     tuners = ['IOptTuner', 'SimultaneousTuner']
     iter_nums = [20, 100]
@@ -14,7 +14,13 @@ def get_complete_dataset(dir_name):
             current_dir = os.path.join(dir_name, f'{tuner}_{iter_num}')
             datasets = os.listdir(current_dir)
             for dataset in datasets:
-                df = pd.read_csv(os.path.join(current_dir, dataset))
+                file_name = dataset
+                if mean_time and dataset.startswith('mean_time'):
+                    print(dataset)
+                    df = pd.read_csv(os.path.join(current_dir, file_name))
+                    df['iter_num'] =[iter_num] * len(df)
+                elif not dataset.startswith('mean_time'):
+                    df = pd.read_csv(os.path.join(current_dir, file_name))
                 df['tuner'] = [tuner] * len(df)
                 results_df.append(df)
     final_df = pd.concat(results_df, ignore_index=True, axis=0)
@@ -93,7 +99,7 @@ def get_mean_time(results_df, task):
 
 if __name__ == '__main__':
     task = 'classification'
-    df = get_complete_dataset(task)
+    df = get_complete_dataset(task, mean_time=True)
     print(get_metric_statistics(df, task))
     print(get_mean_time(df, task))
     plot_metric_improvements(df)
