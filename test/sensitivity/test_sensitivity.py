@@ -16,7 +16,7 @@ from fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity impor
 from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
 from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
-from test.unit.utilities.test_pipeline_import_export import create_func_delete_files
+from test.integration.utilities.test_pipeline_import_export import create_func_delete_files
 
 
 @pytest.fixture(scope='session', autouse=True)

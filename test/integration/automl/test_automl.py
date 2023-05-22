@@ -1,4 +1,3 @@
-import os
 from datetime import timedelta
 
 from examples.advanced.automl.h2o_example import h2o_classification_pipeline_evaluation, \
@@ -10,9 +9,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def test_pipeline_from_automl_example():
-    project_root_path = str(fedot_project_root())
-
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
     file_path_test = file_path_train
 
     auc = run_pipeline_from_automl(file_path_train, file_path_test, max_run_time=timedelta(seconds=1))
@@ -21,8 +18,7 @@ def test_pipeline_from_automl_example():
 
 
 def test_tpot_vs_fedot_example():
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
     file_path_test = file_path_train
 
     auc = run_tpot_vs_fedot_example(file_path_train, file_path_test)
@@ -36,4 +32,3 @@ def test_h2o_vs_fedot_example():
         h2o_regression_pipeline_evaluation()
     with OperationTypesRepository.init_automl_repository() as _:
         h2o_ts_pipeline_evaluation()
-

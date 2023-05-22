@@ -12,7 +12,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.api.test_main_api import get_dataset
+from test.integration.api.test_main_api import get_dataset
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data

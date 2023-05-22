@@ -6,7 +6,7 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.api.test_main_api import data_with_binary_features_and_categorical_target
+from test.integration.api.test_main_api import data_with_binary_features_and_categorical_target
 
 
 def test_presets_classification():

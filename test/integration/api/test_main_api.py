@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from golem.core.dag.graph_utils import graph_structure
-from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -22,19 +21,17 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.integration.models.test_split_train_test import get_synthetic_input_data
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_synthetic_classification_data, get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
-default_params = {
+TESTS_MAIN_API_DEFAULT_PARAMS = {
     'timeout': 0.1,
     'preset': 'fast_train',
     'max_depth': 1,
@@ -157,7 +154,7 @@ def data_with_binary_features_and_categorical_target():
 ])
 def test_api_predict_correct(task_type, predefined_model, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem=task_type, **default_params)
+    model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
     fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name)
@@ -204,7 +201,7 @@ def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   validation_blocks=1)
 
@@ -220,7 +217,7 @@ def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 't
     # The forecast length must be equal to 5
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   validation_blocks=validation_blocks)
 
@@ -235,7 +232,7 @@ def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 't
 def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: str = 'ts_forecasting'):
     forecast_length = 2
     train_data, test_data = get_multi_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   validation_blocks=validation_blocks,
                   available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
@@ -253,7 +250,7 @@ def test_api_in_sample_multimodal_ts_predict_correct(validation_blocks):
     forecast_length = 5
     historical_data, target = get_multimodal_ts_data()
 
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(features=historical_data, target=target, predefined_model='auto')
     ts_forecast = model.predict(historical_data, validation_blocks=validation_blocks)
@@ -367,7 +364,7 @@ def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
 
     params = {
-        **default_params,
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
         'metric': ['f1', 'node_num']
     }
 
@@ -384,7 +381,7 @@ def test_multiobj_for_api():
 def test_categorical_preprocessing_unidata():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', **default_params)
+    auto_model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
     auto_model.fit(features=train_data)
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
@@ -398,7 +395,7 @@ def test_categorical_preprocessing_unidata():
 def test_categorical_preprocessing_unidata_predefined():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', **default_params)
+    auto_model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
     auto_model.fit(features=train_data, predefined_model='rf')
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
@@ -437,7 +434,7 @@ def test_fill_nan_without_categorical():
 def test_dict_multimodal_input_for_api():
     data, target = load_categorical_multidata()
 
-    model = Fedot(problem='classification', **default_params)
+    model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
 
     model.fit(features=data, target=target)
 
@@ -459,7 +456,7 @@ def test_unshuffled_data():
 
     problem = 'classification'
     params = {
-        **default_params,
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
         'metric': 'f1'}
 
     auto_model = Fedot(problem=problem, seed=42, **params)
@@ -473,7 +470,7 @@ def test_custom_history_dir_define_correct():
     custom_path = os.path.join(os.path.abspath(os.getcwd()), 'history_dir')
 
     params = {
-        **default_params,
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
         'history_dir': custom_path,
         'timeout': None,
         'num_of_generations': 1,
@@ -536,7 +533,7 @@ def test_unknown_param_raises_error():
 def test_default_forecast():
     forecast_length = 2
     train_data, test_data, _ = get_dataset('ts_forecasting')
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(train_data, predefined_model='auto')
     forecast = model.forecast()
@@ -548,7 +545,7 @@ def test_default_forecast():
 def test_forecast_with_different_horizons(horizon):
     forecast_length = 2
     train_data, test_data, _ = get_dataset('ts_forecasting')
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(train_data, predefined_model='auto')
     forecast = model.forecast(pre_history=test_data, horizon=horizon)
@@ -558,14 +555,14 @@ def test_forecast_with_different_horizons(horizon):
 
 def test_forecast_with_unfitted_model():
     forecast_length = 2
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     with pytest.raises(ValueError):
         model.forecast()
 
 
 def test_forecast_with_not_ts_problem():
-    model = Fedot(problem='classification', **default_params)
+    model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
     train_data, test_data, _ = get_dataset('classification')
     model.fit(train_data, predefined_model='auto')
     with pytest.raises(ValueError):
@@ -577,7 +574,7 @@ def test_forecast_with_multivariate_ts():
 
     historical_data, target = get_multimodal_ts_data()
 
-    model = Fedot(problem='ts_forecasting', **default_params,
+    model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(features=historical_data, target=target, predefined_model='auto')
     forecast = model.forecast()

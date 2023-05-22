@@ -3,7 +3,7 @@ import numpy as np
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
+from test.integration.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
 
 
 def generate_pipeline() -> Pipeline:

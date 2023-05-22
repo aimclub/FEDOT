@@ -1,5 +1,6 @@
 import random
 from copy import deepcopy
+from typing import Tuple
 
 import numpy as np
 from sklearn.datasets import make_classification
@@ -24,7 +25,7 @@ def generate_pipeline() -> Pipeline:
     return pipeline
 
 
-def get_roc_auc_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
+def get_roc_auc_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> Tuple[float, float]:
     train_pred = pipeline.predict(input_data=train_data)
     test_pred = pipeline.predict(input_data=test_data)
     roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_pred.predict)

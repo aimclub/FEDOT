@@ -1,7 +1,6 @@
 import datetime
 
 import pytest
-
 from golem.core.optimisers.fitness import Fitness, null_fitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher, SequentialDispatcher, \
     ObjectiveEvaluationDispatcher

@@ -1,4 +1,3 @@
-import os
 from copy import copy
 
 import numpy as np
@@ -41,8 +40,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     len_forecast = 50
 
     # The length of the time series is 500 elements
-    project_root_path = str(fedot_project_root())
-    file_path = os.path.join(project_root_path, 'test/data/short_time_series.csv')
+    file_path = fedot_project_root().joinpath('test/data/short_time_series.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['sea_height'])
 

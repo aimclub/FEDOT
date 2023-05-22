@@ -1,10 +1,11 @@
-name: Manual build
+name: Integration build
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * *'
 
 jobs:
-  integration_test:
+  scheduled:
     runs-on: ubuntu-latest
     timeout-minutes: 95
     strategy:

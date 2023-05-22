@@ -1,15 +1,16 @@
 import os
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
-from test.unit.api.test_api_cli_params import project_root_path
+from fedot.core.utils import fedot_project_root
 
 
-def load_train_test_dataframes() -> (pd.DataFrame, pd.DataFrame):
+def load_train_test_dataframes() -> Tuple[dict, dict, dict]:
     """ Load data for multitask regression / classification problem """
-    data_path = os.path.join(project_root_path, 'examples/data')
+    data_path = fedot_project_root().joinpath('examples/data')
     train_df = pd.read_csv(os.path.join(data_path, 'train_synthetic_regression_classification.csv'))
     test_df = pd.read_csv(os.path.join(data_path, 'test_synthetic_regression_classification.csv'))
 

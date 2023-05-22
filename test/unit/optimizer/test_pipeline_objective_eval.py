@@ -4,7 +4,6 @@ from functools import partial
 
 import numpy as np
 import pytest
-
 from golem.core.optimisers.fitness import SingleObjFitness
 
 from fedot.core.data.data import InputData
@@ -19,7 +18,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
-from test.unit.models.test_model import classification_dataset
+from test.integration.models.test_model import classification_dataset
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 from test.unit.validation.test_table_cv import sample_pipeline
 from test.unit.validation.test_time_series_cv import configure_experiment

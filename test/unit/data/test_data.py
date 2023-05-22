@@ -12,7 +12,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.tasks.test_classification import get_image_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data_with_dt_idx
 
 
@@ -96,14 +95,6 @@ def test_with_custom_target():
 
     assert np.array_equal(expected_features, actual_features)
     assert np.array_equal(expected_target, actual_target)
-
-
-def test_data_from_image():
-    _, _, dataset_to_validate = get_image_classification_data()
-
-    assert dataset_to_validate.data_type == DataTypesEnum.image
-    assert type(dataset_to_validate.features) == np.ndarray
-    assert type(dataset_to_validate.target) == np.ndarray
 
 
 def test_data_from_json():

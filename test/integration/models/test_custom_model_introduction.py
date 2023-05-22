@@ -44,8 +44,8 @@ def get_centered_pipeline(with_params=True) -> Pipeline:
     custom_node = PipelineNode('custom', nodes_from=[lagged_node])
     if with_params:
         custom_node.parameters = {"a": -50,
-                                     "b": 500,
-                                     'model_predict': custom_model_imitation}
+                                  "b": 500,
+                                  'model_predict': custom_model_imitation}
 
     node_final = PipelineNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -60,8 +60,8 @@ def get_starting_pipeline(with_params=True):
     custom_node = PipelineNode('custom')
     if with_params:
         custom_node.parameters = {"a": -50,
-                                     "b": 500,
-                                     'model_predict': custom_model_imitation}
+                                  "b": 500,
+                                  'model_predict': custom_model_imitation}
     lagged_node = PipelineNode('lagged', nodes_from=[custom_node])
     node_final = PipelineNode('ridge', nodes_from=[lagged_node])
     pipeline = Pipeline(node_final)
@@ -154,7 +154,7 @@ def get_simple_pipeline(multi_data):
     # For custom model params as initial approximation and model as function is necessary
     custom_node = PipelineNode('custom/empty', nodes_from=exog_list)
     custom_node.parameters = {'model_predict': model_predict,
-                                 'model_fit': model_fit}
+                              'model_fit': model_fit}
 
     exog_pred_node = PipelineNode('exog_ts', nodes_from=[custom_node])
 

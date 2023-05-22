@@ -13,7 +13,7 @@ from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.models.test_model import classification_dataset
+from test.integration.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
 

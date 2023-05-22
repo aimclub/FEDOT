@@ -19,8 +19,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PipelineNode
 from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository

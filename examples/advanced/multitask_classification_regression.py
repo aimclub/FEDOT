@@ -1,5 +1,5 @@
-import os
 from datetime import timedelta
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
-from test.unit.api.test_api_cli_params import project_root_path
+from fedot.core.utils import fedot_project_root
 
 
 def get_multitask_pipeline():
@@ -24,11 +24,11 @@ def get_multitask_pipeline():
     return Pipeline(final_node)
 
 
-def prepare_multitask_data() -> (MultiModalData, MultiModalData):
+def prepare_multitask_data() -> Tuple[MultiModalData, MultiModalData]:
     """ Load data for multitask regression / classification pipeline """
-    ex_data = os.path.join(project_root_path, 'examples/data')
-    train_df = pd.read_csv(os.path.join(ex_data, 'train_synthetic_regression_classification.csv'))
-    test_df = pd.read_csv(os.path.join(ex_data, 'test_synthetic_regression_classification.csv'))
+    ex_data = fedot_project_root().joinpath('examples/data')
+    train_df = pd.read_csv(ex_data.joinpath('train_synthetic_regression_classification.csv'))
+    test_df = pd.read_csv(ex_data.joinpath('test_synthetic_regression_classification.csv'))
 
     # Data for classification
     class_task = Task(TaskTypesEnum.classification)
@@ -66,12 +66,14 @@ def launch_multitask_example(with_tuning: bool = False):
     multitask_pipeline = get_multitask_pipeline()
 
     if with_tuning:
-        tuner = TunerBuilder(train_input.task)\
-            .with_tuner(SimultaneousTuner)\
-            .with_metric(RegressionMetricsEnum.MAE)\
-            .with_iterations(100)\
-            .with_timeout(timedelta(minutes=2))\
+        tuner = (
+            TunerBuilder(train_input.task)
+            .with_tuner(SimultaneousTuner)
+            .with_metric(RegressionMetricsEnum.MAE)
+            .with_iterations(100)
+            .with_timeout(timedelta(minutes=2))
             .build(train_input)
+        )
         multitask_pipeline = tuner.tune(multitask_pipeline)
 
     multitask_pipeline.fit(train_input)

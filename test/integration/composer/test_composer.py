@@ -1,6 +1,6 @@
 import datetime
-import os
 import random
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -9,8 +9,6 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
 from golem.core.optimisers.random.random_search import RandomSearchOptimizer
-
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
@@ -23,16 +21,18 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
-def to_numerical(categorical_ids: np.ndarray):
-    encoded = pd.factorize(categorical_ids)[0]
+def to_categorical_codes(categorical_ids: np.ndarray):
+    encoded = pd.Categorical(categorical_ids).codes
     return encoded
 
 
@@ -44,10 +44,10 @@ def seed():
 
 @pytest.fixture()
 def file_data_setup():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/advanced_classification.csv'
-    input_data = InputData.from_csv(os.path.join(test_file_path, file))
-    input_data.idx = to_numerical(categorical_ids=input_data.idx)
+    file = 'test/data/advanced_classification.csv'
+    test_file_path = Path(fedot_project_root(), file)
+    input_data = InputData.from_csv(test_file_path)
+    input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
     return input_data
 
 
@@ -124,7 +124,7 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
 def baseline_pipeline():
     pipeline = Pipeline()
     last_node = PipelineNode(operation_type='rf',
-                              nodes_from=[])
+                             nodes_from=[])
     for requirement_model in ['knn', 'logit']:
         new_node = PipelineNode(requirement_model)
         pipeline.add_node(new_node)
@@ -225,11 +225,13 @@ def test_multi_objective_composer(data_fixture, request):
     params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
                                    selection_types=[SelectionTypesEnum.spea2])
 
-    composer = ComposerBuilder(task=Task(task_type))\
-        .with_requirements(req)\
-        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))\
-        .with_optimizer_params(params)\
+    composer = (
+        ComposerBuilder(task=Task(task_type))
+        .with_requirements(req)
+        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))
+        .with_optimizer_params(params)
         .build()
+    )
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
 
@@ -249,18 +251,15 @@ def test_multi_objective_composer(data_fixture, request):
     assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
 
 
-def dummy_quality_metric(*args, **kwargs):
-    return 1.0  # stagnating
-
-
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
+    # TODO: i358 Should be integrational
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
     available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
 
-    quality_metric = dummy_quality_metric
+    quality_metric = lambda *args, **kwargs: 1.0  # noqa
     max_depth = 5
     num_gen = 3
     req = PipelineComposerRequirements(primary=available_primary_model_types, secondary=available_secondary_model_types,
@@ -269,11 +268,13 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
                                    adaptive_depth_max_stagnation=num_gen - 1,
                                    genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
                                    pop_size=10)
-    composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
-        .with_requirements(req) \
-        .with_optimizer_params(params) \
-        .with_metrics(quality_metric) \
+    composer = (
+        ComposerBuilder(task=Task(TaskTypesEnum.classification))
+        .with_requirements(req)
+        .with_optimizer_params(params)
+        .with_metrics(quality_metric)
         .build()
+    )
 
     composer.compose_pipeline(data=dataset_to_compose)
 

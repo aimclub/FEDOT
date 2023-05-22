@@ -13,7 +13,7 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import get_dataset, get_cholesterol_dataset
+from test.integration.api.test_main_api import get_dataset, get_cholesterol_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
 
 
