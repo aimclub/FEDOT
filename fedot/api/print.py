@@ -1,6 +1,7 @@
+from fedot.api.help import get_task_by_name
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.api.help import get_task_by_name
+
 
 def print_models_info(task_name):
     """ Function display models and information about it for considered task
