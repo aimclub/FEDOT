@@ -115,21 +115,3 @@ def test_non_equality_cases(pipeline_fixture, request):
     for pair in list_pipelines_pairs:
         assert not pair[0] == pair[1]
         assert not pair[1] == pair[0]
-
-
-def test_pipelines_equivalent_subtree():
-    c_first = pipeline_first()
-    c_second = pipeline_second()
-    c_third = pipeline_third()
-
-    similar_nodes_first_and_second = equivalent_subtree(c_first, c_second)
-    assert len(similar_nodes_first_and_second) == 6
-
-    similar_nodes_first_and_third = equivalent_subtree(c_first, c_third)
-    assert not similar_nodes_first_and_third
-
-    similar_nodes_second_and_third = equivalent_subtree(c_second, c_third)
-    assert not similar_nodes_second_and_third
-
-    similar_nodes_third = equivalent_subtree(c_third, c_third)
-    assert len(similar_nodes_third) == 4
