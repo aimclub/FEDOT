@@ -1,0 +1,33 @@
+Dataset name,Metric name,AutoGluon,FEDOT,H2O,LAMA
+APSFailure,auc,0.99,0.991,,0.992
+Amazon_employee_access,auc,0.857,0.865,,0.879
+Australian,auc,0.94,0.939,0.939,0.945
+Covertype,neg_logloss,-0.071,-0.117,,
+Fashion-MNIST,neg_logloss,-0.329,-0.373,,-0.248
+Jannis,neg_logloss,-0.728,-0.737,,-0.664
+KDDCup09_appetency,auc,0.804,0.822,,0.85
+MiniBooNE,auc,0.982,0.981,,0.988
+Shuttle,neg_logloss,-0.001,-0.001,,-0.001
+Volkert,neg_logloss,-0.917,-1.097,,-0.806
+adult,auc,0.91,0.925,,0.932
+bank-marketing,auc,0.931,0.935,,0.94
+blood-transfusion,auc,0.69,0.759,0.765,0.75
+car,neg_logloss,-0.117,-0.011,-0.004,-0.002
+christine,auc,0.804,0.812,0.823,0.83
+cnae-9,neg_logloss,-0.332,-0.211,-0.175,-0.156
+connect-4,neg_logloss,-0.502,-0.456,,-0.337
+credit-g,auc,0.795,0.778,0.789,0.796
+dilbert,neg_logloss,-0.148,-0.159,-0.05,-0.033
+fabert,neg_logloss,-0.788,-0.895,-0.752,-0.766
+guillermo,auc,0.9,0.891,,0.926
+jasmine,auc,0.883,0.888,0.887,0.88
+jungle chess,neg_logloss,-0.431,-0.193,,-0.149
+kc1,auc,0.822,0.843,,0.831
+kr-vs-kp,auc,0.999,1.0,,1.0
+mfeat-factors,neg_logloss,-0.161,-0.094,,-0.082
+nomao,auc,0.995,0.994,,0.997
+numerai28_6,auc,0.517,0.529,,0.531
+phoneme,auc,0.965,0.965,,0.965
+segment,neg_logloss,-0.094,-0.062,,-0.061
+sylvine,auc,0.985,0.988,,0.988
+vehicle,neg_logloss,-0.515,-0.354,,-0.404
