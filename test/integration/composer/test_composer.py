@@ -270,10 +270,10 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
                                    pop_size=10)
     composer = (
         ComposerBuilder(task=Task(TaskTypesEnum.classification))
-            .with_requirements(req)
-            .with_optimizer_params(params)
-            .with_metrics(quality_metric)
-            .build()
+        .with_requirements(req)
+        .with_optimizer_params(params)
+        .with_metrics(quality_metric)
+        .build()
     )
 
     composer.compose_pipeline(data=dataset_to_compose)
