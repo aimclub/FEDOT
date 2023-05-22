@@ -10,3 +10,5 @@ ignore:
   - "fedot/utilities" # unit test are moved to integration test due to the time restrictions
   - "fedot/visualisation" # complicated to test in unit-like way, tested in integration tests
   - "fedot/core/operations/evaluation/automl.py" # require to heavy external dependencies - tested in integration test
+  - "fedot/api/print.py" # unit test are moved to integration test due to the time restrictions
+  - "fedot/core/pipelines/tuning/search_space.py" # unit test are moved to integration test due to the time restrictions
