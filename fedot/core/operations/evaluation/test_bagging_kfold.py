@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from lightgbm import LGBMClassifier
+from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
@@ -30,13 +31,18 @@ def test_splitting_data_into_chunks():
         data_type=DataTypesEnum.table,
     )
 
+    # base_estimator = CatBoostClassifier(
+    #     allow_writing_files=False,
+    #     verbose=False
+    # )
+
     base_estimator = LGBMClassifier()
 
     bclf = KFoldBaggingClassifier(
         base_estimator=base_estimator,
-        n_layers=1,
+        n_layers=2,
         n_repeated=5,
-        k_fold=10
+        k_fold=3
     )
 
     implemented_model = bclf.fit(X=train_data.features, y=train_data.target)
@@ -51,16 +57,16 @@ def test_splitting_data_into_chunks():
     print('Test ROC-AUC score', roc_auc_value_test)
 
     assert implemented_model is not None
-    assert prediction is not None
-    assert prediction.shape[0] == test_data.target.shape[0]
+    assert test_prediction is not None
+    assert test_prediction.shape[0] == test_data.target.shape[0]
     assert roc_auc_value_test >= 0.5
 
 
 def test_prob_sum():
-    repeats = 3
-    folds = 2
-    models = 2
-    numbers_of_target = 3
+    repeats = 10
+    folds = 15
+    models = 15
+    numbers_of_target = 1334
 
     class_probs = np.random.random(size=(repeats, folds, models, numbers_of_target, 1))
     test_rand_oof_probs = np.concatenate((class_probs, 1 - class_probs), axis=-1)
@@ -129,4 +135,10 @@ def test_prob_sum():
     assert oof_probs.shape == test_rand_oof_probs.shape == (3, 2, 2, 3, 2)
     assert sum_j_0_m_0.shape == np.sum(test_rand_oof_probs[:, 0, 0, :, :], axis=0).shape
     assert avg_j_0_m_0.shape == (np.sum(test_rand_oof_probs[:, 0, 0, :, :], axis=0) / repeats).shape
+    #
+    preds_per_chunk = np.argmax(np.sum(test_rand_oof_probs[:, :, 0, :, :], axis=0) / repeats, axis=2)
+    y_hat_m = np.array([np.argmax(np.unique(preds, return_counts=True)[1]) for preds in preds_per_chunk.T])
+    unique_class, counts = np.unique(preds_per_chunk.T, return_counts=True, axis=-1)
+    y_hat_m = np.argmax(counts, axis=-1)
+
     assert preds_m_0.shape == (np.argmax(np.sum(test_rand_oof_probs[:, :, 0, :, :], axis=0) / repeats, axis=2).reshape(-1)).shape

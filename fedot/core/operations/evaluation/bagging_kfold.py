@@ -20,7 +20,7 @@ class BaseKFoldBagging:
 
     def _splitting_data_into_chunks(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         """ Get indices for train_fold and test_fold data """
-        sgkf = StratifiedKFold(n_splits=self.k_fold)
+        sgkf = StratifiedKFold(n_splits=self.k_fold, shuffle=True)
         chunks = []
 
         for train_indices, test_indices in sgkf.split(X=X, y=y.reshape(-1)):
@@ -32,9 +32,10 @@ class BaseKFoldBagging:
         avg_off_models_pred = []
 
         for model_index in range(self.k_fold):
-            sum_per_chunk = np.sum(oof_probs[:, :, model_index, :, :], axis=0)  # Sum model's Y_hat in fold
+            model_preds = oof_probs[:, model_index, :, :]
+            sum_per_chunk = np.nansum(model_preds, axis=0)  # Sum model's Y_hat in fold
             probs_per_chunk = sum_per_chunk / self.n_repeated  # Average OOF predictions model's
-            y_hat_m = np.argmax(probs_per_chunk, axis=2).reshape(-1)  # Get labels from prediction
+            y_hat_m = np.argmax(probs_per_chunk, axis=1).reshape(-1)  # Get labels from prediction
 
             avg_off_models_pred.append(y_hat_m)
 
@@ -85,38 +86,41 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
         """
 
         for layer in range(self.n_layers):
-            # Multi-layer stack ensembling
-            # out_of_fold_probs.shape - (n_repeats, models, n_fold, test_cols, probs)
-            out_of_fold_probs = []
+            # Multi-layer stack ensembeling
+            # out_of_fold_probs.shape - (n_repeats, models, test_cols, probs)
+
+            out_of_fold_probs = np.empty(shape=(self.n_repeated, self.k_fold, y.shape[0], 2))
+            p_0 = np.random.random(y.shape)
+            p_1 = 1 - p_0
+            out_of_fold_probs[:, :, :, :] = np.array([p_0, p_1]).T
 
             for i in range(self.n_repeated):
                 # Each model in layer fits n-repeated times at folds
-                chunks_preds = []
-
                 # Randomly split data into k disjoint chunks
                 chunks = self._splitting_data_into_chunks(X=X, y=y)
 
                 for j in range(self.k_fold):
                     # Each model trained at training data (X^{-j}, y^{-j})
                     # and make prediction for fold data (X^{j}, y^{j})
-                    # models_preds.shape - (n_fold, test_cols, probs)
-                    models_memory_id = []
-                    models_preds = []
+
+                    # train_indices, test_indices = chunks[j]
+                    # chunks_test_indices.append((len(test_indices), test_indices))
+                    # X_train_subset, y_train_subset = self._get_by_indices((X, y), train_indices)
+                    # X_test_subset, _ = self._get_by_indices((X, y), test_indices)
 
                     # TODO: Parallel models fitting
-                    for model in self.ensemble_layers[layer]:
-                        # Get training
-                        X_train_subset, y_train_subset = self._get_by_indices((X, y), chunks[j][0])
-                        X_test_subset, _ = self._get_by_indices((X, y), chunks[j][1])
+                    for id, model in enumerate(self.ensemble_layers[layer]):
+                        train_indices, test_indices = chunks[id]
+                        X_train_subset, y_train_subset = self._get_by_indices((X, y), train_indices)
+                        X_test_subset, _ = self._get_by_indices((X, y), test_indices)
 
                         model.fit(X=X_train_subset, y=y_train_subset.reshape(-1, 1))
-                        models_memory_id.append(hex(id(model)))
-                        models_preds.append(model.predict_proba(X_test_subset))
+                        pred_proba = model.predict_proba(X_test_subset)
 
-                    chunks_preds.append(models_preds)
-                out_of_fold_probs.append(chunks_preds)
+                        out_of_fold_probs[i, id, test_indices] = pred_proba
 
-            avg_oof_models_preds = self._get_avg_oof_models_preds(np.array(out_of_fold_probs))
+            avg_oof_models_preds = self._get_avg_oof_models_preds(out_of_fold_probs)
+
             X = self._concatenate_prev_data_and_preds(X, avg_oof_models_preds)
 
         return self.ensemble_layers
