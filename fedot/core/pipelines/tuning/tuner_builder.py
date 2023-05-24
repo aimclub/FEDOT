@@ -1,8 +1,8 @@
 from datetime import timedelta
 from typing import Callable, Type, Union
 
-from golem.core.tuning.hyperopt_tuner import HyperoptTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.tuning.tuner_interface import BaseTuner
 from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -29,11 +29,11 @@ class TunerBuilder:
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)
         self.search_space = PipelineSearchSpace()
-        self.algo = tpe.suggest
         self.eval_time_constraint = None
+        self.additional_params = {}
         self.adapter = PipelineAdapter()
 
-    def with_tuner(self, tuner: Type[HyperoptTuner]):
+    def with_tuner(self, tuner: Type[BaseTuner]):
         self.tuner_class = tuner
         return self
 
@@ -85,15 +85,15 @@ class TunerBuilder:
         self.search_space = search_space
         return self
 
-    def with_algo(self, algo: Callable):
-        self.algo = algo
-        return self
-
     def with_adapter(self, adapter):
         self.adapter = adapter
         return self
 
-    def build(self, data: InputData) -> HyperoptTuner:
+    def with_additional_params(self, params: dict):
+        self.additional_params = params
+        return self
+
+    def build(self, data: InputData) -> BaseTuner:
         objective = MetricsObjective(self.metric)
         data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
@@ -106,6 +106,6 @@ class TunerBuilder:
                                  early_stopping_rounds=self.early_stopping_rounds,
                                  timeout=self.timeout,
                                  search_space=self.search_space,
-                                 algo=self.algo,
-                                 n_jobs=self.n_jobs)
+                                 n_jobs=self.n_jobs,
+                                 **self.additional_params)
         return tuner

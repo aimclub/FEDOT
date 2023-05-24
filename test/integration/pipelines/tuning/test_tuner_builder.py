@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 import pytest
 from golem.core.tuning.hyperopt_tuner import HyperoptTuner
+from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from hyperopt import tpe, rand
@@ -43,7 +44,7 @@ def test_tuner_builder_with_default_params():
     assert tuner.max_seconds == 300
 
 
-@pytest.mark.parametrize('tuner_class', [SimultaneousTuner, SequentialTuner])
+@pytest.mark.parametrize('tuner_class', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_tuner_builder_with_custom_params(tuner_class):
     data = get_classification_data()
     pipeline = pipeline_first_test()
