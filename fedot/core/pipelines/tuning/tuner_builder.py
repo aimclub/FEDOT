@@ -1,8 +1,8 @@
 from datetime import timedelta
 from typing import Callable, Type, Union
 
+from golem.core.tuning.hyperopt_tuner import HyperoptTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from golem.core.tuning.tuner_interface import HyperoptTuner
 from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER

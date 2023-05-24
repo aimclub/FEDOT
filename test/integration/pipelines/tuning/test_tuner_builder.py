@@ -3,9 +3,9 @@ from typing import Optional
 
 import numpy as np
 import pytest
+from golem.core.tuning.hyperopt_tuner import HyperoptTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from golem.core.tuning.tuner_interface import HyperoptTuner
 from hyperopt import tpe, rand
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
