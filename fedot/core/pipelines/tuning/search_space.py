@@ -1,6 +1,5 @@
 from typing import Optional, Dict, Tuple, Callable, List
 
-import numpy as np
 from golem.core.tuning.search_space import SearchSpace
 from hyperopt import hp
 from functools import partial
@@ -559,7 +558,7 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [1, 3],
                     'type': 'continuous'},
-                'window_size':{
+                'window_size': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [3, 20],
                     'type': 'continuous'}
