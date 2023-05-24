@@ -1,9 +1,8 @@
 from datetime import timedelta
-from typing import Callable, Type, Union
+from typing import Type, Union
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
-from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData

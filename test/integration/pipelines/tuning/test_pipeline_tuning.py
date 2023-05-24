@@ -7,7 +7,7 @@ import pytest
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from hyperopt import hp, tpe, rand
+from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
@@ -159,9 +159,9 @@ def get_not_default_search_space():
         },
         'dt': {
             'max_depth': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 5],
-                    'type': 'discrete'},
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 5],
+                'type': 'discrete'},
             'min_samples_split': {
                 'hyperopt-dist': hp.uniformint,
                 'sampling-scope': [10, 25],
@@ -169,9 +169,9 @@ def get_not_default_search_space():
         },
         'ar': {
             'lag_1': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [2, 100],
-                    'type': 'continuous'},
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [2, 100],
+                'type': 'continuous'},
             'lag_2': {
                 'hyperopt-dist': hp.uniform,
                 'sampling-scope': [2, 500],
