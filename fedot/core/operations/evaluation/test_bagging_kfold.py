@@ -11,7 +11,7 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
 
-def test_splitting_data_into_chunks():
+def test_bagged_ensemble_scoring():
     train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
     test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
 
@@ -36,12 +36,12 @@ def test_splitting_data_into_chunks():
     #     verbose=False
     # )
 
-    base_estimator = LGBMClassifier()
+    base_estimator = CatBoostClassifier()
 
     bclf = KFoldBaggingClassifier(
         base_estimator=base_estimator,
         n_layers=2,
-        n_repeated=5,
+        n_repeats=5,
         k_fold=3
     )
 
