@@ -571,42 +571,6 @@
         "boosting"
       ]
     },
-    "bag_catboost": {
-      "meta": "bagging_class",
-      "presets": [
-        "bagging_class"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_xgboost": {
-      "meta": "bagging_class",
-      "presets": [
-        "bagging_class"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_lgbm": {
-      "meta": "bagging_class",
-      "presets": [
-        "bagging_class"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_lgbmxt": {
-      "meta": "bagging_class",
-      "presets": [
-        "bagging_class"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
     "bag_dtreg": {
       "meta": "bagging_regr",
       "presets": [
@@ -617,42 +581,6 @@
       ]
     },
     "bag_adareg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_catboostreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_xgboostreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_lgbmreg": {
-      "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "bag_lgbmxtreg": {
       "meta": "bagging_regr",
       "presets": [
         "bagging_regr"
