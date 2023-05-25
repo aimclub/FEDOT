@@ -1,140 +1,176 @@
-from abc import ABC, abstractmethod
-import copy
+from abc import ABC
 from typing import Optional
 
-import numpy as np
-from lightgbm import LGBMClassifier
-from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold
-from sklearn.metrics import roc_auc_score as roc_auc
+from catboost import CatBoostClassifier, CatBoostRegressor
+from golem.core.utilities.random import RandomStateHandler
+from lightgbm import LGBMClassifier, LGBMRegressor
+from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.models.bag_ensembles.bag_ensemble import \
+    KFoldBaggingClassifier, KFoldBaggingRegressor
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
 
-class BaseKFoldBagging:
-    @abstractmethod
-    def __init__(self, n_layers: int, n_repeats: int, k_fold: int):
-        self.n_layers = n_layers
-        self.n_repeated = n_repeats
-        self.k_fold = k_fold
+class KFoldBaggingStrategy(EvaluationStrategy, ABC):
+    """ This class defines the certain multi-layer stack ensembling n-repeated k-fold bagging implementation
 
-        self._cv_splitter = RepeatedStratifiedKFold(n_splits=k_fold, n_repeats=n_repeats)
+    Args:
+        operation_type: 'str' selected operation as a base model in bagging
 
-    def _splitting_data_into_chunks(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
-        return next(self._cv_splitter.split(X=X, y=y.reshape(-1)))
+        .. details:: possible bagging operations:
 
-    def _get_avg_oof_models_preds(self, oof_probs: np.ndarray, oof_repeats: np.ndarray) -> np.ndarray:
-        oof_repeats_without_0 = np.where(oof_repeats == 0, 1, oof_repeats)
-        layer_probs = oof_probs / oof_repeats_without_0.reshape(-1, 1)
-        layer_preds = np.argmax(layer_probs, axis=1).reshape(-1, 1)
+            - ``bag_catboost`` -> Bagging for the CatBoost
+            - ``bag_lgbm`` -> Bagging for the LightGBM
+            - ``bag_xgboost`` -> Bagging for the XGBoost
 
-        return layer_preds
+        params: operation's init and fitting hyperparameters
 
-    def _concatenate_prev_data_and_preds(self, X: np.ndarray, oof_preds: np.ndarray) -> np.ndarray:
-        """ Concatenate predicted data for fitting new layers """
-        return np.concatenate((X, oof_preds), axis=1)
+        .. details:: explanation of params
+            - ``estimator`` -
+            - ``n_layers`` -
+            - ``n_repeats`` -
+            - ``n_fold`` -
+            - ``fold_fitting_strategy`` -
+            - ``time_limit`` -
+            - ``n_jobs`` -
+            - ``model_params`` -
 
-    def _get_by_indices(self, data, indices):
-        return np.take(data[0].T, indices, axis=-1).T, np.take(data[1], indices)
+    """
 
+    _operations_by_types = {
+        # Classification
+        'bag_catboost': CatBoostClassifier,
+        'bag_xgboost': XGBClassifier,
+        'bag_lgbm': LGBMClassifier,
+        'bag_lgbmxt': LGBMClassifier,
 
-class KFoldBaggingClassifier(BaseKFoldBagging):
-    def __init__(self, base_estimator: object, n_layers: int, n_repeats: int, k_fold: int):
-        super().__init__(
-            n_layers=n_layers,
-            n_repeats=n_repeats,
-            k_fold=k_fold
-        )
+        # Regression
+        'bag_catboostreg': CatBoostRegressor,
+        'bag_xgboostreg': XGBRegressor,
+        'bag_lgbmreg': LGBMRegressor,
+        'bag_lgbmxtreg': LGBMRegressor,
+    }
 
-        self.n_layers = n_layers
-        self.n_repeats = n_repeats
-        self.k_fold = k_fold
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.operation_impl = None
+        self.bagging_operation = None
 
-        self.base_estimator = base_estimator
-        self.ensemble_layers = [
-            [copy.deepcopy(base_estimator) for _ in range(self.k_fold)] for _ in range(self.n_layers)
-        ]
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self._operations_by_types.keys():
+            if self._model_params:
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type](**self._model_params)
+            else:
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type]()
 
-    # TODO: Change InputData to X, y (np.ndarray, np.ndarray)
-    def fit(self, X: np.ndarray, y: np.ndarray):
+            return self.bagging_operation(**self._bagging_params)
+
+        else:
+            raise ValueError(f'Impossible to create bagging operation for {operation_type}')
+
+    def _set_operation_params(self, operation_type, params):
+        if params is None:
+            params = get_default_params(operation_type)
+
+        elif isinstance(params, dict):
+            params = OperationParameters.from_operation_type(operation_type, **params)
+
+        elif isinstance(params, OperationParameters):
+            # Getting models params after applying mutation
+            if params.get('model_params'):
+                params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
+
+        self._model_params = params.get('model_params')
+        # TODO: sklearn param base_estimator will change to estimator in future since 1.4
+
+        self._bagging_params = {}
+
+        for param in params.keys():
+            if param != 'model_params':
+                self._bagging_params.update({param: params.get(param)})
+
+        return params
+
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
+
+    def fit(self, train_data: InputData):
         """ Method to train chosen operation with provided data
 
         Args:
-            X: train data
-            y: target data
+            train_data: data used for operation training
 
         Returns:
             trained bagging model
         """
+        operation_implementation = self.operation_impl
 
-        for layer in range(self.n_layers):
-            # Multi-layer stack ensembeling
-            # out_of_fold_probs.shape - (n_repeats, models, test_cols, probs)
+        with RandomStateHandler():
+            operation_implementation.fit(train_data.features, train_data.target)
 
-            out_of_fold_probs = np.zeros(shape=(y.shape[0], 2))
-            out_of_fold_repeats = np.zeros(shape=y.shape)
+        return operation_implementation
 
-            for i in range(self.n_repeats):
-                # Each model in layer fits n-repeated times at folds
-                # Randomly split data into k disjoint chunks
+    def predict(self, trained_operation, predict_data: InputData):
+        """ This method used for prediction of the target data
 
-                for j in range(self.k_fold):
-                    # Each model trained at training data (X^{-j}, y^{-j})
-                    # and make prediction for fold data (X^{j}, y^{j})
+        Args:
+            trained_operation: operation object
+            predict_data: data to predict
 
-                    # TODO: Parallel models fitting
-                    for id, model in enumerate(self.ensemble_layers[layer]):
-                        train_indices, test_indices = self._splitting_data_into_chunks(X=X, y=y)
-                        X_train_subset, y_train_subset = self._get_by_indices((X, y), train_indices)
-                        X_val_subset, y_val_subset = self._get_by_indices((X, y), test_indices)
-
-                        model.fit(X=X_train_subset, y=y_train_subset.reshape(-1, 1))
-
-                        fit_proba = model.predict_proba(X_train_subset)
-                        fit_labels = np.argmax(fit_proba, axis=1)
-
-                        pred_proba = model.predict_proba(X_val_subset)
-                        pred_labels = np.argmax(pred_proba, axis=1)
-
-                        # TODO: val_score from metric of fedot
-                        fit_score = roc_auc(y_true=y_train_subset, y_score=fit_labels)
-                        val_score = roc_auc(y_true=y_val_subset, y_score=pred_labels)
-
-                        # TODO: Fix
-                        out_of_fold_probs[test_indices] += pred_proba
-                        out_of_fold_repeats[test_indices] += 1
-
-            avg_oof_models_preds = self._get_avg_oof_models_preds(out_of_fold_probs, out_of_fold_repeats)
-
-            X = self._concatenate_prev_data_and_preds(X, avg_oof_models_preds)
-
-        return self.ensemble_layers
-
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        for layer in range(self.n_layers):
-            out_of_fold_probs = np.zeros(shape=(X.shape[0], 2))
-
-            for model_index, model in enumerate(self.ensemble_layers[layer]):
-                model_probs = model.predict_proba(X)
-                out_of_fold_probs += model_probs
-
-            # Check if layer is last
-            if layer != self.n_layers - 1:
-                models_probs = out_of_fold_probs / self.k_fold
-                models_preds = np.argmax(models_probs, axis=1).reshape(-1, 1)
-
-                # Adding new features for next layer
-                X = self._concatenate_prev_data_and_preds(X, models_preds)
-
-            else:
-                # Get preds from models in last layers
-                prediction = models_preds
-
-        return prediction
-
-    def predict_proba(self, predict_data: InputData) -> OutputData:
+        Returns:
+            passed data with new predicted target
+        """
         NotImplementedError()
 
 
-# class KFoldBaggingRegression(BaseKFoldBagging):
+class KFoldBaggingClassificationStrategy(KFoldBaggingStrategy):
+    """ Classification bagging operation implementation
+
+        Args:
+            operation_type: 'str' selected operation as a base model in bagging
+            params: operation's init and fitting hyperparameters
+    """
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        params = self._set_operation_params(operation_type, params)
+        super().__init__(operation_type, params)
+        self.bagging_operation = KFoldBaggingClassifier
+        self.operation_impl = self._convert_to_operation(operation_type)
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if self.output_mode in ['default', 'labels']:
+            prediction = trained_operation.predict(predict_data.features)
+
+        elif self.output_mode in ['probs', 'full_probs'] and predict_data.task:
+            prediction = trained_operation.predict_proba(predict_data.features)
+
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        return self._convert_to_output(prediction, predict_data)
+
+
+class KFoldBaggingRegressionStrategy(KFoldBaggingStrategy):
+    """ Regression bagging operation implementation
+
+        Args:
+            operation_type: 'str' selected operation as a base model in bagging
+            params: operation's init and fitting hyperparameters
+    """
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        params = self._set_operation_params(operation_type, params)
+        super().__init__(operation_type, params)
+        self.bagging_operation = KFoldBaggingRegressor
+        self.operation_impl = self._convert_to_operation(operation_type)
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        prediction = trained_operation.predict(predict_data.features)
+
+        return self._convert_to_output(prediction, predict_data)
+
+
+
