@@ -7,7 +7,7 @@ from golem.core.tuning.hyperopt_tuner import HyperoptTuner
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from hyperopt import tpe, rand
+from hyperopt import tpe
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
