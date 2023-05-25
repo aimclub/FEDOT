@@ -1,22 +1,11 @@
 from abc import ABC
 from typing import Optional
 
-from catboost import CatBoostClassifier, CatBoostRegressor
 from golem.core.utilities.random import RandomStateHandler
-from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import BaggingClassifier, BaggingRegressor, AdaBoostRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from xgboost import XGBClassifier, XGBRegressor
-
-from deslib.dcs.mcb import MCB
-from deslib.dcs.ola import OLA
-from deslib.des.des_p import DESP
-from deslib.des.knora_e import KNORAE
-from deslib.des.knora_u import KNORAU
-from deslib.des.meta_des import METADES
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
