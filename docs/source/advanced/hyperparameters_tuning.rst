@@ -391,7 +391,6 @@ Example for ``IOptTuner``:
 .. code-block:: python
 
     import datetime
-    import hyperopt
     from golem.core.tuning.iopt_tuner import IOptTuner
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder

@@ -95,21 +95,22 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
         # model and output_type should be wrapped into hyperopt
         custom_search_space = {'custom': {
             'alpha': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [0.01, 10],
-                    'type': 'continuous'}}}
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.01, 10],
+                'type': 'continuous'}}}
     elif pipeline_type == 'without_fit':
         pipeline = get_domain_pipeline()
         # Setting custom search space for tuner (necessary)
         # model and output_type should be wrapped into hyperopt
-        custom_search_space = {'custom': {'a': {
-                                                'hyperopt-dist': hp.uniform,
-                                                'sampling-scope': [-100, 100],
-                                                'type': 'continuous'},
-                                          'b': {
-                                                'hyperopt-dist': hp.uniform,
-                                                'sampling-scope': [0, 1000],
-                                                'type': 'continuous'}}}
+        custom_search_space = {'custom': {
+            'a': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [-100, 100],
+                'type': 'continuous'},
+            'b': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0, 1000],
+                'type': 'continuous'}}}
     pipeline.fit_from_scratch(train_input)
     pipeline.print_structure()
     # Get prediction with initial approximation
