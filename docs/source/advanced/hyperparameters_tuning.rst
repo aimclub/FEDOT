@@ -11,7 +11,7 @@ More information about these approaches can be found
 `here <https://towardsdatascience.com/hyperparameters-tuning-for-machine-learning-model-ensembles-8051782b538b>`_.
 
 If ``with_tuning`` flag is set to ``True`` when using :doc:`FEDOT API </api/api>`, simultaneous hyperparameters tuning
-is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
+using ``SimultaneousTuner`` is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
 
 Simple example
 ~~~~~~~~~~~~~~
@@ -224,7 +224,7 @@ Additional parameters
 
 .. _with_additional_params:
 
-If there is no ``TunerBuilder`` function to set a specific parameter of an tuner use ``.with_additional_params()``.
+If there is no ``TunerBuilder`` function to set a specific parameter of a tuner use ``.with_additional_params()``.
 
 Possible additional parameters you can see in the `GOLEM documentation`_.
 
@@ -293,8 +293,9 @@ Constraints
 Examples
 ~~~~~~~~
 
-Tuning all hyperparameters simultaniously
+Tuning all hyperparameters simultaneously
 -----------------------------------------
+Example for ``SimultaneousTuner``:
 
 .. code-block:: python
 
@@ -328,12 +329,24 @@ Tuning all hyperparameters simultaniously
 
     custom_search_space = {
         'logit': {
-            'C': (hp.uniform, [0.01, 5.0])
+            'C': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.01, 5.0],
+                'type': 'continuous'}
         },
         'knn': {
-            'n_neighbors': (hp.uniformint, [1, 6]),
-            'weights': (hp.choice, [["uniform", "distance"]]),
-            'p': (hp.choice, [[1, 2]])}
+            'n_neighbors': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 20],
+                'type': 'discrete'},
+            'weights': {
+                'hyperopt-dist': hp.choice,
+                'sampling-scope': [["uniform", "distance"]],
+                'type': 'categorical'},
+            'p': {
+                'hyperopt-dist': hp.choice,
+                'sampling-scope': [[1, 2]],
+                'type': 'categorical'}}
     }
     search_space = PipelineSearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
 
@@ -352,7 +365,7 @@ Tuning all hyperparameters simultaniously
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_timeout(timeout) \
         .with_search_space(search_space) \
-        .with_algo(algo) \
+        .with_additional_params(algo=algo) \
         .with_eval_time_constraint(eval_time_constraint) \
         .build(train_data)
 
@@ -371,6 +384,61 @@ Tuned pipeline structure:
     knn - {'n_neighbors': 6, 'p': 2, 'weights': 'uniform'}
     rf - {'n_jobs': 1, 'bootstrap': True, 'criterion': 'entropy', 'max_features': 0.46348491415788157, 'min_samples_leaf': 11, 'min_samples_split': 2, 'n_estimators': 100}
     logit - {'C': 3.056080157518786}
+
+
+Example for ``IOptTuner``:
+
+.. code-block:: python
+
+    import datetime
+    import hyperopt
+    from golem.core.tuning.iopt_tuner import IOptTuner
+    from fedot.core.data.data import InputData
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+
+    task = Task(TaskTypesEnum.regression)
+
+    tuner = IOptTuner
+
+    requirements = PipelineComposerRequirements(cv_folds=2, n_jobs=2)
+
+    metric = RegressionMetricsEnum.MSE
+
+    iterations = 100
+
+    eval_time_constraint = datetime.timedelta(seconds=30)
+
+    train_data = InputData.from_csv('train_data.csv', task='regression')
+
+    pipeline = PipelineBuilder().add_node('knnreg', branch_idx=0).add_branch('rfr', branch_idx=1) \
+        .join_branches('knnreg').build()
+
+    pipeline_tuner = TunerBuilder(task) \
+        .with_tuner(tuner) \
+        .with_requirements(requirements) \
+        .with_metric(metric) \
+        .with_iterations(iterations) \
+        .with_additional_params(eps=0.02, r=1, refine_solution=True) \
+        .with_eval_time_constraint(eval_time_constraint) \
+        .build(train_data)
+
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+    tuned_pipeline.print_structure()
+
+Tuned pipeline structure:
+
+.. code-block:: python
+
+    Pipeline structure:
+    {'depth': 2, 'length': 3, 'nodes': [knnreg, knnreg, rfr]}
+    knnreg - {'n_neighbors': 51}
+    knnreg - {'n_neighbors': 40}
+    rfr - {'n_jobs': 1, 'max_features': 0.05324707031250003, 'min_samples_split': 12, 'min_samples_leaf': 11}
 
 Sequential tuning
 -----------------
