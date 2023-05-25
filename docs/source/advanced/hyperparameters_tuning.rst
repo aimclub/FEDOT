@@ -2,14 +2,16 @@ Tuning of Hyperparameters
 =========================
 To tune pipeline hyperparameters you can use GOLEM. There are two ways:
 
-1. Tuning of all models hyperparameters simultaneously. Implemented via ``SimultaneousTuner`` class.
+1. Tuning of all models hyperparameters simultaneously. Implemented via ``SimultaneousTuner`` and ``IOptTuner`` classes.
 
-2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline. Implemented via ``SequentialTuner`` class.
+2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline or tuning
+   only one node hyperparametrs. Implemented via ``SequentialTuner`` class.
 
 More information about these approaches can be found
 `here <https://towardsdatascience.com/hyperparameters-tuning-for-machine-learning-model-ensembles-8051782b538b>`_.
 
-If ``with_tuning`` flag is set to ``True`` when using :doc:`FEDOT API </api/api>`, simultaneous hyperparameters tuning is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
+If ``with_tuning`` flag is set to ``True`` when using :doc:`FEDOT API </api/api>`, simultaneous hyperparameters tuning
+is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
 
 Simple example
 ~~~~~~~~~~~~~~
@@ -45,7 +47,7 @@ To initialize a tuner you can use ``TunerBuilder``.
 * with_timeout_
 * with_eval_time_constraint_
 * with_search_space_
-* with_algo_
+* with_additional_params_
 
 Tuner class
 -----------
@@ -183,15 +185,31 @@ To customize search space use ``PipelineSearchSpace`` class.
 
     custom_search_space = {
         'logit': {
-            'C': (hp.uniform, [0.01, 5.0])
+            'C': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [1e-1, 5.0],
+                'type': 'continuous'}
         },
         'pca': {
-            'n_components': (hp.uniform, [0.2, 0.8])
+            'n_components': {
+                'hyperopt-dist': hp.uniform,
+                'sampling-scope': [0.1, 0.5],
+                'type': 'continuous'}
         },
         'knn': {
-            'n_neighbors': (hp.uniformint, [1, 6]),
-            'weights': (hp.choice, [["uniform", "distance"]]),
-            'p': (hp.choice, [[1, 2]])}
+            'n_neighbors': {
+                'hyperopt-dist': hp.uniformint,
+                'sampling-scope': [1, 20],
+                'type': 'discrete'},
+            'weights': {
+                'hyperopt-dist': hp.choice,
+                'sampling-scope': [["uniform", "distance"]],
+                'type': 'categorical'},
+            'p': {
+                'hyperopt-dist': hp.choice,
+                'sampling-scope': [[1, 2]],
+                'type': 'categorical'}
+        }
     }
     search_space = PipelineSearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
 
@@ -201,20 +219,35 @@ To customize search space use ``PipelineSearchSpace`` class.
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
-Algorithm
----------
+Additional parameters
+---------------------
 
-.. _with_algo:
+.. _with_additional_params:
 
-You can set algorithm for hyperparameters optimization with signature similar to ``hyperopt.tse.suggest``.
+If there is no ``TunerBuilder`` function to set a specific parameter of an tuner use ``.with_additional_params()``.
+
+Possible additional parameters you can see in the `GOLEM documentation`_.
+
+For example, you can set algorithm for with signature similar to ``hyperopt.tse.suggest`` for ``SimultaneousTuner`` or
+``SequentialTuner``.
+
 By default, ``hyperopt.tse.suggest`` is used.
 
 .. code-block:: python
 
-    algo = hyperopt.rand.suggest
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
+        .with_additional_params(algo = hyperopt.rand.suggest) \
+        .build(train_data)
+
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+For ``IOptTuner`` such parameters as ``r``, ``evolvent_density``, ``eps_r`` and etc can be set.
+
+.. code-block:: python
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
-        .with_algo(algo) \
+        .with_tuner(IOptTuner) \
+        .with_additional_params(r = 1, evolvent_density = 5) \
         .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
@@ -476,3 +509,5 @@ Another examples can be found here:
 **Multitask**
 
 * `Multitask pipeline: classification and regression <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
+
+.. _GOLEM documentation: https://thegolem.readthedocs.io/en/latest/api/tuning.html

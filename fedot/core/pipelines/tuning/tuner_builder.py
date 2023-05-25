@@ -88,8 +88,8 @@ class TunerBuilder:
         self.adapter = adapter
         return self
 
-    def with_additional_params(self, params: dict):
-        self.additional_params = params
+    def with_additional_params(self, **parameters):
+        self.additional_params = parameters
         return self
 
     def build(self, data: InputData) -> BaseTuner:

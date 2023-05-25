@@ -1,8 +1,8 @@
-from typing import Optional, Dict, Tuple, Callable, List
+from functools import partial
+from typing import Optional
 
 from golem.core.tuning.search_space import SearchSpace, OperationParametersMapping
 from hyperopt import hp
-from functools import partial
 
 
 class PipelineSearchSpace(SearchSpace):
