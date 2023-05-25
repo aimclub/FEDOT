@@ -75,4 +75,4 @@ def test_tuner_builder_with_custom_params(tuner_class):
     assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
     assert tuner.search_space == search_space
     assert tuner.iterations == iterations
-    assert tuner.max_seconds == int(timeout.seconds)
+    assert tuner.timeout.seconds == int(timeout.seconds)
