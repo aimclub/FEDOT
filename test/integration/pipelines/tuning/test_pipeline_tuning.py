@@ -4,6 +4,7 @@ from time import time
 
 import numpy as np
 import pytest
+from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -218,26 +219,6 @@ def run_pipeline_tuner(train_data,
     return pipeline_tuner, tuned_pipeline
 
 
-def run_sequential_tuner(train_data,
-                         pipeline,
-                         loss_function,
-                         search_space=PipelineSearchSpace(),
-                         cv=None,
-                         iterations=1,
-                         early_stopping_rounds=None):
-    # Pipeline tuning
-    sequential_tuner = TunerBuilder(train_data.task) \
-        .with_tuner(SequentialTuner) \
-        .with_metric(loss_function) \
-        .with_cv_folds(cv) \
-        .with_iterations(iterations) \
-        .with_early_stopping_rounds(early_stopping_rounds) \
-        .with_search_space(search_space) \
-        .build(train_data)
-    tuned_pipeline = sequential_tuner.tune(pipeline)
-    return sequential_tuner, tuned_pipeline
-
-
 def run_node_tuner(train_data,
                    pipeline,
                    loss_function,
@@ -279,7 +260,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
-    """ Test SimultaneousTuner for pipeline based on hyperopt library """
+    """ Test all tuners for pipeline """
     data = request.getfixturevalue(data_fixture)
     cvs = [None, 2]
 
@@ -314,7 +295,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner
 
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
-    """ Test SimultaneousTuner based on hyperopt library for pipeline with initial parameters """
+    """ Test all tuners for pipeline with initial parameters """
     # a model
     node = PipelineNode(content={'name': 'xgboost', 'params': {'max_depth': 3,
                                                                'learning_rate': 0.03,
@@ -335,7 +316,7 @@ def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request, tuner):
-    """ Test SimultaneousTuner with different search spaces """
+    """ Test tuners with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     search_spaces = [PipelineSearchSpace(), get_not_default_search_space()]
@@ -402,7 +383,7 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
 @pytest.mark.parametrize('n_steps', [100, 133, 217, 300])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_ts_pipeline_with_stats_model(n_steps, tuner):
-    """ Tests SimultaneousTuner for time series forecasting task with AR model """
+    """ Tests tuners for time series forecasting task with AR model """
     train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
 
     ar_pipeline = Pipeline(PipelineNode('ar'))
@@ -456,18 +437,24 @@ def test_early_stop_in_tuning(data_fixture, request):
 def test_search_space_correctness_after_customization():
     default_search_space = PipelineSearchSpace()
 
-    custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
+    custom_search_space = {'gbr': {'max_depth': {
+        'hyperopt-dist': hp.choice,
+        'sampling-scope': [[3, 7, 31, 127, 8191, 131071]],
+        'type': 'categorical'}}}
     custom_search_space_without_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                               replace_default_search_space=False)
     custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                            replace_default_search_space=True)
 
-    default_params = default_search_space.get_node_params(node_id=0,
-                                                          operation_name='gbr')
-    custom_without_replace_params = custom_search_space_without_replace.get_node_params(node_id=0,
-                                                                                        operation_name='gbr')
-    custom_with_replace_params = custom_search_space_with_replace.get_node_params(node_id=0,
-                                                                                  operation_name='gbr')
+    default_params = get_node_parameters_for_hyperopt(default_search_space,
+                                                      node_id=0,
+                                                      operation_name='gbr')
+    custom_without_replace_params = get_node_parameters_for_hyperopt(custom_search_space_without_replace,
+                                                                     node_id=0,
+                                                                     operation_name='gbr')
+    custom_with_replace_params = get_node_parameters_for_hyperopt(custom_search_space_with_replace,
+                                                                  node_id=0,
+                                                                  operation_name='gbr')
 
     assert default_params.keys() == custom_without_replace_params.keys()
     assert default_params.keys() != custom_with_replace_params.keys()
@@ -480,15 +467,18 @@ def test_search_space_get_operation_parameter_range():
     gbr_operations = ['loss', 'learning_rate', 'max_depth', 'min_samples_split',
                       'min_samples_leaf', 'subsample', 'max_features', 'alpha']
 
-    custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
+    custom_search_space = {'gbr': {'max_depth': {
+        'hyperopt-dist': hp.choice,
+        'sampling-scope': [[3, 7, 31, 127, 8191, 131071]],
+        'type': 'categorical'}}}
     custom_search_space_without_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                               replace_default_search_space=False)
     custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                            replace_default_search_space=True)
 
-    default_operations = default_search_space.get_operation_parameter_range('gbr')
-    custom_without_replace_operations = custom_search_space_without_replace.get_operation_parameter_range('gbr')
-    custom_with_replace_operations = custom_search_space_with_replace.get_operation_parameter_range('gbr')
+    default_operations = default_search_space.get_parameters_for_operation('gbr')
+    custom_without_replace_operations = custom_search_space_without_replace.get_parameters_for_operation('gbr')
+    custom_with_replace_operations = custom_search_space_with_replace.get_parameters_for_operation('gbr')
 
     assert default_operations == gbr_operations
     assert custom_without_replace_operations == gbr_operations
@@ -500,7 +490,7 @@ def test_complex_search_space():
     for i in range(20):
         operation_parameters = space.parameters_per_operation.get("glm")
         new_value = hp_sample(operation_parameters["nested_space"])
-        for params in new_value[1][0]:
+        for params in new_value['sampling-scope'][0]:
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
 

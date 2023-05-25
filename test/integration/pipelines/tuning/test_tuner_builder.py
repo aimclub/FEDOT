@@ -56,7 +56,6 @@ def test_tuner_builder_with_custom_params(tuner_class):
     timeout = timedelta(minutes=2)
     early_stopping = 100
     iterations = 10
-    algo = rand.suggest
     search_space = get_not_default_search_space()
 
     tuner = (
@@ -68,7 +67,6 @@ def test_tuner_builder_with_custom_params(tuner_class):
         .with_timeout(timeout)
         .with_early_stopping_rounds(early_stopping)
         .with_iterations(iterations)
-        .with_algo(algo)
         .with_search_space(search_space)
         .build(data)
     )
@@ -77,5 +75,4 @@ def test_tuner_builder_with_custom_params(tuner_class):
     assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
     assert tuner.search_space == search_space
     assert tuner.iterations == iterations
-    assert tuner.algo == algo
     assert tuner.max_seconds == int(timeout.seconds)
