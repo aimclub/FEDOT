@@ -12,26 +12,24 @@ from fedot.core.operations.evaluation.operation_implementations.models.bag_ensem
 class BaseKFoldBagging:
     @abstractmethod
     def __init__(self,
-                 base_model,
-                 n_layers: int = 1,
+                 model_base,
                  n_repeats: int = 0,
                  k_fold: int = 5,
-                 time_limit: float = None,
-                 fold_fitting_strategy: str = None
+                 fold_fitting_strategy: str = None,
+                 n_jobs: int = 0,
                  ):
-        self.base_model = base_model
-        self.layers = [[] for _ in range(n_layers)]
+        self.model_base = model_base
+        # Store special
+        self.models = []
 
-        self.n_layers = n_layers
         self.n_repeated = n_repeats
         self.k_fold = k_fold
-
-        self.time_limit = time_limit
-        self.time_start = None
 
         self._oof_pred_proba = None
         self._oof_pred_model_repeats = None
 
+        self.X_new = None
+        self.unique_class = None
         self.cv_splitter = self._get_cv_splitter(n_repeats, k_fold)
         self.kfold_fitting_strategy = self._get_fold_fitting_stratgey(fold_fitting_strategy)
 
@@ -49,14 +47,12 @@ class BaseKFoldBagging:
 
         return fold_fitting_strategy
 
-    def _get_fold_fitting_args(self, X, y, oof_pred_proba, oof_pred_model_repeats):
+    def _get_fold_fitting_args(self, X: np.ndarray, y: np.ndarray, oof_pred_proba: np.ndarray,
+                               oof_pred_model_repeats: np.ndarray):
         return dict(
             model_base=self.model_base,
             bagged_ensemble_model=self,
-            X=X,
-            y=y,
-            time_limit=self.time_limit,
-            time_start=self.time_start,
+            X=X, y=y,
             oof_pred_proba=oof_pred_proba,
             oof_pred_model_repeats=oof_pred_model_repeats,
         )
@@ -70,51 +66,30 @@ class BaseKFoldBagging:
 
         return cv_splitter
 
-    def _generate_folds(self, X: np.ndarray, y: np.ndarray, k_fold_start, k_fold_end, n_repeat_start, n_repeat_end) -> (
-            list, int, int):
-        k_fold = self.cv_splitter.n_splits
-        kfolds = self.cv_splitter.split(X=X, y=y)
+    def _generate_folds(self, X: np.ndarray, y: np.ndarray) -> list:
+        folds_list = []
 
-        fold_start = n_repeat_start * k_fold + k_fold_start
-        fold_end = (n_repeat_end - 1) * k_fold + k_fold_end
-        folds_to_fit = fold_end - fold_start
+        for fold_num, (train_indices, val_indices) in enumerate(self.cv_splitter.split(X, y)):
+            suffix = f'Repeat_{fold_num // self.k_fold + 1}-Fold_{fold_num + 1}'
 
-        fold_fit_args_list = []
-        n_repeats_started = 0
-        n_repeats_finished = 0
+            fold_ctx = dict(
+                model_name_suffix=suffix,
+                train_indices=train_indices,
+                val_indices=val_indices,
+            )
 
-        for repeat in range(n_repeat_start, n_repeat_end):  # For each repeat
-            is_first_set = repeat == n_repeat_start
-            is_last_set = repeat == (n_repeat_end - 1)
+            folds_list.append(fold_ctx)
 
-            if (not is_first_set) or (k_fold_start == 0):
-                n_repeats_started += 1
-
-            fold_in_set_start = k_fold_start if repeat == n_repeat_start else 0
-            fold_in_set_end = k_fold_end if is_last_set else k_fold
-
-            for fold_in_set in range(fold_in_set_start, fold_in_set_end):  # For each fold
-                fold = fold_in_set + (repeat * k_fold)
-                fold_ctx = dict(
-                    model_name_suffix=f'S{repeat + 1}F{fold_in_set + 1}',  # S5F3 = 3rd fold of the 5th repeat set
-                    fold=kfolds[fold],
-                    is_last_fold=fold == (fold_end - 1),
-                    folds_to_fit=folds_to_fit,
-                    folds_finished=fold - fold_start,
-                    folds_left=fold_end - fold,
-                )
-
-                fold_fit_args_list.append(fold_ctx)
-            if fold_in_set_end == k_fold:
-                n_repeats_finished += 1
-
-        return fold_fit_args_list, n_repeats_started, n_repeats_finished
+        return folds_list
 
     def _construct_empty_oof(self, X: np.ndarray, y: np.ndarray):
         oof_pred_proba = np.zeros(shape=(len(X), len(np.unique(y))), dtype=np.float32)
         oof_pred_model_repeats = np.zeros(shape=len(X), dtype=np.uint8)
 
         return oof_pred_proba, oof_pred_model_repeats
+
+    def _add_model_to_bag(self, model):
+        self.models.append(model)
 
     def _update_oof(self, oof_pred_proba, oof_pred_model_repeats):
         if self._oof_pred_proba is None:
@@ -125,46 +100,51 @@ class BaseKFoldBagging:
             self._oof_pred_proba += oof_pred_proba
             self._oof_pred_model_repeats += oof_pred_model_repeats
 
+    def _concatenate(self, prev_data, new_data):
+        return np.concatenate(prev_data, new_data.T, axis=-1)
+
 
 class KFoldBaggingClassifier(BaseKFoldBagging):
-    def __init__(self, base_model: object, n_layers: int, n_repeats: int, k_fold: int):
-        super().__init__(base_model=base_model, n_layers=n_layers, n_repeats=n_repeats, k_fold=k_fold)
+    def __init__(self, model_base, n_repeats: int, k_fold: int, fold_fitting_strategy: str, n_jobs: int):
+        super().__init__(
+            model_base=model_base,
+            n_repeats=n_repeats,
+            k_fold=k_fold,
+            fold_fitting_strategy=fold_fitting_strategy
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        self.time_start = time.time()
-
-        for layer in self.layers:
-            models, predictions = self._fit_layer(X, y)
-            layer.append(models)
-            X = self.concatenate(X, predictions)
-
-        return self
-
-    def _fit_layer(self, X, y):
-        fold_fit_args_list, n_repeats_started, n_repeats_finished = self._generate_folds(X=X, y=y)
-
+        self.unique_class = np.unique(y)
+        folds_list = self._generate_folds(X=X, y=y)
         oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(X=X, y=y)
 
         fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats)
         fold_fitting_strategy = self.kfold_fitting_strategy(**fold_fitting_strategy_args)
 
-        for fold_fit_args in fold_fit_args_list:
-            fold_fitting_strategy.schedule_fold_model_fit(**fold_fit_args)
+        for fold_fit in folds_list:
+            fold_fitting_strategy.schedule_fold_model_fit(fold_fit)
 
         fold_fitting_strategy.after_all_folds_scheduled()
 
-        for model in models:
-            self.add_child(model=model)
-
         self._update_oof(oof_pred_proba, oof_pred_model_repeats)
 
-        return self
-
     def predict(self, X: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
+        pred_proba = self.predict_proba(X)
+        pred = np.argmax(pred_proba, axis=-1)
 
-    def predict_proba(self, predict_data: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
+        return pred
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        # TODO: Do analogue predict with model[0] and etc
+        pred_proba = np.zeros(shape=(len(X), len(self.unique_class), 2), dtype=np.float32)
+
+        for model in self.models:
+            # model = self.load_child(model)
+            pred_proba += model.predict_proba(X=X)
+
+        pred_proba = pred_proba / len(self.models)
+
+        return pred_proba
 
 
 class KFoldBaggingRegressor(BaseKFoldBagging):

@@ -6,9 +6,13 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.bagging_kfold import KFoldBaggingClassifier
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
+from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 
 
 def test_bagged_ensemble_scoring():
@@ -60,6 +64,7 @@ def test_bagged_ensemble_scoring():
     assert test_prediction is not None
     assert test_prediction.shape[0] == test_data.target.shape[0]
     assert roc_auc_value_test >= 0.5
+
 
 
 def test_prob_sum():
@@ -142,3 +147,22 @@ def test_prob_sum():
     y_hat_m = np.argmax(counts, axis=-1)
 
     assert preds_m_0.shape == (np.argmax(np.sum(test_rand_oof_probs[:, :, 0, :, :], axis=0) / repeats, axis=2).reshape(-1)).shape
+
+
+def test_bagged_ensemble():
+    train_data, test_data = get_classification_data()
+    # poor params to accelerate the time
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.classification, tags=['kfold_bagging']
+    )
+
+    for model_name in model_names:
+        pipeline = PipelineBuilder().add_node(model_name).build()
+        # TODO: Fix after solving the issue №1096
+        pipeline.fit(train_data, n_jobs=-1)
+        predicted_output = pipeline.predict(test_data, output_mode='labels')
+        metric = roc_auc(test_data.target, predicted_output.predict)
+
+        assert isinstance(pipeline, Pipeline)
+        assert predicted_output.predict.shape[0] == 240
+        assert metric > 0.5

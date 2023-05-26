@@ -180,6 +180,32 @@
         "bagging"
       ],
       "tasks": "[TaskTypesEnum.regression]"
+    },
+    "kfold_bagging_class": {
+      "description": "K-fold n-repeated bagging of classification models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging_kfold",
+        "KFoldBaggingClassificationStrategy"
+      ],
+      "tags": [
+        "kfold_bagging"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "kfold_bagging_regr": {
+      "description": "K-fold n-repeated bagging of regression models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging_kfold",
+        "KFoldBaggingRegressionStrategy"
+      ],
+      "tags": [
+        "kfold_bagging"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
     }
   },
   "operations": {
@@ -564,30 +590,39 @@
     },
     "bag_dt": {
       "meta": "bagging_class",
-      "presets": [
-        "bagging_class"
-      ],
-      "tags": [
-        "boosting"
-      ]
+      "presets": ["bagging_class"]
     },
     "bag_dtreg": {
       "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
+      "presets": ["bagging_regr"]
     },
     "bag_adareg": {
       "meta": "bagging_regr",
-      "presets": [
-        "bagging_regr"
-      ],
-      "tags": [
-        "boosting"
-      ]
+      "presets": ["bagging_regr"]
+    },
+    "bag_catboost": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_catboostreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_xgboost": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_xgboostreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_lgbm": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_lgbmreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
     }
   }
 }

@@ -28,14 +28,12 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
         params: operation's init and fitting hyperparameters
 
         .. details:: explanation of params
-            - ``estimator`` -
-            - ``n_layers`` -
+            - ``model_base`` -
             - ``n_repeats`` -
-            - ``n_fold`` -
+            - ``k_fold`` -
             - ``fold_fitting_strategy`` -
-            - ``time_limit`` -
             - ``n_jobs`` -
-            - ``model_params`` -
+            - ``model_base_kwargs`` -
 
     """
 
@@ -61,9 +59,9 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types.keys():
             if self._model_params:
-                self._bagging_params['estimator'] = self._operations_by_types[operation_type](**self._model_params)
+                self._bagging_params['model_base'] = self._operations_by_types[operation_type](**self._model_params)
             else:
-                self._bagging_params['estimator'] = self._operations_by_types[operation_type]()
+                self._bagging_params['model_base'] = self._operations_by_types[operation_type]()
 
             return self.bagging_operation(**self._bagging_params)
 
@@ -82,13 +80,13 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
             if params.get('model_params'):
                 params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
-        self._model_params = params.get('model_params')
+        self._model_params = params.get('model_base_kwargs')
         # TODO: sklearn param base_estimator will change to estimator in future since 1.4
 
         self._bagging_params = {}
 
         for param in params.keys():
-            if param != 'model_params':
+            if param != 'model_base_kwargs':
                 self._bagging_params.update({param: params.get(param)})
 
         return params

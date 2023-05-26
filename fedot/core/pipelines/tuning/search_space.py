@@ -812,9 +812,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_catboost': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                     'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
@@ -824,9 +824,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_xgboost': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'max_depth': (hp.uniformint, [1, 7]),
                     'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                     'subsample': (hp.uniform, [0.05, 0.99]),
@@ -834,9 +834,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_lgbm': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'class_weight': (hp.choice, [[None, 'balanced']]),
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
@@ -847,9 +847,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_lgbmxt': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'class_weight': (hp.choice, [[None, 'balanced']]),
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
@@ -860,9 +860,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_catboostreg': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'max_depth': (hp.uniformint, [1, 11]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                     'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
@@ -871,9 +871,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_xgboostreg': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'max_depth': (hp.uniformint, [1, 7]),
                     'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                     'subsample': (hp.uniform, [0.05, 0.99]),
@@ -881,9 +881,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_lgbmreg': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                     'colsample_bytree': (hp.uniform, [0.4, 1]),
@@ -893,9 +893,9 @@ class PipelineSearchSpace(SearchSpace):
                 }
             },
             'bag_lgbmxtreg': {
-                'n_estimators': (hp.uniformint, [3, 50]),
-                'max_samples': (hp.uniformint, [0.1, 1.0]),
-                'model_params': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
                     'num_leaves': (hp.uniformint, [2, 256]),
                     'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                     'colsample_bytree': (hp.uniform, [0.4, 1]),
