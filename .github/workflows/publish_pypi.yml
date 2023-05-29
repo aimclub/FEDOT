@@ -1,9 +1,7 @@
 name: Build and publish package to PyPi
 
 on:
-  push:
-    branches: [ release ]
-
+  workflow_dispatch:
 
 jobs:
   build_and_publish:
