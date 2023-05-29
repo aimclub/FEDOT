@@ -47,4 +47,4 @@ The results of comparison with competing libraries averaged for all time series 
 +----------+----------+-----------+---------+---------+-----------+---------+---------+
 
 Additionally you can examine papers about Fedot performance in different time series forecasting tasks `[1] <https://link.springer.com/chapter/10.1007/978-3-031-16474-3_45>`__ , `[2] <https://arpgweb.com/journal/7/special_issue/12-2018/5/&page=6>`__, `[3] <https://ieeexplore.ieee.org/document/9870347>`__,
-`[4] <https://ieeexplore.ieee.org/document/9870347>`__,  `[5] <https://ieeexplore.ieee.org/document/9870347>`__,  `[6] <https://www.mdpi.com/2073-4441/13/24/3482/htm>`__, ,  `[7] <https://ieeexplore.ieee.org/abstract/document/9986887>`__.
+`[4] <https://ieeexplore.ieee.org/document/9870347>`__,  `[5] <https://ieeexplore.ieee.org/document/9870347>`__,  `[6] <https://www.mdpi.com/2073-4441/13/24/3482/htm>`__,  `[7] <https://ieeexplore.ieee.org/abstract/document/9986887>`__.
