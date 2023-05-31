@@ -10,14 +10,23 @@ from fedot.core.operations.evaluation.operation_implementations.models.bag_ensem
 
 
 class BaseKFoldBagging:
+    """ Base k-fold n-repeated bagging ensemble class which provides some default implementation for specific
+        objects for each task. Bagged ensemble fits a given base model multiple times (n-repeats) across different
+        splits (k-fold) of the training data. Each model produce out-of-fold prediction and all probs or values stack into
+        single prediction vector. This vector could be used in meta-model or fit another layer of bagged ensemble.
+
+        Args:
+            model_base:
+            n_repeats:
+            k_fold:
+            fold_fitting_strategy:
+            n_jobs:
+
+
+
+    """
     @abstractmethod
-    def __init__(self,
-                 model_base,
-                 n_repeats: int = 0,
-                 k_fold: int = 5,
-                 fold_fitting_strategy: str = None,
-                 n_jobs: int = 0,
-                 ):
+    def __init__(self, model_base, n_repeats: int, k_fold: int, fold_fitting_strategy: str, n_jobs: int):
         self.model_base = model_base
         # Store special
         self.models = []
@@ -48,7 +57,7 @@ class BaseKFoldBagging:
         return fold_fitting_strategy
 
     def _get_fold_fitting_args(self, X: np.ndarray, y: np.ndarray, oof_pred_proba: np.ndarray,
-                               oof_pred_model_repeats: np.ndarray):
+                               oof_pred_model_repeats: np.ndarray) -> dict:
         return dict(
             model_base=self.model_base,
             bagged_ensemble_model=self,
@@ -88,7 +97,7 @@ class BaseKFoldBagging:
 
         return oof_pred_proba, oof_pred_model_repeats
 
-    def _add_model_to_bag(self, model):
+    def add_model_to_bag(self, model):
         self.models.append(model)
 
     def _update_oof(self, oof_pred_proba, oof_pred_model_repeats):
@@ -115,6 +124,7 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         self.unique_class = np.unique(y)
+
         folds_list = self._generate_folds(X=X, y=y)
         oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(X=X, y=y)
 
@@ -135,10 +145,10 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
         return pred
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        # TODO: Do analogue predict with model[0] and etc
-        pred_proba = np.zeros(shape=(len(X), len(self.unique_class), 2), dtype=np.float32)
+        model = self.models[0]
+        pred_proba = model.predict_proba(X=X)
 
-        for model in self.models:
+        for model in self.models[1:]:
             # model = self.load_child(model)
             pred_proba += model.predict_proba(X=X)
 

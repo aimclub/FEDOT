@@ -3,6 +3,7 @@ import pandas as pd
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.bagging_kfold import KFoldBaggingClassifier
@@ -13,52 +14,58 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
+from sklearn.datasets import load_breast_cancer
 
 
 def test_bagged_ensemble_scoring():
-    train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
-    test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
+    # train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
+    # test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
+
+    iris = load_breast_cancer()
+    X, y = iris.data, iris.target
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
 
     train_data = InputData(
-        idx=np.arange(0, len(train.target)),
-        features=np.array(train.drop(['target'], axis=1)),
-        target=np.array(train.target),
+        idx=np.arange(0, len(y_train)),
+        features=X_train,
+        target=y_train,
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
     )
 
     test_data = InputData(
-        idx=np.arange(0, len(test.target)),
-        features=np.array(test.drop(['target'], axis=1)),
-        target=np.array(test.target),
+        idx=np.arange(0, len(y_test)),
+        features=X_test,
+        target=y_test,
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
     )
 
-    # base_estimator = CatBoostClassifier(
-    #     allow_writing_files=False,
-    #     verbose=False
-    # )
+    pipeline = PipelineBuilder().add_node('bag_catboost').build()
+    implemented_model = pipeline.fit(train_data)
 
-    base_estimator = CatBoostClassifier()
+    train_prediction = pipeline.predict(train_data)
+    test_prediction = pipeline.predict(test_data)
 
-    bclf = KFoldBaggingClassifier(
-        base_estimator=base_estimator,
-        n_layers=2,
-        n_repeats=5,
-        k_fold=3
-    )
-
-    implemented_model = bclf.fit(X=train_data.features, y=train_data.target)
-
-    train_prediction = bclf.predict(X=train_data.features)
-    test_prediction = bclf.predict(X=test_data.features)
-
-    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_prediction)
-    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_prediction)
+    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_prediction.predict)
+    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_prediction.predict)
 
     print('Train ROC-AUC score', roc_auc_value_train)
     print('Test ROC-AUC score', roc_auc_value_test)
+
+    simple_pipeline = PipelineBuilder().add_node('catboost').build()
+    implemented_model = simple_pipeline.fit(train_data)
+
+    train_prediction = simple_pipeline.predict(train_data)
+    test_prediction = simple_pipeline.predict(test_data)
+
+    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_prediction.predict)
+    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_prediction.predict)
+
+    print('Simple Train ROC-AUC score', roc_auc_value_train)
+    print('Simple Test ROC-AUC score', roc_auc_value_test)
 
     assert implemented_model is not None
     assert test_prediction is not None

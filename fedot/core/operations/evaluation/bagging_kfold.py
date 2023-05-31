@@ -81,8 +81,6 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
                 params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
         self._model_params = params.get('model_base_kwargs')
-        # TODO: sklearn param base_estimator will change to estimator in future since 1.4
-
         self._bagging_params = {}
 
         for param in params.keys():
@@ -125,6 +123,8 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
 
 
 class KFoldBaggingClassificationStrategy(KFoldBaggingStrategy):
+    # TODO: Avoid duplicate with SklearnBagging,
+    #  implement it with optional of bagging_operation param
     """ Classification bagging operation implementation
 
         Args:
@@ -152,6 +152,8 @@ class KFoldBaggingClassificationStrategy(KFoldBaggingStrategy):
 
 
 class KFoldBaggingRegressionStrategy(KFoldBaggingStrategy):
+    # TODO: Avoid duplicate with SklearnBagging,
+    #  implement it with optional of bagging_operation param
     """ Regression bagging operation implementation
 
         Args:
