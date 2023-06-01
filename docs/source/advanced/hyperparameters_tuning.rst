@@ -13,6 +13,39 @@ More information about these approaches can be found
 If ``with_tuning`` flag is set to ``True`` when using :doc:`FEDOT API </api/api>`, simultaneous hyperparameters tuning
 using ``SimultaneousTuner`` is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
 
+FEDOT uses tuners implementation from GOLEM, see `GOLEM documentation`_.
+
+.. list-table:: Tuners
+   :header-rows: 1
+
+   * -
+     - ``SimultaneousTuner``
+     - ``SequentialTuner``
+     - ``IOptTuner``
+   * - Based on
+     - Hyperopt
+     - Hyperopt
+     - iOpt
+   * - Type of tuning
+     - Simultaneous
+     - Sequential or for one node only
+     - Simultaneous
+   * - Optimized parameters
+     - categorical, discrete, continuous
+     - categorical, discrete, continuous
+     - discrete, continuous
+   * - Algorithm type
+     - stochastic
+     - stochastic
+     - deterministic
+   * - Supported constraints
+     - timeout, iterations, early_stopping_rounds, eval_time_constraint
+     - timeout, iterations, early_stopping_rounds, eval_time_constraint
+     - iterations, eval_time_constraint
+
+Hyperopt based tuners usually take less time for one iteration but `IOptTuner` is able to obtain much more stable results.
+
+
 Simple example
 ~~~~~~~~~~~~~~
 
