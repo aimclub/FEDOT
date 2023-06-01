@@ -14,7 +14,7 @@ from golem.utilities.requirements_notificator import warn_requirement
 try:
     import cv2
 except ModuleNotFoundError:
-    warn_requirement('opencv-python')
+    warn_requirement('opencv-python', 'fedot[extra]')
     cv2 = None
 
 from fedot.core.data.array_utilities import atleast_2d

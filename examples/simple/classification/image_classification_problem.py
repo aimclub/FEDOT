@@ -6,7 +6,7 @@ from golem.utilities.requirements_notificator import warn_requirement
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    warn_requirement('tensorflow')
+    warn_requirement('tensorflow', 'fedot[extra]')
 
 from sklearn.metrics import roc_auc_score as roc_auc
 

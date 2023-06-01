@@ -3,7 +3,7 @@ from golem.utilities.requirements_notificator import warn_requirement
 try:
     import cudf
 except ModuleNotFoundError:
-    warn_requirement('cudf')
+    warn_requirement('cudf', 'cudf / cuml')
     cudf = None
 
 from fedot.core.data.data import InputData, OutputData

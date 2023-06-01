@@ -10,7 +10,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    warn_requirement('tensorflow')
+    warn_requirement('tensorflow', 'fedot[extra]')
     tf = None
 
 from fedot.core.data.data import InputData, OutputData
