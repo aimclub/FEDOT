@@ -14,7 +14,7 @@
    * - package
      - | |pypi| |python|
    * - tests
-     - | |build| |coverage|
+     - | |build| |integration| |coverage|
    * - docs
      - |docs|
    * - license
@@ -252,7 +252,11 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
 
 .. |build| image:: https://github.com/aimclub/FEDOT/workflows/Build/badge.svg?branch=master
    :alt: Build Status
-   :target: https://github.com/aimclub/FEDOT/actions
+   :target: https://github.com/aimclub/FEDOT/actions/workflows/unit-build.yml
+
+.. |integration| image:: https://github.com/aimclub/FEDOT/workflows/Integration/badge.svg?branch=master
+   :alt: Integration Build Status
+   :target: https://github.com/aimclub/FEDOT/actions/workflows/integration-build.yml
 
 .. |coverage| image:: https://codecov.io/gh/aimclub/FEDOT/branch/master/graph/badge.svg
    :alt: Coverage Status

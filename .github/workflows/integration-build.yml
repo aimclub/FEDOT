@@ -1,8 +1,13 @@
-name: Integration build
+name: Integration
 
 on:
   schedule:
     - cron: '0 12 * * *'
+  push:
+    branches: [ release ]
+  pull_request:
+    branches: [ release ]
+  workflow_dispatch:
 
 jobs:
   scheduled:
