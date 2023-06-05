@@ -177,7 +177,7 @@ def test_composition_time(data_fixture, request):
     complete_history = gp_composer_completed_evolution.history
 
     assert len(terminated_history.individuals) == 2  # initial randomized population & final choice
-    assert len(complete_history.individuals) == 4
+    assert len(complete_history.individuals) == 3  # only 1 additional population can be done for that timeout
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
