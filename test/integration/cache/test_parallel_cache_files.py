@@ -1,19 +1,13 @@
-import multiprocessing
 import sqlite3
-from functools import partial
 from pathlib import Path
-from typing import Callable
 
 import psutil
+from joblib import Parallel, cpu_count, delayed
 
 from examples.simple.classification.api_classification import run_classification_example
 from examples.simple.regression.api_regression import run_regression_example
 from examples.simple.time_series_forecasting.api_forecasting import run_ts_forecasting_example
 from fedot.core.utils import default_fedot_data_dir
-
-
-def run_example(target: Callable):
-    target()
 
 
 def get_unused_pid() -> int:
@@ -34,18 +28,16 @@ def test_parallel_cache_files():
     test_file_2.touch()
 
     tasks = [
-        partial(run_regression_example, with_tuning=False),
-        partial(run_classification_example, timeout=2., with_tuning=False),
-        partial(run_ts_forecasting_example, dataset='beer', horizon=10, timeout=2., with_tuning=False),
+        delayed(run_regression_example)(with_tuning=False),
+        delayed(run_classification_example)(timeout=1., with_tuning=False),
+        delayed(run_ts_forecasting_example)(dataset='beer', horizon=10, timeout=1., with_tuning=False),
     ]
 
-    cpus = multiprocessing.cpu_count()
+    cpus = cpu_count()
     if cpus > 1:
         try:
-            with multiprocessing.Pool(processes=cpus) as pool:
-                list(pool.imap(run_example, tasks))
+            Parallel(n_jobs=cpus)(tasks)
         except sqlite3.OperationalError:
             assert False, 'DBs collides'
-
         assert not test_file_1.exists()
         assert not test_file_2.exists()
