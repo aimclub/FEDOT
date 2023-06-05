@@ -493,7 +493,7 @@ class Fedot:
 
         if target is not None:
             if self.test_data is None:
-                self.test_data = InputData(idx=range(len(self.prediction.predict)),
+                self.test_data = InputData(idx=np.arange(len(self.prediction.predict)),
                                            features=None,
                                            target=target[:len(self.prediction.predict)],
                                            task=self.train_data.task,
