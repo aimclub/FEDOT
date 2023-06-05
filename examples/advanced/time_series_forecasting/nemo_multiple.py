@@ -269,14 +269,16 @@ def create_errors_df():
 
 
 def add_data_to_errors_df(df, error_name, point, errors):
-    df = df.append({'POINT': point,
-                    'RIDGE': errors['RIDGE_' + error_name],
-                    'RIDGE_NEMO': errors['RIDGE_NEMO_' + error_name],
-                    'ARIMA': errors['ARIMA_' + error_name],
-                    'ARIMA_NEMO': errors['ARIMA_NEMO_' + error_name],
-                    'STL_ARIMA': errors['STL_ARIMA_' + error_name],
-                    'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_' + error_name],
-                    }, ignore_index=True)
+    more_data = pd.DataFrame({
+        'POINT': point,
+        'RIDGE': errors['RIDGE_' + error_name],
+        'RIDGE_NEMO': errors['RIDGE_NEMO_' + error_name],
+        'ARIMA': errors['ARIMA_' + error_name],
+        'ARIMA_NEMO': errors['ARIMA_NEMO_' + error_name],
+        'STL_ARIMA': errors['STL_ARIMA_' + error_name],
+        'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_' + error_name],
+    }, index=[0])
+    df = pd.concat([df, more_data], ignore_index=True)
     return df
 
 

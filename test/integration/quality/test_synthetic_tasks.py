@@ -70,8 +70,6 @@ def test_synthetic_regression_automl():
     If correct, the best fitness should be close to 0.
     """
 
-    # TODO extend test
-
     ref_pipeline = get_regression_pipeline()
     input_data = get_regression_data()
 
