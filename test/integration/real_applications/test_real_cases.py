@@ -25,7 +25,8 @@ def test_credit_scoring_problem():
 
 
 def test_metocean_forecasting_problem():
-    full_path_train, full_path_test = fedot_project_root().joinpath('test/data/simple_time_series.csv')
+    full_path_train = fedot_project_root().joinpath('test/data/simple_time_series.csv')
+    full_path_test = full_path_train
 
     rmse = run_metocean_forecasting_problem(full_path_train,
                                             full_path_test,
