@@ -154,16 +154,17 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visu
                      exog_variable=exog_variable,
                      len_forecast=len_forecast)
 
-    pipelines = {'ARIMA': {
-        'tr_nodes_data': {"arima": train_input},
-        'pr_nodes_data': {"arima": predict_input},
-        'model': get_arima_pipeline()
-    },
-        'STL_ARIMA': {
-            'tr_nodes_data': {"stl_arima": train_input},
-            'pr_nodes_data': {"stl_arima": predict_input},
-            'model': get_stlarima_pipeline()
-        },
+    pipelines = {
+        'ARIMA':
+            {'tr_nodes_data': {"arima": train_input},
+             'pr_nodes_data': {"arima": predict_input},
+             'model': get_arima_pipeline()
+             },
+        'STL_ARIMA':
+            {'tr_nodes_data': {"stl_arima": train_input},
+             'pr_nodes_data': {"stl_arima": predict_input},
+             'model': get_stlarima_pipeline()
+             },
         'RIDGE':
             {'tr_nodes_data': {"lagged/1": train_input, "lagged/2": train_input},
              'pr_nodes_data': {"lagged/1": predict_input, "lagged/2": predict_input},

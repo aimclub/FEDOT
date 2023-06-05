@@ -6,7 +6,6 @@ from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
 from fedot.core.pipelines.node import PipelineNode
-from fedot.utilities.debug import is_test_session
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
