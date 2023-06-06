@@ -35,10 +35,8 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            if isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex):
-                self.log.warning(f'Nodes can not be saved: {ex}. Continue', exc=ex, raise_if_test=False)
-            else:
-                self.log.warning(f'Nodes can not be saved: {ex}. Continue', exc=ex, raise_if_test=True)
+            dont_raise_exc = isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex)
+            self.log.warning(f'Nodes can not be saved: {ex}. Continue', exc=ex, raise_if_test=dont_raise_exc)
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
