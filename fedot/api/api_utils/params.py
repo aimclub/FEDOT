@@ -1,5 +1,6 @@
 import datetime
 from collections import UserDict
+from copy import deepcopy, copy
 from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
@@ -161,3 +162,7 @@ class ApiParams(UserDict):
                                                              advisor=advisor,
                                                              node_factory=node_factory)
         return self.graph_generation_params
+
+    def to_dict(self, deep=False) -> Dict:
+        cp = deepcopy if deep else copy
+        return cp(self.data)

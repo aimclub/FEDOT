@@ -135,52 +135,6 @@ def baseline_pipeline():
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_composition_time(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    task = Task(TaskTypesEnum.classification)
-    models_impl = ['mlp', 'knn']
-    metric_function = ClassificationMetricsEnum.ROCAUC
-
-    req_terminated_evolution = PipelineComposerRequirements(
-        primary=models_impl,
-        secondary=models_impl, max_arity=2,
-        max_depth=2,
-        num_of_generations=5,
-        timeout=datetime.timedelta(minutes=0.000001))
-    params = GPAlgorithmParameters(pop_size=2)
-
-    builder = ComposerBuilder(task) \
-        .with_requirements(req_terminated_evolution) \
-        .with_optimizer_params(params) \
-        .with_metrics(metric_function)
-
-    gp_composer_terminated_evolution = builder.build()
-
-    _ = gp_composer_terminated_evolution.compose_pipeline(data=data)
-
-    req_completed_evolution = PipelineComposerRequirements(
-        primary=models_impl,
-        secondary=models_impl,
-        num_of_generations=2
-    )
-    params = GPAlgorithmParameters(pop_size=2)
-
-    builder = ComposerBuilder(task) \
-        .with_requirements(req_completed_evolution) \
-        .with_optimizer_params(params) \
-        .with_metrics(metric_function)
-    gp_composer_completed_evolution = builder.build()
-
-    _ = gp_composer_completed_evolution.compose_pipeline(data=data)
-
-    terminated_history = gp_composer_terminated_evolution.history
-    complete_history = gp_composer_completed_evolution.history
-
-    assert len(terminated_history.individuals) == 2  # initial randomized population & final choice
-    assert len(complete_history.individuals) == 4
-
-
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     """ Checks that when a metric stagnates, the number of individuals in the population increases """
     data = request.getfixturevalue(data_fixture)

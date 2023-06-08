@@ -16,15 +16,14 @@ def test_classification_quality_improvement():
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
+    seed = None
     problem = 'classification'
     with_tuning = False
 
-    baseline_model = Fedot(problem=problem, seed=50, with_tuning=with_tuning)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     expected_baseline_quality = 0.823
-
+    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning)
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     baseline_model.predict_proba(features=test_data_path)
-
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
@@ -33,11 +32,12 @@ def test_classification_quality_improvement():
                            with_tuning=with_tuning,
                            preset='best_quality')
 
-    auto_model = Fedot(problem=problem, timeout=timeout, seed=50, logging_level=logging.DEBUG,
+    auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
                        **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
+
     assert auto_metrics['roc_auc_pen'] > baseline_metrics['roc_auc_pen'] >= expected_baseline_quality
 
 
@@ -46,6 +46,7 @@ def test_multiobjective_improvement():
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
     problem = 'classification'
+    seed = 50
 
     # Define parameters for composing
     quality_metric = 'roc_auc'
@@ -58,7 +59,7 @@ def test_multiobjective_improvement():
                            preset='best_quality',
                            metric=metrics)
 
-    auto_model = Fedot(problem=problem, timeout=timeout, seed=50, logging_level=logging.DEBUG,
+    auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
                        **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
@@ -66,6 +67,8 @@ def test_multiobjective_improvement():
 
     quality_improved, complexity_improved = check_improvement(auto_model.history)
 
+    assert auto_metrics['roc_auc'] > 0.75
+    assert auto_metrics['node_num'] >= 2
     assert quality_improved
     assert complexity_improved
 
