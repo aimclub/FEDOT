@@ -62,7 +62,7 @@ class OperationsCache(BaseCache):
                 else:
                     nodes_lst[idx].fitted_operation = None
         except Exception as ex:
-            self.log.warning(f'Cache can not be loaded: {ex}. Continue.', ex=ex, raise_if_test=True)
+            self.log.warning(f'Cache can not be loaded: {ex}. Continue.', exc=ex, raise_if_test=True)
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
