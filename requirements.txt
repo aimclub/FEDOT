@@ -1,5 +1,5 @@
 # Base framework
-thegolem  @ git+https://github.com/aimclub/GOLEM.git@3dc2a9b0749ea118b5e290d259c4582edeb1db2e
+thegolem @ git+https://github.com/aimclub/GOLEM@88-add-options-for-saving-in-sa#egg=thegolem
 
 # Data
 numpy>=1.16.0, !=1.24.0
