@@ -60,9 +60,9 @@ FEDOT uses tuners implementation from GOLEM, see `GOLEM documentation`_ for more
        | eval_time_constraint
    * - | Supports initial
        | point
-     - | Yes
-       | No
-       | No
+     - Yes
+     - No
+     - No
 
 Hyperopt based tuners usually take less time for one iteration, but ``IOptTuner`` is able to obtain much more stable results.
 
