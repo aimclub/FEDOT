@@ -24,7 +24,7 @@ class BaseCacheDB:
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        if cache_dir is None:
+        if cache_dir is None or Path(cache_dir).samefile(default_fedot_data_dir()):
             self.db_path = Path(default_fedot_data_dir())
             self._del_prev_temps()
         else:
