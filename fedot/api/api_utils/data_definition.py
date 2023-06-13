@@ -79,9 +79,12 @@ class PandasStrategy(StrategyDefineData):
         if target is None:
             target = np.array([])
 
-        if isinstance(target, str) and target in features.columns:
-            target_array = features[target]
-            features = features.drop(columns=target)
+        if isinstance(target, str):
+            if target in features.columns:
+                target_array = features[target]
+                features = features.drop(columns=target)
+            else:
+                target_array = np.array([])
         else:
             target_array = target
 
@@ -103,8 +106,11 @@ class NumpyStrategy(StrategyDefineData):
         if task.task_type is TaskTypesEnum.ts_forecasting:
             target_array = features
         elif isinstance(target, int):
-            target_array = features[target]
-            features = np.delete(features, target, axis=1)
+            if target < features.shape[1]:
+                target_array = features[:, target]
+                features = np.delete(features, target, axis=1)
+            else:
+                target_array = np.array([])
         else:
             target_array = target
 
