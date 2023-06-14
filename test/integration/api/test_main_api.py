@@ -365,7 +365,7 @@ def test_multiobj_for_api():
 
     params = {
         **TESTS_MAIN_API_DEFAULT_PARAMS,
-        'metric': ['f1', 'node_num']
+        'metric': ['f1', 'node_number']
     }
 
     model = Fedot(problem='classification', **params)

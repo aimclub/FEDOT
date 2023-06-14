@@ -55,7 +55,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # the choice of the metric for the pipeline quality assessment during composition
     quality_metric = ClassificationMetricsEnum.ROCAUC
-    complexity_metric = ComplexityMetricsEnum.node_num
+    complexity_metric = ComplexityMetricsEnum.node_number
     metrics = [quality_metric, complexity_metric]
     # the choice and initialisation of the GP search
     composer_requirements = PipelineComposerRequirements(

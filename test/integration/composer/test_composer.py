@@ -182,7 +182,7 @@ def test_multi_objective_composer(data_fixture, request):
     composer = (
         ComposerBuilder(task=Task(task_type))
         .with_requirements(req)
-        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))
+        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_number))
         .with_optimizer_params(params)
         .build()
     )

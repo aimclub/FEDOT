@@ -11,7 +11,7 @@ def run_classification_multiobj_example(visualization=False, timeout=1, with_tun
     del test_data['class']
     problem = 'classification'
 
-    metric_names = ['f1', 'node_num']
+    metric_names = ['f1', 'node_number']
     auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality', seed=42,
                        metric=metric_names,
                        with_tuning=with_tuning)
