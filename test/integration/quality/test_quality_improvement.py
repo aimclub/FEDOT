@@ -13,8 +13,8 @@ warnings.filterwarnings("ignore")
 
 def test_classification_quality_improvement():
     # input data initialization
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
 
     seed = None
     problem = 'classification'
@@ -43,14 +43,14 @@ def test_classification_quality_improvement():
 
 def test_multiobjective_improvement():
     # input data initialization
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
     problem = 'classification'
     seed = 50
 
     # Define parameters for composing
     quality_metric = 'roc_auc'
-    complexity_metric = 'node_num'
+    complexity_metric = 'node_number'
     metrics = [quality_metric, complexity_metric]
 
     timeout = 2
@@ -67,8 +67,8 @@ def test_multiobjective_improvement():
 
     quality_improved, complexity_improved = check_improvement(auto_model.history)
 
-    assert auto_metrics['roc_auc'] > 0.75
-    assert auto_metrics['node_num'] >= 2
+    assert auto_metrics[quality_metric] > 0.75
+    assert auto_metrics[complexity_metric] >= 2
     assert quality_improved
     assert complexity_improved
 

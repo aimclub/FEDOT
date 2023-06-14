@@ -24,7 +24,7 @@ class QualityMetricsEnum(MetricsEnum):
 
 
 class ComplexityMetricsEnum(MetricsEnum):
-    node_num = 'node_number'
+    node_number = 'node_number'
     structural = 'structural'
     computation_time = 'computation_time_in_seconds'
 
@@ -78,7 +78,7 @@ class MetricsRepository:
 
         # structural
         ComplexityMetricsEnum.structural: StructuralComplexity.get_value,
-        ComplexityMetricsEnum.node_num: NodeNum.get_value,
+        ComplexityMetricsEnum.node_number: NodeNum.get_value,
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
