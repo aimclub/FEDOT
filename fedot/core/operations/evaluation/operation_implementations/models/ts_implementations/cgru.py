@@ -18,7 +18,7 @@ try:
     from torch.optim.lr_scheduler import MultiStepLR
     from torch.utils.data import DataLoader, TensorDataset
 except ModuleNotFoundError:
-    warn_requirement('torch')
+    warn_requirement('torch', 'fedot[extra]')
     torch = object()
     nn = TorchMock
 

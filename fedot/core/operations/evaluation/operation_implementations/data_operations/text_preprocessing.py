@@ -10,7 +10,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 try:
     import nltk
 except ModuleNotFoundError:
-    warn_requirement('nltk')
+    warn_requirement('nltk', 'fedot[extra]')
     nltk = None
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (

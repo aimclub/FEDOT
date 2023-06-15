@@ -26,10 +26,10 @@ np.random.seed(12)
 
 
 def results_visualization(history, composed_pipelines):
-    visualiser = OptHistoryExtraVisualizer()
-    visualiser.visualise_history(history)
-    visualiser.pareto_gif_create(history.archive_history, history.individuals)
-    visualiser.boxplots_gif_create(history.individuals)
+    visualiser = OptHistoryExtraVisualizer(history)
+    visualiser.visualise_history()
+    visualiser.pareto_gif_create()
+    visualiser.boxplots_gif_create()
     for pipeline_evo_composed in composed_pipelines:
         pipeline_evo_composed.show()
 

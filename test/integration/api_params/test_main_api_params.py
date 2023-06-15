@@ -74,5 +74,5 @@ def test_timeout(case: TimeoutParams):
 @pytest.mark.parametrize('input_params', [{'use_input_preprocessing': False}])
 def test_main_api_params_of_type(input_params: dict):
     model = Fedot(problem='ts_forecasting', **input_params)
-    parsed_params = model.params.to_dict()
+    parsed_params = model.params
     assert input_params.items() <= parsed_params.items()

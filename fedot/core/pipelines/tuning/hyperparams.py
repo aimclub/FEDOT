@@ -1,6 +1,7 @@
 import random
 
 from golem.core.log import default_log
+from golem.core.tuning.hyperopt_tuner import get_parameter_hyperopt_space
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -23,9 +24,9 @@ class ParametersChanger:
         """ Function return a dictionary with new parameters values """
 
         # Get available parameters for operation
-        params_list = PipelineSearchSpace().get_operation_parameter_range(self.operation_name)
+        params_list = PipelineSearchSpace().get_parameters_for_operation(self.operation_name)
 
-        if params_list is None:
+        if not params_list:
             params_dict = None
         else:
             # Get new values for all parameters
@@ -66,17 +67,11 @@ class ParametersChanger:
         return params_dict
 
     def _get_current_parameter_value(self, parameter_name):
-
-        if isinstance(self.current_params, str):
-            # TODO 'default_params' - need to process
+        try:
+            current_value = self.current_params.get(parameter_name)
+        except Exception as exec:
+            self.logger.warning(f'The following error occurred during the hyperparameter configuration.{exec}')
             current_value = None
-        else:
-            # Dictionary with parameters
-            try:
-                current_value = self.current_params.get(parameter_name)
-            except Exception as exec:
-                self.logger.warning(f'The following error occurred during the hyperparameter configuration.{exec}')
-                current_value = None
 
         return current_value
 
@@ -84,9 +79,10 @@ class ParametersChanger:
     def _random_change(parameter_name, **kwargs):
         """ Randomly selects a parameter value from a specified range """
 
-        space = PipelineSearchSpace().get_operation_parameter_range(operation_name=kwargs['operation_name'],
-                                                                    parameter_name=parameter_name,
-                                                                    label=parameter_name)
+        space = get_parameter_hyperopt_space(PipelineSearchSpace(),
+                                             operation_name=kwargs['operation_name'],
+                                             parameter_name=parameter_name,
+                                             label=parameter_name)
         # Randomly choose new value
         new_value = hp_sample(space)
         return {parameter_name: new_value}

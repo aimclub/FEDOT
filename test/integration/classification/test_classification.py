@@ -5,7 +5,7 @@ try:
 except ModuleNotFoundError:
     from golem.utilities.requirements_notificator import warn_requirement
 
-    warn_requirement('tensorflow')
+    warn_requirement('tensorflow', 'fedot[extra]')
 
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_classification import get_image_classification_data

@@ -16,7 +16,7 @@ try:
     from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
         MultinomialNB as CuMlMultinomialNB
 except ModuleNotFoundError:
-    warn_requirement('cudf / cuml')
+    warn_requirement('cudf / cuml', 'cudf / cuml')
     cudf = None
     cuml = None
 
