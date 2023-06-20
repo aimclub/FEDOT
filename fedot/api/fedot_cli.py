@@ -2,7 +2,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.api.main import Fedot
-import os
+from pathlib import Path
 
 
 def create_parser(arguments_list):
@@ -74,7 +74,7 @@ def run_fedot(parameters, main_params, fit_params, save_predictions=True):
     model.fit(**fit_params)
     print("\nPrediction start...")
     prediction = model.predict(features=getattr(parameters, 'test'), in_sample=False, save_predictions=save_predictions)
-    print(f"\nPrediction saved at {os.getcwd()}\\predictions.csv")
+    print(f"\nPrediction saved at {Path.cwd().joinpath('predictions.csv')}")
     return prediction
 
 
