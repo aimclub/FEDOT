@@ -1,5 +1,4 @@
 import datetime
-import random
 from pathlib import Path
 
 import numpy as np
@@ -34,12 +33,6 @@ from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipelin
 def to_categorical_codes(categorical_ids: np.ndarray):
     encoded = pd.Categorical(categorical_ids).codes
     return encoded
-
-
-@pytest.fixture(autouse=True)
-def seed():
-    random.seed(1)
-    np.random.seed(1)
 
 
 @pytest.fixture()

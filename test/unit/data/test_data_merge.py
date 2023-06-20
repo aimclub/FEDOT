@@ -14,8 +14,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-np.random.seed(2021)
-
 
 @pytest.fixture()
 def output_table_1d():

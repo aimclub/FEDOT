@@ -14,9 +14,7 @@ def is_predict_ignores_target(predict_func, input_data, data_arg_name, predict_a
 
     input_data_without_target = deepcopy(input_data)
     input_data_without_target.target = None
-    np.random.seed(0)
     predictions = predict_func(**{data_arg_name: input_data}, **predict_args)
-    np.random.seed(0)
     predictions_without_target = predict_func(**{data_arg_name: input_data_without_target}, **predict_args)
 
     if isinstance(predictions, OutputData):

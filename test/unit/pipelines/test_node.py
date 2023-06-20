@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
@@ -17,7 +16,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 @pytest.fixture()
 def data_setup() -> InputData:
     predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     predictors = predictors[:100]

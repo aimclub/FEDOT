@@ -1,5 +1,3 @@
-import random
-
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_squared_error
@@ -12,9 +10,6 @@ from cases.time_series_gapfilling_case import run_gapfilling_case
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
-
-random.seed(1)
-np.random.seed(1)
 
 
 def test_credit_scoring_problem():

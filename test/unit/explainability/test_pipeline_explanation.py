@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Tuple
 
 import numpy as np
 import pytest
@@ -12,11 +13,9 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.explainability.explainers import explain_pipeline
 from fedot.explainability.surrogate_explainer import SurrogateExplainer, get_simple_pipeline
 
-np.random.seed(1)
-
 
 @pytest.fixture(scope='module')
-def data_for_task_type(request) -> (InputData, Pipeline):
+def data_for_task_type(request) -> Tuple[InputData, Pipeline]:
     task_type = request.param
     if task_type == TaskTypesEnum.classification:
         load_func = load_iris
@@ -27,7 +26,6 @@ def data_for_task_type(request) -> (InputData, Pipeline):
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
     predictors, response = load_func(return_X_y=True)
-    np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     predictors = predictors[:100]
