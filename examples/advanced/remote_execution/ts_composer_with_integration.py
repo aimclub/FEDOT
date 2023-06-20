@@ -1,16 +1,8 @@
-import os
-import random
-
-import numpy as np
-
 from fedot.api.main import Fedot
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
-
-random.seed(1)
-np.random.seed(1)
 
 
 # WARNING - THIS SCRIPT CAN BE EVALUATED ONLY WITH THE ACCESS TO DATAMALL SYSTEM
@@ -27,17 +19,17 @@ def run_automl(data: MultiModalData, features_to_use,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
 
-    folder = os.path.join(fedot_project_root(), 'cases', 'data', 'metocean')
+    metocean_folder = fedot_project_root().joinpath('cases', 'data', 'metocean')
 
     connect_params = {}
     exec_params = {
-        'container_input_path': os.path.join(fedot_project_root(), 'cases', 'data', 'metocean'),
-        'container_output_path': os.path.join(fedot_project_root(), 'cases', 'data', 'metocean', 'remote'),
-        'container_config_path': os.path.join(fedot_project_root(), 'cases', 'data', 'metocean', '.'),
+        'container_input_path': metocean_folder,
+        'container_output_path': metocean_folder.joinpath('remote'),
+        'container_config_path': metocean_folder.joinpath('metocean', '.'),
         'container_image': "test",
         'timeout': 1
     }
-    client = TestClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
+    client = TestClient(connect_params, exec_params, output_path=metocean_folder.joinpath('remote'))
 
     remote_task_params = RemoteTaskParams(
         mode='remote',
@@ -68,24 +60,25 @@ def run_automl(data: MultiModalData, features_to_use,
                        'cv_folds': None,
                        'validation_blocks': None}
 
-    automl = Fedot(problem='ts_forecasting', timeout=timeout, **composer_params)
+    automl = Fedot(problem='ts_forecasting', seed=1, timeout=timeout, **composer_params)
 
     obtained_pipeline = automl.fit(data)
     forecast = automl.forecast(data)
     return forecast, obtained_pipeline
 
 
-features_to_use = ['wind_speed', 'sea_height']
+if __name__ == '__main__':
+    features_to_use = ['wind_speed', 'sea_height']
 
-data = MultiModalData.from_csv_time_series(
-    file_path=f'{fedot_project_root()}/cases/data/metocean/metocean_data_train.csv',
-    columns_to_use=features_to_use,
-    target_column='sea_height',
-    index_col='datetime')
+    data = MultiModalData.from_csv_time_series(
+        file_path=fedot_project_root().joinpath('cases/data/metocean/metocean_data_train.csv'),
+        columns_to_use=features_to_use,
+        target_column='sea_height',
+        index_col='datetime')
 
-forecast, obtained_pipeline = run_automl(data=data, features_to_use=['wind_speed', 'sea_height'],
-                                         forecast_horizon=30,
-                                         history_size=200,
-                                         timeout=5)
+    forecast, obtained_pipeline = run_automl(data=data, features_to_use=['wind_speed', 'sea_height'],
+                                             forecast_horizon=30,
+                                             history_size=200,
+                                             timeout=5)
 
-obtained_pipeline.show()
+    obtained_pipeline.show()

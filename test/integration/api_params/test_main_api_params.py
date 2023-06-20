@@ -60,7 +60,7 @@ def test_timeout(case: TimeoutParams):
                    'task_params': TsForecastingParams(forecast_length=1),
                    **composer_params}
 
-    train_data, test_data, _ = get_dataset(task_type)
+    train_data, _, _ = get_dataset(task_type)
     if isinstance(case.test_answer, ValueError):
         with pytest.raises(ValueError):
             Fedot(**fedot_input)
