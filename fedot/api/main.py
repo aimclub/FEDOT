@@ -539,7 +539,7 @@ class Fedot:
         else:
             prediction = predicted_data.predict
         pd.DataFrame({'Index': predicted_data.idx,
-                      'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
+                      'Prediction': prediction}).to_csv('./predictions.csv', index=False)
         self.log.message('Predictions was saved in current directory.')
 
     def export_as_project(self, project_path='fedot_project.zip'):
