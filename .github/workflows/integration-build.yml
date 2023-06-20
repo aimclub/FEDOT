@@ -35,3 +35,13 @@ jobs:
       - name: Test with pytest
         run: |
           pytest --cov=fedot -s test/integration
+      - name: Notify telegram bot
+        uses: appleboy/telegram-action@master
+        if: failure() && ${{ github.event_name == 'schedule' }}
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: "${{ github.event.repository.name }}: scheduled integration tests 
+          [were failed](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+          format: markdown
+          disable_web_page_preview: true
