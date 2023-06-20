@@ -1,5 +1,4 @@
 from copy import deepcopy
-from random import seed
 from typing import Optional
 
 import numpy as np
@@ -22,9 +21,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
-
-np.random.seed(42)
-seed(42)
 
 
 def _max_rmse_threshold_by_std(values, is_strict=True):

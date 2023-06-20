@@ -13,8 +13,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-np.random.seed(1)
-random.seed(1)
+
 N_SAMPLES = 10000
 N_FEATURES = 10
 CORRECT_MODEL_AUC_THR = 0.25

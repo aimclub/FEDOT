@@ -9,10 +9,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
-
 from test.unit.data_operations.test_data_operations_implementations import get_time_series
-
-np.random.seed(2021)
 
 testing_pipeline_builders = {
     'lagged-ridge':

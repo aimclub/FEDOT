@@ -1,9 +1,7 @@
 import logging
 import os
-import random
 from functools import partial
 
-import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.api.main import Fedot
@@ -34,9 +32,6 @@ def get_regression_data():
 
 
 def custom_metric_for_synt_data(pipeline, fit_data, predict_data, **kwargs):
-    np.random.seed(42)
-    random.seed(42)
-
     # reference_data is added for compatibility with composer interface
     pipeline.fit_from_scratch(fit_data)
     results = pipeline.predict(predict_data)
@@ -83,9 +78,8 @@ def test_synthetic_regression_automl():
     test_data.target = ground_truth.predict
 
     # run automl
-    auto_model = Fedot(problem='regression', logging_level=logging.ERROR, timeout=1,
-                       metric=metric_func,
-                       cv_folds=None,
+    auto_model = Fedot(problem='regression', logging_level=logging.ERROR,
+                       timeout=1, metric=metric_func, cv_folds=None,
                        available_operations=['scaling',
                                              'normalization',
                                              'pca',
