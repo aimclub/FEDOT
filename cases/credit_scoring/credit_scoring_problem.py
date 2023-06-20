@@ -1,9 +1,7 @@
 import logging
 import os
-import random
 from pathlib import Path
 
-import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
@@ -11,9 +9,6 @@ from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
-
-random.seed(1)
-np.random.seed(1)
 
 
 def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputData) -> float:
@@ -32,6 +27,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                **composer_args):
     automl = Fedot(problem='classification',
                    timeout=timeout,
+                   seed=42,
                    preset=BEST_QUALITY_PRESET_NAME,
                    logging_level=logging.DEBUG,
                    **composer_args)
@@ -57,11 +53,11 @@ def get_scoring_data():
     # a dataset that will be used as a train and test set during composition
 
     file_path_train = 'cases/data/scoring/scoring_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    full_path_train = fedot_project_root().joinpath(file_path_train)
 
     # a dataset for a final validation of the composed model
     file_path_test = 'cases/data/scoring/scoring_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+    full_path_test = fedot_project_root().joinpath(file_path_test)
 
     return full_path_train, full_path_test
 

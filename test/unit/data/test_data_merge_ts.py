@@ -82,7 +82,7 @@ def output_ts_different_idx(request):
 
 
 def test_data_merge_ts_pipelines(ts_pipelines):
-    train_input, predict_input, test_data = get_time_series()
+    train_input, predict_input, _ = get_time_series()
 
     pipeline = ts_pipelines.build()
 

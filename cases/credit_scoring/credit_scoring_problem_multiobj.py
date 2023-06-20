@@ -1,13 +1,9 @@
 import datetime
-import random
 
-import numpy as np
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
 from golem.core.tuning.sequential import SequentialTuner
-
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -16,13 +12,12 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-random.seed(12)
-np.random.seed(12)
+from fedot.core.utils import set_random_seed
 
 
 def results_visualization(history, composed_pipelines):
@@ -70,11 +65,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     )
 
     # Create composer and with required composer params
-    composer = ComposerBuilder(task=task). \
-        with_optimizer_params(params). \
-        with_requirements(composer_requirements). \
-        with_metrics(metrics). \
-        build()
+    composer = (
+        ComposerBuilder(task=task)
+        .with_optimizer_params(params)
+        .with_requirements(composer_requirements)
+        .with_metrics(metrics)
+        .build()
+    )
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
@@ -88,11 +85,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     for pipeline_num, pipeline_evo_composed in enumerate(pipelines_evo_composed):
 
-        tuner = TunerBuilder(task)\
-            .with_tuner(SequentialTuner)\
-            .with_iterations(50)\
-            .with_metric(metrics[0])\
+        tuner = (
+            TunerBuilder(task)
+            .with_tuner(SequentialTuner)
+            .with_iterations(50)
+            .with_metric(metrics[0])
             .build(dataset_to_compose)
+        )
         nodes = pipeline_evo_composed.nodes
         for node_index, node in enumerate(nodes):
             if isinstance(node, PipelineNode) and node.is_primary:
@@ -115,5 +114,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
 
 if __name__ == '__main__':
+    set_random_seed(12)
+
     full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train, full_path_test, visualization=True)

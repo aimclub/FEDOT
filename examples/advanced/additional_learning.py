@@ -12,6 +12,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_additional_learning_example():
+    seed = 42
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
@@ -22,7 +23,7 @@ def run_additional_learning_example():
 
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=5, preset='best_quality',
+    auto_model = Fedot(problem=problem, seed=seed, timeout=5, preset='best_quality',
                        initial_assumption=PipelineBuilder().add_node('scaling').add_node('logit').build())
 
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
@@ -40,7 +41,7 @@ def run_additional_learning_example():
     train_data = train_data.head(5000)
     timeout = 1
 
-    auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
+    auto_model_from_atomized = Fedot(problem=problem, seed=seed, preset='best_quality', timeout=timeout,
                                      logging_level=logging.INFO,
                                      initial_assumption=atomized_model)
     auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
@@ -48,7 +49,7 @@ def run_additional_learning_example():
     auto_model_from_atomized.current_pipeline.show()
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
-    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
+    auto_model_from_pipeline = Fedot(problem=problem, seed=seed, preset='best_quality', timeout=timeout,
                                      logging_level=logging.INFO,
                                      initial_assumption=non_atomized_model)
     auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')

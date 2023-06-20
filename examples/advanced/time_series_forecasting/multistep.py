@@ -1,4 +1,3 @@
-import os
 import warnings
 
 import numpy as np
@@ -10,22 +9,22 @@ from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
-
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
-
 from fedot.core.utils import fedot_project_root
+from fedot.core.utils import set_random_seed
 
 warnings.filterwarnings('ignore')
-np.random.seed(2020)
 
-datasets = {
-    'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
-    'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
-    'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
-    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv',
-    'test_sea': os.path.join(fedot_project_root(), 'test', 'data', 'simple_sea_level.csv')}
+_TS_EXAMPLES_DATA_PATH = fedot_project_root().joinpath('examples/data/ts')
+
+_DATASETS = {
+    'australia': _TS_EXAMPLES_DATA_PATH.joinpath('australia.csv'),
+    'beer': _TS_EXAMPLES_DATA_PATH.joinpath('beer.csv'),
+    'salaries': _TS_EXAMPLES_DATA_PATH.joinpath('salaries.csv'),
+    'stackoverflow': _TS_EXAMPLES_DATA_PATH.joinpath('stackoverflow.csv'),
+    'test_sea': fedot_project_root().joinpath('test', 'data', 'simple_sea_level.csv')}
 
 
 def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5,
@@ -41,7 +40,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
     pipeline.print_structure()
 
     horizon = step_forecast * future_steps
-    time_series = pd.read_csv(datasets[dataset])
+    time_series = pd.read_csv(_DATASETS[dataset])
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=step_forecast))
 
@@ -76,4 +75,6 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
 
 
 if __name__ == '__main__':
+    set_random_seed(2020)
+
     run_multistep("australia", ts_ar_pipeline(), step_forecast=10, visualisation=True)

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -23,11 +21,12 @@ def run_multi_modal_example(file_path: str, visualization=False, with_tuning=Tru
         F1 metrics of the model.
     """
     task = 'classification'
-    path = Path(fedot_project_root(), file_path)
+    seed = 42
+    path = fedot_project_root().joinpath(file_path)
     data = MultiModalData.from_csv(file_path=path, task=task, target_columns='variety', index_col=None)
     fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.7)
 
-    automl_model = Fedot(problem=task, timeout=10, with_tuning=with_tuning)
+    automl_model = Fedot(problem=task, timeout=10, seed=seed, with_tuning=with_tuning)
     automl_model.fit(features=fit_data,
                      target=fit_data.target)
 
