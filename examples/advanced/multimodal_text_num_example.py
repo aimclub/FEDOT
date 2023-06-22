@@ -4,7 +4,8 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 
 
-def run_multi_modal_example(file_path: str, visualization=False, with_tuning=True, timeout: float=10.) -> float:
+def run_multi_modal_example(file_path: str, visualization: bool = False, with_tuning: bool = True,
+                            timeout: float = 10.) -> float:
     """
     Runs FEDOT on multimodal data from the `Wine Reviews dataset
     <https://www.kaggle.com/datasets/zynicide/wine-reviews>`_.
