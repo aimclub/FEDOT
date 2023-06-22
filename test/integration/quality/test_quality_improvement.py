@@ -15,7 +15,7 @@ def test_classification_quality_improvement():
     train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
     test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
 
-    seed = 50
+    seed = 1
     problem = 'classification'
     with_tuning = False
 
