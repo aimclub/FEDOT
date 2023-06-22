@@ -5,7 +5,7 @@ import pandas as pd
 from golem.utilities.requirements_notificator import warn_requirement
 
 try:
-    import openpyxl
+    import openpyxl  # noqa, later used via str parameter
 except ImportError:
     warn_requirement('openpyxl', 'fedot[examples]', should_raise=True)
 
@@ -116,8 +116,8 @@ if __name__ == '__main__':
 
     fitted_model.show()
 
-    roc_auc = validate_model_quality(fitted_model, test_file_path)
-    print(f'ROC AUC metric is {roc_auc}')
+    roc_auc_score = validate_model_quality(fitted_model, test_file_path)
+    print(f'ROC AUC metric is {roc_auc_score}')
 
     final_prediction_first = apply_model_to_data(fitted_model, file_path_second)
     print(final_prediction_first['forecast'])

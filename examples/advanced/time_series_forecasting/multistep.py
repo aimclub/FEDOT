@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_border_line_info
-from examples.simple.time_series_forecasting.ts_pipelines import *
+from examples.simple.time_series_forecasting.ts_pipelines import ts_ar_pipeline
 from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
