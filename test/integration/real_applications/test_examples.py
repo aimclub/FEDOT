@@ -95,5 +95,5 @@ def test_api_example():
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', with_tuning=False)
+    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', with_tuning=False, timeout=2)
     assert result > 0.5
