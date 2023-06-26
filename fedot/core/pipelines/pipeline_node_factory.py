@@ -1,6 +1,7 @@
 from random import choice
 from typing import Optional
 
+from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptNode
 from golem.core.optimisers.opt_node_factory import OptNodeFactory
@@ -54,7 +55,7 @@ class PipelineOptNodeFactory(OptNodeFactory):
     def _return_node(candidates) -> Optional[OptNode]:
         if not candidates:
             return None
-        return OptNode(content={'name': choice(candidates)})
+        return PipelineNode(content={'name': choice(candidates)})
 
     @staticmethod
     def filter_specific_candidates(candidates: list):

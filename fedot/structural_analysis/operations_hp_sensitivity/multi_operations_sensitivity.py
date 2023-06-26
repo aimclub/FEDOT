@@ -9,12 +9,12 @@ from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem
-from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import (
+from fedot.structural_analysis.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem
+from fedot.structural_analysis.operations_hp_sensitivity.sa_and_sample_methods import (
     analyze_method_by_name,
     sample_method_by_name
 )
-from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
+from fedot.structural_analysis.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
 
 
 class MultiOperationsHPAnalyze:
@@ -27,7 +27,7 @@ class MultiOperationsHPAnalyze:
         test_data: data used for :obj:`Pipeline` validation
         requirements: extra requirements to define specific details for different approaches.
             See :class:`SensitivityAnalysisRequirements` class documentation.
-        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity/``
+        path_to_save: path to save results to. Default: ``~home/Fedot/structural_analysis/``
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -44,7 +44,7 @@ class MultiOperationsHPAnalyze:
 
         self.operation_types = None
         self.path_to_save = \
-            join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sensitivity') \
+            join(default_fedot_data_dir(), 'structural_analysis', 'pipeline_sensitivity') \
                 if path_to_save is None else path_to_save
         self.log = default_log(self)
 
@@ -68,12 +68,12 @@ class MultiOperationsHPAnalyze:
         samples = self.sample(self.requirements.sample_size)
         response_matrix = self._get_response_matrix(samples)
 
-        self.log.info('Start hyperparameters sensitivity analysis')
+        self.log.info('Start hyperparameters structural_analysis analysis')
         indices = self.analyze_method(self.problem.dictionary, samples, response_matrix)
         converted_to_json_indices = self.convert_results_to_json(problem=self.problem,
                                                                  si=indices)
 
-        self.log.info('Finish hyperparameters sensitivity analysis')
+        self.log.info('Finish hyperparameters structural_analysis analysis')
 
         return converted_to_json_indices
 

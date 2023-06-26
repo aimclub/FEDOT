@@ -29,7 +29,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         :param possible_operations: list of candidates for replace
         :return: list of candidates with str operations
         """
-        operation_id = node.content['name']
+        operation_id = node.content['name'].operation_type
         # data source, exog_ts and custom models replacement is useless
         if check_for_specific_operations(operation_id):
             return []

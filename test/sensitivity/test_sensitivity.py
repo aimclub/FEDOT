@@ -8,14 +8,14 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
-from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
-from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
-from fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity import OneOperationHPAnalyze
-from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
-from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
-from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
+from fedot.structural_analysis.deletion_methods.multi_times_analysis import MultiTimesAnalyze
+from fedot.structural_analysis.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
+from fedot.structural_analysis.nodes_sensitivity import NodesAnalysis
+from fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
+from fedot.structural_analysis.operations_hp_sensitivity.one_operation_sensitivity import OneOperationHPAnalyze
+from fedot.structural_analysis.pipeline_sensitivity import PipelineAnalysis
+from fedot.structural_analysis.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
+from fedot.structural_analysis.sa_requirements import SensitivityAnalysisRequirements
 from test.integration.utilities.test_pipeline_import_export import create_func_delete_files
 
 
@@ -116,7 +116,7 @@ def test_node_analysis_init_defined_approaches():
     assert len(node_analyzer.approaches) == 2
 
 
-# @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
+# @patch('fedot.structural_analysis.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
 # @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_analysis_analyze():
     # given
@@ -240,7 +240,7 @@ def test_one_operation_analyze_analyze():
 # ------------------------------------------------------------------------------
 # MultiOperationAnalyze
 
-@patch('fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze.analyze',
+@patch('fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze.analyze',
        return_value=[{'key': 'value'}])
 def test_multi_operations_analyze_analyze(analyze_method):
     # given
@@ -273,7 +273,7 @@ def test_pipeline_sensitivity_facade_init():
     assert type(sensitivity_facade) is PipelineSensitivityAnalysis
 
 
-@patch('fedot.sensitivity.pipeline_sensitivity_facade.PipelineSensitivityAnalysis.analyze', return_value=None)
+@patch('fedot.structural_analysis.pipeline_sensitivity_facade.PipelineSensitivityAnalysis.analyze', return_value=None)
 def test_pipeline_sensitivity_facade_analyze(analyze_method):
     # given
     pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
@@ -309,7 +309,7 @@ def test_pipeline_non_structure_analyze_init():
     assert type(non_structure_analyzer) is PipelineAnalysis
 
 
-@patch('fedot.sensitivity.pipeline_sensitivity.PipelineAnalysis.analyze',
+@patch('fedot.structural_analysis.pipeline_sensitivity.PipelineAnalysis.analyze',
        return_value=[{'key': 'value'}])
 def test_pipeline_analysis_analyze(analyze_method):
     # given
@@ -351,7 +351,7 @@ def test_multi_times_analyze_init_defined_approaches():
     assert type(analyzer) is MultiTimesAnalyze
 
 
-@patch('fedot.sensitivity.deletion_methods.multi_times_analysis.MultiTimesAnalyze.analyze',
+@patch('fedot.structural_analysis.deletion_methods.multi_times_analysis.MultiTimesAnalyze.analyze',
        return_value=1.0)
 def test_multi_times_analyze_analyze(analyze_method):
     # given

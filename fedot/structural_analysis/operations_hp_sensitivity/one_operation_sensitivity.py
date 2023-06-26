@@ -13,13 +13,13 @@ from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
-from fedot.sensitivity.operations_hp_sensitivity.problem import OneOperationProblem
-from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import (
+from fedot.structural_analysis.node_sa_approaches import NodeAnalyzeApproach
+from fedot.structural_analysis.operations_hp_sensitivity.problem import OneOperationProblem
+from fedot.structural_analysis.operations_hp_sensitivity.sa_and_sample_methods import (
     analyze_method_by_name,
     sample_method_by_name
 )
-from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
+from fedot.structural_analysis.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
 
 
 class OneOperationHPAnalyze(NodeAnalyzeApproach):
@@ -39,7 +39,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         self.data_under_lock: dict = {}
 
         self.path_to_save = \
-            join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
+            join(default_fedot_data_dir(), 'structural_analysis', 'nodes_sensitivity') if path_to_save is None else path_to_save
         self.log = default_log(self)
 
     def analyze(self, node: PipelineNode,

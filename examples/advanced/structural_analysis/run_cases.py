@@ -1,8 +1,8 @@
-from examples.advanced.sensitivity_analysis.dataset_access import get_scoring_data, get_kc2_data, get_cholesterol_data
+from examples.advanced.structural_analysis.dataset_access import get_scoring_data, get_kc2_data, get_cholesterol_data
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from examples.advanced.sensitivity_analysis.case_analysis import run_case_analysis
+from examples.advanced.structural_analysis.case_analysis import run_case_analysis
 
 
 def run_class_scoring_case(sa_class: str, is_composed: bool = False, path_to_save=None):

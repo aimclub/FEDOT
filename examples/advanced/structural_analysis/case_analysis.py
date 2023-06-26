@@ -1,14 +1,14 @@
 from os import makedirs
 from os.path import join, exists
 
-from examples.advanced.sensitivity_analysis.pipelines_access import pipeline_by_task
+from examples.advanced.structural_analysis.pipelines_access import pipeline_by_task
 from fedot.core.data.data import InputData
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
-from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
-from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
-from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
+from fedot.structural_analysis.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
+from fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
+from fedot.structural_analysis.nodes_sensitivity import NodesAnalysis
+from fedot.structural_analysis.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
+from fedot.structural_analysis.pipeline_sensitivity import PipelineAnalysis
 
 SA_CLASS_WITH_APPROACHES = {'PipelineSensitivityAnalysis': {'class': PipelineSensitivityAnalysis,
                                                          'approaches': [NodeDeletionAnalyze,
@@ -32,7 +32,7 @@ def run_case_analysis(train_data: InputData, test_data: InputData,
     pipeline.fit(train_data)
 
     if not result_path:
-        result_path = join(default_fedot_data_dir(), 'sensitivity', f'{case_name}')
+        result_path = join(default_fedot_data_dir(), 'structural_analysis', f'{case_name}')
         if not exists(result_path):
             makedirs(result_path)
     pipeline.show(join(result_path, f'{case_name}'))
