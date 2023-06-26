@@ -17,15 +17,34 @@ from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from sklearn.datasets import load_breast_cancer
 
 
-def test_bagged_ensemble_scoring():
-    # train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
-    # test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
+def get_scoring():
+    train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
+    test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
 
+    train_data = InputData(
+        idx=train.index,
+        features=np.array(train.drop(['target'], axis=1)),
+        target=np.array(train.target),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    test_data = InputData(
+        idx=test.index,
+        features=np.array(test.drop(['target'], axis=1)),
+        target=np.array(test.target),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    return train_data, test_data
+
+
+def get_iris():
     iris = load_breast_cancer()
     X, y = iris.data, iris.target
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
 
     train_data = InputData(
         idx=np.arange(0, len(y_train)),
@@ -42,6 +61,12 @@ def test_bagged_ensemble_scoring():
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
     )
+
+    return train_data, test_data
+
+
+def test_bagged_ensemble_scoring():
+    train_data, test_data = get_scoring()
 
     pipeline = PipelineBuilder().add_node('bag_catboost').build()
     implemented_model = pipeline.fit(train_data)
@@ -69,7 +94,7 @@ def test_bagged_ensemble_scoring():
 
     assert implemented_model is not None
     assert test_prediction is not None
-    assert test_prediction.shape[0] == test_data.target.shape[0]
+    assert test_prediction.target.shape[0] == test_data.target.shape[0]
     assert roc_auc_value_test >= 0.5
 
 

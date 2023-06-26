@@ -119,7 +119,8 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
             model_base=model_base,
             n_repeats=n_repeats,
             k_fold=k_fold,
-            fold_fitting_strategy=fold_fitting_strategy
+            fold_fitting_strategy=fold_fitting_strategy,
+            n_jobs=n_jobs
         )
 
     def fit(self, X: np.ndarray, y: np.ndarray):
