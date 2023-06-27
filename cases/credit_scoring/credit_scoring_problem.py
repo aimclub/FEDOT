@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -39,7 +40,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     metrics = automl.get_metrics()
 
     if automl.history:
-        print(automl.history.get_leaderboard())
+        lb = automl.history.get_leaderboard()
+        Path(os.path.join('D:/', "leaderboard.csv")).write_text(lb)
 
     if visualization:
         automl.current_pipeline.show()
@@ -68,6 +70,6 @@ if __name__ == '__main__':
     full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train,
                                full_path_test,
-                               timeout=5,
+                               timeout=2,
                                visualization=True,
                                with_tuning=True)
