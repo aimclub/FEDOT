@@ -3,7 +3,7 @@ import platform
 import random
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -89,3 +89,44 @@ def set_random_seed(seed: Optional[int]):
         np.random.seed(seed)
         random.seed(seed)
         RandomStateHandler.MODEL_FITTING_SEED = seed
+
+
+def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str = 'table', caption: str = ''):
+    '''
+    Makes html table out of DataFrame look like csv-table.
+    Requires BeatifulSoup to be installed.
+
+    Args:
+        df: the pd.DataFrame to convert to html
+        save_path: where to save the output
+        name: output table identificator
+        caption: caption above the output table
+    '''
+    from bs4 import BeautifulSoup
+
+    df_styler = df.round(3).style.highlight_max(props='color: blue; font-weight: bold;', axis=1)
+    df_styler.format(precision=3)
+    if caption:
+        df_styler.set_caption(caption)
+    df_styler.set_table_attributes((
+        'style="width: 100%; border-collapse: collapse;'
+        'font-family: Lato,proxima-nova,Helvetica Neue,Arial,sans-serif;"'
+    ))
+    df_styler.set_table_styles([
+        {'selector': 'table, th, td',
+         'props': 'border: 1px solid #e1e4e5; text-align: center; font-size: .9rem;'},
+        {'selector': 'th, td',
+         'props': 'padding: 8px 16px;'},
+        {'selector': 'tr',
+         'props': 'background-color: #fff;'},
+        {'selector': 'tbody tr:nth-child(odd)',
+         'props': 'background-color: #f3f6f6;'}
+    ])
+    file = Path(save_path)
+    df_styler.to_html(file, table_uuid=name)
+
+    doc = BeautifulSoup(file.read_text(), 'html.parser')
+    table = doc.find('table')
+    if table.parent.name != 'div':
+        table = table.wrap(doc.new_tag('div', style='overflow: auto;'))
+        file.write_text(doc.prettify())

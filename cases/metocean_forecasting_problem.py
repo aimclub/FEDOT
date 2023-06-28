@@ -45,6 +45,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   timeout=timeout, logging_level=logging.DEBUG)
+    fedot.current_pipeline
 
     pipeline = fedot.fit(features=historical_data, target=ssh_history)
     fedot.forecast(historical_data)
