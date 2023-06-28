@@ -1,5 +1,5 @@
 Multimodal data
-------------
+---------------
 
 Here are overall classification and regression problems results on multimodal datasets across state-of-the-art AutoML frameworks
 using `AutoML Multimodal Benchmark <https://github.com/sxjscience/automl_multimodal_benchmark>`__ test suite:
