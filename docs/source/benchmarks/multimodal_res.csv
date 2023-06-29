@@ -1,0 +1,19 @@
+Dataset name,Metric name,AutoGluon,FEDOT
+prod,accuracy,0.895,0.897
+salary,accuracy,0.528,0.402
+airbnb,accuracy,0.466,0.434
+channel,accuracy,0.550,0.542
+wine,accuracy,0.842,0.784
+imdb,auc,0.874,0.872
+fake,auc,0.968,0.958
+kick,auc,0.775,0.752
+jigsaw,auc,0.915,0.998
+qaa,r2,0.383,0.504
+qaq,r2,0.426,0.554
+book,r2,0.6,0.994
+jc,r2,0.612,0.619
+cloth,r2,0.654,0.733
+ae,r2,0.979,0.974
+pop,r2,0.02,0.02
+house,r2,0.943,0.928
+mercari,r2,0.569,0.52
