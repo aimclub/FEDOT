@@ -105,7 +105,7 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
         operation_implementation = self.operation_impl
 
         with RandomStateHandler():
-            operation_implementation.fit(train_data.features, train_data.target)
+            operation_implementation.fit(train_data.features, train_data.target, train_data.features_type)
 
         return operation_implementation
 

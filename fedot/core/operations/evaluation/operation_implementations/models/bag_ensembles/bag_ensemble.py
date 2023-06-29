@@ -57,13 +57,14 @@ class BaseKFoldBagging:
         return fold_fitting_strategy
 
     def _get_fold_fitting_args(self, X: np.ndarray, y: np.ndarray, oof_pred_proba: np.ndarray,
-                               oof_pred_model_repeats: np.ndarray) -> dict:
+                               oof_pred_model_repeats: np.ndarray, n_jobs: int) -> dict:
         return dict(
             model_base=self.model_base,
             bagged_ensemble_model=self,
             X=X, y=y,
             oof_pred_proba=oof_pred_proba,
             oof_pred_model_repeats=oof_pred_model_repeats,
+            n_jobs=n_jobs,
         )
 
     @staticmethod
@@ -75,7 +76,7 @@ class BaseKFoldBagging:
 
         return cv_splitter
 
-    def _generate_folds(self, X: np.ndarray, y: np.ndarray) -> list:
+    def _generate_folds(self, X: np.ndarray, y: np.ndarray, features_type: np.ndarray) -> list:
         folds_list = []
 
         for fold_num, (train_indices, val_indices) in enumerate(self.cv_splitter.split(X, y)):
@@ -85,6 +86,7 @@ class BaseKFoldBagging:
                 model_name_suffix=suffix,
                 train_indices=train_indices,
                 val_indices=val_indices,
+                features_type=features_type,
             )
 
             folds_list.append(fold_ctx)
@@ -122,14 +124,15 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
             fold_fitting_strategy=fold_fitting_strategy,
             n_jobs=n_jobs
         )
+        self.n_jobs = n_jobs
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
+    def fit(self, X: np.ndarray, y: np.ndarray, features_type: np.ndarray):
         self.unique_class = np.unique(y)
 
-        folds_list = self._generate_folds(X=X, y=y)
+        folds_list = self._generate_folds(X=X, y=y, features_type=features_type)
         oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(X=X, y=y)
 
-        fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats)
+        fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats, self.n_jobs)
         fold_fitting_strategy = self.kfold_fitting_strategy(**fold_fitting_strategy_args)
 
         for fold_fit in folds_list:

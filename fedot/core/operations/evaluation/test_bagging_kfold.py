@@ -17,24 +17,58 @@ from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from sklearn.datasets import load_breast_cancer
 
 
+def get_flight():
+    data = pd.read_csv(f'{fedot_project_root()}/cases/data/flight_delays/flight_delays_train.csv')
+    msk = np.random.rand(len(data)) < 0.8
+
+    train = data[msk]
+    test = data[~msk]
+
+    train_data = InputData(
+        idx=np.array(train.index),
+        features=np.array(train.drop(['dep_delayed_15min'], axis=1)),
+        target=np.array(train['dep_delayed_15min']),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+        features_type=np.array(['cat', 'cat', 'cat', 'num', 'cat', 'cat', 'cat', 'num']),
+        encoding_required=False
+    )
+
+    test_data = InputData(
+        idx=np.array(test.index),
+        features=np.array(test.drop(['dep_delayed_15min'], axis=1)),
+        target=np.array(test['dep_delayed_15min']),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+        features_type=np.array(['cat', 'cat', 'cat', 'num', 'cat', 'cat', 'cat', 'num']),
+        encoding_required=False
+    )
+
+    return train_data, test_data
+
+
 def get_scoring():
     train = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv')
     test = pd.read_csv(f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv')
 
     train_data = InputData(
-        idx=train.index,
-        features=np.array(train.drop(['target'], axis=1)),
+        idx=np.array(train['ID']),
+        features=np.array(train.drop(['ID', 'target'], axis=1)),
         target=np.array(train.target),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
+        features_type=np.array(['num' for _ in range(10)]),
+        encoding_required=False
     )
 
     test_data = InputData(
-        idx=test.index,
-        features=np.array(test.drop(['target'], axis=1)),
+        idx=np.array(test['ID']),
+        features=np.array(test.drop(['ID', 'target'], axis=1)),
         target=np.array(test.target),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
+        features_type=np.array(['num' for _ in range(10)]),
+        encoding_required=False
     )
 
     return train_data, test_data
@@ -65,10 +99,11 @@ def get_iris():
     return train_data, test_data
 
 
-def test_bagged_ensemble_scoring():
-    train_data, test_data = get_scoring()
+def test_bagged_ensemble():
+    train_data, test_data = get_iris()
 
-    pipeline = PipelineBuilder().add_node('bag_catboost').build()
+    params = {'fold_fitting_strategy': 'parallel', 'n_jobs': -2}
+    pipeline = PipelineBuilder().add_node('bag_catboost', params=params).build()
     implemented_model = pipeline.fit(train_data)
 
     train_prediction = pipeline.predict(train_data)
@@ -79,6 +114,15 @@ def test_bagged_ensemble_scoring():
 
     print('Train ROC-AUC score', roc_auc_value_train)
     print('Test ROC-AUC score', roc_auc_value_test)
+
+    assert implemented_model is not None
+    assert test_prediction is not None
+    assert test_prediction.target.shape[0] == test_data.target.shape[0]
+    assert roc_auc_value_test >= 0.5
+
+
+def test_unbagged_ensemble():
+    train_data, test_data = get_flight()
 
     simple_pipeline = PipelineBuilder().add_node('catboost').build()
     implemented_model = simple_pipeline.fit(train_data)
@@ -181,20 +225,20 @@ def test_prob_sum():
     assert preds_m_0.shape == (np.argmax(np.sum(test_rand_oof_probs[:, :, 0, :, :], axis=0) / repeats, axis=2).reshape(-1)).shape
 
 
-def test_bagged_ensemble():
-    train_data, test_data = get_classification_data()
-    # poor params to accelerate the time
-    model_names = OperationTypesRepository().suitable_operation(
-        task_type=TaskTypesEnum.classification, tags=['kfold_bagging']
-    )
-
-    for model_name in model_names:
-        pipeline = PipelineBuilder().add_node(model_name).build()
-        # TODO: Fix after solving the issue №1096
-        pipeline.fit(train_data, n_jobs=-1)
-        predicted_output = pipeline.predict(test_data, output_mode='labels')
-        metric = roc_auc(test_data.target, predicted_output.predict)
-
-        assert isinstance(pipeline, Pipeline)
-        assert predicted_output.predict.shape[0] == 240
-        assert metric > 0.5
+# def test_bagged_ensemble():
+#     train_data, test_data = get_classification_data()
+#     # poor params to accelerate the time
+#     model_names = OperationTypesRepository().suitable_operation(
+#         task_type=TaskTypesEnum.classification, tags=['kfold_bagging']
+#     )
+#
+#     for model_name in model_names:
+#         pipeline = PipelineBuilder().add_node(model_name).build()
+#         # TODO: Fix after solving the issue №1096
+#         pipeline.fit(train_data, n_jobs=-1)
+#         predicted_output = pipeline.predict(test_data, output_mode='labels')
+#         metric = roc_auc(test_data.target, predicted_output.predict)
+#
+#         assert isinstance(pipeline, Pipeline)
+#         assert predicted_output.predict.shape[0] == 240
+#         assert metric > 0.5

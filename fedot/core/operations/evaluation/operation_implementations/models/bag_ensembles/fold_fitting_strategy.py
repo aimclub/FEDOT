@@ -1,5 +1,6 @@
 import copy
 from abc import abstractmethod, ABC
+from joblib import Parallel, cpu_count, delayed
 
 
 class AbstractFoldFittingStrategy:
@@ -116,6 +117,50 @@ class SequentialFoldFittingStrategy(FoldFittingStrategy):
     def _fit(self, fold_ctx):
         train_indices = fold_ctx.get('train_indices')
         val_indices = fold_ctx.get('val_indices')
+        cat_features = [i for i, e in enumerate(fold_ctx.get('features_type')) if e == 'cat']
+
+        X_fold, y_fold = self._get_by_val_indices(train_indices)
+        X_val_fold, y_val_fold = self._get_by_val_indices(val_indices)
+
+        fold_model = copy.deepcopy(self.model_base)
+
+        fold_model.fit(X=X_fold, y=y_fold, eval_set=(X_val_fold, y_val_fold), cat_features=cat_features)
+
+        return fold_model
+
+
+class ParallelFoldFittingStrategy(FoldFittingStrategy):
+    """ Strategy for fitting models in a parallel """
+    def __init__(self, n_jobs=1, **kwargs):
+        super(ParallelFoldFittingStrategy, self).__init__(**kwargs)
+        self.tasks = []
+        self.n_jobs = self._set_cpus(n_jobs)
+
+    @staticmethod
+    def _set_cpus(n_jobs):
+        if n_jobs == -1:
+            return cpu_count()
+        elif n_jobs == -2:
+            return cpu_count() - 1
+        elif n_jobs <= cpu_count():
+            return n_jobs
+        else:
+            raise ValueError(f'n_jobs = {n_jobs} are bigger than available cpu = {cpu_count()}')
+
+    def schedule_fold_model_fit(self, fold_ctx):
+        self.tasks.append(delayed(self._fit_fold_model)(fold_ctx))
+
+    def after_all_folds_scheduled(self):
+        Parallel(n_jobs=self.n_jobs)(self.tasks)
+
+    def _fit_fold_model(self, fold_ctx):
+        fold_model = self._fit(fold_ctx)
+        fold_model, pred_proba = self._predict_oof(fold_model, fold_ctx)
+        self._update_bagged_ensemble(fold_model, pred_proba, fold_ctx)
+
+    def _fit(self, fold_ctx):
+        train_indices = fold_ctx.get('train_indices')
+        val_indices = fold_ctx.get('val_indices')
 
         X_fold, y_fold = self._get_by_val_indices(train_indices)
         X_val_fold, y_val_fold = self._get_by_val_indices(val_indices)
@@ -125,24 +170,3 @@ class SequentialFoldFittingStrategy(FoldFittingStrategy):
         fold_model.fit(X=X_fold, y=y_fold, eval_set=(X_val_fold, y_val_fold))
 
         return fold_model
-
-
-class ParallelFoldFittingStrategy(FoldFittingStrategy):
-    """ Strategy for fitting models in a parallel """
-    def __init__(self, **kwargs):
-        super(ParallelFoldFittingStrategy, self).__init__(**kwargs)
-        self.max_memory_usage = None
-        self.time_start_fit = None
-        self.time_end_fit = None
-        self.fit_time = None
-        self.predict_time = None
-        self.resources, self.batches, self.num_parralle_jobs = None, None, None
-
-    def schedule_fold_model_fit(self, fold_ctx):
-        self.jobs.append(fold_ctx)
-
-    def after_all_folds_scheduled(self):
-        raise NotImplementedError
-
-    def _fit(self, fold_ctx):
-        raise NotImplementedError
