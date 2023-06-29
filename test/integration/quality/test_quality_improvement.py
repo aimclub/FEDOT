@@ -20,7 +20,7 @@ def test_classification_quality_improvement():
     with_tuning = False
 
     expected_baseline_quality = 0.823
-    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning, n_jobs=1)
+    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
@@ -32,7 +32,7 @@ def test_classification_quality_improvement():
                            preset='best_quality')
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, n_jobs=1, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
@@ -59,7 +59,7 @@ def test_multiobjective_improvement():
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, n_jobs=1, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

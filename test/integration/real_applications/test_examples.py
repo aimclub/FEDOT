@@ -87,7 +87,7 @@ def test_api_example():
     forecast = run_ts_forecasting_example(dataset='australia', timeout=1, with_tuning=with_tuning)
     assert forecast is not None
 
-    pareto = run_classification_multiobj_example(timeout=1, n_jobs=1, with_tuning=with_tuning)
+    pareto = run_classification_multiobj_example(timeout=1, with_tuning=with_tuning)
     assert pareto is not None
 
     explainer = run_api_explain_example(timeout=1, with_tuning=with_tuning)
