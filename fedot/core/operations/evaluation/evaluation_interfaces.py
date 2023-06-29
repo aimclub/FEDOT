@@ -34,6 +34,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utils import set_operation_random_seed
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -230,7 +231,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
         else:
-            with RandomStateHandler():
+            with RandomStateHandler() as seed:
+                set_operation_random_seed(operation_implementation, seed)
                 operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 

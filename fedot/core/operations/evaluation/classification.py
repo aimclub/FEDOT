@@ -20,6 +20,7 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import set_operation_random_seed
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -66,7 +67,8 @@ class FedotClassificationStrategy(EvaluationStrategy):
 
         operation_implementation = self.operation_impl(self.params_for_fit)
 
-        with RandomStateHandler():
+        with RandomStateHandler() as seed:
+            set_operation_random_seed(operation_implementation, seed)
             operation_implementation.fit(train_data)
         return operation_implementation
 
@@ -127,7 +129,8 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with RandomStateHandler() as seed:
+            set_operation_random_seed(operation_implementation, seed)
             operation_implementation.fit(train_data)
         return operation_implementation
 

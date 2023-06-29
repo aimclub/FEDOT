@@ -10,6 +10,10 @@ import pandas as pd
 from golem.core.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
+
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
 
@@ -90,6 +94,13 @@ def set_random_seed(seed: Optional[int]):
         np.random.seed(seed)
         random.seed(seed)
         RandomStateHandler.MODEL_FITTING_SEED = seed
+
+
+def set_operation_random_seed(operation: DataOperationImplementation, seed: Optional[int]):
+    if hasattr(operation, 'random_state'):
+        setattr(operation, 'random_state', seed)
+    elif hasattr(operation, 'seed'):
+        setattr(operation, 'seed', seed)
 
 
 def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str = 'table', caption: str = ''):
