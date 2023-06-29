@@ -49,6 +49,8 @@ class Data:
     encoded_idx: Optional[np.ndarray] = None
     features_names: Optional[np.ndarray[str]] = None
     target: Optional[np.ndarray] = None
+    features_type: np.ndarray = None
+    encoding_required: bool = True
 
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
