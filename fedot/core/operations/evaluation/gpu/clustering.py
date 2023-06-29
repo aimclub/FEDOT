@@ -4,6 +4,7 @@ from golem.core.utilities.random import RandomStateHandler
 from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import set_operation_random_seed
 
 try:
     from cuml import KMeans
@@ -44,7 +45,8 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
             operation_implementation = self.operation_impl(n_clusters=2)
 
         features = cudf.DataFrame(train_data.features.astype('float32'))
-        with RandomStateHandler():
+        with RandomStateHandler() as seed:
+            set_operation_random_seed(operation_implementation, seed)
             operation_implementation.fit(features)
         return operation_implementation
 

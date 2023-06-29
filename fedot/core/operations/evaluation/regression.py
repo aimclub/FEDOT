@@ -15,6 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import set_operation_random_seed
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -60,7 +61,8 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with RandomStateHandler() as seed:
+            set_operation_random_seed(operation_implementation, seed)
             operation_implementation.fit(train_data)
         return operation_implementation
 
@@ -113,7 +115,8 @@ class FedotRegressionStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with RandomStateHandler() as seed:
+            set_operation_random_seed(operation_implementation, seed)
             operation_implementation.fit(train_data)
         return operation_implementation
 
