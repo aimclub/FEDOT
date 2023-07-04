@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Optional
 
+import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
@@ -65,7 +66,11 @@ class DataSourceSplitter:
         """
 
         split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
+        default_validation_blocks = round(
+            np.floor(data.target.shape[0] * split_ratio / data.task.task_params.forecast_length))
+        if self.validation_blocks is None:
+            self.validation_blocks = default_validation_blocks
+            train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
             init_data_for_remote_execution(train_data)
@@ -78,7 +83,9 @@ class DataSourceSplitter:
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             if self.validation_blocks is None:
-                default_validation_blocks = 2
+                split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+                default_validation_blocks = np.floor(
+                    data.target.shape[0] * split_ratio / data.task.task_params.forecast_length)
                 self.validation_blocks = default_validation_blocks
                 self.log.info('For timeseries cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')

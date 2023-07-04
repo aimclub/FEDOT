@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 from fedot.core.utils import default_fedot_data_dir
 
 
-def is_test_session():
-    return 'PYTEST_CURRENT_TEST' in os.environ
-
-
 def is_recording_mode():
     return 'FEDOT_RECORDING_MODE' in os.environ
+
+
+def is_analytic_mode():
+    return 'FEDOT_ANALYTIC_MODE' in os.environ
 
 
 def save_debug_info_for_pipeline(pipeline: 'Pipeline', train_data: 'InputData', test_data: 'InputData',

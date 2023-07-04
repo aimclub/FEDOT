@@ -38,7 +38,7 @@ class ApiParamsRepository:
 
         elif task_type == TaskTypesEnum.ts_forecasting:
             cv_folds = 3
-            validation_blocks = 2
+            validation_blocks = None
 
         # Dict with allowed keyword attributes for Api and their default values. If None - default value set
         # in dataclasses ``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``

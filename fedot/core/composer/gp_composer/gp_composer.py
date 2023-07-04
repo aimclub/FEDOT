@@ -1,6 +1,5 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
 
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 
@@ -12,6 +11,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 
 class GPComposer(Composer):
@@ -37,9 +37,10 @@ class GPComposer(Composer):
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # Define data source
-        data_producer = DataSourceSplitter(self.composer_requirements.cv_folds,
+        data_splitter = DataSourceSplitter(self.composer_requirements.cv_folds,
                                            self.composer_requirements.validation_blocks,
-                                           shuffle=True).build(data)
+                                           shuffle=True)
+        data_producer = data_splitter.build(data)
 
         parallelization_mode = self.composer_requirements.parallelization_mode
         if parallelization_mode == 'populational':
@@ -52,7 +53,7 @@ class GPComposer(Composer):
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_graph_fit_time,
-                                                        self.composer_requirements.validation_blocks,
+                                                        data_splitter.validation_blocks,
                                                         self.pipelines_cache, self.preprocessing_cache,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate

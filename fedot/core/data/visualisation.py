@@ -1,4 +1,5 @@
-from typing import Optional, Any
+from os import PathLike
+from typing import Optional, Any, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_sample: bool = False,
-                  target: Optional[Any] = None):
+                  target: Optional[Any] = None, title: str = 'Forecast',
+                  save_path: Optional[Union[PathLike, str]] = None):
     """
     Function for drawing plot with time series forecast. If data.target is None function plot prediction
     as future values. If not - we use last data features as validation.
@@ -19,6 +21,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
         data: the InputData or MultiModalData with actual time series as features
         prediction: the OutputData with predictions
         in_sample: if obtained prediction was in sample.
+        save_path: path to save the visualized forecast
+        title: custom title for the plot
         If ``False`` plots predictions as future values for test data features.
         target: user-specified name of target variable for MultiModalData
     """
@@ -52,8 +56,14 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
              [min(actual_time_series[first_idx:]), max(actual_time_series[first_idx:])], c='black',
              linewidth=1)
     plt.legend(fontsize=15)
+    plt.title(title)
     plt.grid()
-    plt.show()
+
+    if save_path:
+        plt.savefig(save_path)
+        plt.close()
+    else:
+        plt.show()
 
 
 def plot_biplot(prediction: OutputData):
