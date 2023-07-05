@@ -185,15 +185,14 @@ def test_multivariate_time_series_splitting_correct():
 
     for series_id, test_series_data in test_data.items():
         assert len(test_series_data.features) == 20
-        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19])) \
- \
-               @ pytest.mark.parametrize("cv_generator, data",
-                                         [(partial(tabular_cv_generator, folds=5),
-                                           get_classification_data()[0]),
-                                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
-                                           get_ts_data()[0])])
+        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))
 
 
+@pytest.mark.parametrize("cv_generator, data",
+                         [(partial(tabular_cv_generator, folds=5),
+                           get_classification_data()[0]),
+                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
+                           get_ts_data()[0])])
 def test_cv_generator_works_stable(cv_generator, data):
     """ Test if ts cv generator works stable (always return same folds) """
     idx_first = []
