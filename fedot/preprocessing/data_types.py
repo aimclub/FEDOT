@@ -93,7 +93,9 @@ class TableTypesCorrector:
         self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
         self.feature_type_ids = data.supplementary_data.column_types['features'].copy()
-        self.target_type_ids = data.supplementary_data.column_types.get('target', np.array()).copy()
+        self.target_type_ids = data.supplementary_data.column_types.get(
+            'target', np.empty((self.feature_type_ids.shape[0], 1), dtype=float)
+        ).copy()
 
         self._retain_columns_info_without_types_conflicts(data)
         return data

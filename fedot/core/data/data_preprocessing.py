@@ -14,9 +14,9 @@ def data_type_is_suitable_for_preprocessing(data: InputData) -> bool:
 
 def replace_inf_with_nans(input_data: InputData):
     features = input_data.features
-    has_infs = ((features == np.inf) | (features == -np.inf))
-    if np.any(has_infs):
-        features[has_infs] = np.nan
+    is_inf = (features == np.inf) | (features == -np.inf)
+    if np.any(is_inf):
+        features[is_inf] = np.nan
 
 
 def replace_nans_with_empty_strings(input_data: InputData):
