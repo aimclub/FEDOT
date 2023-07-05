@@ -55,6 +55,12 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     plt.plot([pred_start, pred_start],
              [min(actual_time_series[first_idx:]), max(actual_time_series[first_idx:])], c='black',
              linewidth=1)
+
+    if in_sample:
+        in_sample_steps = np.arange(pred_start, pred_start + len(predict), data.task.task_params.forecast_length)[1:]
+        plt.vlines(in_sample_steps,
+                   ymin=min(actual_time_series[first_idx:]),
+                   ymax=max(actual_time_series[first_idx:]), color='red', linewidth=1)
     plt.legend(fontsize=15)
     plt.title(title)
     plt.grid()
@@ -106,14 +112,14 @@ def plot_roc_auc(data: InputData, prediction: OutputData):
         fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict)
         roc_auc = ROCAUC.auc(fpr, tpr)
         plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
-        plt.legend(loc=F'best')
+        plt.legend(loc='best')
     else:
         for i in range(data.num_classes):
             fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, i],
                                                    pos_label=data.class_labels[i])
             roc_auc = ROCAUC.auc(fpr, tpr)
             plt.plot(fpr, tpr, label=f'label-{i} AUC = %0.2f' % roc_auc)
-            plt.legend(loc=F'best')
+            plt.legend(loc='best')
     plt.plot([0, 1], [0, 1], 'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])

@@ -1,9 +1,9 @@
 from functools import partial
-
-import pandas as pd
-import numpy as np
-import pytest
 from typing import Callable
+
+import numpy as np
+import pandas as pd
+import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -61,19 +61,19 @@ def get_image_classification_data():
 def get_imbalanced_data_to_test_mismatch():
     task = Task(TaskTypesEnum.classification)
     x = np.array([[0, 0, 15],
-                 [0, 1, 2],
-                 [8, 12, 0],
-                 [0, 1, 0],
-                 [1, 1, 0],
-                 [0, 11, 9],
-                 [5, 1, 10],
-                 [8, 16, 4],
-                 [3, 1, 5],
-                 [0, 1, 6],
-                 [2, 7, 9],
-                 [0, 1, 2],
-                 [14, 1, 0],
-                 [0, 4, 10]])
+                  [0, 1, 2],
+                  [8, 12, 0],
+                  [0, 1, 0],
+                  [1, 1, 0],
+                  [0, 11, 9],
+                  [5, 1, 10],
+                  [8, 16, 4],
+                  [3, 1, 5],
+                  [0, 1, 6],
+                  [2, 7, 9],
+                  [0, 1, 2],
+                  [14, 1, 0],
+                  [0, 4, 10]])
     y = np.array([0, 0, 0, 0, 2, 0, 0, 1, 2, 1, 0, 0, 3, 3])
     input_data = InputData(idx=np.arange(0, len(x)), features=x,
                            target=y, task=task, data_type=DataTypesEnum.table)
@@ -83,19 +83,19 @@ def get_imbalanced_data_to_test_mismatch():
 def get_balanced_data_to_test_mismatch():
     task = Task(TaskTypesEnum.classification)
     x = np.array([[0, 0, 15],
-                 [0, 1, 2],
-                 [8, 12, 0],
-                 [0, 1, 0],
-                 [1, 1, 0],
-                 [0, 11, 9],
-                 [5, 1, 10],
-                 [8, 16, 4],
-                 [3, 1, 5],
-                 [0, 1, 6],
-                 [2, 7, 9],
-                 [0, 1, 2],
-                 [14, 1, 0],
-                 [0, 4, 10]])
+                  [0, 1, 2],
+                  [8, 12, 0],
+                  [0, 1, 0],
+                  [1, 1, 0],
+                  [0, 11, 9],
+                  [5, 1, 10],
+                  [8, 16, 4],
+                  [3, 1, 5],
+                  [0, 1, 6],
+                  [2, 7, 9],
+                  [0, 1, 2],
+                  [14, 1, 0],
+                  [0, 4, 10]])
     y = np.array([0, 1, 2, 3, 2, 1, 0, 1, 2, 1, 0, 0, 3, 3])
     input_data = InputData(idx=np.arange(0, len(x)), features=x,
                            target=y, task=task, data_type=DataTypesEnum.table)
@@ -185,15 +185,15 @@ def test_multivariate_time_series_splitting_correct():
 
     for series_id, test_series_data in test_data.items():
         assert len(test_series_data.features) == 20
-        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))\
+        assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19])) \
+ \
+               @ pytest.mark.parametrize("cv_generator, data",
+                                         [(partial(tabular_cv_generator, folds=5),
+                                           get_classification_data()[0]),
+                                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
+                                           get_ts_data()[0])])
 
 
-
-@pytest.mark.parametrize("cv_generator, data",
-                         [(partial(tabular_cv_generator, folds=5),
-                           get_classification_data()[0]),
-                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
-                           get_ts_data()[0])])
 def test_cv_generator_works_stable(cv_generator, data):
     """ Test if ts cv generator works stable (always return same folds) """
     idx_first = []

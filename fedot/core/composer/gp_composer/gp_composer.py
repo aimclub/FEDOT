@@ -69,8 +69,8 @@ class GPComposer(Composer):
         self.log.info('GP composition finished')
         return best_model
 
-    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[
-        Optional[Pipeline], Sequence[Pipeline]]:
+    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
+                                                                                        Sequence[Pipeline]]:
         adapter = self.optimizer.graph_generation_params.adapter
         multi_objective = self.optimizer.objective.is_multi_objective
         best_pipelines = [adapter.restore(graph) for graph in opt_result]

@@ -69,5 +69,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
-                                     forecast_length=12, timeout=30,
+                                     forecast_length=6, timeout=5,
                                      visualization=True)
