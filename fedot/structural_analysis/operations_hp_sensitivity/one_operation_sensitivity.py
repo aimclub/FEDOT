@@ -39,7 +39,8 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         self.data_under_lock: dict = {}
 
         self.path_to_save = \
-            join(default_fedot_data_dir(), 'structural_analysis', 'nodes_sensitivity') if path_to_save is None else path_to_save
+            join(default_fedot_data_dir(), 'structural_analysis', 'nodes_sensitivity') \
+            if path_to_save is None else path_to_save
         self.log = default_log(self)
 
     def analyze(self, node: PipelineNode,

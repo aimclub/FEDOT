@@ -18,13 +18,16 @@ from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import common_rules
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.project_import_export import DEFAULT_PATH
 
 
 class SAObjective(Objective):
-    """ Objective for Structural Analysis. . """
+    """ Objective for Structural Analysis.
+    This objective need to evaluate pipeline in __call__ method and have 'metrics' field to identify
+    which metrics are optimized.
+    """
     def __init__(self,
                  objective: Callable,
                  quality_metrics: Dict[Any, Callable],
@@ -43,6 +46,9 @@ def set_up(train_data: InputData, test_data: InputData) -> Tuple[PipelineOptNode
     """ Build initial infrastructure for performing SA: node factory, objectives. """
     def _construct_objective(data: InputData) -> SAObjective:
         """ Build objective function with fit and predict functions inside. """
+        get_value = partial(ROCAUC().get_value, reference_data=data)
+        metrics_ = {ClassificationMetricsEnum.ROCAUC: data}
+
         data_producer = DataSourceSplitter().build(data=data)
         objective_function = PipelineObjectiveEvaluate(objective=Objective(quality_metrics=get_value),
                                                        data_producer=data_producer)
@@ -51,14 +57,11 @@ def set_up(train_data: InputData, test_data: InputData) -> Tuple[PipelineOptNode
 
     task = Task(TaskTypesEnum.classification)
     advisor = PipelineChangeAdvisor(task)
-    primary_operations = ['bernb', 'rf', 'qda', 'pca', 'normalization']
-    secondary_operations = ['dt', 'logit', 'rf', 'scaling']
+    primary_operations = ['rf', 'pca', 'normalization', 'scaling']
+    secondary_operations = ['dt', 'logit', 'rf', 'knn']
     requirements = PipelineComposerRequirements(primary=primary_operations,
                                                 secondary=secondary_operations)
     node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor)
-
-    get_value = partial(ROCAUC().get_value, reference_data=test_data)
-    metrics_ = {ClassificationMetricsEnum.ROCAUC: get_value}
 
     # build objective function with fit and predict functions inside
     train_objective = _construct_objective(data=train_data)
@@ -70,7 +73,6 @@ if __name__ == '__main__':
     pipeline = get_three_depth_manual_class_pipeline()
     train_data, test_data = get_scoring_data()
 
-    metrics = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
     main_metric_idx = 0
 
     node_factory, train_objective, test_objective = set_up(train_data, test_data)
@@ -79,18 +81,18 @@ if __name__ == '__main__':
 
     requirements = StructuralAnalysisRequirements(graph_verifier=GraphVerifier(common_rules),
                                                   main_metric_idx=main_metric_idx,
-                                                  seed=1, replacement_number_of_random_operations_nodes=1,
-                                                  replacement_number_of_random_operations_edges=1)
+                                                  seed=1, replacement_number_of_random_operations_nodes=2,
+                                                  replacement_number_of_random_operations_edges=2)
 
     path_to_save = os.path.join(DEFAULT_PATH, 'sa')
 
-    # structural analysis will optimize given graph if at least one of the metrics was increased.
+    # structural analysis will optimize given graph if the specified main metric increased
     sa = GraphStructuralAnalysis(objective=train_objective, node_factory=node_factory,
                                  requirements=requirements,
                                  path_to_save=path_to_save,
                                  is_visualize_per_iteration=False)
 
-    optimized_pipeline, results = sa.optimize(graph=pipeline, n_jobs=1, max_iter=1)
+    optimized_pipeline, results = sa.optimize(graph=pipeline, n_jobs=1, max_iter=3)
 
     print(f'FINAL METRIC: {test_objective(optimized_pipeline)}')
 

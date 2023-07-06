@@ -45,7 +45,7 @@ class MultiOperationsHPAnalyze:
         self.operation_types = None
         self.path_to_save = \
             join(default_fedot_data_dir(), 'structural_analysis', 'pipeline_sensitivity') \
-                if path_to_save is None else path_to_save
+            if path_to_save is None else path_to_save
         self.log = default_log(self)
 
     def analyze(self) -> dict:
