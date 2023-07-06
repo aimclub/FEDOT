@@ -43,7 +43,7 @@ def set_up(train_data: InputData, test_data: InputData) -> Tuple[PipelineOptNode
     """ Build initial infrastructure for performing SA: node factory, objectives. """
     def _construct_objective(data: InputData) -> SAObjective:
         """ Build objective function with fit and predict functions inside. """
-        data_producer = DataSourceSplitter(cv_folds=2, validation_blocks=3).build(data=data)
+        data_producer = DataSourceSplitter().build(data=data)
         objective_function = PipelineObjectiveEvaluate(objective=Objective(quality_metrics=get_value),
                                                        data_producer=data_producer)
         objective = SAObjective(objective=objective_function, quality_metrics=metrics_)
