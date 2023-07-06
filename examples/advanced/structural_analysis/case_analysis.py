@@ -1,14 +1,12 @@
 from os import makedirs
 from os.path import join, exists
 
+from golem.structural_analysis.graph_sa.node_sa_approaches import NodeDeletionAnalyze
+
 from examples.advanced.structural_analysis.pipelines_access import pipeline_by_task
 from fedot.core.data.data import InputData
 from fedot.core.utils import default_fedot_data_dir
-from fedot.structural_analysis.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
-from fedot.structural_analysis.nodes_sensitivity import NodesAnalysis
-from fedot.structural_analysis.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
-from fedot.structural_analysis.pipeline_sensitivity import PipelineAnalysis
+
 
 SA_CLASS_WITH_APPROACHES = {'PipelineSensitivityAnalysis': {'class': PipelineSensitivityAnalysis,
                                                          'approaches': [NodeDeletionAnalyze,
