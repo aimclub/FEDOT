@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.main import Fedot
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
@@ -38,14 +40,18 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     ssh_history, ws_history, ssh_obs = prepare_input_data(train_file_path, test_file_path)
 
     historical_data = {
-        'ws': ws_history,  # additional variable
         'ssh': ssh_history,  # target variable
+        'ws': ws_history,  # additional variable
     }
+
+    base_node = PipelineNode('data_source_ts/ssh')
+    ppl = Pipeline([PipelineNode('polyfit', nodes_from=[base_node])])
+    # ppl = Pipeline([PipelineNode('linear', nodes_from=[PipelineNode('lagged', nodes_from = [base_node])])])
+    # ppl.show()
 
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
-                  timeout=timeout, logging_level=logging.DEBUG)
-
+                  timeout=timeout, logging_level=logging.DEBUG, initial_assumption=ppl)
     pipeline = fedot.fit(features=historical_data, target=ssh_history)
     fedot.forecast(historical_data)
     metric = fedot.get_metrics(target=ssh_obs)
@@ -54,7 +60,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
         pipeline.show()
         fedot.plot_prediction(target='ssh')
 
-    fedot.history.save('saved_ts_history.json')
+    # fedot.history.save('saved_ts_history.json')
 
     return metric
 

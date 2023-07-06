@@ -39,6 +39,11 @@ class PolyfitImplementation(ModelImplementation):
         return self.coefs
 
     def predict(self, input_data):
+        # re-fit with new data
+        f_x = np.arange(0, len(input_data.features))
+        f_y = input_data.features
+        self.coefs = np.polyfit(f_x, f_y, deg=self.degree)
+
         f_x = input_data.idx
         f_y = np.polyval(self.coefs, f_x)
         input_data = copy(input_data)

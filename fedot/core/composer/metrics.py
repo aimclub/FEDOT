@@ -10,6 +10,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
                              precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -83,7 +84,14 @@ class QualityMetric:
                 if not os.path.exists(save_path):
                     os.makedirs(save_path)
                 pipeline.show(save_path=Path(save_path, 'pipeline.png'))
+
+                target_name = None
+                if isinstance(reference_data, MultiModalData):
+                    # auto detec target
+                    target_name = [data_key for data_key in reference_data
+                                   if reference_data[data_key].supplementary_data.is_main_target][0].split('/')[-1]
                 plot_forecast(reference_data, results, in_sample=True,
+                              target=target_name,
                               title=f'Forecast with metric {round(metric, 4)}',
                               save_path=Path(save_path, 'forecast.png'))
 

@@ -117,7 +117,6 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
     for _, border in zip(range(0, number_of_iterations), intervals):
-
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)

@@ -27,7 +27,7 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
         target: user-specified name of target variable for MultiModalData
     """
     if isinstance(data, MultiModalData):
-        if not target:
+        if target is None:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
         data = data.extract_data_source(target)
     if data.data_type == DataTypesEnum.multi_ts:
