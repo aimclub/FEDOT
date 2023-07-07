@@ -88,7 +88,7 @@ class BinaryCategoricalPreprocessor:
         encoder.fit(column)
 
         # Store fitted label encoder for transform method
-        self.binary_encoders.update({column.name: encoder})
+        self.binary_encoders[column.name] = encoder
 
     def _apply_encoder(self, data: np.ndarray):
         """
