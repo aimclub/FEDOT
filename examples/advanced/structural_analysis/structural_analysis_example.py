@@ -25,7 +25,7 @@ from fedot.utilities.project_import_export import DEFAULT_PATH
 
 class SAObjective(Objective):
     """ Objective for Structural Analysis.
-    This objective need to evaluate pipeline in __call__ method and have 'metrics' field to identify
+    This objective has to evaluate pipeline in __call__ method and have 'metrics' field to identify
     which metrics are optimized.
     """
     def __init__(self,
