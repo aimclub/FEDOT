@@ -1,5 +1,5 @@
 # Other AutoMLs
-tpot == 0.11.7
+tpot == 0.12.0
 h2o == 3.28.1.2
 
 # Data
