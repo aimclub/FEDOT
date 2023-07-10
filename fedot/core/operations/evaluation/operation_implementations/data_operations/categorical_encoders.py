@@ -40,7 +40,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         # If there are categorical features - process it
         if self.categorical_ids:
-            updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
+            updated_cat_features = features[:, self.categorical_ids].astype(str)
             self.encoder.fit(updated_cat_features)
 
         return self.encoder
@@ -55,13 +55,10 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
         copied_data = deepcopy(input_data)
 
-        features = copied_data.features
-        if not self.categorical_ids:
-            # If there are no categorical features in the table
-            transformed_features = features
-        else:
-            # If categorical features are exists
-            transformed_features = self._apply_one_hot_encoding(features)
+        transformed_features = copied_data.features
+        if self.categorical_ids:
+            # If categorical features exist
+            transformed_features = self._apply_one_hot_encoding(transformed_features)
 
         # Update features
         output_data = self._convert_to_output(copied_data,
@@ -90,19 +87,13 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
+        transformed_categorical = self.encoder.transform(features[:, self.categorical_ids]).toarray()
 
-        categorical_features = np.array(features[:, self.categorical_ids])
-        transformed_categorical = self.encoder.transform(categorical_features).toarray()
-
-        # If there are non-categorical features in the data
-        if not self.non_categorical_ids:
-            transformed_features = transformed_categorical
-        else:
-            # Stack transformed categorical and non-categorical data
-            non_categorical_features = np.array(features[:, self.non_categorical_ids])
-            frames = (non_categorical_features, transformed_categorical)
-            transformed_features = np.hstack(frames)
-            self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
+        # Stack transformed categorical and non-categorical data, ignore if none
+        non_categorical_features = features[:, self.non_categorical_ids]
+        frames = (non_categorical_features, transformed_categorical)
+        transformed_features = np.hstack(frames)
+        self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
 
         return transformed_features
 

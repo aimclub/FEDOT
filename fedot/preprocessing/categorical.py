@@ -32,7 +32,7 @@ class BinaryCategoricalPreprocessor:
         for column_id, column in zip(categorical_ids, input_data.features[:, categorical_ids].T):
             pd_column = pd.Series(column, name=column_id, copy=True)
             is_nan = pd_column.isna()
-            column_nuniques = pd_column.nunique(False)
+            column_nuniques = pd_column.nunique(dropna=False)
             if is_nan.sum():
                 # This categorical column has nans
                 pd_column[is_nan] = FEDOT_STR_NAN
@@ -55,10 +55,6 @@ class BinaryCategoricalPreprocessor:
         """
         Apply transformation (converting str into integers) for selected (while training) features.
         """
-        if len(self.binary_ids_to_convert) == 0:
-            # There are no binary categorical features
-            return input_data
-
         copied_data = deepcopy(input_data)
         self._apply_encoder(copied_data.features)
 
@@ -107,7 +103,7 @@ class BinaryCategoricalPreprocessor:
 
             converted = encoder.transform(column)
             if len(nan_idxs):
-                # Column has nans in its structure - after conversion replace it
+                # Column has nans in its structure - replace them after conversion
                 converted = converted.astype(float)
                 converted[nan_idxs] = np.nan
             data[:, column_id] = converted
