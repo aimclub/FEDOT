@@ -63,7 +63,7 @@ def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[np.nda
         # Define if data contains string columns for "unknown table"
         return force_categorical_determination(table)
 
-    is_str = np.isin(column_type_ids, TYPE_TO_ID[str])
+    is_str = column_type_ids == TYPE_TO_ID[str]
     categorical_ids = np.flatnonzero(is_str).tolist()
     non_categorical_ids = np.flatnonzero(~is_str).tolist()
 

@@ -1,8 +1,7 @@
 from copy import deepcopy
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
-import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
@@ -75,7 +74,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         if self.categorical_ids:
             # There are categorical features in the table
             feature_types = output_data.supplementary_data.column_types['features']
-            numerical_columns = feature_types[np.isin(feature_types, TYPE_TO_ID[str], invert=True)]
+            numerical_columns = feature_types[feature_types != TYPE_TO_ID[str]]
 
             # Calculate new binary columns number after encoding
             encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
@@ -123,10 +122,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
                                                                                   feature_type_ids)
 
-        # If there are categorical features - process it
-        if self.categorical_ids:
-            # For every categorical feature - perform encoding
-            self._fit_label_encoders(input_data)
+        # For every existing categorical feature - perform encoding
+        self._fit_label_encoders(input_data.features)
         return self.encoders
 
     def transform(self, input_data: InputData) -> OutputData:
@@ -134,9 +131,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         Applicable during predict stage
         """
         copied_data = deepcopy(input_data)
-        if self.categorical_ids:
-            # If categorical features exists - transform them inplace in InputData
-            self._apply_label_encoder(copied_data.features)
+        # If categorical features exist - transform them inplace in InputData
+        self._apply_label_encoder(copied_data.features)
 
         output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
@@ -149,14 +145,13 @@ class LabelEncodingImplementation(DataOperationImplementation):
         feature_types = output_data.supplementary_data.column_types['features']
         feature_types[self.categorical_ids] = TYPE_TO_ID[int]
 
-    def _fit_label_encoders(self, input_data: InputData):
+    def _fit_label_encoders(self, data: np.ndarray):
         """ Fit LabelEncoder for every categorical column in the dataset """
-        for categorical_id in self.categorical_ids:
-            categorical_column = input_data.features[:, categorical_id]
+        categorical_columns = data[:, self.categorical_ids].astype(str)
+        for column_id, column in zip(self.categorical_ids, categorical_columns.T):
             le = LabelEncoder()
-            le.fit(categorical_column)
-
-            self.encoders.update({categorical_id: le})
+            le.fit(column)
+            self.encoders[column_id] = le
 
     def _apply_label_encoder(self, data: np.ndarray):
         """
@@ -165,13 +160,13 @@ class LabelEncodingImplementation(DataOperationImplementation):
         Args:
             data: numpy array with all features
         """
-        categorical_columns = data[:, self.categorical_ids]
+        categorical_columns = data[:, self.categorical_ids].astype(str)
         for column_id, column in zip(self.categorical_ids, categorical_columns.T):
             column_encoder = self.encoders[column_id]
-            column_encoder.classes_ = pd.unique(np.concatenate((column_encoder.classes_, column)))
+            column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
 
             transformed_column = column_encoder.transform(column)
-            nan_idxs = np.flatnonzero(pd.isna(column))
+            nan_idxs = np.flatnonzero(column == 'nan')
             if len(nan_idxs):
                 # Store np.nan values
                 transformed_column = transformed_column.astype(object)
