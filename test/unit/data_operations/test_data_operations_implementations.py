@@ -169,7 +169,7 @@ def get_mixed_data(task=None, extended=False):
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
         feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[int],
-                                  TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[str]])
+                                     TYPE_TO_ID[str], TYPE_TO_ID[str], TYPE_TO_ID[str]])
         target_type_ids = np.array([TYPE_TO_ID[int]])
         supp_data = SupplementaryData(column_types={'features': feature_type_ids,
                                                     'target': target_type_ids})
