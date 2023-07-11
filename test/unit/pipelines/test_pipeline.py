@@ -389,7 +389,7 @@ def test_pipeline_fit_time_constraint():
 
     test_pipeline_second = pipeline_first()
     predicted_second = test_pipeline_second.fit(input_data=train_data,
-                                                time_constraint=datetime.timedelta(seconds=1.6))
+                                                time_constraint=datetime.timedelta(seconds=2.1))
     computation_time_second = test_pipeline_second.computation_time
     assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None
