@@ -78,7 +78,7 @@ def test_synthetic_regression_automl():
     test_data.target = ground_truth.predict
 
     # run automl
-    auto_model = Fedot(problem='regression', logging_level=logging.ERROR,
+    auto_model = Fedot(problem='regression', logging_level=logging.DEBUG,
                        timeout=1, metric=metric_func, cv_folds=None,
                        available_operations=['scaling',
                                              'normalization',
