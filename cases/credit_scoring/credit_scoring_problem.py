@@ -9,6 +9,7 @@ from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
+from fedot.core.utils import set_random_seed
 
 
 def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputData) -> float:
@@ -27,7 +28,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                **composer_args):
     automl = Fedot(problem='classification',
                    timeout=timeout,
-                   seed=42,
                    preset=BEST_QUALITY_PRESET_NAME,
                    logging_level=logging.DEBUG,
                    **composer_args)
@@ -63,6 +63,8 @@ def get_scoring_data():
 
 
 if __name__ == '__main__':
+    set_random_seed(42)
+
     full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train,
                                full_path_test,

@@ -3,9 +3,12 @@ from copy import deepcopy
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.utils import set_random_seed
 
 
 def is_predict_ignores_target(predict_func, input_data, data_arg_name, predict_args=None):
+    set_random_seed(0)
+
     if predict_args is None:
         predict_args = {}
 
