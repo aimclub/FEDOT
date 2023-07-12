@@ -214,7 +214,6 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
                                     random_state=42,
                                     max_time_mins=self.params_for_fit.get('timeout', 0.)
                                     )
-        model.classes_ = np.unique(train_data.target)
 
         model.fit(train_data.features.astype(float), train_data.target.astype(int))
 
