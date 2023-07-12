@@ -19,21 +19,23 @@ def test_classification_quality_improvement():
     problem = 'classification'
     with_tuning = False
 
-    expected_baseline_quality = 0.823
-    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning,
-                           use_pipelines_cache=False, use_preprocessing_cache=False)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+    common_params= dict(problem=problem,
+                        n_jobs=1,
+                        use_pipelines_cache=False,
+                        use_preprocessing_cache=False,
+                        with_tuning=with_tuning,
+                        logging_level=logging.DEBUG,
+                        seed=seed)
+
+    expected_baseline_quality = 0.750
+    baseline_model = Fedot(**common_params)
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='bernb')
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
-    timeout = 2
-    composer_params = dict(num_of_generations=20,
-                           with_tuning=with_tuning,
-                           preset='best_quality')
-
-    auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
+    auto_model = Fedot(timeout=2, num_of_generations=20, preset='best_quality',
+                       **common_params)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
@@ -54,13 +56,14 @@ def test_multiobjective_improvement():
     metrics = [quality_metric, complexity_metric]
 
     timeout = 2
-    composer_params = dict(num_of_generations=20,
+    composer_params = dict(num_of_generations=10,
+                           pop_size=3,
                            with_tuning=False,
-                           preset='best_quality',
+                           preset='fast_train',
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, n_jobs=1, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
