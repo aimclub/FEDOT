@@ -20,7 +20,8 @@ def test_classification_quality_improvement():
     with_tuning = False
 
     expected_baseline_quality = 0.823
-    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning)
+    baseline_model = Fedot(problem=problem, seed=seed, with_tuning=with_tuning,
+                           use_pipelines_cache=False, use_preprocessing_cache=False)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
