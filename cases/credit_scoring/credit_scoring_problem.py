@@ -1,11 +1,8 @@
 import logging
-import os
-from pathlib import Path
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
-from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
@@ -28,7 +25,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                **composer_args):
     automl = Fedot(problem='classification',
                    timeout=timeout,
-                   preset=BEST_QUALITY_PRESET_NAME,
+                   preset='fast_train',
                    logging_level=logging.FATAL,
                    **composer_args)
     automl.fit(train_file_path, target=target)
