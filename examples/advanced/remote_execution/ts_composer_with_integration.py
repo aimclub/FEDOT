@@ -1,6 +1,7 @@
 from fedot.api.main import Fedot
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
+from fedot.core.utils import set_random_seed
 from fedot.remote.infrastructure.clients.test_client import TestClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
@@ -60,7 +61,7 @@ def run_automl(data: MultiModalData, features_to_use,
                        'cv_folds': None,
                        'validation_blocks': None}
 
-    automl = Fedot(problem='ts_forecasting', seed=1, timeout=timeout, **composer_params)
+    automl = Fedot(problem='ts_forecasting', timeout=timeout, **composer_params)
 
     obtained_pipeline = automl.fit(data)
     forecast = automl.forecast(data)
@@ -68,6 +69,8 @@ def run_automl(data: MultiModalData, features_to_use,
 
 
 if __name__ == '__main__':
+    set_random_seed(1)
+
     features_to_use = ['wind_speed', 'sea_height']
 
     data = MultiModalData.from_csv_time_series(
