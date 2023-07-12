@@ -15,7 +15,7 @@ from fedot.core.utils import fedot_project_root
 def test_credit_scoring_problem():
     full_path_train = full_path_test = fedot_project_root().joinpath('test/data/simple_classification.csv')
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y')
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y', n_jobs=1)
     assert roc_auc_test > 0.5
 
 
