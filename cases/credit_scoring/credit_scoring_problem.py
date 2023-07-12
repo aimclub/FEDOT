@@ -29,7 +29,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     automl = Fedot(problem='classification',
                    timeout=timeout,
                    preset=BEST_QUALITY_PRESET_NAME,
-                   logging_level=logging.DEBUG,
+                   logging_level=logging.FATAL,
                    **composer_args)
     automl.fit(train_file_path, target=target)
     automl.predict(test_file_path)
