@@ -35,9 +35,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     automl.predict(test_file_path)
     metrics = automl.get_metrics()
 
-    if automl.history:
-        lb = automl.history.get_leaderboard()
-        Path(os.path.join('D:/', "leaderboard.csv")).write_text(lb)
+    if automl.history and automl.history.generations:
+        print(automl.history.get_leaderboard())
 
     if visualization:
         automl.current_pipeline.show()
