@@ -17,7 +17,7 @@ class ApiMetrics:
     """
 
     _metrics_dict = {
-        'acc': ClassificationMetricsEnum.accuracy,
+        'accuracy': ClassificationMetricsEnum.accuracy,
         'roc_auc': ClassificationMetricsEnum.ROCAUC,
         'f1': ClassificationMetricsEnum.f1,
         'logloss': ClassificationMetricsEnum.logloss,

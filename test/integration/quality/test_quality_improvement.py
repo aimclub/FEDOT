@@ -5,8 +5,6 @@ from typing import Sequence
 import numpy as np
 
 from fedot.api.main import Fedot
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings("ignore")
@@ -54,7 +52,7 @@ def test_multiobjective_improvement():
 
     # Define parameters for composing
     quality_metric_1 = 'roc_auc'
-    quality_metric_2 = 'acc'
+    quality_metric_2 = 'accuracy'
     metrics = [quality_metric_1, quality_metric_2]
 
     timeout = 2
@@ -73,7 +71,7 @@ def test_multiobjective_improvement():
     quality_1_improved, quality_2_improved = check_improvement(auto_model.history)
 
     assert auto_metrics[quality_metric_1] > 0.75
-    assert auto_metrics['accuracy'] > 0.9
+    assert auto_metrics[quality_metric_2] > 0.9
     assert quality_1_improved
     assert quality_2_improved
 
