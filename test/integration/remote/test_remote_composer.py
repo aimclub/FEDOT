@@ -52,11 +52,13 @@ def test_pseudo_remote_composer_classification():
 
     automl = Fedot(problem='classification', timeout=0.1, **composer_params)
 
-    path = os.path.join(fedot_project_root(), 'test', 'data', 'advanced_classification.csv')
+    path = fedot_project_root().joinpath('test', 'data', 'advanced_classification.csv')
 
     automl.fit(path)
     predict = automl.predict(path)
-    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))  # recursive deleting
+    fitted_pipeline_pth = fedot_project_root().joinpath('test', 'data', 'remote', 'fitted_pipeline')
+    if fitted_pipeline_pth.exists:
+        shutil.rmtree(fitted_pipeline_pth)  # recursive deleting
 
     assert predict is not None
 
