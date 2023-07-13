@@ -50,39 +50,32 @@ def test_multiobjective_improvement():
     train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
     test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
     problem = 'classification'
-    seed = 1
+    seed = 50
 
     # Define parameters for composing
-    quality_metric = 'roc_auc'
-    complexity_metric = 'node_number'
-    metrics = [quality_metric, complexity_metric]
+    quality_metric_1 = 'roc_auc'
+    quality_metric_2 = 'acc'
+    metrics = [quality_metric_1, quality_metric_2]
 
-    timeout = 3
+    timeout = 2
     composer_params = dict(num_of_generations=10,
                            pop_size=10,
                            with_tuning=False,
                            preset='best_quality',
                            metric=metrics)
 
-    root_node = PipelineNode('logit')
-    child_1 = PipelineNode('rf')
-    child_2 = PipelineNode('knn')
-    [root_node.nodes_from.append(child) for child in [child_1, child_2]]
-    initial_pipeline = Pipeline(nodes=[root_node] + root_node.nodes_from)
-
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       initial_assumption=initial_pipeline,
                        **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
 
-    quality_improved, complexity_improved = check_improvement(auto_model.history)
+    quality_1_improved, quality_2_improved = check_improvement(auto_model.history)
 
-    assert auto_metrics[quality_metric] > 0.75
-    assert auto_metrics[complexity_metric] <= 0.2
-    assert quality_improved
-    assert complexity_improved
+    assert auto_metrics[quality_metric_1] > 0.75
+    assert auto_metrics['accuracy'] > 0.9
+    assert quality_1_improved
+    assert quality_2_improved
 
 
 def check_improvement(history):
@@ -92,9 +85,9 @@ def check_improvement(history):
     first_pop_metrics = get_mean_metrics(first_pop)
     pareto_front_metrics = get_mean_metrics(pareto_front)
 
-    quality_improved = pareto_front_metrics[0] < first_pop_metrics[0]
-    complexity_improved = pareto_front_metrics[1] < first_pop_metrics[1]
-    return quality_improved, complexity_improved
+    quality_1_improved = pareto_front_metrics[0] < first_pop_metrics[0]
+    quality_2_improved = pareto_front_metrics[1] < first_pop_metrics[1]
+    return quality_1_improved, quality_2_improved
 
 
 def get_mean_metrics(population) -> Sequence[float]:
