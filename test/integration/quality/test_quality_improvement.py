@@ -57,24 +57,22 @@ def test_multiobjective_improvement():
     complexity_metric = 'node_number'
     metrics = [quality_metric, complexity_metric]
 
-    timeout = 2
-    composer_params = dict(num_of_generations=5,
-                           pop_size=3,
+    timeout = 3
+    composer_params = dict(num_of_generations=10,
+                           pop_size=10,
                            with_tuning=False,
                            preset='best_quality',
                            metric=metrics)
 
-    initial_pipeline = Pipeline(
-        PipelineNode('logit',
-                     nodesfrom=[
-                         PipelineNode('rf', nodes_from=[PipelineNode('rf')]),
-                         PipelineNode('rf', nodes_from=[PipelineNode('rf')])
-                     ])
-    )
+    root_node = PipelineNode('logit')
+    child_1 = PipelineNode('rf')
+    child_2 = PipelineNode('knn')
+    [root_node.nodes_from.append(child) for child in [child_1, child_2]]
+    initial_pipeline = Pipeline(nodes=[root_node] + root_node.nodes_from)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
                        initial_assumption=initial_pipeline,
-                       **composer_params, n_jobs=1, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
