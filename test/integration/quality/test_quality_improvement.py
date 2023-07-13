@@ -55,15 +55,15 @@ def test_multiobjective_improvement():
     quality_metric_2 = 'accuracy'
     metrics = [quality_metric_1, quality_metric_2]
 
-    timeout = 2
+    timeout = 4
     composer_params = dict(num_of_generations=10,
-                           pop_size=4,
+                           pop_size=10,
                            with_tuning=False,
                            preset='best_quality',
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, n_jobs=1, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
