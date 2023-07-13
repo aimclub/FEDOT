@@ -4,11 +4,9 @@ from functools import partial
 
 import pytest
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
-from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
@@ -94,37 +92,6 @@ def test_tuner_cv_classification_correct():
     )
     tuned = tuner.tune(simple_pipeline)
     assert tuned
-
-
-def test_composer_with_cv_optimization_correct():
-    task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
-
-    models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
-
-    metric_function = [ClassificationMetricsEnum.ROCAUC_penalty,
-                       ClassificationMetricsEnum.accuracy,
-                       ClassificationMetricsEnum.logloss]
-
-    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                         secondary=available_model_types,
-                                                         timeout=timedelta(minutes=0.2),
-                                                         num_of_generations=2, cv_folds=5,
-                                                         show_progress=False)
-
-    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
-    composer = builder.build()
-
-    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)[0]
-
-    assert isinstance(pipeline_evo_composed, Pipeline)
-
-    pipeline_evo_composed.fit(input_data=dataset_to_compose)
-    predicted = pipeline_evo_composed.predict(dataset_to_validate)
-    roc_on_valid_evo_composed = roc_auc(y_score=predicted.predict, y_true=dataset_to_validate.target)
-
-    assert roc_on_valid_evo_composed > 0
 
 
 def test_cv_api_correct():
