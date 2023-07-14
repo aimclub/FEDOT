@@ -133,7 +133,7 @@ class CGRUImplementation(ModelImplementation):
         :return torch.utils.data.DataLoader: DataLoader with train data
         """
         x, y = self._fit_transform_scaler(input_data)
-        x, y = (torch.from_numpy(np_data.astype(float)) for np_data in (x, y))
+        x, y = (torch.from_numpy(np_data.astype(np.float32)) for np_data in (x, y))
         return DataLoader(TensorDataset(x, y), batch_size=self.params.get("batch_size"))
 
     def _fit_transform_scaler(self, data: InputData):
