@@ -93,7 +93,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
             trained_operation: model object
             predict_data: data used for prediction
         Returns:
-            OutputData: 
+            OutputData:
         """
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)

@@ -367,8 +367,9 @@ class Pipeline(GraphDelegate, Serializable):
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:
-                    print(f'Node info: operation={node.operation}, operation_type{node.operation.operation_type}, input_data{input_data}, all_nodes={self.nodes},'
-                          f' pipeline_nodes={[node for node in self.nodes if isinstance(n, PipelineNode)]},',
+                    print(f'Node info: operation={node.operation}, operation_type{node.operation.operation_type},'
+                          f' input_data{input_data}, all_nodes={self.nodes},'
+                          f' pipeline_nodes={[node for node in self.nodes if isinstance(node, PipelineNode)]},',
                           f' true_node_types={[type(node) for node in self.nodes]},',
                           f' primary_nodes={[node for node in self.nodes if node.is_primary]}')
                     raise ValueError(f'No data for primary node {node}')

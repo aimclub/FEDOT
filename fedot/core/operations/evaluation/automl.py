@@ -1,16 +1,14 @@
 from typing import Optional
 
 import numpy as np
-
 from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
-from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.pipelines.automl_wrappers import *
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.pipelines.automl_wrappers import H2OSerializationWrapper, TPOTRegressionSerializationWrapper
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -110,7 +108,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         train_frame[target_name] = train_frame[target_name].asfactor()
         model = self.operation_impl(max_models=self.params_for_fit.get("max_models"),
                                     seed=self.params_for_fit.get("seed"),
-                                    max_runtime_secs=self.params_for_fit.get("timeout")*60
+                                    max_runtime_secs=self.params_for_fit.get("timeout") * 60
                                     )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
