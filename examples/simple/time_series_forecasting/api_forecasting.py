@@ -44,7 +44,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=horizon)).task_params,
+                                   TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
                   n_jobs=1,
                   with_tuning=with_tuning,
