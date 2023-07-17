@@ -19,6 +19,7 @@ def get_three_depth_manual_class_pipeline():
     knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
     pipeline = Pipeline(knn_root)
+    # pipeline = Pipeline(PipelineNode('logit'))
 
     return pipeline
 

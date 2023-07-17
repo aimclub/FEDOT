@@ -5,11 +5,10 @@ from golem.core.dag.graph_verifier import GraphVerifier
 from golem.core.optimisers.objective import Objective
 from golem.structural_analysis.graph_sa.graph_structural_analysis import GraphStructuralAnalysis
 from golem.structural_analysis.graph_sa.sa_requirements import StructuralAnalysisRequirements
-from typing import Callable, Dict, Any, Optional, Tuple
+from typing import Callable, Dict, Any, Optional, Tuple, List
 
 from examples.advanced.structural_analysis.dataset_access import get_scoring_data
 from examples.advanced.structural_analysis.pipelines_access import get_three_depth_manual_class_pipeline
-from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
@@ -18,7 +17,8 @@ from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import common_rules
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, QualityMetricsEnum, \
+    MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.project_import_export import DEFAULT_PATH
 
@@ -42,12 +42,18 @@ class SAObjective(Objective):
         return self.objective(pipeline)
 
 
-def set_up(train_data: InputData, test_data: InputData) -> Tuple[PipelineOptNodeFactory, SAObjective, SAObjective]:
-    """ Build initial infrastructure for performing SA: node factory, objectives. """
-    def _construct_objective(data: InputData) -> SAObjective:
+def structural_analysis_set_up(train_data: InputData, test_data: InputData,
+                               task: TaskTypesEnum = TaskTypesEnum.classification,
+                               metric: QualityMetricsEnum = ClassificationMetricsEnum.ROCAUC,
+                               primary_operations: List[str] = None, secondary_operations: List[str] = None) \
+        -> Tuple[PipelineOptNodeFactory, SAObjective, SAObjective]:
+    """ Build initial infrastructure for performing SA: node factory, objectives.
+    Can be reused for other SA applications, appropriate parameters must be specified then. """
+    def _construct_objective(data: InputData, metric: QualityMetricsEnum) -> SAObjective:
         """ Build objective function with fit and predict functions inside. """
-        get_value = partial(ROCAUC().get_value, reference_data=data)
-        metrics_ = {ClassificationMetricsEnum.ROCAUC: data}
+        metric_func = MetricsRepository.metric_by_id(metric)
+        get_value = partial(metric_func, reference_data=data)
+        metrics_ = {metric: data}
 
         data_producer = DataSourceSplitter().build(data=data)
         objective_function = PipelineObjectiveEvaluate(objective=Objective(quality_metrics=get_value),
@@ -55,17 +61,18 @@ def set_up(train_data: InputData, test_data: InputData) -> Tuple[PipelineOptNode
         objective = SAObjective(objective=objective_function, quality_metrics=metrics_)
         return objective
 
-    task = Task(TaskTypesEnum.classification)
+    task = Task(task)
     advisor = PipelineChangeAdvisor(task)
-    primary_operations = ['rf', 'pca', 'normalization', 'scaling']
-    secondary_operations = ['dt', 'logit', 'rf', 'knn']
+    primary_operations = primary_operations or ['rf', 'pca', 'normalization', 'scaling']
+    secondary_operations = secondary_operations or ['dt', 'logit', 'rf', 'knn']
     requirements = PipelineComposerRequirements(primary=primary_operations,
                                                 secondary=secondary_operations)
     node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor)
 
     # build objective function with fit and predict functions inside
-    train_objective = _construct_objective(data=train_data)
-    test_objective = _construct_objective(data=test_data)
+    optimization_metric = metric
+    train_objective = _construct_objective(data=train_data, metric=optimization_metric)
+    test_objective = _construct_objective(data=test_data, metric=optimization_metric)
     return node_factory, train_objective, test_objective
 
 
@@ -75,7 +82,7 @@ if __name__ == '__main__':
 
     main_metric_idx = 0
 
-    node_factory, train_objective, test_objective = set_up(train_data, test_data)
+    node_factory, train_objective, test_objective = structural_analysis_set_up(train_data, test_data)
 
     print(f'INITIAL METRIC: {test_objective(pipeline)}')
 
@@ -85,6 +92,8 @@ if __name__ == '__main__':
                                                   replacement_number_of_random_operations_edges=2)
 
     path_to_save = os.path.join(DEFAULT_PATH, 'sa')
+    if not os.path.exists(path_to_save):
+        os.makedirs(path_to_save)
 
     # structural analysis will optimize given graph if the specified main metric increased
     sa = GraphStructuralAnalysis(objective=train_objective, node_factory=node_factory,
@@ -92,7 +101,7 @@ if __name__ == '__main__':
                                  path_to_save=path_to_save,
                                  is_visualize_per_iteration=False)
 
-    optimized_pipeline, results = sa.optimize(graph=pipeline, n_jobs=1, max_iter=3)
+    optimized_pipeline, results = sa.optimize(graph=pipeline, n_jobs=1, max_iter=2)
 
     print(f'FINAL METRIC: {test_objective(optimized_pipeline)}')
 
@@ -100,7 +109,8 @@ if __name__ == '__main__':
     GraphStructuralAnalysis.visualize_on_graph(graph=get_three_depth_manual_class_pipeline(),
                                                analysis_result=results,
                                                metric_idx_to_optimize_by=main_metric_idx,
-                                               mode="by_iteration",
+                                               mode='by_iteration',
+                                               save_path=path_to_save,
                                                font_size_scale=0.6)
 
     optimized_pipeline.show()
