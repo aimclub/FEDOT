@@ -19,7 +19,7 @@ warnings.filterwarnings('ignore')
 
 _TS_EXAMPLES_DATA_PATH = fedot_project_root().joinpath('examples/data/ts')
 
-_DATASETS = {
+TS_DATASETS = {
     'australia': _TS_EXAMPLES_DATA_PATH.joinpath('australia.csv'),
     'beer': _TS_EXAMPLES_DATA_PATH.joinpath('beer.csv'),
     'salaries': _TS_EXAMPLES_DATA_PATH.joinpath('salaries.csv'),
@@ -40,7 +40,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
     pipeline.print_structure()
 
     horizon = step_forecast * future_steps
-    time_series = pd.read_csv(_DATASETS[dataset])
+    time_series = pd.read_csv(TS_DATASETS[dataset])
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=step_forecast))
 
