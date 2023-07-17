@@ -2,6 +2,9 @@ import os
 from functools import partial
 
 from golem.core.dag.graph_verifier import GraphVerifier
+from golem.core.dag.verification_rules import DEFAULT_DAG_RULES, has_one_root, has_no_cycle, has_no_isolated_components, \
+    has_no_isolated_nodes, has_no_self_cycled_nodes
+from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.objective import Objective
 from golem.structural_analysis.graph_sa.graph_structural_analysis import GraphStructuralAnalysis
 from golem.structural_analysis.graph_sa.sa_requirements import StructuralAnalysisRequirements
@@ -12,11 +15,10 @@ from examples.advanced.structural_analysis.pipelines_access import get_three_dep
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.pipelines.verification import common_rules
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, QualityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -38,8 +40,9 @@ class SAObjective(Objective):
         super().__init__(quality_metrics=quality_metrics, complexity_metrics=complexity_metrics,
                          is_multi_objective=is_multi_objective)
 
-    def __call__(self, pipeline: Pipeline) -> float:
-        return self.objective(pipeline)
+    def __call__(self, graph: OptGraph) -> float:
+        pip = PipelineAdapter().restore(graph)
+        return self.objective(pip)
 
 
 def structural_analysis_set_up(train_data: InputData, test_data: InputData,
@@ -77,16 +80,18 @@ def structural_analysis_set_up(train_data: InputData, test_data: InputData,
 
 
 if __name__ == '__main__':
-    pipeline = get_three_depth_manual_class_pipeline()
+    initial_graph = PipelineAdapter().adapt(get_three_depth_manual_class_pipeline())
     train_data, test_data = get_scoring_data()
 
     main_metric_idx = 0
 
     node_factory, train_objective, test_objective = structural_analysis_set_up(train_data, test_data)
 
-    print(f'INITIAL METRIC: {test_objective(pipeline)}')
+    print(f'INITIAL METRIC: {test_objective(initial_graph)}')
 
-    requirements = StructuralAnalysisRequirements(graph_verifier=GraphVerifier(common_rules),
+    verification_rules = [has_one_root, has_no_cycle, has_no_isolated_components,
+                          has_no_self_cycled_nodes, has_no_isolated_nodes]
+    requirements = StructuralAnalysisRequirements(graph_verifier=GraphVerifier(verification_rules),
                                                   main_metric_idx=main_metric_idx,
                                                   seed=1, replacement_number_of_random_operations_nodes=2,
                                                   replacement_number_of_random_operations_edges=2)
@@ -101,16 +106,16 @@ if __name__ == '__main__':
                                  path_to_save=path_to_save,
                                  is_visualize_per_iteration=False)
 
-    optimized_pipeline, results = sa.optimize(graph=pipeline, n_jobs=1, max_iter=2)
+    optimized_graph, results = sa.optimize(graph=initial_graph, n_jobs=1, max_iter=2)
 
-    print(f'FINAL METRIC: {test_objective(optimized_pipeline)}')
+    print(f'FINAL METRIC: {test_objective(optimized_graph)}')
 
     # to show SA results on each iteration
-    GraphStructuralAnalysis.visualize_on_graph(graph=get_three_depth_manual_class_pipeline(),
+    GraphStructuralAnalysis.visualize_on_graph(graph=PipelineAdapter().adapt(get_three_depth_manual_class_pipeline()),
                                                analysis_result=results,
                                                metric_idx_to_optimize_by=main_metric_idx,
                                                mode='by_iteration',
                                                save_path=path_to_save,
                                                font_size_scale=0.6)
 
-    optimized_pipeline.show()
+    optimized_graph.show()
