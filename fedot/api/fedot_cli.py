@@ -1,8 +1,9 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from fedot.core.repository.tasks import TsForecastingParams
-from fedot.api.main import Fedot
 from pathlib import Path
+
+from fedot.api.main import Fedot
+from fedot.core.repository.tasks import TsForecastingParams
 
 
 def create_parser(arguments_list):
