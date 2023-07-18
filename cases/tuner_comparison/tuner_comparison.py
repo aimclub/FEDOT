@@ -1,17 +1,20 @@
 import os
+import sys
 import timeit
 from datetime import timedelta
 from pathlib import Path
-from typing import Type, Optional
+from typing import Type
 
+import numpy as np
 import pandas as pd
 from golem.core.log import Log
 from golem.core.tuning.iopt_tuner import IOptTuner
+from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
-from hyperopt import hp
 
 from cases.tuner_comparison.classification_test_pipelines import get_pipelines_for_classification
+from cases.tuner_comparison.forecasting_test_pipelines import get_pipelines_for_forecasting
 from cases.tuner_comparison.regression_test_pipelines import get_pipelines_for_regression
 from fedot.core.composer.metrics import ROCAUC, SMAPE
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -22,121 +25,27 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.repository.quality_metrics_repository import MetricType
-
-search_space_dict = \
-    {'knn': {
-        'n_neighbors': {
-            'hyperopt-dist': hp.uniformint,
-            'sampling-scope': [1, 50],
-            'type': 'discrete'}
-    },
-        'logit': {
-            'C': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [1e-2, 10.0],
-                'type': 'continuous'}
-        },
-        'rf': {
-            'max_features': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [0.05, 1.0],
-                'type': 'continuous'},
-            'min_samples_split': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [2, 10],
-                'type': 'discrete'},
-            'min_samples_leaf': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 15],
-                'type': 'discrete'}
-        },
-        'dt': {
-            'max_depth': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 11],
-                'type': 'discrete'},
-            'min_samples_split': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [2, 21],
-                'type': 'discrete'},
-            'min_samples_leaf': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 21],
-                'type': 'discrete'}
-        },
-        'knnreg': {
-            'n_neighbors': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 50],
-                'type': 'discrete'}
-        },
-        'svr': {
-            'C': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [1e-4, 25.0],
-                'type': 'continuous'},
-            'epsilon': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [1e-4, 1],
-                'type': 'continuous'},
-            'tol': {
-                'hyperopt-dist': hp.loguniform,
-                'sampling-scope': [1e-5, 1e-1],
-                'type': 'continuous'}
-        },
-        'rfr': {
-            'max_features': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [0.05, 1.0],
-                'type': 'continuous'},
-            'min_samples_split': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [2, 21],
-                'type': 'discrete'},
-            'min_samples_leaf': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 15],
-                'type': 'discrete'}
-        },
-        'dtreg': {
-            'max_depth': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 11],
-                'type': 'discrete'},
-            'min_samples_split': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [2, 21],
-                'type': 'discrete'},
-            'min_samples_leaf': {
-                'hyperopt-dist': hp.uniformint,
-                'sampling-scope': [1, 21],
-                'type': 'discrete'}
-        },
-        'ridge': {
-            'alpha': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [0.01, 10.0],
-                'type': 'continuous'}
-        },
-        'lasso': {
-            'alpha': {
-                'hyperopt-dist': hp.uniform,
-                'sampling-scope': [0.01, 10.0],
-                'type': 'continuous'}
-        }
-    }
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import set_random_seed
 
 
-def get_data_for_experiment(data_path, task):
-    data = InputData.from_csv(file_path=data_path, task=task)
-    train_data, test_data = train_test_data_setup(data)
+def get_data_for_experiment(data_path, task, forecast_length, validation_blocks):
+    if task == 'forecasting':
+        task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length))
+        data = InputData.from_csv_time_series(file_path=data_path, task=task)
+    else:
+        data = InputData.from_csv(file_path=data_path, task=task)
+    train_data, test_data = train_test_data_setup(data, validation_blocks=validation_blocks)
     return train_data, test_data
 
 
-def get_objective_evaluate(metric: MetricType, data: InputData, n_jobs: int = -1):
+def get_objective_evaluate(metric: MetricType, data: InputData, validation_blocks: int, n_jobs: int = -1):
     objective = MetricsObjective(metric)
-    data_split = DataSourceSplitter(cv_folds=3).build(data)
-    objective_eval = PipelineObjectiveEvaluate(objective, data_split, eval_n_jobs=n_jobs)
+    data_split = DataSourceSplitter(cv_folds=3, validation_blocks=validation_blocks).build(data)
+    objective_eval = PipelineObjectiveEvaluate(objective,
+                                               data_split,
+                                               eval_n_jobs=n_jobs,
+                                               validation_blocks=validation_blocks)
     return objective_eval
 
 
@@ -152,10 +61,12 @@ def get_pipelines_for_task(task: str):
         return get_pipelines_for_classification()
     elif task == 'regression':
         return get_pipelines_for_regression()
+    elif task == 'forecasting':
+        return get_pipelines_for_forecasting()
 
 
 def get_metric_for_task(task: str):
-    metric_by_task = {'classification': ROCAUC.get_value, 'regression': SMAPE.get_value}
+    metric_by_task = {'classification': ROCAUC.get_value, 'regression': SMAPE.get_value, 'forecasting': SMAPE.get_value}
     return metric_by_task[task]
 
 
@@ -164,14 +75,16 @@ def run_experiment(task: str,
                    tuner_cls: Type[BaseTuner],
                    iterations: int,
                    launch_num: int,
-                   get_timeout: bool = False):
+                   with_timeout: bool = False,
+                   forecast_length: int = 10,
+                   validation_blocks: int = 2):
     n_jobs = -1
     pipelines = get_pipelines_for_task(task)
-    train_data, test_data = get_data_for_experiment(data_path, task)
+    train_data, test_data = get_data_for_experiment(data_path, task, forecast_length, validation_blocks)
     metric = get_metric_for_task(task)
-    objective_eval = get_objective_evaluate(metric, train_data, n_jobs)
+    objective_eval = get_objective_evaluate(metric, train_data, validation_blocks, n_jobs)
     adapter = PipelineAdapter()
-    search_space = PipelineSearchSpace(custom_search_space=search_space_dict, replace_default_search_space=True)
+    search_space = PipelineSearchSpace()
 
     column_names = ['pipeline_type', 'init_metric', 'final_metric', 'tuning_time', 'iter_num', 'dataset']
     df = pd.DataFrame(columns=column_names)
@@ -180,47 +93,44 @@ def run_experiment(task: str,
     create_folder(dir_to_save)
     dataset_name = os.path.basename(data_path)
     path_to_save = f'{dir_to_save}/{dataset_name}'
-    if get_timeout:
+    if with_timeout:
         path_to_save = f'{dir_to_save}/mean_time_{dataset_name}'
     num_iter = iterations
 
     for pipeline_type, pipeline in pipelines.items():
-
+        print('Initial pipeline fit started')
         pipeline.fit(train_data)
-        init_metric = abs(metric(pipeline, test_data))
+        init_metric = abs(metric(pipeline, test_data, validation_blocks=validation_blocks))
 
         for i in range(launch_num):
-            additional_params = {}
-            if tuner_cls == SimultaneousTuner:
-                additional_params['timeout'] = timedelta(minutes=250)
-                additional_params['early_stopping_rounds'] = DEFAULT_TUNING_ITERATIONS_NUMBER
-                if get_timeout:
-                    mean_time = pd.read_csv(Path(f'{task}', 'mean_time.csv'))
-                    seconds = mean_time[(mean_time.pipeline_type == pipeline_type)
-                                        & (mean_time.iter_num == num_iter)
-                                        & (mean_time.dataset == dataset_name)]['IOpt time mean'].values[0]
-                    additional_params['timeout'] = timedelta(seconds=seconds)
-                    additional_params['early_stopping_rounds'] = DEFAULT_TUNING_ITERATIONS_NUMBER
-                    iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
+            timeout = timedelta(minutes=360)
+            if with_timeout:
+                mean_time = pd.read_csv(Path(f'{task}', 'mean_time.csv'))
+                seconds = mean_time[(mean_time.pipeline_type == pipeline_type)
+                                    & (mean_time.iter_num == num_iter)
+                                    & (mean_time.dataset == dataset_name)]['IOpt time mean'].values[0]
+                timeout = timedelta(seconds=seconds)
+                iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
 
             tuner = tuner_cls(objective_eval,
                               search_space,
-                              adapter, iterations=iterations, n_jobs=n_jobs,
-                              **additional_params)
+                              adapter,
+                              iterations=iterations,
+                              early_stopping_rounds=iterations,
+                              timeout=timeout,
+                              n_jobs=n_jobs)
 
             print(f'\nLaunch: {i + 1}/{launch_num}\n'
                   f'On dataset: {dataset_name}\n'
                   f'Pipeline: {pipeline_type}\n'
                   f'Tuner {tuner_cls.__name__} with {iterations} iterations\n')
-            if tuner_cls == SimultaneousTuner:
-                print(f'Timeout {tuner.max_seconds}\n')
 
             start = timeit.default_timer()
             tuned_pipeline = tuner.tune(pipeline, show_progress=False)
             launch_time = timeit.default_timer() - start
 
             tuned_pipeline.fit(train_data)
-            final_metric = abs(metric(tuned_pipeline, test_data))
+            final_metric = abs(metric(tuned_pipeline, test_data, validation_blocks=validation_blocks))
 
             print(f'\nMetric before tuning: {init_metric}')
             print(f'Metric after tuning: {final_metric}\n')
@@ -236,13 +146,14 @@ def run_experiment(task: str,
 
 
 if __name__ == '__main__':
-    task = 'classification'
+    task = 'forecasting'
     datasets = os.listdir(f'{task}_data')
-    tuners = [SimultaneousTuner]
+    tuners = [IOptTuner, SimultaneousTuner, OptunaTuner]
     iters_num = [20, 100]
-    Log().reset_logging_level(45)
+    Log().reset_logging_level(20)
+    set_random_seed(42)
     for dataset in datasets:
         for tuner in tuners:
             for iter_num in iters_num:
                 path = Path(f'{task}_data', dataset)
-                dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30, get_timeout=True)
+                dataframe = run_experiment(task, path, tuner, iterations=iter_num, launch_num=30, with_timeout=False)

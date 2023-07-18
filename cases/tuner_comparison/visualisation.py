@@ -5,9 +5,9 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 
-def get_complete_dataset(dir_name, mean_time: bool = False):
+def get_complete_dataset(dir_name, mean_time: bool = False, tuners_names=None):
+    tuners = tuners_names or ['IOptTuner', 'SimultaneousTuner']
     results_df = []
-    tuners = ['IOptTuner', 'SimultaneousTuner']
     iter_nums = [20, 100]
     for tuner in tuners:
         for iter_num in iter_nums:
@@ -18,7 +18,7 @@ def get_complete_dataset(dir_name, mean_time: bool = False):
                 if mean_time and dataset.startswith('mean_time'):
                     print(dataset)
                     df = pd.read_csv(os.path.join(current_dir, file_name))
-                    df['iter_num'] =[iter_num] * len(df)
+                    df['iter_num'] = [iter_num] * len(df)
                 elif not dataset.startswith('mean_time'):
                     df = pd.read_csv(os.path.join(current_dir, file_name))
                 df['tuner'] = [tuner] * len(df)
@@ -26,7 +26,7 @@ def get_complete_dataset(dir_name, mean_time: bool = False):
     final_df = pd.concat(results_df, ignore_index=True, axis=0)
     final_df = final_df.replace({'class_Amazon_employee_access.csv': 'Amazon_employee_access',
                                  'class_cnae-9.csv': 'class_cnae-9'})
-    is_regression = dir_name == 'regression'
+    is_regression = dir_name == 'regression' or 'forecasting'
     final_df['metric_improvement'] = final_df['final_metric'] - final_df['init_metric']
     if is_regression:
         final_df['metric_improvement'] = -final_df['metric_improvement']
@@ -63,44 +63,45 @@ def plot_tuning_time(results_df):
         plt.show()
 
 
-def get_metric_statistics(results_df, task):
-    iopt_mean = (results_df[results_df.tuner == 'IOptTuner']
-                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
-                 .rename(columns={'metric_improvement': 'IOpt mean'}))
-    iopt_std = (results_df[results_df.tuner == 'IOptTuner']
-                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].std()
-                .rename(columns={'metric_improvement': 'IOpt std'}))
+def get_metric_statistics(results_df, task, tuners_names=None):
+    tuners_names = tuners_names or ['IOptTuner', 'SimultaneousTuner']
+    means = []
+    stds = []
+    for tuner in tuners_names:
+        mean = (results_df[results_df.tuner == tuner]
+                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
+                .rename(columns={'metric_improvement': f'{tuner} mean'}))
+        means.append(mean)
+        std = (results_df[results_df.tuner == tuner]
+               .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].std()
+               .rename(columns={'metric_improvement': f'{tuner} std'}))
+        stds.append(std)
 
-    hopt_mean = (results_df[results_df.tuner == 'SimultaneousTuner']
-                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].mean()
-                 .rename(columns={'metric_improvement': 'Hyperopt mean'}))
-    hopt_std = (results_df[results_df.tuner == 'SimultaneousTuner']
-                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['metric_improvement']].std()
-                .rename(columns={'metric_improvement': 'Hyperopt std'}))
-
-    stats_df = pd.concat([iopt_mean, hopt_mean, iopt_std, hopt_std], axis=1)
+    stats_df = pd.concat([*means, *stds], axis=1)
     pd.set_option('display.max_columns', None)
     stats_df.to_csv(os.path.join(task, 'statistics.csv'))
     return stats_df
 
 
-def get_mean_time(results_df, task):
-    iopt_mean = (results_df[results_df.tuner == 'IOptTuner']
-                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['tuning_time']].mean()
-                 .rename(columns={'tuning_time': 'IOpt time mean'}))
-    hopt_mean = (results_df[results_df.tuner == 'SimultaneousTuner']
-                 .groupby(['dataset', 'iter_num', 'pipeline_type'])[['tuning_time']].mean()
-                 .rename(columns={'tuning_time': 'Hyperopt time mean'}))
-    stats_df = pd.concat([iopt_mean, hopt_mean], axis=1)
+def get_mean_time(results_df, task, tuners_names=None):
+    tuners_names = tuners_names or ['IOptTuner', 'SimultaneousTuner']
+    time_means = []
+    for tuner in tuners_names:
+        mean = (results_df[results_df.tuner == tuner]
+                .groupby(['dataset', 'iter_num', 'pipeline_type'])[['tuning_time']].mean()
+                .rename(columns={'tuning_time': f'{tuner} time mean'}))
+        time_means.append(mean)
+    stats_df = pd.concat(time_means, axis=1)
     pd.set_option('display.max_columns', None)
     stats_df.to_csv(os.path.join(task, 'mean_time.csv'))
     return stats_df
 
 
 if __name__ == '__main__':
-    task = 'classification'
-    df = get_complete_dataset(task, mean_time=True)
-    print(get_metric_statistics(df, task))
-    print(get_mean_time(df, task))
+    task = 'forecasting'
+    tuners = ['IOptTuner', 'SimultaneousTuner', 'OptunaTuner']
+    df = get_complete_dataset(task, mean_time=False, tuners_names=tuners)
+    print(get_metric_statistics(df, task, tuners))
+    print(get_mean_time(df, task, tuners))
     plot_metric_improvements(df)
     plot_tuning_time(df)

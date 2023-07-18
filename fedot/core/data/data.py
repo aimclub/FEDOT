@@ -28,7 +28,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
 #: The list of keyword for auto-detecting csv *time-series* data index. Used in :py:meth:`Data.from_csv_time_series`,
 #: :py:meth:`Data.from_csv_multi_time_series` and :py:meth:`MultiModalData.from_csv_time_series`.
-POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
+POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0', 'idx']
 
 PathType = Union[os.PathLike, str]
 
@@ -188,7 +188,7 @@ class Data:
                              task: Union[Task, str] = 'ts_forecasting',
                              is_predict: bool = False,
                              columns_to_drop: Optional[List] = None,
-                             target_column: Optional[str] = '',
+                             target_column: Optional[str] = None,
                              index_col: Optional[Union[str, int]] = None,
                              possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """
