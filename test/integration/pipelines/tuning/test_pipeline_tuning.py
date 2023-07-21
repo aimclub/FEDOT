@@ -22,7 +22,7 @@ from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
@@ -489,7 +489,7 @@ def test_complex_search_space():
     space = PipelineSearchSpace()
     for i in range(20):
         operation_parameters = space.parameters_per_operation.get("glm")
-        new_value = hp_sample(operation_parameters["nested_space"])
+        new_value = hp_sample(operation_parameters[NESTED_PARAMS_LABEL])
         for params in new_value['sampling-scope'][0]:
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
