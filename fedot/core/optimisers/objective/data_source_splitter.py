@@ -67,10 +67,9 @@ class DataSourceSplitter:
 
         split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
-            default_validation_blocks = round(
-                np.floor(data.target.shape[0] * split_ratio / data.task.task_params.forecast_length))
             if self.validation_blocks is None:
-                self.validation_blocks = default_validation_blocks
+                self.validation_blocks = np.floor(data.target.shape[0] * split_ratio
+                                                  / data.task.task_params.forecast_length)
         train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
