@@ -180,14 +180,9 @@ Current R&D and future plans
 Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
 The major ongoing tasks and plans:
 
-* Effective and ready-to-use pipeline templates for certain tasks and data types;
-* Integration with GPU via Rapids framework;
-* Alternative optimization methods of fixed-shaped pipelines;
-* Integration with MLFlow for import and export of the pipelines;
-* Improvement of the high-level API.
-
-
-Also, we are doing several research tasks related to AutoML time-series benchmarking and multi-modal modeling.
+* Implementation of meta-learning based at GNN and RL (see `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__)
+* Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
+* Support for more complicated pipeline design patters, especially for time series forecasting.
 
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
@@ -208,8 +203,9 @@ We acknowledge the contributors for their important impact and the participants 
 
 Side Projects
 =============
+- The optimisation core implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__ repository.
 - The prototype of the web-GUI for FEDOT is available in the `FEDOT.WEB <https://github.com/aimclub/FEDOT.Web>`__ repository.
-
+- The prototype of FEDOT-based meta-AutoML in the `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__ repository.
 
 Contacts
 ========
