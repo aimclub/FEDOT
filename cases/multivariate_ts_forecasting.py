@@ -1,5 +1,3 @@
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -30,7 +28,9 @@ def plot_results(full_df: pd.DataFrame, target_column: int, forecast: np.array,
     """ Display forecasted vs actual values """
     target_df = full_df[full_df['label'] == target_column]
     datetime_xs = target_df['datetime']
-    plt.plot(datetime_xs.tail(3 * forecast_horizon), target_df['value'].tail(3 * forecast_horizon), label='Actual values')
+    plt.plot(datetime_xs.tail(3 * forecast_horizon),
+             target_df['value'].tail(3 * forecast_horizon),
+             label='Actual values')
     plt.plot(datetime_xs.tail(forecast_horizon), forecast[-forecast_horizon:], label='Forecast')
     plt.xlabel('Datetime', fontsize=13)
     plt.ylabel('Sea surface height, m', fontsize=13)
@@ -55,7 +55,7 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
     # Configure AutoML
     task_parameters = TsForecastingParams(forecast_length=forecast_horizon)
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=5,
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=0.5,
                   cv_folds=2, with_tuning=False, seed=0)
     target_series = train_df[train_df['label'] == target_column]
     obtained_pipeline = model.fit(features=train_data,
