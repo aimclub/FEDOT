@@ -1,4 +1,4 @@
-API Usage
+Features
 ==========
 
 How does FEDOT avoid data leakage and bias?
