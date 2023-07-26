@@ -34,10 +34,6 @@ class DataSourceSplitter:
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
                  shuffle: bool = False):
-
-        if validation_blocks is None:
-            raise ValueError('validation_blocks parameter is not defined')
-
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
