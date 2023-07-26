@@ -23,7 +23,8 @@ class DataSourceSplitter:
     :param cv_folds: Number of folds on data for cross-validation.
     If provided, then k-fold validation is used. Otherwise, hold-out validation is used.
     :param validation_blocks: Number of validation blocks for time series forecasting.
-    :param split_ratio: Ratio of data for splitting. Applied only in case of hold-out split.
+    :param split_ratio: Ratio of data for splitting.
+    Applied only in case of hold-out split. Not for timeseries data.
     If not provided, then default split ratios will be used.
     :param shuffle: Is shuffling required for data.
     """
@@ -33,6 +34,10 @@ class DataSourceSplitter:
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
                  shuffle: bool = False):
+
+        if validation_blocks is None:
+            raise ValueError('validation_blocks parameter is not defined')
+
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
@@ -41,6 +46,10 @@ class DataSourceSplitter:
         self.log = default_log(self)
 
     def build(self, data: InputData) -> DataSource:
+        # check that validation blocks is defined for timeseries
+        if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
+            raise ValueError('validation_blocks parameter is not defined')
+
         # Shuffle data
         if self.shuffle and data.task.task_type is not TaskTypesEnum.ts_forecasting:
             data.shuffle()
@@ -66,10 +75,6 @@ class DataSourceSplitter:
         """
 
         split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        if data.task.task_type is TaskTypesEnum.ts_forecasting:
-            if self.validation_blocks is None:
-                self.validation_blocks = np.floor(data.target.shape[0] * split_ratio /
-                                                  data.task.task_params.forecast_length)
         train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
@@ -82,13 +87,6 @@ class DataSourceSplitter:
             raise NotImplementedError('Cross-validation is not supported for multi-modal data')
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
-            if self.validation_blocks is None:
-                split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-                default_validation_blocks = np.floor(
-                    data.target.shape[0] * split_ratio / data.task.task_params.forecast_length)
-                self.validation_blocks = default_validation_blocks
-                self.log.info('For timeseries cross validation validation_blocks number was changed ' +
-                              f'from None to {default_validation_blocks} blocks')
             cv_generator = partial(ts_cv_generator, data,
                                    self.cv_folds,
                                    self.validation_blocks,

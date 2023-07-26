@@ -45,7 +45,7 @@ class InputAnalyser:
         """
 
         if input_params is None:
-            input_params = {}
+            input_params = dict()
 
         recommendations_for_data = dict()
         recommendations_for_params = dict()
@@ -55,15 +55,20 @@ class InputAnalyser:
                 recommendations_for_data[data_source_name], recommendations_for_params[data_source_name] = \
                     self.give_recommendations(input_data[data_source_name],
                                               input_params=input_params)
-        elif isinstance(input_data, InputData) and input_data.data_type in [DataTypesEnum.table, DataTypesEnum.text]:
-            recommendations_for_data = self._give_recommendations_for_data(input_data=input_data)
-
-            recommendations_for_params = dict()
-            if 'use_meta_rules' in input_params.keys() and input_params['use_meta_rules']:
-                recommendations_for_params = self._give_recommendations_with_meta_rules(input_data=input_data,
-                                                                                        input_params=input_params)
-            if 'label_encoded' in recommendations_for_data.keys():
-                recommendations_for_params['label_encoded'] = recommendations_for_data['label_encoded']
+        elif isinstance(input_data, InputData):
+            if input_data.data_type in [DataTypesEnum.table, DataTypesEnum.text]:
+                recommendations_for_data = self._give_recommendations_for_data(input_data=input_data)
+                if 'use_meta_rules' in input_params and input_params['use_meta_rules']:
+                    recommendations_for_params = self._give_recommendations_with_meta_rules(input_data=input_data,
+                                                                                            input_params=input_params)
+                if 'label_encoded' in recommendations_for_data:
+                    recommendations_for_params['label_encoded'] = recommendations_for_data['label_encoded']
+            elif input_data.data_type is DataTypesEnum.ts:
+                if input_params.get('validation_blocks') is None:
+                    cv_folds = input_params.get('cv_folds') or 1
+                    test_size = input_data.target.shape[0] / (cv_folds + 1)
+                    val_blocks = test_size // input_data.task.task_params.forecast_length
+                    recommendations_for_params['validation_blocks'] = int(val_blocks)
 
         return recommendations_for_data, recommendations_for_params
 

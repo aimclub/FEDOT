@@ -110,7 +110,7 @@ class Fedot:
                 - ``5`` -> for classification and regression tasks
                 - ``3`` -> for time series forecasting task
 
-        validation_blocks (int): number of validation blocks for time series forecasting. Default value is ``2``.
+        validation_blocks (int): number of validation blocks for time series forecasting. Default value is ``None``.
 
         show_progress (bool): indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
@@ -129,7 +129,7 @@ class Fedot:
         genetic_scheme (str): name of the genetic scheme. Defaults to ``steady_state``.
 
         with_tuning (bool): flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
-            Defaults to ``True``.
+            Defaults to ``False``.
 
         preset (str): name of the preset for model building (e.g. ``'best_quality'``, ``'fast_train'``, ``'gpu'``).
             Default value is ``'auto'``.
@@ -147,7 +147,7 @@ class Fedot:
                 - ``'automl'`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations
 
         use_input_preprocessing (bool): indicates whether to do preprocessing of further given data.
-            Defaults to ``True``.
+            Defaults to ``True``. If it is False, there may be problems with other settings with default ``None``.
         use_meta_rules (bool): indicates whether to change set params according to FEDOT meta rules.
         use_pipelines_cache (bool): indicates whether to use pipeline structures caching. Defaults to ``True``.
         use_preprocessing_cache (bool): bool indicating whether to use optional preprocessors caching.
