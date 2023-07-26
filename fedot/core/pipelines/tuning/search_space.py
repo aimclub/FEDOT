@@ -21,10 +21,9 @@ class PipelineSearchSpace(SearchSpace):
                  replace_default_search_space: bool = False):
         self.custom_search_space = custom_search_space
         self.replace_default_search_space = replace_default_search_space
-        parameters_per_operation = self.get_parameters_dict
+        parameters_per_operation = self.get_parameters_dict()
         super().__init__(parameters_per_operation)
 
-    @property
     def get_parameters_dict(self):
         parameters_per_operation = {
             'kmeans': {
