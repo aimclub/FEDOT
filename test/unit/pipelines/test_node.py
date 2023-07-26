@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from golem.core.dag.graph_utils import ordered_subnodes_hierarchy
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
