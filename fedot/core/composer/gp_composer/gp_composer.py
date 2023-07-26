@@ -38,7 +38,6 @@ class GPComposer(Composer):
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # Define data source
         data_splitter = DataSourceSplitter(self.composer_requirements.cv_folds,
-                                           self.composer_requirements.validation_blocks,
                                            shuffle=True)
         data_producer = data_splitter.build(data)
 
@@ -53,7 +52,6 @@ class GPComposer(Composer):
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_graph_fit_time,
-                                                        data_splitter.validation_blocks,
                                                         self.pipelines_cache, self.preprocessing_cache,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate

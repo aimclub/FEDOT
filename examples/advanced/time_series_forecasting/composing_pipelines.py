@@ -95,7 +95,6 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
         num_of_generations=10,
         timeout=datetime.timedelta(minutes=10),
         cv_folds=2,
-        validation_blocks=2
     )
     optimizer_parameters = GPAlgorithmParameters(
         pop_size=10,

@@ -110,8 +110,6 @@ class Fedot:
                 - ``5`` -> for classification and regression tasks
                 - ``3`` -> for time series forecasting task
 
-        validation_blocks (int): number of validation blocks for time series forecasting. Default value is ``None``.
-
         show_progress (bool): indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
         num_of_generations (int): number of evolutionary generations for composer. Defaults to ``None`` - no limit.
@@ -147,7 +145,7 @@ class Fedot:
                 - ``'automl'`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations
 
         use_input_preprocessing (bool): indicates whether to do preprocessing of further given data.
-            Defaults to ``True``. If it is False, there may be problems with other settings with default ``None``.
+            Defaults to ``True``.
         use_meta_rules (bool): indicates whether to change set params according to FEDOT meta rules.
         use_pipelines_cache (bool): indicates whether to use pipeline structures caching. Defaults to ``True``.
         use_preprocessing_cache (bool): bool indicating whether to use optional preprocessors caching.
@@ -274,7 +272,6 @@ class Fedot:
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
              cv_folds: Optional[int] = None,
-             validation_blocks: Optional[int] = None,
              n_jobs: Optional[int] = None,
              show_progress: bool = False) -> Pipeline:
         """Method for hyperparameters tuning of current pipeline
@@ -285,7 +282,6 @@ class Fedot:
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
             cv_folds: number of folds on data for cross-validation.
-            validation_blocks: number of validation blocks (used for time-series forecasting problem).
             n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's).
             show_progress: shows progress of tuning if ``True``.
 
@@ -298,7 +294,6 @@ class Fedot:
 
         input_data = input_data or self.train_data
         cv_folds = cv_folds or self.params.get('cv_folds')
-        validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
 
         metric = self.metrics.obtain_metrics(metric_name)[0] if metric_name else self.metrics.metric_functions[0]
@@ -306,7 +301,6 @@ class Fedot:
         pipeline_tuner = (TunerBuilder(self.params.task)
                           .with_tuner(SimultaneousTuner)
                           .with_cv_folds(cv_folds)
-                          .with_validation_blocks(validation_blocks)
                           .with_n_jobs(n_jobs)
                           .with_metric(metric)
                           .with_iterations(iterations)
@@ -516,7 +510,7 @@ class Fedot:
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 
         if in_sample:
-            validation_blocks = validation_blocks or self.params.get('validation_blocks')
+            validation_blocks = validation_blocks or 1
         else:
             validation_blocks = None
 

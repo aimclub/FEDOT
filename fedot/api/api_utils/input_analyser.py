@@ -63,12 +63,6 @@ class InputAnalyser:
                                                                                             input_params=input_params)
                 if 'label_encoded' in recommendations_for_data:
                     recommendations_for_params['label_encoded'] = recommendations_for_data['label_encoded']
-            elif input_data.data_type is DataTypesEnum.ts:
-                if input_params.get('validation_blocks') is None:
-                    cv_folds = input_params.get('cv_folds') or 1
-                    test_size = input_data.target.shape[0] / (cv_folds + 1)
-                    val_blocks = test_size // input_data.task.task_params.forecast_length
-                    recommendations_for_params['validation_blocks'] = int(val_blocks)
 
         return recommendations_for_data, recommendations_for_params
 

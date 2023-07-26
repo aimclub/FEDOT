@@ -14,14 +14,12 @@ class PipelineComposerRequirements(GraphRequirements):
 
     Model validation options:
     :param cv_folds: number of cross-validation folds
-    :param validation_blocks: number of validation blocks for time series validation
     """
 
     primary: Sequence[str] = tuple()
     secondary: Sequence[str] = tuple()
 
     cv_folds: Optional[int] = None
-    validation_blocks: Optional[int] = None
 
     def __post_init__(self):
         super().__post_init__()

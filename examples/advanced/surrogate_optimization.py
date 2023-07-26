@@ -17,9 +17,9 @@ class GraphLenSurrogateModel(SurrogateModel):
         return [len(graph.nodes)]
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
                                visualization=False, with_tuning=True):
-    train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
+    train_data, test_data = get_ts_data(dataset, horizon)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
@@ -27,7 +27,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   timeout=timeout,
                   n_jobs=-1,
                   with_tuning=with_tuning,
-                  cv_folds=2, validation_blocks=validation_blocks, preset='fast_train',
+                  cv_folds=2,
+                  preset='fast_train',
                   optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphLenSurrogateModel()))
 
     # run AutoML model design in the same way

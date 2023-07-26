@@ -118,14 +118,12 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
 
     replace_default_search_space = True
     cv_folds = 3
-    validation_blocks = 3
     search_space = PipelineSearchSpace(custom_search_space=custom_search_space,
                                        replace_default_search_space=replace_default_search_space)
     pipeline_tuner = TunerBuilder(train_input.task) \
         .with_tuner(SimultaneousTuner) \
         .with_metric(RegressionMetricsEnum.RMSE) \
         .with_cv_folds(cv_folds) \
-        .with_validation_blocks(validation_blocks) \
         .with_iterations(10) \
         .with_search_space(search_space).build(train_input)
     # Tuning pipeline

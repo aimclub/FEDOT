@@ -21,7 +21,6 @@ class TunerBuilder:
     def __init__(self, task: Task):
         self.tuner_class = SimultaneousTuner
         self.cv_folds = None
-        self.validation_blocks = None
         self.n_jobs = -1
         self.metric: MetricsEnum = MetricByTask.get_default_quality_metrics(task.task_type)[0]
         self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -38,16 +37,11 @@ class TunerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.cv_folds = requirements.cv_folds
-        self.validation_blocks = requirements.validation_blocks
         self.n_jobs = requirements.n_jobs
         return self
 
     def with_cv_folds(self, cv_folds: int):
         self.cv_folds = cv_folds
-        return self
-
-    def with_validation_blocks(self, validation_blocks: int):
-        self.validation_blocks = validation_blocks
         return self
 
     def with_n_jobs(self, n_jobs: int):
@@ -94,9 +88,8 @@ class TunerBuilder:
 
     def build(self, data: InputData) -> BaseTuner:
         objective = MetricsObjective(self.metric)
-        data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
+        data_producer = DataSourceSplitter(self.cv_folds).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
-                                                       validation_blocks=self.validation_blocks,
                                                        time_constraint=self.eval_time_constraint,
                                                        eval_n_jobs=self.n_jobs)  # because tuners are not parallelized
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,

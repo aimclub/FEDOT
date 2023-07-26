@@ -18,7 +18,7 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
+def get_ts_data(dataset='australia', horizon: int = 30):
     time_series = pd.read_csv(datasets[dataset])
 
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -34,13 +34,13 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
-    train_data, test_data = train_test_data_setup(train_input, validation_blocks=validation_blocks)
+    train_data, test_data = train_test_data_setup(train_input)
     return train_data, test_data
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
                                visualization=False, with_tuning=True):
-    train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
+    train_data, test_data = get_ts_data(dataset, horizon)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
@@ -48,7 +48,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   timeout=timeout,
                   n_jobs=1,
                   with_tuning=with_tuning,
-                  cv_folds=2, validation_blocks=validation_blocks, preset='fast_train')
+                  cv_folds=2, preset='fast_train')
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)

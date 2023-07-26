@@ -21,7 +21,7 @@ class ApiParamsRepository:
                                   'early_stopping_iterations', 'early_stopping_timeout',
                                   'parallelization_mode', 'use_input_preprocessing',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
-                                  'keep_history', 'history_dir', 'cv_folds', 'validation_blocks'}
+                                  'keep_history', 'history_dir', 'cv_folds'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
 
@@ -51,7 +51,6 @@ class ApiParamsRepository:
             keep_n_best=1,
             available_operations=None,
             metric=None,
-            validation_blocks=None,
             cv_folds=cv_folds,
             genetic_scheme=None,
             early_stopping_iterations=None,

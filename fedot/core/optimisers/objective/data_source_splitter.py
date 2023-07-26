@@ -22,7 +22,6 @@ class DataSourceSplitter:
 
     :param cv_folds: Number of folds on data for cross-validation.
     If provided, then k-fold validation is used. Otherwise, hold-out validation is used.
-    :param validation_blocks: Number of validation blocks for time series forecasting.
     :param split_ratio: Ratio of data for splitting.
     Applied only in case of hold-out split. Not for timeseries data.
     If not provided, then default split ratios will be used.
@@ -42,13 +41,23 @@ class DataSourceSplitter:
         self.log = default_log(self)
 
     def build(self, data: InputData) -> DataSource:
-        # check that validation blocks is defined for timeseries
-        if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
-            raise ValueError('validation_blocks parameter is not defined')
-
         # Shuffle data
         if self.shuffle and data.task.task_type is not TaskTypesEnum.ts_forecasting:
             data.shuffle()
+
+        # Calculate the number of validation blocks
+        if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
+            split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+            if not (0 < split_ratio < 1):
+                raise ValueError(f'split_ratio is {split_ratio} but should be between 0 and 1')
+            if self.cv_folds is not None:
+                # long validation ts leads to splitting troubles
+                max_test_size = data.target.shape[0] / (self.cv_folds + 1)
+                test_size = (1 / split_ratio - 1) / (self.cv_folds + 1 / split_ratio - 1) * data.target.shape[0]
+                test_size = min(max_test_size, test_size)
+            else:
+                test_size = data.target.shape[0] * (1 - split_ratio)
+            self.validation_blocks = int(test_size // data.task.task_params.forecast_length)
 
         # Split data
         if self.cv_folds is not None:
