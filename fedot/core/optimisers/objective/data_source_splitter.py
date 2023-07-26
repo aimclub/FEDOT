@@ -23,7 +23,7 @@ class DataSourceSplitter:
     :param cv_folds: Number of folds on data for cross-validation.
     If provided, then k-fold validation is used. Otherwise, hold-out validation is used.
     :param split_ratio: Ratio of data for splitting.
-    Applied only in case of hold-out split. Not for timeseries data.
+    Applied only in case of hold-out split.
     If not provided, then default split ratios will be used.
     :param shuffle: Is shuffling required for data.
     """

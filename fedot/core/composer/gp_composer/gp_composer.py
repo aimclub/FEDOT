@@ -50,9 +50,11 @@ class GPComposer(Composer):
             raise ValueError(f'Unknown parallelization_mode: {parallelization_mode}')
 
         # Define objective function
-        objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
-                                                        self.composer_requirements.max_graph_fit_time,
-                                                        self.pipelines_cache, self.preprocessing_cache,
+        objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
+                                                        data_producer=data_producer,
+                                                        time_constraint=self.composer_requirements.max_graph_fit_time,
+                                                        pipelines_cache=self.pipelines_cache,
+                                                        preprocessing_cache=self.preprocessing_cache,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 
