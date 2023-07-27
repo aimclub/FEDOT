@@ -166,7 +166,8 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed: Optional[int] = None, logging_level: int = logging.ERROR,
+                 seed: Optional[int] = None,
+                 logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
                  **composer_tuner_params
@@ -506,13 +507,6 @@ class Fedot:
 
         metrics = self.metrics.obtain_metrics(metric_names) if metric_names else self.metrics.metric_functions
         metric_names = self.metrics.get_metric_names(metrics)
-
-        in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
-
-        if in_sample:
-            validation_blocks = validation_blocks or 1
-        else:
-            validation_blocks = None
 
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
