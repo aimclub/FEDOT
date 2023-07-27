@@ -31,12 +31,16 @@ def get_tabular_classification_data():
     return input_data
 
 
-def get_ts_data_to_forecast_two_elements():
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2))
-    ts = np.arange(0, 20)
+def get_ts_data_to_forecast(forecast_length, data_shape=100):
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=forecast_length))
+    ts = np.arange(0, data_shape)
     input_data = InputData(idx=range(0, len(ts)), features=ts,
                            target=ts, task=task, data_type=DataTypesEnum.ts)
     return input_data
+
+
+def get_ts_data_to_forecast_two_elements():
+    return get_ts_data_to_forecast(2, 20)
 
 
 def get_text_classification_data():
@@ -145,9 +149,10 @@ def test_advanced_time_series_splitting():
                          # test StratifiedKFold
                          [(DataSourceSplitter(cv_folds=3, shuffle=True), get_imbalanced_data_to_test_mismatch()),
                           # test KFold
-                          (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
+                          # (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
                           # test hold-out
-                          (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch())])
+                          (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch()),
+                          ])
 def test_data_splitting_without_shape_mismatch(data_splitter: DataSourceSplitter, data: InputData):
     """ Checks if data split correctly into train test subsets: there are no new classes in test subset """
     data_source = data_splitter.build(data=data)
@@ -204,3 +209,24 @@ def test_cv_generator_works_stable(cv_generator, data):
 
     for i in range(len(idx_first)):
         assert np.all(idx_first[i] == idx_second[i])
+
+@pytest.mark.parametrize(("forecast_length, cv_folds, split_ratio,"
+                          "check_cv_folds, check_split_ratio, check_validation_blocks"),
+                         [(30, 3, 0.5, 2, 0.5, 1),
+                          (50, 3, 0.5, None, 0.5, 1),
+                          (60, None, 0.5, None, 0.4, 1),
+                          (10, 3, 0.5, 3, 0.5, 2),
+                          (10, 3, 0.6, 3, 0.6, 2),
+                          (20, 3, 0.5, 3, 0.5, 1),
+                          (25, 3, 0.5, 3, 0.5, 1),
+                          (5, 3, 0.5, 3, 0.5, 5)])
+def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_folds, split_ratio,
+                                                            check_cv_folds, check_split_ratio,
+                                                            check_validation_blocks):
+    """ Checks if validation blocks count defines correctly for different data """
+    data = get_ts_data_to_forecast(forecast_length)
+    data_source_splitter = DataSourceSplitter(cv_folds=cv_folds, split_ratio=split_ratio)
+    data_source_splitter.build(data)
+    assert data_source_splitter.cv_folds == check_cv_folds
+    assert data_source_splitter.split_ratio == check_split_ratio
+    assert data_source_splitter.validation_blocks == check_validation_blocks

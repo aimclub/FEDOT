@@ -511,7 +511,8 @@ class Fedot:
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
                                              data_producer=lambda: (yield self.train_data, self.test_data),
-                                             validation_blocks=validation_blocks, eval_n_jobs=self.params.n_jobs,
+                                             validation_blocks=validation_blocks,
+                                             eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values

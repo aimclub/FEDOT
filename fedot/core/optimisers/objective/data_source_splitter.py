@@ -1,7 +1,6 @@
 from functools import partial
 from typing import Optional
 
-import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
@@ -45,19 +44,45 @@ class DataSourceSplitter:
         if self.shuffle and data.task.task_type is not TaskTypesEnum.ts_forecasting:
             data.shuffle()
 
+        # Check split_ratio
+        split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+        if not (0 < split_ratio < 1):
+            raise ValueError(f'split_ratio is {split_ratio} but should be between 0 and 1')
+
         # Calculate the number of validation blocks
         if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
-            split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-            if not (0 < split_ratio < 1):
-                raise ValueError(f'split_ratio is {split_ratio} but should be between 0 and 1')
+            data_shape = data.target.shape[0]
+            forecast_length = data.task.task_params.forecast_length
+            # check that cv folds may be realized
             if self.cv_folds is not None:
-                # long validation ts leads to splitting troubles
-                max_test_size = data.target.shape[0] / (self.cv_folds + 1)
-                test_size = (1 / split_ratio - 1) / (self.cv_folds + 1 / split_ratio - 1) * data.target.shape[0]
-                test_size = min(max_test_size, test_size)
+                max_test_size = data_shape / (self.cv_folds + 1)
+                if forecast_length > max_test_size:
+                    proposed_cv_folds_count = int((data_shape - forecast_length) // forecast_length)
+                    if proposed_cv_folds_count >= 2:
+                        self.log.info((f"Cross validation  with {self.cv_folds} folds cannot be provided"
+                                       f" with forecast length {data.task.task_params.forecast_length}"
+                                       f" and full data length {data.target.shape[0]}."
+                                       f" Cross validation folds is set to {proposed_cv_folds_count}"))
+                        self.cv_folds = proposed_cv_folds_count
+                    else:
+                        self.cv_folds = None
+                        self.log.info(("Cross validation cannot be provided"
+                                       f" with forecast length {data.task.task_params.forecast_length}"
+                                       f" and full data length {data.target.shape[0]}."
+                                       " Cross validation is switched off."))
+
+            if self.cv_folds is None:
+                test_shape = int(data_shape * (1 - split_ratio))
+                if forecast_length > test_shape:
+                    split_ratio = 1 - forecast_length / data_shape
+                    self.log.info((f"Forecast length ({forecast_length}) is greater than test length"
+                                   f" ({test_shape}) defined by split ratio."
+                                   f" Split ratio is changed to {split_ratio}."))
+                test_share = 1 - split_ratio
+                self.split_ratio = split_ratio
             else:
-                test_size = data.target.shape[0] * (1 - split_ratio)
-            self.validation_blocks = int(test_size // data.task.task_params.forecast_length)
+                test_share = 1 / (self.cv_folds + 1)
+            self.validation_blocks = int(data_shape * test_share // forecast_length)
 
         # Split data
         if self.cv_folds is not None:
