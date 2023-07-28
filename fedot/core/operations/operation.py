@@ -195,7 +195,7 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
         globally_compatible_task_types = compatible_task_types(current_task_type)
         globally_set = set(globally_compatible_task_types)
 
-        comp_types_acceptable_for_operation = list(set_acceptable_types.intersection(globally_set))
+        comp_types_acceptable_for_operation = sorted(list(set_acceptable_types.intersection(globally_set)))
         if len(comp_types_acceptable_for_operation) == 0:
             raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
         current_task_type = comp_types_acceptable_for_operation[0]

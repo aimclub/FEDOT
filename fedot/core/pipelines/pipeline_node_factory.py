@@ -54,8 +54,8 @@ class PipelineOptNodeFactory(OptNodeFactory):
     def _return_node(candidates) -> Optional[OptNode]:
         if not candidates:
             return None
-        return OptNode(content={'name': choice(candidates)})
+        return OptNode(content={'name': choice(sorted(candidates))})
 
     @staticmethod
     def filter_specific_candidates(candidates: list):
-        return list(filter(lambda x: not check_for_specific_operations(x), candidates))
+        return sorted(list(filter(lambda x: not check_for_specific_operations(x), candidates)))
