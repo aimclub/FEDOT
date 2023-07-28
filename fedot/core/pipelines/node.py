@@ -70,6 +70,7 @@ class PipelineNode(LinkedGraphNode):
         self.inference_time_in_seconds = 0
 
         super().__init__(content={'name': operation}, nodes_from=nodes_from)
+        # use parameters.setter to process input parameters correctly
         self.parameters = params
 
         self.log = default_log(self)
