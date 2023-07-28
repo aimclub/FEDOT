@@ -22,7 +22,7 @@ from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
@@ -489,7 +489,7 @@ def test_complex_search_space():
     space = PipelineSearchSpace()
     for i in range(20):
         operation_parameters = space.parameters_per_operation.get("glm")
-        new_value = hp_sample(operation_parameters["nested_space"])
+        new_value = hp_sample(operation_parameters[NESTED_PARAMS_LABEL])
         for params in new_value['sampling-scope'][0]:
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
@@ -497,15 +497,19 @@ def test_complex_search_space():
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
 def test_complex_search_space_tuning_correct(tuner):
     """ Tests SimultaneousTuner for time series forecasting task with GLM model that has a complex glm search space"""
-    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
+    train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
 
     glm_pipeline = Pipeline(PipelineNode('glm'))
-    glm_custom_params = glm_pipeline.nodes[0].parameters
+    initial_parameters = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \
         .with_metric(RegressionMetricsEnum.MSE) \
         .with_iterations(100) \
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
-    new_custom_params = tuned_glm_pipeline.nodes[0].parameters
-    assert glm_custom_params == new_custom_params
+    found_parameters = tuned_glm_pipeline.nodes[0].parameters
+    if tuner.init_metric == tuner.obtained_metric:
+        # TODO: (YamLyubov) Remove the check when IOptTuner will be able to tune categorical parameters.
+        assert initial_parameters == found_parameters
+    else:
+        assert initial_parameters != found_parameters

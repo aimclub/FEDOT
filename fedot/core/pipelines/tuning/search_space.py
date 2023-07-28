@@ -4,6 +4,8 @@ from typing import Optional
 from golem.core.tuning.search_space import SearchSpace, OperationParametersMapping
 from hyperopt import hp
 
+from fedot.core.utils import NESTED_PARAMS_LABEL
+
 
 class PipelineSearchSpace(SearchSpace):
     """
@@ -325,7 +327,7 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'}
             },
             'glm': {
-                'nested_space': {
+                NESTED_PARAMS_LABEL: {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[
                         {

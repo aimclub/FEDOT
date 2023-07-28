@@ -11,6 +11,7 @@ from golem.core.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
+NESTED_PARAMS_LABEL = 'nested_space'
 
 
 def fedot_project_root() -> Path:
