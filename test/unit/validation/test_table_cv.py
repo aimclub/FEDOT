@@ -12,7 +12,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
-from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -53,21 +52,6 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 
     assert all_metrics_correct
-
-
-def test_kfold_advisor_works_correct_in_balanced_case():
-    data = get_classification_data()
-    advisor = DataObjectiveAdvisor()
-    split_type = advisor.propose_kfold(data)
-    assert split_type == KFold
-
-
-def test_kfold_advisor_works_correct_in_imbalanced_case():
-    data = get_classification_data()
-    data.target[:-int(len(data.target) * 0.1)] = 0
-    advisor = DataObjectiveAdvisor()
-    split_type = advisor.propose_kfold(data)
-    assert split_type == StratifiedKFold
 
 
 def test_cv_min_kfolds_raise():

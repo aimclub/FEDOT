@@ -22,7 +22,7 @@ class DataObjectiveAdvisor:
 
         :param input_data: data to analyse
         """
-        if input_data.task.task_type is TaskTypesEnum.classification and self.check_imbalance(input_data):
+        if input_data.task.task_type is TaskTypesEnum.classification:
             return StratifiedKFold
         else:
             return KFold

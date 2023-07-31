@@ -1,13 +1,14 @@
 from functools import partial
 from typing import Optional
 
+from sklearn.model_selection import StratifiedKFold, KFold
+
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
@@ -36,7 +37,6 @@ class DataSourceSplitter:
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
         self.shuffle = shuffle
-        self.advisor = DataObjectiveAdvisor()
         self.log = default_log(self)
 
     def build(self, data: InputData) -> DataSource:
@@ -74,7 +74,13 @@ class DataSourceSplitter:
         """
 
         split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
+        if data.task.task_type == TaskTypesEnum.classification:
+            stratify = data.target
+        else:
+            stratify = None
+        train_data, test_data = train_test_data_setup(data, split_ratio,
+                                                      stratify=stratify,
+                                                      validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
             init_data_for_remote_execution(train_data)
@@ -90,16 +96,21 @@ class DataSourceSplitter:
                                    self.cv_folds,
                                    self.validation_blocks,
                                    self.log)
+        elif data.task.task_type is TaskTypesEnum.ts_forecasting:
+            cv_generator = partial(tabular_cv_generator, data,
+                                   self.cv_folds,
+                                   StratifiedKFold)
         else:
             cv_generator = partial(tabular_cv_generator, data,
                                    self.cv_folds,
-                                   self.advisor.propose_kfold(data))
+                                   KFold)
         return cv_generator
 
     def _propose_cv_folds_and_validation_blocks(self, data, split_ratio):
         data_shape = data.target.shape[0]
         forecast_length = data.task.task_params.forecast_length
         # check that cv folds may be realized
+        # and change cv_folds if needed
         if self.cv_folds is not None:
             max_test_size = data_shape / (self.cv_folds + 1)
             if forecast_length > max_test_size:
@@ -117,6 +128,7 @@ class DataSourceSplitter:
                                    f" and full data length {data.target.shape[0]}."
                                    " Cross validation is switched off."))
 
+        # propose count of validation blocks
         if self.cv_folds is None:
             test_shape = int(data_shape * (1 - split_ratio))
             if forecast_length > test_shape:

@@ -93,7 +93,8 @@ def _split_multi_time_series(data: InputData, task, *args, **kwargs):
     return train_data, test_data
 
 
-def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False, **kwargs):
+def _split_any(data: InputData, task, data_type, split_ratio,
+               with_shuffle=False, stratify=None, **kwargs):
     """ Split any data into train and test parts
 
     :param data: InputData object to split
@@ -111,10 +112,6 @@ def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False
     input_features = data.features
     input_target = data.target
     idx = data.idx
-    if task.task_type == TaskTypesEnum.classification and with_shuffle:
-        stratify = input_target
-    else:
-        stratify = None
 
     idx_train, idx_test, x_train, x_test, y_train, y_test = \
         train_test_split(idx,
@@ -145,7 +142,7 @@ def _split_table(data: InputData, task, split_ratio, with_shuffle=False, **kwarg
     :param split_ratio: threshold for partitioning
     :param with_shuffle: is data needed to be shuffled or not
     """
-    return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle)
+    return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle, **kwargs)
 
 
 def _split_image(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
@@ -157,7 +154,7 @@ def _split_image(data: InputData, task, split_ratio, with_shuffle=False, **kwarg
     :param with_shuffle: is data needed to be shuffled or not
     """
 
-    return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
+    return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle, **kwargs)
 
 
 def _split_text(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
@@ -169,7 +166,7 @@ def _split_text(data: InputData, task, split_ratio, with_shuffle=False, **kwargs
     :param with_shuffle: is data needed to be shuffled or not
     """
 
-    return _split_any(data, task, DataTypesEnum.text, split_ratio, with_shuffle)
+    return _split_any(data, task, DataTypesEnum.text, split_ratio, with_shuffle, **kwargs)
 
 
 def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
