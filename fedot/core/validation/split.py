@@ -93,7 +93,8 @@ def tabular_cv_generator(data: InputData,
 
     :return Iterator[InputData, InputData]: return split train/test data
     """
-    kf = split_method(n_splits=folds, shuffle=shuffle, random_state=42)
+    random_state = 42 if shuffle else None
+    kf = split_method(n_splits=folds, shuffle=shuffle, random_state=random_state)
 
     for train_idxs, test_idxs in kf.split(data.features, data.target):
         train_features, train_target = _table_data_by_index(train_idxs, data)

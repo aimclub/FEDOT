@@ -79,6 +79,7 @@ class DataSourceSplitter:
         else:
             stratify = None
         train_data, test_data = train_test_data_setup(data, split_ratio,
+                                                      shuffle_flag=self.shuffle,
                                                       stratify=stratify,
                                                       validation_blocks=self.validation_blocks)
 
@@ -99,11 +100,13 @@ class DataSourceSplitter:
         elif data.task.task_type is TaskTypesEnum.classification:
             cv_generator = partial(tabular_cv_generator,
                                    data=data,
+                                   shuffle=self.shuffle,
                                    folds=self.cv_folds,
                                    split_method=StratifiedKFold)
         else:
             cv_generator = partial(tabular_cv_generator,
                                    data=data,
+                                   shuffle=self.shuffle,
                                    folds=self.cv_folds,
                                    split_method=KFold)
         return cv_generator

@@ -105,14 +105,14 @@ def _split_any(data: InputData, task, data_type, split_ratio,
 
     if not 0. < split_ratio < 1.:
         raise ValueError('Split ratio must belong to the interval (0; 1)')
-    random_state = 42
+    if stratify is not None:
+        with_shuffle = True
+    random_state = 42 if with_shuffle else None
 
     # Predictors and target
     input_features = data.features
     input_target = data.target
     idx = data.idx
-    if stratify is not None:
-        with_shuffle = True
 
     idx_train, idx_test, x_train, x_test, y_train, y_test = \
         train_test_split(idx,
