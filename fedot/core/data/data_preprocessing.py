@@ -14,7 +14,7 @@ def data_type_is_suitable_for_preprocessing(data: InputData) -> bool:
 
 def replace_inf_with_nans(input_data: InputData):
     features = input_data.features
-    is_inf = (features == np.inf) | (features == -np.inf)
+    is_inf = np.isin(features, [np.inf, -np.inf])
     if np.any(is_inf):
         features[is_inf] = np.nan
 
