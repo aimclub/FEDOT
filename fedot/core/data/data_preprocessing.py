@@ -98,7 +98,7 @@ def data_has_categorical_features(data: InputData) -> bool:
     if data.data_type is not DataTypesEnum.table:
         return False
 
-    column_type_ids = data.supplementary_data.column_types.get('features')
+    column_type_ids = data.supplementary_data.col_type_ids['features']
     cat_ids, non_cat_ids = find_categorical_columns(data.features, column_type_ids)
     data_has_categorical_columns = len(cat_ids) > 0
 

@@ -35,39 +35,39 @@ class Model(Operation):
         # Add information about features
         if is_regression_task or is_ts_forecasting_task:
             if len(predict_shape) < 2:
-                column_types = {'features': [TYPE_TO_ID[float]] * predict_shape[0]}
+                col_type_ids = {'features': [TYPE_TO_ID[float]] * predict_shape[0]}
             else:
-                column_types = {'features': [TYPE_TO_ID[float]] * predict_shape[1]}
+                col_type_ids = {'features': [TYPE_TO_ID[float]] * predict_shape[1]}
         else:
             if len(predict_shape) < 2:
                 output_data.predict = output_data.predict.reshape((-1, 1))
                 predict_shape = output_data.predict.shape
             # Classification task or clustering
             target_type = int if output_mode == 'labels' else float
-            column_types = {'features': [TYPE_TO_ID[target_type]] * predict_shape[1]}
+            col_type_ids = {'features': [TYPE_TO_ID[target_type]] * predict_shape[1]}
 
         # Make feature types static to suit supplementary data contract
-        column_types['features'] = np.array(column_types['features'])
+        col_type_ids['features'] = np.array(col_type_ids['features'])
 
         # Add information about target
         target_shape = output_data.target.shape if output_data.target is not None else None
         if target_shape is None:
             # There is no target column in output data
-            output_data.supplementary_data.column_types = column_types
+            output_data.supplementary_data.col_type_ids = col_type_ids
             return output_data
 
         if is_regression_task or is_ts_forecasting_task:
             if len(target_shape) > 1:
-                column_types['target'] = [TYPE_TO_ID[float]] * target_shape[1]
+                col_type_ids['target'] = [TYPE_TO_ID[float]] * target_shape[1]
             else:
                 # Array present "time series"
-                column_types['target'] = [TYPE_TO_ID[float]] * len(output_data.target)
+                col_type_ids['target'] = [TYPE_TO_ID[float]] * len(output_data.target)
         else:
             # Classification task or clustering
-            column_types['target'] = [TYPE_TO_ID[int]] * predict_shape[1]
+            col_type_ids['target'] = [TYPE_TO_ID[int]] * predict_shape[1]
 
         # Make target types static to suit supplementary data contract
-        column_types['target'] = np.array(column_types['target'])
+        col_type_ids['target'] = np.array(col_type_ids['target'])
 
-        output_data.supplementary_data.column_types = column_types
+        output_data.supplementary_data.col_type_ids = col_type_ids
         return output_data

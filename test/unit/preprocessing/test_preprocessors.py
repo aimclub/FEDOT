@@ -129,8 +129,8 @@ def test_column_types_converting_correctly():
     types_corr = TableTypesCorrector()
     data = types_corr.convert_data_for_fit(data)
 
-    feature_type_ids = data.supplementary_data.column_types['features']
-    target_type_ids = data.supplementary_data.column_types['target']
+    feature_type_ids = data.supplementary_data.col_type_ids['features']
+    target_type_ids = data.supplementary_data.col_type_ids['target']
 
     assert len(feature_type_ids) == 4
     assert len(target_type_ids) == 2
@@ -154,7 +154,7 @@ def test_column_types_process_correctly():
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 
-    feature_type_ids = predicted.supplementary_data.column_types['features']
+    feature_type_ids = predicted.supplementary_data.col_type_ids['features']
     assert len(feature_type_ids) == predicted.predict.shape[1]
     # All output values are float
     assert (feature_type_ids == TYPE_TO_ID[float]).all()
@@ -262,7 +262,7 @@ def test_str_numbers_with_dots_and_commas_in_predict():
     input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
-    transformed_predict = apply_type_transformation(table=input_data.features, column_types=[TYPE_TO_ID[int]],
+    transformed_predict = apply_type_transformation(table=input_data.features, col_type_ids=[TYPE_TO_ID[int]],
                                                     log=default_log('test_str_numbers_with_dots_and_commas_in_predict'))
 
     assert all(transformed_predict == np.array([[8], [4], [3], [6]]))

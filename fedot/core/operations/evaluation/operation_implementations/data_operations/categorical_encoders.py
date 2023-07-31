@@ -35,7 +35,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        feature_type_ids = input_data.supplementary_data.column_types['features']
+        feature_type_ids = input_data.supplementary_data.col_type_ids['features']
         self.categorical_ids, self.non_categorical_ids = find_categorical_columns(features, feature_type_ids)
 
         # If there are categorical features - process it
@@ -70,7 +70,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """ Update column types after encoding. Categorical columns becomes integer with extension """
         if self.categorical_ids:
             # There are categorical features in the table
-            feature_type_ids = output_data.supplementary_data.column_types['features']
+            feature_type_ids = output_data.supplementary_data.col_type_ids['features']
             numerical_columns = feature_type_ids[feature_type_ids != TYPE_TO_ID[str]]
 
             # Calculate new binary columns number after encoding
@@ -78,7 +78,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             numerical_columns = np.append(numerical_columns, [TYPE_TO_ID[int]] * encoded_columns_number)
 
             output_data.encoded_idx = self.encoded_ids
-            output_data.supplementary_data.column_types['features'] = numerical_columns
+            output_data.supplementary_data.col_type_ids['features'] = numerical_columns
 
     def _apply_one_hot_encoding(self, features: np.ndarray) -> np.ndarray:
         """
@@ -109,7 +109,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids: List[int] = None
 
     def fit(self, input_data: InputData):
-        feature_type_ids = input_data.supplementary_data.column_types['features']
+        feature_type_ids = input_data.supplementary_data.col_type_ids['features']
         self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
                                                                                   feature_type_ids)
 
@@ -133,7 +133,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
     def _update_column_types(self, output_data: OutputData):
         """ Update column types after encoding. Categorical becomes integer """
-        feature_type_ids = output_data.supplementary_data.column_types['features']
+        feature_type_ids = output_data.supplementary_data.col_type_ids['features']
         feature_type_ids[self.categorical_ids] = TYPE_TO_ID[int]
 
     def _fit_label_encoders(self, data: np.ndarray):

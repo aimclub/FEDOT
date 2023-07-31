@@ -20,14 +20,14 @@ def outputs_table_with_different_types():
     task = Task(TaskTypesEnum.regression)
     idx = [0, 1, 2]
     target = [1, 2, 10]
-    data_info_first = SupplementaryData(column_types={'features': np.array([TYPE_TO_ID[str], TYPE_TO_ID[float]]),
+    data_info_first = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[str], TYPE_TO_ID[float]]),
                                                       'target': np.array([TYPE_TO_ID[int]])})
     output_first = OutputData(idx=idx, features=None,
                               predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
                               task=task, target=target, data_type=DataTypesEnum.table,
                               supplementary_data=data_info_first)
 
-    data_info_second = SupplementaryData(column_types={'features': np.array([TYPE_TO_ID[float]]),
+    data_info_second = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[float]]),
                                                        'target': np.array([TYPE_TO_ID[int]])})
     output_second = OutputData(idx=idx, features=None,
                                predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
@@ -118,11 +118,11 @@ def test_define_types_after_merging(outputs_table_with_different_types):
     merged_data = DataMerger.get(outputs).merge()
     updated_info = merged_data.supplementary_data
 
-    feature_type_ids = updated_info.column_types['features']
-    target_type_ids = updated_info.column_types['target']
+    feature_type_ids = updated_info.col_type_ids['features']
+    target_type_ids = updated_info.col_type_ids['target']
 
     # Target type must stay the same
-    ancestor_target_type = outputs[0].supplementary_data.column_types['target'][0]
+    ancestor_target_type = outputs[0].supplementary_data.col_type_ids['target'][0]
     assert target_type_ids[0] == ancestor_target_type
     assert len(feature_type_ids) == 3
     assert tuple(feature_type_ids) == (TYPE_TO_ID[str], TYPE_TO_ID[float], TYPE_TO_ID[float])

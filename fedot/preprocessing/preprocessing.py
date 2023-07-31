@@ -402,7 +402,7 @@ class DataPreprocessor(BasePreprocessor):
             data: data to be encoded
             source_name: name of the data source node
         """
-        categorical_ids, _ = find_categorical_columns(data.target, data.supplementary_data.column_types.get('target'))
+        categorical_ids, _ = find_categorical_columns(data.target, data.supplementary_data.col_type_ids.get('target'))
 
         if categorical_ids:
             # Target is categorical
@@ -428,7 +428,7 @@ class DataPreprocessor(BasePreprocessor):
         encoded_target = data.target
         if encoder is not None:
             # Target encoders have already been fitted
-            data.supplementary_data.column_types['target'] = np.array([TYPE_TO_ID[int]])
+            data.supplementary_data.col_type_ids['target'] = np.array([TYPE_TO_ID[int]])
             encoded_target = encoder.transform(encoded_target)
             if len(encoded_target.shape) == 1:
                 encoded_target = encoded_target.reshape((-1, 1))
