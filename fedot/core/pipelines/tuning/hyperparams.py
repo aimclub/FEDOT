@@ -1,5 +1,6 @@
 import random
 
+import numpy as np
 from golem.core.log import default_log
 from golem.core.tuning.hyperopt_tuner import get_parameter_hyperopt_space
 from hyperopt.pyll.stochastic import sample as hp_sample
@@ -84,7 +85,8 @@ class ParametersChanger:
                                              parameter_name=parameter_name,
                                              label=parameter_name)
         # Randomly choose new value
-        new_value = hp_sample(space)
+        rng = np.random.default_rng(random.randint(0, 2147483647))
+        new_value = hp_sample(space, rng=rng)
         return {parameter_name: new_value}
 
     @staticmethod
