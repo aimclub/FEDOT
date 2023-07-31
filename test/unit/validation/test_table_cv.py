@@ -5,7 +5,6 @@ from functools import partial
 import pytest
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder

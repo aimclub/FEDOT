@@ -146,10 +146,10 @@ def test_advanced_time_series_splitting():
 
 
 @pytest.mark.parametrize('data_splitter, data',
-                         # test StratifiedKFold
+                         # test for imbalanced data
                          [(DataSourceSplitter(cv_folds=3, shuffle=True), get_imbalanced_data_to_test_mismatch()),
-                          # test KFold
-                          # (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
+                          # test for balanced data
+                          (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
                           # test hold-out
                           (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch()),
                           ])
@@ -209,6 +209,7 @@ def test_cv_generator_works_stable(cv_generator, data):
 
     for i in range(len(idx_first)):
         assert np.all(idx_first[i] == idx_second[i])
+
 
 @pytest.mark.parametrize(("forecast_length, cv_folds, split_ratio,"
                           "check_cv_folds, check_split_ratio, check_validation_blocks"),
