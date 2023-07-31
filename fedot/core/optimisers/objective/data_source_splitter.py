@@ -96,14 +96,16 @@ class DataSourceSplitter:
                                    self.cv_folds,
                                    self.validation_blocks,
                                    self.log)
-        elif data.task.task_type is TaskTypesEnum.ts_forecasting:
-            cv_generator = partial(tabular_cv_generator, data,
-                                   self.cv_folds,
-                                   StratifiedKFold)
+        elif data.task.task_type is TaskTypesEnum.classification:
+            cv_generator = partial(tabular_cv_generator,
+                                   data=data,
+                                   folds=self.cv_folds,
+                                   split_method=StratifiedKFold)
         else:
-            cv_generator = partial(tabular_cv_generator, data,
-                                   self.cv_folds,
-                                   KFold)
+            cv_generator = partial(tabular_cv_generator,
+                                   data=data,
+                                   folds=self.cv_folds,
+                                   split_method=KFold)
         return cv_generator
 
     def _propose_cv_folds_and_validation_blocks(self, data, split_ratio):

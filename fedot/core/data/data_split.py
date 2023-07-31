@@ -111,6 +111,8 @@ def _split_any(data: InputData, task, data_type, split_ratio,
     input_features = data.features
     input_target = data.target
     idx = data.idx
+    if stratify is not None:
+        with_shuffle = True
 
     idx_train, idx_test, x_train, x_test, y_train, y_test = \
         train_test_split(idx,

@@ -80,6 +80,7 @@ class TsInputDataSplit(TimeSeriesSplit):
 
 def tabular_cv_generator(data: InputData,
                          folds: int,
+                         shuffle: bool = False,
                          split_method: Type[_BaseKFold] = KFold) -> Iterator[Tuple[InputData, InputData]]:
     """ The function for splitting data into a train and test samples
         in the InputData format for KFolds cross validation. The function
@@ -87,11 +88,12 @@ def tabular_cv_generator(data: InputData,
 
     :param data: InputData for train and test splitting
     :param folds: number of folds
+    :param shuffle: shuffle data or not
     :param split_method: method to split data (f.e. stratify KFold)
 
     :return Iterator[InputData, InputData]: return split train/test data
     """
-    kf = split_method(n_splits=folds, shuffle=True, random_state=42)
+    kf = split_method(n_splits=folds, shuffle=shuffle, random_state=42)
 
     for train_idxs, test_idxs in kf.split(data.features, data.target):
         train_features, train_target = _table_data_by_index(train_idxs, data)
