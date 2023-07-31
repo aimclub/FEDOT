@@ -51,38 +51,7 @@ class DataSourceSplitter:
 
         # Calculate the number of validation blocks
         if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
-            data_shape = data.target.shape[0]
-            forecast_length = data.task.task_params.forecast_length
-            # check that cv folds may be realized
-            if self.cv_folds is not None:
-                max_test_size = data_shape / (self.cv_folds + 1)
-                if forecast_length > max_test_size:
-                    proposed_cv_folds_count = int((data_shape - forecast_length) // forecast_length)
-                    if proposed_cv_folds_count >= 2:
-                        self.log.info((f"Cross validation  with {self.cv_folds} folds cannot be provided"
-                                       f" with forecast length {data.task.task_params.forecast_length}"
-                                       f" and full data length {data.target.shape[0]}."
-                                       f" Cross validation folds is set to {proposed_cv_folds_count}"))
-                        self.cv_folds = proposed_cv_folds_count
-                    else:
-                        self.cv_folds = None
-                        self.log.info(("Cross validation cannot be provided"
-                                       f" with forecast length {data.task.task_params.forecast_length}"
-                                       f" and full data length {data.target.shape[0]}."
-                                       " Cross validation is switched off."))
-
-            if self.cv_folds is None:
-                test_shape = int(data_shape * (1 - split_ratio))
-                if forecast_length > test_shape:
-                    split_ratio = 1 - forecast_length / data_shape
-                    self.log.info((f"Forecast length ({forecast_length}) is greater than test length"
-                                   f" ({test_shape}) defined by split ratio."
-                                   f" Split ratio is changed to {split_ratio}."))
-                test_share = 1 - split_ratio
-                self.split_ratio = split_ratio
-            else:
-                test_share = 1 / (self.cv_folds + 1)
-            self.validation_blocks = int(data_shape * test_share // forecast_length)
+            self._propose_cv_folds_and_validation_blocks(data, split_ratio)
 
         # Split data
         if self.cv_folds is not None:
@@ -126,3 +95,37 @@ class DataSourceSplitter:
                                    self.cv_folds,
                                    self.advisor.propose_kfold(data))
         return cv_generator
+
+    def _propose_cv_folds_and_validation_blocks(self, data, split_ratio):
+        data_shape = data.target.shape[0]
+        forecast_length = data.task.task_params.forecast_length
+        # check that cv folds may be realized
+        if self.cv_folds is not None:
+            max_test_size = data_shape / (self.cv_folds + 1)
+            if forecast_length > max_test_size:
+                proposed_cv_folds_count = int((data_shape - forecast_length) // forecast_length)
+                if proposed_cv_folds_count >= 2:
+                    self.log.info((f"Cross validation  with {self.cv_folds} folds cannot be provided"
+                                   f" with forecast length {data.task.task_params.forecast_length}"
+                                   f" and full data length {data.target.shape[0]}."
+                                   f" Cross validation folds is set to {proposed_cv_folds_count}"))
+                    self.cv_folds = proposed_cv_folds_count
+                else:
+                    self.cv_folds = None
+                    self.log.info(("Cross validation cannot be provided"
+                                   f" with forecast length {data.task.task_params.forecast_length}"
+                                   f" and full data length {data.target.shape[0]}."
+                                   " Cross validation is switched off."))
+
+        if self.cv_folds is None:
+            test_shape = int(data_shape * (1 - split_ratio))
+            if forecast_length > test_shape:
+                split_ratio = 1 - forecast_length / data_shape
+                self.log.info((f"Forecast length ({forecast_length}) is greater than test length"
+                               f" ({test_shape}) defined by split ratio."
+                               f" Split ratio is changed to {split_ratio}."))
+            test_share = 1 - split_ratio
+            self.split_ratio = split_ratio
+        else:
+            test_share = 1 / (self.cv_folds + 1)
+        self.validation_blocks = int(data_shape * test_share // forecast_length)
