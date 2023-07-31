@@ -22,6 +22,7 @@ def run_analysis(pipeline, train_data, test_data):
 
 
 if __name__ == '__main__':
+    # TODO: this one should be an example of `MultiOperationsHPAnalyze` usage, fix is needed
     pipeline = get_three_depth_manual_class_pipeline()
     train_data, test_data = get_scoring_data()
 

@@ -1,8 +1,9 @@
 import os
+from copy import deepcopy
 from functools import partial
 
 from golem.core.dag.graph_verifier import GraphVerifier
-from golem.core.dag.verification_rules import DEFAULT_DAG_RULES, has_one_root, has_no_cycle, has_no_isolated_components, \
+from golem.core.dag.verification_rules import has_one_root, has_no_cycle, has_no_isolated_components, \
     has_no_isolated_nodes, has_no_self_cycled_nodes
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.objective import Objective
@@ -106,12 +107,12 @@ if __name__ == '__main__':
                                  path_to_save=path_to_save,
                                  is_visualize_per_iteration=False)
 
-    optimized_graph, results = sa.optimize(graph=initial_graph, n_jobs=1, max_iter=2)
+    optimized_graph, results = sa.optimize(graph=deepcopy(initial_graph), n_jobs=1, max_iter=2)
 
     print(f'FINAL METRIC: {test_objective(optimized_graph)}')
 
     # to show SA results on each iteration
-    GraphStructuralAnalysis.visualize_on_graph(graph=PipelineAdapter().adapt(get_three_depth_manual_class_pipeline()),
+    GraphStructuralAnalysis.visualize_on_graph(graph=initial_graph,
                                                analysis_result=results,
                                                metric_idx_to_optimize_by=main_metric_idx,
                                                mode='by_iteration',
