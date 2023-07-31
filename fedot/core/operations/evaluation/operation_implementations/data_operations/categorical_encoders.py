@@ -70,8 +70,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """ Update column types after encoding. Categorical columns becomes integer with extension """
         if self.categorical_ids:
             # There are categorical features in the table
-            feature_types = output_data.supplementary_data.column_types['features']
-            numerical_columns = feature_types[feature_types != TYPE_TO_ID[str]]
+            feature_type_ids = output_data.supplementary_data.column_types['features']
+            numerical_columns = feature_type_ids[feature_type_ids != TYPE_TO_ID[str]]
 
             # Calculate new binary columns number after encoding
             encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
@@ -133,8 +133,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
     def _update_column_types(self, output_data: OutputData):
         """ Update column types after encoding. Categorical becomes integer """
-        feature_types = output_data.supplementary_data.column_types['features']
-        feature_types[self.categorical_ids] = TYPE_TO_ID[int]
+        feature_type_ids = output_data.supplementary_data.column_types['features']
+        feature_type_ids[self.categorical_ids] = TYPE_TO_ID[int]
 
     def _fit_label_encoders(self, data: np.ndarray):
         """ Fit LabelEncoder for every categorical column in the dataset """

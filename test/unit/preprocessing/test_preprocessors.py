@@ -129,15 +129,13 @@ def test_column_types_converting_correctly():
     types_corr = TableTypesCorrector()
     data = types_corr.convert_data_for_fit(data)
 
-    feature_types = data.supplementary_data.column_types['features']
-    target_types = data.supplementary_data.column_types['target']
+    feature_type_ids = data.supplementary_data.column_types['features']
+    target_type_ids = data.supplementary_data.column_types['target']
 
-    assert len(feature_types) == 4
-    assert len(target_types) == 2
-    assert feature_types[0] == TYPE_TO_ID[str]
-    assert feature_types[1] == TYPE_TO_ID[str]
-    assert feature_types[2] == TYPE_TO_ID[str]
-    assert (target_types == TYPE_TO_ID[str]).all()
+    assert len(feature_type_ids) == 4
+    assert len(target_type_ids) == 2
+    assert (feature_type_ids[[0, 1, 2]] == TYPE_TO_ID[str]).all()
+    assert (target_type_ids == TYPE_TO_ID[str]).all()
 
 
 def test_column_types_process_correctly():

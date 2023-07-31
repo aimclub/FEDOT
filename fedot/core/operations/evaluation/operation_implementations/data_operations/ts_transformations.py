@@ -128,13 +128,13 @@ class LaggedImplementation(DataOperationImplementation):
         """
 
         _, features_n_cols = output_data.predict.shape
-        feature_types = np.array([TYPE_TO_ID[float]] * features_n_cols)
-        column_types = {'features': feature_types}
+        feature_type_ids = np.array([TYPE_TO_ID[float]] * features_n_cols)
+        column_types = {'features': feature_type_ids}
 
         if output_data.target is not None and len(output_data.target.shape) > 1:
             _, target_n_cols = output_data.target.shape
-            target_types = np.array([TYPE_TO_ID[float]] * target_n_cols)
-            column_types['target'] = target_types
+            target_type_ids = np.array([TYPE_TO_ID[float]] * target_n_cols)
+            column_types['target'] = target_type_ids
         output_data.supplementary_data.column_types = column_types
 
     def _apply_transformation_for_fit(self, input_data: InputData, features: np.array, target: np.array,

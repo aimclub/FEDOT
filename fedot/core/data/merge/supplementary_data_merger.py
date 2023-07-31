@@ -84,8 +84,8 @@ class SupplementaryDataMerger:
 
         # Concatenate types for features columns and
         #  choose target type of the main target as the new target type
-        new_feature_types = []
-        new_target_types = None
+        new_feature_type_ids = []
+        new_target_type_ids = None
         for output in self.outputs:
             if output.supplementary_data.column_types is None:
                 self.log.debug('Perform determination of column types in DataMerger')
@@ -93,10 +93,10 @@ class SupplementaryDataMerger:
                 output.supplementary_data.column_types = table_corr.prepare_column_types_info(output.predict,
                                                                                               output.target,
                                                                                               output.task)
-            feature_types = output.supplementary_data.column_types['features']
-            new_feature_types.extend(feature_types)
+            feature_type_ids = output.supplementary_data.column_types['features']
+            new_feature_type_ids.extend(feature_type_ids)
 
             if output.supplementary_data.is_main_target:
                 # Target can be None for predict stage
-                new_target_types = output.supplementary_data.column_types.get('target')
-        return {'features': np.array(new_feature_types), 'target': new_target_types}
+                new_target_type_ids = output.supplementary_data.column_types.get('target')
+        return {'features': np.array(new_feature_type_ids), 'target': new_target_type_ids}
