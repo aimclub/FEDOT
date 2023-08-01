@@ -210,6 +210,7 @@ def test_cv_generator_works_stable(cv_generator, data):
     for i in range(len(idx_first)):
         assert np.all(idx_first[i] == idx_second[i])
 
+
 @pytest.mark.parametrize(("forecast_length, cv_folds, split_ratio,"
                           "check_cv_folds, check_split_ratio, check_validation_blocks"),
                          [(30, 3, 0.5, 2, 0.5, 1),
