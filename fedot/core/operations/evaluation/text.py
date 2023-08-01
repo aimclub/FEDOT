@@ -3,6 +3,8 @@ from typing import Optional
 
 import numpy as np
 
+from golem.core.utilities.random import RandomStateHandler
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.text_pretrained \
@@ -32,7 +34,8 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
 
         features_list = self._convert_to_one_dim(train_data.features)
 
-        self.vectorizer.fit(features_list)
+        with RandomStateHandler():
+            self.vectorizer.fit(features_list)
 
         return self.vectorizer
 
@@ -83,8 +86,8 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained model
         """
-
-        self.text_processor.fit(train_data)
+        with RandomStateHandler():
+            self.text_processor.fit(train_data)
         return self.text_processor
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -134,8 +137,8 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
 
         :param train_data: data with features, target and ids to process
         """
-
-        self.vectorizer.fit(train_data)
+        with RandomStateHandler():
+            self.vectorizer.fit(train_data)
         return self.vectorizer
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

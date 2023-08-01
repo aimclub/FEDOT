@@ -1,5 +1,8 @@
 import warnings
 from typing import Optional
+
+from golem.core.utilities.random import RandomStateHandler
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.custom_model import CustomModelImplementation
@@ -24,7 +27,8 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         """ Fit method for custom strategy"""
-        self.operation_impl.fit(train_data)
+        with RandomStateHandler():
+            self.operation_impl.fit(train_data)
         return self.operation_impl
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
