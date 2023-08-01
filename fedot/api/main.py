@@ -331,8 +331,6 @@ class Fedot:
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
-                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
-                (default is ``2``).
 
 
         Returns:
@@ -343,7 +341,6 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
-        validation_blocks = validation_blocks or self.params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
@@ -487,7 +484,6 @@ class Fedot:
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
-                If ``None``, uses number of validation blocks set during model initialization (default is ``2``).
 
         Returns:
             The values of quality metrics.
@@ -507,6 +503,11 @@ class Fedot:
 
         metrics = self.metrics.obtain_metrics(metric_names) if metric_names else self.metrics.metric_functions
         metric_names = self.metrics.get_metric_names(metrics)
+
+        in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
+
+        if not in_sample:
+            validation_blocks = None
 
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,

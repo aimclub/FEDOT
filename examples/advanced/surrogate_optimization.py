@@ -17,9 +17,9 @@ class GraphLenSurrogateModel(SurrogateModel):
         return [len(graph.nodes)]
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
                                visualization=False, with_tuning=True):
-    train_data, test_data = get_ts_data(dataset, horizon)
+    train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
