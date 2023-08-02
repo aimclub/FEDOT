@@ -18,7 +18,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
-from test.integration.models.test_model import classification_dataset
+from test.integration.models.test_model import classification_dataset, classification_dataset_with_str_labels
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 from test.unit.validation.test_table_cv import sample_pipeline
 from test.unit.validation.test_time_series_cv import configure_experiment
@@ -77,6 +77,23 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
     for metric in ClassificationMetricsEnum:
         one_fold_split = OneFoldInputDataSplit()
         data_split = partial(one_fold_split.input_split, input_data=classification_dataset)
+        check_pipeline = deepcopy(pipeline)
+        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
+        fitness = objective_eval(pipeline)
+        act_fitness = actual_fitness(data_split, check_pipeline, metric)
+        assert fitness.valid
+        assert fitness.value is not None
+        assert np.isclose(fitness.value, act_fitness.value, atol=1e-8), metric.name
+
+
+@pytest.mark.parametrize(
+    'pipeline',
+    [pipeline_first_test(), pipeline_second_test(), pipeline_third_test()]
+)
+def test_pipeline_objective_evaluate_with_different_metrics_with_str_labes(pipeline):
+    for metric in ClassificationMetricsEnum:
+        one_fold_split = OneFoldInputDataSplit()
+        data_split = partial(one_fold_split.input_split, input_data=classification_dataset_with_str_labels())
         check_pipeline = deepcopy(pipeline)
         objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
         fitness = objective_eval(pipeline)

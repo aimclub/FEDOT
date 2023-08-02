@@ -88,7 +88,7 @@ class QualityMetric:
                               save_path=Path(save_path, 'forecast.png'))
 
         except Exception as ex:
-            pipeline.log.info(f'Metric can not be evaluated because of: {ex}')
+            pipeline.log.info(f'Metric can not be evaluated because of: {ex}', raise_if_test=True)
 
         return metric
 
@@ -216,7 +216,10 @@ class F1(QualityMetric):
         if n_classes > 2:
             additional_params = {'average': F1.multiclass_averaging_mode}
         else:
-            additional_params = {'average': F1.binary_averaging_mode}
+            u, count = np.unique(np.ravel(reference.target), return_counts=True)
+            count_sort_ind = np.argsort(count)
+            pos_label = u[count_sort_ind[0]].item()
+            additional_params = {'average': F1.binary_averaging_mode, 'pos_label': pos_label}
         return f1_score(y_true=reference.target, y_pred=predicted.predict,
                         **additional_params)
 
@@ -271,7 +274,16 @@ class Precision(QualityMetric):
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return precision_score(y_true=reference.target, y_pred=predicted.predict)
+        n_classes = reference.num_classes
+        if n_classes > 2:
+            return precision_score(y_true=reference.target, y_pred=predicted.predict)
+        else:
+            u, count = np.unique(np.ravel(reference.target), return_counts=True)
+            count_sort_ind = np.argsort(count)
+            pos_label = u[count_sort_ind[0]].item()
+            additional_params = {'pos_label': pos_label}
+            return precision_score(y_true=reference.target, y_pred=predicted.predict,
+                                   **additional_params)
 
 
 class Logloss(QualityMetric):

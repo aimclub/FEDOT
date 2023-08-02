@@ -101,6 +101,20 @@ def classification_dataset():
     data = InputData(features=MinMaxScaler().fit_transform(x), target=classes, idx=np.arange(0, len(x)),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
+    return data
+
+
+def classification_dataset_with_str_labels():
+    samples = 1000
+    x = 10.0 * np.random.rand(samples, ) - 5.0
+    x = np.expand_dims(x, axis=1)
+    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
+    threshold = 0.5
+    classes = np.array(['a' if val <= threshold else 'b' for val in y])
+    classes = np.expand_dims(classes, axis=1)
+    data = InputData(features=MinMaxScaler().fit_transform(x), target=classes, idx=np.arange(0, len(x)),
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
 
     return data
 
