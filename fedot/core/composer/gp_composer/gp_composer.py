@@ -55,6 +55,7 @@ class GPComposer(Composer):
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
                                                         pipelines_cache=self.pipelines_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
+                                                        validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 
