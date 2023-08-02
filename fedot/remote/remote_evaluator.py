@@ -87,7 +87,7 @@ class RemoteEvaluator(DelegateEvaluator):
                 execution_ids[id(graph)] = task_id
 
             # waiting for readiness of all pipelines
-            ex_time = client.wait_until_ready()
+            client.wait_until_ready()
 
             # download of remote execution result for each pipeline
             for p_id, graph in enumerate(graphs_batch):
@@ -98,8 +98,6 @@ class RemoteEvaluator(DelegateEvaluator):
                     except Exception as ex:
                         self._logger.warning(f'{p_id}, {ex}')
             final_graphs.extend(graphs_batch)
-
-            self._logger.info(f'REMOTE EXECUTION TIME {ex_time}')
 
         return final_graphs
 

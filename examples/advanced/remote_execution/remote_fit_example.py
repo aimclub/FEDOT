@@ -14,7 +14,7 @@ from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 random.seed(1)
 np.random.seed(1)
 
-num_parallel = 3  # NUMBER OF PARALLEL TASKS
+num_parallel = 10  # NUMBER OF PARALLEL TASKS
 
 # WARNING - THIS SCRIPT CAN BE EVALUATED ONLY WITH THE ACCESS TO DATAMALL SYSTEM
 
@@ -23,10 +23,12 @@ folder = os.path.join(fedot_project_root(), 'cases', 'data', 'scoring')
 path = os.path.join(folder, 'scoring_train.csv')
 
 start = datetime.now()
-data = InputData.from_csv(path)
-data.subset_indices([1, 2, 3, 4, 5, 20])
-pipeline = Pipeline(PipelineNode('rf'))
-pipeline.fit_from_scratch(data)
+
+for i in range(num_parallel):
+    data = InputData.from_csv(path)
+    data.subset_indices([1, 2, 3, 4, 5, 20])
+    pipeline = Pipeline(PipelineNode('rf'))
+    pipeline.fit_from_scratch(data)
 end = datetime.now()
 
 print('LOCAL EXECUTION TIME', end - start)
@@ -57,7 +59,13 @@ evaluator.init(
     remote_task_params=remote_task_params
 )
 
+start = datetime.now()
+
 pipelines = [Pipeline(PipelineNode('rf'))] * num_parallel
 fitted_pipelines = evaluator.compute_graphs(pipelines)
 
 [print(p.is_fitted) for p in fitted_pipelines]
+
+end = datetime.now()
+
+print('REMOTE EXECUTION TIME', end - start)
