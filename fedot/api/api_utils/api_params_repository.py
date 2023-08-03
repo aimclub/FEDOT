@@ -6,7 +6,7 @@ from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTyp
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
-from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_CV_FOLDS_BY_TASK
+from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
 
@@ -32,6 +32,12 @@ class ApiParamsRepository:
     @staticmethod
     def default_params_for_task(task_type: TaskTypesEnum) -> dict:
         """ Returns a dict with default parameters"""
+        if task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
+            cv_folds = 5
+
+        elif task_type == TaskTypesEnum.ts_forecasting:
+            cv_folds = 3
+
         # Dict with allowed keyword attributes for Api and their default values. If None - default value set
         # in dataclasses ``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``
         # will be used.
@@ -45,7 +51,7 @@ class ApiParamsRepository:
             keep_n_best=1,
             available_operations=None,
             metric=None,
-            cv_folds=DEFAULT_CV_FOLDS_BY_TASK[task_type],
+            cv_folds=cv_folds,
             genetic_scheme=None,
             early_stopping_iterations=None,
             early_stopping_timeout=10,

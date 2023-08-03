@@ -15,12 +15,8 @@ MIN_NUMBER_OF_GENERATIONS = 3
 
 FRACTION_OF_UNIQUE_VALUES = 0.95
 
-DEFAULT_DATA_SPLIT_RATIO_BY_TASK = {
+default_data_split_ratio_by_task = {
     TaskTypesEnum.classification: 0.8,
     TaskTypesEnum.regression: 0.8,
     TaskTypesEnum.ts_forecasting: 0.5
 }
-
-DEFAULT_CV_FOLDS_BY_TASK = {TaskTypesEnum.classification: 5,
-                            TaskTypesEnum.regression: 5,
-                            TaskTypesEnum.ts_forecasting: 3}

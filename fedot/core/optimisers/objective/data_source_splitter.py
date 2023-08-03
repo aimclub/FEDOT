@@ -1,10 +1,9 @@
 from functools import partial
 from typing import Optional
-from copy import deepcopy
 
 from golem.core.log import default_log
 
-from fedot.core.constants import DEFAULT_DATA_SPLIT_RATIO_BY_TASK, DEFAULT_CV_FOLDS_BY_TASK
+from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -32,7 +31,7 @@ class DataSourceSplitter:
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
-                 shuffle: bool = False,):
+                 shuffle: bool = False):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
@@ -46,21 +45,13 @@ class DataSourceSplitter:
             data.shuffle()
 
         # Check split_ratio
-        split_ratio = self.split_ratio or DEFAULT_DATA_SPLIT_RATIO_BY_TASK[data.task.task_type]
+        split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
         if not (0 < split_ratio < 1):
             raise ValueError(f'split_ratio is {split_ratio} but should be between 0 and 1')
 
-        # Calculate the number of validation blocks and number of cv folds for ts forecasting
-        if data.task.task_type is TaskTypesEnum.ts_forecasting:
-            if self.validation_blocks is None:
-                self._propose_cv_folds_and_validation_blocks(data, split_ratio)
-            # when forecasting length is low and data length is high there are huge amount of validation blocks
-            # some model refit each step of forecasting that may be time consuming
-            # solution is set forecasting length to higher value and reduce validation blocks count
-            # without reducing validation data length which is equal to forecast_length * validation_blocks
-            max_validation_blocks = DEFAULT_CV_FOLDS_BY_TASK[data.task.task_type] if self.cv_folds is None else 1
-            if self.validation_blocks > max_validation_blocks:
-                data = self._propose_forecast_length(data, max_validation_blocks)
+        # Calculate the number of validation blocks
+        if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
+            self._propose_cv_folds_and_validation_blocks(data, split_ratio)
 
         # Split data
         if self.cv_folds is not None:
@@ -82,7 +73,7 @@ class DataSourceSplitter:
         that always returns same data split. Equivalent to 1-fold validation.
         """
 
-        split_ratio = self.split_ratio or DEFAULT_DATA_SPLIT_RATIO_BY_TASK[data.task.task_type]
+        split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
         train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
@@ -138,11 +129,3 @@ class DataSourceSplitter:
         else:
             test_share = 1 / (self.cv_folds + 1)
         self.validation_blocks = int(data_shape * test_share // forecast_length)
-
-    def _propose_forecast_length(self, data, max_validation_blocks):
-        horizon = self.validation_blocks * data.task.task_params.forecast_length
-        self.validation_blocks = max_validation_blocks
-        # TODO: make copy without copy all data, only with task copy
-        data = deepcopy(data)
-        data.task.task_params.forecast_length = int(horizon // self.validation_blocks)
-        return data
