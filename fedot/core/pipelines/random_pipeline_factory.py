@@ -1,3 +1,4 @@
+import random
 from copy import deepcopy
 from random import randint
 from typing import Optional
@@ -76,7 +77,7 @@ def graph_growth(graph: OptGraph,
     for offspring_node in range(offspring_size):
         height = distance_to_root_level(graph, node_parent)
         is_max_depth_exceeded = height >= max_depth - 2
-        is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
+        is_primary_node_selected = height < max_depth - 1 and random.random() > 0.3
         if is_max_depth_exceeded or is_primary_node_selected:
             primary_node = node_factory.get_node(is_primary=True)
             node_parent.nodes_from.append(primary_node)
