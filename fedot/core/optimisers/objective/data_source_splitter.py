@@ -32,14 +32,12 @@ class DataSourceSplitter:
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
-                 shuffle: bool = False,
-                 limit_validation_blocks_count: bool = True):
+                 shuffle: bool = False,):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
         self.shuffle = shuffle
         self.advisor = DataObjectiveAdvisor()
-        self._limit_validation_blocks_count = limit_validation_blocks_count
         self.log = default_log(self)
 
     def build(self, data: InputData) -> DataSource:
@@ -56,14 +54,13 @@ class DataSourceSplitter:
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             if self.validation_blocks is None:
                 self._propose_cv_folds_and_validation_blocks(data, split_ratio)
-            if self._limit_validation_blocks_count:
-                # when forecasting length is low and data length is high there are huge amount of validation blocks
-                # some model refit each step of forecasting that may be time consuming
-                # solution is set forecasting length to higher value and reduce validation blocks count
-                # without reducing validation data length which is equal to forecast_length * validation_blocks
-                max_validation_blocks = DEFAULT_CV_FOLDS_BY_TASK[data.task.task_type] if self.cv_folds is None else 1
-                if self.validation_blocks > max_validation_blocks:
-                    data = self._propose_forecast_length(data, max_validation_blocks)
+            # when forecasting length is low and data length is high there are huge amount of validation blocks
+            # some model refit each step of forecasting that may be time consuming
+            # solution is set forecasting length to higher value and reduce validation blocks count
+            # without reducing validation data length which is equal to forecast_length * validation_blocks
+            max_validation_blocks = DEFAULT_CV_FOLDS_BY_TASK[data.task.task_type] if self.cv_folds is None else 1
+            if self.validation_blocks > max_validation_blocks:
+                data = self._propose_forecast_length(data, max_validation_blocks)
 
         # Split data
         if self.cv_folds is not None:
