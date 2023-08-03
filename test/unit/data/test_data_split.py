@@ -230,6 +230,4 @@ def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_
     data_source_splitter.build(data)
     assert data_source_splitter.cv_folds == check_cv_folds
     assert data_source_splitter.split_ratio == check_split_ratio
-    # switched off due to some unideal solution in data_source_splitter
-    # but may be usefull in future if solution will be removed
-    # assert data_source_splitter.validation_blocks == check_validation_blocks
+    assert data_source_splitter.validation_blocks == check_validation_blocks
