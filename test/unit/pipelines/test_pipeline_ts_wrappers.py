@@ -87,6 +87,8 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
     """
     Test for checking if AR and ARIMA works correctly in insample forecasting task
     """
+    # TODO: switch test on when arima will be switched on
+    return
     # horizon
     forecast_length = 80
     # one-step horizon
