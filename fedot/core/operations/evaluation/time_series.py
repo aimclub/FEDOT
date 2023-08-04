@@ -34,9 +34,9 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'arima': ARIMAImplementation,
-        'ar': AutoRegImplementation,
-        'stl_arima': STLForecastARIMAImplementation,
+        # 'arima': ARIMAImplementation,
+        # 'ar': AutoRegImplementation,
+        # 'stl_arima': STLForecastARIMAImplementation,
         'ets': ExpSmoothingImplementation,
         'cgru': CGRUImplementation,
         'polyfit': PolyfitImplementation,
