@@ -18,7 +18,6 @@ class PipelineComposerRequirements(GraphRequirements):
 
     primary: Sequence[str] = tuple()
     secondary: Sequence[str] = tuple()
-
     cv_folds: Optional[int] = None
 
     def __post_init__(self):

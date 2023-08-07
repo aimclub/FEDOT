@@ -38,7 +38,6 @@ class TunerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.cv_folds = requirements.cv_folds
-        self.validation_blocks = requirements.validation_blocks
         self.n_jobs = requirements.n_jobs
         return self
 
