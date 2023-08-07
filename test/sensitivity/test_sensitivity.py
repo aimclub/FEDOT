@@ -42,7 +42,8 @@ def given_data():
 # ------------------------------------------------------------------------------
 # MultiOperationAnalyze
 
-@patch('fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze.analyze',
+@patch('fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity.'
+       'MultiOperationsHPAnalyze.analyze',
        return_value=[{'key': 'value'}])
 def test_multi_operations_analyze_analyze(analyze_method):
     # given
