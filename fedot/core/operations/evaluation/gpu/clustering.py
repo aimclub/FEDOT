@@ -16,8 +16,8 @@ except ModuleNotFoundError:
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
-
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
+from fedot.core.utils import RandomStateHandler
 
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):

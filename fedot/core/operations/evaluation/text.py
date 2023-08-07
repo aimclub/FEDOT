@@ -3,8 +3,6 @@ from typing import Optional
 
 import numpy as np
 
-from golem.core.utilities.random import RandomStateHandler
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.text_pretrained \
@@ -15,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

@@ -1,8 +1,6 @@
 import warnings
 from typing import Optional
 
-from golem.core.utilities.random import RandomStateHandler
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -20,6 +18,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
