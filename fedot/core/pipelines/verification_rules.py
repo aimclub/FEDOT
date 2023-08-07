@@ -12,7 +12,7 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
-    if task_type and not task_type in pipeline.root_node.operation.acceptable_task_types:
+    if task_type and task_type not in pipeline.root_node.operation.acceptable_task_types:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
     return True
 
