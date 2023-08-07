@@ -7,7 +7,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def load_params_bounds_file():
-    params_bounds_file = join(fedot_project_root(), 'fedot', 'sensitivity',
+    params_bounds_file = join(fedot_project_root(), 'fedot', 'structural_analysis',
                               'operations_hp_sensitivity', 'params_bounds.json')
     with open(params_bounds_file, 'r') as file:
         data = json.load(file)
@@ -137,4 +137,4 @@ class MultiOperationsProblem(Problem):
 
         return all_operations_new_params
 
-        # Apply new params to nodes in pipeline in operation sensitivity
+        # Apply new params to nodes in pipeline in operation structural_analysis

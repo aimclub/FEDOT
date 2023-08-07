@@ -6,7 +6,7 @@ coverage:
     patch: false
 ignore:
   - "fedot/remote"  # external computational client can not be fully tested
-  - "fedot/sensitivity" # unit test are moved to integration test due to the time restrictions
+  - "fedot/structural_analysis" # unit test are moved to integration test due to the time restrictions
   - "fedot/utilities" # unit test are moved to integration test due to the time restrictions
   - "fedot/visualisation" # complicated to test in unit-like way, tested in integration tests
   - "fedot/core/operations/evaluation/automl.py" # require to heavy external dependencies - tested in integration test

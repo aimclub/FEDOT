@@ -16,5 +16,4 @@ advanced - for advanced users
    - decompose - examples devoted to decomposition
    - fedot_based_solution - shows how FEDOT can be applied to another graph optimization problems
    - remote_execution - shows how FEDOT can be run remotely
-   - sensitivity_analysis - analysis of pipeline structure
    - time_series_forecasting - advanced examples of time series forecasting

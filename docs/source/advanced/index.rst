@@ -13,4 +13,3 @@ Advanced usage
    cli_call
    gpu_evaluation
    atomized_model
-   sensitivity_analysis

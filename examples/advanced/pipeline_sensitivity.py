@@ -15,8 +15,8 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir, fedot_project_root
-from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
+from fedot.structural_analysis.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
+from fedot.structural_analysis.nodes_sensitivity import NodesAnalysis
 
 
 def get_composed_pipeline(dataset_to_compose, task, metric_function):
@@ -105,7 +105,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
     pipeline.fit(train_data)
 
     if not result_path:
-        result_path = join(default_fedot_data_dir(), 'sensitivity', f'{case_name}')
+        result_path = join(default_fedot_data_dir(), 'structural_analysis', f'{case_name}')
         if not exists(result_path):
             makedirs(result_path)
 

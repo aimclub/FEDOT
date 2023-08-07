@@ -17,7 +17,7 @@ class SensitivityAnalysisRequirements:
     Args:
         hyperparams_analyze_method: defines string name of SA method to use. Defaults: ``sobol``
         hyperparams_sample_method: defines string name of sampling method to use. Defaults: ``saltelli``
-        hyperparams_analysis_samples_size: defines the number of shyperparameters samples used in SA
+        hyperparams_analysis_samples_size: defines the number of hyperparameters samples used in SA
         replacement_nodes_to_replace_to: defines nodes which is used in replacement analysis.
         replacement_number_of_random_operations: if ``replacement_nodes_to_replace_to`` is not filled,
             define the number of randomly chosen operations used in replacement analysis.
