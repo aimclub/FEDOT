@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
-from typing import Optional, Tuple, Union, Sequence, Dict
+from typing import Optional, Tuple, Union, Sequence, List, Dict
 
 import func_timeout
 from golem.core.dag.graph import Graph
@@ -326,6 +326,19 @@ class Pipeline(GraphDelegate, Serializable):
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
+
+    @property
+    def primary_nodes(self) -> List[PipelineNode]:
+        """Finds pipelines sink-node
+
+        Returns:
+            the final predictor-node
+        """
+        if not self.nodes:
+            return []
+        primary_nodes = [node for node in self.nodes
+                         if not node.nodes_from]
+        return primary_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
         """Returns pipeline formed from the last node solving the given problem and all its parents

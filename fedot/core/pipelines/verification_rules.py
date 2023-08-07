@@ -166,12 +166,14 @@ def has_correct_location_of_resample(pipeline: Pipeline):
                 is_resample_primary = True
             else:
                 is_not_resample_primary = True
-        if node.name == 'resample':
-            raise ValueError(
-                f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
+        else:
+            if node.name == 'resample':
+                raise ValueError(
+                    f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
     if is_resample_primary and is_not_resample_primary:
         raise ValueError(
             f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
+    return True
 
 
 def get_wrong_links(ts_to_table_operations: list, ts_data_operations: list, non_ts_data_operations: list,
