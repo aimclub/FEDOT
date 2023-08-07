@@ -54,7 +54,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data)
+    in_sample_forecast = model.predict(test_data, validation_blocks=validation_blocks)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
                             validation_blocks=validation_blocks))

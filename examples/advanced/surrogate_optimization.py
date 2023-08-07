@@ -38,7 +38,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     model.predict(test_data)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
-                            validation_blocks=2))
+                            validation_blocks=validation_blocks))
 
     # plot forecasting result
     if visualization:

@@ -38,16 +38,6 @@ class ApiParamsRepository:
         elif task_type == TaskTypesEnum.ts_forecasting:
             cv_folds = 3
 
-        # TODO: del when fix problem with arima
-        available_operations = None
-        if task_type == TaskTypesEnum.ts_forecasting:
-            available_operations = ['adareg', 'cgru', 'cut', 'diff_filter', 'dtreg', 'ets', 'exog_ts', 'fast_ica',
-                                    'gaussian_filter', 'gbr', 'glm', 'isolation_forest_reg', 'lagged', 'lasso',
-                                    'lgbmreg', 'linear', 'locf', 'normalization', 'pca', 'poly_features', 'polyfit',
-                                    'ransac_lin_reg', 'ransac_non_lin_reg', 'rfr', 'ridge', 'scaling', 'sgdr',
-                                    'smoothing', 'sparse_lagged', 'svr', 'treg', 'ts_naive_average']
-
-
         # Dict with allowed keyword attributes for Api and their default values. If None - default value set
         # in dataclasses ``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``
         # will be used.
@@ -59,7 +49,7 @@ class ApiParamsRepository:
             pop_size=20,
             num_of_generations=None,
             keep_n_best=1,
-            available_operations=available_operations,
+            available_operations=None,
             metric=None,
             cv_folds=cv_folds,
             genetic_scheme=None,
