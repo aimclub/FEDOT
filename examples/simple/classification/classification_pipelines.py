@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -152,16 +154,24 @@ def classification_three_depth_manual_pipeline():
     Where rf - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     qda - discriminant analysis
    """
-    logit_node_primary = PipelineNode('logit')
+    logit_node_primary = PipelineNode('rf')
     xgb_node_primary = PipelineNode('rf')
     xgb_node_primary_second = PipelineNode('rf')
 
-    qda_node_third = PipelineNode('qda', nodes_from=[xgb_node_primary_second])
-    knn_node_third = PipelineNode('knn', nodes_from=[logit_node_primary, xgb_node_primary])
+    qda_node_third = PipelineNode('rf', nodes_from=[xgb_node_primary_second])
+    knn_node_third = PipelineNode('rf', nodes_from=[logit_node_primary, xgb_node_primary])
 
-    knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
+    knn_root0 = PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third])
+    knn_root1 = deepcopy(PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third]))
+    knn_root2 = deepcopy(PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third]))
+    knn_root3 = deepcopy(PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third]))
+    knn_root4 = deepcopy(PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third]))
+    knn_root5 = deepcopy(PipelineNode('rf', nodes_from=[qda_node_third, knn_node_third]))
+
+    knn_root = PipelineNode('rf', nodes_from=[knn_root0, knn_root1, knn_root2, knn_root3, knn_root4, knn_root5])
 
     pipeline = Pipeline(knn_root)
+    pipeline.show()
 
     return pipeline
 

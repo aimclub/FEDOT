@@ -654,7 +654,6 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
         defined_index = define_index_column(candidate_idx_cols)
         if defined_index is not None:
             index_col = defined_index
-            logger.message(f'Used the column as index: "{index_col}".')
 
     if (index_col is not None) and (index_col not in columns_to_use):
         columns_to_use.append(index_col)

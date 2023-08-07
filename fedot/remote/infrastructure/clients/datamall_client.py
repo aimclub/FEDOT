@@ -18,7 +18,7 @@ DEFAULT_EXEC_PARAMS = {
     'container_output_path': "/home/FEDOT/output_data_dir",
     'container_config_path': "/home/FEDOT/.config",
     'container_image': "fedot:dm-9",
-    'timeout': 360
+    'timeout': 3600
 }
 
 # example of connection params for DataMall
@@ -28,7 +28,7 @@ DEFAULT_CONNECT_PARAMS = {
     'AUTH_SERVER': 'http://10.32.0.51:30880/b',
     'CONTR_SERVER': 'http://10.32.0.51:30880/models-controller',
     'PROJECT_ID': '83',
-    'DATA_ID': '60'
+    'DATA_ID': '56'
 }
 
 
