@@ -14,5 +14,4 @@ Modules
    operation
    pipeline
    repository
-   sensitivity
    synthetic_dataset_generator
