@@ -150,7 +150,7 @@
         "non_lagged",
         "linear",
         "new_data_refit",
-        "non-default",
+        "non-default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
