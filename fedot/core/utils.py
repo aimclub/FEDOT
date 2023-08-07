@@ -15,6 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 )
 
 DEFAULT_PARAMS_STUB = 'default_params'
+NESTED_PARAMS_LABEL = 'nested_space'
 
 
 def fedot_project_root() -> Path:

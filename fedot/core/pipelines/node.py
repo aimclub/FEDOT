@@ -15,7 +15,7 @@ from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.utils import DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL
 
 
 @register_serializable
@@ -57,9 +57,6 @@ class PipelineNode(LinkedGraphNode):
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
             params = passed_content.get('params', {})
-            # The check for "default_params" is needed for backward compatibility.
-            if params == DEFAULT_PARAMS_STUB:
-                params = {}
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
             # There is no content for node
@@ -72,9 +69,10 @@ class PipelineNode(LinkedGraphNode):
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        self._parameters = OperationParameters.from_operation_type(operation.operation_type, **params)
-        super().__init__(content={'name': operation,
-                                  'params': self._parameters.to_dict()}, nodes_from=nodes_from)
+        super().__init__(content={'name': operation}, nodes_from=nodes_from)
+        # use parameters.setter to process input parameters correctly
+        self.parameters = params
+
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
@@ -325,18 +323,18 @@ class PipelineNode(LinkedGraphNode):
 
     @parameters.setter
     def parameters(self, params: dict):
-        """Sets custom parameters of the node
+        """Sets custom parameters of the node or set default
 
         Args:
             params: new parameters to be placed instead of existing
         """
-        if params:
+        if params is not None:
             # The check for "default_params" is needed for backward compatibility.
             if params == DEFAULT_PARAMS_STUB:
                 params = {}
-            # take nested composer params if they appeared
-            if 'nested_space' in params:
-                params = params['nested_space']
+            # take nested params if they appeared (mostly used for tuning)
+            if NESTED_PARAMS_LABEL in params:
+                params = params[NESTED_PARAMS_LABEL]
             self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
             self.content['params'] = self._parameters.to_dict()
 

@@ -9,4 +9,3 @@ And answers for them
    abstract
    features
    api_usage
-   problem_solving
