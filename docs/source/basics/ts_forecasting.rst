@@ -234,6 +234,19 @@ validation with ``validation_blocks`` number of steps. In these case:
 Prediction
 ~~~~~~~~~~
 
+There are two approaches to time-series forecasting: in-sample and out-of-sample.
+For example, our trained model forecasts 10 values ahead and our training sample length is 100. With in-sample
+forecast we will predict 10 last values of our training sample using 90 first values as prehistory.
+With out-of-sample we will predict 10 future values of the training sample using the whole sample of 100 values
+as prehistory.
+
+To obtain forecast with length exceeding the forecast length (depth) model was trained for, we use iterative prediction.
+For example, our trained model forecasts 10 values ahead, but we want to forecast 20 values.
+With out-of-sample approach we would predict 10 values and then use those values to forecast
+another 10 values. But with in-sample approach we forecast already known parts of
+time-series. And after forecasting first 10 values we would use real values from time-series
+to forecast next 10 values.
+
 You can use two methods for time-series forecasting: ``Fedot.predict`` - in-sample forecast, ``Fedot.forecast`` -
 out-of-sample forecast.
 
