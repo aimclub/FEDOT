@@ -1,27 +1,14 @@
-from typing import Iterator, Optional, Tuple, Type
+from typing import Iterator, Optional, Tuple, Union
 
 import numpy as np
-from golem.core.log import LoggerAdapter, default_log
+
+from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.repository.tasks import TaskTypesEnum
 from sklearn.model_selection import KFold, TimeSeriesSplit
-from sklearn.model_selection._split import _BaseKFold
+from sklearn.model_selection._split import StratifiedKFold
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.repository.dataset_types import DataTypesEnum
-
-
-class OneFoldInputDataSplit:
-    """ Perform one fold split (hold out) for InputData structures """
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def input_split(input_data: InputData, **kwargs):
-        # Train test split
-        train_input, test_input = train_test_data_setup(input_data, **kwargs)
-
-        yield train_input, test_input
+from fedot.core.data.data_split import _split_input_data_by_indexes
 
 
 class TsInputDataSplit(TimeSeriesSplit):
@@ -40,127 +27,59 @@ class TsInputDataSplit(TimeSeriesSplit):
         train - [1, 2, 3, 4, 5, 6, 7, 8] test - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     """
 
-    def __init__(self, validation_blocks: int, **params):
-        super().__init__(**params)
-        self.validation_blocks = validation_blocks
-        self.params = params
+    def __init__(self, n_splits: int, test_size: int):
+        super().__init__(gap=0, n_splits=n_splits, test_size=test_size)
 
-    def input_split(self, input_data: InputData) -> Iterator[Tuple[InputData, InputData]]:
-        """ Splitting into datasets for train and validation using
+    def split(self, data: np.ndarray, *args) -> Iterator[Tuple[InputData, InputData]]:
+        """ Define indexes for train and validation using
         "in-sample forecasting" algorithm
 
-        :param input_data: InputData for splitting
+        :param data: InputData for splitting
         """
-        # Transform InputData into numpy array
-        data_for_split = np.array(input_data.target)
 
-        for train_ids, test_ids in super().split(data_for_split):
-            if len(train_ids) <= len(test_ids):
-                raise ValueError("Train size will be too small with selected number of folds and validation blocks")
-            # Return train part by ids
-            train_features, train_target = _ts_data_by_index(train_ids, train_ids, input_data)
-            train_data = InputData(idx=np.arange(0, len(train_target)),
-                                   features=train_features, target=train_target,
-                                   task=input_data.task,
-                                   data_type=input_data.data_type,
-                                   supplementary_data=input_data.supplementary_data)
-
-            # Unit all ids for "in-sample validation"
-            all_ids = np.hstack((train_ids, test_ids))
-            # In-sample validation dataset
-            val_features, val_target = _ts_data_by_index(all_ids, all_ids, input_data)
-            validation_data = InputData(idx=np.arange(0, len(val_target)),
-                                        features=val_features, target=val_target,
-                                        task=input_data.task,
-                                        data_type=input_data.data_type,
-                                        supplementary_data=input_data.supplementary_data)
-
-            yield train_data, validation_data
+        for train_ids, test_ids in super().split(data):
+            new_test_ids = np.hstack((train_ids, test_ids))
+            yield train_ids, new_test_ids
 
 
-def tabular_cv_generator(data: InputData,
-                         folds: int,
-                         split_method: Type[_BaseKFold] = KFold) -> Iterator[Tuple[InputData, InputData]]:
+def cv_generator(data: Union[InputData, MultiModalData],
+                 cv_folds: Optional[int] = None,
+                 shuffle: bool = False,
+                 random_seed: int = 42,
+                 stratify: bool = True,
+                 validation_blocks: Optional[int] = None) -> Iterator[Tuple[Union[InputData, MultiModalData],
+                                                                            Union[InputData, MultiModalData]]]:
     """ The function for splitting data into a train and test samples
-        in the InputData format for KFolds cross validation. The function
+        in the InputData format for cross validation. The function
         return a generator of tuples, consisting of a pair of train, test.
 
     :param data: InputData for train and test splitting
-    :param folds: number of folds
-    :param split_method: method to split data (f.e. stratify KFold)
+    :param shuffle: is data need shuffle
+    :param cv_folds: number of folds
+    :param random_seed: random seed for shuffle
+    :param stratify: `True` to make stratified samples for classification task
+    :param validation_blocks: validation blocks for timeseries data,
 
-    :return Iterator[InputData, InputData]: return split train/test data
+    :return Iterator[Tuple[Union[InputData, MultiModalData],
+                           Union[InputData, MultiModalData]]]: return split train/test data
     """
-    kf = split_method(n_splits=folds, shuffle=True, random_state=42)
 
-    for train_idxs, test_idxs in kf.split(data.features, data.target):
-        train_features, train_target = _table_data_by_index(train_idxs, data)
-        test_features, test_target = _table_data_by_index(test_idxs, data)
+    # Define base class for generate cv folds
+    if data.task.task_type is TaskTypesEnum.ts_forecasting:
+        if validation_blocks is None:
+            raise ValueError('validation_blocks is None')
+        horizon = data.task.task_params.forecast_length * validation_blocks
+        kf = TsInputDataSplit(n_splits=cv_folds, test_size=horizon)
+        reset_idx = True
+    elif data.task.task_type is TaskTypesEnum.classification and stratify:
+        kf = StratifiedKFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
+        reset_idx = False
+    else:
+        kf = KFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
+        reset_idx = False
 
-        idx_for_train = np.arange(0, len(train_features))
-        idx_for_test = np.arange(0, len(test_features))
-
-        train_data = InputData(idx=idx_for_train,
-                               features=train_features,
-                               target=train_target,
-                               task=data.task,
-                               data_type=data.data_type,
-                               supplementary_data=data.supplementary_data)
-        test_data = InputData(idx=idx_for_test,
-                              features=test_features,
-                              target=test_target,
-                              task=data.task,
-                              data_type=data.data_type,
-                              supplementary_data=data.supplementary_data)
-
+    # Split
+    for train_ids, test_ids in kf.split(data.target, data.target):
+        train_data = _split_input_data_by_indexes(data, train_ids, reset_idx=reset_idx)
+        test_data = _split_input_data_by_indexes(data, test_ids, reset_idx=reset_idx)
         yield train_data, test_data
-
-
-def ts_cv_generator(data: InputData, folds: int,
-                    validation_blocks: int = 1, log: Optional[LoggerAdapter] = None) \
-        -> Iterator[Tuple[InputData, InputData]]:
-    """ Splitting data for time series cross validation
-
-    :param data: source InputData with time series data type
-    :param folds: number of folds
-    :param validation_blocks: number of validation block per each fold
-    :param log: log object
-    """
-    if not log:
-        log = default_log(prefix=__name__)
-    validation_blocks = int(validation_blocks)
-    # Forecast horizon for each fold
-    horizon = data.task.task_params.forecast_length * validation_blocks
-
-    try:
-        tscv = TsInputDataSplit(gap=0, validation_blocks=validation_blocks,
-                                n_splits=folds, test_size=horizon)
-        for train_data, test_data in tscv.input_split(data):
-            yield train_data, test_data
-    except ValueError:
-        log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
-        # Perform one fold validation (folds parameter will be ignored)
-
-        one_fold_split = OneFoldInputDataSplit()
-        for train_data, test_data in one_fold_split.input_split(data, validation_blocks=validation_blocks):
-            yield train_data, test_data
-
-
-def _table_data_by_index(index, values: InputData):
-    """ Allow to get tabular data by indexes of elements """
-    features = values.features[index, :]
-    target = np.take(values.target, index)
-
-    return features, target
-
-
-def _ts_data_by_index(train_ids, test_ids, data):
-    """ Allow to get time series data by indexes of elements """
-    features = data.features[train_ids]
-    target = data.target[test_ids]
-
-    # Use only the first time-series as target for multi_ts
-    if data.data_type == DataTypesEnum.multi_ts:
-        target = target[:, 0]
-
-    return features, target

@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Optional
+from typing import Optional, Union
 
 from golem.core.log import default_log
 
@@ -7,11 +7,10 @@ from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
+from fedot.core.validation.split import cv_generator
 
 
 class DataSourceSplitter:
@@ -31,32 +30,45 @@ class DataSourceSplitter:
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
-                 shuffle: bool = False):
+                 shuffle: bool = True,
+                 stratify: bool = True,
+                 random_seed: int = 42):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
         self.shuffle = shuffle
-        self.advisor = DataObjectiveAdvisor()
+        self.stratify = stratify
+        self.random_seed = random_seed
         self.log = default_log(self)
 
-    def build(self, data: InputData) -> DataSource:
-        # Shuffle data
-        if self.shuffle and data.task.task_type is not TaskTypesEnum.ts_forecasting:
-            data.shuffle()
-
+    def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # Check split_ratio
-        split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        if not (0 < split_ratio < 1):
-            raise ValueError(f'split_ratio is {split_ratio} but should be between 0 and 1')
+        self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+        if not (0 < self.split_ratio < 1):
+            raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        # Calculate the number of validation blocks
-        if self.validation_blocks is None and data.task.task_type is TaskTypesEnum.ts_forecasting:
-            self._propose_cv_folds_and_validation_blocks(data, split_ratio)
+        # Check cv_folds and do holdout if cv_folds less than 2
+        if self.cv_folds is not None and self.cv_folds < 2:
+            self.cv_folds = None
+
+        # Calculate the number of validation blocks for timeseries forecasting
+        if data.task.task_type is TaskTypesEnum.ts_forecasting and self.validation_blocks is None:
+            self._propose_cv_folds_and_validation_blocks(data, self.split_ratio)
+
+        # Forbid stratify for nonclassification tasks
+        if data.task.task_type is not TaskTypesEnum.classification:
+            self.stratify = False
 
         # Split data
         if self.cv_folds is not None:
             self.log.info("K-folds cross validation is applied.")
-            data_producer = self._build_kfolds_producer(data)
+            data_producer = partial(cv_generator,
+                                    data=data,
+                                    shuffle=self.shuffle,
+                                    cv_folds=self.cv_folds,
+                                    random_seed=self.random_seed,
+                                    stratify=self.stratify,
+                                    validation_blocks=self.validation_blocks)
         else:
             self.log.info("Hold out validation is applied.")
             data_producer = self._build_holdout_producer(data)
@@ -73,28 +85,17 @@ class DataSourceSplitter:
         that always returns same data split. Equivalent to 1-fold validation.
         """
 
-        split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
+        train_data, test_data = train_test_data_setup(data,
+                                                      split_ratio=self.split_ratio,
+                                                      stratify=self.stratify,
+                                                      random_seed=self.random_seed,
+                                                      shuffle=self.shuffle,
+                                                      validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().is_enabled:
             init_data_for_remote_execution(train_data)
 
         return partial(self._data_producer, train_data, test_data)
-
-    def _build_kfolds_producer(self, data: InputData) -> DataSource:
-        if isinstance(data, MultiModalData):
-            raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-        if data.task.task_type is TaskTypesEnum.ts_forecasting:
-            # Perform time series cross validation
-            cv_generator = partial(ts_cv_generator, data,
-                                   self.cv_folds,
-                                   self.validation_blocks,
-                                   self.log)
-        else:
-            cv_generator = partial(tabular_cv_generator, data,
-                                   self.cv_folds,
-                                   self.advisor.propose_kfold(data))
-        return cv_generator
 
     def _propose_cv_folds_and_validation_blocks(self, data, split_ratio):
         data_shape = data.target.shape[0]
