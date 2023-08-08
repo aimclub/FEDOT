@@ -173,39 +173,11 @@ Plot of the forecast:
 Time-series validation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-While using FEDOT for forecasting you can set two parameters that will effect
-the way pipelines are evaluated during structural design:
+FEDOT uses in-sample forecasting for time-series validation.
+While using FEDOT for forecasting you can set ``cv_folds`` parameter that sets number
+of folds for cross validation of a time-series.
+The size of validation sample in each fold is almost the maximum possible size and multiple of ``forecast_length``.
 
-- ``cv_folds``
-- ``validation_blocks``
-
-Let's consider meaning of these parameters.
-
-There are two approaches to time-series forecasting: in-sample and out-of-sample.
-For example, our trained model forecasts 10 values ahead and our training sample length is 100. With in-sample
-forecast we will predict 10 last values of our training sample using 90 first values as prehistory.
-With out-of-sample we will predict 10 future values of the training sample using the whole sample of 100 values
-as prehistory.
-
-To obtain forecast with length exceeding the forecast length (depth) model was trained for, we use iterative prediction.
-For example, our trained model forecasts 10 values ahead, but we want to forecast 20 values.
-With out-of-sample approach we would predict 10 values and then use those values to forecast
-another 10 values. But with in-sample approach we forecast already known parts of
-time-series. And after forecasting first 10 values we would use real values from time-series
-to forecast next 10 values.
-
-FEDOT uses in-sample forecasting for time-series validation. ``validation_blocks`` specifies
-number of steps made during in-sample forecast.
-
-For instance, ``forecast length=10`` and
-``validation_blocks=3`` then while validation in-sample forecast of length
-``forecast_length * validation_blocks = 30`` will be used.
-
-``cv_folds`` parameter sets number of folds for cross validation of a time-series.
-
-Finally, using ``cv_folds`` and ``validation_blocks`` together will result in splitting
-a time-series into ``cv_folds`` number of folds and applying in-sample forecast with
-``validation_blocks`` number of steps in each fold.
 
 |ts_cv|
 
@@ -262,6 +234,19 @@ validation with ``validation_blocks`` number of steps. In these case:
 Prediction
 ~~~~~~~~~~
 
+There are two approaches to time-series forecasting: in-sample and out-of-sample.
+For example, our trained model forecasts 10 values ahead and our training sample length is 100. With in-sample
+forecast we will predict 10 last values of our training sample using 90 first values as prehistory.
+With out-of-sample we will predict 10 future values of the training sample using the whole sample of 100 values
+as prehistory.
+
+To obtain forecast with length exceeding the forecast length (depth) model was trained for, we use iterative prediction.
+For example, our trained model forecasts 10 values ahead, but we want to forecast 20 values.
+With out-of-sample approach we would predict 10 values and then use those values to forecast
+another 10 values. But with in-sample approach we forecast already known parts of
+time-series. And after forecasting first 10 values we would use real values from time-series
+to forecast next 10 values.
+
 You can use two methods for time-series forecasting: ``Fedot.predict`` - in-sample forecast, ``Fedot.forecast`` -
 out-of-sample forecast.
 
@@ -269,8 +254,7 @@ In-sample forecast
 ------------------
 
 ``Fedot.predict`` allows you to obtain iterative **in-sample** forecast with depth of ``forecast_length * validation_blocks``.
-Method uses ``forecast_length`` specified in the task parameters and ``validation_blocks`` specified while model
-initialization by default. But number of ``validation_blocks`` can be changed. This method uses ``features`` as sample and gets forecast in the way
+Method uses ``forecast_length`` specified in the task parameters. This method uses ``features`` as sample and gets forecast in the way
 described in the picture (``validation_blocks=3``).
 
 |in_sample_predict|
@@ -278,7 +262,7 @@ described in the picture (``validation_blocks=3``).
 .. |in_sample_predict| image:: img_utilities/ts_forecasting/in_sample_predict.png
    :width: 80%
 
-Example of in-sample forecast where number of ``validation_blocks`` is equal to ``validation_blocks`` set for the model.
+Example of in-sample forecast.
 
 .. code-block:: python
 
@@ -300,18 +284,17 @@ Example of in-sample forecast where number of ``validation_blocks`` is equal to 
     train_data, test_data = train_test_data_setup(train_input, validation_blocks=3)
 
     # init model for the time-series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
-                  cv_folds=2, validation_blocks=3)
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params, cv_folds=2)
 
     # run AutoML model design
     pipeline = model.fit(train_data)
 
     # use model to obtain three-step in-sample forecast
-    in_sample_forecast = model.predict(test_data)
+    in_sample_forecast = model.predict(test_data, validation_blocks=3)
 
     # get metrics for the prediction
-    print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+    print('Metrics for three-step in-sample forecast: ',
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'], validation_blocks=3))
 
     # plot forecasting result
     model.plot_prediction()
@@ -323,8 +306,7 @@ Plot of the forecast:
 .. |in_sample_3_forecast| image:: img_utilities/ts_forecasting/in_sample_3_forecast.png
    :width: 80%
 
-Example of in-sample forecast where number of ``validation_blocks`` is not equal to ``validation_blocks``
-set for the model.
+Another example of in-sample forecast.
 
 .. code-block:: python
 
@@ -334,7 +316,7 @@ set for the model.
 
     # init model for the time-series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task.task_params,
-                  cv_folds=2, validation_blocks=3)
+                  cv_folds=2)
 
     # run AutoML model design
     pipeline = model.fit(train_data)
@@ -391,8 +373,7 @@ Example of forecast with default horizon.
     train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time-series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
-                  cv_folds=2, validation_blocks=3)
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params, cv_folds=2)
 
     # run AutoML model design
     pipeline = model.fit(train_data)
@@ -401,7 +382,7 @@ Example of forecast with default horizon.
     out_of_sample_forecast = model.forecast(test_data)
 
     # get metrics for the prediction
-    print('Metrics for two-step in-sample forecast: ',
+    print('Metrics for out-of-sample forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
 
     # plot forecasting result
@@ -423,8 +404,7 @@ Example of forecast with ``horizon > forecast_length``.
     train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time-series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task.task_params,
-                  cv_folds=2, validation_blocks=3)
+    model = Fedot(problem='ts_forecasting', task_params=task.task_params, cv_folds=2)
 
     # run AutoML model design
     pipeline = model.fit(train_data)
@@ -482,8 +462,7 @@ to expand training sample - after lagged transformation you get more train/targe
                   task_params=task.task_params,
                   timeout=5,
                   n_jobs=-1,
-                  cv_folds=2,
-                  validation_blocks=2) # number of forecasting steps used during model validation
+                  cv_folds=2)
 
     # run AutoML model design
     pipeline = model.fit(train_data)
@@ -491,8 +470,9 @@ to expand training sample - after lagged transformation you get more train/targe
     pipeline.show()
 
     # use model to obtain two-step in-sample forecast
-    forecast = model.predict(test_data)
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=test_data.target))
+    forecast = model.predict(test_data, validation_blocks=2)
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+                            target=test_data.target, validation_blocks=2))
 
 Sample output:
 

@@ -38,25 +38,26 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
     return train_data, test_data
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks=2, timeout: float = None,
-                               visualization=False, with_tuning=True):
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
+                               visualization=False, with_tuning=True, validation_blocks=2):
     train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
-                  n_jobs=1,
+                  n_jobs=-1,
                   with_tuning=with_tuning,
-                  cv_folds=2, validation_blocks=validation_blocks, preset='fast_train')
+                  cv_folds=2, preset='fast_train')
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
-    in_sample_forecast = model.predict(test_data)
+    in_sample_forecast = model.predict(test_data, validation_blocks=validation_blocks)
     print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+                            validation_blocks=validation_blocks))
 
     # plot forecasting result
     if visualization:
@@ -67,7 +68,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     train_data, test_data = get_ts_data(dataset, horizon)
     simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+                            validation_blocks=validation_blocks))
     if visualization:
         model.plot_prediction()
 

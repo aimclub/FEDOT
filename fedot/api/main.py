@@ -110,8 +110,6 @@ class Fedot:
                 - ``5`` -> for classification and regression tasks
                 - ``3`` -> for time series forecasting task
 
-        validation_blocks (int): number of validation blocks for time series forecasting. Default value is ``2``.
-
         show_progress (bool): indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
         num_of_generations (int): number of evolutionary generations for composer. Defaults to ``None`` - no limit.
@@ -129,7 +127,7 @@ class Fedot:
         genetic_scheme (str): name of the genetic scheme. Defaults to ``steady_state``.
 
         with_tuning (bool): flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
-            Defaults to ``True``.
+            Defaults to ``False``.
 
         preset (str): name of the preset for model building (e.g. ``'best_quality'``, ``'fast_train'``, ``'gpu'``).
             Default value is ``'auto'``.
@@ -168,7 +166,8 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed: Optional[int] = None, logging_level: int = logging.ERROR,
+                 seed: Optional[int] = None,
+                 logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
                  **composer_tuner_params
@@ -274,7 +273,6 @@ class Fedot:
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
              cv_folds: Optional[int] = None,
-             validation_blocks: Optional[int] = None,
              n_jobs: Optional[int] = None,
              show_progress: bool = False) -> Pipeline:
         """Method for hyperparameters tuning of current pipeline
@@ -285,7 +283,6 @@ class Fedot:
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
             cv_folds: number of folds on data for cross-validation.
-            validation_blocks: number of validation blocks (used for time-series forecasting problem).
             n_jobs: num of ``n_jobs`` for parallelization (``-1`` for use all cpu's).
             show_progress: shows progress of tuning if ``True``.
 
@@ -298,7 +295,6 @@ class Fedot:
 
         input_data = input_data or self.train_data
         cv_folds = cv_folds or self.params.get('cv_folds')
-        validation_blocks = validation_blocks or self.params.get('validation_blocks')
         n_jobs = n_jobs or self.params.n_jobs
 
         metric = self.metrics.obtain_metrics(metric_name)[0] if metric_name else self.metrics.metric_functions[0]
@@ -306,7 +302,6 @@ class Fedot:
         pipeline_tuner = (TunerBuilder(self.params.task)
                           .with_tuner(SimultaneousTuner)
                           .with_cv_folds(cv_folds)
-                          .with_validation_blocks(validation_blocks)
                           .with_n_jobs(n_jobs)
                           .with_metric(metric)
                           .with_iterations(iterations)
@@ -336,8 +331,6 @@ class Fedot:
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
-                If ``validation_blocks = None`` uses number of validation blocks set during model initialization
-                (default is ``2``).
 
 
         Returns:
@@ -348,7 +341,6 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
-        validation_blocks = validation_blocks or self.params.get('validation_blocks')
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
@@ -492,7 +484,6 @@ class Fedot:
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
-                If ``None``, uses number of validation blocks set during model initialization (default is ``2``).
 
         Returns:
             The values of quality metrics.
@@ -515,15 +506,14 @@ class Fedot:
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 
-        if in_sample:
-            validation_blocks = validation_blocks or self.params.get('validation_blocks')
-        else:
+        if not in_sample:
             validation_blocks = None
 
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
                                              data_producer=lambda: (yield self.train_data, self.test_data),
-                                             validation_blocks=validation_blocks, eval_n_jobs=self.params.n_jobs,
+                                             validation_blocks=validation_blocks,
+                                             eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values

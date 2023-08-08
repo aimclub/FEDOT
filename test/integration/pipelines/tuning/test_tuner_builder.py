@@ -23,11 +23,11 @@ from test.unit.validation.test_table_cv import get_classification_data
 
 
 def get_objective_evaluate(metric: MetricType, data: InputData,
-                           cv_folds: Optional[int] = None, validation_blocks: Optional[int] = None) \
+                           cv_folds: Optional[int] = None) \
         -> PipelineObjectiveEvaluate:
     objective = MetricsObjective(metric)
-    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    data_producer = DataSourceSplitter(cv_folds).build(data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     return objective_evaluate
 
 
@@ -50,9 +50,8 @@ def test_tuner_builder_with_custom_params(tuner_class):
     pipeline = pipeline_first_test()
     metric = ClassificationMetricsEnum.accuracy
     cv_folds = 3
-    validation_blocks = 2
 
-    objective_evaluate = get_objective_evaluate(metric, data, cv_folds, validation_blocks)
+    objective_evaluate = get_objective_evaluate(metric, data, cv_folds)
     timeout = timedelta(minutes=2)
     early_stopping = 100
     iterations = 10
@@ -63,7 +62,6 @@ def test_tuner_builder_with_custom_params(tuner_class):
         .with_tuner(tuner_class)
         .with_metric(metric)
         .with_cv_folds(cv_folds)
-        .with_validation_blocks(validation_blocks)
         .with_timeout(timeout)
         .with_early_stopping_rounds(early_stopping)
         .with_iterations(iterations)

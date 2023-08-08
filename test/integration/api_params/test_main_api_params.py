@@ -48,7 +48,6 @@ def test_timeout(case: TimeoutParams):
         'max_arity': 1,
         'pop_size': 1,
         'with_tuning': False,
-        'validation_blocks': 1,
         'genetic_scheme': GeneticSchemeTypesEnum.generational,
         'num_of_generations': case.test_input['num_of_generations']
     }

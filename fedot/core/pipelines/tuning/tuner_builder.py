@@ -38,7 +38,6 @@ class TunerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.cv_folds = requirements.cv_folds
-        self.validation_blocks = requirements.validation_blocks
         self.n_jobs = requirements.n_jobs
         return self
 
@@ -94,11 +93,12 @@ class TunerBuilder:
 
     def build(self, data: InputData) -> BaseTuner:
         objective = MetricsObjective(self.metric)
-        data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
+        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
+        data_producer = data_splitter.build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
-                                                       validation_blocks=self.validation_blocks,
                                                        time_constraint=self.eval_time_constraint,
-                                                       eval_n_jobs=self.n_jobs)  # because tuners are not parallelized
+                                                       eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
+                                                       validation_blocks=data_splitter.validation_blocks)
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  adapter=self.adapter,
                                  iterations=self.iterations,

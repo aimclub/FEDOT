@@ -65,8 +65,7 @@ def run_automl(data: MultiModalData, features_to_use,
                        'num_of_generations': 100,
                        'preset': 'fast_train',
                        'metric': 'rmse',
-                       'cv_folds': None,
-                       'validation_blocks': None}
+                       'cv_folds': None}
 
     automl = Fedot(problem='ts_forecasting', timeout=timeout, **composer_params)
 

@@ -1,5 +1,8 @@
+import os.path
 import sys
 from abc import abstractmethod
+from pathlib import Path
+from uuid import uuid4
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absolute_error,
@@ -11,6 +14,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utils import default_fedot_data_dir
+from fedot.utilities.debug import is_analytic_mode
 
 
 def from_maximised_metric(metric_func):
@@ -69,6 +74,19 @@ class QualityMetric:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
+
+            if is_analytic_mode():
+                from fedot.core.data.visualisation import plot_forecast
+
+                pipeline_id = str(uuid4())
+                save_path = Path(default_fedot_data_dir(), 'ts_forecasting_debug', pipeline_id)
+                if not os.path.exists(save_path):
+                    os.makedirs(save_path)
+                pipeline.show(save_path=Path(save_path, 'pipeline.png'))
+                plot_forecast(reference_data, results, in_sample=True,
+                              title=f'Forecast with metric {round(metric, 4)}',
+                              save_path=Path(save_path, 'forecast.png'))
+
         except Exception as ex:
             pipeline.log.info(f'Metric can not be evaluated because of: {ex}')
 
@@ -120,7 +138,7 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_prediction(pipeline, data, validation_blocks):
+    def _in_sample_prediction(pipeline: 'Pipeline', data: InputData, validation_blocks: int):
         """ Performs in-sample pipeline validation for time series prediction """
 
         horizon = int(validation_blocks * data.task.task_params.forecast_length)

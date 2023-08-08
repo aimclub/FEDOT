@@ -88,7 +88,6 @@ def test_tuner_cv_correct():
         .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(folds) \
-        .with_validation_blocks(validation_blocks)\
         .with_iterations(1) \
         .with_timeout(datetime.timedelta(minutes=1))\
         .build(time_series)
@@ -111,7 +110,6 @@ def test_composer_cv_correct():
         num_of_generations=2,
         timeout=datetime.timedelta(seconds=5),
         cv_folds=2,
-        validation_blocks=validation_blocks,
         show_progress=False)
     parameters = GPAlgorithmParameters(
         pop_size=2,
@@ -142,7 +140,6 @@ def test_api_cv_correct():
                        'preset': 'fast_train',
                        'cv_folds': folds,
                        'num_of_generations': 1,
-                       'validation_blocks': validation_blocks,
                        'show_progress': False}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 

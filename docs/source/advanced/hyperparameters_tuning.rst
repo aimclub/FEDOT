@@ -93,7 +93,6 @@ To initialize a tuner you can use ``TunerBuilder``.
 * with_tuner_
 * with_requirements_
 * with_cv_folds_
-* with_validation_blocks_
 * with_n_jobs_
 * with_metric_
 * with_iterations_
@@ -127,11 +126,11 @@ Evaluation
 
 .. _with_requirements:
 
-Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (applied only for timeseries forecasting) and n_jobs.
+Use ``.with_requirements()`` to set number of cv_folds and n_jobs.
 
 .. code-block:: python
 
-    requirements = PipelineComposerRequirements(cv_folds=2, validation_blocks=3, n_jobs=2)
+    requirements = PipelineComposerRequirements(cv_folds=2, n_jobs=2)
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_requirements(requirements) \
@@ -141,17 +140,15 @@ Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (appli
 
 .. _with_cv_folds:
 
-.. _with_validation_blocks:
 
 .. _with_n_jobs:
 
-Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jobs()`` to set corresponding values separately.
+Or use methods ``.with_cv_folds()``, ``.with_n_jobs()`` to set corresponding values separately.
 
 .. code-block:: python
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_cv_folds(3) \
-        .with_validation_blocks(2) \
         .with_n_jobs(-1) \
         .build(train_data)
 
@@ -215,7 +212,7 @@ Specify metric to optimize using ``.with_metric()``.
     from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-    def custom_metric(graph: Graph, reference_data: InputData, validation_blocks: int, **kwargs):
+    def custom_metric(graph: Graph, reference_data: InputData, **kwargs):
         result = graph.predict(reference_data)
         mse_value = mse(reference_data.target, result.predict, squared=False)
         return (mse_value + 2) * 0.5
@@ -512,8 +509,6 @@ Sequential tuning
 
     cv_folds = 3
 
-    validation_blocks = 4
-
     metric = RegressionMetricsEnum.RMSE
 
     iterations = 1000
@@ -535,7 +530,6 @@ Sequential tuning
     pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
         .with_cv_folds(cv_folds) \
-        .with_validation_blocks(validation_blocks) \
         .with_metric(metric) \
         .with_iterations(iterations) \
         .with_early_stopping_rounds(early_stopping_rounds) \

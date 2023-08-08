@@ -178,8 +178,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
                                                forecast_length=forecast_length)
         model = Fedot(
             problem=task_type,
-            task_params=TsForecastingParams(forecast_length=forecast_length),
-            validation_blocks=1)
+            task_params=TsForecastingParams(forecast_length=forecast_length))
     else:
         train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=10, iris_dataset=False)
         model = Fedot(problem=task_type)
@@ -202,8 +201,7 @@ def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=1)
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
-                  task_params=TsForecastingParams(forecast_length=forecast_length),
-                  validation_blocks=1)
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data, predefined_model='auto')
     ts_forecast = model.predict(features=test_data)
@@ -218,8 +216,7 @@ def test_api_in_sample_ts_predict_correct(validation_blocks, task_type: str = 't
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type, validation_blocks=validation_blocks)
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
-                  task_params=TsForecastingParams(forecast_length=forecast_length),
-                  validation_blocks=validation_blocks)
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data, predefined_model='auto')
     ts_forecast = model.predict(features=test_data, validation_blocks=validation_blocks)
@@ -234,7 +231,6 @@ def test_api_in_sample_multi_ts_predict_correct(validation_blocks, task_type: st
     train_data, test_data = get_multi_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
     model = Fedot(problem='ts_forecasting', **TESTS_MAIN_API_DEFAULT_PARAMS,
                   task_params=TsForecastingParams(forecast_length=forecast_length),
-                  validation_blocks=validation_blocks,
                   available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
                                         'ridge', 'lasso', 'linear', 'cut'])
 

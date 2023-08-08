@@ -136,7 +136,8 @@
         "interpretable",
         "non_lagged",
         "linear",
-        "correct_params"
+        "correct_params",
+        "non-default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -148,7 +149,8 @@
         "interpretable",
         "non_lagged",
         "linear",
-        "new_data_refit"
+        "new_data_refit",
+        "non-default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -348,7 +350,8 @@
         "interpretable",
         "non_lagged",
         "linear",
-        "new_data_refit"
+        "new_data_refit",
+        "non-default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },

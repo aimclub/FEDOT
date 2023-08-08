@@ -72,14 +72,12 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     predicted_values = pipeline.predict(predict_input)
     old_predicted_values = predicted_values.predict
     cv_folds = 3
-    validation_blocks = 2
 
     start_time = timeit.default_timer()
     pipeline_tuner = TunerBuilder(task)\
         .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(cv_folds) \
-        .with_validation_blocks(validation_blocks)\
         .with_iterations(20) \
         .build(train_input)
     pipeline = pipeline_tuner.tune(pipeline)
