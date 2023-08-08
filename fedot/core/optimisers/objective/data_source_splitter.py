@@ -10,7 +10,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
-from fedot.core.validation.cv_folds import cv_generator
+from fedot.core.data.cv_folds import cv_generator
 
 
 class DataSourceSplitter:
@@ -42,22 +42,35 @@ class DataSourceSplitter:
         self.log = default_log(self)
 
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
-        # Check split_ratio
+        # define split_ratio
         self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
-        if not (0 < self.split_ratio < 1):
-            raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        # Check cv_folds and do holdout if cv_folds less than 2
-        if self.cv_folds is not None and self.cv_folds < 2:
-            self.cv_folds = None
+        # Check cv_folds
+        if self.cv_folds is not None:
+            if not isinstance(self.cv_folds, int):
+                if self.cv_folds % 1 != 0:
+                    raise ValueError(f"cv_folds is not integer: {self.cv_folds}")
+                self.cv_folds = int(self.cv_folds)
+            if self.cv_folds < 2:
+                self.cv_folds = None
+            if self.cv_folds > data.target.shape[0] - 1:
+                raise ValueError((f"cv_folds ({self.cv_folds}) is greater than"
+                                  f" the maximum allowed count {data.target.shape[0] - 1}"))
 
         # Calculate the number of validation blocks for timeseries forecasting
         if data.task.task_type is TaskTypesEnum.ts_forecasting and self.validation_blocks is None:
-            self._propose_cv_folds_and_validation_blocks(data, self.split_ratio)
+            self._propose_cv_folds_and_validation_blocks(data)
 
-        # Forbid stratify for nonclassification tasks
+        # Check split_ratio
+        if self.cv_folds is None and not (0 < self.split_ratio < 1):
+            raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
+
         if data.task.task_type is not TaskTypesEnum.classification:
+            # Forbid stratify for nonclassification tasks
             self.stratify = False
+        else:
+            if self.stratify:
+                self.shuffle = True
 
         # Split data
         if self.cv_folds is not None:
@@ -97,7 +110,7 @@ class DataSourceSplitter:
 
         return partial(self._data_producer, train_data, test_data)
 
-    def _propose_cv_folds_and_validation_blocks(self, data, split_ratio):
+    def _propose_cv_folds_and_validation_blocks(self, data):
         data_shape = data.target.shape[0]
         forecast_length = data.task.task_params.forecast_length
         # check that cv folds may be realized
@@ -119,14 +132,14 @@ class DataSourceSplitter:
                                    " Cross validation is switched off."))
 
         if self.cv_folds is None:
-            test_shape = int(data_shape * (1 - split_ratio))
+            test_shape = int(data_shape * (1 - self.split_ratio))
             if forecast_length > test_shape:
-                split_ratio = 1 - forecast_length / data_shape
+                self.split_ratio = 1 - forecast_length / data_shape
                 self.log.info((f"Forecast length ({forecast_length}) is greater than test length"
                                f" ({test_shape}) defined by split ratio."
-                               f" Split ratio is changed to {split_ratio}."))
-            test_share = 1 - split_ratio
-            self.split_ratio = split_ratio
+                               f" Split ratio is changed to {self.split_ratio}."))
+            test_share = 1 - self.split_ratio
+            self.split_ratio = self.split_ratio
         else:
             test_share = 1 / (self.cv_folds + 1)
         self.validation_blocks = int(data_shape * test_share // forecast_length)

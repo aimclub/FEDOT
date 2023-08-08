@@ -72,9 +72,11 @@ def cv_generator(data: Union[InputData, MultiModalData],
         kf = TsInputDataSplit(n_splits=cv_folds, test_size=horizon)
         reset_idx = True
     elif data.task.task_type is TaskTypesEnum.classification and stratify:
-        kf = StratifiedKFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
+        kf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_seed)
         reset_idx = False
     else:
+        if not shuffle:
+            random_seed = None
         kf = KFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
         reset_idx = False
 

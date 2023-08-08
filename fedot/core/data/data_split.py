@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData], index, reset_idx=False):
@@ -73,9 +74,9 @@ def _split_time_series(data: InputData,
 
 def _split_any(data: InputData,
                split_ratio: float,
-               shuffle: Optional[bool] = None,
-               stratify: Optional[bool] = None,
-               random_seed: Optional[int] = None,
+               shuffle: bool,
+               stratify: bool,
+               random_seed: int,
                **kwargs):
     """ Split any data except timeseries into train and test parts
 
@@ -87,6 +88,7 @@ def _split_any(data: InputData,
     """
 
     if stratify and shuffle:
+        # check that there are enough labels for stratify
         stratify_labels = data.target
         test_size = round(len(data.target) * (1. - split_ratio))
         labels_num = np.unique(stratify_labels).shape[0]
@@ -126,6 +128,10 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
 
     :return: data for train, data for validation
     """
+
+    if data.task.task_type is TaskTypesEnum.classification and stratify:
+        shuffle = True
+
     input_arguments = {'split_ratio': split_ratio,
                        'shuffle': shuffle,
                        'stratify': stratify,
