@@ -10,7 +10,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
-from fedot.core.validation.split import cv_generator
+from fedot.core.validation.cv_folds import cv_generator
 
 
 class DataSourceSplitter:

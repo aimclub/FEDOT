@@ -12,7 +12,7 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
-from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
+from fedot.core.validation.cv_folds import tabular_cv_generator, ts_cv_generator
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
 
