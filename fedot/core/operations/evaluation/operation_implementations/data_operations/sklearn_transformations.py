@@ -362,8 +362,6 @@ class ImputationImplementation(DataOperationImplementation):
         # Calculate unique values per column (excluding nans)
         for column_id, col in enumerate(df):
             unique_values = df[col].dropna().unique()
-            # TODO: test data processed without information about train data
-            #       it may lead to errors
             if len(unique_values) == 2:
                 # Current numerical column has only two values
                 column_info = {column_id: {'min': min(unique_values),

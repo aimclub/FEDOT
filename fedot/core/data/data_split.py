@@ -126,6 +126,8 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
     # check that there are enough labels for two samples
     if not all(x > 1 for x in classes[1]):
         if __debug__:
+            # tests often use very small datasets that are not suitable for data splitting
+            # for test stratification is disabled in that case
             return False
         else:
             raise ValueError(("There is the only value for some classes:"
@@ -144,6 +146,7 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
 def train_test_data_setup(data: Union[InputData, MultiModalData],
                           split_ratio: float = 0.8,
                           shuffle: bool = False,
+                          shuffle_flag: bool = False,
                           stratify: bool = True,
                           random_seed: int = 42,
                           validation_blocks: Optional[int] = None) -> Tuple[Union[InputData, MultiModalData],
@@ -153,6 +156,7 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     :param data: InputData object to split
     :param split_ratio: share of train data between 0 and 1
     :param shuffle: is data needed to be shuffled or not
+    :param shuffle_flag: same is shuffle, use for backward compatibility
     :param stratify: make stratified sample or not
     :param random_seed: random_seed for shuffle
     :param validation_blocks: validation blocks are used for test
@@ -160,6 +164,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     :return: data for train, data for validation
     """
 
+    # for backward compatibility
+    shuffle |= shuffle_flag
     # check that stratification may be done
     stratify &= _are_stratification_allowed(data, split_ratio)
     # stratification is allowed only with shuffle
