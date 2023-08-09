@@ -15,6 +15,7 @@ from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 class RandomPipelineFactory(RandomGraphFactory):
     """ Default realisation of random graph factory. Generates DAG graph using random growth. """
+    PROBABILITY_OF_GROWTH = 0.3
 
     def __init__(self,
                  verifier: GraphVerifier,
@@ -77,8 +78,9 @@ def graph_growth(graph: OptGraph,
     for offspring_node in range(offspring_size):
         height = distance_to_root_level(graph, node_parent)
         is_max_depth_exceeded = height >= max_depth - 2
-        is_primary_node_selected = height < max_depth - 1 and random.random() > 0.3
-        if is_max_depth_exceeded or is_primary_node_selected:
+        is_primary_node_selected = height < max_depth - 1
+        is_growth_should_stopped = random.random() > RandomPipelineFactory.PROBABILITY_OF_GROWTH
+        if is_max_depth_exceeded or is_primary_node_selected or is_growth_should_stopped:
             primary_node = node_factory.get_node(is_primary=True)
             node_parent.nodes_from.append(primary_node)
             graph.add_node(primary_node)

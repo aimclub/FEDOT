@@ -161,7 +161,7 @@ def has_correct_location_of_resample(pipeline: Pipeline):
     is_resample_primary = False
     is_not_resample_primary = False
     for node in pipeline.nodes:
-        if not node.nodes_from:
+        if node.is_primary:
             if node.name == 'resample':
                 is_resample_primary = True
             else:

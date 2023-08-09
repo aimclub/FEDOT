@@ -307,7 +307,7 @@ class Pipeline(GraphDelegate, Serializable):
             dict_fitted_operations: dictionary of the fitted operations
         """
 
-        self.nodes = []
+        self.nodes: Optional[List[PipelineNode]] = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
         return self
@@ -329,15 +329,15 @@ class Pipeline(GraphDelegate, Serializable):
 
     @property
     def primary_nodes(self) -> List[PipelineNode]:
-        """Finds pipelines sink-node
+        """Finds pipeline's primary nodes
 
         Returns:
-            the final predictor-node
+            list of primary nodes
         """
         if not self.nodes:
             return []
         primary_nodes = [node for node in self.nodes
-                         if not node.nodes_from]
+                         if node.is_primary]
         return primary_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':

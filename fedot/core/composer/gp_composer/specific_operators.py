@@ -91,6 +91,13 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
 
 
 def add_resample_mutation(pipeline: Pipeline, **kwargs):
+    """
+    Add resample operation before all primary operations in pipeline
+
+    :param pipeline: pipeline to insert resample
+
+    :return: mutated pipeline
+    """
     resample_node = PipelineNode('resample')
 
     p_nodes = [p_node for p_node in pipeline.primary_nodes]
