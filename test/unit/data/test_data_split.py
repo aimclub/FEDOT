@@ -262,9 +262,9 @@ def test_cv_generator_works_stable(cv_generator, data):
     """ Test if ts cv generator works stable (always return same folds) """
     idx_first = []
     idx_second = []
-    for row in cv_generator(data=data, stratify=False):
+    for row in cv_generator(data=data, stratify=False, random_seed=None):
         idx_first.append(row[1].idx)
-    for row in cv_generator(data=data, stratify=False):
+    for row in cv_generator(data=data, stratify=False, random_seed=None):
         idx_second.append(row[1].idx)
 
     for i in range(len(idx_first)):

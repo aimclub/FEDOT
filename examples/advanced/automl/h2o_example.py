@@ -51,7 +51,7 @@ def h2o_classification_pipeline_evaluation():
     pipeline_path = "h2o_class"
     data = get_iris_data()
     pipeline = pipeline_h2o_class()
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     pipeline.fit(input_data=train_data)
     results = pipeline.predict(input_data=test_data, output_mode="full_probs")

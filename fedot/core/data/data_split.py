@@ -10,7 +10,9 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData], index, reset_idx=False):
+def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData],
+                                 index,
+                                 retain_first_target=False):
     """ The function get InputData or MultiModalData and return
         only data with indexes in index, not in idx
         f.e. index = [0, 1, 2, 3] == input_data.features[[0, 1, 2, 3], :]
@@ -23,16 +25,15 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
         for key in origin_input_data:
             data[key] = _split_input_data_by_indexes(origin_input_data[key],
                                                      index=index,
-                                                     reset_idx=reset_idx)
+                                                     retain_first_target=retain_first_target)
         return data
     elif isinstance(origin_input_data, InputData):
+        idx = np.take(origin_input_data.idx, index, 0)
         target = np.take(origin_input_data.target, index, 0)
         features = np.take(origin_input_data.features, index, 0)
 
-        if reset_idx:
-            idx = np.arange(0, len(target))
-        else:
-            idx = np.take(origin_input_data.idx, index, 0)
+        if retain_first_target and len(target.shape) > 1:
+            target = target[:, 0]
 
         data = InputData(idx=idx,
                          features=features,
@@ -59,8 +60,9 @@ def _split_time_series(data: InputData,
         forecast_length *= validation_blocks
 
     target_length = len(data.target)
-    train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length))
-    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length))
+    train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
+    test_data = _split_input_data_by_indexes(data,  index=np.arange(target_length - forecast_length, target_length),
+                                             retain_first_target=True)
 
     if validation_blocks is None:
         # for in-sample
@@ -87,15 +89,7 @@ def _split_any(data: InputData,
     :param random_seed: random_seed for shuffle
     """
 
-    if stratify and shuffle:
-        # check that there are enough labels for stratify
-        stratify_labels = data.target
-        test_size = round(len(data.target) * (1. - split_ratio))
-        labels_num = np.unique(stratify_labels).shape[0]
-        if test_size < labels_num:
-            split_ratio = 1 - labels_num / len(data.target)
-    else:
-        stratify_labels = None
+    stratify_labels = data.target if stratify else None
 
     train_ids, test_ids = train_test_split(np.arange(0, len(data.target)),
                                            test_size=1. - split_ratio,
@@ -108,6 +102,43 @@ def _split_any(data: InputData,
     test_data = _split_input_data_by_indexes(data, index=test_ids)
 
     return train_data, test_data
+
+
+def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ratio: float) -> bool:
+    """ Check that stratification may be done
+        :param data: data for split
+        :param split_ratio: relation between train data length and all data length
+        :return:
+                stratify - stratification is allowed"""
+    # check task_type
+    if data.task.task_type is not TaskTypesEnum.classification:
+        return False
+
+    try:
+        # fast way
+        classes = np.unique(data.target, return_counts=True)
+    except:
+        # slow way
+        from collections import Counter
+        classes = Counter(data.target)
+        classes = [list(classes), list(classes.values())]
+
+    # check that there are enough labels for two samples
+    if not all(x > 1 for x in classes[1]):
+        if __debug__:
+            return False
+        else:
+            raise ValueError(("There is the only value for some classes:"
+                              f" {', '.join(str(val) for val, count in zip(*classes) if count == 1)}."
+                              f" Can not do correct data split for {data.task.task_type.name} task."))
+
+    # check that split ratio allows to set all classes to both samples
+    test_size = round(len(data.target) * (1. - split_ratio))
+    labels_count = len(classes[0])
+    if test_size < labels_count:
+        return False
+
+    return True
 
 
 def train_test_data_setup(data: Union[InputData, MultiModalData],
@@ -129,8 +160,12 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     :return: data for train, data for validation
     """
 
-    if data.task.task_type is TaskTypesEnum.classification and stratify:
-        shuffle = True
+    # check that stratification may be done
+    stratify &= _are_stratification_allowed(data, split_ratio)
+    # stratification is allowed only with shuffle
+    shuffle |= stratify
+    # shuffle is allowed only with random_seed and vise versa
+    random_seed = (random_seed or 42) if shuffle else None
 
     input_arguments = {'split_ratio': split_ratio,
                        'shuffle': shuffle,

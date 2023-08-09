@@ -99,7 +99,7 @@ def get_image_classification_data(composite_flag: bool = True):
 def test_multiclassification_pipeline_fit_correct():
     data = get_iris_data()
     pipeline = pipeline_simple()
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     pipeline.fit(input_data=train_data)
     results = pipeline.predict(input_data=test_data)
@@ -117,7 +117,7 @@ def test_classification_with_pca_pipeline_fit_correct():
     pipeline_pca = pipeline_with_pca()
     pipeline = pipeline_simple()
 
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     pipeline.fit(input_data=train_data)
     pipeline_pca.fit(input_data=train_data)
@@ -141,7 +141,7 @@ def test_classification_with_pca_pipeline_fit_correct():
 def test_output_mode_labels():
     data = get_iris_data()
     pipeline = pipeline_simple()
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     pipeline.fit(input_data=train_data)
     results = pipeline.predict(input_data=test_data, output_mode='labels')
@@ -156,7 +156,7 @@ def test_output_mode_labels():
 def test_output_mode_full_probs():
     data = get_binary_classification_data()
     pipeline = pipeline_simple()
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     pipeline.fit(input_data=train_data)
     results = pipeline.predict(input_data=test_data, output_mode='full_probs')

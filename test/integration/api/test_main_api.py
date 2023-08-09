@@ -75,7 +75,7 @@ def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_sampl
             data = get_iris_data()
         else:
             data = get_synthetic_classification_data(n_samples=n_samples, n_features=n_features, random_state=42)
-        train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+        train_data, test_data = train_test_data_setup(data, shuffle=True)
         threshold = 0.95
     elif task_type == 'clustering':
         data = get_synthetic_input_data(n_samples=100)
@@ -110,7 +110,7 @@ def load_categorical_unimodal():
     dataset_path = 'test/data/classification_with_categorical.csv'
     full_path = os.path.join(str(fedot_project_root()), dataset_path)
     data = InputData.from_csv(full_path)
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     return train_data, test_data
 

@@ -5,7 +5,7 @@ from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -65,12 +65,21 @@ class DataSourceSplitter:
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
             raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        if data.task.task_type is not TaskTypesEnum.classification:
-            # Forbid stratify for nonclassification tasks
-            self.stratify = False
-        else:
-            if self.stratify:
-                self.shuffle = True
+        # Forbid stratify for nonclassification tasks
+        self.stratify &= data.task.task_type is TaskTypesEnum.classification
+        if self.stratify:
+            # check that stratification can be done
+            # for cross validation split ratio is defined as validation_size / train_size
+            split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
+            self.stratify = _are_stratification_allowed(data, split_ratio)
+            if not self.stratify:
+                self.log.info(f"Stratification data splitting is disabled.")
+
+        # Stratification can not be done without shuffle
+        self.shuffle |= self.stratify
+
+        # Random seed depends on shuffle
+        self.random_seed = (self.random_seed or 42) if self.shuffle else None
 
         # Split data
         if self.cv_folds is not None:

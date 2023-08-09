@@ -25,7 +25,7 @@ def run_multi_modal_example(file_path: str, visualization=False, with_tuning=Tru
     task = 'classification'
     path = Path(fedot_project_root(), file_path)
     data = MultiModalData.from_csv(file_path=path, task=task, target_columns='variety', index_col=None)
-    fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.7)
+    fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.7)
 
     automl_model = Fedot(problem=task, timeout=10, with_tuning=with_tuning)
     automl_model.fit(features=fit_data,

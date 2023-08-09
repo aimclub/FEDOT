@@ -17,7 +17,7 @@ def get_kc2_data():
     encoded = (target == 'yes').astype(int)
     data.target = encoded
 
-    train, test = train_test_data_setup(data, shuffle_flag=True)
+    train, test = train_test_data_setup(data, shuffle=True)
 
     return train, test
 

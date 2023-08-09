@@ -247,7 +247,7 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     processed correctly.
     """
     input_data = data_with_mixed_types_in_each_column()
-    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
+    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9, stratify=False)
 
     pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=5)

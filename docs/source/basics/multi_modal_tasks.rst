@@ -15,7 +15,7 @@ FEDOT's API supports multimodal data from the box. The only thing you need is to
 
     data = MultiModalData.from_csv(file_path='multimodal_dataset.csv', task='classification', target_columns='target_column',
                                    text_columns=['text_col1', 'text_col2'], columns_to_drop=['col_to_drop1', 'col_to_drop2'], index_col=None)
-    fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.7)
+    fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.7)
 
 Using ``from_csv()`` method, you should define the task type, and target columns. FEDOT can find text columns automatically, but you can set them manually. You can also select columns which will be dropped from the original dataset. By default, FEDOT reads the first column of every dataset as an index column. If there is no index columns in the dataset, you should set ``index_col=None``.
 Initialize the FEDOT object and define the type of modeling problem.
