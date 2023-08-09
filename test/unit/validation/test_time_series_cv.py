@@ -15,7 +15,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.validation.cv_folds import ts_cv_generator
+from fedot.core.data.cv_folds import cv_generator
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -50,29 +50,13 @@ def test_ts_cv_generator_correct():
     validation_horizon = validation_elements_per_fold * folds
 
     i = 0
-    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
+    for train_data, test_data in cv_generator(time_series, cv_folds=folds,
+                                              validation_blocks=validation_blocks):
         train_len = len(train_data.idx)
         assert train_len == ts_len - validation_horizon
         validation_horizon -= validation_elements_per_fold
         i += 1
     assert i == folds
-
-
-def test_cv_folds_too_large_correct():
-    """ Checks whether cases where the number of folds is too large, causing
-    the number of elements to be validated to be greater than the number of elements
-    in the time series itself, are adequately handled
-
-    In this case a hold-out validation with 1 fold and 3 validation blocks must be performed
-    """
-    folds = 50
-    forecast_len, validation_blocks, time_series = configure_experiment()
-
-    i = 0
-    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
-        i += 1
-        assert len(train_data.idx) == 85
-    assert i == 1
 
 
 def test_tuner_cv_correct():

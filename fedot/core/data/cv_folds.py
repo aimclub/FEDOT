@@ -43,7 +43,7 @@ class TsInputDataSplit(TimeSeriesSplit):
 
 
 def cv_generator(data: Union[InputData, MultiModalData],
-                 cv_folds: Optional[int] = None,
+                 cv_folds: int,
                  shuffle: bool = False,
                  random_seed: int = 42,
                  stratify: bool = True,

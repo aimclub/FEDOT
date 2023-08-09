@@ -158,11 +158,8 @@ def test_advanced_time_series_splitting():
 
 
 @pytest.mark.parametrize('data_splitter, data',
-                         # test StratifiedKFold
                          [(DataSourceSplitter(cv_folds=3, shuffle=True), get_imbalanced_data_to_test_mismatch()),
-                          # test KFold
                           (DataSourceSplitter(cv_folds=3, shuffle=True), get_balanced_data_to_test_mismatch()),
-                          # test hold-out
                           (DataSourceSplitter(shuffle=True), get_imbalanced_data_to_test_mismatch()),
                           ])
 def test_data_splitting_without_shape_mismatch(data_splitter: DataSourceSplitter, data: InputData):
@@ -204,11 +201,14 @@ def test_multivariate_time_series_splitting_correct():
         assert len(test_series_data.features) == 20
         assert np.allclose(test_series_data.target, np.array([16, 17, 18, 19]))
 
+
 @pytest.mark.parametrize(('datas_funs', 'cv_folds', 'shuffle', 'stratify'),
                          [# classification + stratify + shuffle + cv_folds
-                          ([partial(get_tabular_classification_data, 100, 5)] * 3, 2, True, True),
+                          ([partial(get_tabular_classification_data, 100, 5)] * 3, 4, True, True),
                           # classification + shuffle + cv_folds
-                          ([partial(get_tabular_classification_data, 100, 5)] * 3, 2, True, False),
+                          ([partial(get_tabular_classification_data, 100, 5)] * 3, 4, True, False),
+                          # classification + cv_folds
+                          ([partial(get_tabular_classification_data, 100, 5)] * 3, 4, False, False),
                           # classification + stratify + shuffle
                           ([partial(get_tabular_classification_data, 100, 5)] * 3, None, True, True),
                           # classification + shuffle
@@ -216,7 +216,7 @@ def test_multivariate_time_series_splitting_correct():
                           # classification
                           ([partial(get_tabular_classification_data, 100, 5)] * 3, None, False, False),
                           # timeseries + cv_folds
-                          ([partial(get_ts_data_to_forecast, 10, 100)] * 3, 2, False, False),
+                          ([partial(get_ts_data_to_forecast, 10, 100)] * 3, 3, False, False),
                           # timeseries
                           ([partial(get_ts_data_to_forecast, 10, 100)] * 3, None, False, False),
                           ])
@@ -225,6 +225,7 @@ def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, str
     data_splitter = DataSourceSplitter(cv_folds=cv_folds, shuffle=shuffle, stratify=stratify)
     data_producer = data_splitter.build(mdata)
     keys = tuple(mdata.keys())
+    features_dimensity = [subdata.features.shape[1:] for subdata in mdata.values()]
 
     for samples in data_producer():
         for sample in samples:
@@ -237,6 +238,10 @@ def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, str
             idx = [np.reshape(x.idx, (-1, 1)) for x in sample.values()]
             assert np.all(np.diff(np.concatenate(idx, 1), 1) == 0)
 
+            # dimensity of features should be the same
+            splitted_data_features_dimensity =[subdata.features.shape[1:] for subdata in sample.values()]
+            assert features_dimensity == splitted_data_features_dimensity
+
             # shuffle should be done
             if shuffle:
                 for key in keys:
@@ -246,7 +251,6 @@ def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, str
         if stratify:
             for key in keys:
                 assert check_stratify(samples[0][key], samples[1][key])
-
 
 
 @pytest.mark.parametrize("cv_generator, data",
