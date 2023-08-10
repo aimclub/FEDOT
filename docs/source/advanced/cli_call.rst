@@ -56,7 +56,6 @@ The result of execution is presented below:
                         Composer parameter: model names to use
   --tuning TUNING       Composer parameter: 1 - with tuning, 0 - without tuning
   --cv_folds CV_FOLDS   Composer parameter: Number of folds for cross-validation
-  --val_bl VAL_BL       Composer parameter: Number of validation blocks for time series forecasting
   --hist_path HIST_PATH
                         Composer parameter: Name of the folder for composing history
   --for_len FOR_LEN     Time Series Forecasting parameter: forecast length
