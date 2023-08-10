@@ -203,7 +203,8 @@ def test_multivariate_time_series_splitting_correct():
 
 
 @pytest.mark.parametrize(('datas_funs', 'cv_folds', 'shuffle', 'stratify'),
-                         [# classification + stratify + shuffle + cv_folds
+                         [
+                          # classification + stratify + shuffle + cv_folds
                           ([partial(get_tabular_classification_data, 100, 5)] * 3, 4, True, True),
                           # classification + shuffle + cv_folds
                           ([partial(get_tabular_classification_data, 100, 5)] * 3, 4, True, False),

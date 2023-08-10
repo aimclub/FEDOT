@@ -73,7 +73,7 @@ def h2o_regression_pipeline_evaluation():
     train_data, test_data = train_test_data_setup(data)
 
     pipeline.fit(input_data=train_data)
-    results = pipeline.predict(input_data=test_data)
+    _ = pipeline.predict(input_data=test_data)
     _, rmse_on_test = get_rmse_value(pipeline, train_data, test_data)
     print(f"RMSE {rmse_on_test}")
 

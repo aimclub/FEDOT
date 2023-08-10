@@ -36,7 +36,7 @@ class DataSourceSplitter:
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
                  split_ratio: Optional[float] = None,
-                 shuffle: bool = True,
+                 shuffle: bool = False,
                  stratify: bool = True,
                  random_seed: int = 42):
         self.cv_folds = cv_folds
@@ -152,7 +152,6 @@ class DataSourceSplitter:
                                f" ({test_shape}) defined by split ratio."
                                f" Split ratio is changed to {self.split_ratio}."))
             test_share = 1 - self.split_ratio
-            self.split_ratio = self.split_ratio
         else:
             test_share = 1 / (self.cv_folds + 1)
         self.validation_blocks = int(data_shape * test_share // forecast_length)
