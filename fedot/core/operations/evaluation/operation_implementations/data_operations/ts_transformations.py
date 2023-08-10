@@ -100,7 +100,6 @@ class LaggedImplementation(DataOperationImplementation):
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
         self._update_column_types(output_data)
-        raise ValueError()
         return output_data
 
     def _check_and_correct_window_size(self, time_series: np.array, forecast_length: int):
@@ -842,8 +841,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     idx = idx[: -1]
 
     # Update target (clip first "window size" values)
-    _temp = {val: i for i, val in enumerate(all_idx)}
-    row_nums = [_temp[i] for i in idx]
+    index_hash_table = {val: i for i, val in enumerate(all_idx)}
+    row_nums = [index_hash_table[i] for i in idx]
     ts_target = target[row_nums]
 
     # Multi-target transformation
