@@ -23,7 +23,7 @@ def test_cli_with_parameters():
     ts_call = (
         f'--problem ts_forecasting --preset fast_train --timeout 0.1 --depth 3 --arity 3 '
         '--popsize 3 --gen_num 5 --opers lagged linear ridge --tuning 0 '
-        f'--cv_folds 2 --val_bl 2 --target sea_height --train {ts_train_path} '
+        f'--cv_folds 2 --target sea_height --train {ts_train_path} '
         f'--test {ts_train_path} --for_len 10'
     ).split()
     class_train_path = project_root_path.joinpath('test/data/simple_classification.csv')
