@@ -312,7 +312,7 @@ def test_stratify(cv_folds, shuffle, stratify, data_classes):
                            get_tabular_classification_data(length=100, class_count=4)),  # cv_folds classification
                           (True, True, None,
                            get_tabular_classification_data(length=100, class_count=4)),  # holdout classification
-                          (False, True, 2, get_ts_data_to_forecast(10, 100)), 1 # cv_folds timeseries
+                          (False, True, 2, get_ts_data_to_forecast(10, 100)),  # cv_folds timeseries
                           (False, True, None, get_ts_data_to_forecast(10, 100)),  # holdout timeseries
                           ])
 def test_shuffle(is_shuffle, cv_folds, shuffle, data):
