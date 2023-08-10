@@ -19,11 +19,17 @@ class DataSourceSplitter:
     Can provide hold-out validation and k-fold validation.
 
     :param cv_folds: Number of folds on data for cross-validation.
-    If provided, then k-fold validation is used. Otherwise, hold-out validation is used.
+    If provided, then cross validation is used. Otherwise, hold-out validation is used.
     :param split_ratio: Ratio of data for splitting.
     Applied only in case of hold-out split.
     If not provided, then default split ratios will be used.
     :param shuffle: Is shuffling required for data.
+    :param stratify: If True then stratification is used for samples
+    :param validation_blocks: Validation blocks count.
+    Applied only for time series data.
+    If not provided, then value will be calculated.
+    :param random_seed: Random seed for shuffle.
+    :param log: Log for logging.
     """
 
     def __init__(self,
@@ -65,15 +71,13 @@ class DataSourceSplitter:
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
             raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        # Forbid stratify for nonclassification tasks
-        self.stratify &= data.task.task_type is TaskTypesEnum.classification
         if self.stratify:
             # check that stratification can be done
-            # for cross validation split ratio is defined as validation_size / train_size
+            # for cross validation split ratio is defined as validation_size / all_data_size
             split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
             self.stratify = _are_stratification_allowed(data, split_ratio)
             if not self.stratify:
-                self.log.info(f"Stratification data splitting is disabled.")
+                self.log.info("Stratificated splitting of data is disabled.")
 
         # Stratification can not be done without shuffle
         self.shuffle |= self.stratify

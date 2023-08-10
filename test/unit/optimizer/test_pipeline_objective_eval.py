@@ -1,6 +1,5 @@
 import datetime
 from copy import deepcopy
-from functools import partial
 
 import numpy as np
 import pytest

@@ -69,6 +69,7 @@ def cv_generator(data: Union[InputData, MultiModalData],
     if data.task.task_type is TaskTypesEnum.ts_forecasting:
         horizon = data.task.task_params.forecast_length * validation_blocks
         kf = TsInputDataSplit(n_splits=cv_folds, test_size=horizon)
+        # for multi_ts use first target column as main target
         retain_first_target = True
     elif data.task.task_type is TaskTypesEnum.classification and stratify:
         kf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_seed)

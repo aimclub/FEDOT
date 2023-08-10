@@ -239,7 +239,7 @@ def test_multimodal_data_splitting_is_correct(datas_funs, cv_folds, shuffle, str
             assert np.all(np.diff(np.concatenate(idx, 1), 1) == 0)
 
             # dimensity of features should be the same
-            splitted_data_features_dimensity =[subdata.features.shape[1:] for subdata in sample.values()]
+            splitted_data_features_dimensity = [subdata.features.shape[1:] for subdata in sample.values()]
             assert features_dimensity == splitted_data_features_dimensity
 
             # shuffle should be done
@@ -294,9 +294,9 @@ def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_
 
 
 @pytest.mark.parametrize(('cv_folds', 'shuffle', 'stratify', 'data_classes'),
-                         [(2, True, True, 2), # simple case
-                          (2, False, True, 2), # should work without error
-                          (5, True, True, 4), # more folds and more classes
+                         [(2, True, True, 2),  # simple case
+                          (2, False, True, 2),  # should work without error
+                          (5, True, True, 4),  # more folds and more classes
                           ])
 def test_stratify(cv_folds, shuffle, stratify, data_classes):
     data = get_tabular_classification_data(length=100, class_count=data_classes)
@@ -309,10 +309,10 @@ def test_stratify(cv_folds, shuffle, stratify, data_classes):
 
 @pytest.mark.parametrize(('is_shuffle', 'shuffle', 'cv_folds', 'data'),
                          [(True, True, 2,
-                           get_tabular_classification_data(length=100, class_count=4)), # cv_folds classification
+                           get_tabular_classification_data(length=100, class_count=4)),  # cv_folds classification
                           (True, True, None,
-                           get_tabular_classification_data(length=100, class_count=4)), # holdout classification
-                          (False, True, 2, get_ts_data_to_forecast(10, 100)), # cv_folds timeseries
+                           get_tabular_classification_data(length=100, class_count=4)),  # holdout classification
+                          (False, True, 2, get_ts_data_to_forecast(10, 100)), 1 # cv_folds timeseries
                           (False, True, None, get_ts_data_to_forecast(10, 100)),  # holdout timeseries
                           ])
 def test_shuffle(is_shuffle, cv_folds, shuffle, data):

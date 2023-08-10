@@ -48,7 +48,6 @@ def export_h2o(pipeline, pipeline_path, test_data):
 
 
 def h2o_classification_pipeline_evaluation():
-    pipeline_path = "h2o_class"
     data = get_iris_data()
     pipeline = pipeline_h2o_class()
     train_data, test_data = train_test_data_setup(data, shuffle=True)
@@ -62,6 +61,7 @@ def h2o_classification_pipeline_evaluation():
                               multi_class='ovo',
                               average='macro')
     #  H2o has troubles with serialization for now
+    #  pipeline_path = "h2o_class"1
     #  export_h2o(pipeline, pipeline_path, test_data)
     print(f"roc auc: {roc_auc_on_test}")
 

@@ -16,8 +16,9 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
     """ The function get InputData or MultiModalData and return
         only data with indexes in index, not in idx
         f.e. index = [0, 1, 2, 3] == input_data.features[[0, 1, 2, 3], :]
+        :param origin_input_data: data to split
         :param index: indexes that needed in output data
-        :param reset_idx: set to True for idx is range (0, len(data))
+        :param retain_first_target: set to True for use only first column of target
         """
 
     if isinstance(origin_input_data, MultiModalData):
@@ -61,7 +62,7 @@ def _split_time_series(data: InputData,
 
     target_length = len(data.target)
     train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
-    test_data = _split_input_data_by_indexes(data,  index=np.arange(target_length - forecast_length, target_length),
+    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length),
                                              retain_first_target=True)
 
     if validation_blocks is None:
@@ -97,7 +98,6 @@ def _split_any(data: InputData,
                                            random_state=random_seed,
                                            stratify=stratify_labels)
 
-    # Prepare data to train the operation
     train_data = _split_input_data_by_indexes(data, index=train_ids)
     test_data = _split_input_data_by_indexes(data, index=test_ids)
 
@@ -108,8 +108,8 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
     """ Check that stratification may be done
         :param data: data for split
         :param split_ratio: relation between train data length and all data length
-        :return:
-                stratify - stratification is allowed"""
+        :return bool: stratification is allowed"""
+
     # check task_type
     if data.task.task_type is not TaskTypesEnum.classification:
         return False
@@ -127,12 +127,12 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
     if not all(x > 1 for x in classes[1]):
         if __debug__:
             # tests often use very small datasets that are not suitable for data splitting
-            # for test stratification is disabled in that case
+            # stratification is disabled for tests
             return False
         else:
             raise ValueError(("There is the only value for some classes:"
                               f" {', '.join(str(val) for val, count in zip(*classes) if count == 1)}."
-                              f" Can not do correct data split for {data.task.task_type.name} task."))
+                              f" Data split can not be done for {data.task.task_type.name} task."))
 
     # check that split ratio allows to set all classes to both samples
     test_size = round(len(data.target) * (1. - split_ratio))
@@ -197,6 +197,6 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
             train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
     else:
         raise ValueError((f'Dataset {type(data)} is not supported. Supported types:'
-                          'InputData, MultiModalData'))
+                          ' InputData, MultiModalData'))
 
     return train_data, test_data
