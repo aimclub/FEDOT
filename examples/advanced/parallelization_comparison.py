@@ -46,7 +46,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             train_data_tmp = train_data.iloc[:partition].copy()
             start_time = timeit.default_timer()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout,
-                               n_jobs=_n_jobs, logging_level=logging.NOTSET,
+                               n_jobs=_n_jobs, logging_level=logging.FATAL,
                                with_tuning=False, preset='fast_train')
             auto_model.fit(features=train_data_tmp, target='target')
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)

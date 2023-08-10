@@ -1,8 +1,6 @@
 import warnings
 from typing import Optional
 
-from golem.core.utilities.random import RandomStateHandler
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
@@ -11,6 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -64,7 +63,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
         return operation_implementation
 
@@ -91,7 +90,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
             trained_operation: model object
             predict_data: data used for prediction
         Returns:
-            OutputData: 
+            OutputData:
         """
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)

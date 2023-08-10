@@ -12,9 +12,10 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
+from fedot.core.utils import set_random_seed
+
 
 warnings.filterwarnings('ignore')
-np.random.seed(2020)
 
 
 def get_refinement_pipeline_with_polyfit():
@@ -160,6 +161,8 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
 
 
 if __name__ == '__main__':
+    set_random_seed(2020)
+
     path = '../../../cases/data/time_series/economic_data.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
                             lagged=50, vis_with_decompose=True)

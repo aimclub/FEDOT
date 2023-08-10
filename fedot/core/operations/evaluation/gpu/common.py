@@ -1,8 +1,9 @@
 import warnings
 from typing import Optional
 
-from golem.core.utilities.random import RandomStateHandler
 from golem.utilities.requirements_notificator import warn_requirement
+
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 try:
     import cudf
@@ -83,7 +84,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             raise NotImplementedError('Not supported for GPU yet')
             # TODO Manually wrap the regressor into multi-output model
         else:
-            with RandomStateHandler():
+            with ImplementationRandomStateHandler(implementation=operation_implementation):
                 operation_implementation.fit(features, target)
         return operation_implementation
 

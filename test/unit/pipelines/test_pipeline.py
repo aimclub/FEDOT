@@ -1,11 +1,9 @@
 import datetime
 import os
 import platform
-import random
 import time
 from copy import deepcopy
 from multiprocessing import set_start_method
-from random import seed
 
 import numpy as np
 import pytest
@@ -24,9 +22,6 @@ from test.integration.models.test_model import classification_dataset_with_redun
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.tasks.test_forecasting import get_ts_data
-
-seed(1)
-np.random.seed(1)
 
 
 @pytest.fixture()
@@ -163,8 +158,6 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
 
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
-    random.seed(1)
-    np.random.seed(1)
     data = data_setup
     # Preprocess data - determine features columns
     data = DataPreprocessor().obligatory_prepare_for_fit(data)

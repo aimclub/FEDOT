@@ -1,6 +1,3 @@
-import random
-
-import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
@@ -10,9 +7,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-random.seed(1)
-np.random.seed(1)
+from fedot.core.utils import set_random_seed
 
 
 def get_refinement_pipeline():
@@ -66,11 +61,13 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
     display_roc_auc(decompose_c, test_dataset, 'With decomposition pipeline')
 
     if with_tuning:
-        tuner = TunerBuilder(task) \
-            .with_tuner(SimultaneousTuner)\
-            .with_metric(ClassificationMetricsEnum.ROCAUC)\
-            .with_iterations(30) \
+        tuner = (
+            TunerBuilder(task)
+            .with_tuner(SimultaneousTuner)
+            .with_metric(ClassificationMetricsEnum.ROCAUC)
+            .with_iterations(30)
             .build(train_dataset)
+        )
         no_decompose_c = tuner.tune(no_decompose_c)
         decompose_c = tuner.tune(decompose_c)
 
@@ -82,5 +79,7 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
 
 
 if __name__ == '__main__':
+    set_random_seed(1)
+
     full_path_train, full_path_test = get_scoring_data()
     run_refinement_scoring_example(full_path_train, full_path_test, with_tuning=True)

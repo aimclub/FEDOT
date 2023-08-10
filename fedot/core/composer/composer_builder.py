@@ -121,7 +121,7 @@ class ComposerBuilder:
 
     @staticmethod
     def _get_default_complexity_metrics() -> List[MetricsEnum]:
-        return [ComplexityMetricsEnum.node_num]
+        return [ComplexityMetricsEnum.node_number]
 
     def build(self) -> Composer:
         multi_objective = len(self.metrics) > 1
