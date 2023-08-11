@@ -1,34 +1,6 @@
-from datetime import timedelta
-
-import pytest
-
 from examples.advanced.automl.h2o_example import h2o_classification_pipeline_evaluation, \
     h2o_regression_pipeline_evaluation, h2o_ts_pipeline_evaluation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.utils import fedot_project_root
-
-
-@pytest.mark.skip(reason="TPOT dependencies issues")
-def test_pipeline_from_automl_example():
-    from examples.advanced.automl.pipeline_from_automl import run_pipeline_from_automl
-
-    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
-    file_path_test = file_path_train
-
-    auc = run_pipeline_from_automl(file_path_train, file_path_test, max_run_time=timedelta(seconds=1))
-
-    assert auc > 0.5
-
-
-@pytest.mark.skip(reason="TPOT dependencies issues")
-def test_tpot_vs_fedot_example():
-    from examples.advanced.automl.tpot_vs_fedot import run_tpot_vs_fedot_example
-
-    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
-    file_path_test = file_path_train
-
-    auc = run_tpot_vs_fedot_example(file_path_train, file_path_test)
-    assert auc > 0.5
 
 
 def test_h2o_vs_fedot_example():
