@@ -7,8 +7,6 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-np.random.seed(2021)
-
 
 @pytest.fixture()
 def equal_outputs_multi_ts():

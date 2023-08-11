@@ -17,7 +17,6 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL
 @pytest.fixture()
 def data_setup() -> InputData:
     predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     predictors = predictors[:100]

@@ -17,7 +17,7 @@ class ApiMetrics:
     """
 
     _metrics_dict = {
-        'acc': ClassificationMetricsEnum.accuracy,
+        'accuracy': ClassificationMetricsEnum.accuracy,
         'roc_auc': ClassificationMetricsEnum.ROCAUC,
         'f1': ClassificationMetricsEnum.f1,
         'logloss': ClassificationMetricsEnum.logloss,
@@ -30,7 +30,7 @@ class ApiMetrics:
         'rmse': RegressionMetricsEnum.RMSE,
         'rmse_pen': RegressionMetricsEnum.RMSE_penalty,
         'silhouette': ClusteringMetricsEnum.silhouette,
-        'node_num': ComplexityMetricsEnum.node_num
+        'node_number': ComplexityMetricsEnum.node_number
     }
 
     def __init__(self, task: Task, metrics: Optional[Union[str, MetricsEnum, Callable, Sequence]]):

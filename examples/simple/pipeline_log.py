@@ -11,7 +11,7 @@ def run_log_example(log_file):
     train_data, _ = get_case_train_test_data()
 
     # Use default_log if you do not have json config file for log
-    log = Log(log_file=log_file, output_logging_level=logging.DEBUG).get_adapter(prefix=pathlib.Path(__file__).stem)
+    log = Log(log_file=log_file, output_logging_level=logging.FATAL).get_adapter(prefix=pathlib.Path(__file__).stem)
 
     log.info('start creating pipeline')
     pipeline = classification_complex_pipeline()

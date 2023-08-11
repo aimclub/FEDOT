@@ -7,7 +7,8 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
 
-def run_regression_example(visualise=False, with_tuning=True):
+def run_regression_example(visualise: bool = False, with_tuning: bool = True,
+                           timeout: float = 2., preset: str = 'auto'):
     data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,
@@ -15,8 +16,8 @@ def run_regression_example(visualise=False, with_tuning=True):
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_dir': 'custom_history_dir', 'preset': 'auto'}
-    auto_model = Fedot(problem=problem, seed=42, timeout=2, logging_level=logging.INFO,
+    composer_params = {'history_dir': 'custom_history_dir', 'preset': preset}
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, logging_level=logging.FATAL,
                        with_tuning=with_tuning, **composer_params)
 
     auto_model.fit(features=train, target='target')
