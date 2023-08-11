@@ -1,7 +1,5 @@
-import random
 from typing import Optional, Union
 
-import numpy as np
 from golem.core.utilities.random import RandomStateHandler
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
@@ -15,19 +13,26 @@ class ImplementationRandomStateHandler(RandomStateHandler):
                  implementation: Union[DataOperationImplementation, ModelImplementation] = None):
         super().__init__(seed)
         self.implementation = implementation
+        self.implementation_old_random_state = None
 
     def __enter__(self):
-        _set_operation_random_seed(self.implementation, self._seed)
+        self.implementation_old_random_state = _set_operation_random_seed(self.implementation, self._seed)
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        np.random.set_state(self._old_np_state)
-        random.setstate(self._old_state)
+        _set_operation_random_seed(self.implementation, self.implementation_old_random_state)
+        return super().__exit__(exc_type, exc_value, exc_traceback)
 
 
 def _set_operation_random_seed(operation: Union[DataOperationImplementation, ModelImplementation],
                                seed: Optional[int]):
+    old_random_state = None
     if hasattr(operation, 'random_state'):
+        old_random_state = getattr(operation, 'random_state')
         setattr(operation, 'random_state', seed)
+
     elif hasattr(operation, 'seed'):
+        old_random_state = getattr(operation, 'seed')
         setattr(operation, 'seed', seed)
+
+    return old_random_state
