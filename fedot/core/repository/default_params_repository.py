@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 
 class DefaultOperationParamsRepository:
@@ -23,6 +23,4 @@ class DefaultOperationParamsRepository:
 
     def get_default_params_for_operation(self, model_name: str) -> dict:
         model_name = model_name.split('/')[0]
-        if model_name in self._repo:
-            return self._repo[model_name]
-        return {}
+        return self._repo.get(model_name, {})

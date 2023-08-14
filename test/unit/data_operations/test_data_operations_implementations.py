@@ -25,8 +25,6 @@ from fedot.preprocessing.data_types import NAME_CLASS_FLOAT, NAME_CLASS_INT, \
     NAME_CLASS_STR
 from test.unit.preprocessing.test_preprocessing_through_api import data_with_only_categorical_features
 
-np.random.seed(2021)
-
 
 def get_small_regression_dataset():
     """ Function returns features and target for train and test regression models """

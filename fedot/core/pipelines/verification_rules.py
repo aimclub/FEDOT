@@ -12,7 +12,7 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
-    if task_type and not task_type in pipeline.root_node.operation.acceptable_task_types:
+    if task_type and task_type not in pipeline.root_node.operation.acceptable_task_types:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
     return True
 
@@ -149,6 +149,30 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
         else:
             if current_operation in need_to_have_parent:
                 raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
+    return True
+
+
+def has_correct_location_of_resample(pipeline: Pipeline):
+    """
+    Pipeline can have only one resample operation located in start of the pipeline
+
+    :param pipeline: pipeline for checking
+    """
+    is_resample_primary = False
+    is_not_resample_primary = False
+    for node in pipeline.nodes:
+        if node.is_primary:
+            if node.name == 'resample':
+                is_resample_primary = True
+            else:
+                is_not_resample_primary = True
+        else:
+            if node.name == 'resample':
+                raise ValueError(
+                    f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
+    if is_resample_primary and is_not_resample_primary:
+        raise ValueError(
+            f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
     return True
 
 

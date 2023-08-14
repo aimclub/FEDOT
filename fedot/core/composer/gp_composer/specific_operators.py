@@ -90,6 +90,24 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
     return pipeline
 
 
+def add_resample_mutation(pipeline: Pipeline, **kwargs):
+    """
+    Add resample operation before all primary operations in pipeline
+
+    :param pipeline: pipeline to insert resample
+
+    :return: mutated pipeline
+    """
+    resample_node = PipelineNode('resample')
+
+    p_nodes = [p_node for p_node in pipeline.primary_nodes]
+    pipeline.add_node(resample_node)
+
+    for node in p_nodes:
+        pipeline.connect_nodes(resample_node, node)
+    return pipeline
+
+
 def choose_new_model(boosting_model_candidates: List[str]) -> str:
     """ Since 'linear' and 'dtreg' operations are suitable for solving the problem
     and they are simpler than others, they are preferred """

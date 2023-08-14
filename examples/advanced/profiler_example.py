@@ -1,16 +1,14 @@
 import os
-import random
 
-import numpy as np
 from golem.utilities.profiler.memory_profiler import MemoryProfiler
 from golem.utilities.profiler.time_profiler import TimeProfiler
 
 from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem, get_scoring_data
+from fedot.core.utils import set_random_seed
 
-random.seed(1)
-np.random.seed(1)
 
 if __name__ == '__main__':
+    set_random_seed(1)
     # JUST UNCOMMENT WHAT TYPE OF PROFILER DO YOU NEED
     # EXAMPLE of MemoryProfiler.
 

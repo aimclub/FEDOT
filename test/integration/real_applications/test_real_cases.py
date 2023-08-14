@@ -1,5 +1,3 @@
-import random
-
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_squared_error
@@ -13,14 +11,11 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 
-random.seed(1)
-np.random.seed(1)
-
 
 def test_credit_scoring_problem():
     full_path_train = full_path_test = fedot_project_root().joinpath('test/data/simple_classification.csv')
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y')
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=5, target='Y', n_jobs=1)
     assert roc_auc_test > 0.5
 
 

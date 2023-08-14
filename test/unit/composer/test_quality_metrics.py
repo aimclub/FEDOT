@@ -22,9 +22,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 @pytest.fixture()
 def data_setup():
     predictors, response = load_breast_cancer(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
     response = response[:100]
     predictors = predictors[:100]
 

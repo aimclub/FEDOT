@@ -11,9 +11,8 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import set_random_seed
 from fedot.utilities.synth_dataset_generator import regression_dataset
-
-np.random.seed(2020)
 
 
 def get_regression_dataset(features_options, samples_amount=250,
@@ -100,12 +99,14 @@ def run_experiment(pipeline, tuner):
 
         if tuner is not None:
             print('Start tuning process ...')
-            pipeline_tuner = TunerBuilder(task)\
-                .with_tuner(tuner)\
-                .with_metric(RegressionMetricsEnum.MAE)\
-                .with_iterations(50) \
-                .with_timeout(timedelta(seconds=50))\
+            pipeline_tuner = (
+                TunerBuilder(task)
+                .with_tuner(tuner)
+                .with_metric(RegressionMetricsEnum.MAE)
+                .with_iterations(50)
+                .with_timeout(timedelta(seconds=50))
                 .build(train_input)
+            )
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Fit it
@@ -125,4 +126,6 @@ def run_experiment(pipeline, tuner):
 
 # Script for testing is pipeline can process different datasets for regression task
 if __name__ == '__main__':
+    set_random_seed(2020)
+
     run_experiment(regression_ransac_pipeline(), tuner=SequentialTuner)

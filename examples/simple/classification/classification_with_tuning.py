@@ -9,9 +9,8 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import set_random_seed
 from fedot.utilities.synth_dataset_generator import classification_dataset
-
-np.random.seed(2020)
 
 
 def get_classification_dataset(features_options, samples_amount=250,
@@ -119,11 +118,13 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
         if tuner is not None:
             print('Start tuning process ...')
-            pipeline_tuner = TunerBuilder(task)\
-                .with_tuner(tuner)\
-                .with_metric(ClassificationMetricsEnum.ROCAUC)\
-                .with_iterations(50)\
+            pipeline_tuner = (
+                TunerBuilder(task)
+                .with_tuner(tuner)
+                .with_metric(ClassificationMetricsEnum.ROCAUC)
+                .with_iterations(50)
                 .build(train_input)
+            )
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Fit it
@@ -140,5 +141,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
 # Script for testing is pipeline can process different datasets for classification
 if __name__ == '__main__':
+    set_random_seed(2020)
+
     run_classification_tuning_experiment(pipeline=classification_random_forest_pipeline(),
                                          tuner=SimultaneousTuner)

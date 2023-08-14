@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
-from typing import Optional, Tuple, Union, Sequence, Dict
+from typing import Optional, Tuple, Union, Sequence, List, Dict
 
 import func_timeout
 from golem.core.dag.graph import Graph
@@ -307,7 +307,7 @@ class Pipeline(GraphDelegate, Serializable):
             dict_fitted_operations: dictionary of the fitted operations
         """
 
-        self.nodes = []
+        self.nodes: Optional[List[PipelineNode]] = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
         return self
@@ -326,6 +326,19 @@ class Pipeline(GraphDelegate, Serializable):
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
+
+    @property
+    def primary_nodes(self) -> List[PipelineNode]:
+        """Finds pipeline's primary nodes
+
+        Returns:
+            list of primary nodes
+        """
+        if not self.nodes:
+            return []
+        primary_nodes = [node for node in self.nodes
+                         if node.is_primary]
+        return primary_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
         """Returns pipeline formed from the last node solving the given problem and all its parents
@@ -367,6 +380,11 @@ class Pipeline(GraphDelegate, Serializable):
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:
+                    print(f'Node info: operation={node.operation}, operation_type{node.operation.operation_type},'
+                          f' input_data{input_data}, all_nodes={self.nodes},'
+                          f' pipeline_nodes={[node for node in self.nodes if isinstance(node, PipelineNode)]},',
+                          f' true_node_types={[type(node) for node in self.nodes]},',
+                          f' primary_nodes={[node for node in self.nodes if node.is_primary]}')
                     raise ValueError(f'No data for primary node {node}')
             return None
         return input_data

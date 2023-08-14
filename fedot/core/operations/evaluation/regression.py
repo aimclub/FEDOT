@@ -1,8 +1,6 @@
 import warnings
 from typing import Optional
 
-from golem.core.utilities.random import RandomStateHandler
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
@@ -15,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -60,7 +59,7 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
         return operation_implementation
 
@@ -113,7 +112,7 @@ class FedotRegressionStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         operation_implementation = self.operation_impl(self.params_for_fit)
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
         return operation_implementation
 

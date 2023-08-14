@@ -601,9 +601,9 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
     return features_df.to_numpy(out_dtype).reshape(orig_shape)
 
 
-def array_to_input_data(features_array: np.array,
-                        target_array: np.array,
-                        idx: Optional[np.array] = None,
+def array_to_input_data(features_array: np.ndarray,
+                        target_array: np.ndarray,
+                        idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: Optional[DataTypesEnum] = None) -> InputData:
     if idx is None:
