@@ -18,7 +18,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utils import RandomStateHandler
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -59,7 +59,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         model = self.operation(self.params_for_fit)
 
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler():
             model.fit(train_data)
         return model
 
@@ -129,7 +129,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler():
             transformation_operation = self.operation(self.params_for_fit)
             transformation_operation.fit(train_data)
         return transformation_operation

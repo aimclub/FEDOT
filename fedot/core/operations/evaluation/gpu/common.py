@@ -25,7 +25,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utils import RandomStateHandler
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 
 class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):

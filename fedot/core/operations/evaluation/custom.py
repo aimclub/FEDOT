@@ -5,7 +5,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.custom_model import CustomModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utils import RandomStateHandler
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -26,7 +26,7 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         """ Fit method for custom strategy"""
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler():
             self.operation_impl.fit(train_data)
         return self.operation_impl
 

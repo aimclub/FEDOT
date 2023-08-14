@@ -17,7 +17,7 @@ from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
-from fedot.core.utils import RandomStateHandler
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
