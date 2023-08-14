@@ -123,8 +123,10 @@ class DataSourceSplitter:
 
         return partial(self._data_producer, train_data, test_data)
 
-    def _propose_cv_folds_and_validation_blocks(self, data):
+    def _propose_cv_folds_and_validation_blocks(self, data, expected_window_size=20):
         data_shape = data.target.shape[0]
+        # first expected_window_size points should to be guaranteed for prediction at fit stage
+        data_shape -= expected_window_size
         forecast_length = data.task.task_params.forecast_length
         # check that cv folds may be realized
         if self.cv_folds is not None:
