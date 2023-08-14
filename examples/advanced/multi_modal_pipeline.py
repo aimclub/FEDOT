@@ -74,7 +74,7 @@ def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.6)
+    fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.6)
 
     automl_model = Fedot(problem='classification', timeout=15)
     pipeline = automl_model.fit(features=fit_data,

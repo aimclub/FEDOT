@@ -188,7 +188,7 @@ Train test split
 ~~~~~~~~~~~~~~~~
 
 To split InputData use ``train_test_data_setup`` method.
-``split_ratio`` and ``shuffle_flag`` are ignored for time-series forecasting.
+``split_ratio`` and ``shuffle``, and ``stratify`` are ignored for time-series forecasting.
 
 .. autofunction:: fedot.core.data.data_split.train_test_data_setup
 
