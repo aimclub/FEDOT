@@ -33,7 +33,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
 
         features_list = self._convert_to_one_dim(train_data.features)
 
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=self.vectorizer):
             self.vectorizer.fit(features_list)
 
         return self.vectorizer
@@ -85,7 +85,7 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained model
         """
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=self.text_processor):
             self.text_processor.fit(train_data)
         return self.text_processor
 
@@ -136,7 +136,7 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
 
         :param train_data: data with features, target and ids to process
         """
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=self.vectorizer):
             self.vectorizer.fit(train_data)
         return self.vectorizer
 

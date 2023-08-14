@@ -225,7 +225,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         # Multi-output task or not
         is_multi_target = is_multi_output_task(train_data)
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
             if is_model_not_support_multi and is_multi_target:
                 # Manually wrap the regressor into multi-output model
                 operation_implementation = convert_to_multivariate_model(operation_implementation,

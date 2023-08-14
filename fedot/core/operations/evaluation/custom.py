@@ -26,7 +26,7 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         """ Fit method for custom strategy"""
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=self.operation_impl):
             self.operation_impl.fit(train_data)
         return self.operation_impl
 

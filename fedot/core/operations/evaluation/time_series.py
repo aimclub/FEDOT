@@ -59,7 +59,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         model = self.operation(self.params_for_fit)
 
-        with ImplementationRandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=model):
             model.fit(train_data)
         return model
 
@@ -129,8 +129,8 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        with ImplementationRandomStateHandler():
-            transformation_operation = self.operation(self.params_for_fit)
+        transformation_operation = self.operation(self.params_for_fit)
+        with ImplementationRandomStateHandler(implementation=transformation_operation):
             transformation_operation.fit(train_data)
         return transformation_operation
 
