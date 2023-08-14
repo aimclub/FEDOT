@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from copy import deepcopy
 from typing import Optional, Union, Dict, Any
 
 from golem.core.log import default_log
@@ -81,7 +80,6 @@ class Operation:
         Returns:
             tuple: trained operation and prediction on train data
         """
-        data = deepcopy(data)
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
@@ -121,7 +119,7 @@ class Operation:
     def _predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
                  output_mode: str = 'default', is_fit_stage: bool = False):
 
-        data = deepcopy(data)
+
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
@@ -136,11 +134,11 @@ class Operation:
                 predict_data=data)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 
+        # any inplace operations here are dangerous!
         if is_main_target is False:
             prediction.supplementary_data.is_main_target = is_main_target
 
         prediction.supplementary_data.data_flow_length = data_flow_length
-        prediction.supplementary_data.obligatorily_preprocessed = True
         return prediction
 
     @staticmethod
