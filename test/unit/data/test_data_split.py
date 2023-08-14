@@ -286,7 +286,7 @@ def test_data_splitting_defines_validation_blocks_correctly(forecast_length, cv_
                                                             check_cv_folds, check_split_ratio,
                                                             check_validation_blocks):
     """ Checks if validation blocks count defines correctly for different data """
-    data = get_ts_data_to_forecast(forecast_length)
+    data = get_ts_data_to_forecast(forecast_length, 120)
     data_source_splitter = DataSourceSplitter(cv_folds=cv_folds, split_ratio=split_ratio)
     data_source_splitter.build(data)
     assert data_source_splitter.cv_folds == check_cv_folds

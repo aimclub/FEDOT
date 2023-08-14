@@ -90,8 +90,8 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
 )
 def test_pipeline_objective_evaluate_with_different_metrics_with_str_labes(pipeline):
     for metric in ClassificationMetricsEnum:
-        one_fold_split = OneFoldInputDataSplit()
-        data_split = partial(one_fold_split.input_split, input_data=classification_dataset_with_str_labels())
+        data_splitter = DataSourceSplitter()
+        data_split = data_splitter.build(classification_dataset_with_str_labels())
         check_pipeline = deepcopy(pipeline)
         objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
         fitness = objective_eval(pipeline)
