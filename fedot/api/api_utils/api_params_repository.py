@@ -2,6 +2,8 @@ import datetime
 from functools import partial
 from typing import Sequence
 
+from golem.core.optimisers.adaptive.context_agents import ContextAgentTypeEnum
+from golem.core.optimisers.adaptive.operator_agent import MutationAgentTypeEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
@@ -68,7 +70,9 @@ class ApiParamsRepository:
             cache_dir=default_fedot_data_dir(),
             keep_history=True,
             history_dir=default_fedot_data_dir(),
-            with_tuning=False
+            with_tuning=False,
+            adaptive_mutation_type=MutationAgentTypeEnum.default,
+            context_agent_type=ContextAgentTypeEnum.nodes_num
         )
         return default_param_values_dict
 
