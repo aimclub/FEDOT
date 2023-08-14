@@ -3,7 +3,6 @@ import warnings
 from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.random import ImplementationRandomStateHandler
 
 try:
     from cuml import KMeans

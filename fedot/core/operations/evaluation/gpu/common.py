@@ -3,8 +3,6 @@ from typing import Optional
 
 from golem.utilities.requirements_notificator import warn_requirement
 
-from fedot.utilities.random import ImplementationRandomStateHandler
-
 try:
     import cudf
     import cuml
