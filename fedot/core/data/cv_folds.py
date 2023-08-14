@@ -50,10 +50,10 @@ def cv_generator(data: Union[InputData, MultiModalData],
                  validation_blocks: Optional[int] = None) -> Iterator[Tuple[Union[InputData, MultiModalData],
                                                                             Union[InputData, MultiModalData]]]:
     """ The function for splitting data into a train and test samples
-        in the InputData format for cross validation. The function
-        return a generator of tuples, consisting of a pair of train, test.
+        for cross validation. The function return a generator of tuples,
+        consisting of a pair of train, test.
 
-    :param data: InputData for train and test splitting
+    :param data: data for train and test splitting
     :param shuffle: is data need shuffle
     :param cv_folds: number of folds
     :param random_seed: random seed for shuffle

@@ -20,14 +20,14 @@ class DataSourceSplitter:
 
     :param cv_folds: Number of folds on data for cross-validation.
     If provided, then cross validation is used. Otherwise, hold-out validation is used.
+    :param validation_blocks: Validation blocks count.
+    Applied only for time series data.
+    If not provided, then value will be calculated.
     :param split_ratio: Ratio of data for splitting.
     Applied only in case of hold-out split.
     If not provided, then default split ratios will be used.
     :param shuffle: Is shuffling required for data.
     :param stratify: If True then stratification is used for samples
-    :param validation_blocks: Validation blocks count.
-    Applied only for time series data.
-    If not provided, then value will be calculated.
     :param random_seed: Random seed for shuffle.
     :param log: Log for logging.
     """
