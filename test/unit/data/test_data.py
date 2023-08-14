@@ -18,8 +18,6 @@ from test.unit.tasks.test_forecasting import get_ts_data_with_dt_idx
 @pytest.fixture()
 def data_setup() -> InputData:
     predictors, response = load_iris(return_X_y=True)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
     predictors = predictors[:100]
     response = response[:100]
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
