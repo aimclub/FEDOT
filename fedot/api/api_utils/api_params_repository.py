@@ -21,7 +21,7 @@ class ApiParamsRepository:
                                   'early_stopping_iterations', 'early_stopping_timeout',
                                   'parallelization_mode', 'use_input_preprocessing',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
-                                  'keep_history', 'history_dir', 'cv_folds', 'validation_blocks'}
+                                  'keep_history', 'history_dir', 'cv_folds'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
 
@@ -34,11 +34,9 @@ class ApiParamsRepository:
         """ Returns a dict with default parameters"""
         if task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
             cv_folds = 5
-            validation_blocks = None
 
         elif task_type == TaskTypesEnum.ts_forecasting:
             cv_folds = 3
-            validation_blocks = 2
 
         # Dict with allowed keyword attributes for Api and their default values. If None - default value set
         # in dataclasses ``PipelineComposerRequirements``, ``GPAlgorithmParameters``, ``GraphGenerationParams``
@@ -53,7 +51,6 @@ class ApiParamsRepository:
             keep_n_best=1,
             available_operations=None,
             metric=None,
-            validation_blocks=validation_blocks,
             cv_folds=cv_folds,
             genetic_scheme=None,
             early_stopping_iterations=None,
@@ -81,7 +78,6 @@ class ApiParamsRepository:
         invalid_keys = params.keys() - allowed_keys
         if invalid_keys:
             raise KeyError(f"Invalid key parameters {invalid_keys}")
-
         else:
             missing_params = self.default_params.keys() - params.keys()
             for k in missing_params:

@@ -1,4 +1,3 @@
-import os
 import timeit
 import warnings
 
@@ -15,9 +14,9 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.utils import set_random_seed
 
 warnings.filterwarnings('ignore')
-np.random.seed(2020)
 
 
 def make_forecast(pipeline, train: InputData, predict: InputData,
@@ -73,18 +72,15 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     time_series = np.array(df['Level'])
     exog_variable = np.array(df['Neighboring level'])
 
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
     # Source time series
     train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
                                                                  features=time_series,
                                                                  target=time_series,
-                                                                 task=Task(TaskTypesEnum.ts_forecasting,
-                                                                           TsForecastingParams(
-                                                                               forecast_length=len_forecast)),
+                                                                 task=task,
                                                                  data_type=DataTypesEnum.ts))
 
     # Exogenous time series
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
-
     predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
                                    features=exog_variable, target=time_series,
                                    task=task, data_type=DataTypesEnum.ts)
@@ -137,5 +133,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'examples/data/ts', 'ts_sea_level.csv')
+    set_random_seed(2020)
+
+    data_path = fedot_project_root().joinpath('examples/data/ts', 'ts_sea_level.csv')
     run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True, visualization=True)

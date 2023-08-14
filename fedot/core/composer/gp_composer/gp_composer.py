@@ -1,6 +1,5 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
 
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 
@@ -12,6 +11,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 
 class GPComposer(Composer):
@@ -37,9 +37,9 @@ class GPComposer(Composer):
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # Define data source
-        data_producer = DataSourceSplitter(self.composer_requirements.cv_folds,
-                                           self.composer_requirements.validation_blocks,
-                                           shuffle=True).build(data)
+        data_splitter = DataSourceSplitter(self.composer_requirements.cv_folds,
+                                           shuffle=True)
+        data_producer = data_splitter.build(data)
 
         parallelization_mode = self.composer_requirements.parallelization_mode
         if parallelization_mode == 'populational':
@@ -50,10 +50,12 @@ class GPComposer(Composer):
             raise ValueError(f'Unknown parallelization_mode: {parallelization_mode}')
 
         # Define objective function
-        objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
-                                                        self.composer_requirements.max_graph_fit_time,
-                                                        self.composer_requirements.validation_blocks,
-                                                        self.pipelines_cache, self.preprocessing_cache,
+        objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
+                                                        data_producer=data_producer,
+                                                        time_constraint=self.composer_requirements.max_graph_fit_time,
+                                                        pipelines_cache=self.pipelines_cache,
+                                                        preprocessing_cache=self.preprocessing_cache,
+                                                        validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 
@@ -68,8 +70,8 @@ class GPComposer(Composer):
         self.log.info('GP composition finished')
         return best_model
 
-    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[
-        Optional[Pipeline], Sequence[Pipeline]]:
+    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
+                                                                                        Sequence[Pipeline]]:
         adapter = self.optimizer.graph_generation_params.adapter
         multi_objective = self.optimizer.objective.is_multi_objective
         best_pipelines = [adapter.restore(graph) for graph in opt_result]

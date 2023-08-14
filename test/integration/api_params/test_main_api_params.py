@@ -46,9 +46,8 @@ def test_timeout(case: TimeoutParams):
     composer_params = {
         'max_depth': 1,
         'max_arity': 1,
-        'pop_size': 1,
+        'pop_size': 2,
         'with_tuning': False,
-        'validation_blocks': 1,
         'genetic_scheme': GeneticSchemeTypesEnum.generational,
         'num_of_generations': case.test_input['num_of_generations']
     }
@@ -60,7 +59,7 @@ def test_timeout(case: TimeoutParams):
                    'task_params': TsForecastingParams(forecast_length=1),
                    **composer_params}
 
-    train_data, test_data, _ = get_dataset(task_type)
+    train_data, _, _ = get_dataset(task_type)
     if isinstance(case.test_answer, ValueError):
         with pytest.raises(ValueError):
             Fedot(**fedot_input)

@@ -27,7 +27,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   timeout=timeout,
                   n_jobs=-1,
                   with_tuning=with_tuning,
-                  cv_folds=2, validation_blocks=validation_blocks, preset='fast_train',
+                  cv_folds=2,
+                  preset='fast_train',
                   optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphLenSurrogateModel()))
 
     # run AutoML model design in the same way
@@ -36,7 +37,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
     # use model to obtain two-step in-sample forecast
     model.predict(test_data)
     print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape']))
+          model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+                            validation_blocks=validation_blocks))
 
     # plot forecasting result
     if visualization:

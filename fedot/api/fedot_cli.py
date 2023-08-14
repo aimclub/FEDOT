@@ -1,8 +1,9 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from fedot.core.repository.tasks import TsForecastingParams
+from pathlib import Path
+
 from fedot.api.main import Fedot
-import os
+from fedot.core.repository.tasks import TsForecastingParams
 
 
 def create_parser(arguments_list):
@@ -74,13 +75,13 @@ def run_fedot(parameters, main_params, fit_params, save_predictions=True):
     model.fit(**fit_params)
     print("\nPrediction start...")
     prediction = model.predict(features=getattr(parameters, 'test'), in_sample=False, save_predictions=save_predictions)
-    print(f"\nPrediction saved at {os.getcwd()}\\predictions.csv")
+    print(f"\nPrediction saved at {Path.cwd().joinpath('predictions.csv')}")
     return prediction
 
 
 # parameters to init Fedot class
 main_params_names = ['problem', 'timeout', 'seed', 'depth', 'arity', 'popsize', 'gen_num',
-                     'opers', 'tuning', 'cv_folds', 'val_bl', 'hist_path', 'preset']
+                     'opers', 'tuning', 'cv_folds', 'hist_path', 'preset']
 # parameters to fit model
 fit_params_names = ['train', 'target']
 
@@ -127,8 +128,6 @@ arguments_dicts = [{'tag': '--problem',
                     'help': 'Composer parameter: 1 - with tuning, 0 - without tuning'},
                    {'tag': '--cv_folds',
                     'help': 'Composer parameter: Number of folds for cross-validation'},
-                   {'tag': '--val_bl',
-                    'help': 'Composer parameter: Number of validation blocks for time series forecasting'},
                    {'tag': '--hist_path',
                     'help': 'Composer parameter: Name of the folder for composing history'},
                    {'tag': '--for_len',
@@ -148,7 +147,6 @@ keys_names = {'problem': 'problem',
               'opers': 'available_operations',
               'tuning': 'with_tuning',
               'cv_folds': 'cv_folds',
-              'val_bl': 'validation_blocks',
               'hist_path': 'history_dir',
               'for_len': 'forecast_length'
               }

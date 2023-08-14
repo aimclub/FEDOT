@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
-from golem.core.log import default_log
+from golem.core.log import default_log, is_test_session
 from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
@@ -13,7 +13,7 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
+from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
@@ -89,6 +89,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
         else:
             folds_metrics = None
+
+        # prepared_pipeline.
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 

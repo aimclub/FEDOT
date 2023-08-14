@@ -1,5 +1,4 @@
 import datetime
-import random
 from pathlib import Path
 
 import numpy as np
@@ -27,19 +26,13 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, set_random_seed
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
 def to_categorical_codes(categorical_ids: np.ndarray):
     encoded = pd.Categorical(categorical_ids).codes
     return encoded
-
-
-@pytest.fixture(autouse=True)
-def seed():
-    random.seed(1)
-    np.random.seed(1)
 
 
 @pytest.fixture()
@@ -169,20 +162,22 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_multi_objective_composer(data_fixture, request):
+    set_random_seed(42)
+
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
     task_type = TaskTypesEnum.classification
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task_type)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, num_of_generations=1)
+                                       max_arity=2, max_depth=2, num_of_generations=3)
     params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
                                    selection_types=[SelectionTypesEnum.spea2])
 
     composer = (
         ComposerBuilder(task=Task(task_type))
         .with_requirements(req)
-        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))
+        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_number))
         .with_optimizer_params(params)
         .build()
     )
@@ -207,7 +202,6 @@ def test_multi_objective_composer(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
-    # TODO: i358 Should be integrational
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']

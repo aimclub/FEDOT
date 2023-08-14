@@ -3,7 +3,7 @@ from golem.core.optimisers.random.random_search import RandomSearchOptimizer
 
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -12,7 +12,8 @@ class RandomSearchComposer(Composer):
         super().__init__(optimizer=optimizer)
 
     def compose_pipeline(self, data: InputData) -> Pipeline:
-        train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+        data_producer = DataSourceSplitter(shuffle=True).build(data)
+        train_data, test_data = next(data_producer())
 
         def prepared_objective(pipeline: Pipeline) -> Fitness:
             pipeline.fit(train_data)

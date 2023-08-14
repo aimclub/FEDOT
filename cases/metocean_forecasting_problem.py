@@ -9,7 +9,7 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def prepare_input_data(train_file_path, test_file_path, history_size: int = 10000):
+def prepare_input_data(train_file_path, test_file_path, history_size: int = 1000):
     """ Function for preparing InputData for train and test algorithm
 
     :param train_file_path: path to the csv file for training
@@ -44,8 +44,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
 
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
-                  timeout=timeout, logging_level=logging.DEBUG)
-    fedot.current_pipeline
+                  timeout=timeout, logging_level=logging.FATAL)
 
     pipeline = fedot.fit(features=historical_data, target=ssh_history)
     fedot.forecast(historical_data)
@@ -54,6 +53,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     if visualization:
         pipeline.show()
         fedot.plot_prediction(target='ssh')
+
+    fedot.history.save('saved_ts_history.json')
 
     return metric
 
@@ -68,5 +69,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
-                                     forecast_length=12, timeout=10,
+                                     forecast_length=6, timeout=5,
                                      visualization=True)

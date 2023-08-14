@@ -109,7 +109,7 @@ def classification_dataset_with_redundant_features(
         n_samples=1000, n_features=100, n_informative=5) -> InputData:
     synthetic_data = make_classification(n_samples=n_samples,
                                          n_features=n_features,
-                                         n_informative=n_informative)
+                                         n_informative=n_informative, random_state=42)
 
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],

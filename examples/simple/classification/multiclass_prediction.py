@@ -1,18 +1,15 @@
 import datetime
 import os
-import random
 
 import pandas as pd
 from golem.utilities.requirements_notificator import warn_requirement
 
 try:
-    import openpyxl
+    import openpyxl  # noqa, later used via str parameter
 except ImportError:
     warn_requirement('openpyxl', 'fedot[examples]', should_raise=True)
 
 from datetime import timedelta
-
-import numpy as np
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -30,9 +27,8 @@ from fedot.core.utils import (
     split_data
 )
 from sklearn.metrics import roc_auc_score as roc_auc
-
-random.seed(1)
-np.random.seed(1)
+from fedot.core.utils import set_random_seed
+from pathlib import Path
 
 
 def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):
@@ -106,9 +102,12 @@ def validate_model_quality(model: Pipeline, data_path: str):
 
 
 if __name__ == '__main__':
-    file_path_first = r'../../data/example1.xlsx'
-    file_path_second = r'../../data/example2.xlsx'
-    file_path_third = r'../../data/example3.xlsx'
+    set_random_seed(1)
+
+    data_path = Path('../../data')
+    file_path_first = data_path.joinpath('example1.xlsx')
+    file_path_second = data_path.joinpath('example2.xlsx')
+    file_path_third = data_path.joinpath('example3.xlsx')
 
     train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
     test_data = InputData.from_csv(test_file_path)
@@ -117,8 +116,8 @@ if __name__ == '__main__':
 
     fitted_model.show()
 
-    roc_auc = validate_model_quality(fitted_model, test_file_path)
-    print(f'ROC AUC metric is {roc_auc}')
+    roc_auc_score = validate_model_quality(fitted_model, test_file_path)
+    print(f'ROC AUC metric is {roc_auc_score}')
 
     final_prediction_first = apply_model_to_data(fitted_model, file_path_second)
     print(final_prediction_first['forecast'])

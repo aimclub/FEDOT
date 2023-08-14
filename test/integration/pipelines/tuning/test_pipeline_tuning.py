@@ -1,8 +1,6 @@
 import os
-from random import seed
 from time import time
 
-import numpy as np
 import pytest
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
@@ -24,9 +22,6 @@ from fedot.core.repository.quality_metrics_repository import RegressionMetricsEn
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
 from test.unit.tasks.test_forecasting import get_ts_data
-
-seed(1)
-np.random.seed(1)
 
 
 @pytest.fixture(scope='package')

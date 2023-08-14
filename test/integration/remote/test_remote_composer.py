@@ -20,11 +20,12 @@ def run_around_tests():
 
 def test_pseudo_remote_composer_classification():
     connect_params = {}
+    common_path = fedot_project_root().joinpath('test', 'data')
     exec_params = {
-        'container_input_path': os.path.join(fedot_project_root(), 'test', 'data'),
-        'container_output_path': os.path.join(fedot_project_root(), 'test', 'data', 'remote'),
-        'container_config_path': os.path.join(fedot_project_root(), 'test', 'data', '.'),
-        'container_image': "test",
+        'container_input_path': common_path,
+        'container_output_path': common_path.joinpath('remote'),
+        'container_config_path': common_path.joinpath('.'),
+        'container_image': 'test',
         'timeout': 1
     }
 
@@ -33,7 +34,7 @@ def test_pseudo_remote_composer_classification():
         dataset_name='advanced_classification')
 
     client = TestClient(connect_params, exec_params,
-                        output_path=os.path.join(fedot_project_root(), 'test', 'data', 'remote'))
+                        output_path=exec_params['container_output_path'])
 
     evaluator = RemoteEvaluator()
 
@@ -52,11 +53,12 @@ def test_pseudo_remote_composer_classification():
 
     automl = Fedot(problem='classification', timeout=0.1, **composer_params)
 
-    path = os.path.join(fedot_project_root(), 'test', 'data', 'advanced_classification.csv')
+    clf_dataset_pth = common_path.joinpath('advanced_classification.csv')
 
-    automl.fit(path)
-    predict = automl.predict(path)
-    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))  # recursive deleting
+    automl.fit(clf_dataset_pth)
+    predict = automl.predict(clf_dataset_pth)
+    fitted_pipeline_pth = exec_params['container_output_path'].joinpath('fitted_pipeline')
+    shutil.rmtree(fitted_pipeline_pth, ignore_errors=True)  # recursive deleting
 
     assert predict is not None
 
