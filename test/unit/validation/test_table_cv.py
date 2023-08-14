@@ -4,7 +4,6 @@ from datetime import timedelta
 import pytest
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData

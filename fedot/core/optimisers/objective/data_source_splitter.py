@@ -53,10 +53,10 @@ class DataSourceSplitter:
 
         # Check cv_folds
         if self.cv_folds is not None:
-            if not isinstance(self.cv_folds, int):
-                if self.cv_folds % 1 != 0:
-                    raise ValueError(f"cv_folds is not integer: {self.cv_folds}")
+            try:
                 self.cv_folds = int(self.cv_folds)
+            except ValueError:
+                raise ValueError(f"cv_folds is not integer: {self.cv_folds}")
             if self.cv_folds < 2:
                 self.cv_folds = None
             if self.cv_folds > data.target.shape[0] - 1:

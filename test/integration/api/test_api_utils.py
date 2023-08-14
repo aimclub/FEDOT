@@ -32,7 +32,7 @@ def test_output_binary_classification_correct():
     task_type = 'classification'
 
     data = get_binary_classification_data()
-    
+
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     model = Fedot(problem=task_type, seed=1, timeout=0.1)

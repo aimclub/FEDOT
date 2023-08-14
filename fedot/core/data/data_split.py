@@ -117,7 +117,7 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
     try:
         # fast way
         classes = np.unique(data.target, return_counts=True)
-    except:
+    except Exception:
         # slow way
         from collections import Counter
         classes = Counter(data.target)
