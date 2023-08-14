@@ -119,6 +119,9 @@ class ApiParamsRepository:
         """ Returns dict with parameters suitable for ``GPAlgorithmParameters``"""
         gp_algorithm_params = {'pop_size': params.get('pop_size'),
                                'genetic_scheme_type': GeneticSchemeTypesEnum.parameter_free}
+
+        gp_algorithm_params = self._get_adaptive_optimization_params(params, gp_algorithm_params)
+
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
@@ -140,3 +143,22 @@ class ApiParamsRepository:
             mutations.append(add_resample_mutation)
 
         return mutations
+
+    @staticmethod
+    def _get_adaptive_optimization_params(params: dict, gp_algorithm_params: dict) -> dict:
+        """ Extracts params conserned with adaptive optimization including `adaptive_mutation_type`
+        and `context_agent_type` from params. """
+        adaptive_mutation_type = params.get('adaptive_mutation_type')
+        context_agent_type = params.get('context_agent_type')
+
+        if adaptive_mutation_type:
+            adaptive_mutation_type_class = MutationAgentTypeEnum[adaptive_mutation_type] \
+                if isinstance(adaptive_mutation_type, str) else adaptive_mutation_type
+            gp_algorithm_params['adaptive_mutation_type'] = adaptive_mutation_type_class
+
+        if context_agent_type:
+            context_agent_type_class = ContextAgentTypeEnum[context_agent_type] \
+                if isinstance(context_agent_type, str) else context_agent_type
+            gp_algorithm_params['context_agent_type'] = context_agent_type_class
+
+        return gp_algorithm_params
