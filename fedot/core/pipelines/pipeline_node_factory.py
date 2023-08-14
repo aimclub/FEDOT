@@ -1,5 +1,5 @@
 from random import choice
-from typing import Optional
+from typing import Optional, List
 
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptNode
@@ -16,6 +16,15 @@ class PipelineOptNodeFactory(OptNodeFactory):
         self.requirements = requirements
         self.advisor = advisor or PipelineChangeAdvisor()
         self.graph_model_repository = graph_model_repository or self._init_default_graph_model_repo()
+
+    def get_all_available_operations(self) -> List[str]:
+        """ Returns all available models and data operations. """
+        available_operations = []
+        if self.advisor.models:
+            available_operations += self.advisor.models
+        if self.advisor.data_operations:
+            available_operations += self.advisor.data_operations
+        return available_operations
 
     def _init_default_graph_model_repo(self):
         """ Initialize default graph model repository with operations from composer requirements """
