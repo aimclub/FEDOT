@@ -1,17 +1,15 @@
 from typing import Optional, Union
 
-from golem.core.utilities.random import RandomStateHandler
-
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation, ModelImplementation
+from fedot.core.utils import RandomStateHandler
 
 
 class ImplementationRandomStateHandler(RandomStateHandler):
-    MODEL_FITTING_SEED = 0
-
     def __init__(self, seed: Optional[int] = None,
                  implementation: Union[DataOperationImplementation, ModelImplementation] = None):
-        super().__init__(seed)
+        if seed is not None:
+            super().__init__(seed)
         self.implementation = implementation
         self.implementation_old_random_state = None
 
