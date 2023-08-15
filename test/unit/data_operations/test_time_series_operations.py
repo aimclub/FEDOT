@@ -1,4 +1,7 @@
 import numpy as np
+import pytest
+
+from fedot.core.data.data_split import train_test_data_setup
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
@@ -40,6 +43,27 @@ def synthetic_univariate_ts():
                               task=task,
                               data_type=DataTypesEnum.ts)
     return train_input, predict_input, ts_test
+
+
+def get_timeseries(length=10, features_count=1,
+                   target_count=1, forecast_length=_FORECAST_LENGTH):
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
+    features = np.arange(0, length * features_count) * 10
+    if features_count > 1:
+        features = np.reshape(features, (features_count, length)).T
+        for i in range(features_count):
+            features[:, i] += i
+    target = np.arange(0, length * target_count) * 100
+    if target_count > 1:
+        target = np.reshape(target, (target_count, length)).T
+
+    train_input = InputData(idx=np.arange(0, length),
+                            features=features,
+                            target=target,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+    return train_input
 
 
 def synthetic_with_exogenous_ts():
@@ -190,3 +214,27 @@ def test_forecast_with_exog():
     prediction = np.ravel(np.array(forecast.predict))
 
     assert tuple(prediction) == tuple(ts_test)
+
+
+@pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
+                         [(10 + _FORECAST_LENGTH * 2, 1, 1, 5),
+                          (10 + _FORECAST_LENGTH * 2, 2, 1, 5),
+                          ])
+def test_lagged_node(length, features_count, target_count, window_size):
+    data = get_timeseries(length=length, features_count=features_count, target_count=target_count)
+    train, test = train_test_data_setup(data, split_ratio=0.5)
+    forecast_length = data.task.task_params.forecast_length
+    node = PipelineNode('lagged')
+    node.parameters = {'window_size': window_size}
+    fit_res = node.fit(train)
+
+    assert np.all(fit_res.idx == train.idx[window_size:-forecast_length + 1])
+    assert np.all(np.ravel(fit_res.features[0, :]) ==
+                  np.reshape(train.features[:window_size].T, (-1, )))
+    assert np.all(np.ravel(fit_res.features[-1, :]) ==
+                  np.reshape(train.features[:-forecast_length][-window_size:].T, (-1, )))
+    assert np.all(fit_res.target[0, :] == train.target[window_size:window_size + forecast_length])
+    assert np.all(fit_res.target[-1, :] == train.target[-forecast_length:])
+
+    predict = node.predict(test)
+    assert np.all(predict.predict[-1, :] == np.reshape(test.features[-window_size:].T, (-1, )))
