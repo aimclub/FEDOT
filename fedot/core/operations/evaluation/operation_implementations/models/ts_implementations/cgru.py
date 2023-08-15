@@ -49,6 +49,7 @@ class CGRUImplementation(ModelImplementation):
         self.optimizer = self.optim_dict[params.get("optimizer")]
         self.criterion = self.loss_dict[params.get("loss")]()
         self.scheduler = MultiStepLR(self.optimizer, milestones=[30, 80], gamma=0.5)
+        self.seed = None
 
     @property
     def learning_rate(self) -> float:
@@ -64,6 +65,8 @@ class CGRUImplementation(ModelImplementation):
 
         :param train_data: data with features, target and ids to process
         """
+        if self.seed is not None:
+            torch.manual_seed(self.seed)
         self.model.init_linear(train_data.task.task_params.forecast_length)
         self.model = self.model.to(self.device)
         data_loader = self._create_dataloader(train_data)
