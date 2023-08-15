@@ -182,7 +182,12 @@ class CGRUNetwork(nn.Module):
         self.linear = nn.Linear(self.hidden_size, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size).to(device)
+        kwargs = dict()
+        if self.seed is not None:
+            g = torch.Generator()
+            g.manual_seed(self.seed)
+            kwargs['generator'] = g
+        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device)
 
     def forward(self, x):
         if self.hidden_cell is None:
@@ -225,8 +230,13 @@ class CLSTMNetwork(nn.Module):
         self.linear = nn.Linear(self.hidden_size * 2, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = (torch.randn(1, batch_size, self.hidden_size).to(device),
-                            torch.randn(1, batch_size, self.hidden_size).to(device))
+        kwargs = dict()
+        if self.seed is not None:
+            g = torch.Generator()
+            g.manual_seed(self.seed)
+            kwargs['generator'] = g
+        self.hidden_cell = (torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device),
+                            torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device))
 
     def forward(self, x):
         if self.hidden_cell is None:
