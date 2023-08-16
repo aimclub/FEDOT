@@ -8,10 +8,7 @@ from fedot.core.utils import RandomStateHandler
 class ImplementationRandomStateHandler(RandomStateHandler):
     def __init__(self, seed: Optional[int] = None,
                  implementation: Union[DataOperationImplementation, ModelImplementation] = None):
-        if seed is None:
-            super().__init__()
-        else:
-            super().__init__(seed)
+        super().__init__(seed)
         self.implementation = implementation
         self.implementation_old_random_state = None
 

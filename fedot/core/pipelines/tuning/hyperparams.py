@@ -85,7 +85,7 @@ class ParametersChanger:
                                              parameter_name=parameter_name,
                                              label=parameter_name)
         # Randomly choose new value
-        rng = np.random.default_rng(random.randint(0, 2147483647))
+        rng = np.random.default_rng(random.randint(0, np.iinfo(np.int32).max))
         new_value = hp_sample(space, rng=rng)
         return {parameter_name: new_value}
 
