@@ -14,6 +14,7 @@ jobs:
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
           message: "${{ github.event.repository.name }}: 
           the ${{ github.event_name }} '${{ github.event.pull_request.title }}' 
           (#${{ github.event.number }}) was merged.
