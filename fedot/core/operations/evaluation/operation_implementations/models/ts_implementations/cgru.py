@@ -67,6 +67,7 @@ class CGRUImplementation(ModelImplementation):
         """
         if self.seed is not None:
             torch.manual_seed(self.seed)
+            self.model.seed = self.seed
         self.model.init_linear(train_data.task.task_params.forecast_length)
         self.model = self.model.to(self.device)
         data_loader = self._create_dataloader(train_data)
@@ -177,6 +178,7 @@ class CGRUNetwork(nn.Module):
         self.gru = nn.GRU(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = None
+        self.seed = None
 
     def init_linear(self, forecast_length):
         self.linear = nn.Linear(self.hidden_size, forecast_length)
@@ -225,6 +227,7 @@ class CLSTMNetwork(nn.Module):
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = nn.Linear(self.hidden_size * 2, 1)
+        self.seed = None
 
     def init_linear(self, forecast_length):
         self.linear = nn.Linear(self.hidden_size * 2, forecast_length)
