@@ -52,7 +52,6 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
                   pop_size=15,
                   max_arity=4,
                   cv_folds=None,
-                  validation_blocks=None,
                   initial_assumption=init_pipeline
                   )
     # fit model

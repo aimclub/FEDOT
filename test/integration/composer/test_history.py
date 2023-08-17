@@ -119,7 +119,9 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     metrics = [metric]
 
     data_source = DataSourceSplitter(validation_blocks=1).build(input_data)
-    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_source)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics),
+                                               data_source,
+                                               validation_blocks=1)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
     dispatcher.set_graph_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)
