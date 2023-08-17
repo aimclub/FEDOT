@@ -735,25 +735,11 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool = Fal
         ``updated_idx`` -> clipped indices of time series\n
         ``features_columns`` -> lagged time series feature table
     """
-    # Convert data to lagged form
-    lagged_dataframe = pd.DataFrame({'t_id': time_series})
-    vals = lagged_dataframe['t_id']
-    for i in range(1, window_size):
-        frames = [lagged_dataframe, vals.shift(i)]
-        lagged_dataframe = pd.concat(frames, axis=1)
-
-    # Remove incomplete rows
-    lagged_dataframe.dropna(inplace=True)
-
-    transformed = np.array(lagged_dataframe)
-
-    # Generate dataset with features
-    features_columns = np.fliplr(transformed)
+    _temp = [time_series[i:-(window_size - i - 1)] for i in range(window_size - 1)] + [time_series[window_size - 1:]]
+    features_columns = np.array(_temp).T
 
     if is_lag:
-        updated_idx = list(idx[window_size:])
-        updated_idx.append(idx[-1])
-        updated_idx = np.array(updated_idx)
+        updated_idx = np.concatenate([idx[window_size:], idx[-1:]])
     else:
         updated_idx = idx[:len(idx) - window_size + 1]
 
@@ -848,16 +834,9 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
 
     # Multi-target transformation
     if forecast_length > 1:
-        # Target transformation
-        df = pd.DataFrame({'t_id': ts_target})
-        vals = df['t_id']
-        for i in range(1, forecast_length):
-            frames = [df, vals.shift(-i)]
-            df = pd.concat(frames, axis=1)
-
-        # Remove incomplete rows
-        df.dropna(inplace=True)
-        updated_target = np.array(df)
+        _temp = ([ts_target[i:-(forecast_length - i - 1)] for i in range(forecast_length - 1)] +
+                 [ts_target[forecast_length - 1:]])
+        updated_target = np.array(_temp).T
 
         updated_idx = idx[: -forecast_length + 1]
         updated_features = features_columns[: -forecast_length]

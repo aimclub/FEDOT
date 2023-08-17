@@ -33,7 +33,7 @@ def test_output_binary_classification_correct():
 
     data = get_binary_classification_data()
 
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
 
     model = Fedot(problem=task_type, seed=1, timeout=0.1)
     model.fit(train_data, predefined_model='logit')

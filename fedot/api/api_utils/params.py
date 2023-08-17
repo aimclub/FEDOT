@@ -56,9 +56,8 @@ class ApiParams(UserDict):
             input_data: data for preprocessing
             recommendations: dict with recommendations
         """
-        # TODO fix multimodality
+
         if isinstance(input_data, MultiModalData):
-            self['cv_folds'] = None  # there are no support for multimodal data now
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name],
                                                       recommendations[data_source_name])

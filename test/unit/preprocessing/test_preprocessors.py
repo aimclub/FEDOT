@@ -114,7 +114,7 @@ def data_with_complicated_types():
     input_data = InputData(idx=np.arange(18),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
-    return train_test_data_setup(input_data, split_ratio=0.9)
+    return train_test_data_setup(input_data, split_ratio=0.9, stratify=False)
 
 
 def test_column_types_converting_correctly():
@@ -146,7 +146,7 @@ def test_column_types_process_correctly():
     """
 
     data = data_with_mixed_types_in_each_column()
-    train_data, test_data = train_test_data_setup(data, split_ratio=0.9)
+    train_data, test_data = train_test_data_setup(data, split_ratio=0.9, stratify=False)
 
     # Remove target from test sample
     test_data.target = None
@@ -223,7 +223,7 @@ def test_binary_pseudo_string_column_process_correctly():
 
 def fit_predict_cycle_for_testing(idx: int):
     input_data = get_mixed_data_with_str_and_float_values(idx=idx)
-    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
+    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9, stratify=False)
 
     pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline)

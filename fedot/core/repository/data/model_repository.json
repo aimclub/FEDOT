@@ -165,7 +165,10 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "bayesian", "non_multi", "linear"
+        "simple",
+        "bayesian",
+        "non_multi",
+        "linear"
       ]
     },
     "catboost": {
@@ -186,6 +189,7 @@
       "meta": "sklearn_class",
       "presets": ["fast_train", "*tree"],
       "tags": [
+        "simple",
         "tree",
         "interpretable",
         "non_linear"

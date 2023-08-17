@@ -1,6 +1,7 @@
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Tuple, Optional, Union
 
+import numpy as np
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
@@ -9,238 +10,193 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _split_time_series(data: InputData, task, *args, **kwargs):
+def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData],
+                                 index,
+                                 retain_first_target=False):
+    """ The function get InputData or MultiModalData and return
+        only data with indexes in index, not in idx
+        f.e. index = [0, 1, 2, 3] == input_data.features[[0, 1, 2, 3], :]
+        :param origin_input_data: data to split
+        :param index: indexes that needed in output data
+        :param retain_first_target: set to True for use only first column of target
+        """
+
+    if isinstance(origin_input_data, MultiModalData):
+        data = MultiModalData()
+        for key in origin_input_data:
+            data[key] = _split_input_data_by_indexes(origin_input_data[key],
+                                                     index=index,
+                                                     retain_first_target=retain_first_target)
+        return data
+    elif isinstance(origin_input_data, InputData):
+        idx = np.take(origin_input_data.idx, index, 0)
+        target = np.take(origin_input_data.target, index, 0)
+        features = np.take(origin_input_data.features, index, 0)
+
+        if retain_first_target and len(target.shape) > 1:
+            target = target[:, 0]
+
+        data = InputData(idx=idx,
+                         features=features,
+                         target=target,
+                         task=deepcopy(origin_input_data.task),
+                         data_type=origin_input_data.data_type,
+                         supplementary_data=origin_input_data.supplementary_data)
+        return data
+    else:
+        raise TypeError(f'Unknown data type {type(origin_input_data)}')
+
+
+def _split_time_series(data: InputData,
+                       validation_blocks: Optional[int] = None,
+                       **kwargs):
     """ Split time series data into train and test parts
 
     :param data: InputData object to split
-    :param task: task to solve
+    :param validation_blocks: validation blocks are used for test
     """
 
-    input_features = data.features
-    input_target = data.target
-    forecast_length = task.task_params.forecast_length
+    forecast_length = data.task.task_params.forecast_length
+    if validation_blocks is not None:
+        forecast_length *= validation_blocks
 
-    if kwargs.get('validation_blocks') is not None:
-        # It is required to split data for in-sample forecasting
-        forecast_length = forecast_length * kwargs.get('validation_blocks')
-        x_train = input_features[:-forecast_length]
-        x_test = input_features
+    target_length = len(data.target)
+    train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
+    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length),
+                                             retain_first_target=True)
 
-        y_train = input_target[:-forecast_length]
-        y_test = input_target[-forecast_length:]
+    if validation_blocks is None:
+        # for in-sample
+        test_data.features = train_data.features
     else:
-        # Source time series divide into two parts
-        x_train = input_features[:-forecast_length]
-        x_test = input_features[:-forecast_length]
-
-        y_train = input_target[:-forecast_length]
-        y_test = input_target[-forecast_length:]
-
-    idx_train = data.idx[:-forecast_length]
-    idx_test = data.idx[-forecast_length:]
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_train, features=x_train, target=y_train,
-                           task=task, data_type=DataTypesEnum.ts,
-                           supplementary_data=data.supplementary_data)
-
-    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
-                          task=task, data_type=DataTypesEnum.ts,
-                          supplementary_data=data.supplementary_data)
-    return train_data, test_data
-
-
-def _split_multi_time_series(data: InputData, task, *args, **kwargs):
-    """ Split multi_ts time series data into train and test parts
-
-    :param data: InputData object to split
-    :param task: task to solve
-    """
-
-    input_features = data.features
-    input_target = data.target
-    forecast_length = task.task_params.forecast_length
-
-    if kwargs.get('validation_blocks') is not None:
-        # It is required to split data for in-sample forecasting
-        forecast_length = forecast_length * kwargs.get('validation_blocks')
-        x_train = input_features[:-forecast_length]
-        x_test = input_features
-
-        y_train = input_target[:-forecast_length]
-        y_test = input_target[-forecast_length:, 0]
-
-    else:
-        # Source time series divide into two parts
-        x_train = input_features[:-forecast_length]
-        x_test = input_features[:-forecast_length]
-
-        y_train = input_target[:-forecast_length]
-        y_test = input_target[-forecast_length:, 0]
-
-    idx_train = data.idx[:-forecast_length]
-    idx_test = data.idx[-forecast_length:]
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_train, features=x_train, target=y_train,
-                           task=task, data_type=DataTypesEnum.multi_ts,
-                           supplementary_data=data.supplementary_data)
-
-    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
-                          task=task, data_type=DataTypesEnum.multi_ts,
-                          supplementary_data=data.supplementary_data)
+        # for out-of-sample
+        test_data.features = data.features
 
     return train_data, test_data
 
 
-def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False, **kwargs):
-    """ Split any data into train and test parts
+def _split_any(data: InputData,
+               split_ratio: float,
+               shuffle: bool,
+               stratify: bool,
+               random_seed: int,
+               **kwargs):
+    """ Split any data except timeseries into train and test parts
 
     :param data: InputData object to split
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param data_type type of data to split
-    :param with_shuffle: is data needed to be shuffled or not
+    :param split_ratio: share of train data between 0 and 1
+    :param shuffle: is data needed to be shuffled or not
+    :param stratify: make stratified sample or not
+    :param random_seed: random_seed for shuffle
     """
 
-    if not 0. < split_ratio < 1.:
-        raise ValueError('Split ratio must belong to the interval (0; 1)')
-    random_state = 42
+    stratify_labels = data.target if stratify else None
 
-    # Predictors and target
-    input_features = data.features
-    input_target = data.target
-    idx = data.idx
-    if task.task_type == TaskTypesEnum.classification and with_shuffle:
-        stratify = input_target
-    else:
-        stratify = None
+    train_ids, test_ids = train_test_split(np.arange(0, len(data.target)),
+                                           test_size=1. - split_ratio,
+                                           shuffle=shuffle,
+                                           random_state=random_seed,
+                                           stratify=stratify_labels)
 
-    idx_train, idx_test, x_train, x_test, y_train, y_test = \
-        train_test_split(idx,
-                         input_features,
-                         input_target,
-                         test_size=1. - split_ratio,
-                         shuffle=with_shuffle,
-                         random_state=random_state,
-                         stratify=stratify)
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_train, features=x_train,  target=y_train,
-                           task=task, data_type=data_type,
-                           supplementary_data=data.supplementary_data)
-
-    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
-                          task=task, data_type=data_type,
-                          supplementary_data=data.supplementary_data)
+    train_data = _split_input_data_by_indexes(data, index=train_ids)
+    test_data = _split_input_data_by_indexes(data, index=test_ids)
 
     return train_data, test_data
 
 
-def _split_table(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
-    """ Split table data into train and test parts
+def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ratio: float) -> bool:
+    """ Check that stratification may be done
+        :param data: data for split
+        :param split_ratio: relation between train data length and all data length
+        :return bool: stratification is allowed"""
 
-    :param data: InputData object to split
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param with_shuffle: is data needed to be shuffled or not
-    """
-    return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle)
+    # check task_type
+    if data.task.task_type is not TaskTypesEnum.classification:
+        return False
 
+    try:
+        # fast way
+        classes = np.unique(data.target, return_counts=True)
+    except Exception:
+        # slow way
+        from collections import Counter
+        classes = Counter(data.target)
+        classes = [list(classes), list(classes.values())]
 
-def _split_image(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
-    """ Split image data into train and test parts
+    # check that there are enough labels for two samples
+    if not all(x > 1 for x in classes[1]):
+        if __debug__:
+            # tests often use very small datasets that are not suitable for data splitting
+            # stratification is disabled for tests
+            return False
+        else:
+            raise ValueError(("There is the only value for some classes:"
+                              f" {', '.join(str(val) for val, count in zip(*classes) if count == 1)}."
+                              f" Data split can not be done for {data.task.task_type.name} task."))
 
-    :param data: InputData object to split
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param with_shuffle: is data needed to be shuffled or not
-    """
+    # check that split ratio allows to set all classes to both samples
+    test_size = round(len(data.target) * (1. - split_ratio))
+    labels_count = len(classes[0])
+    if test_size < labels_count:
+        return False
 
-    return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
-
-
-def _split_text(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
-    """ Split text data into train and test parts
-
-    :param data: InputData object to split
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param with_shuffle: is data needed to be shuffled or not
-    """
-
-    return _split_any(data, task, DataTypesEnum.text, split_ratio, with_shuffle)
-
-
-def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
-                                  shuffle_flag=False, **kwargs) -> Tuple[InputData, InputData]:
-    """ Function for train and test split
-
-    :param data: InputData for train and test splitting
-    :param split_ratio: threshold for partitioning
-    :param shuffle_flag: is data needed to be shuffled or not
-
-    :return train_data: InputData for train
-    :return test_data: InputData for validation
-    """
-    # Split into train and test
-    if data is not None:
-        task = data.task
-
-        split_func_dict = {
-            DataTypesEnum.multi_ts: _split_multi_time_series,
-            DataTypesEnum.ts: _split_time_series,
-            DataTypesEnum.table: _split_table,
-            DataTypesEnum.image: _split_image,
-            DataTypesEnum.text: _split_text
-        }
-
-        split_func = split_func_dict.get(data.data_type, _split_table)
-
-        train_data, test_data = split_func(data, task, split_ratio,
-                                           with_shuffle=shuffle_flag,
-                                           **kwargs)
-    else:
-        raise ValueError('InputData must be not empty')
-
-    # Store additional information
-    train_data.supplementary_data = deepcopy(data.supplementary_data)
-    test_data.supplementary_data = deepcopy(data.supplementary_data)
-    return train_data, test_data
+    return True
 
 
-def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
-                                       shuffle_flag=False, **kwargs) -> Tuple[MultiModalData, MultiModalData]:
-    train_data = MultiModalData()
-    test_data = MultiModalData()
-    for node in data.keys():
-        data_part = data[node]
-        train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag, **kwargs)
-        train_data[node] = train_data_part
-        test_data[node] = test_data_part
-
-    return train_data, test_data
-
-
-def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.8,
-                          shuffle_flag=False, **kwargs) -> Tuple[Union[InputData, MultiModalData],
-                                                                 Union[InputData, MultiModalData]]:
+def train_test_data_setup(data: Union[InputData, MultiModalData],
+                          split_ratio: float = 0.8,
+                          shuffle: bool = False,
+                          shuffle_flag: bool = False,
+                          stratify: bool = True,
+                          random_seed: int = 42,
+                          validation_blocks: Optional[int] = None) -> Tuple[Union[InputData, MultiModalData],
+                                                                            Union[InputData, MultiModalData]]:
     """ Function for train and test split for both InputData and MultiModalData
 
-    Args:
-        data: data for train and test splitting
-        split_ratio: threshold for partitioning
-        shuffle_flag: is data needed to be shuffled or not
-        kwargs: additional optional parameters such as number of validation blocks
+    :param data: InputData object to split
+    :param split_ratio: share of train data between 0 and 1
+    :param shuffle: is data needed to be shuffled or not
+    :param shuffle_flag: same is shuffle, use for backward compatibility
+    :param stratify: make stratified sample or not
+    :param random_seed: random_seed for shuffle
+    :param validation_blocks: validation blocks are used for test
 
-    Returns:
-        data for train, data for validation
+    :return: data for train, data for validation
     """
+
+    # for backward compatibility
+    shuffle |= shuffle_flag
+    # check that stratification may be done
+    stratify &= _are_stratification_allowed(data, split_ratio)
+    # stratification is allowed only with shuffle
+    shuffle |= stratify
+    # shuffle is allowed only with random_seed and vise versa
+    random_seed = (random_seed or 42) if shuffle else None
+
+    input_arguments = {'split_ratio': split_ratio,
+                       'shuffle': shuffle,
+                       'stratify': stratify,
+                       'random_seed': random_seed,
+                       'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag, **kwargs)
+        split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
+                           DataTypesEnum.ts: _split_time_series,
+                           DataTypesEnum.table: _split_any,
+                           DataTypesEnum.image: _split_any,
+                           DataTypesEnum.text: _split_any}
+
+        if data.data_type not in split_func_dict:
+            raise TypeError((f'Unknown data type {type(data)}. Supported data types:'
+                             f' {", ".join(str(x) for x in split_func_dict)}'))
+
+        split_func = split_func_dict[data.data_type]
+        train_data, test_data = split_func(data, **input_arguments)
     elif isinstance(data, MultiModalData):
-        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag, **kwargs)
+        train_data, test_data = MultiModalData(), MultiModalData()
+        for node in data.keys():
+            train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
     else:
-        raise ValueError(f'Dataset {type(data)} is not supported')
+        raise ValueError((f'Dataset {type(data)} is not supported. Supported types:'
+                          ' InputData, MultiModalData'))
 
     return train_data, test_data

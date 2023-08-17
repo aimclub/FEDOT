@@ -152,6 +152,30 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     return True
 
 
+def has_correct_location_of_resample(pipeline: Pipeline):
+    """
+    Pipeline can have only one resample operation located in start of the pipeline
+
+    :param pipeline: pipeline for checking
+    """
+    is_resample_primary = False
+    is_not_resample_primary = False
+    for node in pipeline.nodes:
+        if node.is_primary:
+            if node.name == 'resample':
+                is_resample_primary = True
+            else:
+                is_not_resample_primary = True
+        else:
+            if node.name == 'resample':
+                raise ValueError(
+                    f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
+    if is_resample_primary and is_not_resample_primary:
+        raise ValueError(
+            f'{ERROR_PREFIX} Pipeline can have only one resample operation located in start of the pipeline')
+    return True
+
+
 def get_wrong_links(ts_to_table_operations: list, ts_data_operations: list, non_ts_data_operations: list,
                     ts_models: list, non_ts_models: list) -> dict:
     """
