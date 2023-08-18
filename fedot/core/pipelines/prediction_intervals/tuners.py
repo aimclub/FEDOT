@@ -23,15 +23,15 @@ def quantile_loss_tuners(up_quantile: float,
     """This function builds default tuners for quantile loss method.
 
     Args:
-        up_quantile (float): upper quantile
-        low_quantile (float): low quantile
-        task (Task): task specifying horizon for tuning
-        train_input (InputData): train data for tuners
-        show_progress (bool): whether to show progress during tuning
-        validation_blocks (int): number of validation blocks for tuners
-        n_jobs (int): n_jobs for tuners
-        iterations (int): number iterations for tuners
-        minutes (int): number minutes for tuners.
+        up_quantile: upper quantile
+        low_quantile: low quantile
+        task: task specifying horizon for tuning
+        train_input: train data for tuners
+        show_progress: whether to show progress during tuning
+        validation_blocks: number of validation blocks for tuners
+        n_jobs: n_jobs for tuners
+        iterations: number iterations for tuners
+        minutes: number minutes for tuners.
 
     Returns:
         a dictionary consisitng of upper and low SimultaneousTuner tuners.

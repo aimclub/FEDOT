@@ -27,14 +27,14 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     """This function realizes 'mutation_of_best_pipeline' method.
 
     Args:
-        train_input (InputData): train time series
-        model (Fedot): given Fedot class object
-        logger (LoggerAdapter): prediction interval logger
-        horizon (int): horizon to build forecast
-        number_mutations (int): number mutations to use
-        mutations_choice (str): choose mutations with ('with_replacement') or without replacement ('different')
-        n_jobs (int): n_jobs
-        show_progress (bool): flag to show progress
+        train_input: train time series
+        model: given Fedot class object
+        logger: prediction interval logger
+        horizon: horizon to build forecast
+        number_mutations: number mutations to use
+        mutations_choice: choose mutations with ('with_replacement') or without replacement ('different')
+        n_jobs: n_jobs
+        show_progress: flag to show progress
         logger: prediction intervals logger
         discard_inapropriate_pipelines: flag to keep unreliable pipelines
         keep_percentage: percentage of mutations to keep regarding the RMSE-metric of their performance over train ts.

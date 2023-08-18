@@ -13,14 +13,14 @@ def plot_prediction_intervals(model_forecast: np.array,
     """Function for plotting prediction intervals.
 
     Args:
-        model_forecast (np.array): forecast of the given Fedot class object
-        up_int (np.array): upper prediction interval
-        low_int (np.array): low prediction interval
-        ts (np.array): initial time series
-        show_history (bool): flag whether to plot initial time series
-        ts_test (np.array): test time series if given
-        show_forecast (bool): flag wheter to plot forecast of the given Fedot class object
-        labels (str): which type of labels (prediction intervals or base quantiles) use for plotting.
+        model_forecast: forecast of the given Fedot class object
+        up_int: upper prediction interval
+        low_int: low prediction interval
+        ts: initial time series
+        show_history: flag whether to plot initial time series
+        ts_test: test time series if given
+        show_forecast: flag wheter to plot forecast of the given Fedot class object
+        labels: which type of labels (prediction intervals or base quantiles) use for plotting.
     """
     train_len = len(ts)
     train_range = range(train_len)

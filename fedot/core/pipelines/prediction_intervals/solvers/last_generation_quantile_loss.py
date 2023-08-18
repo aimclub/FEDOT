@@ -26,17 +26,17 @@ def solver_last_generation_ql(train_input: InputData,
     """This function realizes 'last_generation_ql' method.
 
     Args:
-        train_input (InputData): train time series
-        model (Fedot): given Fedot class object
-        logger (LoggerAdapter): prediction interval logger
-        horizon (int): horizon to build forecast
-        number_models (Union[int, str]): number_of_models; if 'max' then all models are used
-        nominal_error (float): nominal error
-        iterations (int): number iterations for default tuner
-        minutes (int): number minutes for default tuner
-        n_jobs (int): n_jobs for default tuner
-        validation_blocks (int): number validation blocks for default tuner
-        up_tuner, low_tuner (SimultaneousTuner): tuners that can be choosen instead of the default tuners.
+        train_input: train time series
+        model: given Fedot class object
+        logger: prediction interval logger
+        horizon: horizon to build forecast
+        number_models: number_of_models; if 'max' then all models are used
+        nominal_error: nominal error
+        iterations: number iterations for default tuner
+        minutes: number minutes for default tuner
+        n_jobs: n_jobs for default tuner
+        validation_blocks: number validation blocks for default tuner
+        up_tuner, low_tuner: tuners that can be choosen instead of the default tuners.
 
     Returns:
         dictionary with lists consisting of np.arrays for building upper and lower prediction intervals.

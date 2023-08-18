@@ -17,12 +17,12 @@ def solver_best_pipelines_quantiles(train_input: InputData,
     """This function realizes 'best_pipelines_quantiles' method.
 
     Args:
-        train_input (InputData): train time series
-        model (Fedot): given Fedot class object
+        train_input: train time series
+        model: given Fedot class object
         logger: prediction interval logger
-        horizon (int): horizon to build forecast
-        number_models (Union[int,str]): number pipelines from last generation to use
-        show_progress (bool): flag to show progress
+        horizon: horizon to build forecast
+        number_models: number pipelines from last generation to use
+        show_progress: flag to show progress
         logger: prediction intervals logger
 
     Returns:

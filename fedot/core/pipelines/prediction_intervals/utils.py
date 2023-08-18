@@ -29,7 +29,7 @@ def pipeline_simple_structure(ind: Individual):
     """This function transformates an individual to a list consisting of its pipeline node names.
 
     Args:
-        ind (Individual): some pipeline.
+        ind: some pipeline.
 
     Returns:
         list of node names in string type.

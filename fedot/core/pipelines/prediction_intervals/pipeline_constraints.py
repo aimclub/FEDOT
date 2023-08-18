@@ -11,9 +11,9 @@ def first_prediction_constraint(ts_train: np.array, forecast: np.array, predicti
     pipeline assumed to be unreliable and function returns False.
 
     Args:
-        ts_train (np.array): initial time series
-        forecast (np.array): forecast of given Fedot class object
-        prediction (np.array): a forecast obtained by some pipeline.
+        ts_train: initial time series
+        forecast: forecast of given Fedot class object
+        prediction: a forecast obtained by some pipeline.
 
     Returns:
         bool: True if difference between first elements of pipeline prediction and forecast is not too big, otherwise
@@ -26,9 +26,9 @@ def deviance_constraint(ts_train: np.array, prediction: np.array, constraint=2):
     """"Function to check whether a pipeline prediction oscillate to much comparing with train series.
 
     Args:
-        ts_train (np.array): initial time series
-        prediction (np.array): a forecast obtained by some mutation
-        constraint (float): strength of oscillation restriction.
+        ts_train: initial time series
+        prediction: a forecast obtained by some mutation
+        constraint: strength of oscillation restriction.
 
     Returns:
         True if prediction does not oscillate too much, otherwise False.

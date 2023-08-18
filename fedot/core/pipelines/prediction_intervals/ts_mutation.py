@@ -15,7 +15,7 @@ def get_ts_mutation(individual: Individual):
     """This function gets a mutation of a given Individual object.
 
     Args:
-        individual (Individual): an individual.
+        individual: an individual.
 
     Returns:
         Individual: a mutation of a given individual.
@@ -39,8 +39,8 @@ def get_mutations(individual: Individual, number_mutations: int):
     """For a given individaul this function obtains several its mutations.
 
     Args:
-        individaul (Individual): an individual
-        number_mutations (int): a required number mutations.
+        individaul: an individual
+        number_mutations: a required number mutations.
 
     Returns:
         list of mutations of given individual. Mutations can be identical.
@@ -57,8 +57,8 @@ def get_different_mutations(individual: Individual, number_mutations: int):
     """For a given individaul this function obtains several different its mutations.
 
     Args:
-        individaul (Individual): an individual
-        number_mutations (int): a required number mutations.
+        individaul: an individual
+        number_mutations: a required number mutations.
 
     Returns:
         list of mutations of given individual. Mutations must be different.
