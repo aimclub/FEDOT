@@ -10,15 +10,10 @@ from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline
 @pytest.fixture
 def params():
 
-    input_name = f'{fedot_project_root()}/test/unit/data/pred_ints_train_input_test.pickle'
-    model_name = f'{fedot_project_root()}/test/unit/data/pred_ints_model_test.pickle'
-
-    with open(input_name, 'rb') as f:
+    with open(f'{fedot_project_root()}/test/unit/data/pred_ints_train_input_test.pickle', 'rb') as f:
         train_input = pickle.load(f)
-
-    with open(model_name, 'rb') as f:
+    with open(f'{fedot_project_root()}/test/unit/data/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
-
     Log().reset_logging_level(10)
     logger = default_log(prefix='Testing solver_mutation_of_best_pipeline')
     horizon = model.params.task.task_params.forecast_length
