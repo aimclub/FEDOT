@@ -32,11 +32,11 @@ def params():
 
 
 def test_solver_mutation_of_best_pipeline(params):
-    params_default = {'choice': 'different', 'discard': True, 'percentage': 0.66,
+    params_default = {'choice': 'different', 'discard': True, 'percentage': 0.66, 'number_mutations': 10,
                       'message': 'default solver_mutation_of_best_pipeline failed.'}
-    params_with_replacement = {'choice': 'with_replacement', 'discard': True, 'percentage': 0.5,
+    params_with_replacement = {'choice': 'with_replacement', 'discard': True, 'percentage': 0.5, 'number_mutations': 30,
                                'message': 'solver_mutation_of_best_pipeline with inapropriate pipelines failed.'}
-    params_different = {'choice': 'different', 'discard': False, 'percentage': 0.8,
+    params_different = {'choice': 'different', 'discard': False, 'percentage': 0.8, 'number_mutations': 10,
                         'mesage': 'solver_mutation_of_best_pipeline failed.'}
 
     for x in [params_default, params_with_replacement, params_different]:
@@ -45,7 +45,7 @@ def test_solver_mutation_of_best_pipeline(params):
                                      horizon=params['horizon'],
                                      forecast=params['forecast'],
                                      logger=params['logger'],
-                                     number_mutations=10,
+                                     number_mutations=x['number_mutations'],
                                      n_jobs=-1,
                                      show_progress=True,
                                      mutations_choice=x['choice'],
@@ -56,7 +56,7 @@ def test_solver_mutation_of_best_pipeline(params):
             number_predictions = len(res)
             assert number_predictions <= 10 * x['percentage'] + 1, f"{x['message']} Bad pipelines are not deleted."
 
-        if x == params_different:
+        elif x in [params_with_replacement, params_different]:
             prediction_length = len(res[0])
             for y in res:
                 assert type(y) == np.ndarray, f"{x['message']} Wrong output of a mutation."
