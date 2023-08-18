@@ -58,9 +58,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     first_pred_constraints = []
     deviance_pred_constraints = []
     s = 1
-
     for p in mutations_of_best_pipeline:
-
         pipeline = PipelineAdapter().restore(p.graph)
         model.current_pipeline = pipeline
         if show_progress:
@@ -71,15 +69,12 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
         pipeline.fit(train_input)
         pred = model.forecast(horizon=horizon)
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
-
         if show_progress:
             end_time = time.time()
             logger.info(f'fitting time {end_time-start_time} sec')
             logger.info(f'RMSE-metric: {metric_value}')
-
             fig, ax = plt.subplots()
             ax.plot(range(len(pred)), pred)
-
         raw_predictions.append(pred)
 
         # for each mutation we compute its charactersitcs that used later on to eliminate aproiri bad pipelines
@@ -87,7 +82,6 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
             fpc = first_prediction_constraint(ts_train=train_input.features, forecast=forecast, prediction=pred)
             dc = deviance_constraint(ts_train=train_input.features, prediction=pred)
             metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
-
             metric_values.append(metric_value)
             first_pred_constraints.append(fpc)
             deviance_pred_constraints.append(dc)
@@ -96,11 +90,9 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     # first_pred_constraints: dismiss pipelines with first forecasted value that are too far from the model_forecast
     # deviance_pred_constraints: dismiss pipelines, such their forecasts oscillate too much
     # also we remove a specified percentage of pipelines with biggest RMSE metric.
-
     if discard_inapropriate_pipelines:
         predictions = []
         maximal_metric_value = np.quantile(np.array(metric_values), keep_percentage)
-
         for i, m in enumerate(mutations_of_best_pipeline):
             if first_pred_constraints[i] and deviance_pred_constraints[i] and metric_values[i] < maximal_metric_value:
                 predictions.append(raw_predictions[i])
