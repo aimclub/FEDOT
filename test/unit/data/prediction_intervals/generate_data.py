@@ -17,14 +17,15 @@ def synthetic_series(start, end):
 
     return trend + noise
 
+
 ts_train = synthetic_series(0, 200)
 ts_test = synthetic_series(200, 220)
-np.savetxt("train_ts.csv", ts_train, delimiter = ",")
-np.savetxt("test_ts.csv", ts_test, delimiter = ",")
+np.savetxt("train_ts.csv", ts_train, delimiter=",")
+np.savetxt("test_ts.csv", ts_test, delimiter=",")
 
 fig, ax = plt.subplots()
 ax.plot(range(200), ts_train)
-ax.plot(range(200,220), ts_test)
+ax.plot(range(200, 220), ts_test)
 
 task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
 idx = np.array(range(len(np.array(ts_train))))
