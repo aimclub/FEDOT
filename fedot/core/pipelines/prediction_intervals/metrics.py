@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def quantile_loss(y_true: np.array, y_pred: np.array, quantile: float = 0.5):
+def quantile_loss(y_true: np.array, y_pred: np.array, quantile: float):
     """Qauntile loss of Pinball loss function."""
 
     res = y_true - y_pred
