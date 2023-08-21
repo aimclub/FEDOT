@@ -99,4 +99,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     else:
         predictions = raw_predictions
 
+    if len(predictions) == 0:
+        raise ValueError('Variable predictions is empty list. Try to increase number_mutations to solve this problem.')
+
     return predictions

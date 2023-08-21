@@ -113,7 +113,7 @@ def check_init_params(model: Fedot, method: str):
     avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
 
     if method not in avaliable_methods:
-        raise ValueError(f'''Argument 'method' is incorrect. Possible options: 'last_generation_ql',
+        raise ValueError('''Argument 'method' is incorrect. Possible options: 'last_generation_ql',
 'best_pipelines_quantiles', 'mutation_of_best_pipeline'.''')
     if not model.current_pipeline:
         raise ValueError('Fedot class object is not fitted.')
