@@ -30,9 +30,6 @@ def picp(true: np.array, low: np.array, up: np.array):
 def interval_score(true: np.array, low: np.array, up: np.array, alpha: float = 0.1, weight: float = 2):
     """Interval score metric, see https://arxiv.org/pdf/2007.05709.pdf"""
 
-    true = np.array(true)
-    low = np.array(low)
-    up = np.array(up)
     aiw = (up - low).mean()
     array = np.array([])
     length = len(true)
