@@ -21,6 +21,9 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     d = pd.read_csv(f'{fedot_project_root()}/examples/data/ts/ts_long.csv')
     init_series = d[d['series_id'] == 'temp']['value'].to_numpy()
 
+    # d = pd.read_csv('ts study 1.txt')
+    # init_series = d[d['label'] =='temp']['value'].to_numpy()
+
     ts = init_series[start:end]
     ts_test = init_series[end:end + horizon]
 
@@ -30,7 +33,7 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
 
     # create fedot model
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
-    idx = np.arange(len(ts))
+    idx = np.array(range(len(np.array(ts))))
     train_input = InputData(idx=idx,
                             features=ts,
                             target=ts,
@@ -41,8 +44,11 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
               timeout=3,
               preset='ts',
               show_progress=False)
+
     model.fit(train_input)
+
     model.forecast()
+    model.plot_prediction()
 
     # initilize PredictionIntervals instance
     params = PredictionIntervalsParams(number_mutations=50, show_progress=False, mutations_choice='different')
@@ -57,14 +63,17 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     pred_ints.plot(ts_test=ts_test)
 
     pred_ints.get_base_quantiles(train_input)
-    pred_ints.plot_base_quantiles(ts_test=ts_test)
+    pred_ints.plot_base_quantiles()
 
     # Evaluate results using metrcis picp (predicition interval coverage probability) and interval_score,
     # see  https://arxiv.org/pdf/2007.05709.pdf
 
-    print(f'''intervals_score: {interval_score(ts_test,up=x['up_int'],low=x['low_int'])}
+    print(f'''Evaluate results using metrcis picp (predicition interval coverage probability) and interval_score,
+see https://arxiv.org/pdf/2007.05709.pdf
+interval_score: {interval_score(ts_test,up=x['up_int'],low=x['low_int'])}
 picp: {picp(ts_test,low = x['low_int'],up=x['up_int'])}
 ''')
+
 
 if __name__ == '__main__':
     build_pred_ints()

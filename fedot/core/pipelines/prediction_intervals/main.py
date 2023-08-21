@@ -170,7 +170,7 @@ class PredictionIntervals:
 
         self.is_forecasted = True
 
-        return {'up_int': up_int, 'low_int': low_int}
+        return {'up_int': self.up_int, 'low_int': self.low_int}
 
 
     def get_base_quantiles(self, train_input: InputData):
