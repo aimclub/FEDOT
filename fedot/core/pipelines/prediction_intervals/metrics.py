@@ -27,22 +27,6 @@ def picp(true: np.array, low: np.array, up: np.array):
     return s / length
 
 
-def cwc(true: np.array, low: np.array, up: np.array, mu: float = 0.9, eta: float = 1, normalize_aiw=False):
-    """Coverage width-based criterion metric, see https://backend.orbit.dtu.dk/ws/files/61212710/wan2013_elm.pdf"""
-
-    true = np.array(true)
-    low = np.array(low)
-    up = np.array(up)
-
-    aiw = (up - low).mean()
-    picp_value = picp(true=true, low=low, up=up)
-
-    if picp_value >= mu:
-        return aiw
-    else:
-        return aiw * (1 + np.exp(eta * (mu - picp_value)))
-
-
 def interval_score(true: np.array, low: np.array, up: np.array, alpha: float = 0.1, weight: float = 2):
     """Interval score metric, see https://arxiv.org/pdf/2007.05709.pdf"""
 
