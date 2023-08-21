@@ -146,7 +146,12 @@ class CGRUImplementation(ModelImplementation):
         return f_scaled, t_scaled
 
     def _scale(self, array: np.ndarray):
-        return (array - self.mu) / self.std
+        if self.std != 0:
+            return (array - self.mu) / self.std
+        else:
+            # if std is 0 then array has the only unique value
+            # the _scale returns 0 - near to true
+            return array - self.mu
 
     def _inverse_scale(self, array: np.ndarray):
         return array * self.std + self.mu
