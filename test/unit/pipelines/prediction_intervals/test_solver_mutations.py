@@ -4,25 +4,35 @@ import numpy as np
 
 from golem.core.log import default_log, Log
 from fedot.core.utils import fedot_project_root
+from fedot.core.data.data import InputData
+from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
+
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 
 
 @pytest.fixture
 def params():
 
-    with open(f'{fedot_project_root()}/test/unit/data/pred_ints_train_input_test.pickle', 'rb') as f:
-        train_input = pickle.load(f)
-    with open(f'{fedot_project_root()}/test/unit/data/pred_ints_model_test.pickle', 'rb') as f:
+    with open(f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
+    ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/train_ts.csv')
+    ts_test = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/test_ts.csv')
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
+    idx = np.arange(len(ts_train))
+    train_input = InputData(idx=idx,
+                            features=ts_train,
+                            target=ts_train,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+
     Log().reset_logging_level(10)
     logger = default_log(prefix='Testing solver_mutation_of_best_pipeline')
-    horizon = model.params.task.task_params.forecast_length
     forecast = model.forecast()
 
     return {'train_input': train_input,
             'model': model,
             'forecast': forecast,
-            'horizon': horizon,
             'logger': logger}
 
 
@@ -37,7 +47,7 @@ def test_solver_mutation_of_best_pipeline(params):
     for x in [params_default, params_with_replacement, params_different]:
         res = solver_mutation_of_best_pipeline(train_input=params['train_input'],
                                      model=params['model'],
-                                     horizon=params['horizon'],
+                                     horizon=20,
                                      forecast=params['forecast'],
                                      logger=params['logger'],
                                      number_mutations=x['number_mutations'],

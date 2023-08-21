@@ -3,31 +3,29 @@ import pickle
 import numpy as np
 
 from fedot.core.utils import fedot_project_root
+from fedot.core.data.data import InputData
+from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
+
 from fedot.core.pipelines.prediction_intervals.main import PredictionIntervals
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.metrics import interval_score, picp
 
 
-def synthetic_series(start, end):
-
-    trend = np.array([5 * np.sin(x / 20) + 0.1 * x - 2 * np.sqrt(x) for x in range(start, end)])
-    noise = np.random.normal(loc=0, scale=1, size=end - start)
-
-    return trend + noise
-
-
 @pytest.fixture
 def params():
 
-    input_name = f'{fedot_project_root()}/test/unit/data/pred_ints_train_input_test.pickle'
-    model_name = f'{fedot_project_root()}/test/unit/data/pred_ints_model_test.pickle'
-    with open(input_name, 'rb') as f:
-        train_input = pickle.load(f)
-
-    with open(model_name, 'rb') as f:
+    with open(f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
-
-    ts_test = synthetic_series(start=200, end=220)
+    ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/train_ts.csv')
+    ts_test = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/test_ts.csv')
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
+    idx = np.arange(len(ts_train))
+    train_input = InputData(idx=idx,
+                            features=ts_train,
+                            target=ts_train,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
 
     return {'train_input': train_input, 'model': model, 'ts_test': ts_test}
 

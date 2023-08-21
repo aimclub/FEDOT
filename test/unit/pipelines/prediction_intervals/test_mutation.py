@@ -10,7 +10,7 @@ from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutatio
 @pytest.fixture
 def get_individual():
 
-    model_name = f'{fedot_project_root()}/test/unit/data/pred_ints_model_test.pickle'
+    model_name = f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle'
     with open(model_name, 'rb') as f:
         model = pickle.load(f)
 
