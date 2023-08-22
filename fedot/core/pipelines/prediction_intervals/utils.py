@@ -89,7 +89,7 @@ def ts_jumps(ts: np.array):
     """This function computes maximal upswing and downswing of a time series."""
 
     ts_diff = np.diff(ts)
-    return {'up': np.max(ts_diff), 'low': abs(np.min(ts_diff))}
+    return {'up': np.max(ts_diff), 'low': np.min(ts_diff)}
 
 
 def ts_deviance(ts: np.array):
