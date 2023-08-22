@@ -91,6 +91,44 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
+    "boosting_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Boosting models implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.boostings",
+        "BoostingClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "boosting",
+        "composition"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "boosting_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Boosting models implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.boostings",
+        "BoostingRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "boosting",
+        "composition"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts]",
@@ -171,14 +209,14 @@
       ]
     },
     "catboost": {
-      "meta": "sklearn_class",
+      "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
         "boosting", "non-default", "non_linear"
       ]
     },
     "catboostreg": {
-      "meta": "sklearn_regr",
+      "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
         "boosting", "non_multi", "non-default", "non_linear"
@@ -254,14 +292,14 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting", "tree", "non_linear"
+        "tree", "non_linear"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non_linear"
+        "tree", "non_multi", "non_linear"
       ]
     },
     "linear": {
@@ -430,14 +468,14 @@
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non-default", "non_linear"
+        "tree", "non-default", "non_linear"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non-default", "non_linear"
+        "tree", "non_multi", "non-default", "non_linear"
       ]
     },
     "cnn": {

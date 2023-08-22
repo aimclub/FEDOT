@@ -43,6 +43,8 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     features: np.ndarray
+    features_names: np.ndarray = None
+    cat_features: np.ndarray = None
     target: Optional[np.ndarray] = None
 
     # Object with supplementary info
@@ -84,9 +86,15 @@ class Data:
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
+        if target_columns == '':
+            features_names = df.columns.to_numpy()[:-1]
+        else:
+            features_names = df.drop(target_columns, axis=1).columns.to_nunpy()
+
         features, target = process_target_and_features(df, target_columns)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
+                         features_names=features_names)
 
     @classmethod
     def from_csv_time_series(cls,
