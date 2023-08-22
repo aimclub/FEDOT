@@ -1,9 +1,14 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 
 
 def test_vectorize_tfidf_strategy():
@@ -29,3 +34,23 @@ def test_vectorize_tfidf_strategy():
 
     assert isinstance(vectorizer_fitted, TfidfVectorizer)
     assert len(predicted_labels[0]) == 7
+
+
+def test_boosting_classification_operation():
+    train_data, test_data = get_classification_data()
+
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.classification, tags=['boosting']
+    )
+
+    for model_name in model_names:
+        pipeline = PipelineBuilder().add_node(model_name).build()
+        pipeline.fit(train_data, n_jobs=-1)
+        predicted_output = pipeline.predict(test_data, output_mode='labels')
+        metric = roc_auc(test_data.target, predicted_output.predict)
+
+        print(metric)
+
+        assert isinstance(pipeline, Pipeline)
+        assert predicted_output.predict.shape[0] == 240
+        assert metric > 0.5
