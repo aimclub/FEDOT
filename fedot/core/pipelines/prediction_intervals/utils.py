@@ -88,23 +88,14 @@ def get_base_quantiles(train_input: InputData, pipeline: Pipeline, nominal_error
 def ts_jumps(ts: np.array):
     """This function computes maximal upswing and downswing of a time series."""
 
-    jump_up = 0
-    jump_low = 0
-    for i in range(len(ts) - 1):
-        jump_up = max(jump_up, ts[i + 1] - ts[i])
-        jump_low = max(jump_low, ts[i] - ts[i + 1])
-
-    return {'up': jump_up, 'low': -jump_low}
+    ts_diff = np.diff(ts)
+    return {'up': np.max(ts_diff), 'low': abs(np.min(ts_diff))}
 
 
 def ts_deviance(ts: np.array):
     """This function computes average module of difference between neighboring elements of time series."""
 
-    deviance = []
-    for i in range(len(ts) - 1):
-        deviance.append(abs(ts[i + 1] - ts[i]))
-
-    return np.array(deviance).mean()
+    return np.mean(np.abs(np.diff(ts)))
 
 
 def check_init_params(model: Fedot, method: str):
