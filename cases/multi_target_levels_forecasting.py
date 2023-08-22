@@ -7,6 +7,7 @@ from sklearn.metrics import mean_absolute_error
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 
@@ -99,5 +100,5 @@ def run_multi_output_case(path, vis=False):
 
 
 if __name__ == '__main__':
-    path_file = './data/lena_levels/multi_sample.csv'
+    path_file = fedot_project_root() / 'cases/data/lena_levels/multi_sample.csv'
     run_multi_output_case(path_file, vis=True)
