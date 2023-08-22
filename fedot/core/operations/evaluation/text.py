@@ -13,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -32,7 +33,8 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
 
         features_list = self._convert_to_one_dim(train_data.features)
 
-        self.vectorizer.fit(features_list)
+        with ImplementationRandomStateHandler(implementation=self.vectorizer):
+            self.vectorizer.fit(features_list)
 
         return self.vectorizer
 
@@ -83,8 +85,8 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained model
         """
-
-        self.text_processor.fit(train_data)
+        with ImplementationRandomStateHandler(implementation=self.text_processor):
+            self.text_processor.fit(train_data)
         return self.text_processor
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -134,8 +136,8 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
 
         :param train_data: data with features, target and ids to process
         """
-
-        self.vectorizer.fit(train_data)
+        with ImplementationRandomStateHandler(implementation=self.vectorizer):
+            self.vectorizer.fit(train_data)
         return self.vectorizer
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

@@ -49,6 +49,7 @@ class CGRUImplementation(ModelImplementation):
         self.optimizer = self.optim_dict[params.get("optimizer")]
         self.criterion = self.loss_dict[params.get("loss")]()
         self.scheduler = MultiStepLR(self.optimizer, milestones=[30, 80], gamma=0.5)
+        self.seed = None
 
     @property
     def learning_rate(self) -> float:
@@ -64,6 +65,9 @@ class CGRUImplementation(ModelImplementation):
 
         :param train_data: data with features, target and ids to process
         """
+        if self.seed is not None:
+            torch.manual_seed(self.seed)
+            self.model.seed = self.seed
         self.model.init_linear(train_data.task.task_params.forecast_length)
         self.model = self.model.to(self.device)
         data_loader = self._create_dataloader(train_data)
@@ -174,12 +178,18 @@ class CGRUNetwork(nn.Module):
         self.gru = nn.GRU(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = None
+        self.seed = None
 
     def init_linear(self, forecast_length):
         self.linear = nn.Linear(self.hidden_size, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size).to(device)
+        kwargs = dict()
+        if self.seed is not None:
+            g = torch.Generator()
+            g.manual_seed(self.seed)
+            kwargs['generator'] = g
+        self.hidden_cell = torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device)
 
     def forward(self, x):
         if self.hidden_cell is None:
@@ -217,13 +227,19 @@ class CLSTMNetwork(nn.Module):
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = nn.Linear(self.hidden_size * 2, 1)
+        self.seed = None
 
     def init_linear(self, forecast_length):
         self.linear = nn.Linear(self.hidden_size * 2, forecast_length)
 
     def init_hidden(self, batch_size, device):
-        self.hidden_cell = (torch.randn(1, batch_size, self.hidden_size).to(device),
-                            torch.randn(1, batch_size, self.hidden_size).to(device))
+        kwargs = dict()
+        if self.seed is not None:
+            g = torch.Generator()
+            g.manual_seed(self.seed)
+            kwargs['generator'] = g
+        self.hidden_cell = (torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device),
+                            torch.randn(1, batch_size, self.hidden_size, **kwargs).to(device))
 
     def forward(self, x):
         if self.hidden_cell is None:

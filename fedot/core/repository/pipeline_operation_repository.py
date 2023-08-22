@@ -27,7 +27,7 @@ class PipelineOperationRepository(GraphOperationRepository):
                                   available_operations: List[str]):
         """ Initialize repository from available operations, task and preset """
         operations_by_task_preset = OperationsPreset(task, preset).filter_operations_by_preset()
-        all_operations = list(set.intersection(set(operations_by_task_preset), set(available_operations)))
+        all_operations = sorted(list(set.intersection(set(operations_by_task_preset), set(available_operations))))
         primary_operations, secondary_operations = \
             self.divide_operations(all_operations, task)
         self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
@@ -40,7 +40,7 @@ class PipelineOperationRepository(GraphOperationRepository):
 
     def get_all_operations(self) -> List[str]:
         """ Get all pipeline operations with all keys """
-        return list(itertools.chain(*self.operations_by_keys.values()))
+        return sorted(list(itertools.chain(*self.operations_by_keys.values())))
 
     @staticmethod
     def divide_operations(available_operations, task):
@@ -61,7 +61,7 @@ class PipelineOperationRepository(GraphOperationRepository):
             ts_primary_operations = ts_data_operations + ts_primary_models
 
             # Filter - remain only operations, which were in available ones
-            primary_operations = list(set(ts_primary_operations).intersection(available_operations))
+            primary_operations = sorted(list(set(ts_primary_operations).intersection(available_operations)))
             secondary_operations = available_operations
         else:
             primary_operations = available_operations
