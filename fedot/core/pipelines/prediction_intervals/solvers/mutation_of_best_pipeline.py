@@ -7,6 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.api.main import Fedot
 from fedot.core.composer.metrics import RMSE
 from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_mutations, get_different_mutations
 from fedot.core.pipelines.prediction_intervals.pipeline_constraints import first_prediction_constraint, \
@@ -14,7 +15,7 @@ from fedot.core.pipelines.prediction_intervals.pipeline_constraints import first
 
 
 def solver_mutation_of_best_pipeline(train_input: InputData,
-                                     model: Fedot,
+                                     ind,
                                      horizon: int,
                                      number_mutations: int,
                                      mutations_choice: str,
@@ -28,7 +29,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
 
     Args:
         train_input: train time series
-        model: given Fedot class object
+        #model: given Fedot class object
         logger: prediction interval logger
         horizon: horizon to build forecast
         number_mutations: number mutations to use
@@ -43,15 +44,15 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
         a list of predictions to build prediction intervals.
     """
 
-    best_pipeline = model.history.individuals[-1][0]
+    #best_pipeline = model.history.individuals[-1][0]
     if show_progress:
         logger.info('Creating mutations of final pipeline...')
 
     if mutations_choice == 'different':
-        mutations_of_best_pipeline = get_different_mutations(individual=best_pipeline,
+        mutations_of_best_pipeline = get_different_mutations(individual=ind,
                                                              number_mutations=number_mutations)
     elif mutations_choice == 'with_replacement':
-        mutations_of_best_pipeline = get_mutations(individual=best_pipeline, number_mutations=number_mutations)
+        mutations_of_best_pipeline = get_mutations(individual=ind, number_mutations=number_mutations)
 
     raw_predictions = []
     metric_values = []
@@ -60,14 +61,15 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     s = 1
     for p in mutations_of_best_pipeline:
         pipeline = PipelineAdapter().restore(p.graph)
-        model.current_pipeline = pipeline
+        #model.current_pipeline = pipeline
         if show_progress:
             logger.info(f'Pipeline number {s}')
             s += 1
             pipeline.show()
             start_time = time.time()
         pipeline.fit(train_input)
-        pred = model.forecast(horizon=horizon)
+        pred = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
+        #pred = model.forecast(horizon=horizon)
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
         if show_progress:
             end_time = time.time()

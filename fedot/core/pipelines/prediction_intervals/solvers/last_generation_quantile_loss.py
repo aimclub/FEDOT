@@ -5,13 +5,15 @@ from golem.core.log import LoggerAdapter
 from fedot.core.data.data import InputData
 from fedot.api.main import Fedot
 from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
+from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 
 from fedot.core.pipelines.prediction_intervals.tuners import quantile_loss_tuners
 from fedot.core.pipelines.prediction_intervals.utils import get_different_pipelines
 
 
 def solver_last_generation_ql(train_input: InputData,
-                              model: Fedot,
+                              generation,
                               logger: LoggerAdapter,
                               show_progress: bool,
                               horizon: int,
@@ -27,7 +29,7 @@ def solver_last_generation_ql(train_input: InputData,
 
     Args:
         train_input: train time series
-        model: given Fedot class object
+        generation: 
         logger: prediction interval logger
         horizon: horizon to build forecast
         number_models: number_of_models; if 'max' then all models are used
@@ -41,13 +43,13 @@ def solver_last_generation_ql(train_input: InputData,
     Returns:
         dictionary with lists consisting of np.arrays for building upper and lower prediction intervals.
     """
-
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
     tuners = quantile_loss_tuners(up_quantile=1 - nominal_error / 2,
                                   low_quantile=nominal_error / 2,
                                   train_input=train_input,
                                   validation_blocks=validation_blocks,
                                   n_jobs=n_jobs,
-                                  task=model.params.task,
+                                  task=task,
                                   show_progress=show_progress,
                                   iterations=iterations,
                                   minutes=minutes)
@@ -57,7 +59,7 @@ def solver_last_generation_ql(train_input: InputData,
         low_tuner = tuners['low_tuner']
 
     # take best pipelines from the last generation
-    all_pipelines = get_different_pipelines(model.history.individuals[-2])
+    all_pipelines = get_different_pipelines(generation)
     number_avaliable_pipelines = len(all_pipelines)
 
     up_predictions = []
@@ -88,14 +90,12 @@ def solver_last_generation_ql(train_input: InputData,
 
         tuned_pipeline = up_tuner.tune(pipeline)
         tuned_pipeline.fit(train_input)
-        model.current_pipeline = tuned_pipeline
-        preds = model.forecast(horizon=horizon)
+        preds = out_of_sample_ts_forecast(pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
         up_predictions.append(preds)
 
         tuned_pipeline = low_tuner.tune(pipeline)
         tuned_pipeline.fit(train_input)
-        model.current_pipeline = tuned_pipeline
-        preds = model.forecast(horizon=horizon)
+        preds = out_of_sample_ts_forecast(pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
         low_predictions.append(preds)
 
     return {'up_predictions': up_predictions, 'low_predictions': low_predictions}

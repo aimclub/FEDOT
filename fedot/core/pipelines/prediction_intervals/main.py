@@ -7,7 +7,7 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 
 from fedot.core.pipelines.prediction_intervals.utils import compute_prediction_intervals, model_copy, \
-    get_base_quantiles, check_init_params
+    get_base_quantiles, check_init_params, get_last_generation
 from fedot.core.pipelines.prediction_intervals.visualization import plot_prediction_intervals, \
     _plot_prediction_intervals
 from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
@@ -45,11 +45,10 @@ class PredictionIntervals:
         # check whether given Fedot class object is fitted and argument 'method' is written correctly
         check_init_params(model, method)
 
-        # general parameters
-        if params.copy_model:
-            self.model = model_copy(model)
-        else:
-            self.model = model
+        self.generation = get_last_generation(model)
+        self.best_ind = model.history.generations[-1][0]
+        self.ts = model.train_data.features
+        
         self.horizon = horizon
         self.nominal_error = nominal_error
         self.method = method
@@ -82,7 +81,7 @@ class PredictionIntervals:
         # initialize solver for building prediction intervals
         if self.method == 'mutation_of_best_pipeline':
             self.solver = partial(solver_mutation_of_best_pipeline,
-                                  model=self.model,
+                                  ind=self.best_ind,
                                   horizon=self.horizon,
                                   forecast=self.model_forecast,
                                   number_mutations=params.number_mutations,
@@ -95,7 +94,7 @@ class PredictionIntervals:
 
         elif self.method == 'best_pipelines_quantiles':
             self.solver = partial(solver_best_pipelines_quantiles,
-                                  model=self.model,
+                                  generation=self.generation,
                                   horizon=self.horizon,
                                   number_models=params.bpq_number_models,
                                   show_progress=params.show_progress,
@@ -103,7 +102,7 @@ class PredictionIntervals:
 
         elif self.method == 'last_generation_ql':
             self.solver = partial(solver_last_generation_ql,
-                                  model=self.model,
+                                  generation=self.generation,
                                   horizon=self.horizon,
                                   nominal_error=self.nominal_error,
                                   number_models=params.ql_number_models,
@@ -205,7 +204,7 @@ class PredictionIntervals:
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.up_int,
                                   low_int=self.low_int,
-                                  ts=self.model.train_data.features,
+                                  ts=self.ts,
                                   show_history=show_history,
                                   show_forecast=show_forecast,
                                   ts_test=ts_test,
@@ -225,7 +224,7 @@ class PredictionIntervals:
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.base_quantiles['up'],
                                   low_int=self.base_quantiles['low'],
-                                  ts=self.model.train_data.features,
+                                  ts=self.ts,
                                   show_history=show_history,
                                   show_forecast=show_forecast,
                                   ts_test=ts_test,

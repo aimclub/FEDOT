@@ -71,6 +71,13 @@ def model_copy(model: Fedot, file_name='model_copy.pickle'):
         return (pickle.load(f))
 
 
+def get_last_generation(model: Fedot):
+    generations = model.history.generations
+    if len(generations) <2:
+        raise ValueError('Model has < 2 generations. Please fit model and try again.')
+    return generations[-2]
+
+
 def get_base_quantiles(train_input: InputData, pipeline: Pipeline, nominal_error: int):
     """This function computes quantiles of residuals of forecast of a given pipeline over train data."""
 

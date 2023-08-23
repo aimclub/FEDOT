@@ -4,12 +4,13 @@ from golem.core.log import LoggerAdapter
 from fedot.core.data.data import InputData
 from fedot.api.main import Fedot
 from fedot.core.pipelines.adapters import PipelineAdapter
+from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 
 from fedot.core.pipelines.prediction_intervals.utils import get_different_pipelines
 
 
 def solver_best_pipelines_quantiles(train_input: InputData,
-                           model: Fedot,
+                           generation,
                            logger: LoggerAdapter,
                            horizon: int,
                            number_models: Union[int, str],
@@ -18,7 +19,7 @@ def solver_best_pipelines_quantiles(train_input: InputData,
 
     Args:
         train_input: train time series
-        model: given Fedot class object
+        generation:
         logger: prediction interval logger
         horizon: horizon to build forecast
         number_models: number pipelines from last generation to use
@@ -30,7 +31,7 @@ def solver_best_pipelines_quantiles(train_input: InputData,
     """
 
     # take best pipelines from the last generation
-    all_pipelines = get_different_pipelines(model.history.individuals[-2])
+    all_pipelines = get_different_pipelines(generation)
     number_avaliable_pipelines = len(all_pipelines)
     predictions = []
     s = 1
@@ -56,9 +57,9 @@ def solver_best_pipelines_quantiles(train_input: InputData,
             logger.info(f'Fitting pipeline №{s}')
             s += 1
             pipeline.show()
-        model.current_pipeline = pipeline
+            
         pipeline.fit(train_input)
-        preds = model.forecast(horizon=horizon)
+        preds = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
         predictions.append(preds)
 
     return predictions
