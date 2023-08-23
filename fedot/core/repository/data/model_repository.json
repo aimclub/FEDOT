@@ -78,7 +78,7 @@
       ],
       "description": "Implementations of the regression models from scikit-learn framework",
       "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table, DataTypesEnum.multi_ts]",
+      "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.regression",
