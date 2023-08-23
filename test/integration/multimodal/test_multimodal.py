@@ -1,3 +1,5 @@
+import pytest
+
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
