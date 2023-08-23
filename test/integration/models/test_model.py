@@ -421,7 +421,7 @@ def test_models_does_not_fall_on_constant_data():
     """ Run models on constant data """
     # models that raise exception
     to_skip = ['custom', 'arima', 'catboost', 'catboostreg',
-               'lda', 'fast_ica', 'decompose', 'class_decompose', ]
+               'lda', 'fast_ica', 'decompose', 'class_decompose']
 
     for repo_name in AVAILABLE_REPO_NAMES:
         operation_repo = OperationTypesRepository(repo_name)
@@ -437,12 +437,13 @@ def test_models_does_not_fall_on_constant_data():
                                                 random=False)
                     if data is not None:
                         try:
-                            # workaround for cgru
-                            # cgru is for table data but in repo it has ts in input data
-                            nodes_from = [PipelineNode('lagged')] if operation.id in ['cgru'] else []
-
+                            nodes_from = []
+                            if task_type is TaskTypesEnum.ts_forecasting:
+                                if 'non_lagged' not in operation.tags:
+                                    nodes_from = [PipelineNode('lagged')]
                             node = PipelineNode(operation.id, nodes_from=nodes_from)
                             pipeline = Pipeline(node)
                             pipeline.fit(data)
+                            assert pipeline.predict(data) is not None
                         except NotImplementedError:
                             pass
