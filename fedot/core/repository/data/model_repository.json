@@ -136,8 +136,7 @@
         "interpretable",
         "non_lagged",
         "linear",
-        "correct_params",
-        "non-default"
+        "correct_params"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
