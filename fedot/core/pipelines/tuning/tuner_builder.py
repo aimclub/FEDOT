@@ -1,8 +1,9 @@
 from datetime import timedelta
-from typing import Type, Union
+from typing import Type, Union, Iterable, Sequence
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
@@ -23,7 +24,7 @@ class TunerBuilder:
         self.cv_folds = None
         self.validation_blocks = None
         self.n_jobs = -1
-        self.metric: MetricsEnum = MetricByTask.get_default_quality_metrics(task.task_type)[0]
+        self.metric: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
         self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)
@@ -53,8 +54,10 @@ class TunerBuilder:
         self.n_jobs = n_jobs
         return self
 
-    def with_metric(self, metric: MetricType):
-        self.metric = metric
+    def with_metric(self, metrics: Union[MetricType, Iterable[MetricType]]):
+        self.metric = ensure_wrapped_in_sequence(metrics)
+        if len(self.metric) > 1:
+            self.additional_params.update({'objectives_number': len(self.metric)})
         return self
 
     def with_iterations(self, iterations: int):
@@ -88,11 +91,11 @@ class TunerBuilder:
         return self
 
     def with_additional_params(self, **parameters):
-        self.additional_params = parameters
+        self.additional_params.update(parameters)
         return self
 
     def build(self, data: InputData) -> BaseTuner:
-        objective = MetricsObjective(self.metric)
+        objective = MetricsObjective(self.metric, is_multi_objective=len(self.metric) > 1)
         data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
         data_producer = data_splitter.build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,

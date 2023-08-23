@@ -4,8 +4,10 @@ from time import time
 import pytest
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
+from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
@@ -118,7 +120,7 @@ def get_class_operation_types():
 
 
 def get_regr_losses():
-    return [RegressionMetricsEnum.RMSE]
+    return [RegressionMetricsEnum.RMSE, RegressionMetricsEnum.MAPE]
 
 
 def get_class_losses():
@@ -200,7 +202,7 @@ def run_pipeline_tuner(train_data,
                        search_space=PipelineSearchSpace(),
                        cv=None,
                        iterations=1,
-                       early_stopping_rounds=None):
+                       early_stopping_rounds=None, **kwargs):
     # Pipeline tuning
     pipeline_tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \
@@ -209,6 +211,7 @@ def run_pipeline_tuner(train_data,
         .with_iterations(iterations) \
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_search_space(search_space) \
+        .with_additional_params(**kwargs) \
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
     return pipeline_tuner, tuned_pipeline
@@ -275,7 +278,7 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner):
     pipeline = get_pipeline_with_no_params_to_tune()
     pipeline_tuner, tuned_pipeline = run_pipeline_tuner(tuner=tuner,
@@ -288,7 +291,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner
     assert not tuned_pipeline.is_fitted
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
     """ Test all tuners for pipeline with initial parameters """
     # a model
@@ -376,7 +379,7 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
 
 
 @pytest.mark.parametrize('n_steps', [100, 133, 217, 300])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_ts_pipeline_with_stats_model(n_steps, tuner):
     """ Tests tuners for time series forecasting task with AR model """
     train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
@@ -489,7 +492,7 @@ def test_complex_search_space():
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_complex_search_space_tuning_correct(tuner):
     """ Tests SimultaneousTuner for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
@@ -508,3 +511,32 @@ def test_complex_search_space_tuning_correct(tuner):
         assert initial_parameters == found_parameters
     else:
         assert initial_parameters != found_parameters
+
+
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
+                         [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
+                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
+@pytest.mark.parametrize('tuner', [OptunaTuner])
+def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
+    """ Test multi objective tuning is correct """
+    data = request.getfixturevalue(data_fixture)
+    cvs = [None, 2]
+
+    for pipeline in pipelines:
+        for cv in cvs:
+            pipeline_tuner, tuned_pipelines = run_pipeline_tuner(tuner=tuner,
+                                                                 train_data=data,
+                                                                 pipeline=pipeline,
+                                                                 loss_function=loss_functions,
+                                                                 cv=cv,
+                                                                 iterations=10)
+            assert tuned_pipelines is not None
+            assert all([tuned_pipeline is not None for tuned_pipeline in ensure_wrapped_in_sequence(tuned_pipelines)])
+            for metrics in pipeline_tuner.obtained_metric:
+                assert len(metrics) == len(loss_functions)
+                assert all(metric is not None for metric in metrics)
+
+    is_tuning_finished = True
+
+    assert is_tuning_finished
