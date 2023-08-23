@@ -40,7 +40,8 @@ def check_predict_correct(model, fitted_operation, test_data):
     )
 
 
-def get_constant_data(task_type, data_type, length=100, features_count=1, value=0):
+def get_data_for_testing(task_type, data_type, length=100, features_count=1,
+                         value=0, random=True, random_seed=0):
     allowed_data_type = {TaskTypesEnum.ts_forecasting: [DataTypesEnum.ts, DataTypesEnum.multi_ts],
                          TaskTypesEnum.classification: [DataTypesEnum.table],
                          TaskTypesEnum.regression: [DataTypesEnum.table]}
@@ -65,6 +66,14 @@ def get_constant_data(task_type, data_type, length=100, features_count=1, value=
         target = np.zeros(length) + value
         if task_type is TaskTypesEnum.classification:
             target[:int(len(target) // 2)] = 2 * value + 1
+
+    if random and task_type is not TaskTypesEnum.classification:
+        generator = np.random.RandomState(random_seed)
+        features += generator.rand(*features.shape)
+        if task_type is TaskTypesEnum.ts_forecasting:
+            target = features
+        else:
+            target += generator.rand(*target.shape)
 
     data = InputData(idx=np.arange(length),
                      features=features,
@@ -423,8 +432,9 @@ def test_models_does_not_fall_on_constant_data():
                 continue
             for task_type in operation.task_type:
                 for data_type in operation.input_types:
-                    data = get_constant_data(task_type, data_type,
-                                             length=100, features_count=2)
+                    data = get_data_for_testing(task_type, data_type,
+                                                length=100, features_count=2,
+                                                random=False)
                     if data is not None:
                         try:
                             # workaround for cgru
