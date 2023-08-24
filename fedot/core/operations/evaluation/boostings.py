@@ -49,14 +49,14 @@ class BoostingClassificationStrategy(EvaluationStrategy):
 
 class BoostingRegressionStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'cb_regr': FedotCatBoostRegressionImplementation,
+        'catboostreg': FedotCatBoostRegressionImplementation,
         # 'xgb_regr': FedotXgboostBoostRegressionImplementation,
         # 'lgbm_regr': FedotLightGBMBoostRegressionImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
-        self.operation_impl = None
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -66,7 +66,7 @@ class BoostingRegressionStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain Boosting Strategy for {operation_type}')
 
     def fit(self, train_data: InputData):
-        operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
+        operation_implementation = self.operation_impl(self.params_for_fit)
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
