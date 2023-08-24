@@ -46,9 +46,7 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
               show_progress=False)
 
     model.fit(train_input)
-
     model.forecast()
-    model.plot_prediction()
 
     # initilize PredictionIntervals instance
     params = PredictionIntervalsParams(number_mutations=50, show_progress=False, mutations_choice='different')
@@ -61,7 +59,6 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
 
     x = pred_ints.forecast()
     pred_ints.plot(ts_test=ts_test)
-
     pred_ints.get_base_quantiles(train_input)
     pred_ints.plot_base_quantiles()
 
