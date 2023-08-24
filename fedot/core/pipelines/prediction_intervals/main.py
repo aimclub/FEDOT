@@ -43,7 +43,7 @@ class PredictionIntervals:
                  params: PredictionIntervalsParams = PredictionIntervalsParams()):
 
         # check whether given Fedot class object is fitted and argument 'method' is written correctly
-        check_init_params(model, method)
+        check_init_params(model, horizon, nominal_error, method, params)
 
         last_generations = get_last_generations(model)
         self.generation = last_generations['last_generation']

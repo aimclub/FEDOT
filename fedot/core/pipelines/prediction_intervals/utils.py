@@ -3,10 +3,11 @@ from typing import List
 
 from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.pipeline import Pipeline
-from golem.core.optimisers.opt_history_objects.individual import Individual
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
+from golem.core.optimisers.opt_history_objects.individual import Individual
 
+from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 
 def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.1):
     """Provided a list of np.arrays this function computes upper and low quantiles, max, min, median and mean arrays."""
@@ -94,13 +95,59 @@ def ts_deviance(ts: np.array):
     return np.mean(np.abs(np.diff(ts)))
 
 
-def check_init_params(model: Fedot, method: str):
+def check_init_params(model: Fedot, 
+                      horizon: int, 
+                      nominal_error: float, 
+                      method: str, 
+                      params: PredictionIntervalsParams):
     """This function checks correctness of parameters needed to initialize PredictionInterval instance."""
 
-    avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
+    if not model.current_pipeline:
+        raise ValueError('Fedot class object is not fitted.')
 
+    if horizon is not None:
+        if type(horizon) is not int or horizon < 1:
+            raise ValueError('Argument horizon must be None or natural number.')
+
+    if type(nominal_error) is not float or nominal_error <=0 or nominal_error >=1:
+        raise ValueError('Argument nominal_error must be float number between 0 and 1.')
+
+    avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
     if method not in avaliable_methods:
         raise ValueError('''Argument 'method' is incorrect. Possible options: 'last_generation_ql',
 'best_pipelines_quantiles', 'mutation_of_best_pipeline'.''')
-    if not model.current_pipeline:
-        raise ValueError('Fedot class object is not fitted.')
+
+    if params.logging_level not in [0, 10, 20, 30, 40, 50]:
+        raise ValueError('Argument logging_level must be in [0, 10, 20, 30, 40, 50].')
+
+    if type(params.n_jobs) is not int or params.n_jobs == 0 or params.n_jobs < -1:
+        raise ValueError('Argument n_jobs must be -1 or positive integer.')
+
+    if type(params.show_progress) is not bool:
+        raise ValueError('Argument show_progress must be boolean.')
+
+    if type(params.number_mutations) is not int or params.number_mutations < 1:
+        raise ValueError('Argument number_mutations must be positive integer.')
+
+    if params.mutations_choice not in ['different', 'with_replacement']:
+        raise ValueError("Arument mutations_choice is incorrect. Options: 'different' and 'with_replacement'.")
+
+    if type(params.mutations_discard_inapropriate_pipelines) is not bool:
+        raise ValueError('Argument mutations_discard_inapropriate_pipelines must be boolean.')
+
+    if params.mutation_keep_percentage <=0 or params.mutation_keep_percentage >= 1:
+        raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
+
+    if params.ql_number_models != 'max':
+        if type(params.ql_number_models) is not int or params.ql_number_models < 1:
+            raise ValueError("Argument ql_number_models must be positive integer or 'max'.")
+
+    if type(params.ql_tuner_iterations) is not int or params.ql_tuner_iterations < 1:
+        raise ValueError('Argument ql_tuner_iterations must be positive integer.')
+
+    if type(params.ql_tuner_minutes) not in [int, float] or params.ql_tuner_minutes <= 0:
+        raise ValueError('Argument ql_tuner_minutes must be positive real number.')
+
+    if params.bpq_number_models != 'max':
+        if type(params.bpq_number_models) is not int or params.bpq_number_models <1:
+            raise ValueError("Argument bpq_number_models must be positive integer or 'max'.")
