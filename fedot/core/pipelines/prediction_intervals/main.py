@@ -6,8 +6,8 @@ from golem.core.log import default_log, Log
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 
-from fedot.core.pipelines.prediction_intervals.utils import compute_prediction_intervals, model_copy, \
-    get_base_quantiles, check_init_params, get_last_generation
+from fedot.core.pipelines.prediction_intervals.utils import compute_prediction_intervals, \
+    get_base_quantiles, check_init_params, get_last_generations
 from fedot.core.pipelines.prediction_intervals.visualization import plot_prediction_intervals, \
     _plot_prediction_intervals
 from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
@@ -45,8 +45,9 @@ class PredictionIntervals:
         # check whether given Fedot class object is fitted and argument 'method' is written correctly
         check_init_params(model, method)
 
-        self.generation = get_last_generation(model)
-        self.best_ind = model.history.generations[-1][0]
+        last_generations = get_last_generations(model)
+        self.generation = last_generations['last_generation']
+        self.best_ind = last_generations['final_choice']
         self.ts = model.train_data.features
         
         self.horizon = horizon

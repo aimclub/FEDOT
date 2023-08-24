@@ -62,20 +62,11 @@ def get_different_pipelines(individuals: List[Individual]):
     return [ind for ind in unique_inds if ind.uid in ids]
 
 
-def model_copy(model: Fedot, file_name='model_copy.pickle'):
-    """This function copies Fedot class object."""
-
-    with open(file_name, 'wb') as f:
-        pickle.dump(model, f)
-    with open(file_name, 'rb') as f:
-        return (pickle.load(f))
-
-
-def get_last_generation(model: Fedot):
+def get_last_generations(model: Fedot):
     generations = model.history.generations
     if len(generations) <2:
         raise ValueError('Model has < 2 generations. Please fit model and try again.')
-    return generations[-2]
+    return {'final_choice': generations[-1], 'last_generation': generations[-2]}
 
 
 def get_base_quantiles(train_input: InputData, pipeline: Pipeline, nominal_error: int):
