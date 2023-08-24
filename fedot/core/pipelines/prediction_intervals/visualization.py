@@ -9,7 +9,9 @@ def plot_prediction_intervals(model_forecast: np.array,
                               show_history: bool,
                               ts_test: np.array,
                               show_forecast: bool,
-                              labels: str):
+                              labels: str,
+                              figwidth: float = 15,
+                              figheight: float = 7):
     """Function for plotting prediction intervals.
 
     Args:
@@ -28,7 +30,7 @@ def plot_prediction_intervals(model_forecast: np.array,
     test_range = range(train_len, train_len + test_len)
 
     fig, ax = plt.subplots()
-    fig.set(figwidth=15, figheight=7)
+    fig.set(figwidth=figwidth, figheight=figheight)
 
     if labels == 'pred_ints':
         label = 'PredictionIntervals'
@@ -47,7 +49,7 @@ def plot_prediction_intervals(model_forecast: np.array,
     if show_history:
 
         fig1, ax1 = plt.subplots()
-        fig1.set(figwidth=15, figheight=7)
+        fig1.set(figwidth=figwidth, figheight=figheight)
         ax1.plot(train_range, ts, color='black', alpha=0.5, label='Train TS')
 
         if ts_test is not None:
