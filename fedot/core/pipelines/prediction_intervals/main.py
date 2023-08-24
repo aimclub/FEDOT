@@ -47,7 +47,7 @@ class PredictionIntervals:
 
         last_generations = get_last_generations(model)
         self.generation = last_generations['last_generation']
-        self.best_ind = last_generations['final_choice'][0]
+        self.best_ind = last_generations['final_choice']
         self.ts = model.train_data.features
         
         self.horizon = horizon

@@ -9,7 +9,7 @@ from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
-
+from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
 @pytest.fixture
 def params():
@@ -28,9 +28,9 @@ def params():
     Log().reset_logging_level(10)
     logger = default_log(prefix='Testing solver_mutation_of_best_pipeline')
     forecast = model.forecast()
-
+    ind = get_last_generations(model)['final_choice']
     return {'train_input': train_input,
-            'model': model,
+            'ind': ind,
             'forecast': forecast,
             'logger': logger}
 
@@ -45,7 +45,7 @@ def test_solver_mutation_of_best_pipeline(params):
 
     for x in [params_default, params_with_replacement, params_different]:
         res = solver_mutation_of_best_pipeline(train_input=params['train_input'],
-                                     model=params['model'],
+                                     ind=params['ind'],
                                      horizon=20,
                                      forecast=params['forecast'],
                                      logger=params['logger'],

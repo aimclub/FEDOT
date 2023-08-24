@@ -5,7 +5,7 @@ from typing import List
 from fedot.core.utils import fedot_project_root
 from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_structure
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
-
+from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
 @pytest.fixture
 def get_individual():
@@ -14,7 +14,7 @@ def get_individual():
     with open(model_name, 'rb') as f:
         model = pickle.load(f)
 
-    return model.history.individuals[-1][0]
+    return get_last_generations(model)['final_choice']
 
 
 def check_uniqueness_mutations_structures(a: List[list]):

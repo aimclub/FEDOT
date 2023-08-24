@@ -68,7 +68,7 @@ def get_last_generations(model: Fedot):
     generations = model.history.generations
     if len(generations) <2:
         raise ValueError('Model has < 2 generations. Please fit model and try again.')
-    return {'final_choice': generations[-1], 'last_generation': generations[-2]}
+    return {'final_choice': generations[-1][0], 'last_generation': generations[-2]}
 
 
 def get_base_quantiles(train_input: InputData, pipeline: Pipeline, nominal_error: int):
