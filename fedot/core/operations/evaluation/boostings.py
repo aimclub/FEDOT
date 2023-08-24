@@ -77,7 +77,3 @@ class BoostingRegressionStrategy(EvaluationStrategy):
         prediction = trained_operation.predict(predict_data)
 
         return self._convert_to_output(prediction, predict_data)
-
-
-
-
