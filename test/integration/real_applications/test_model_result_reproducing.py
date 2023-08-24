@@ -31,7 +31,8 @@ def get_fitted_fedot(forecast_length, train_data, **kwargs):
               'timeout': None,
               'pop_size': 50,
               'num_of_generations': 5}
-    fedot = Fedot(**(params | kwargs))
+    params.update(kwargs)
+    fedot = Fedot(**params)
     fedot.fit(train_data)
     return fedot
 
