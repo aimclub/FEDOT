@@ -44,7 +44,6 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
         a list of predictions to build prediction intervals.
     """
 
-    #best_pipeline = model.history.individuals[-1][0]
     if show_progress:
         logger.info('Creating mutations of final pipeline...')
 
@@ -61,7 +60,6 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     s = 1
     for p in mutations_of_best_pipeline:
         pipeline = PipelineAdapter().restore(p.graph)
-        #model.current_pipeline = pipeline
         if show_progress:
             logger.info(f'Pipeline number {s}')
             s += 1
@@ -69,7 +67,6 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
             start_time = time.time()
         pipeline.fit(train_input)
         pred = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
-        #pred = model.forecast(horizon=horizon)
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
         if show_progress:
             end_time = time.time()

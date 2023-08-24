@@ -49,7 +49,7 @@ class PredictionIntervals:
         self.generation = last_generations['last_generation']
         self.best_ind = last_generations['final_choice']
         self.ts = model.train_data.features
-        
+
         self.horizon = horizon
         self.nominal_error = nominal_error
         self.method = method

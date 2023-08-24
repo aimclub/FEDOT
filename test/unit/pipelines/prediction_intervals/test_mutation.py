@@ -7,6 +7,7 @@ from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_stru
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
+
 @pytest.fixture
 def get_individual():
 

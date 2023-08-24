@@ -57,7 +57,7 @@ def solver_best_pipelines_quantiles(train_input: InputData,
             logger.info(f'Fitting pipeline №{s}')
             s += 1
             pipeline.show()
-            
+
         pipeline.fit(train_input)
         preds = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
         predictions.append(preds)

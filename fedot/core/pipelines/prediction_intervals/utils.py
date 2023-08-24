@@ -1,5 +1,4 @@
 import numpy as np
-import pickle
 from typing import List
 
 from fedot.core.pipelines.ts_wrappers import fitted_values
@@ -13,9 +12,6 @@ def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.
     """Provided a list of np.arrays this function computes upper and low quantiles, max, min, median and mean arrays."""
 
     arrays = np.array(arrays)
-    number_arrays = arrays.shape[0]
-    len_array = arrays.shape[1]
-    arrays = arrays.flatten().reshape((number_arrays, len_array))
 
     return {'quantile_up': np.quantile(arrays, q=1 - nominal_error / 2, axis=0, method='median_unbiased'),
             'quantile_low': np.quantile(arrays, q=nominal_error / 2, axis=0, method='median_unbiased'),
@@ -66,7 +62,7 @@ def get_last_generations(model: Fedot):
     """This function takes final individual and last generation from fitted Fedot-class object."""
 
     generations = model.history.generations
-    if len(generations) <2:
+    if len(generations) < 2:
         raise ValueError('Model has < 2 generations. Please fit model and try again.')
     return {'final_choice': generations[-1][0], 'last_generation': generations[-2]}
 
