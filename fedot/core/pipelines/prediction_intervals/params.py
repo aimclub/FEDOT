@@ -12,9 +12,6 @@ class PredictionIntervalsParams:
         logging_level: logging level as in logging module
         n_jobs: n_jobs
         show_progress: show details of fitting process
-        #copy_model: whether to use a copy of given Fedot class object. If argument 'method' is 'last_generation_ql'
-        #            or 'best_pipelines_quantiles' then fitting a PredictionIntervals instance may change atrributes of
-        #            given Fedot class object. To avoid this set argument copy_model = True
         number_mutations: number mutations of final pipeline used in 'mutation_of_best_pipeline' method
         mutations_choice: a way to choose mutations. Possible options:
 
@@ -38,7 +35,6 @@ class PredictionIntervalsParams:
     logging_level: int = 20
     n_jobs: int = -1
     show_progress: bool = True
-    #copy_model: bool = False
     number_mutations: int = 20
     mutations_choice: str = 'different'
     mutations_discard_inapropriate_pipelines: bool = True

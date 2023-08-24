@@ -47,7 +47,7 @@ class PredictionIntervals:
 
         last_generations = get_last_generations(model)
         self.generation = last_generations['last_generation']
-        self.best_ind = last_generations['final_choice']
+        self.best_ind = last_generations['final_choice'][0]
         self.ts = model.train_data.features
         
         self.horizon = horizon
@@ -177,10 +177,10 @@ class PredictionIntervals:
         """Method to get quantiles based on predictions of final pipeline over train_data.
 
         Args:
-            train_input: InputData train data.
+            train_input: train data.
 
         Returns:
-            dictionary consisting of upper and low quantiles computed for residuals of model forecast over train ts.
+            dictionary consisting of upper and low quantiles computed for model forecast residuals over train ts.
         """
         base_quantiles = get_base_quantiles(train_input,
                                             pipeline=self.best_pipeline,
@@ -250,7 +250,7 @@ class PredictionIntervals:
                                    model_forecast=self.model_forecast,
                                    up_int=self.up_int,
                                    low_int=self.low_int,
-                                   ts=self.model.train_data.features,
+                                   ts=self.ts,
                                    show_up_int=show_up_int,
                                    show_low_int=show_low_int,
                                    show_forecast=show_forecast,

@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from golem.core.log import LoggerAdapter
+from golem.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.data.data import InputData
-from fedot.api.main import Fedot
 from fedot.core.composer.metrics import RMSE
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
@@ -15,7 +15,7 @@ from fedot.core.pipelines.prediction_intervals.pipeline_constraints import first
 
 
 def solver_mutation_of_best_pipeline(train_input: InputData,
-                                     ind,
+                                     ind: Individual,
                                      horizon: int,
                                      number_mutations: int,
                                      mutations_choice: str,
@@ -29,7 +29,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
 
     Args:
         train_input: train time series
-        #model: given Fedot class object
+        ind: individual to make mutaions
         logger: prediction interval logger
         horizon: horizon to build forecast
         number_mutations: number mutations to use

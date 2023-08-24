@@ -15,7 +15,7 @@ def get_ts_mutation(individual: Individual):
     """This function gets a mutation of a given Individual object.
 
     Args:
-        individual: an individual.
+        individual: an individual to make mutations.
 
     Returns:
         Individual: a mutation of a given individual.

@@ -1,8 +1,8 @@
-from typing import Union
+from typing import Union, List
 
 from golem.core.log import LoggerAdapter
+from golem.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.data.data import InputData
-from fedot.api.main import Fedot
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 
@@ -10,7 +10,7 @@ from fedot.core.pipelines.prediction_intervals.utils import get_different_pipeli
 
 
 def solver_best_pipelines_quantiles(train_input: InputData,
-                           generation,
+                           generation: List[Individual],
                            logger: LoggerAdapter,
                            horizon: int,
                            number_models: Union[int, str],
@@ -19,7 +19,7 @@ def solver_best_pipelines_quantiles(train_input: InputData,
 
     Args:
         train_input: train time series
-        generation:
+        generation: last generation of Fedot-class object
         logger: prediction interval logger
         horizon: horizon to build forecast
         number_models: number pipelines from last generation to use

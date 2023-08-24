@@ -63,6 +63,8 @@ def get_different_pipelines(individuals: List[Individual]):
 
 
 def get_last_generations(model: Fedot):
+    """This function takes final individual and last generation from fitted Fedot-class object."""
+
     generations = model.history.generations
     if len(generations) <2:
         raise ValueError('Model has < 2 generations. Please fit model and try again.')
