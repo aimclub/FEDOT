@@ -12,6 +12,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 class FedotCatBoostImplementation(ModelImplementation):
     __operation_params = ['use_eval_set']
+
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
@@ -100,7 +101,3 @@ class FedotCatBoostRegressionImplementation(FedotCatBoostImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = CatBoostRegressor(**self.model_params)
-
-
-
-

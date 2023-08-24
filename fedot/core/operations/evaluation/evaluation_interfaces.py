@@ -3,7 +3,6 @@ from abc import abstractmethod
 from typing import Optional
 
 import numpy as np
-from catboost import CatBoostClassifier, CatBoostRegressor
 from golem.core.log import default_log
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
