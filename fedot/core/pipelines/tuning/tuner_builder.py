@@ -1,7 +1,6 @@
 from datetime import timedelta
 from typing import Type, Union, Iterable, Sequence
 
-from golem.core.log import default_log
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
