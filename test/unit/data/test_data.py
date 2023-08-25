@@ -7,10 +7,11 @@ import pytest
 from sklearn.datasets import load_iris
 
 from fedot.core.data.data import InputData, get_df_from_csv
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data_with_dt_idx
 
@@ -23,6 +24,15 @@ def data_setup() -> InputData:
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
+    return data
+
+
+@pytest.fixture()
+def ts_setup() -> InputData:
+    data = -np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    data = InputData(features=data, target=data, idx=np.arange(len(data)),
+                     task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(2)),
+                     data_type=DataTypesEnum.ts)
     return data
 
 
@@ -41,6 +51,17 @@ def test_data_subset_correct(data_setup):
     assert subset.data_type == data_setup.data_type
 
 
+def test_data_subset_for_ts_correct(ts_setup):
+    _, test = train_test_data_setup(ts_setup, validation_blocks=2)
+    subset_size = (1, 3)
+    subset = test.subset_range(subset_size[0], subset_size[1] - 1)
+    assert np.array_equal(subset.idx, test.idx[subset_size[0]:subset_size[1]])
+    assert np.array_equal(subset.features, test.features[:-(test.idx.shape[0] - subset_size[1])])
+    assert np.array_equal(subset.target, test.target[subset_size[0]:subset_size[1]])
+    assert subset.task == test.task
+    assert subset.data_type == test.data_type
+
+
 def test_data_slice(data_setup):
     # check single slice
     for islice in (0, 10, -1, len(data_setup) - 1):
@@ -49,24 +70,102 @@ def test_data_slice(data_setup):
         assert np.array_equal([data_setup.features[islice]], sliced.features)
         assert np.array_equal([data_setup.target[islice]], sliced.target)
 
-    # check slice with Iterable
-    for islice in ([0, 1, 2],
-                  [10, 11, 13, 17]):
+    # check slice with slice
+    for islice in (slice(5), slice(-5), slice(2, 5), slice(2, 8, 2), slice(-6, -2), slice(-8, -2, 2)):
         sliced = data_setup.slice(islice)
         assert np.array_equal(data_setup.idx[islice], sliced.idx)
         assert np.array_equal(data_setup.features[islice], sliced.features)
         assert np.array_equal(data_setup.target[islice], sliced.target)
 
 
+def test_ts_slice(ts_setup):
+    # check single slice
+    for islice in (0, 8, -2, -1, len(ts_setup) - 1):
+        sliced = ts_setup.slice(islice)
+        assert np.array_equal([ts_setup.idx[islice]], sliced.idx)
+        if islice == -1:
+            assert np.array_equal(ts_setup.features, sliced.features)
+        else:
+            assert np.array_equal(ts_setup.features[:islice + 1], sliced.features)
+        assert np.array_equal([ts_setup.target[islice]], sliced.target)
+
+    # check common slice
+    for islice in (slice(5), slice(-5), slice(2, 5), slice(2, 8, 2), slice(-6, -2)):
+        print(islice)
+        sliced = ts_setup.slice(islice)
+        assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+
+        features_slice = slice(0, islice.stop, islice.step)
+        assert np.array_equal(ts_setup.features[features_slice], sliced.features)
+
+        sliced_target = ts_setup.target[islice]
+        assert np.array_equal(sliced_target, sliced.features[-len(sliced_target):])
+        assert np.array_equal(sliced_target, sliced.target)
+
+    islice = slice(-8, -2, 2)
+    sliced = ts_setup.slice(islice)
+    assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+    assert np.array_equal([-1, -3, -5, -7], sliced.features)
+    assert np.array_equal(ts_setup.target[islice], sliced.target)
+
+
+def test_ts_data_slice_for_partial_ts(ts_setup):
+    _, ts_setup = train_test_data_setup(ts_setup, validation_blocks=3)
+    delta = ts_setup.features.shape[0] - ts_setup.idx.shape[0]
+    for islice in (0, 1, -2, -1):
+        sliced = ts_setup.slice(islice)
+        assert np.array_equal([ts_setup.idx[islice]], sliced.idx)
+        if islice == -1:
+            assert np.array_equal(ts_setup.features, sliced.features)
+        elif islice < 0:
+            assert np.array_equal(ts_setup.features[:islice + 1], sliced.features)
+        else:
+            assert np.array_equal(ts_setup.features[:delta + islice + 1], sliced.features)
+        assert np.array_equal([ts_setup.target[islice]], sliced.target)
+
+    # check common slice
+    for islice in (slice(2), slice(-2), slice(1, 3), slice(1, 4, 2), slice(-3, -1)):
+        print(islice)
+        sliced = ts_setup.slice(islice)
+        assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+
+        if islice.stop > 0:
+            features_slice = slice(0, islice.stop + delta, islice.step)
+            assert np.array_equal(ts_setup.features[features_slice], sliced.features)
+        elif islice.start is None:
+            assert np.array_equal(ts_setup.features[islice], sliced.features)
+        else:
+            features_slice = slice(0, islice.stop , islice.step)
+            assert np.array_equal(ts_setup.features[features_slice], sliced.features)
+
+        sliced_target = ts_setup.target[islice]
+        assert np.array_equal(sliced_target, sliced.features[-len(sliced_target):])
+        assert np.array_equal(sliced_target, sliced.target)
+
+    islice = slice(-4, -1, 2)
+    sliced = ts_setup.slice(islice)
+    assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+    assert np.array_equal([-1, -3, -5, -7, -9], sliced.features)
+    assert np.array_equal(ts_setup.target[islice], sliced.target)
+
+
+def test_ts_slice_mirrowed(ts_setup):
+    for data1, data2 in zip((ts_setup.slice(-1), ts_setup.slice(-2)),
+                            (ts_setup.slice(len(ts_setup) - 1), ts_setup.slice(len(ts_setup) - 2))):
+        assert np.array_equal(data1.idx, data2.idx)
+        assert np.array_equal(data1.features, data2.features)
+        assert np.array_equal(data1.target, data2.target)
+
+
 def test_data_subset_incorrect(data_setup):
     subset_size = 105
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError):
         assert data_setup.subset_range(0, subset_size)
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError):
         assert data_setup.subset_range(-1, subset_size)
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError):
         assert data_setup.subset_range(-1, -1)
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError):
         assert data_setup.subset_range(10, 2)
 
 

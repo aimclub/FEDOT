@@ -399,25 +399,26 @@ class InputData(Data):
     def __len__(self):
         return self.idx.shape[0]
 
-    def slice(self, arg: Union[int, Iterable]):
+    def slice(self, arg: Union[int, slice]):
         if isinstance(arg, int):
-            if arg >= 0:
-                index = np.arange(arg, arg + 1)
+            if arg != -1:
+                arg = slice(arg, arg + 1)
             else:
-                index = np.arange(len(self) + arg, len(self) + arg + 1)
-        elif isinstance(arg, Iterable):
-            index = np.array(arg)
+                arg = slice(arg, len(self))
+        if isinstance(arg, slice):
+            index = np.arange(len(self))[arg]
+            if len(index) == 0 or not (0 <= index[0] <= index[-1] <= len(self)):
+                raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
         else:
             raise ValueError(f'Unknown index type: {type(arg)}. Allowed types: int, slice, Iterable')
-
-        if not (0 <= index[0] <= index[-1] <= len(self)):
-            raise ValueError(f'Incorrect index from {index[0]} to {index[-1]}, because data length is {len(self)}')
 
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
             # retain data in features before ``index``
             delta = new.features.shape[0] - len(new)
-            new.features = np.take(new.features, np.arange(index[-1] + delta), 0)
+            new_indexes = np.arange(-delta, index[-1] + 1)[::-(arg.step or 1)][::-1]
+            new_indexes += delta
+            new.features = np.take(new.features, new_indexes, 0)
         else:
             new.features = np.take(new.features, index, 0)
         new.idx = np.take(new.idx, index, 0)
@@ -425,9 +426,9 @@ class InputData(Data):
         return new
 
     def subset_range(self, start: int, end: int):
-        if end < start:
-            raise ValueError(f'Incorrect index from {start} to {end}, start should be lower than end')
-        return self.slice(np.arange(start, end + 1))
+        if start > end or not (0 <= start <= end <= len(self)):
+            raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
+        return self.slice(slice(start, end + 1))
 
     def subset_indices(self, selected_idx: List):
         """Get subset from :obj:`InputData` to extract all items with specified indices
