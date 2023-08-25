@@ -24,6 +24,10 @@ def plot_prediction_intervals(model_forecast: np.array,
         show_forecast: flag wheter to plot forecast of the given Fedot class object
         labels: which type of labels (prediction intervals or base quantiles) use for plotting.
     """
+    if ts_test is not None:
+        if len(ts_test) != len(model_forecast):
+            raise ValueError('Lengths of test series and forecasting horizon are different. Correct test series.')
+
     train_len = len(ts)
     train_range = range(train_len)
     test_len = len(model_forecast)
