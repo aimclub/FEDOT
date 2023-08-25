@@ -23,57 +23,36 @@ class MultiModalData(Dict[str, InputData]):
         self.contain_side_inputs = not all(value.supplementary_data.is_main_target for value in self.values())
 
     @property
-    def idx(self):
-        for input_data in self.values():
-            if input_data.supplementary_data.is_main_target:
-                return input_data.idx
-
-    @property
-    def task(self):
-        for input_data in self.values():
-            if input_data.supplementary_data.is_main_target:
-                return input_data.task
-
-    @task.setter
-    def task(self, value):
-        """ Update task for all input data """
-        for input_data in self.values():
-            input_data.task = value
-
-    @property
-    def target(self):
-        """ Return main target from InputData blocks """
-        for input_data in self.values():
-            if input_data.supplementary_data.is_main_target:
-                return input_data.target
-
-    @target.setter
-    def target(self, value):
-        """ Update target for all input data """
-        for input_data in self.values():
-            input_data.target = value
-
-    @property
     def data_type(self):
         return [input_data.data_type for input_data in iter(self.values())]
 
-    @property
-    def num_classes(self) -> Optional[int]:
-        if self.task.task_type == TaskTypesEnum.classification:
-            return len(np.unique(self.target))
-        else:
-            return None
+    def __getattr__(self, item):
+        if item in ('target', 'idx', 'task', 'class_labels', 'num_classes'):
+            for input_data in self.values():
+                if input_data.supplementary_data.is_main_target:
+                    return getattr(input_data, item)
 
-    @property
-    def class_labels(self) -> Optional[List[Union[int, str, float]]]:
-        if self.task.task_type == TaskTypesEnum.classification and self.target is not None:
-            return np.unique(self.target)
-        else:
-            return None
+        if item in ('subset_range', 'subset_indices', 'slice', ):
 
-    def shuffle(self):
-        # TODO implement multi-modal shuffle
-        pass
+            def _temporary_function(*args, _multimodaldata=self, **kwargs):
+                for key in _multimodaldata.keys():
+                    _multimodaldata[key] = getattr(_multimodaldata[key], item)(*args, **kwargs)
+
+            return _temporary_function
+        raise AttributeError(f"Unknown attribute {item} for class MultiModalData")
+
+    def __setattr__(self, item, value):
+        if item in ('target', 'idx', 'task'):
+            for input_data in self.values():
+                setattr(input_data, item, value)
+        else:
+            object.__setattr__(self, item, value)
+
+    def shuffle(self, seed: Optional[int] = None):
+        if seed is None:
+            seed = np.random.randint(0, np.iinfo(int).max)
+        for key in self.keys():
+            self[key].shuffle(seed)
 
     def extract_data_source(self, source_name):
         """
@@ -84,16 +63,6 @@ class MultiModalData(Dict[str, InputData]):
         full_target_name = [key for key, _ in self.items() if source_name == key.split('/')[-1]][0]
         source_data = self[full_target_name]
         return source_data
-
-    def subset_range(self, start: int, end: int):
-        for key in self.keys():
-            self[key] = self[key].subset_range(start, end)
-        return self
-
-    def subset_indices(self, selected_idx: List):
-        for key in self.keys():
-            self[key] = self[key].subset_indices(selected_idx)
-        return self
 
     @classmethod
     def from_csv(cls,

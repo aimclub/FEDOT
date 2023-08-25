@@ -380,8 +380,6 @@ class DataPreprocessor(BasePreprocessor):
     @copy_doc(BasePreprocessor.cut_dataset)
     def cut_dataset(self, data: InputData, border: int):
         self.log.info("Cut dataset due to it size is large")
-        # TODO: don't shuffle the data here, because it is done in GPComposer
-        data.shuffle()
         data.idx = data.idx[:border]
         data.features = data.features[:border]
         data.target = data.target[:border]

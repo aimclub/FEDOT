@@ -5,6 +5,7 @@ import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union, Iterable, Any
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -395,15 +396,38 @@ class InputData(Data):
         else:
             return None
 
+    def __len__(self):
+        return self.idx.shape[0]
+
+    def slice(self, arg: Union[int, Iterable]):
+        if isinstance(arg, int):
+            if arg >= 0:
+                index = np.arange(arg, arg + 1)
+            else:
+                index = np.arange(len(self) + arg, len(self) + arg + 1)
+        elif isinstance(arg, Iterable):
+            index = np.array(arg)
+        else:
+            raise ValueError(f'Unknown index type: {type(arg)}. Allowed types: int, slice, Iterable')
+
+        if not (0 <= index[0] <= index[-1] <= len(self)):
+            raise ValueError(f'Incorrect index from {index[0]} to {index[-1]}, because data length is {len(self)}')
+
+        new = self.copy()
+        if self.task.task_type is TaskTypesEnum.ts_forecasting:
+            # retain data in features before ``index``
+            delta = new.features.shape[0] - len(new)
+            new.features = np.take(new.features, np.arange(index[-1] + delta), 0)
+        else:
+            new.features = np.take(new.features, index, 0)
+        new.idx = np.take(new.idx, index, 0)
+        new.target = np.take(new.target, index, 0)
+        return new
+
     def subset_range(self, start: int, end: int):
-        if not (0 <= start <= end <= len(self.idx)):
-            raise ValueError('Incorrect boundaries for subset')
-        new_features = None
-        if self.features is not None:
-            new_features = self.features[start:end + 1]
-        return InputData(idx=self.idx[start:end + 1], features=new_features,
-                         target=self.target[start:end + 1],
-                         task=self.task, data_type=self.data_type)
+        if end < start:
+            raise ValueError(f'Incorrect index from {start} to {end}, start should be lower than end')
+        return self.slice(np.arange(start, end + 1))
 
     def subset_indices(self, selected_idx: List):
         """Get subset from :obj:`InputData` to extract all items with specified indices
@@ -420,40 +444,28 @@ class InputData(Data):
         # extractions of row number for each existing index from selected_idx
         row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
                     if str(selected_ind) in idx_list]
-        new_features = None
-
-        if self.features is not None:
-            new_features = self.features[row_nums]
-        return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
-                         target=self.target[row_nums],
-                         task=self.task, data_type=self.data_type)
+        return self.slice(row_nums)
 
     def subset_features(self, features_ids: list):
         """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
         """
-
-        subsample_features = self.features[:, features_ids]
-        subsample_input = InputData(features=subsample_features,
-                                    data_type=self.data_type,
-                                    target=self.target, task=self.task,
-                                    idx=self.idx,
-                                    supplementary_data=self.supplementary_data)
-
+        subsample_input = self.copy()
+        subsample_input.features = self.features[:, features_ids]
         return subsample_input
 
-    def shuffle(self):
+    def shuffle(self, seed: Optional[int] = None):
         """Shuffles features and target if possible
         """
 
         if self.data_type in (DataTypesEnum.table, DataTypesEnum.image, DataTypesEnum.text):
-            shuffled_ind = np.random.permutation(len(self.features))
-            idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
-                shuffled_ind]
-            self.idx = idx
-            self.features = features
-            self.target = target
-        else:
-            pass
+            if seed is None:
+                seed = np.random.randint(0, np.iinfo(int).max)
+            generator = np.random.RandomState(seed)
+            shuffled_ind = generator.permutation(len(self))
+
+            self.features = np.take(self.features, shuffled_ind, 0)
+            self.idx = np.take(self.idx, shuffled_ind, 0)
+            self.target = np.take(self.target, shuffled_ind, 0)
 
     def convert_non_int_indexes_for_fit(self, pipeline):
         """Conversion non ``int`` (``datetime``, ``string``, etc) indexes in ``integer`` form on the fit stage
@@ -496,6 +508,15 @@ class InputData(Data):
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
+
+    def copy(self):
+        return InputData(idx=self.idx,
+                         features=self.features,
+                         target=self.target,
+                         task=self.task,
+                         data_type=self.data_type,
+                         supplementary_data=deepcopy(self.supplementary_data))
+
 
     @staticmethod
     def _resolve_func(pipeline, x):

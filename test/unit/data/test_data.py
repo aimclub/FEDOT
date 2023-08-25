@@ -27,23 +27,47 @@ def data_setup() -> InputData:
 
 
 def test_data_subset_correct(data_setup):
-    subset_size = 50
-    subset = data_setup.subset_range(0, subset_size - 1)
+    subset_size = (10, 50)
+    subset_length = subset_size[1] - subset_size[0]
+    subset = data_setup.subset_range(subset_size[0], subset_size[1] - 1)
 
-    assert len(subset.idx) == subset_size
-    assert len(subset.features) == subset_size
-    assert len(subset.target) == subset_size
+    assert len(subset.idx) == subset_length
+    assert np.array_equal(subset.idx, data_setup.idx[subset_size[0]:subset_size[1]])
+    assert len(subset.features) == subset_length
+    assert np.array_equal(subset.features, data_setup.features[subset_size[0]:subset_size[1]])
+    assert len(subset.target) == subset_length
+    assert np.array_equal(subset.target, data_setup.target[subset_size[0]:subset_size[1]])
+    assert subset.task == data_setup.task
+    assert subset.data_type == data_setup.data_type
+
+
+def test_data_slice(data_setup):
+    # check single slice
+    for islice in (0, 10, -1, len(data_setup) - 1):
+        sliced = data_setup.slice(islice)
+        assert np.array_equal([data_setup.idx[islice]], sliced.idx)
+        assert np.array_equal([data_setup.features[islice]], sliced.features)
+        assert np.array_equal([data_setup.target[islice]], sliced.target)
+
+    # check slice with Iterable
+    for islice in ([0, 1, 2],
+                  [10, 11, 13, 17]):
+        sliced = data_setup.slice(islice)
+        assert np.array_equal(data_setup.idx[islice], sliced.idx)
+        assert np.array_equal(data_setup.features[islice], sliced.features)
+        assert np.array_equal(data_setup.target[islice], sliced.target)
 
 
 def test_data_subset_incorrect(data_setup):
     subset_size = 105
     with pytest.raises(ValueError):
         assert data_setup.subset_range(0, subset_size)
-
     with pytest.raises(ValueError):
         assert data_setup.subset_range(-1, subset_size)
     with pytest.raises(ValueError):
         assert data_setup.subset_range(-1, -1)
+    with pytest.raises(ValueError):
+        assert data_setup.subset_range(10, 2)
 
 
 def test_data_from_csv():
@@ -145,6 +169,12 @@ def test_table_data_shuffle():
     assert not np.array_equal(data.features, shuffled_data.features)
     assert not np.array_equal(data.target, shuffled_data.target)
 
+    shuffled_data_idx = list(shuffled_data.idx)
+    reorder_map = {i: shuffled_data_idx.index(val) for i, val in enumerate(data.idx)}
+    length = len(data.idx)
+
+    assert all(np.array_equal(data.features[i], shuffled_data.features[reorder_map[i]]) for i in range(length))
+    assert all(data.target[i] == shuffled_data.target[reorder_map[i]] for i in range(length))
     assert np.array_equal(sorted(data.idx), sorted(shuffled_data.idx))
 
 

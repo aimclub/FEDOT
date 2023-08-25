@@ -35,13 +35,20 @@ def test_multi_modal_data():
 
     assert multi_modal.task.task_type == TaskTypesEnum.classification
     assert len(multi_modal.idx) == 5
+    assert np.array_equal(multi_modal.idx, range(num_samples))
     assert multi_modal.num_classes == 2
+    assert np.array_equal(multi_modal.class_labels, [0, 1])
     assert np.array_equal(multi_modal.target, target)
+    assert np.array_equal(multi_modal.data_type, [image_data.data_type, table_data.data_type])
 
     # check setter
     new_target = np.asarray([1, 1, 1, 1, 1])
     multi_modal.target = new_target
     assert np.array_equal(multi_modal.target, new_target)
+
+    new_task = Task(TaskTypesEnum.regression)
+    multi_modal.task = new_task
+    assert multi_modal.task == new_task
 
 
 def test_multimodal_data_from_csv():
