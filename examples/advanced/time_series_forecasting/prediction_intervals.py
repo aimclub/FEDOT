@@ -17,12 +17,8 @@ from fedot.core.pipelines.prediction_intervals.metrics import interval_score, pi
 
 def build_pred_ints(start=5000, end=7000, horizon=200):
 
-    # initialize and plot ts
     d = pd.read_csv(f'{fedot_project_root()}/examples/data/ts/ts_long.csv')
     init_series = d[d['series_id'] == 'temp']['value'].to_numpy()
-
-    # d = pd.read_csv('ts study 1.txt')
-    # init_series = d[d['label'] =='temp']['value'].to_numpy()
 
     ts = init_series[start:end]
     ts_test = init_series[end:end + horizon]
@@ -31,9 +27,8 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     ax.plot(range(len(ts)), ts)
     ax.plot(range(len(ts), len(ts) + len(ts_test)), ts_test)
 
-    # create fedot model
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
-    idx = np.array(range(len(np.array(ts))))
+    idx = np.arange(len(np.array(ts))
     train_input = InputData(idx=idx,
                             features=ts,
                             target=ts,

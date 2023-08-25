@@ -8,7 +8,7 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.verification import rules_by_task
 
-from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_structure
+#from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_structure
 
 
 def get_ts_mutation(individual: Individual):
@@ -60,16 +60,13 @@ def get_different_mutations(individual: Individual, number_mutations: int):
     Returns:
         list of mutations of given individual. Mutations must be different.
     """
-    pipeline_list = [pipeline_simple_structure(individual)]
     mutations = []
-    number_pipelines = 0
+    pipeline_list = []
 
-    while number_pipelines < number_mutations:
+    while len(mutations) < number_mutations:
         new_ind = get_ts_mutation(individual)
-        new_pipeline = pipeline_simple_structure(new_ind)
-        if new_pipeline not in pipeline_list:
-            pipeline_list.append(new_pipeline)
+        if new_ind.graph not in pipeline_list:
+            pipeline_list.append(new_ind.graph)
             mutations.append(new_ind)
-            number_pipelines += 1
 
     return mutations

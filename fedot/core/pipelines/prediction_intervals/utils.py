@@ -23,26 +23,27 @@ def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.
             'min': np.min(arrays, axis=0)}
 
 
-def pipeline_simple_structure(ind: Individual):
-    """This function transformates an individual to a list consisting of its pipeline node names.
+#def pipeline_simple_structure(ind: Individual):
+#    """This function transformates an individual to a list consisting of its pipeline node names.
 
-    Args:
-        ind: some pipeline.
+    #Args:
+    #    ind: some pipeline.
 
-    Returns:
-        list of node names in string type.
-    """
-    return list(map(lambda x: x.name, ind.graph.graph_description['nodes']))
+    #Returns:
+    #    list of node names in string type.
+    #"""
+    #return list(map(lambda x: x.name, ind.graph.graph_description['nodes']))
 
 
 def get_different_pipelines(individuals: List[Individual]):
-    """This function removes individuals with identical pipeline structure in a given list of individuals.
+    """This function removes individuals with identical graphs in a given list of individuals.
 
     Args:
         individuals: list of Individual type objects.
 
     Returns:
-        list of Individual type objects with different pipeline structures.
+        list of Individuals with different graphs. Given individuals with identical graph individual
+        with better (smaller) fitness is taken. 
     """
     unique_inds = []
     for ind in individuals:
