@@ -45,10 +45,7 @@ def get_mutations(individual: Individual, number_mutations: int):
     Returns:
         list of mutations of given individual. Mutations can be identical.
     """
-    mutations = []
-    for i in range(number_mutations):
-        new_ind = get_ts_mutation(individual)
-        mutations.append(new_ind)
+    mutations = [get_ts_mutation(individual) for _ in range(number_mutations)]
 
     return mutations
 
