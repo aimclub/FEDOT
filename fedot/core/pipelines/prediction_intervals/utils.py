@@ -9,6 +9,7 @@ from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 
+
 def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.1):
     """Provided a list of np.arrays this function computes upper and low quantiles, max, min, median and mean arrays."""
 
@@ -95,10 +96,10 @@ def ts_deviance(ts: np.array):
     return np.mean(np.abs(np.diff(ts)))
 
 
-def check_init_params(model: Fedot, 
-                      horizon: int, 
-                      nominal_error: float, 
-                      method: str, 
+def check_init_params(model: Fedot,
+                      horizon: int,
+                      nominal_error: float,
+                      method: str,
                       params: PredictionIntervalsParams):
     """This function checks correctness of parameters needed to initialize PredictionInterval instance."""
 
@@ -109,7 +110,7 @@ def check_init_params(model: Fedot,
         if type(horizon) is not int or horizon < 1:
             raise ValueError('Argument horizon must be None or natural number.')
 
-    if type(nominal_error) is not float or nominal_error <=0 or nominal_error >=1:
+    if type(nominal_error) is not float or nominal_error <= 0 or nominal_error >= 1:
         raise ValueError('Argument nominal_error must be float number between 0 and 1.')
 
     avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
@@ -135,7 +136,7 @@ def check_init_params(model: Fedot,
     if type(params.mutations_discard_inapropriate_pipelines) is not bool:
         raise ValueError('Argument mutations_discard_inapropriate_pipelines must be boolean.')
 
-    if params.mutation_keep_percentage <=0 or params.mutation_keep_percentage >= 1:
+    if params.mutation_keep_percentage <= 0 or params.mutation_keep_percentage >= 1:
         raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
 
     if params.ql_number_models != 'max':
@@ -149,5 +150,5 @@ def check_init_params(model: Fedot,
         raise ValueError('Argument ql_tuner_minutes must be positive real number.')
 
     if params.bpq_number_models != 'max':
-        if type(params.bpq_number_models) is not int or params.bpq_number_models <1:
+        if type(params.bpq_number_models) is not int or params.bpq_number_models < 1:
             raise ValueError("Argument bpq_number_models must be positive integer or 'max'.")

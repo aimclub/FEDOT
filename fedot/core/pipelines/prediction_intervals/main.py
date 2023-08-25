@@ -50,10 +50,13 @@ class PredictionIntervals:
         self.best_ind = last_generations['final_choice']
         self.ts = model.train_data.features
 
-        self.horizon = horizon
+        self.model_forecast = model.forecast(horizon=horizon)
+        if horizon is None:
+            self.horizon = model.params.task.task_params.forecast_length
+        else:
+            self.horizon = horizon
         self.nominal_error = nominal_error
         self.method = method
-        self.model_forecast = model.forecast(horizon=horizon)
         self.best_pipeline = model.current_pipeline
 
         # setup logger
