@@ -49,6 +49,7 @@ def plot_prediction_intervals(model_forecast: np.array,
 
     plt.legend()
     plt.grid()
+    plt.show()
 
     if show_history:
 
@@ -64,6 +65,7 @@ def plot_prediction_intervals(model_forecast: np.array,
 
     plt.legend()
     plt.grid()
+    plt.show()
 
 
 def _plot_prediction_intervals(horizon,
