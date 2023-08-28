@@ -4,7 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union, Iterator, Any
+from typing import List, Optional, Tuple, Union, Any
 from collections.abc import Iterable
 
 import numpy as np
@@ -407,7 +407,7 @@ class InputData(Data):
 
         return self.slice_by_index(index, step)
 
-    def slice_by_index(self, indexes: Iterator, step: int = 1):
+    def slice_by_index(self, indexes: Iterable, step: int = 1):
         """ Extract data with indexes (not ``idx``)
             Save features before first index in ``indexes`` for time series
             :param indexes: iterator with indexes that should be extracted
@@ -445,11 +445,12 @@ class InputData(Data):
             :obj:`InputData`
         """
 
-        idx_list = [str(i) for i in self.idx]
-
-        # extractions of row number for each existing index from selected_idx
-        row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
-                    if str(selected_ind) in idx_list]
+        hash_table = {str(idx): num for num, idx in enumerate(self.idx)}
+        try:
+            row_nums = [hash_table[str(selected_ind)] for selected_ind in selected_idx]
+        except KeyError:
+            missing_values = [selected_ind for selected_ind in selected_idx if selected_ind not in hash_table]
+            raise IndexError(f"Next indexes are missing: {missing_values}")
         return self.slice_by_index(row_nums)
 
     def subset_features(self, features_ids: list, with_target: bool = False):
