@@ -27,7 +27,8 @@ class MultiModalData(Dict[str, InputData]):
         return [input_data.data_type for input_data in iter(self.values())]
 
     def __getattr__(self, item):
-        if item in ('target', 'idx', 'task', 'class_labels', 'num_classes'):
+        if item in ('target', 'idx', 'task', 'class_labels', 'num_classes',
+                    'is_ts_forecasting', 'is_classification', 'is_clustering', 'is_regression'):
             for input_data in self.values():
                 if input_data.supplementary_data.is_main_target:
                     return getattr(input_data, item)

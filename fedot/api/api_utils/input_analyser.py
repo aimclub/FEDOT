@@ -104,7 +104,7 @@ class InputAnalyser:
         :return : (is_cut_needed, border) is cutting is needed | if yes - border of cutting,
         """
 
-        if input_data.data_type == DataTypesEnum.table:
+        if input_data.is_table:
             if input_data.features.shape[0] * input_data.features.shape[1] > self.max_size:
                 border = self.max_size // input_data.features.shape[1]
                 return True, border

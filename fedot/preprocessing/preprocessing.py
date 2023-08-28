@@ -514,7 +514,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             corrected tabular data
         """
-        if data.is_table or data.data_type is DataTypesEnum.multi_ts:
+        if data.is_table or data.is_multi_ts:
             if np.ndim(data.features) < 2:
                 data.features = data.features.reshape((-1, 1))
             if data.target is not None and np.ndim(data.target) < 2:

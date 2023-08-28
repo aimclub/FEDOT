@@ -52,7 +52,7 @@ class CustomModelImplementation(ModelImplementation):
                                                       input_data.idx,
                                                       input_data.features,
                                                       self.params)
-            if (input_data.data_type == DataTypesEnum.ts and
+            if (input_data.is_ts and
                     input_data.target is not None and len(input_data.target.shape) > 1):
                 # change target after custom model is processed
                 input_data.target = input_data.target[:, 0]

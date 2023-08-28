@@ -339,3 +339,31 @@ def test_define_index_from_csv_without_index_column():
     assert np.array_equal(df.index, [0, 1, 2])
     assert np.array_equal(df.columns, ['a', 'b', 'c'])
     assert np.array_equal(df, list(zip([1, 2, 3], [4, 5, 6], [7, 8, 9])))
+
+
+def test_is_data_type_functions():
+    data_types = [x for x in DataTypesEnum]
+    array = np.array([0])
+    for data_type in data_types:
+        data = InputData(idx=array, features=array, target=array,
+                         data_type=data_type, task=Task(TaskTypesEnum.clustering))
+        attr_name = [key for key in dir(data) if key == f"is_{data_type.name}"][0]
+        assert getattr(data, attr_name)
+        for non_data_type in data_types:
+            if non_data_type is not data_type:
+                attr_name = [key for key in dir(data) if key == f"is_{non_data_type.name}"][0]
+                assert not getattr(data, attr_name)
+
+
+def test_is_task_type_functions():
+    task_types = [x for x in TaskTypesEnum]
+    array = np.array([0])
+    for task_type in task_types:
+        data = InputData(idx=array, features=array, target=array,
+                         data_type=DataTypesEnum.table, task=Task(task_type))
+        attr_name = [key for key in dir(data) if key == f"is_{task_type.name}"][0]
+        assert getattr(data, attr_name)
+        for non_task_type in task_types:
+            if non_task_type is not task_type:
+                attr_name = [key for key in dir(data) if key == f"is_{non_task_type.name}"][0]
+                assert not getattr(data, attr_name)

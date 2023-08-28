@@ -33,7 +33,7 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: Union[InputData, M
     forecast_length = task.task_params.forecast_length
 
     final_forecast = []
-    if isinstance(input_data, MultiModalData) or input_data.data_type == DataTypesEnum.multi_ts:
+    if isinstance(input_data, MultiModalData) or input_data.is_multi_ts:
         if forecast_length < horizon:
             raise ValueError('In case of multi-modal time-series and multi time-series'
                              'forecast horizon can not be bigger than forecast length model was fitted for.\n'

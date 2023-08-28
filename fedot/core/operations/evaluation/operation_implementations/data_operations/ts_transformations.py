@@ -303,7 +303,7 @@ class LaggedImplementation(DataOperationImplementation):
                                                                       all_transformed_features,
                                                                       last_part_of_ts)
 
-        if input_data.data_type == DataTypesEnum.multi_ts:
+        if input_data.is_multi_ts:
             all_transformed_features = np.expand_dims(all_transformed_features[0], axis=0)
         self.features_columns = all_transformed_features
         return all_transformed_features
@@ -312,10 +312,10 @@ class LaggedImplementation(DataOperationImplementation):
         """Apply stack function for multi_ts and multivariable ts types on predict step
         """
 
-        if input_data.data_type == DataTypesEnum.multi_ts:
+        if input_data.is_multi_ts:
             # for mutli_ts
             all_features = np.vstack((all_features, part_to_add))
-        if input_data.data_type == DataTypesEnum.ts:
+        if input_data.is_ts:
             # for multivariable
             all_features = np.hstack((all_features, part_to_add))
         return all_features
@@ -385,7 +385,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
         """
 
         source_ts = input_data.features
-        if input_data.data_type == DataTypesEnum.multi_ts:
+        if input_data.is_multi_ts:
             full_smoothed_ts = []
             for ts_n in range(source_ts.shape[1]):
                 ts = pd.Series(source_ts[:, ts_n])
@@ -569,7 +569,7 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         source_ts = np.array(input_data.features)
         # Apply differential operation
-        if input_data.data_type == DataTypesEnum.multi_ts:
+        if input_data.is_multi_ts:
             full_differential_ts = []
             for ts_n in range(source_ts.shape[1]):
                 ts = source_ts[:, ts_n]
