@@ -32,7 +32,8 @@ class MultiModalData(Dict[str, InputData]):
                 if input_data.supplementary_data.is_main_target:
                     return getattr(input_data, item)
 
-        if item in ('subset_range', 'subset_indices', 'slice', 'slice_by_index'):
+        if item in ('subset_range', 'subset_indices', 'slice', 'slice_by_index',
+                    'convert_non_int_indexes_for_fit', 'convert_non_int_indexes_for_predict'):
             new = self.copy()
 
             def _temporary_function(*args, _multimodaldata=new, **kwargs):

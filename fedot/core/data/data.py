@@ -4,7 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union, Iterable, Any
+from typing import List, Optional, Tuple, Union, Iterator, Any
 from collections.abc import Iterable
 
 import numpy as np
@@ -407,18 +407,27 @@ class InputData(Data):
 
         return self.slice_by_index(index, step)
 
-    def slice_by_index(self, index: np.array, step: int = 1):
+    def slice_by_index(self, indexes: Iterator, step: int = 1):
+        """ Extract data with indexes (not ``idx``)
+            Save features before first index in ``indexes`` for time series
+            :param indexes: iterator with indexes that should be extracted
+                            should be sorted for time series
+            :param step: step between indexes for time series
+            :return: InputData """
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
-            # retain data in features before ``index``
+            if np.any(np.diff(np.array(indexes)) != step):
+                raise IndexError(f"Indexes for time series should be sorted and equal stepped with step {step}")
+
+            # retain data in features before ``indexes``
             delta = new.features.shape[0] - len(new)
-            new_indexes = np.arange(-delta, index[-1] + 1)[::-step][::-1]
+            new_indexes = np.arange(-delta, indexes[-1] + 1)[::-step][::-1]
             new_indexes += delta
             new.features = np.take(new.features, new_indexes, 0)
         else:
-            new.features = np.take(new.features, index, 0)
-        new.idx = np.take(new.idx, index, 0)
-        new.target = np.take(new.target, index, 0)
+            new.features = np.take(new.features, indexes, 0)
+        new.idx = np.take(new.idx, indexes, 0)
+        new.target = np.take(new.target, indexes, 0)
         return new
 
     def subset_range(self, start: int, end: int):
