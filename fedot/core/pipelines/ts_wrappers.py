@@ -89,16 +89,12 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     number_of_iterations = math.ceil(horizon / forecast_length)
 
     final_forecast = np.zeros((number_of_iterations, forecast_length))
-    # 1 step
-    data = input_data.slice(None, forecast_length)
-    data.features = data.features[:-forecast_length]
-    iter_predict = pipeline.predict(input_data=data)
-    iter_predict = np.ravel(iter_predict.predict)
-    final_forecast[0, :] = iter_predict
-
-    # next steps
-    for i in range(1, number_of_iterations):
-        data = input_data.slice((i - 1) * forecast_length, i * forecast_length)
+    for i in range(number_of_iterations):
+        if i != 0:
+            data = input_data.slice((i - 1) * forecast_length, i * forecast_length)
+        else:
+            data = input_data.slice(None, forecast_length)
+            data.features = data.features[:-forecast_length]
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(iter_predict.predict)
         final_forecast[i, :] = iter_predict
@@ -223,23 +219,6 @@ def _update_input(pre_history_ts, scope_len, task, data_type: DataTypesEnum = Da
                            task=task, data_type=data_type)
 
     return input_data
-
-
-def _calculate_intervals(last_index_pre_history, amount_of_iterations, scope_len):
-    """ Function calculate
-
-    :param last_index_pre_history: last id of the known part of time series
-    :param amount_of_iterations: amount of steps for time series forecasting
-    :param scope_len: amount of elements in every time series forecasting step
-    :return intervals: ids of finish of every step in time series
-    """
-    intervals = []
-    current_border = last_index_pre_history
-    for i in range(0, amount_of_iterations):
-        current_border = current_border + scope_len
-        intervals.append(current_border)
-
-    return intervals
 
 
 def exception_if_not_ts_task(task):
