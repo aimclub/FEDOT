@@ -381,6 +381,42 @@ class InputData(Data):
     """
 
     @property
+    def is_classification(self):
+        return self.task.task_type is TaskTypesEnum.classification
+
+    @property
+    def is_ts_forecasting(self):
+        return self.task.task_type is TaskTypesEnum.ts_forecasting
+
+    @property
+    def is_clustering(self):
+        return self.task.task_type is TaskTypesEnum.clustering
+
+    @property
+    def is_regression(self):
+        return self.task.task_type is TaskTypesEnum.regression
+
+    @property
+    def is_ts(self):
+        return self.data_type is DataTypesEnum.ts
+
+    @property
+    def is_multi_ts(self):
+        return self.data_type is DataTypesEnum.multi_ts
+
+    @property
+    def is_table(self):
+        return self.data_type is DataTypesEnum.table
+
+    @property
+    def is_text(self):
+        return self.data_type is DataTypesEnum.text
+
+    @property
+    def is_image(self):
+        return self.data_type is DataTypesEnum.image
+
+    @property
     def num_classes(self) -> Optional[int]:
         """Returns number of classes that are present in the target.
         NB: if some labels are not present in this data, then
@@ -584,26 +620,6 @@ def process_target_and_features(data_frame: pd.DataFrame,
         features = data_frame.to_numpy()
 
     return features, target
-
-
-def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
-    return data.data_type is DataTypesEnum.table
-
-
-def data_type_is_ts(data: InputData) -> bool:
-    return data.data_type is DataTypesEnum.ts
-
-
-def data_type_is_multi_ts(data: InputData) -> bool:
-    return data.data_type is DataTypesEnum.multi_ts
-
-
-def data_type_is_text(data: InputData) -> bool:
-    return data.data_type is DataTypesEnum.text
-
-
-def data_type_is_image(data: InputData) -> bool:
-    return data.data_type is DataTypesEnum.image
 
 
 def get_indices_from_file(data_frame, file_path, idx_column='datetime') -> Iterable[Any]:

@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
-from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -103,7 +103,7 @@ class ApiDataProcessor:
             real.target = real.target[~np.isnan(prediction.predict)]
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
-        if data_type_is_table(prediction):
+        if prediction.is_table:
             # Check dimensions for real and predicted values
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)

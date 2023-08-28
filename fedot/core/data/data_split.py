@@ -8,7 +8,6 @@ from sklearn.model_selection._split import StratifiedKFold
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -139,7 +138,7 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                        'random_seed': random_seed,
                        'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        if data.data_type in (DataTypesEnum.multi_ts, DataTypesEnum.ts):
+        if data.is_ts or data.is_multi_ts:
             train_data, test_data = _split_time_series(data, **input_arguments)
         else:
             train_data, test_data = _split_any(data, **input_arguments)

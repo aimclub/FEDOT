@@ -8,7 +8,7 @@ from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, np_datetime_to_numeric
-from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
+from fedot.core.data.data import OutputData
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -219,10 +219,10 @@ class DataPreprocessor(BasePreprocessor):
         data.target = self._apply_target_encoding(data, source_name)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
-        if data_type_is_text(data):
+        if data.is_text:
             # TODO andreygetmanov to new class text preprocessing?
             replace_nans_with_empty_strings(data)
-        elif data_type_is_table(data):
+        elif data.is_table:
             data = self._clean_extra_spaces(data)
             # Process binary categorical features
             data = self.binary_categorical_processors[source_name].fit_transform(data)
@@ -263,9 +263,9 @@ class DataPreprocessor(BasePreprocessor):
         self._take_only_correct_features(data, source_name)
         self.types_correctors[source_name].convert_data_for_predict(data)
 
-        if data_type_is_text(data):
+        if data.is_text:
             replace_nans_with_empty_strings(data)
-        if data_type_is_table(data):
+        if data.is_table:
             data = self._clean_extra_spaces(data)
             data = self.binary_categorical_processors[source_name].transform(data)
 
@@ -280,7 +280,7 @@ class DataPreprocessor(BasePreprocessor):
             data: to be preprocessed
             source_name: name of the data source node
         """
-        if not data_type_is_table(data) or data.supplementary_data.optionally_preprocessed:
+        if not data.is_table or data.supplementary_data.optionally_preprocessed:
             return data
 
         for has_problems, tag_to_check, action_if_no_tag in [
@@ -514,16 +514,16 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             corrected tabular data
         """
-        if data_type_is_table(data) or data.data_type is DataTypesEnum.multi_ts:
+        if data.is_table or data.data_type is DataTypesEnum.multi_ts:
             if np.ndim(data.features) < 2:
                 data.features = data.features.reshape((-1, 1))
             if data.target is not None and np.ndim(data.target) < 2:
                 data.target = data.target.reshape((-1, 1))
-        elif data_type_is_text(data):
+        elif data.is_text:
             data.features = data.features.reshape((-1, 1))
             if data.target is not None and np.ndim(data.target) < 2:
                 data.target = np.array(data.target).reshape((-1, 1))
-        elif data_type_is_ts(data):
+        elif data.is_ts:
             data.features = np.ravel(data.features)
 
         return data
@@ -533,10 +533,10 @@ class DataPreprocessor(BasePreprocessor):
     def convert_indexes_for_fit(pipeline, data: Union[InputData, MultiModalData]):
         if isinstance(data, MultiModalData):
             for data_source_name in data:
-                if data_type_is_ts(data[data_source_name]):
+                if data[data_source_name].is_ts():
                     data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(pipeline)
             return data
-        elif data_type_is_ts(data):
+        elif data.is_ts(data):
             return data.convert_non_int_indexes_for_fit(pipeline)
         else:
             return data
@@ -546,10 +546,10 @@ class DataPreprocessor(BasePreprocessor):
     def convert_indexes_for_predict(pipeline, data: Union[InputData, MultiModalData]):
         if isinstance(data, MultiModalData):
             for data_source_name in data:
-                if data_type_is_ts(data[data_source_name]):
+                if data[data_source_name].is_ts:
                     data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_predict(pipeline)
             return data
-        elif data_type_is_ts(data):
+        elif data.is_ts(data):
             return data.convert_non_int_indexes_for_predict(pipeline)
         else:
             return data

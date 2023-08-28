@@ -7,7 +7,7 @@ from sklearn.decomposition import KernelPCA, PCA, FastICA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData, data_type_is_table, OutputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
     divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
@@ -255,7 +255,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data):
+        if input_data.is_table:
             # Tabular data contains categorical features
             categorical_ids, non_categorical_ids = find_categorical_columns(input_data.features)
             numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids,
@@ -287,7 +287,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data) and data_has_categorical_features(input_data):
+        if input_data.is_table and data_has_categorical_features(input_data):
             features_types = input_data.supplementary_data.column_types.get('features')
             self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
                                                                                       features_types)

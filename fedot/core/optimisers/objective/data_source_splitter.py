@@ -8,7 +8,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed, cv_generator
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 
@@ -63,14 +62,14 @@ class DataSourceSplitter:
                                   f" the maximum allowed count {data.target.shape[0] - 1}"))
 
         # Calculate the number of validation blocks for timeseries forecasting
-        if data.task.task_type is TaskTypesEnum.ts_forecasting and self.validation_blocks is None:
+        if data.is_ts_forecasting and self.validation_blocks is None:
             self._propose_cv_folds_and_validation_blocks(data)
 
         # Check split_ratio
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
             raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        if self.stratify and data.task.task_type is TaskTypesEnum.classification:
+        if self.stratify and data.is_classification:
             # check that stratification can be done
             # for cross validation split ratio is defined as validation_size / all_data_size
             split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
@@ -84,7 +83,7 @@ class DataSourceSplitter:
         self.shuffle |= self.stratify
 
         # No shuffle for time series
-        self.shuffle &= data.task.task_type is not TaskTypesEnum.ts_forecasting
+        self.shuffle &= not data.is_ts_forecasting
 
         # Random seed depends on shuffle
         self.random_seed = (self.random_seed or 42) if self.shuffle else None

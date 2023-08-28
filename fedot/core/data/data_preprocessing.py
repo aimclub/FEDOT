@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
-    if data_type_is_table(data) or data_type_is_ts(data) or data_type_is_multi_ts(data):
+    if data.is_table or data.is_ts or data.is_multi_ts:
         return True
     return False
 
