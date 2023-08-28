@@ -452,11 +452,16 @@ class InputData(Data):
                     if str(selected_ind) in idx_list]
         return self.slice_by_index(row_nums)
 
-    def subset_features(self, features_ids: list):
+    def subset_features(self, features_ids: list, with_target: bool = False):
         """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
         """
         subsample_input = self.copy()
         subsample_input.features = self.features[:, features_ids]
+        if with_target:
+            if self.target.shape != self.features.shape:
+                raise ValueError((f"Shapes of features ({self.features.shape}) and"
+                                 f" target ({self.target.shape}) mismatch. Cannot create subset for target"))
+            subsample_input.target = self.target[:, features_ids]
         return subsample_input
 
     def shuffle(self, seed: Optional[int] = None):

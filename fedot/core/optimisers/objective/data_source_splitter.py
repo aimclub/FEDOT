@@ -83,6 +83,9 @@ class DataSourceSplitter:
         # Stratification can not be done without shuffle
         self.shuffle |= self.stratify
 
+        # No shuffle for time series
+        self.shuffle &= data.task.task_type is not TaskTypesEnum.ts_forecasting
+
         # Random seed depends on shuffle
         self.random_seed = (self.random_seed or 42) if self.shuffle else None
 
