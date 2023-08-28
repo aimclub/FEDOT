@@ -536,7 +536,7 @@ class DataPreprocessor(BasePreprocessor):
                 if data[data_source_name].is_ts():
                     data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(pipeline)
             return data
-        elif data.is_ts(data):
+        elif data.is_ts:
             return data.convert_non_int_indexes_for_fit(pipeline)
         else:
             return data
@@ -549,7 +549,7 @@ class DataPreprocessor(BasePreprocessor):
                 if data[data_source_name].is_ts:
                     data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_predict(pipeline)
             return data
-        elif data.is_ts(data):
+        elif data.is_ts:
             return data.convert_non_int_indexes_for_predict(pipeline)
         else:
             return data
