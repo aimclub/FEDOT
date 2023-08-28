@@ -1,11 +1,14 @@
 import pytest
 import pickle
 from typing import List
+import itertools
+
+from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.utils import fedot_project_root
-from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_structure
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
+from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
 
 @pytest.fixture
@@ -18,11 +21,10 @@ def get_individual():
     return get_last_generations(model)['final_choice']
 
 
-def check_uniqueness_mutations_structures(a: List[list]):
+def check_uniqueness_mutations_structures(a: List[Individual]):
     ans = True
-    for x in a:
-        a.remove(x)
-        if x in a:
+    for x in itertools.combinations(a, 2):
+        if get_distance_between(x[0].graph, x[1].graph, compare_node_params=False) == 0:
             ans = False
             break
     return ans
@@ -35,6 +37,5 @@ def test_get_ts_mutation(get_individual):
 
 def test_get_different_mutations(get_individual):
     mutations = get_different_mutations(get_individual, 15)
-    mutations_structure = list(map(lambda x: pipeline_simple_structure(x), mutations))
 
-    assert check_uniqueness_mutations_structures(mutations_structure), "Some mutations have identical structure."
+    assert check_uniqueness_mutations_structures(mutations), "Some mutations have identical structure."

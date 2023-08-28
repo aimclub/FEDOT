@@ -28,7 +28,7 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
     ax.plot(range(len(ts), len(ts) + len(ts_test)), ts_test)
 
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
-    idx = np.arange(len(np.array(ts))
+    idx = np.arange(len(ts))
     train_input = InputData(idx=idx,
                             features=ts,
                             target=ts,
