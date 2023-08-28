@@ -153,7 +153,7 @@ class PredictionIntervals:
                dictionary of upper and low prediction intervals.
         """
         if not self.is_fitted:
-            self.logger.critical('PredictionIntervals instance is not fitted! Fit the instance first.')
+            raise ValueError('PredictionIntervals instance is not fitted! Fit the instance first.')
 
         if self.method == 'last_generation_ql':
             quantiles_up = compute_prediction_intervals(self.up_predictions, nominal_error=self.nominal_error)
@@ -203,7 +203,7 @@ class PredictionIntervals:
         """Method for plotting obtained prediction intervals, model forecast and test data."""
 
         if self.is_forecasted is False:
-            self.logger.critical('Prediction intervals are not built! Use fit and then forecast methods first.')
+            raise ValueError('Prediction intervals are not built! Use fit and then forecast methods first.')
 
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.up_int,
@@ -223,7 +223,7 @@ class PredictionIntervals:
 
 
         if self.base_quantiles_are_computed is False:
-            self.logger.critical('Base quantiles are not computed! Use get_base_quantiles method first.')
+            raise ValueError('Base quantiles are not computed! Use get_base_quantiles method first.')
 
         plot_prediction_intervals(model_forecast=self.model_forecast,
                                   up_int=self.base_quantiles['up'],

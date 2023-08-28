@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
-
+from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
 def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.1):
     """Provided a list of np.arrays this function computes upper and low quantiles, max, min, median and mean arrays."""
@@ -45,20 +45,28 @@ def get_different_pipelines(individuals: List[Individual]):
         list of Individuals with different graphs. Given individuals with identical graph individual
         with better (smaller) fitness is taken. 
     """
-    unique_inds = []
-    for ind in individuals:
-        if ind not in unique_inds:
-            unique_inds.append(ind)
-    l_inds = [(ind.fitness.value, pipeline_simple_structure(ind), ind.uid) for ind in unique_inds]
-    l_inds = sorted(l_inds, key=lambda x: x[0])
-    structures = []
-    ids = []
-    for x in l_inds:
-        if x[1] not in structures:
-            structures.append(x[1])
-            ids.append(x[2])
+    sorted_inds = sorted(individuals, key=lambda x: x.fitness, reverse=True)
+    graph_list = []
+    new_inds = []
+    for s in sorted_inds:
+        if np.array([get_distance_between(s.graph, x, compare_node_params=False) > 0 for x in graph_list]).all():
+            graph_list.append(s.graph)
+            new_inds.append(s)
+    return new_inds
 
-    return [ind for ind in unique_inds if ind.uid in ids]
+    #unique_inds = []
+    #for ind in individuals:
+    #    if ind not in unique_inds:
+    #        unique_inds.append(ind)
+    #l_inds = [(ind.fitness.value, pipeline_simple_structure(ind), ind.uid) for ind in unique_inds]
+    #l_inds = sorted(l_inds, key=lambda x: x[0])
+    #structures = []
+    #ids = []
+    #for x in l_inds:
+    #    if x[1] not in structures:
+    #        structures.append(x[1])
+    #        ids.append(x[2])
+    #return [ind for ind in unique_inds if ind.uid in ids]
 
 
 def get_last_generations(model: Fedot):
