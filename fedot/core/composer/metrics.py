@@ -70,10 +70,21 @@ class QualityMetric:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
                 results, reference_data = cls._simple_prediction(pipeline, reference_data)
+                metric = cls.metric(reference_data, results)
             else:
                 # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
-            metric = cls.metric(reference_data, results)
+                if np.ndim(reference_data.features) > 1:
+                    # multi_ts
+                    metrics = []
+                    for i in range(reference_data.features.shape[1]):
+                        reference_data_out, results = cls._in_sample_prediction(pipeline,
+                                                                                reference_data.subset_features([i], True),
+                                                                                validation_blocks)
+                        metrics.append(cls.metric(reference_data_out, results))
+                    metric = np.mean(metrics)
+                else:
+                    reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+                    metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
                 from fedot.core.data.visualisation import plot_forecast
