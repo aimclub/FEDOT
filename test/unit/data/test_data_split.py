@@ -6,13 +6,12 @@ import pandas as pd
 import pytest
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.data_split import train_test_data_setup, cv_generator
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
-from fedot.core.data.cv_folds import cv_generator
 from test.unit.data.test_data import check_shuffle_order
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data

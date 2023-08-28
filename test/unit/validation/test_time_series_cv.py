@@ -15,7 +15,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.data_split import cv_generator
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)

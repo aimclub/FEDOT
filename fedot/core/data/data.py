@@ -441,7 +441,7 @@ class InputData(Data):
         # extractions of row number for each existing index from selected_idx
         row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
                     if str(selected_ind) in idx_list]
-        return self.slice(row_nums)
+        return self.slice_by_index(row_nums)
 
     def subset_features(self, features_ids: list):
         """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
