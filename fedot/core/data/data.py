@@ -399,24 +399,19 @@ class InputData(Data):
     def __len__(self):
         return self.idx.shape[0]
 
-    def slice(self, arg: Union[int, slice]):
-        if isinstance(arg, int):
-            if arg != -1:
-                arg = slice(arg, arg + 1)
-            else:
-                arg = slice(arg, len(self))
-        if isinstance(arg, slice):
-            index = np.arange(len(self))[arg]
-            if len(index) == 0 or not (0 <= index[0] <= index[-1] <= len(self)):
-                raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
-        else:
-            raise ValueError(f'Unknown index type: {type(arg)}. Allowed types: int, slice, Iterable')
+    def slice(self, start: Optional[int] = None, stop: Optional[int] = None, step: Optional[int] = 1):
+        if start is None and stop is None:
+            raise ValueError('Slicing range is undefined')
+
+        index = np.arange(len(self))[slice(start, stop, step)]
+        if len(index) == 0 or not (0 <= index[0] <= index[-1] <= len(self)):
+            raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
 
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
             # retain data in features before ``index``
             delta = new.features.shape[0] - len(new)
-            new_indexes = np.arange(-delta, index[-1] + 1)[::-(arg.step or 1)][::-1]
+            new_indexes = np.arange(-delta, index[-1] + 1)[::-(step or 1)][::-1]
             new_indexes += delta
             new.features = np.take(new.features, new_indexes, 0)
         else:
@@ -428,7 +423,7 @@ class InputData(Data):
     def subset_range(self, start: int, end: int):
         if start > end or not (0 <= start <= end <= len(self)):
             raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
-        return self.slice(slice(start, end + 1))
+        return self.slice(start, end + 1)
 
     def subset_indices(self, selected_idx: List):
         """Get subset from :obj:`InputData` to extract all items with specified indices

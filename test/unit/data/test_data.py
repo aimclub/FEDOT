@@ -63,95 +63,64 @@ def test_data_subset_for_ts_correct(ts_setup):
 
 
 def test_data_slice(data_setup):
-    # check single slice
-    for islice in (0, 10, -1, len(data_setup) - 1):
-        sliced = data_setup.slice(islice)
-        assert np.array_equal([data_setup.idx[islice]], sliced.idx)
-        assert np.array_equal([data_setup.features[islice]], sliced.features)
-        assert np.array_equal([data_setup.target[islice]], sliced.target)
-
-    # check slice with slice
-    for islice in (slice(5), slice(-5), slice(2, 5), slice(2, 8, 2), slice(-6, -2), slice(-8, -2, 2)):
-        sliced = data_setup.slice(islice)
-        assert np.array_equal(data_setup.idx[islice], sliced.idx)
-        assert np.array_equal(data_setup.features[islice], sliced.features)
-        assert np.array_equal(data_setup.target[islice], sliced.target)
+    for islice in ((None, 5, None), (None, -5, None), (2, 5, None), (2, 8, 2), (-6, -2, None), (-8, -2, 2)):
+        sliced = data_setup.slice(*islice)
+        assert np.array_equal(data_setup.idx[slice(*islice)], sliced.idx)
+        assert np.array_equal(data_setup.features[slice(*islice)], sliced.features)
+        assert np.array_equal(data_setup.target[slice(*islice)], sliced.target)
 
 
-def test_ts_slice(ts_setup):
-    # check single slice
-    for islice in (0, 8, -2, -1, len(ts_setup) - 1):
-        sliced = ts_setup.slice(islice)
-        assert np.array_equal([ts_setup.idx[islice]], sliced.idx)
-        if islice == -1:
-            assert np.array_equal(ts_setup.features, sliced.features)
-        else:
-            assert np.array_equal(ts_setup.features[:islice + 1], sliced.features)
-        assert np.array_equal([ts_setup.target[islice]], sliced.target)
+def test_ts_slice(ts_setup):# check common slice
+    for islice in ((None, 5, 1), (None, -5, 1), (2, 5, 1), (2, 8, 2), (-6, -2, 1)):
+        sliced = ts_setup.slice(*islice)
+        assert np.array_equal(ts_setup.idx[slice(*islice)], sliced.idx)
 
-    # check common slice
-    for islice in (slice(5), slice(-5), slice(2, 5), slice(2, 8, 2), slice(-6, -2)):
-        print(islice)
-        sliced = ts_setup.slice(islice)
-        assert np.array_equal(ts_setup.idx[islice], sliced.idx)
-
-        features_slice = slice(0, islice.stop, islice.step)
+        features_slice = slice(0, islice[1], islice[2])
         assert np.array_equal(ts_setup.features[features_slice], sliced.features)
 
-        sliced_target = ts_setup.target[islice]
+        sliced_target = ts_setup.target[slice(*islice)]
         assert np.array_equal(sliced_target, sliced.features[-len(sliced_target):])
         assert np.array_equal(sliced_target, sliced.target)
 
-    islice = slice(-8, -2, 2)
-    sliced = ts_setup.slice(islice)
-    assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+    islice = (-8, -2, 2)
+    sliced = ts_setup.slice(*islice)
+    assert np.array_equal(ts_setup.idx[slice(*islice)], sliced.idx)
     assert np.array_equal([-1, -3, -5, -7], sliced.features)
-    assert np.array_equal(ts_setup.target[islice], sliced.target)
+    assert np.array_equal(ts_setup.target[slice(*islice)], sliced.target)
 
 
 def test_ts_data_slice_for_partial_ts(ts_setup):
     _, ts_setup = train_test_data_setup(ts_setup, validation_blocks=3)
     delta = ts_setup.features.shape[0] - ts_setup.idx.shape[0]
-    for islice in (0, 1, -2, -1):
-        sliced = ts_setup.slice(islice)
-        assert np.array_equal([ts_setup.idx[islice]], sliced.idx)
-        if islice == -1:
-            assert np.array_equal(ts_setup.features, sliced.features)
-        elif islice < 0:
-            assert np.array_equal(ts_setup.features[:islice + 1], sliced.features)
-        else:
-            assert np.array_equal(ts_setup.features[:delta + islice + 1], sliced.features)
-        assert np.array_equal([ts_setup.target[islice]], sliced.target)
+    for islice in ((None, 2, 1), (None, -2, 1), (1, 3, 1), (1, 4, 2), (-3, -1, 1)):
+        sliced = ts_setup.slice(*islice)
+        assert np.array_equal(ts_setup.idx[slice(*islice)], sliced.idx)
 
-    # check common slice
-    for islice in (slice(2), slice(-2), slice(1, 3), slice(1, 4, 2), slice(-3, -1)):
-        print(islice)
-        sliced = ts_setup.slice(islice)
-        assert np.array_equal(ts_setup.idx[islice], sliced.idx)
-
-        if islice.stop > 0:
-            features_slice = slice(0, islice.stop + delta, islice.step)
+        if islice[1] > 0:
+            features_slice = slice(0, islice[1] + delta, islice[2])
             assert np.array_equal(ts_setup.features[features_slice], sliced.features)
-        elif islice.start is None:
-            assert np.array_equal(ts_setup.features[islice], sliced.features)
+        elif islice[0] is None:
+            assert np.array_equal(ts_setup.features[slice(*islice)], sliced.features)
         else:
-            features_slice = slice(0, islice.stop , islice.step)
+            features_slice = slice(0, islice[1] , islice[2])
             assert np.array_equal(ts_setup.features[features_slice], sliced.features)
 
-        sliced_target = ts_setup.target[islice]
+        sliced_target = ts_setup.target[slice(*islice)]
         assert np.array_equal(sliced_target, sliced.features[-len(sliced_target):])
         assert np.array_equal(sliced_target, sliced.target)
 
-    islice = slice(-4, -1, 2)
-    sliced = ts_setup.slice(islice)
-    assert np.array_equal(ts_setup.idx[islice], sliced.idx)
+    islice = (-4, -1, 2)
+    sliced = ts_setup.slice(*islice)
+    assert np.array_equal(ts_setup.idx[slice(*islice)], sliced.idx)
     assert np.array_equal([-1, -3, -5, -7, -9], sliced.features)
-    assert np.array_equal(ts_setup.target[islice], sliced.target)
+    assert np.array_equal(ts_setup.target[slice(*islice)], sliced.target)
 
 
 def test_ts_slice_mirrowed(ts_setup):
-    for data1, data2 in zip((ts_setup.slice(-1), ts_setup.slice(-2)),
-                            (ts_setup.slice(len(ts_setup) - 1), ts_setup.slice(len(ts_setup) - 2))):
+    for data1, data2 in zip((ts_setup.slice(None, -1),
+                             ts_setup.slice(None, -2)),
+                            (ts_setup.slice(None, len(ts_setup) - 1),
+                             ts_setup.slice(None, len(ts_setup) - 2))):
         assert np.array_equal(data1.idx, data2.idx)
         assert np.array_equal(data1.features, data2.features)
         assert np.array_equal(data1.target, data2.target)
