@@ -10,43 +10,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData],
-                                 index,
-                                 retain_first_target=False):
-    """ The function get InputData or MultiModalData and return
-        only data with indexes in index, not in idx
-        f.e. index = [0, 1, 2, 3] == input_data.features[[0, 1, 2, 3], :]
-        :param origin_input_data: data to split
-        :param index: indexes that needed in output data
-        :param retain_first_target: set to True for use only first column of target
-        """
-
-    if isinstance(origin_input_data, MultiModalData):
-        data = MultiModalData()
-        for key in origin_input_data:
-            data[key] = _split_input_data_by_indexes(origin_input_data[key],
-                                                     index=index,
-                                                     retain_first_target=retain_first_target)
-        return data
-    elif isinstance(origin_input_data, InputData):
-        idx = np.take(origin_input_data.idx, index, 0)
-        target = np.take(origin_input_data.target, index, 0)
-        features = np.take(origin_input_data.features, index, 0)
-
-        if retain_first_target and len(target.shape) > 1:
-            target = target[:, 0]
-
-        data = InputData(idx=idx,
-                         features=features,
-                         target=target,
-                         task=deepcopy(origin_input_data.task),
-                         data_type=origin_input_data.data_type,
-                         supplementary_data=origin_input_data.supplementary_data)
-        return data
-    else:
-        raise TypeError(f'Unknown data type {type(origin_input_data)}')
-
-
 def _split_time_series(data: InputData,
                        validation_blocks: Optional[int] = None,
                        **kwargs):
@@ -60,17 +23,15 @@ def _split_time_series(data: InputData,
     if validation_blocks is not None:
         forecast_length *= validation_blocks
 
-    target_length = len(data.target)
-    train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
-    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length),
-                                             retain_first_target=True)
+    train_data = data.slice(0, len(data) - forecast_length)
+    test_data = data.slice(len(data) - forecast_length, len(data))
+
+    if len(test_data.target.shape) > 1:
+        test_data.target = test_data.target[:, 0]
 
     if validation_blocks is None:
-        # for in-sample
-        test_data.features = train_data.features
-    else:
         # for out-of-sample
-        test_data.features = data.features
+        test_data.features = train_data.features
 
     return train_data, test_data
 
@@ -98,8 +59,8 @@ def _split_any(data: InputData,
                                            random_state=random_seed,
                                            stratify=stratify_labels)
 
-    train_data = _split_input_data_by_indexes(data, index=train_ids)
-    test_data = _split_input_data_by_indexes(data, index=test_ids)
+    train_data = data.slice_by_index(train_ids)
+    test_data = data.slice_by_index(test_ids)
 
     return train_data, test_data
 
@@ -193,6 +154,7 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
         train_data, test_data = split_func(data, **input_arguments)
     elif isinstance(data, MultiModalData):
         train_data, test_data = MultiModalData(), MultiModalData()
+        input_arguments['random_seed'] = random_seed or np.random.randint(0, np.iinfo(int).max)
         for node in data.keys():
             train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
     else:

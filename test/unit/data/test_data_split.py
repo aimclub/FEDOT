@@ -13,6 +13,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
 from fedot.core.data.cv_folds import cv_generator
+from test.unit.data.test_data import check_shuffle_order
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -174,8 +175,8 @@ def test_data_splitting_perform_correctly_after_build():
     Check if data splitting perform correctly through Objective Builder - Objective Evaluate
     Case: in-sample validation during cross validation for time series forecasting
     """
-    output_by_fold = {0: {'train_features_size': (12,), 'test_features_size': (16,), 'test_target_size': (16,)},
-                      1: {'train_features_size': (16,), 'test_features_size': (20,), 'test_target_size': (20,)}}
+    output_by_fold = {0: {'train_features_size': (12,), 'test_features_size': (16,), 'test_target_size': (4,)},
+                      1: {'train_features_size': (16,), 'test_features_size': (20,), 'test_target_size': (4,)}}
 
     time_series = get_ts_data_to_forecast_two_elements()
     data_source = DataSourceSplitter(cv_folds=2, validation_blocks=2).build(time_series)
@@ -313,8 +314,10 @@ def test_stratify(cv_folds, shuffle, stratify, data_classes):
                            get_tabular_classification_data(length=100, class_count=4)),  # cv_folds classification
                           (True, True, None,
                            get_tabular_classification_data(length=100, class_count=4)),  # holdout classification
-                          (False, True, 2, get_ts_data_to_forecast(10, 100)),  # cv_folds timeseries
-                          (False, True, None, get_ts_data_to_forecast(10, 100)),  # holdout timeseries
+                          (False, True, 2,
+                           get_ts_data_to_forecast(10, 100)),  # cv_folds timeseries
+                          (False, True, None,
+                           get_ts_data_to_forecast(10, 100)),  # holdout timeseries
                           ])
 def test_shuffle(is_shuffle, cv_folds, shuffle, data):
     data_splitter = DataSourceSplitter(cv_folds=cv_folds, shuffle=shuffle, stratify=False)
@@ -323,3 +326,27 @@ def test_shuffle(is_shuffle, cv_folds, shuffle, data):
     for samples in data_producer():
         for sample in samples:
             assert check_shuffle(sample) == is_shuffle
+
+
+def test_shuffle_for_multimodal_data():
+    data = MultiModalData()
+    array = np.random.rand(100)
+    target = np.round(np.random.rand(100) * 4)
+    for i in range(4):
+        data[str(i)] = InputData(idx=np.arange(len(array)),
+                                 features=array,
+                                 target=target,
+                                 data_type=DataTypesEnum.table,
+                                 task=Task(TaskTypesEnum.classification))
+
+    # train_test_data_setup
+    train, test = train_test_data_setup(data)
+    check_shuffle_order(data, train)
+    check_shuffle_order(data, test)
+
+    # cv_folds
+    data_splitter = DataSourceSplitter(cv_folds=3)
+    data_producer = data_splitter.build(data)
+    for train, test in data_producer():
+        check_shuffle_order(data, train)
+        check_shuffle_order(data, test)

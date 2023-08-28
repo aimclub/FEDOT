@@ -32,11 +32,13 @@ class MultiModalData(Dict[str, InputData]):
                 if input_data.supplementary_data.is_main_target:
                     return getattr(input_data, item)
 
-        if item in ('subset_range', 'subset_indices', 'slice', ):
+        if item in ('subset_range', 'subset_indices', 'slice', 'slice_by_index'):
+            new = self.copy()
 
-            def _temporary_function(*args, _multimodaldata=self, **kwargs):
+            def _temporary_function(*args, _multimodaldata=new, **kwargs):
                 for key in _multimodaldata.keys():
                     _multimodaldata[key] = getattr(_multimodaldata[key], item)(*args, **kwargs)
+                return new
 
             return _temporary_function
         raise AttributeError(f"Unknown attribute {item} for class MultiModalData")
@@ -47,6 +49,12 @@ class MultiModalData(Dict[str, InputData]):
                 setattr(input_data, item, value)
         else:
             object.__setattr__(self, item, value)
+
+    def copy(self):
+        new = MultiModalData()
+        for key in self.keys():
+            new[key] = self[key].copy()
+        return new
 
     def shuffle(self, seed: Optional[int] = None):
         if seed is None:

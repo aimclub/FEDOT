@@ -397,21 +397,22 @@ class InputData(Data):
             return None
 
     def __len__(self):
-        return self.idx.shape[0]
+        return len(self.idx)
 
     def slice(self, start: Optional[int] = None, stop: Optional[int] = None, step: Optional[int] = 1):
         if start is None and stop is None:
             raise ValueError('Slicing range is undefined')
 
         index = np.arange(len(self))[slice(start, stop, step)]
-        if len(index) == 0 or not (0 <= index[0] <= index[-1] <= len(self)):
-            raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
 
+        return self.slice_by_index(index, step)
+
+    def slice_by_index(self, index: np.array, step: int = 1):
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
             # retain data in features before ``index``
             delta = new.features.shape[0] - len(new)
-            new_indexes = np.arange(-delta, index[-1] + 1)[::-(step or 1)][::-1]
+            new_indexes = np.arange(-delta, index[-1] + 1)[::-step][::-1]
             new_indexes += delta
             new.features = np.take(new.features, new_indexes, 0)
         else:

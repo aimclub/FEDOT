@@ -36,6 +36,23 @@ def ts_setup() -> InputData:
     return data
 
 
+def check_shuffle_order(data, shuffled_data, reorder_map=None):
+    if reorder_map is None:
+        shuffled_data_idx = list(shuffled_data.idx)
+        reorder_map = dict()
+        for i, val in enumerate(data.idx):
+            if val in shuffled_data_idx:
+                reorder_map[i] = shuffled_data_idx.index(val)
+        assert len(reorder_map) == len(shuffled_data_idx)
+
+    if isinstance(data, InputData):
+        assert all(np.array_equal(data.features[i], shuffled_data.features[reorder_map[i]]) for i in reorder_map)
+        assert all(data.target[i] == shuffled_data.target[reorder_map[i]] for i in reorder_map)
+    else:
+        for key in data.keys():
+            check_shuffle_order(data[key], shuffled_data[key], reorder_map)
+
+
 def test_data_subset_correct(data_setup):
     subset_size = (10, 50)
     subset_length = subset_size[1] - subset_size[0]
@@ -233,17 +250,11 @@ def test_table_data_shuffle():
     shuffled_data = deepcopy(data)
     shuffled_data.shuffle()
 
+    check_shuffle_order(data, shuffled_data)
+
     assert not np.array_equal(data.idx, shuffled_data.idx)
     assert not np.array_equal(data.features, shuffled_data.features)
     assert not np.array_equal(data.target, shuffled_data.target)
-
-    shuffled_data_idx = list(shuffled_data.idx)
-    reorder_map = {i: shuffled_data_idx.index(val) for i, val in enumerate(data.idx)}
-    length = len(data.idx)
-
-    assert all(np.array_equal(data.features[i], shuffled_data.features[reorder_map[i]]) for i in range(length))
-    assert all(data.target[i] == shuffled_data.target[reorder_map[i]] for i in range(length))
-    assert np.array_equal(sorted(data.idx), sorted(shuffled_data.idx))
 
 
 def test_data_convert_string_indexes_correct():

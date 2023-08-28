@@ -71,13 +71,15 @@ class DataSourceSplitter:
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
             raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
-        if self.stratify:
+        if self.stratify and data.task.task_type is TaskTypesEnum.classification:
             # check that stratification can be done
             # for cross validation split ratio is defined as validation_size / all_data_size
             split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
             self.stratify = _are_stratification_allowed(data, split_ratio)
             if not self.stratify:
                 self.log.info("Stratificated splitting of data is disabled.")
+        else:
+            self.stratify = False
 
         # Stratification can not be done without shuffle
         self.shuffle |= self.stratify
