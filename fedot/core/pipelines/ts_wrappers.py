@@ -82,65 +82,28 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     :return final_forecast: array with forecast
     """
     # Divide data on samples into pre-history and validation part
-    task = input_data.task
-    exception_if_not_ts_task(task)
+    exception_if_not_ts_task(input_data.task)
+
     # How many elements to the future pipeline can produce
-    scope_len = task.task_params.forecast_length
-    number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
+    forecast_length = input_data.task.task_params.forecast_length
+    number_of_iterations = math.ceil(horizon / forecast_length)
 
-    if isinstance(input_data, InputData):
-        time_series = np.array(input_data.features)
-        pre_history_ts = time_series[:-horizon]
-        source_len = len(pre_history_ts)
-        last_index_pre_history = source_len - 1
+    final_forecast = np.zeros((number_of_iterations, forecast_length))
+    # 1 step
+    data = input_data.slice(None, forecast_length)
+    data.features = data.features[:-forecast_length]
+    iter_predict = pipeline.predict(input_data=data)
+    iter_predict = np.ravel(iter_predict.predict)
+    final_forecast[0, :] = iter_predict
 
-        data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
-    else:
-        # TODO simplify
-
-        data = MultiModalData()
-        for data_id in input_data.keys():
-            features = input_data[data_id].features
-            time_series = np.array(features)
-            pre_history_ts = time_series[:-horizon]
-            source_len = len(pre_history_ts)
-            last_index_pre_history = source_len - 1
-
-            local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
-            data[data_id] = local_data
-
-    # Calculate intervals
-    intervals = _calculate_intervals(last_index_pre_history,
-                                     number_of_iterations,
-                                     scope_len)
-
-    # Make forecast iteratively moving throw the horizon
-    final_forecast = []
-    for _, border in zip(range(0, number_of_iterations), intervals):
-
+    # next steps
+    for i in range(1, number_of_iterations):
+        data = input_data.slice((i - 1) * forecast_length, i * forecast_length)
         iter_predict = pipeline.predict(input_data=data)
-        iter_predict = np.ravel(np.array(iter_predict.predict))
-        final_forecast.append(iter_predict)
+        iter_predict = np.ravel(iter_predict.predict)
+        final_forecast[i, :] = iter_predict
 
-        if isinstance(input_data, InputData):
-            # Add actual values to the historical data - update it
-            pre_history_ts = time_series[:border + 1]
-            # Prepare InputData for next iteration
-            data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
-        else:
-            # TODO simplify
-            data = MultiModalData()
-            for data_id in input_data.keys():
-                features = input_data[data_id].features
-                time_series = np.array(features)
-                pre_history_ts = time_series[:border + 1]
-                local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
-                data[data_id] = local_data
-
-    # Create output data
-    final_forecast = np.ravel(np.array(final_forecast))
-    # Clip the forecast if it is necessary
-    final_forecast = final_forecast[:horizon]
+    final_forecast = np.ravel(final_forecast)[:horizon]
     return final_forecast
 
 
