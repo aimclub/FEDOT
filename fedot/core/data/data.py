@@ -458,7 +458,7 @@ class InputData(Data):
         subsample_input = self.copy()
         subsample_input.features = self.features[:, features_ids]
         if with_target:
-            if self.target.shape != self.features.shape:
+            if self.target.shape[1] != self.features.shape[1]:
                 raise ValueError((f"Shapes of features ({self.features.shape}) and"
                                  f" target ({self.target.shape}) mismatch. Cannot create subset for target"))
             subsample_input.target = self.target[:, features_ids]
