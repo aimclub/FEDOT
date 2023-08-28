@@ -23,23 +23,11 @@ def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.
             'min': np.min(arrays, axis=0)}
 
 
-#def pipeline_simple_structure(ind: Individual):
-#    """This function transformates an individual to a list consisting of its pipeline node names.
-
-    #Args:
-    #    ind: some pipeline.
-
-    #Returns:
-    #    list of node names in string type.
-    #"""
-    #return list(map(lambda x: x.name, ind.graph.graph_description['nodes']))
-
-
 def get_different_pipelines(individuals: List[Individual]):
     """This function removes individuals with identical graphs in a given list of individuals.
 
     Args:
-        individuals: list of Individual type objects.
+        individuals: list of Individual objects.
 
     Returns:
         list of Individuals with different graphs. Given individuals with identical graph individual
@@ -53,20 +41,6 @@ def get_different_pipelines(individuals: List[Individual]):
             graph_list.append(s.graph)
             new_inds.append(s)
     return new_inds
-
-    #unique_inds = []
-    #for ind in individuals:
-    #    if ind not in unique_inds:
-    #        unique_inds.append(ind)
-    #l_inds = [(ind.fitness.value, pipeline_simple_structure(ind), ind.uid) for ind in unique_inds]
-    #l_inds = sorted(l_inds, key=lambda x: x[0])
-    #structures = []
-    #ids = []
-    #for x in l_inds:
-    #    if x[1] not in structures:
-    #        structures.append(x[1])
-    #        ids.append(x[2])
-    #return [ind for ind in unique_inds if ind.uid in ids]
 
 
 def get_last_generations(model: Fedot):

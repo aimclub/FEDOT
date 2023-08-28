@@ -15,6 +15,8 @@ def get_distance_between(graph_1: Graph, graph_2: Graph, compare_node_params: bo
     :compare_node_params: whether compare node internal params
 
     :return: graph edit distance (aka Levenstein distance for graphs)
+
+    This function will expand golem.core.dag.linked_graph get_distance_between.
     """
 
     def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:

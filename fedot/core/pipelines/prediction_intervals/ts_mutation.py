@@ -8,8 +8,6 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.verification import rules_by_task
 
-#from fedot.core.pipelines.prediction_intervals.utils import pipeline_simple_structure
-
 
 def get_ts_mutation(individual: Individual):
     """This function gets a mutation of a given Individual object.
