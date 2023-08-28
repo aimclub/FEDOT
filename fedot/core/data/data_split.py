@@ -26,10 +26,10 @@ def _split_time_series(data: InputData, validation_blocks: Optional[int] = None,
     train_data = data.slice(0, len(data) - forecast_length)
     test_data = data.slice(len(data) - forecast_length, len(data))
 
-    # # TODO: Fix that
-    # #       multi_ts should use all targets
-    # if len(test_data.target.shape) > 1:
-    #     test_data.target = test_data.target[:, 0]
+    # TODO: Fix that
+    #       multi_ts should use all targets
+    if len(test_data.target.shape) > 1:
+        test_data.target = test_data.target[:, 0]
 
     if validation_blocks is None:
         # for out-of-sample
@@ -194,7 +194,7 @@ def cv_generator(data: Union[InputData, MultiModalData],
 
         # TODO: Fix that
         #       multi_ts should use all targets
-        # if (data.task.task_type is TaskTypesEnum.ts_forecasting and
-        #         len(test_data.target.shape) > 1):
-        #     test_data.target = test_data.target[:, 0]
+        if (data.task.task_type is TaskTypesEnum.ts_forecasting and
+                len(test_data.target.shape) > 1):
+            test_data.target = test_data.target[:, 0]
         yield train_data, test_data
