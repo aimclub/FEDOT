@@ -185,5 +185,5 @@ def cv_generator(data: Union[InputData, MultiModalData],
     for train_ids, test_ids in kf.split(data.target, data.target):
         train_data = data.slice_by_index(train_ids)
         test_data = data.slice_by_index(test_ids)
-        
+
         yield train_data, test_data
