@@ -452,9 +452,6 @@ class InputData(Data):
             :return: InputData """
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
-            if np.any(np.diff(np.array(indexes)) != step):
-                raise IndexError(f"Indexes for time series should be sorted and equal stepped with step {step}")
-
             # retain data in features before ``indexes``
             delta = new.features.shape[0] - len(new)
             new_indexes = np.arange(-delta, indexes[-1] + 1)[::-step][::-1]
@@ -557,13 +554,17 @@ class InputData(Data):
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
-    def copy(self):
+    def copy(self, copy_supplementary_data=False):
+        if copy_supplementary_data:
+            kwarg = {'supplementary_data': deepcopy(self.supplementary_data)}
+        else:
+            kwarg = dict()
         return InputData(idx=self.idx,
                          features=self.features,
                          target=self.target,
                          task=self.task,
                          data_type=self.data_type,
-                         supplementary_data=deepcopy(self.supplementary_data))
+                         **kwarg)
 
 
     @staticmethod
