@@ -12,9 +12,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _split_time_series(data: InputData,
-                       validation_blocks: Optional[int] = None,
-                       **kwargs):
+def _split_time_series(data: InputData, validation_blocks: Optional[int] = None, **kwargs):
     """ Split time series data into train and test parts
 
     :param data: InputData object to split
@@ -28,6 +26,8 @@ def _split_time_series(data: InputData,
     train_data = data.slice(0, len(data) - forecast_length)
     test_data = data.slice(len(data) - forecast_length, len(data))
 
+    # TODO: Fix that
+    #       multi_ts should use all targets
     if len(test_data.target.shape) > 1:
         test_data.target = test_data.target[:, 0]
 
@@ -38,12 +38,7 @@ def _split_time_series(data: InputData,
     return train_data, test_data
 
 
-def _split_any(data: InputData,
-               split_ratio: float,
-               shuffle: bool,
-               stratify: bool,
-               random_seed: int,
-               **kwargs):
+def _split_any(data: InputData, split_ratio: float, shuffle: bool, stratify: bool, random_seed: int, **kwargs):
     """ Split any data except timeseries into train and test parts
 
     :param data: InputData object to split
@@ -142,20 +137,13 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                        'random_seed': random_seed,
                        'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
-                           DataTypesEnum.ts: _split_time_series,
-                           DataTypesEnum.table: _split_any,
-                           DataTypesEnum.image: _split_any,
-                           DataTypesEnum.text: _split_any}
-
-        if data.data_type not in split_func_dict:
-            raise TypeError((f'Unknown data type {type(data)}. Supported data types:'
-                             f' {", ".join(str(x) for x in split_func_dict)}'))
-
-        split_func = split_func_dict[data.data_type]
-        train_data, test_data = split_func(data, **input_arguments)
+        if data.data_type in (DataTypesEnum.multi_ts, DataTypesEnum.ts):
+            train_data, test_data = _split_time_series(data, **input_arguments)
+        else:
+            train_data, test_data = _split_any(data, **input_arguments)
     elif isinstance(data, MultiModalData):
         train_data, test_data = MultiModalData(), MultiModalData()
+        # set random_seed for correct shuffle
         input_arguments['random_seed'] = random_seed or np.random.randint(0, np.iinfo(int).max)
         for node in data.keys():
             train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
@@ -201,7 +189,9 @@ def cv_generator(data: Union[InputData, MultiModalData],
     for train_ids, test_ids in kf.split(data.target, data.target):
         train_data = data.slice_by_index(train_ids)
         test_data = data.slice_by_index(test_ids)
-        # use first col in multi_ts ad target
+
+        # TODO: Fix that
+        #       multi_ts should use all targets
         if (data.task.task_type is TaskTypesEnum.ts_forecasting and
                 len(test_data.target.shape) > 1):
             test_data.target = test_data.target[:, 0]
