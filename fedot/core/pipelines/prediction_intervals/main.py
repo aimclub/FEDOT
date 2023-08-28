@@ -114,11 +114,9 @@ class PredictionIntervals:
                                   minutes=params.ql_tuner_minutes,
                                   n_jobs=params.n_jobs,
                                   show_progress=params.show_progress,
-                                  validation_blocks=params.ql_tuner_validation_blocks,
                                   up_tuner=params.ql_up_tuner,
                                   low_tuner=params.ql_low_tuner,
                                   logger=self.logger)
-
 
     regime_up = {'quantile': 'quantile_up', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'max'}
     regime_low = {'quantile': 'quantile_low', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'min'}

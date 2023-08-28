@@ -27,7 +27,6 @@ class PredictionIntervalsParams:
                                    make low/up prediction intervals. If None then default tuner is used.
         ql_tuner_iterations: number iterations of default tuner
         ql_tuner_minutes: number minutes for default tuner
-        ql_tuner_validation_blocks: number validation blocks for default tuner
         bpq_number_models: number pipelines of the last generation in 'best_pipelines_quantiles' method. Avaliable
                            option 'max' - use all possible pipelines.
     """
@@ -44,5 +43,4 @@ class PredictionIntervalsParams:
     ql_up_tuner: Optional[SimultaneousTuner] = None
     ql_tuner_iterations: int = 10
     ql_tuner_minutes: int = 1
-    ql_tuner_validation_blocks: int = 2
     bpq_number_models: Union[int, str] = 10

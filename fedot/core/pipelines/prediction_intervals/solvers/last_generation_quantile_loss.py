@@ -23,7 +23,6 @@ def solver_last_generation_ql(train_input: InputData,
                               iterations: int,
                               minutes: float,
                               n_jobs: int,
-                              validation_blocks: int,
                               up_tuner: SimultaneousTuner,
                               low_tuner: SimultaneousTuner):
     """This function realizes 'last_generation_ql' method.
@@ -38,7 +37,6 @@ def solver_last_generation_ql(train_input: InputData,
         iterations: number iterations for default tuner
         minutes: number minutes for default tuner
         n_jobs: n_jobs for default tuner
-        validation_blocks: number validation blocks for default tuner
         up_tuner, low_tuner: tuners that can be choosen instead of the default tuners.
 
     Returns:
@@ -47,8 +45,7 @@ def solver_last_generation_ql(train_input: InputData,
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
     tuners = quantile_loss_tuners(up_quantile=1 - nominal_error / 2,
                                   low_quantile=nominal_error / 2,
-                                  train_input=train_input,
-                                  validation_blocks=validation_blocks,
+                                  train_input=train_input,                         
                                   n_jobs=n_jobs,
                                   task=task,
                                   show_progress=show_progress,

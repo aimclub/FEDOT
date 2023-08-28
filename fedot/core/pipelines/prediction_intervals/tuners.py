@@ -16,7 +16,6 @@ def quantile_loss_tuners(up_quantile: float,
                          task: Task,
                          train_input: InputData,
                          show_progress: bool,
-                         validation_blocks: int,
                          n_jobs: int,
                          iterations: int,
                          minutes: float):
@@ -28,7 +27,6 @@ def quantile_loss_tuners(up_quantile: float,
         task: task specifying horizon for tuning
         train_input: train data for tuners
         show_progress: whether to show progress during tuning
-        validation_blocks: number of validation blocks for tuners
         n_jobs: n_jobs for tuners
         iterations: number iterations for tuners
         minutes: number minutes for tuners.
@@ -53,7 +51,6 @@ def quantile_loss_tuners(up_quantile: float,
             return value
 
     composer_requirements = PipelineComposerRequirements()
-    composer_requirements.validation_blocks = validation_blocks
     composer_requirements.n_jobs = n_jobs
     composer_requirements.show_progress = show_progress
 

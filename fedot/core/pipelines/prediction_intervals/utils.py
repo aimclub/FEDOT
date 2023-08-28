@@ -10,6 +10,7 @@ from golem.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
+
 def compute_prediction_intervals(arrays: List[np.array], nominal_error: int = 0.1):
     """Provided a list of np.arrays this function computes upper and low quantiles, max, min, median and mean arrays."""
 
@@ -31,7 +32,7 @@ def get_different_pipelines(individuals: List[Individual]):
 
     Returns:
         list of Individuals with different graphs. Given individuals with identical graph individual
-        with better (smaller) fitness is taken. 
+        with better (smaller) fitness is taken.
     """
     sorted_inds = sorted(individuals, key=lambda x: x.fitness, reverse=True)
     graph_list = []
