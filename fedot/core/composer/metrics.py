@@ -10,6 +10,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
                              precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -73,8 +74,11 @@ class QualityMetric:
                 metric = cls.metric(reference_data, results)
             else:
                 # Perform time series in-sample validation
-                if np.ndim(reference_data.features) > 1:
-                    # multi_ts
+                if isinstance(reference_data, MultiModalData):
+                    is_multi_ts = reference_data[list(reference_data.keys())[0]].is_multi_ts
+                else:
+                    is_multi_ts = reference_data.is_multi_ts
+                if is_multi_ts:
                     metrics = []
                     for i in range(reference_data.features.shape[1]):
                         reference_data_out, results = cls._in_sample_prediction(pipeline,

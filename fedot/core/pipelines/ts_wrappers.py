@@ -94,7 +94,11 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
             data = input_data.slice((i - 1) * forecast_length, i * forecast_length)
         else:
             data = input_data.slice(None, forecast_length)
-            data.features = data.features[:-forecast_length]
+            if isinstance(data, MultiModalData):
+                for key in data:
+                    data[key].features = data[key].features[:-forecast_length]
+            else:
+                data.features = data.features[:-forecast_length]
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(iter_predict.predict)
         final_forecast[i, :] = iter_predict
