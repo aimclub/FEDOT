@@ -1,3 +1,5 @@
+import numpy as np
+
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import Mutation
 from golem.core.optimisers.genetic.operators.base_mutations import MutationStrengthEnum
@@ -8,6 +10,9 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
+
+from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
+
 
 def get_ts_mutation(individual: Individual):
     """This function gets a mutation of a given Individual object.
@@ -59,12 +64,12 @@ def get_different_mutations(individual: Individual, number_mutations: int):
         list of mutations of given individual. Mutations must be different.
     """
     mutations = []
-    pipeline_list = []
+    graph_list = []
 
     while len(mutations) < number_mutations:
         new_ind = get_ts_mutation(individual)
-        if new_ind.graph not in pipeline_list:
-            pipeline_list.append(new_ind.graph)
+        if np.array([get_distance_between(new_ind.graph, x, compare_node_params=False) > 0 for x in graph_list]).all():
+            graph_list.append(new_ind.graph)
             mutations.append(new_ind)
 
     return mutations
