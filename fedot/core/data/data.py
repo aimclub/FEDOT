@@ -554,13 +554,15 @@ class InputData(Data):
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
-    def copy(self):
+    def copy(self, copy_supplementary_data=False):
+        kwargs = {'supplementary_data': deepcopy(self.supplementary_data)
+                  if copy_supplementary_data else dict()}
         return InputData(idx=self.idx,
                          features=self.features,
                          target=self.target,
                          task=self.task,
                          data_type=self.data_type,
-                         supplementary_data=deepcopy(self.supplementary_data))
+                         **kwargs)
 
 
     @staticmethod
