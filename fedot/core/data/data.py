@@ -555,8 +555,8 @@ class InputData(Data):
         return copied_data
 
     def copy(self, copy_supplementary_data=False):
-        kwargs = {'supplementary_data': deepcopy(self.supplementary_data)
-                  if copy_supplementary_data else dict()}
+        kwargs = ({'supplementary_data': deepcopy(self.supplementary_data)}
+                  if copy_supplementary_data else dict())
         return InputData(idx=self.idx,
                          features=self.features,
                          target=self.target,

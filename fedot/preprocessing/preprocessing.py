@@ -533,7 +533,7 @@ class DataPreprocessor(BasePreprocessor):
     def convert_indexes_for_fit(pipeline, data: Union[InputData, MultiModalData]):
         if isinstance(data, MultiModalData):
             for data_source_name in data:
-                if data[data_source_name].is_ts():
+                if data[data_source_name].is_ts:
                     data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(pipeline)
             return data
         elif data.is_ts:
