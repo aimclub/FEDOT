@@ -88,7 +88,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     # here we remove apriori bad pipelines based on the following characteristics:
     # first_pred_constraints: dismiss pipelines with first forecasted value that are too far from the model_forecast
     # deviance_pred_constraints: dismiss pipelines, such their forecasts oscillate too much
-    # also we remove a specified percentage of pipelines with biggest RMSE metric.
+    # we remove a specified percentage of pipelines with biggest RMSE metric.
     if discard_inapropriate_pipelines:
         predictions = []
         maximal_metric_value = np.quantile(np.array(metric_values), keep_percentage)

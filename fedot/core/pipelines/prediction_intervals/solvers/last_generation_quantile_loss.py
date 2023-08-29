@@ -45,7 +45,7 @@ def solver_last_generation_ql(train_input: InputData,
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
     tuners = quantile_loss_tuners(up_quantile=1 - nominal_error / 2,
                                   low_quantile=nominal_error / 2,
-                                  train_input=train_input,                         
+                                  train_input=train_input,
                                   n_jobs=n_jobs,
                                   task=task,
                                   show_progress=show_progress,

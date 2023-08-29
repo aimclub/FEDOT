@@ -7,7 +7,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.verification import rules_by_task
-
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 def get_ts_mutation(individual: Individual):
     """This function gets a mutation of a given Individual object.
@@ -18,15 +18,15 @@ def get_ts_mutation(individual: Individual):
     Returns:
         Individual: a mutation of a given individual.
     """
-    operations = ['arima', 'lagged', 'glm', 'ridge', 'sparse_lagged',
-                  'lasso', 'ts_naive_average', 'locf', 'pca', 'linear', 'smoothing']
 
+    task_type = TaskTypesEnum.ts_forecasting
+    operations = get_operations_for_task(task=Task(task_type))
     parameters = GPAlgorithmParameters(mutation_strength=MutationStrengthEnum.strong, mutation_prob=1)
     requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
-    rules = rules_by_task(task_type=TaskTypesEnum.ts_forecasting)
+    rules = rules_by_task(task_type=task_type)
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=rules,
-                                                  task=Task(TaskTypesEnum.ts_forecasting))
+                                                  task=Task(task_type))
 
     mutation = Mutation(parameters, requirements, graph_params)
 
