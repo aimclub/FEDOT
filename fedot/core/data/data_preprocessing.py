@@ -1,9 +1,9 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
+from fedot.core.data.data import InputData, data_type_is_multi_ts, data_type_is_table, data_type_is_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 

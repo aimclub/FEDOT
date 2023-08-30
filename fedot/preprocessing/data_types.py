@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Tuple, Optional, List, Dict
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
 from golem.core.log import LoggerAdapter, default_log
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum

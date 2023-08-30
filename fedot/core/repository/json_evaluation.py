@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Union, TYPE_CHECKING, List
+from typing import List, TYPE_CHECKING, Union
 
 # imports are required beneath in the function
 from fedot.core.repository.dataset_types import DataTypesEnum

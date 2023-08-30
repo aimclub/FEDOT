@@ -1,4 +1,4 @@
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 from golem.core.log import default_log

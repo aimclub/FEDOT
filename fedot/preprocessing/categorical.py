@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
-from fedot.preprocessing.data_types import TYPE_TO_ID, FEDOT_STR_NAN
+from fedot.preprocessing.data_types import FEDOT_STR_NAN, TYPE_TO_ID
 
 
 class BinaryCategoricalPreprocessor:

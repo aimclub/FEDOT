@@ -3,13 +3,13 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import KernelPCA, PCA, FastICA
+from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData, data_type_is_table, OutputData
-from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
-    divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
+from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
+    divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters

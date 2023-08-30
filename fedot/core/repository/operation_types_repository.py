@@ -2,13 +2,13 @@ import json
 import os
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
 import numpy as np
 from golem.core.log import default_log
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
+from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum

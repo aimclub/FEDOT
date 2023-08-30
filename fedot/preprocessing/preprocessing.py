@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Union, Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,7 @@ from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, np_datetime_to_numeric
-from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
+from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -28,7 +28,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
-from fedot.preprocessing.data_type_check import exclude_ts, exclude_multi_ts, exclude_image
+from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
 from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 

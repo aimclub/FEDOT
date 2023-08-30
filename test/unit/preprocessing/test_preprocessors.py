@@ -7,13 +7,13 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.data_types import TYPE_TO_ID
 from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
-from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
-    correct_preprocessing_params
+from test.unit.preprocessing.test_pipeline_preprocessing import correct_preprocessing_params, \
+    data_with_mixed_types_in_each_column
 
 
 def get_mixed_data_with_str_and_float_values(idx: int = None):

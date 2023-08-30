@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 import numpy as np
 from golem.core.log import default_log

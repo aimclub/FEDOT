@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import Dict, Union, TYPE_CHECKING
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -168,6 +168,7 @@ class BasePreprocessor(ABC):
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
         """
         restores index from ``input_data`` into ``result``
+
         Args:
             input_data: data to take the index from
             result: data to store index into

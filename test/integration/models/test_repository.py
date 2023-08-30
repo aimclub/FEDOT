@@ -7,7 +7,7 @@ from fedot.core.repository.json_evaluation import import_enums_from_str, \
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def mocked_path():

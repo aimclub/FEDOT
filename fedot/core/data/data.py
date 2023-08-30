@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import glob
 import os
-
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
 

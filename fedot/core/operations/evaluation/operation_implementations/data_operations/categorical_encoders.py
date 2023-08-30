@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import List, Optional
 
 import numpy as np
-
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from fedot.core.data.data import InputData, OutputData

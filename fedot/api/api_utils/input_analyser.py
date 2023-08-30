@@ -1,17 +1,15 @@
 from functools import partial
 from inspect import signature
-from typing import Dict, Tuple, Any, Union
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.composer.meta_rules import get_cv_folds_number, get_recommended_preset, \
-    get_early_stopping_generations
+from fedot.core.composer.meta_rules import get_cv_folds_number, get_early_stopping_generations, get_recommended_preset
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
-
 
 meta_rules = [get_cv_folds_number,
               get_recommended_preset,
