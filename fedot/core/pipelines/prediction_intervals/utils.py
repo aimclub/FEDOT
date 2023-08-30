@@ -124,7 +124,7 @@ def check_init_params(model: Fedot,
 
     if params.mutations_keep_percentage <= 0 or params.mutations_keep_percentage >= 1:
         raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
-       
+
     if type(params.mutations_operations) != list:
         raise ValueError('Argument mutations_operations must be list of strings')
     else:

@@ -40,9 +40,13 @@ class PredictionIntervalsParams:
     mutations_choice: str = 'different'
     mutations_discard_inapropriate_pipelines: bool = True
     mutations_keep_percentage: float = 0.66
-    mutations_operations: List[str] = field(default_factory=lambda: ['lagged', 'glm', 'ridge', 'sparse_lagged',
-                                                                     'lasso', 'ts_naive_average', 'locf',
-                                                                     'pca', 'linear', 'smoothing'])
+    mutations_operations: List[str] = field(default_factory=lambda:
+                                            ['lagged', 'glm', 'ridge', 'sparse_lagged', 'lasso', 'ts_naive_average',
+                                             'locf', 'pca', 'linear', 'smoothing', 'adareg', 'dtreg', 'gbr','lgbmreg',
+                                             'rfr', 'polyfit', 'sgdr', 'ets', 'svr', 'treg', 'fast_ica',
+                                             'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg', 'cut',
+                                             'isolation_forest_reg', 'gaussian_filter', 'diff_filter','exog_ts'])
+
     ql_number_models: Union[int, str] = 10
     ql_low_tuner: Optional[SimultaneousTuner] = None
     ql_up_tuner: Optional[SimultaneousTuner] = None
