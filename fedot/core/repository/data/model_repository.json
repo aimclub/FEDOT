@@ -160,6 +160,13 @@
         "non_linear"
       ]
     },
+    "gru": {
+      "meta": "ts_model",
+      "presets": ["ts"],
+      "tags": [
+        "non_linear"
+      ]
+    },
     "bernb": {
       "meta": "sklearn_class",
       "presets": ["fast_train"],

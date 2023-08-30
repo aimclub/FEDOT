@@ -7,6 +7,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation, \
     NumericalDerivativeFilterImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.gru import GRUImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
     RepeatLastValueImplementation, NaiveAverageForecastImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
@@ -40,6 +41,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'stl_arima': STLForecastARIMAImplementation,
         'ets': ExpSmoothingImplementation,
         'cgru': CGRUImplementation,
+        'gru': GRUImplementation,
         'polyfit': PolyfitImplementation,
         'glm': GLMImplementation,
         'locf': RepeatLastValueImplementation,

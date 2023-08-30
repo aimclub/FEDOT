@@ -393,6 +393,20 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [['mae', 'mse']],
                     'type': 'categorical'},
             },
+            'gru': {
+                'hidden_size': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'},
+                'layers_count': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [2, 10],
+                    'type': 'discrete'},
+                'dropout': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[0, 0.1, 0.2, 0.3, 0.4, 0.5]],
+                    'type': 'categorical'}
+            },
             'pca': {
                 'n_components': {
                     'hyperopt-dist': hp.uniform,

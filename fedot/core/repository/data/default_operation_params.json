@@ -104,6 +104,11 @@
     "optimizer": "adamw",
     "loss": "mse"
   },
+  "gru": {
+    "max_step": 50,
+    "dropout": 0.2,
+    "layer_count": 3
+  },
   "h2o_regr": {
     "timeout": 20,
     "seed": 42,
