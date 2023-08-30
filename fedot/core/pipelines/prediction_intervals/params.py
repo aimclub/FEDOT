@@ -1,5 +1,6 @@
 from typing import Union, Optional, List
 from dataclasses import dataclass
+from dataclasses import field
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
@@ -39,8 +40,9 @@ class PredictionIntervalsParams:
     mutations_choice: str = 'different'
     mutations_discard_inapropriate_pipelines: bool = True
     mutations_keep_percentage: float = 0.66
-    mutations_operations = ['arima', 'lagged', 'glm', 'ridge', 'sparse_lagged', 'lasso', 'ts_naive_average', 
-                             'locf', 'pca', 'linear', 'smoothing']
+    mutations_operations: List[str] = field(default_factory=lambda: ['lagged', 'glm', 'ridge', 'sparse_lagged',
+                                                                     'lasso', 'ts_naive_average', 'locf',
+                                                                     'pca', 'linear', 'smoothing'])
     ql_number_models: Union[int, str] = 10
     ql_low_tuner: Optional[SimultaneousTuner] = None
     ql_up_tuner: Optional[SimultaneousTuner] = None

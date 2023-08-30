@@ -12,6 +12,7 @@ from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 
+
 @pytest.fixture
 def params():
 
@@ -34,12 +35,12 @@ def check_uniqueness_mutations_structures(a: List[Individual]):
 
 def test_get_ts_mutation(params):
     for i in range(20):
-        assert type(get_ts_mutation(individual=params['individual'], 
+        assert type(get_ts_mutation(individual=params['individual'],
                                     operations=params['operations'])) == Individual, f"mutation {i+1} failed."
 
 
 def test_get_different_mutations(params):
-    mutations = get_different_mutations(individual=params['individual'], 
+    mutations = get_different_mutations(individual=params['individual'],
                                         number_mutations=15,
                                         operations=params['operations'])
 

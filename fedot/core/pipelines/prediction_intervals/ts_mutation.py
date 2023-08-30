@@ -10,7 +10,6 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.verification import rules_by_task
-from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
@@ -19,7 +18,8 @@ def get_ts_mutation(individual: Individual, operations: List[str]):
     """This function gets a mutation of a given Individual object.
 
     Args:
-        individual: an individual to make mutations.
+        individual: an individual to make mutations
+        operations: list of possible mutations.
 
     Returns:
         Individual: a mutation of a given individual.
@@ -43,7 +43,8 @@ def get_mutations(individual: Individual, number_mutations: int, operations: Lis
 
     Args:
         individaul: an individual
-        number_mutations: a required number mutations.
+        number_mutations: a required number mutations
+        operations: list of possible mutations
 
     Returns:
         list of mutations of given individual. Mutations can be identical.
@@ -58,7 +59,8 @@ def get_different_mutations(individual: Individual, number_mutations: int, opera
 
     Args:
         individaul: an individual
-        number_mutations: a required number mutations.
+        number_mutations: a required number mutations
+        operations: list of possible mutations.
 
     Returns:
         list of mutations of given individual. Mutations must be different.

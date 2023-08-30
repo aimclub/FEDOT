@@ -5,6 +5,8 @@ from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
@@ -85,7 +87,7 @@ def check_init_params(model: Fedot,
                       nominal_error: float,
                       method: str,
                       params: PredictionIntervalsParams):
-    """This function checks correctness of parameters needed to initialize PredictionInterval instance."""
+    """This function checks correctness of parameters initializing PredictionInterval instance."""
 
     if not model.current_pipeline:
         raise ValueError('Fedot class object is not fitted.')
@@ -122,6 +124,14 @@ def check_init_params(model: Fedot,
 
     if params.mutations_keep_percentage <= 0 or params.mutations_keep_percentage >= 1:
         raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
+       
+    if type(params.mutations_operations) != list:
+        raise ValueError('Argument mutations_operations must be list of strings')
+    else:
+        all_possible_operations = get_operations_for_task(task=Task(task_type=TaskTypesEnum.ts_forecasting))
+        for x in params.mutations_operations:
+            if x not in all_possible_operations:
+                raise ValueError(f'Incorrect mutation {x} given in mutations_operations.')
 
     if params.ql_number_models != 'max':
         if type(params.ql_number_models) is not int or params.ql_number_models < 1:
