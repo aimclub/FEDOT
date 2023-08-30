@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import Mutation
@@ -14,7 +15,7 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
 
-def get_ts_mutation(individual: Individual):
+def get_ts_mutation(individual: Individual, operations: List[str]):
     """This function gets a mutation of a given Individual object.
 
     Args:
@@ -25,7 +26,6 @@ def get_ts_mutation(individual: Individual):
     """
 
     task_type = TaskTypesEnum.ts_forecasting
-    operations = get_operations_for_task(task=Task(task_type))
     parameters = GPAlgorithmParameters(mutation_strength=MutationStrengthEnum.strong, mutation_prob=1)
     requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
     rules = rules_by_task(task_type=task_type)
@@ -38,7 +38,7 @@ def get_ts_mutation(individual: Individual):
     return mutation._mutation(individual)[0]
 
 
-def get_mutations(individual: Individual, number_mutations: int):
+def get_mutations(individual: Individual, number_mutations: int, operations: List[str]):
     """For a given individaul this function obtains several its mutations.
 
     Args:
@@ -48,12 +48,12 @@ def get_mutations(individual: Individual, number_mutations: int):
     Returns:
         list of mutations of given individual. Mutations can be identical.
     """
-    mutations = [get_ts_mutation(individual) for _ in range(number_mutations)]
+    mutations = [get_ts_mutation(individual, operations) for _ in range(number_mutations)]
 
     return mutations
 
 
-def get_different_mutations(individual: Individual, number_mutations: int):
+def get_different_mutations(individual: Individual, number_mutations: int, operations: List[str]):
     """For a given individaul this function obtains several different its mutations.
 
     Args:
@@ -67,7 +67,7 @@ def get_different_mutations(individual: Individual, number_mutations: int):
     graph_list = []
 
     while len(mutations) < number_mutations:
-        new_ind = get_ts_mutation(individual)
+        new_ind = get_ts_mutation(individual, operations)
         if np.array([get_distance_between(new_ind.graph, x, compare_node_params=False) > 0 for x in graph_list]).all():
             graph_list.append(new_ind.graph)
             mutations.append(new_ind)

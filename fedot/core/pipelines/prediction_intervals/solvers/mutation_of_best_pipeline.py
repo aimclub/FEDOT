@@ -1,6 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import List
 
 from golem.core.log import LoggerAdapter
 from golem.core.optimisers.opt_history_objects.individual import Individual
@@ -22,6 +23,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
                                      n_jobs: int,
                                      show_progress: bool,
                                      forecast: int,
+                                     operations: List[str],
                                      logger: LoggerAdapter,
                                      discard_inapropriate_pipelines: bool,
                                      keep_percentage: float):
@@ -49,9 +51,12 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
 
     if mutations_choice == 'different':
         mutations_of_best_pipeline = get_different_mutations(individual=ind,
-                                                             number_mutations=number_mutations)
+                                                             number_mutations=number_mutations,
+                                                             operations=operations)
     elif mutations_choice == 'with_replacement':
-        mutations_of_best_pipeline = get_mutations(individual=ind, number_mutations=number_mutations)
+        mutations_of_best_pipeline = get_mutations(individual=ind, 
+                                                   number_mutations=number_mutations,
+                                                   operations=operations)
 
     raw_predictions = []
     metric_values = []

@@ -42,7 +42,7 @@ class PredictionIntervals:
                  method: str = 'mutation_of_best_pipeline',
                  params: PredictionIntervalsParams = PredictionIntervalsParams()):
 
-        # check whether given Fedot class object is fitted and argument 'method' is written correctly
+        # check whether PredictionIntervals defined correctly
         check_init_params(model, horizon, nominal_error, method, params)
 
         last_generations = get_last_generations(model)
@@ -88,12 +88,13 @@ class PredictionIntervals:
                                   ind=self.best_ind,
                                   horizon=self.horizon,
                                   forecast=self.model_forecast,
+                                  operations=params.mutations_operations,
                                   number_mutations=params.number_mutations,
                                   mutations_choice=params.mutations_choice,
                                   n_jobs=params.n_jobs,
                                   show_progress=params.show_progress,
                                   discard_inapropriate_pipelines=params.mutations_discard_inapropriate_pipelines,
-                                  keep_percentage=params.mutation_keep_percentage,
+                                  keep_percentage=params.mutations_keep_percentage,
                                   logger=self.logger)
 
         elif self.method == 'best_pipelines_quantiles':

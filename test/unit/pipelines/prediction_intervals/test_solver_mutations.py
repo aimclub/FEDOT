@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 
+from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
@@ -33,7 +34,8 @@ def params():
     return {'train_input': train_input,
             'ind': ind,
             'forecast': forecast,
-            'logger': logger}
+            'logger': logger,
+            'operations': PredictionIntervalsParams().mutations_operations}
 
 
 def test_solver_mutation_of_best_pipeline(params):
@@ -51,6 +53,7 @@ def test_solver_mutation_of_best_pipeline(params):
                                      forecast=params['forecast'],
                                      logger=params['logger'],
                                      number_mutations=x['number_mutations'],
+                                     operations=params['operations'],
                                      n_jobs=-1,
                                      show_progress=True,
                                      mutations_choice=x['choice'],

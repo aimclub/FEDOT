@@ -8,17 +8,19 @@ from golem.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.utils import fedot_project_root
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
-from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 
+from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
+from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 
 @pytest.fixture
-def get_individual():
+def params():
 
     model_name = f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle'
     with open(model_name, 'rb') as f:
         model = pickle.load(f)
 
-    return get_last_generations(model)['final_choice']
+    return {'individual': get_last_generations(model)['final_choice'],
+            'operations': PredictionIntervalsParams().mutations_operations}
 
 
 def check_uniqueness_mutations_structures(a: List[Individual]):
@@ -30,12 +32,15 @@ def check_uniqueness_mutations_structures(a: List[Individual]):
     return ans
 
 
-def test_get_ts_mutation(get_individual):
+def test_get_ts_mutation(params):
     for i in range(20):
-        assert type(get_ts_mutation(get_individual)) == type(get_individual), f"mutation {i+1} of failed"
+        assert type(get_ts_mutation(individual=params['individual'], 
+                                    operations=params['operations'])) == Individual, f"mutation {i+1} failed."
 
 
-def test_get_different_mutations(get_individual):
-    mutations = get_different_mutations(get_individual, 15)
+def test_get_different_mutations(params):
+    mutations = get_different_mutations(individual=params['individual'], 
+                                        number_mutations=15,
+                                        operations=params['operations'])
 
     assert check_uniqueness_mutations_structures(mutations), "Some mutations have identical structure."

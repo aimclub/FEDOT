@@ -120,7 +120,7 @@ def check_init_params(model: Fedot,
     if type(params.mutations_discard_inapropriate_pipelines) is not bool:
         raise ValueError('Argument mutations_discard_inapropriate_pipelines must be boolean.')
 
-    if params.mutation_keep_percentage <= 0 or params.mutation_keep_percentage >= 1:
+    if params.mutations_keep_percentage <= 0 or params.mutations_keep_percentage >= 1:
         raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
 
     if params.ql_number_models != 'max':
