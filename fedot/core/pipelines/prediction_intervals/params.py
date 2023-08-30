@@ -43,7 +43,8 @@ class PredictionIntervalsParams:
 
     # The list of mutations_operations almost coincides with all possible models and data operations for
     # ts forecasting task. The absent 'cgru', 'normalization' and 'scaling' cause problems during fitting and
-    # thus are removed.
+    # thus are removed. 
+    # In the future this should be solved...
     mutations_operations: List[str] = field(default_factory=lambda:
                                             ['lagged', 'glm', 'ridge', 'sparse_lagged', 'lasso', 'ts_naive_average',
                                              'locf', 'pca', 'linear', 'smoothing', 'adareg', 'dtreg', 'gbr', 'lgbmreg',
