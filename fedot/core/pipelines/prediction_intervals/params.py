@@ -40,12 +40,16 @@ class PredictionIntervalsParams:
     mutations_choice: str = 'different'
     mutations_discard_inapropriate_pipelines: bool = True
     mutations_keep_percentage: float = 0.66
+
+    # The list of mutations_operations almost coincides with all possible models and data operations for
+    # ts forecasting task. The absent 'cgru', 'normalization' and 'scaling' cause problems during fitting and
+    # thus are removed.
     mutations_operations: List[str] = field(default_factory=lambda:
                                             ['lagged', 'glm', 'ridge', 'sparse_lagged', 'lasso', 'ts_naive_average',
-                                             'locf', 'pca', 'linear', 'smoothing', 'adareg', 'dtreg', 'gbr','lgbmreg',
+                                             'locf', 'pca', 'linear', 'smoothing', 'adareg', 'dtreg', 'gbr', 'lgbmreg',
                                              'rfr', 'polyfit', 'sgdr', 'ets', 'svr', 'treg', 'fast_ica',
                                              'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg', 'cut',
-                                             'isolation_forest_reg', 'gaussian_filter', 'diff_filter','exog_ts'])
+                                             'isolation_forest_reg', 'gaussian_filter', 'diff_filter', 'exog_ts'])
 
     ql_number_models: Union[int, str] = 10
     ql_low_tuner: Optional[SimultaneousTuner] = None
