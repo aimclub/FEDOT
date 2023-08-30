@@ -27,7 +27,7 @@ class GRUImplementation(ModelImplementation):
         self.max_step = params.get('max_step') or 50
         self.seed = params.get('seed') or np.random.randint(0, np.iinfo(int).max)
         self.model = None
-        self.batch_size = 20
+        self.batch_size = 50
         self.validation_size = 0.2
 
         self.preprocessing_mean = None
@@ -84,8 +84,8 @@ class GRUImplementation(ModelImplementation):
 
         losses = []
         validations = []
-        for _ in range(self.max_step):
-            # TODO: adaptive stop criteria
+        for epoch in range(self.max_step):
+
             # train
             h = torch.zeros(h_size).to(self.device)
             for batch_num in range(train_count):
@@ -97,6 +97,7 @@ class GRUImplementation(ModelImplementation):
                 opt_fun.step()
                 opt_fun.zero_grad()
                 losses.append(loss.item())
+
             # validation
             h = torch.zeros(h_size).to(self.device)
             for batch_num in range(train_count, batch_count):
@@ -105,9 +106,13 @@ class GRUImplementation(ModelImplementation):
                 y_pred, h = model(x_iter, h)
                 loss = loss_fun(y_iter, y_pred)
                 validations.append(loss.item())
-        # _, ax = plt.subplots()
-        # ax.plot([np.mean(losses[:i]) for i in range(1, len(losses), 5)], c='r')
-        # ax.plot([np.mean(validations[:i]) for i in range(len(validations))], c='k')
+
+            if epoch > 10:
+                # TODO: adaptive early stop
+                last_val = np.mean(validations[-self.batch_size:])
+                pred_val = np.mean(validations[-2 * self.batch_size:-self.batch_size])
+                if pred_val > last_val and (pred_val - last_val) / last_val < 0.1:
+                    break
         return self.model
 
     def predict(self, data: InputData):
