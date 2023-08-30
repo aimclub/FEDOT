@@ -77,28 +77,37 @@ class GRUImplementation(ModelImplementation):
         h_size = (model.gru.input_size * model.gru.num_layers, self.batch_size, model.gru.hidden_size)
 
         # prepare data
-        x = self.numpy_to_torch(data.features)
-        y = self.numpy_to_torch(data.target, False)
-        # batch_count = int(x.shape[0] / self.batch_size)
-        # train_count = batch_count * (1 - self.validation_size)
-        data_loader = DataLoader(TensorDataset(x, y), batch_size=self.batch_size,
-                                 shuffle=False, num_workers=0, drop_last=True,
-                                 pin_memory=True, pin_memory_device=self.device)
+        x = self.numpy_to_torch(data.features).to(self.device)
+        y = self.numpy_to_torch(data.target, False).to(self.device)
+        batch_count = int(x.shape[0] / self.batch_size)
+        train_count = int(batch_count * (1 - self.validation_size))
 
-        losses = [np.finfo(float).max]
-        step = 0
-        while step < self.max_step:
+        losses = []
+        validations = []
+        for _ in range(self.max_step):
             # TODO: adaptive stop criteria
+            # train
             h = torch.zeros(h_size).to(self.device)
-            for x, y in data_loader:
-                x, y = x.to(self.device), y.to(self.device)
-                y_pred, h = model(x, h)
-                loss = loss_fun(y, y_pred)
+            for batch_num in range(train_count):
+                x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
+                y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
+                y_pred, h = model(x_iter, h)
+                loss = loss_fun(y_iter, y_pred)
                 loss.backward()
                 opt_fun.step()
                 opt_fun.zero_grad()
                 losses.append(loss.item())
-            step += 1
+            # validation
+            h = torch.zeros(h_size).to(self.device)
+            for batch_num in range(train_count, batch_count):
+                x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
+                y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
+                y_pred, h = model(x_iter, h)
+                loss = loss_fun(y_iter, y_pred)
+                validations.append(loss.item())
+        # _, ax = plt.subplots()
+        # ax.plot([np.mean(losses[:i]) for i in range(1, len(losses), 5)], c='r')
+        # ax.plot([np.mean(validations[:i]) for i in range(len(validations))], c='k')
         return self.model
 
     def predict(self, data: InputData):
