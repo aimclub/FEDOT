@@ -458,8 +458,8 @@ class InputData(Data):
             delta = new.features.shape[0] - len(new)
             new_indexes = np.arange(-delta, indexes[-1] + 1)[::-step][::-1]
             new_indexes += delta
-            if in_sample:
-                new_indexes = np.setdiff1d(new_indexes, indexes, True)
+            if not in_sample:
+                new_indexes = new_indexes[:-len(indexes)]
             new.features = np.take(new.features, new_indexes, 0)
         else:
             new.features = np.take(new.features, indexes, 0)
