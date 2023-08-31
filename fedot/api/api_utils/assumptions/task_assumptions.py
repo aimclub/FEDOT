@@ -62,6 +62,9 @@ class TSForecastingAssumptions(TaskAssumptions):
             'smoothing_ar':
                 PipelineBuilder()
                 .add_sequence('smoothing', 'ar'),
+            'gru':
+                PipelineBuilder()
+                .add_branch('gru', 'lagged')
         }
 
     def ensemble_operation(self) -> str:

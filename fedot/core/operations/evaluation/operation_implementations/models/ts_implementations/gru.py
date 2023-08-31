@@ -107,12 +107,25 @@ class GRUImplementation(ModelImplementation):
                 loss = loss_fun(y_iter, y_pred)
                 validations.append(loss.item())
 
-            if epoch > 10:
+            if epoch > 5:
                 # TODO: adaptive early stop
                 last_val = np.mean(validations[-self.batch_size:])
                 pred_val = np.mean(validations[-2 * self.batch_size:-self.batch_size])
-                if pred_val > last_val and (pred_val - last_val) / last_val < 0.1:
+                if pred_val > last_val and (pred_val - last_val) / last_val < 0.05:
                     break
+
+        # fit on validation blocks
+        for epoch in range(2):
+            h = torch.zeros(h_size).to(self.device)
+            for batch_num in range(train_count, batch_count):
+                x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
+                y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
+                y_pred, h = model(x_iter, h)
+                loss = loss_fun(y_iter, y_pred)
+                loss.backward()
+                opt_fun.step()
+                opt_fun.zero_grad()
+                losses.append(loss.item())
         return self.model
 
     def predict(self, data: InputData):
