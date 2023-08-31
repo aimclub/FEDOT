@@ -34,12 +34,7 @@ class GRUImplementation(ModelImplementation):
         self.preprocessing_std = None
 
     def preprocessing(self, x):
-        if self.preprocessing_mean is None or self.preprocessing_std is None:
-            self.preprocessing_mean = np.mean(x[:, 0])
-            self.preprocessing_std = np.std(x[:, 0])
-            if self.preprocessing_std == 0:
-                self.preprocessing_std = 1
-        return (x - self.preprocessing_mean) / self.preprocessing_std
+        return (x - self.preprocessing_mean) / (self.preprocessing_std + 1e-6)
 
     def postprocessing(self, y):
         return y * self.preprocessing_std + self.preprocessing_mean
@@ -77,8 +72,11 @@ class GRUImplementation(ModelImplementation):
         h_size = (model.gru.input_size * model.gru.num_layers, self.batch_size, model.gru.hidden_size)
 
         # prepare data
-        x = self.numpy_to_torch(data.features).to(self.device)
-        y = self.numpy_to_torch(data.target, False).to(self.device)
+        x, y = data.features, data.target
+        self.preprocessing_mean = np.mean(x[:, 0])
+        self.preprocessing_std = np.std(x[:, 0])
+        x = self.numpy_to_torch(x).to(self.device)
+        y = self.numpy_to_torch(y, False).to(self.device)
         batch_count = int(x.shape[0] / self.batch_size)
         train_count = int(batch_count * (1 - self.validation_size))
 
