@@ -435,20 +435,22 @@ class InputData(Data):
     def __len__(self):
         return len(self.idx)
 
-    def slice(self, start: Optional[int] = None, stop: Optional[int] = None, step: Optional[int] = 1):
+    def slice(self, start: Optional[int] = None, stop: Optional[int] = None,
+              step: Optional[int] = 1, in_sample: bool = True):
         if start is None and stop is None:
             raise ValueError('Slicing range is undefined')
 
         index = np.arange(len(self))[slice(start, stop, step)]
 
-        return self.slice_by_index(index, step)
+        return self.slice_by_index(index, step, in_sample=in_sample)
 
-    def slice_by_index(self, indexes: Iterable, step: int = 1):
+    def slice_by_index(self, indexes: Iterable, step: int = 1, in_sample: bool = True):
         """ Extract data with indexes (not ``idx``)
             Save features before first index in ``indexes`` for time series
             :param indexes: iterator with indexes that should be extracted
                             should be sorted for time series
             :param step: step between indexes for time series
+            :param in_sample: if True then save features for indexes for time series
             :return: InputData """
         new = self.copy()
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
@@ -456,6 +458,8 @@ class InputData(Data):
             delta = new.features.shape[0] - len(new)
             new_indexes = np.arange(-delta, indexes[-1] + 1)[::-step][::-1]
             new_indexes += delta
+            if in_sample:
+                new_indexes = np.setdiff1d(new_indexes, indexes, True)
             new.features = np.take(new.features, new_indexes, 0)
         else:
             new.features = np.take(new.features, indexes, 0)
