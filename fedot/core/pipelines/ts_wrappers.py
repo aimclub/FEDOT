@@ -98,7 +98,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
                               'Please, check that horizon is lower than data.features'))
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(iter_predict.predict)
-        final_forecast[i, :] = iter_predict
+        final_forecast[-i, :] = iter_predict
 
     final_forecast = np.ravel(final_forecast)[:horizon]
     return final_forecast
