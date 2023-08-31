@@ -94,10 +94,10 @@ def check_init_params(model: Fedot,
         raise ValueError('Fedot class object is not fitted.')
 
     if horizon is not None:
-        if type(horizon) is not int or horizon < 1:
-            raise ValueError('Argument horizon must be None or natural number.')
+        if not isinstance(horizon, int) or horizon < 1:
+            raise ValueError('Argument horizon must be None or positive integer number.')
 
-    if type(nominal_error) is not float or nominal_error <= 0 or nominal_error >= 1:
+    if type(nominal_error) not in [int, float] or not (0 <= nominal_error <= 1):
         raise ValueError('Argument nominal_error must be float number between 0 and 1.')
 
     avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
@@ -108,42 +108,42 @@ def check_init_params(model: Fedot,
     if params.logging_level not in [0, 10, 20, 30, 40, 50]:
         raise ValueError('Argument logging_level must be in [0, 10, 20, 30, 40, 50].')
 
-    if type(params.n_jobs) is not int or params.n_jobs == 0 or params.n_jobs < -1:
-        raise ValueError('Argument n_jobs must be -1 or positive integer.')
+    if not isinstance(params.n_jobs, int) or params.n_jobs == 0 or params.n_jobs < -1:
+        raise ValueError('Argument n_jobs must be -1 or positive integer number.')
 
-    if type(params.show_progress) is not bool:
+    if not isinstance(params.show_progress, bool):
         raise ValueError('Argument show_progress must be boolean.')
 
-    if type(params.number_mutations) is not int or params.number_mutations < 1:
-        raise ValueError('Argument number_mutations must be positive integer.')
+    if not isinstance(params.number_mutations, int) or params.number_mutations < 1:
+        raise ValueError('Argument number_mutations must be positive integer number.')
 
     if params.mutations_choice not in ['different', 'with_replacement']:
         raise ValueError("Arument mutations_choice is incorrect. Options: 'different' and 'with_replacement'.")
 
-    if type(params.mutations_discard_inapropriate_pipelines) is not bool:
+    if not isinstance(params.mutations_discard_inapropriate_pipelines, bool):
         raise ValueError('Argument mutations_discard_inapropriate_pipelines must be boolean.')
 
-    if params.mutations_keep_percentage <= 0 or params.mutations_keep_percentage >= 1:
+    if type(params.mutations_keep_percentage) not in [int, float] or not (0 <= params.mutations_keep_percentage <= 1):
         raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
 
-    if type(params.mutations_operations) != list:
-        raise ValueError('Argument mutations_operations must be list of strings')
+    if not isinstance(params.mutations_operations, list):
+        raise ValueError('Argument mutations_operations must be list of strings.')
     else:
         all_possible_operations = get_operations_for_task(task=Task(task_type=TaskTypesEnum.ts_forecasting))
         for x in params.mutations_operations:
             if x not in all_possible_operations:
-                raise ValueError(f'Incorrect mutation {x} given in mutations_operations.')
+                raise ValueError(f"Incorrect mutation '{x}' given in mutations_operations.")
 
     if params.ql_number_models != 'max':
-        if type(params.ql_number_models) is not int or params.ql_number_models < 1:
-            raise ValueError("Argument ql_number_models must be positive integer or 'max'.")
+        if not isinstance(params.ql_number_models, int) or params.ql_number_models < 1:
+            raise ValueError("Argument ql_number_models must be positive integer number or 'max'.")
 
-    if type(params.ql_tuner_iterations) is not int or params.ql_tuner_iterations < 1:
-        raise ValueError('Argument ql_tuner_iterations must be positive integer.')
+    if not isinstance(params.ql_tuner_iterations, int) or params.ql_tuner_iterations < 1:
+        raise ValueError('Argument ql_tuner_iterations must be positive integer number.')
 
     if type(params.ql_tuner_minutes) not in [int, float] or params.ql_tuner_minutes <= 0:
         raise ValueError('Argument ql_tuner_minutes must be positive real number.')
 
     if params.bpq_number_models != 'max':
-        if type(params.bpq_number_models) is not int or params.bpq_number_models < 1:
-            raise ValueError("Argument bpq_number_models must be positive integer or 'max'.")
+        if not isinstance(params.bpq_number_models, int) or params.bpq_number_models < 1:
+            raise ValueError("Argument bpq_number_models must be positive integer number or 'max'.")

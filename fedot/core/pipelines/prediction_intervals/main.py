@@ -1,5 +1,6 @@
 import numpy as np
 from functools import partial
+from typing import Optional
 
 
 from golem.core.log import default_log, Log
@@ -37,7 +38,7 @@ class PredictionIntervals:
 
     def __init__(self,
                  model: Fedot,
-                 horizon: int = None,
+                 horizon: Optional[int] = None,
                  nominal_error: float = 0.1,
                  method: str = 'mutation_of_best_pipeline',
                  params: PredictionIntervalsParams = PredictionIntervalsParams()):
