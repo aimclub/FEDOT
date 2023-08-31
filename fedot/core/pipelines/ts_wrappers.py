@@ -93,6 +93,9 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
         data = input_data.slice(-(i + 1) * forecast_length,
                                 -i * forecast_length if i != 0 else None,
                                 in_sample=False)
+        if data.features.shape[0] == 0:
+            raise ValueError(('Cannot make predict without features.'
+                              'Please, check that horizon is lower than data.features'))
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(iter_predict.predict)
         final_forecast[i, :] = iter_predict
