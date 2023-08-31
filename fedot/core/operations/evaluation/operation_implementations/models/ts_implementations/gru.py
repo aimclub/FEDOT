@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+from scipy.stats import ttest_rel
 
 from fedot.core.data.data import InputData
 from golem.utilities.requirements_notificator import warn_requirement
@@ -24,20 +25,37 @@ class GRUImplementation(ModelImplementation):
         super().__init__(params)
 
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        self.max_step = params.get('max_step') or 50
+        self.max_step = params.get('max_step') or 500
         self.seed = params.get('seed') or np.random.randint(0, np.iinfo(int).max)
         self.model = None
         self.batch_size = 50
         self.validation_size = 0.2
+        self.generator = torch.Generator()
+        self.generator.manual_seed(self.seed)
 
+        self.preprocessing_type = None
         self.preprocessing_mean = None
         self.preprocessing_std = None
+        self.preprocessing_max = None
+        self.preprocessing_min = None
 
     def preprocessing(self, x):
-        return (x - self.preprocessing_mean) / (self.preprocessing_std + 1e-6)
+        if self.preprocessing_type == 'normalization':
+            return (x - self.preprocessing_mean) / (self.preprocessing_std + 1e-6)
+        elif self.preprocessing_type == 'minmax':
+            return (x - self.preprocessing_min) / (self.preprocessing_max - self.preprocessing_min)
+        else:
+            raise ValueError((f"Unknown type of preprocessing: {self.preprocessing_type}."
+                              f" Allowed types: normalization, minmax"))
 
     def postprocessing(self, y):
-        return y * self.preprocessing_std + self.preprocessing_mean
+        if self.preprocessing_type == 'normalization':
+            return y * self.preprocessing_std + self.preprocessing_mean
+        elif self.preprocessing_type == 'minmax':
+            return y * (self.preprocessing_max - self.preprocessing_min) + self.preprocessing_min
+        else:
+            raise ValueError((f"Unknown type of preprocessing: {self.preprocessing_type}."
+                              f" Allowed types: normalization, minmax"))
 
     def numpy_to_torch(self, x, third_dimension=True):
         # (batch_size, num_timesteps or sequence_length, feature_size)
@@ -49,6 +67,9 @@ class GRUImplementation(ModelImplementation):
             x = x.reshape((x.shape[0], x.shape[1]))
         x = torch.from_numpy(x)
         return x
+
+    def initialize_hidden(self):
+        return torch.randn(*self.hidden_size, generator=self.generator)
 
     def fit(self, data: InputData):
         if self.model is None:
@@ -68,13 +89,18 @@ class GRUImplementation(ModelImplementation):
         model = self.model.to(self.device)
         model.train()
         loss_fun = MSELoss(reduction="mean")
-        opt_fun = Adam(model.parameters(), lr=1e-2, weight_decay=1e-6)
-        h_size = (model.gru.input_size * model.gru.num_layers, self.batch_size, model.gru.hidden_size)
+        opt_fun = Adam(model.parameters(), lr=1e-3)
+        self.hidden_size = (model.gru.input_size * model.gru.num_layers, self.batch_size, model.gru.hidden_size)
 
         # prepare data
         x, y = data.features, data.target
+
+        self.preprocessing_type = 'normalization'
         self.preprocessing_mean = np.mean(x[:, 0])
         self.preprocessing_std = np.std(x[:, 0])
+        self.preprocessing_max = np.max(x[:, 0])
+        self.preprocessing_min = np.min(x[:, 0])
+
         x = self.numpy_to_torch(x).to(self.device)
         y = self.numpy_to_torch(y, False).to(self.device)
         batch_count = int(x.shape[0] / self.batch_size)
@@ -85,7 +111,8 @@ class GRUImplementation(ModelImplementation):
         for epoch in range(self.max_step):
 
             # train
-            h = torch.zeros(h_size).to(self.device)
+            _losses = []
+            h = self.initialize_hidden().to(self.device)
             for batch_num in range(train_count):
                 x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
                 y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
@@ -94,27 +121,28 @@ class GRUImplementation(ModelImplementation):
                 loss.backward()
                 opt_fun.step()
                 opt_fun.zero_grad()
-                losses.append(loss.item())
+                _losses.append(loss.item())
+            losses.append(np.mean(_losses))
 
             # validation
-            h = torch.zeros(h_size).to(self.device)
+            _validations = []
+            h = self.initialize_hidden().to(self.device)
             for batch_num in range(train_count, batch_count):
                 x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
                 y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
                 y_pred, h = model(x_iter, h)
                 loss = loss_fun(y_iter, y_pred)
-                validations.append(loss.item())
+                _validations.append(loss.item())
+            validations.append(np.mean(_validations))
 
             if epoch > 5:
                 # TODO: adaptive early stop
-                last_val = np.mean(validations[-self.batch_size:])
-                pred_val = np.mean(validations[-2 * self.batch_size:-self.batch_size])
-                if pred_val > last_val and (pred_val - last_val) / last_val < 0.05:
+                if np.all(abs(np.diff(validations[-5:]) / validations[-4:]) < 0.05):
                     break
 
-        # fit on validation blocks
+        # fit on validation data
         for epoch in range(2):
-            h = torch.zeros(h_size).to(self.device)
+            h = self.initialize_hidden().to(self.device)
             for batch_num in range(train_count, batch_count):
                 x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
                 y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
