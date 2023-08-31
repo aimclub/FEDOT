@@ -52,7 +52,8 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     if mutations_choice == 'different':
         mutations_of_best_pipeline = get_different_mutations(individual=ind,
                                                              number_mutations=number_mutations,
-                                                             operations=operations)
+                                                             operations=operations,
+                                                             logger=logger)
     elif mutations_choice == 'with_replacement':
         mutations_of_best_pipeline = get_mutations(individual=ind,
                                                    number_mutations=number_mutations,

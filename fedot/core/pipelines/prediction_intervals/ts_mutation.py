@@ -5,6 +5,7 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import Mutation
 from golem.core.optimisers.genetic.operators.base_mutations import MutationStrengthEnum
 from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.log import LoggerAdapter
 
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -54,7 +55,10 @@ def get_mutations(individual: Individual, number_mutations: int, operations: Lis
     return mutations
 
 
-def get_different_mutations(individual: Individual, number_mutations: int, operations: List[str]):
+def get_different_mutations(individual: Individual, 
+                            number_mutations: int,
+                            operations: List[str],
+                            logger: LoggerAdapter):
     """For a given individaul this function obtains several different its mutations.
 
     Args:
@@ -67,11 +71,18 @@ def get_different_mutations(individual: Individual, number_mutations: int, opera
     """
     mutations = []
     graph_list = []
-
-    while len(mutations) < number_mutations:
+    s=1
+    maximal_number_iterations = number_mutations*3
+    
+    while (len(mutations) < number_mutations and s <= maximal_number_iterations):
+        s += 1
         new_ind = get_ts_mutation(individual, operations)
         if np.array([get_distance_between(new_ind.graph, x, compare_node_params=False) > 0 for x in graph_list]).all():
             graph_list.append(new_ind.graph)
             mutations.append(new_ind)
 
+    if s == maximal_number_iterations + 1:
+        logger.warning(f"Maximal number attempts {maximal_number_iterations} to build different mutations used.")
+    else:
+        logger.info(f"{number_mutations} mutations are succesfully created.")
     return mutations
