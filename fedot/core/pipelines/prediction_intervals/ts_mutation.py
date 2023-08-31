@@ -84,5 +84,5 @@ def get_different_mutations(individual: Individual,
     if s == maximal_number_iterations + 1:
         logger.warning(f"Maximal number attempts {maximal_number_iterations} to build different mutations used.")
     else:
-        logger.info(f"{number_mutations} mutations are succesfully created.")
+        logger.info(f"{number_mutations} different mutations are succesfully created.")
     return mutations

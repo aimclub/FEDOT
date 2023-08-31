@@ -4,6 +4,7 @@ from typing import List
 import itertools
 
 from golem.core.optimisers.opt_history_objects.individual import Individual
+from golem.core.log import default_log, Log
 
 from fedot.core.utils import fedot_project_root
 from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
@@ -20,8 +21,12 @@ def params():
     with open(model_name, 'rb') as f:
         model = pickle.load(f)
 
+    Log().reset_logging_level(10)
+    logger = default_log(prefix='PredictionIntervals_test_mutations')
+
     return {'individual': get_last_generations(model)['final_choice'],
-            'operations': PredictionIntervalsParams().mutations_operations}
+            'operations': PredictionIntervalsParams().mutations_operations,
+            'logger': logger}
 
 
 def check_uniqueness_mutations_structures(a: List[Individual]):
@@ -42,6 +47,7 @@ def test_get_ts_mutation(params):
 def test_get_different_mutations(params):
     mutations = get_different_mutations(individual=params['individual'],
                                         number_mutations=15,
-                                        operations=params['operations'])
+                                        operations=params['operations'],
+                                        logger=params['logger'])
 
     assert check_uniqueness_mutations_structures(mutations), "Some mutations have identical structure."
