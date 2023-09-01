@@ -49,11 +49,12 @@ def get_different_pipelines(individuals: List[Individual]):
 def get_last_generations(model: Fedot):
     """This function takes final individual and last generation from fitted Fedot-class object."""
 
-    # In the future we should take here a copy. The problem is that Individual object is not copied.
+    # TODO: in the future we should take here a copy. The problem is that Individual object is not copied.
     generations = model.history.generations
     if len(generations) < 2:
         raise ValueError('Model has < 2 generations. Please fit model and try again.')
-    return {'final_choice': generations[-1][0], 'last_generation': generations[-2]}
+    sorted_final_generation = sorted(generations[-1], key=lambda x: x.fitness.value)
+    return {'final_choice': sorted_final_generation[0], 'last_generation': generations[-2]}
 
 
 def get_base_quantiles(train_input: InputData, pipeline: Pipeline, nominal_error: int):
