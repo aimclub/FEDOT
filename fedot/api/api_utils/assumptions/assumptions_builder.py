@@ -25,7 +25,7 @@ class AssumptionsBuilder:
     @staticmethod
     def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
         if not repository_name:
-            if data.is_multi_ts:
+            if isinstance(data, InputData) and data.is_multi_ts:
                 # It is needed to use data operations also for multi_ts data
                 repository_name = 'all'
             else:

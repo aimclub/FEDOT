@@ -92,6 +92,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
                           f" and data length {input_data.idx.shape[0]}"))
 
     final_forecast = np.zeros((number_of_iterations, forecast_length))
+    is_multimodal = isinstance(input_data, MultiModalData)
     for i in range(number_of_iterations):
         data = input_data.slice(-(i + 1) * forecast_length,
                                 -i * forecast_length if i != 0 else None,
