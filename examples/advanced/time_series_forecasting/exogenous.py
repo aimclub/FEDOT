@@ -10,7 +10,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
@@ -76,7 +76,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                   task_params=task.task_params,
                   timeout=10,
                   initial_assumption=pipeline,
-                  max_pipeline_fit_time=1,
+                  max_pipeline_fit_time=2,
                   n_jobs=-1)
     fedot.fit(train_dataset)
 
