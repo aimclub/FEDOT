@@ -74,6 +74,7 @@ class QualityMetric:
                 metric = cls.metric(reference_data, results)
             else:
                 # Perform time series in-sample validation
+<<<<<<< Updated upstream
                 if isinstance(reference_data, MultiModalData):
                     is_multi_ts = reference_data[list(reference_data.keys())[0]].is_multi_ts
                 else:
@@ -89,6 +90,28 @@ class QualityMetric:
                 else:
                     reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
                     metric = cls.metric(reference_data, results)
+=======
+<<<<<<< Updated upstream
+                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+            metric = cls.metric(reference_data, results)
+=======
+                is_multimodal = isinstance(reference_data, MultiModalData)
+                if ((is_multimodal and reference_data[list(reference_data)[0]].is_multi_ts) or
+                    ((not is_multimodal) and reference_data.is_multi_ts)):
+                    # multi_ts
+                    metrics = []
+                    for i in range(reference_data.features.shape[1]):
+                        data = reference_data.subset_features([i], True, True)
+                        data.data_type = DataTypesEnum.ts
+                        reference_data_out, results = cls._in_sample_prediction(pipeline, data, validation_blocks)
+                        metrics.append(cls.metric(reference_data_out, results))
+                    metric = np.mean(metrics)
+                else:
+                    # ts
+                    reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+                    metric = cls.metric(reference_data, results)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
             if is_analytic_mode():
                 from fedot.core.data.visualisation import plot_forecast

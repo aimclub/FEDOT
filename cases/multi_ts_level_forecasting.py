@@ -59,7 +59,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
 
     # use model to obtain forecast
     forecast = model.predict(test_data)
-    target = np.ravel(test_data.target)
+    target = np.ravel(test_data.target[:, 0])
 
     # visualize results
     model.plot_prediction()

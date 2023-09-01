@@ -9,7 +9,7 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def prepare_input_data(train_file_path, test_file_path, history_size: int = 1000):
+def prepare_input_data(train_file_path, test_file_path, history_size: int = 10000):
     """ Function for preparing InputData for train and test algorithm
 
     :param train_file_path: path to the csv file for training
@@ -69,5 +69,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
-                                     forecast_length=6, timeout=5,
+                                     forecast_length=20, timeout=5,
                                      visualization=True)
