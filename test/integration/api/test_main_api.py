@@ -26,7 +26,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.integration.models.test_split_train_test import get_synthetic_input_data
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.tasks.test_classification import get_synthetic_classification_data, get_iris_data
+from test.unit.tasks.test_classification import get_iris_data, get_synthetic_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
@@ -157,7 +157,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
     fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
-    metric = model.get_metrics(metric_names=metric_name)
+    metric = model.get_metrics(metric_names=metric_name, decimal_places_num=5)
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert all(value > 0 for value in metric.values())

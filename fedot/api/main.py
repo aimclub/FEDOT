@@ -1,11 +1,11 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from golem.core.dag.graph_utils import graph_structure
-from golem.core.log import default_log, Log
+from golem.core.log import Log, default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.visualisation.opt_viz_extra import visualise_pareto
@@ -475,7 +475,8 @@ class Fedot:
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None,
                     in_sample: Optional[bool] = None,
-                    validation_blocks: Optional[int] = None) -> dict:
+                    validation_blocks: Optional[int] = None,
+                    decimal_places_num: int = 3) -> dict:
         """Gets quality metrics for the fitted graph
 
         Args:
@@ -484,6 +485,7 @@ class Fedot:
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
+            decimal_places_num: number of decimal places for metrics
 
         Returns:
             The values of quality metrics.
@@ -517,7 +519,8 @@ class Fedot:
                                              do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
-        metrics = {metric_name: round(abs(metric), 3) for (metric_name, metric) in zip(metric_names, metrics)}
+        metrics = {metric_name: round(abs(metric), decimal_places_num) for (metric_name, metric) in
+                   zip(metric_names, metrics)}
 
         return metrics
 
