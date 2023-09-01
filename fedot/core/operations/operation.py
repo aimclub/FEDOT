@@ -26,7 +26,7 @@ class Operation:
         self.operation_type = operation_type
 
         self._eval_strategy = None
-        self.operations_repo: OperationTypesRepository = None
+        self.operations_repo: Optional[OperationTypesRepository] = None
         self.fitted_operation = None
 
         self.log = default_log(self)

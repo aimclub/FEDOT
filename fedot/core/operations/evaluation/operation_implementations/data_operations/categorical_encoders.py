@@ -22,10 +22,10 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             'handle_unknown': 'ignore'
         }
         self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
-        self.categorical_ids = None
-        self.non_categorical_ids = None
-        self.encoded_ids = None
-        self.new_numerical_idx = None
+        self.categorical_ids: List[int] = []
+        self.non_categorical_ids: List[int] = []
+        self.encoded_ids: List[int] = []
+        self.new_numerical_idx: List[int] = []
 
     def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical features
@@ -104,8 +104,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}
-        self.categorical_ids: List[int] = None
-        self.non_categorical_ids: List[int] = None
+        self.categorical_ids: List[int] = []
+        self.non_categorical_ids: List[int] = []
 
     def fit(self, input_data: InputData):
         feature_type_ids = input_data.supplementary_data.col_type_ids['features']
