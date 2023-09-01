@@ -490,16 +490,20 @@ class InputData(Data):
             raise IndexError(f"Next indexes are missing: {missing_values}")
         return self.slice_by_index(row_nums)
 
-    def subset_features(self, features_ids: list, with_target: bool = False):
+    def subset_features(self, features_ids: list, with_target: bool = False, ravel_if_only_ids: bool = False):
         """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
         """
         subsample_input = self.copy()
         subsample_input.features = self.features[:, features_ids]
+        if ravel_if_only_ids and len(features_ids) == 1:
+            subsample_input.features = np.ravel(subsample_input.features)
         if with_target:
             if self.target.shape[1] != self.features.shape[1]:
                 raise ValueError((f"Shapes of features ({self.features.shape}) and"
                                  f" target ({self.target.shape}) mismatch. Cannot create subset for target"))
             subsample_input.target = self.target[:, features_ids]
+            if ravel_if_only_ids and len(features_ids) == 1:
+                subsample_input.target = np.ravel(subsample_input.target)
         return subsample_input
 
     def shuffle(self, seed: Optional[int] = None):

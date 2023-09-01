@@ -11,6 +11,17 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
+def get_multimodal_data(input_data_count=5, length=100, feature_count=5):
+    data = MultiModalData()
+    for i in range(input_data_count):
+        data[str(i)] = InputData(idx=np.arange(length),
+                                 features=np.random.rand(length, feature_count),
+                                 target=np.random.rand(length),
+                                 data_type=DataTypesEnum.table,
+                                 task=Task(TaskTypesEnum.regression))
+    return data
+
+
 def test_multi_modal_data():
     """
     Checking basic functionality of MultiModalData class.
@@ -44,10 +55,20 @@ def test_multi_modal_data():
     # check setter
     new_target = np.asarray([1, 1, 1, 1, 1])
     multi_modal.target = new_target
+    for input_data in multi_modal.values():
+        assert np.array_equal(input_data.target, new_target)
     assert np.array_equal(multi_modal.target, new_target)
+
+    new_idx = np.asarray([1, 1, 1, 1, 1])
+    multi_modal.idx = new_idx
+    for input_data in multi_modal.values():
+        assert np.array_equal(input_data.idx, new_idx)
+    assert np.array_equal(multi_modal.idx, new_idx)
 
     new_task = Task(TaskTypesEnum.regression)
     multi_modal.task = new_task
+    for input_data in multi_modal.values():
+        assert input_data.task == new_task
     assert multi_modal.task == new_task
 
 
@@ -144,3 +165,33 @@ def test_multimodal_data_with_complicated_types():
     assert len(file_mm_data) == 2
     assert 'data_source_text/5' in file_mm_data
     assert file_mm_data['data_source_table'].features.shape == (18, 11)
+
+
+@pytest.mark.parametrize(['start', 'stop', 'step'],
+                         [(None, 10, None),
+                          (2, 20, 3),
+                          (None, -20, -2)])
+def test_multimodal_slice(start, stop, step):
+    data = get_multimodal_data()
+    sliced = data.slice(start, stop, step)
+    for indata1, indata2 in zip(data.values(), sliced.values()):
+        indata1 = indata1.slice(start, stop, step)
+        assert np.array_equal(indata1.idx, indata2.idx)
+        assert np.array_equal(indata1.features, indata2.features)
+        assert np.array_equal(indata1.target, indata2.target)
+
+
+@pytest.mark.parametrize(['indexes', 'step'],
+                         [([0, 1, 2], 1),
+                          ([-3, -2, -1], 1),
+                          ([-1, -2, -3], -1),
+                          ([0, 3, 6], 3)
+                          ])
+def test_slice_by_index(indexes, step):
+    data = get_multimodal_data()
+    sliced = data.slice_by_index(indexes, step)
+    for indata1, indata2 in zip(data.values(), sliced.values()):
+        indata1 = indata1.slice_by_index(indexes, step)
+        assert np.array_equal(indata1.idx, indata2.idx)
+        assert np.array_equal(indata1.features, indata2.features)
+        assert np.array_equal(indata1.target, indata2.target)

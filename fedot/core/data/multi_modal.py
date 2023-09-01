@@ -13,6 +13,33 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
+def get_from_main_input_data(item):
+    def _temporary_function(self, item=item):
+        for input_data in self.values():
+            if input_data.supplementary_data.is_main_target:
+                return getattr(input_data, item)
+    return _temporary_function
+
+
+def set_to_all_input_data(item):
+    def _temporary_function(self, value, item=item):
+        for key in self:
+            setattr(self[key], item, value)
+    return _temporary_function
+
+
+def map_over_multimodal_data(fun):
+    def _temporary_function(self, *args, **kwargs):
+        new_self = self.copy()
+        for key in self:
+            new_self[key] = getattr(self[key], fun.__name__)(*args, **kwargs)
+        return new_self
+
+    _temporary_function.__name__ = fun.__name__
+    _temporary_function.__doc__ = fun.__doc__
+    return _temporary_function
+
+
 class MultiModalData(Dict[str, InputData]):
     """ Dictionary with InputData as values and primary node names as keys """
 
@@ -22,40 +49,45 @@ class MultiModalData(Dict[str, InputData]):
         # Check if input data contains different targets
         self.contain_side_inputs = not all(value.supplementary_data.is_main_target for value in self.values())
 
+    target = property(get_from_main_input_data('target'), set_to_all_input_data('target'))
+    idx = property(get_from_main_input_data('idx'), set_to_all_input_data('idx'))
+    task = property(get_from_main_input_data('task'), set_to_all_input_data('task'))
+    class_labels = property(get_from_main_input_data('class_labels'))
+    num_classes = property(get_from_main_input_data('num_classes'))
+    is_ts_forecasting = property(get_from_main_input_data('is_ts_forecasting'))
+    is_classification = property(get_from_main_input_data('is_classification'))
+    is_clustering = property(get_from_main_input_data('is_clustering'))
+    is_regression = property(get_from_main_input_data('is_regression'))
+
     @property
     def data_type(self):
         return [input_data.data_type for input_data in iter(self.values())]
 
-    def __getattr__(self, item):
-        if item in ('target', 'idx', 'task', 'class_labels', 'num_classes',
-                    'is_ts_forecasting', 'is_classification', 'is_clustering', 'is_regression'):
-            for input_data in self.values():
-                if input_data.supplementary_data.is_main_target:
-                    return getattr(input_data, item)
+    @map_over_multimodal_data
+    def subset_range(self, start, end):
+        pass
 
-        if item in ('subset_range', 'subset_indices', 'slice', 'slice_by_index',
-                    'convert_non_int_indexes_for_fit', 'convert_non_int_indexes_for_predict'):
-            new = self.copy()
+    @map_over_multimodal_data
+    def slice(self, start, stop, step, in_sample):
+        pass
 
-            def _temporary_function(*args, _multimodaldata=new, **kwargs):
-                for key in _multimodaldata.keys():
-                    _multimodaldata[key] = getattr(_multimodaldata[key], item)(*args, **kwargs)
-                return new
+    @map_over_multimodal_data
+    def slice_by_index(self, indexes, step, in_sample):
+        pass
 
-            return _temporary_function
-        raise AttributeError(f"Unknown attribute {item} for class MultiModalData")
+    @map_over_multimodal_data
+    def subset_indices(self, selected_idx):
+        pass
 
-    def __setattr__(self, item, value):
-        if item in ('target', 'idx', 'task'):
-            for input_data in self.values():
-                setattr(input_data, item, value)
-        else:
-            object.__setattr__(self, item, value)
+    @map_over_multimodal_data
+    def subset_features(self, features_ids, with_target, ravel_if_only_ids):
+        pass
 
-    def copy(self):
+    def copy(self, copy_supplementary_data: Optional[bool] = None):
+        kwargs = dict() if copy_supplementary_data is None else {'copy_supplementary_data': False}
         new = MultiModalData()
         for key in self.keys():
-            new[key] = self[key].copy()
+            new[key] = self[key].copy(**kwargs)
         return new
 
     def shuffle(self, seed: Optional[int] = None):
