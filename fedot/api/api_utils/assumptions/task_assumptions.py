@@ -59,6 +59,7 @@ class TSForecastingAssumptions(TaskAssumptions):
                 .add_branch('polyfit', 'lagged')
                 .grow_branches(None, 'ridge')
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 .join_branches('ridge'),
             'smoothing_ar':
                 PipelineBuilder()
@@ -68,6 +69,8 @@ class TSForecastingAssumptions(TaskAssumptions):
                 .add_branch('gru', 'lagged')
 =======
 <<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
                 .join_branches('ridge')
 =======
                 .join_branches('ridge'),
@@ -75,6 +78,9 @@ class TSForecastingAssumptions(TaskAssumptions):
                 PipelineBuilder()
                 .add_sequence('lagged', 'gru')
 >>>>>>> Stashed changes
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         }
 
