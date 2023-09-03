@@ -23,7 +23,7 @@ from fedot.core.operations.operation_parameters import get_default_params, Opera
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, AVAILABLE_REPO_NAMES
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
@@ -38,6 +38,49 @@ def check_predict_correct(model, fitted_operation, test_data):
         data_arg_name='data',
         input_data=test_data,
     )
+
+
+def get_data_for_testing(task_type, data_type, length=100, features_count=1,
+                         value=0, random=True, random_seed=0):
+    allowed_data_type = {TaskTypesEnum.ts_forecasting: [DataTypesEnum.ts, DataTypesEnum.multi_ts],
+                         TaskTypesEnum.classification: [DataTypesEnum.table],
+                         TaskTypesEnum.regression: [DataTypesEnum.table]}
+    if task_type not in allowed_data_type or data_type not in allowed_data_type[task_type]:
+        return None
+
+    if task_type is TaskTypesEnum.ts_forecasting:
+        task = Task(task_type, TsForecastingParams(max(length // 10, 2)))
+        if data_type is DataTypesEnum.ts:
+            features = np.zeros(length) + value
+        else:
+            features = np.zeros((length, features_count)) + value
+        if data_type is DataTypesEnum.table:
+            target = np.zeros(length) + value
+        else:
+            target = features
+
+    else:
+        task = Task(task_type)
+        data_type = DataTypesEnum.table
+        features = np.zeros((length, features_count)) + value
+        target = np.zeros(length) + value
+        if task_type is TaskTypesEnum.classification:
+            target[:int(len(target) // 2)] = 2 * value + 1
+
+    if random and task_type is not TaskTypesEnum.classification:
+        generator = np.random.RandomState(random_seed)
+        features += generator.rand(*features.shape)
+        if task_type is TaskTypesEnum.ts_forecasting:
+            target = features
+        else:
+            target += generator.rand(*target.shape)
+
+    data = InputData(idx=np.arange(length),
+                     features=features,
+                     target=target,
+                     data_type=data_type,
+                     task=task)
+    return data
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
@@ -372,3 +415,35 @@ def test_locf_forecast_correctly():
     assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))
     # Repeated pattern (3 elements to repeat and 4 forecast horizon)
     assert np.array_equal(predict_forecast.predict, np.array([[110, 120, 130, 110]]))
+
+
+def test_models_does_not_fall_on_constant_data():
+    """ Run models on constant data """
+    # models that raise exception
+    to_skip = ['custom', 'arima', 'catboost', 'catboostreg',
+               'lda', 'fast_ica', 'decompose', 'class_decompose']
+
+    for repo_name in AVAILABLE_REPO_NAMES:
+        operation_repo = OperationTypesRepository(repo_name)
+        if operation_repo._repo is None:
+            continue
+        for operation in operation_repo._repo:
+            if operation.id in to_skip:
+                continue
+            for task_type in operation.task_type:
+                for data_type in operation.input_types:
+                    data = get_data_for_testing(task_type, data_type,
+                                                length=100, features_count=2,
+                                                random=False)
+                    if data is not None:
+                        try:
+                            nodes_from = []
+                            if task_type is TaskTypesEnum.ts_forecasting:
+                                if 'non_lagged' not in operation.tags:
+                                    nodes_from = [PipelineNode('lagged')]
+                            node = PipelineNode(operation.id, nodes_from=nodes_from)
+                            pipeline = Pipeline(node)
+                            pipeline.fit(data)
+                            assert pipeline.predict(data) is not None
+                        except NotImplementedError:
+                            pass

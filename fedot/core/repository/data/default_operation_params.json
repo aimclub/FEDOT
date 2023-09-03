@@ -7,15 +7,18 @@
   },
   "xgboost": {
     "eval_metric": "mlogloss",
-    "nthread": -1
+    "nthread": 1,
+    "n_jobs": 1
   },
   "catboost": {
     "allow_writing_files": false,
-    "verbose": false
+    "verbose": false,
+    "thread_count": 1
   },
   "catboostreg": {
     "allow_writing_files": false,
-    "verbose": false
+    "verbose": false,
+    "thread_count": 1
   },
   "lgbm": {
     "num_leaves": 32,
@@ -23,7 +26,8 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 100
+    "n_estimators": 100,
+    "n_jobs": 1
   },
   "lgbmreg": {
     "num_leaves": 32,
@@ -31,7 +35,8 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 100
+    "n_estimators": 100,
+    "n_jobs": 1
   },
   "lagged": {
     "window_size": 10

@@ -150,7 +150,7 @@ class CGRUImplementation(ModelImplementation):
         return f_scaled, t_scaled
 
     def _scale(self, array: np.ndarray):
-        return (array - self.mu) / self.std
+        return (array - self.mu) / (self.std + 1e-6)
 
     def _inverse_scale(self, array: np.ndarray):
         return array * self.std + self.mu
