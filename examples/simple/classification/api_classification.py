@@ -18,7 +18,7 @@ def run_classification_example(timeout: float = None, visualization=False, with_
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
 
-    print(auto_model.get_metrics(decimal_places_num=4))  # we can control the rounding of metrics
+    print(auto_model.get_metrics(rounding_order=4))  # we can control the rounding of metrics
     if visualization:
         auto_model.plot_prediction()
     return prediction

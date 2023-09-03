@@ -90,7 +90,7 @@ def test_cv_api_correct():
     model = Fedot(problem='classification', logging_level=logging.DEBUG, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)
-    metric = model.get_metrics(metric_names='f1', decimal_places_num=1)
+    metric = model.get_metrics(metric_names='f1', rounding_order=1)
 
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(dataset_to_validate.target)

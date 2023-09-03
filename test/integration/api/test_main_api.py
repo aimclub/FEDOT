@@ -157,7 +157,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
     fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
-    metric = model.get_metrics(metric_names=metric_name, decimal_places_num=5)
+    metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert all(value > 0 for value in metric.values())

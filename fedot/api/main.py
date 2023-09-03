@@ -476,7 +476,7 @@ class Fedot:
                     metric_names: Union[str, List[str]] = None,
                     in_sample: Optional[bool] = None,
                     validation_blocks: Optional[int] = None,
-                    decimal_places_num: int = 3) -> dict:
+                    rounding_order: int = 3) -> dict:
         """Gets quality metrics for the fitted graph
 
         Args:
@@ -485,7 +485,7 @@ class Fedot:
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
-            decimal_places_num: number of decimal places for metrics
+            rounding_order: number of decimal places for metrics
 
         Returns:
             The values of quality metrics.
@@ -519,7 +519,7 @@ class Fedot:
                                              do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
-        metrics = {metric_name: round(abs(metric), decimal_places_num) for (metric_name, metric) in
+        metrics = {metric_name: round(abs(metric), rounding_order) for (metric_name, metric) in
                    zip(metric_names, metrics)}
 
         return metrics
