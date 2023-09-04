@@ -2,13 +2,13 @@ import logging
 from datetime import timedelta
 
 import pytest
-
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -18,7 +18,6 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from test.integration.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
@@ -91,7 +90,7 @@ def test_cv_api_correct():
     model = Fedot(problem='classification', logging_level=logging.DEBUG, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)
-    metric = model.get_metrics(metric_names='f1')
+    metric = model.get_metrics(metric_names='f1', rounding_order=1)
 
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(dataset_to_validate.target)
