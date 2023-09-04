@@ -198,7 +198,7 @@ class MultiModalData(Dict[str, InputData]):
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
         idx = df.index.to_numpy()
         if not columns_to_use:
-            columns_to_use = list(set(df.columns) - {index_col})
+            columns_to_use = sorted(list(set(df.columns) - {index_col}))
 
         if is_predict:
             raise NotImplementedError(

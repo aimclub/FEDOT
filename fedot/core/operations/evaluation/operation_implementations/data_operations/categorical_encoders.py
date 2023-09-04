@@ -180,7 +180,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         encoder_classes = list(column_encoder.classes_)
 
         # If the column contains categories not previously encountered
-        for label in list(set(categorical_column)):
+        for label in sorted(list(set(categorical_column))):
             if label not in encoder_classes:
                 encoder_classes.append(label)
 

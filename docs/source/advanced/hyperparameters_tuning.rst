@@ -1,8 +1,9 @@
+
 Tuning of Hyperparameters
 =========================
 To tune pipeline hyperparameters you can use GOLEM. There are two ways:
 
-1. Tuning of all models hyperparameters simultaneously. Implemented via ``SimultaneousTuner`` and ``IOptTuner`` classes.
+1. Tuning of all models hyperparameters simultaneously. Implemented via ``SimultaneousTuner``, ``OptunaTuner`` and ``IOptTuner`` classes.
 
 2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline or tuning
    only one node hyperparametrs. Implemented via ``SequentialTuner`` class.
@@ -16,21 +17,24 @@ using ``SimultaneousTuner`` is applied for composed pipeline and ``metric`` valu
 FEDOT uses tuners implementation from GOLEM, see `GOLEM documentation`_ for more information.
 
 .. list-table:: Tuners comparison
-   :widths: 10 30 30 30
+   :widths: 10 30 30 30 30
    :header-rows: 1
 
    * -
      - ``SimultaneousTuner``
      - ``SequentialTuner``
      - ``IOptTuner``
+     - ``OptunaTuner``
    * - Based on
      - Hyperopt
      - Hyperopt
      - iOpt
+     - Optuna
    * - Type of tuning
      - Simultaneous
      - | Sequential or
        | for one node only
+     - Simultaneous
      - Simultaneous
    * - | Optimized
        | parameters
@@ -42,10 +46,14 @@ FEDOT uses tuners implementation from GOLEM, see `GOLEM documentation`_ for more
        | continuous
      - | discrete
        | continuous
+     - | categorical
+       | discrete
+       | continuous
    * - Algorithm type
      - stochastic
      - stochastic
      - deterministic
+     - stochastic
    * - | Supported
        | constraints
      - | timeout
@@ -58,11 +66,22 @@ FEDOT uses tuners implementation from GOLEM, see `GOLEM documentation`_ for more
        | eval_time_constraint
      - | iterations
        | eval_time_constraint
+     - | timeout
+       | iterations
+       | early_stopping_rounds
+       | eval_time_constraint
    * - | Supports initial
        | point
      - Yes
      - No
      - No
+     - Yes
+   * - | Supports multi
+       | objective tuning
+     - No
+     - No
+     - No
+     - Yes
 
 Hyperopt based tuners usually take less time for one iteration, but ``IOptTuner`` is able to obtain much more stable results.
 
@@ -488,7 +507,91 @@ Tuned pipeline structure:
     {'depth': 2, 'length': 3, 'nodes': [knnreg, knnreg, rfr]}
     knnreg - {'n_neighbors': 51}
     knnreg - {'n_neighbors': 40}
-    rfr - {'n_jobs': 1, 'max_features': 0.05324707031250003, 'min_samples_split': 12, 'min_samples_leaf': 11}
+    rfr - {'n_jobs': 1, 'max_features': 0.05324, 'min_samples_split': 12, 'min_samples_leaf': 11}
+
+Example for ``OptunaTuner``:
+
+.. code-block:: python
+
+    from golem.core.tuning.optuna_tuner import OptunaTuner
+    from fedot.core.data.data import InputData
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+
+    task = Task(TaskTypesEnum.regression)
+
+    tuner = OptunaTuner
+
+    metric = RegressionMetricsEnum.MSE
+
+    iterations = 100
+
+    train_data = InputData.from_csv('train_data.csv', task='regression')
+
+    pipeline = PipelineBuilder().add_node('knnreg', branch_idx=0).add_branch('rfr', branch_idx=1) \
+        .join_branches('knnreg').build()
+
+    pipeline_tuner = TunerBuilder(task) \
+        .with_tuner(tuner) \
+        .with_metric(metric) \
+        .with_iterations(iterations) \
+        .build(train_data)
+
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+    tuned_pipeline.print_structure()
+
+Tuned pipeline structure:
+
+.. code-block:: python
+
+    Pipeline structure:
+    {'depth': 2, 'length': 3, 'nodes': [knnreg, knnreg, rfr]}
+    knnreg - {'n_neighbors': 51}
+    knnreg - {'n_neighbors': 40}
+    rfr - {'n_jobs': 1, 'max_features': 0.05, 'min_samples_split': 12, 'min_samples_leaf': 11}
+
+
+Multi objective tuning
+^^^^^^^^^^^^^^^^^^^^^^
+
+Multi objective tuning is available only for ``OptunaTuner``. Pass a list of metrics to ``.with_metric()``
+and obtain a list of tuned pipelines representing a pareto front after tuning.
+
+.. code-block:: python
+
+    from typing import Iterable
+    from golem.core.tuning.optuna_tuner import OptunaTuner
+    from fedot.core.data.data import InputData
+    from fedot.core.pipelines.pipeline import Pipeline
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+
+    task = Task(TaskTypesEnum.regression)
+
+    tuner = OptunaTuner
+
+    metric = [RegressionMetricsEnum.MSE, RegressionMetricsEnum.MAE]
+
+    iterations = 100
+
+    train_data = InputData.from_csv('train_data.csv', task='regression')
+
+    pipeline = PipelineBuilder().add_node('knnreg', branch_idx=0).add_branch('rfr', branch_idx=1) \
+        .join_branches('knnreg').build()
+
+    pipeline_tuner = TunerBuilder(task) \
+        .with_tuner(tuner) \
+        .with_metric(metric) \
+        .with_iterations(iterations) \
+        .build(train_data)
+
+    pareto_front: Iterable[Pipeline] = pipeline_tuner.tune(pipeline)
+
 
 Sequential tuning
 -----------------

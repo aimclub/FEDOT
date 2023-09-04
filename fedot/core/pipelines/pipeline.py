@@ -380,11 +380,6 @@ class Pipeline(GraphDelegate, Serializable):
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:
-                    print(f'Node info: operation={node.operation}, operation_type{node.operation.operation_type},'
-                          f' input_data{input_data}, all_nodes={self.nodes},'
-                          f' pipeline_nodes={[node for node in self.nodes if isinstance(node, PipelineNode)]},',
-                          f' true_node_types={[type(node) for node in self.nodes]},',
-                          f' primary_nodes={[node for node in self.nodes if node.is_primary]}')
                     raise ValueError(f'No data for primary node {node}')
             return None
         return input_data
@@ -409,10 +404,6 @@ class Pipeline(GraphDelegate, Serializable):
             for param in ['n_jobs', 'num_threads']:
                 if param in node.content['params']:
                     node.content['params'][param] = n_jobs
-                    # workaround for lgbm paramaters
-                    if node.content['name'] == 'lgbm':
-                        node.content['params']['num_threads'] = n_jobs
-                        node.content['params']['n_jobs'] = n_jobs
 
     @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,

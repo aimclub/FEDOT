@@ -1,5 +1,5 @@
 from random import choice
-from typing import Optional
+from typing import Optional, List
 
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptNode
@@ -54,8 +54,16 @@ class PipelineOptNodeFactory(OptNodeFactory):
     def _return_node(candidates) -> Optional[OptNode]:
         if not candidates:
             return None
-        return OptNode(content={'name': choice(candidates)})
+        return OptNode(content={'name': choice(sorted(candidates))})
 
     @staticmethod
     def filter_specific_candidates(candidates: list):
-        return list(filter(lambda x: not check_for_specific_operations(x), candidates))
+        return sorted(list(filter(lambda x: not check_for_specific_operations(x), candidates)))
+
+    def get_all_available_operations(self) -> Optional[List[str]]:
+        """
+        Returns all available models and data operations.
+        """
+        # TODO: get_all_available_operations is abstract method in OptNodeFactory
+        #       PipelineOptNodeFactory cannot be instantiate without that method
+        raise NotImplementedError()

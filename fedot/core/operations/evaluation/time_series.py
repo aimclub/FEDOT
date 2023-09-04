@@ -18,6 +18,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -58,7 +59,8 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         model = self.operation(self.params_for_fit)
 
-        model.fit(train_data)
+        with ImplementationRandomStateHandler(implementation=model):
+            model.fit(train_data)
         return model
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -126,8 +128,10 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         :return: trained operation (if it is needed for applying)
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
+
         transformation_operation = self.operation(self.params_for_fit)
-        transformation_operation.fit(train_data)
+        with ImplementationRandomStateHandler(implementation=transformation_operation):
+            transformation_operation.fit(train_data)
         return transformation_operation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

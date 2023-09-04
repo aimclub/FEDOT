@@ -107,7 +107,7 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
     task = Task(TaskTypesEnum.ts_forecasting)
     ts_models = get_operations_for_task(task=task, mode='model', tags=["non_lagged"])
-    non_ts_models = list(set(get_operations_for_task(task=task, mode='model')).difference(set(ts_models)))
+    non_ts_models = sorted(list(set(get_operations_for_task(task=task, mode='model')).difference(set(ts_models))))
 
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,

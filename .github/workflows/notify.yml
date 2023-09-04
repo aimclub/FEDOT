@@ -1,4 +1,4 @@
-name: telegram notify
+name: PR merge/close notification
 on:
   pull_request:
     types: [ closed ]
@@ -15,11 +15,15 @@ jobs:
         with:
           to: ${{ secrets.CHAT_ID }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          args: "The ${{github.event_name}} '${{github.event.pull_request.title}}' (#${{github.event.number}}) was merged.
-          \nLink: ${{github.event.pull_request.html_url}}
-          \nDescription: ${{github.event.pull_request.body}}
+          message: "${{ github.event.repository.name }}: 
+          the ${{ github.event_name }} '${{ github.event.pull_request.title }}' 
+          (#${{ github.event.number }}) was merged.
+          \n[Link](${{ github.event.pull_request.html_url }}).
+          \nDescription:\n${{ github.event.pull_request.body }}
           \n
           \nCheck it out to keep your local repository updated."
+          format: markdown
+          disable_web_page_preview: true
 
 
   close_job:
@@ -32,4 +36,6 @@ jobs:
         with:
           to: ${{ secrets.CHAT_ID }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          args: The ${{github.event_name}} ${{github.event.pull_request.title}} (${{github.event.number}}) was closed.
+          message: "${{ github.event.repository.name }}: 
+          the ${{ github.event_name }} ${{ github.event.pull_request.title }} 
+          (${{ github.event.number }}) was closed."

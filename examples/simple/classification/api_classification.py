@@ -1,6 +1,5 @@
 from fedot.api.main import Fedot
-from fedot.core.utils import fedot_project_root
-from fedot.core.utils import set_random_seed
+from fedot.core.utils import fedot_project_root, set_random_seed
 
 
 def run_classification_example(timeout: float = None, visualization=False, with_tuning=True):
@@ -19,7 +18,7 @@ def run_classification_example(timeout: float = None, visualization=False, with_
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
 
-    print(auto_model.get_metrics())
+    print(auto_model.get_metrics(rounding_order=4))  # we can control the rounding of metrics
     if visualization:
         auto_model.plot_prediction()
     return prediction
