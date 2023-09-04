@@ -409,11 +409,11 @@ class Pipeline(GraphDelegate, Serializable):
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: Optional[str] = None,
              node_color: Optional[NodeColorType] = None, dpi: Optional[int] = None,
              node_size_scale: Optional[float] = None, font_size_scale: Optional[float] = None,
-             edge_curvature_scale: Optional[float] = None, title: Optional[str] = None,
+             edge_curvature_scale: Optional[float] = None,
              nodes_labels: Dict[int, str] = None, edges_labels: Dict[int, str] = None):
         PipelineVisualizer(self).visualise(save_path=save_path, engine=engine, node_color=node_color,
                                            dpi=dpi, node_size_scale=node_size_scale, font_size_scale=font_size_scale,
-                                           title=title, nodes_labels=nodes_labels, edges_labels=edges_labels)
+                                           nodes_labels=nodes_labels, edges_labels=edges_labels)
 
 
 def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[PipelineNode]):
