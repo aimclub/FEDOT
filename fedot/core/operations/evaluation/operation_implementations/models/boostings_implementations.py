@@ -31,6 +31,8 @@ class FedotCatBoostImplementation(ModelImplementation):
         self.model = None
 
     def fit(self, input_data: InputData):
+        input_data = input_data.get_not_encoded_data()
+
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
@@ -50,7 +52,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         return self.model
 
     def predict(self, input_data: InputData):
-        prediction = self.model.predict(input_data.features)
+        prediction = self.model.predict(input_data.get_not_encoded_data().features)
 
         return prediction
 
@@ -67,8 +69,8 @@ class FedotCatBoostImplementation(ModelImplementation):
         return Pool(
             data=data.features,
             label=data.target,
-            cat_features=data.cat_features,
-            feature_names=data.features_names
+            cat_features=data.categorical_idx,
+            feature_names=data.features_names.tolist()
         )
 
 
@@ -79,7 +81,7 @@ class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
         self.model = CatBoostClassifier(**self.model_params)
 
     def predict_proba(self, input_data: InputData):
-        prediction = self.model.predict_proba(input_data.features)
+        prediction = self.model.predict_proba(input_data.get_not_encoded_data.features)
 
         return prediction
 

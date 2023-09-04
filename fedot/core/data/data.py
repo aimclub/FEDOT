@@ -43,8 +43,11 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     features: np.ndarray
-    features_names: np.ndarray = None
-    cat_features: np.ndarray = None
+    categorical_features: Optional[np.ndarray] = None
+    categorical_idx: Optional[np.ndarray] = None
+    numerical_idx: Optional[np.ndarray] = None
+    encoded_idx: Optional[np.ndarray] = None
+    features_names: Optional[np.ndarray[str]] = None
     target: Optional[np.ndarray] = None
 
     # Object with supplementary info
@@ -86,10 +89,10 @@ class Data:
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
-        if target_columns == '':
+        if not target_columns:
             features_names = df.columns.to_numpy()[:-1]
         else:
-            features_names = df.drop(target_columns, axis=1).columns.to_nunpy()
+            features_names = df.drop(target_columns, axis=1).columns.to_numpy()
 
         features, target = process_target_and_features(df, target_columns)
 
@@ -505,6 +508,28 @@ class InputData(Data):
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
+    def get_not_encoded_data(self):
+        num_features = self.features[:, self.numerical_idx]
+        cat_features = self.categorical_features
+
+        new_features = np.hstack((num_features, cat_features))
+
+        num_features_count = num_features.shape[1]
+        cat_features_count = cat_features.shape[1]
+
+        new_num_idx = np.array([i for i in range(num_features_count)])
+        new_cat_idx = np.array([i for i in range(num_features_count, num_features_count + cat_features_count)])
+
+        num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+        num_features_name = self.features_names[num_idx].tolist()
+        cat_features_name = self.features_names[self.categorical_idx].tolist()
+
+        new_features_names = np.array(num_features_name + cat_features_name)
+
+        return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
+                         numerical_idx=new_num_idx, categorical_idx=new_cat_idx,
+                         target=self.target, task=self.task, data_type=self.data_type)
+
     @staticmethod
     def _resolve_func(pipeline, x):
         return pipeline.last_idx_int + (x - pipeline.last_idx_dt) // pipeline.period
@@ -521,7 +546,8 @@ class OutputData(Data):
     features: Optional[np.ndarray] = None
     predict: np.ndarray = None
     target: Optional[np.ndarray] = None
-
+    numerical_idx: np.ndarray = None
+    encoded_idx: np.ndarray = None
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
     """Function resizes and rewrites the input image
