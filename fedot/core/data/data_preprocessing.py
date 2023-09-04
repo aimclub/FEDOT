@@ -136,6 +136,9 @@ def data_has_categorical_features(data: InputData) -> bool:
     cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
     data_has_categorical_columns = len(cat_ids) > 0
 
+    data.categorical_idx = cat_ids
+    data.categorical_features = data.subset_features(cat_ids).features
+
     return data_has_categorical_columns
 
 
