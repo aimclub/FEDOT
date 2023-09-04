@@ -55,7 +55,7 @@ def test_solver_mutation_of_best_pipeline(params):
                                      number_mutations=x['number_mutations'],
                                      operations=params['operations'],
                                      n_jobs=-1,
-                                     show_progress=True,
+                                     show_progress=False,
                                      mutations_choice=x['choice'],
                                      discard_inapropriate_pipelines=x['discard'],
                                      keep_percentage=x['percentage'])
