@@ -31,7 +31,7 @@ def params():
 
 
 def test_prediction_intervals(params):
-    pred_ints_params = PredictionIntervalsParams(number_mutations=80, bpq_number_models='max')
+    pred_ints_params = PredictionIntervalsParams(number_mutations=80, bpq_number_models='max', show_progress=False)
     for x in ['mutation_of_best_pipeline', 'best_pipelines_quantiles']:
 
         pred_ints = PredictionIntervals(model=params['model'], method=x, horizon=20, params=pred_ints_params)
