@@ -36,7 +36,7 @@ class PredictionIntervalsParams:
     logging_level: int = 20
     n_jobs: int = -1
     show_progress: bool = True
-    number_mutations: int = 20
+    number_mutations: int = 30
     mutations_choice: str = 'different'
     mutations_discard_inapropriate_pipelines: bool = True
     mutations_keep_percentage: float = 0.66

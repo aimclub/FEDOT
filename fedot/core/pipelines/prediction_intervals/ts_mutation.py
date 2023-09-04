@@ -55,7 +55,7 @@ def get_mutations(individual: Individual, number_mutations: int, operations: Lis
     return mutations
 
 
-def get_different_mutations(individual: Individual, 
+def get_different_mutations(individual: Individual,
                             number_mutations: int,
                             operations: List[str],
                             logger: LoggerAdapter):
@@ -71,9 +71,9 @@ def get_different_mutations(individual: Individual,
     """
     mutations = []
     graph_list = []
-    s=1
-    maximal_number_iterations = number_mutations*3
-    
+    s = 1
+    maximal_number_iterations = number_mutations * 3
+
     while (len(mutations) < number_mutations and s <= maximal_number_iterations):
         s += 1
         new_ind = get_ts_mutation(individual, operations)
