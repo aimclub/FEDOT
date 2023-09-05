@@ -520,7 +520,12 @@ class InputData(Data):
         new_num_idx = np.array([i for i in range(num_features_count)])
         new_cat_idx = np.array([i for i in range(num_features_count, num_features_count + cat_features_count)])
 
-        num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+        if self.features_names is not None:
+            num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+        else:
+            self.features_names = [f'feature_{i}' for i in range(1, new_features.shape[1])]
+            num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+
         num_features_name = self.features_names[num_idx].tolist()
         cat_features_name = self.features_names[self.categorical_idx].tolist()
 
