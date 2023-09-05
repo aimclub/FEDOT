@@ -166,6 +166,8 @@ class Fedot:
 
         NB! 'adaptive_mutation_type' and 'context_agent_type' can be specified with 'composer_tuner_params'.
         Both these params are a part of experimental functionality for adaptive evolution.
+        Adaptive evolution uses multi-armed bandits to choose most promising mutation at each iteration
+        of evolution cycle.
         The full range of context agents can be obtained in GOLEM: golem.core.optimizers.adaptive.context_agents
     """
 
