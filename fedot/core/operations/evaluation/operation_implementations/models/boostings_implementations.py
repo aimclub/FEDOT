@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 import pandas as pd
@@ -8,6 +9,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotCatBoostImplementation(ModelImplementation):
@@ -72,6 +74,14 @@ class FedotCatBoostImplementation(ModelImplementation):
             cat_features=data.categorical_idx,
             feature_names=data.features_names.tolist()
         )
+
+    def save_model(self, model_name: str = 'catboost'):
+        save_path = os.path.join(default_fedot_data_dir(), f'catboost/{model_name}.cbm')
+        self.model.save_model(save_path, format='cbm')
+
+    def load_model(self, path):
+        self.model = CatBoostClassifier()
+        self.model.load_model(path)
 
 
 class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
