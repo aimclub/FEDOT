@@ -521,10 +521,10 @@ class InputData(Data):
         new_cat_idx = np.array([i for i in range(num_features_count, num_features_count + cat_features_count)])
 
         if self.features_names is not None:
-            num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+            num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
         else:
             self.features_names = [f'feature_{i}' for i in range(1, new_features.shape[1])]
-            num_idx = [idx for idx, _ in enumerate(self.features_names) if not idx in self.categorical_idx]
+            num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
 
         num_features_name = self.features_names[num_idx].tolist()
         cat_features_name = self.features_names[self.categorical_idx].tolist()
@@ -553,6 +553,7 @@ class OutputData(Data):
     target: Optional[np.ndarray] = None
     numerical_idx: np.ndarray = None
     encoded_idx: np.ndarray = None
+
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
     """Function resizes and rewrites the input image
