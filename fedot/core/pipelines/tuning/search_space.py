@@ -630,17 +630,22 @@ class PipelineSearchSpace(SearchSpace):
             'catboost': {
                 'max_depth': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 16],
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'
+                },
+                'max_leaves': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
                 'learning_rate': {
                     'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [0.01, 0.2],
+                    'sampling-scope': [0.01, 0.5],
                     'type': 'continuous'
                 },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 6],
+                    'sampling-scope': [0, 100],
                     'type': 'discrete'
                 },
                 'border_count': {
@@ -652,7 +657,7 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'
-                }
+                },
             },
             'catboostreg': {
                 'max_depth': {
