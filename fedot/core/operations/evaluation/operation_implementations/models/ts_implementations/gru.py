@@ -44,6 +44,8 @@ class GRUImplementation(ModelImplementation):
             return (x - self.preprocessing_mean) / (self.preprocessing_std + 1e-6)
         elif self.preprocessing_type == 'minmax':
             return (x - self.preprocessing_min) / (self.preprocessing_max - self.preprocessing_min)
+        elif self.preprocessing_type is None:
+            return x
         else:
             raise ValueError((f"Unknown type of preprocessing: {self.preprocessing_type}."
                               f" Allowed types: normalization, minmax"))
@@ -53,6 +55,8 @@ class GRUImplementation(ModelImplementation):
             return y * self.preprocessing_std + self.preprocessing_mean
         elif self.preprocessing_type == 'minmax':
             return y * (self.preprocessing_max - self.preprocessing_min) + self.preprocessing_min
+        elif self.preprocessing_type is None:
+            return y
         else:
             raise ValueError((f"Unknown type of preprocessing: {self.preprocessing_type}."
                               f" Allowed types: normalization, minmax"))
@@ -73,7 +77,9 @@ class GRUImplementation(ModelImplementation):
 
     def fit(self, data: InputData):
         if self.model is None:
-            dropout = self.params.get('dropout') or 0.2
+            # TODO: choose layers count and hidden size accrodance to amount of data
+            #       if there is a small dataset then big gru cannot be fitted
+            dropout = self.params.get('dropout') or 0.1
             hidden_size = (self.params.get('hidden_size') or
                            round(data.features.shape[1] * 2 / (1 - dropout)))
             layer_count = self.params.get('layers_count') or 3
@@ -106,52 +112,34 @@ class GRUImplementation(ModelImplementation):
         batch_count = int(x.shape[0] / self.batch_size)
         train_count = int(batch_count * (1 - self.validation_size))
 
-        losses = []
-        validations = []
-        for epoch in range(self.max_step):
-
-            # train
+        def fit_step(count_range, x=x, y=y, model=model,loss_fun=loss_fun,
+                     opt_fun=opt_fun, grad=True):
             _losses = []
             h = self.initialize_hidden().to(self.device)
-            for batch_num in range(train_count):
+            for batch_num in count_range:
                 x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
                 y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
                 y_pred, h = model(x_iter, h)
                 loss = loss_fun(y_iter, y_pred)
-                loss.backward()
-                opt_fun.step()
-                opt_fun.zero_grad()
+                if grad:
+                    loss.backward()
+                    opt_fun.step()
+                    opt_fun.zero_grad()
                 _losses.append(loss.item())
-            losses.append(np.mean(_losses))
+            return np.mean(_losses)
 
-            # validation
-            _validations = []
-            h = self.initialize_hidden().to(self.device)
-            for batch_num in range(train_count, batch_count):
-                x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
-                y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
-                y_pred, h = model(x_iter, h)
-                loss = loss_fun(y_iter, y_pred)
-                _validations.append(loss.item())
-            validations.append(np.mean(_validations))
+        losses, validations = [], []
+        for epoch in range(self.max_step):
+            losses.append(fit_step(range(train_count)))
+            validations.append(fit_step(range(train_count, batch_count), grad=False))
 
             if epoch > 5:
                 # TODO: adaptive early stop
-                if np.all(abs(np.diff(validations[-5:]) / validations[-4:]) < 0.05):
+                if np.mean(abs(np.diff(validations[-5:]) / validations[-5:-1]) < 0.05) > 0.5:
                     break
 
         # fit on validation data
-        for epoch in range(2):
-            h = self.initialize_hidden().to(self.device)
-            for batch_num in range(train_count, batch_count):
-                x_iter = x[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :, :]
-                y_iter = y[batch_num * self.batch_size:(batch_num + 1) * self.batch_size, :]
-                y_pred, h = model(x_iter, h)
-                loss = loss_fun(y_iter, y_pred)
-                loss.backward()
-                opt_fun.step()
-                opt_fun.zero_grad()
-                losses.append(loss.item())
+        fit_step(range(train_count, batch_count))
         return self.model
 
     def predict(self, data: InputData):
