@@ -271,12 +271,21 @@ def test_multistep_out_of_sample_forecasting():
 
 def test_multistep_in_sample_forecasting():
     horizon = 12
-    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
+    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5, validation_blocks=3)
 
     pipeline = get_multiscale_pipeline()
 
     # Fit pipeline to make forecasts 5 elements above
     pipeline.fit(input_data=train_data)
+
+    # manual predict
+    a = test_data.slice(-15, -10, in_sample=False)
+    manual_predict = []
+    manual_predict.append(pipeline.predict(input_data=test_data.slice(-15, -10, in_sample=False)))
+    manual_predict.append(pipeline.predict(input_data=test_data.slice(-10, -5, in_sample=False)))
+    manual_predict.append(pipeline.predict(input_data=test_data.slice(-5, in_sample=False)))
+    manual_predict = [np.ravel(x.predict) for x in manual_predict]
+    manual_predict = np.concatenate(manual_predict, axis=0)[:horizon]
 
     # Make prediction for 12 elements
     predicted = in_sample_ts_forecast(pipeline=pipeline,
@@ -284,6 +293,7 @@ def test_multistep_in_sample_forecasting():
                                       horizon=horizon)
 
     assert len(predicted) == horizon
+    assert np.array_equal(manual_predict, predicted)
 
 
 def test_ts_forecasting_with_multiple_series_in_lagged():
