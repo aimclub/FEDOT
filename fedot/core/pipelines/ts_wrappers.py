@@ -84,24 +84,20 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     # Divide data on samples into pre-history and validation part
     exception_if_not_ts_task(input_data.task)
 
-    # How many elements to the future pipeline can produce
     forecast_length = input_data.task.task_params.forecast_length
     number_of_iterations = math.ceil(horizon / forecast_length)
 
+    if input_data.idx.shape[0] < horizon:
+        raise ValueError((f"Cannot forecast with forecast length {forecast_length}"
+                          f" and data length {input_data.idx.shape[0]}"))
+
     final_forecast = np.zeros((number_of_iterations, forecast_length))
-    data = InputData(idx=input_data.idx,
-                     features=input_data.features[:-forecast_length],
-                     target=input_data.target,
-                     data_type=input_data.data_type,
-                     task=input_data.task)
     for i in range(number_of_iterations):
+        data = input_data.slice(-(i + 1) * forecast_length,
+                                -i * forecast_length if i != 0 else None,
+                                in_sample=False)
         iter_predict = pipeline.predict(input_data=data)
         final_forecast[-(i + 1), :] = np.ravel(iter_predict.predict)
-        data = InputData(idx=data.idx[:-forecast_length],
-                         features=data.features[:-forecast_length],
-                         target=data.target[:-forecast_length],
-                         data_type=data.data_type,
-                         task=data.task)
 
     final_forecast = np.ravel(final_forecast)[:horizon]
     return final_forecast
