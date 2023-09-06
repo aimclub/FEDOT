@@ -523,7 +523,7 @@ class InputData(Data):
         if self.features_names is not None:
             num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
         else:
-            self.features_names = [f'feature_{i}' for i in range(1, new_features.shape[1])]
+            self.features_names = np.array([f'feature_{i}' for i in range(1, new_features.shape[1] + 1)])
             num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
 
         num_features_name = self.features_names[num_idx].tolist()
