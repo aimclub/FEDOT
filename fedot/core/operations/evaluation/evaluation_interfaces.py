@@ -182,7 +182,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
         'lgbmreg': LGBMRegressor,
-        # 'catboostreg': CatBoostRegressor,
 
         'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
@@ -192,7 +191,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
         'lgbm': LGBMClassifier,
-        # 'catboost': CatBoostClassifier,
 
         'kmeans': SklearnKmeans,
     }

@@ -10,9 +10,7 @@ from fedot.utilities.random import ImplementationRandomStateHandler
 
 class BoostingClassificationStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'catboost': FedotCatBoostClassificationImplementation,
-        # 'xgboost': FedotXgboostBoostClassificationImplementation,
-        # 'lgbm': FedotLightGBMBoostClassificationImplementation,
+        'catboost': FedotCatBoostClassificationImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -49,9 +47,7 @@ class BoostingClassificationStrategy(EvaluationStrategy):
 
 class BoostingRegressionStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'catboostreg': FedotCatBoostRegressionImplementation,
-        # 'xgb_regr': FedotXgboostBoostRegressionImplementation,
-        # 'lgbm_regr': FedotLightGBMBoostRegressionImplementation,
+        'catboostreg': FedotCatBoostRegressionImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
