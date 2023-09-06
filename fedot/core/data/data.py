@@ -436,15 +436,16 @@ class InputData(Data):
         return len(self.idx)
 
     def slice(self, start: Optional[int] = None, stop: Optional[int] = None,
-              step: Optional[int] = 1, in_sample: bool = True):
-        if start is None and stop is None:
-            raise ValueError('Slicing range is undefined')
-
+              step: Optional[int] = 1, in_sample: bool = True, copy: bool = True):
         index = np.arange(len(self))[slice(start, stop, step)]
 
-        return self.slice_by_index(index, step, in_sample=in_sample)
+        if len(index) == 0:
+            raise ValueError(f"Uncorrect slicing [{start}:{stop}:{step}] for data with length {len(self)}")
 
-    def slice_by_index(self, indexes: Iterable, step: int = 1, in_sample: bool = True):
+        return self.slice_by_index(index, step, in_sample=in_sample, copy=copy)
+
+    def slice_by_index(self, indexes: Iterable, step: int = 1,
+                       in_sample: bool = True, copy: bool = True):
         """ Extract data with indexes (not ``idx``)
             Save features before first index in ``indexes`` for time series
             :param indexes: iterator with indexes that should be extracted
@@ -452,7 +453,7 @@ class InputData(Data):
             :param step: step between indexes for time series
             :param in_sample: if True then save features for indexes for time series
             :return: InputData """
-        new = self.copy()
+        new = self.copy() if copy else self
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
             # retain data in features before ``indexes``
             delta = new.features.shape[0] - len(new)
@@ -467,16 +468,17 @@ class InputData(Data):
         new.target = np.take(new.target, indexes, 0)
         return new
 
-    def subset_range(self, start: int, end: int):
+    def subset_range(self, start: int, end: int, copy: bool = True):
         if start > end or not (0 <= start <= end <= len(self)):
             raise IndexError(f'Incorrect indexes in slice {slice} for data with length {len(self)}')
-        return self.slice(start, end + 1)
+        return self.slice(start, end + 1, copy=copy)
 
-    def subset_indices(self, selected_idx: List):
+    def subset_indices(self, selected_idx: List, copy: bool = True):
         """Get subset from :obj:`InputData` to extract all items with specified indices
 
         Args:
             selected_idx: ``list`` of indices for extraction
+            copy: True to return copy of instance
 
         Returns:
             :obj:`InputData`
@@ -488,12 +490,13 @@ class InputData(Data):
         except KeyError:
             missing_values = [selected_ind for selected_ind in selected_idx if selected_ind not in hash_table]
             raise IndexError(f"Next indexes are missing: {missing_values}")
-        return self.slice_by_index(row_nums)
+        return self.slice_by_index(row_nums, copy=copy)
 
-    def subset_features(self, features_ids: list, with_target: bool = False, ravel_if_only_ids: bool = False):
+    def subset_features(self, features_ids: list, with_target: bool = False,
+                        ravel_if_only_ids: bool = False, copy: bool = True):
         """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
         """
-        subsample_input = self.copy()
+        subsample_input = self.copy() if copy else self
         subsample_input.features = self.features[:, features_ids]
         if ravel_if_only_ids and len(features_ids) == 1:
             subsample_input.features = np.ravel(subsample_input.features)
@@ -562,15 +565,13 @@ class InputData(Data):
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
-    def copy(self, copy_supplementary_data=False):
-        kwargs = ({'supplementary_data': deepcopy(self.supplementary_data)}
-                  if copy_supplementary_data else dict())
+    def copy(self):
         return InputData(idx=self.idx,
                          features=self.features,
                          target=self.target,
                          task=self.task,
                          data_type=self.data_type,
-                         **kwargs)
+                         supplementary_data=deepcopy(self.supplementary_data))
 
 
     @staticmethod

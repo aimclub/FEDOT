@@ -64,30 +64,29 @@ class MultiModalData(Dict[str, InputData]):
         return [input_data.data_type for input_data in iter(self.values())]
 
     @map_over_multimodal_data
-    def subset_range(self, start, end):
+    def subset_range(self, start, end, copy):
         pass
 
     @map_over_multimodal_data
-    def slice(self, start, stop, step, in_sample):
+    def slice(self, start, stop, step, in_sample, copy):
         pass
 
     @map_over_multimodal_data
-    def slice_by_index(self, indexes, step, in_sample):
+    def slice_by_index(self, indexes, step, in_sample, copy):
         pass
 
     @map_over_multimodal_data
-    def subset_indices(self, selected_idx):
+    def subset_indices(self, selected_idx, copy):
         pass
 
     @map_over_multimodal_data
-    def subset_features(self, features_ids, with_target, ravel_if_only_ids):
+    def subset_features(self, features_ids, with_target, ravel_if_only_ids, copy):
         pass
 
-    def copy(self, copy_supplementary_data: Optional[bool] = None):
-        kwargs = dict() if copy_supplementary_data is None else {'copy_supplementary_data': False}
+    def copy(self):
         new = MultiModalData()
         for key in self.keys():
-            new[key] = self[key].copy(**kwargs)
+            new[key] = self[key].copy()
         return new
 
     def shuffle(self, seed: Optional[int] = None):
