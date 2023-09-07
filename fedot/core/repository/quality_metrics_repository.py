@@ -1,5 +1,5 @@
 from numbers import Real
-from typing import Callable, Union, TypeVar
+from typing import Callable, Union, TypeVar, Optional
 
 from golem.core.dag.graph import Graph
 from golem.core.utilities.data_structures import ComparableEnum as Enum
@@ -100,6 +100,12 @@ class MetricsRepository:
     @staticmethod
     def metric_by_id(metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
         return MetricsRepository._metrics_implementations.get(metric_id, default_callable)
+
+    @staticmethod
+    def metric_id_by_name(metric_name: str) -> Optional[MetricsEnum]:
+        available_metrics = list(MetricsRepository._metrics_implementations.keys())
+        metric_name = [key for key in available_metrics if key == metric_name]
+        return metric_name[0] if metric_name else None
 
     @staticmethod
     def metric_class_by_id(metric_id: MetricsEnum) -> Metric:
