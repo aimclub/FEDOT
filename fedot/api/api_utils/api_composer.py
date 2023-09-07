@@ -147,7 +147,7 @@ class ApiComposer:
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
-                 .with_metric(self.metrics.metric_functions)
+                 .with_metric(self.metrics.metric_functions[0])
                  .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
                  .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)

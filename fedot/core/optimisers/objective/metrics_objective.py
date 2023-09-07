@@ -16,7 +16,7 @@ class MetricsObjective(Objective):
 
         for metric in ensure_wrapped_in_sequence(metrics):
             if isinstance(metric, MetricsEnum):
-                metric_func = MetricsRepository().metric_by_id(metric)
+                metric_func = MetricsRepository.metric_by_id(metric)
 
                 if isinstance(metric, ComplexityMetricsEnum):
                     complexity_metrics[metric] = metric_func
