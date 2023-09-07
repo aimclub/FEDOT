@@ -1,21 +1,21 @@
 from typing import List
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.repository.quality_metrics_repository import (
     MetricsEnum,
     RegressionMetricsEnum,
     ClassificationMetricsEnum,
     ClusteringMetricsEnum,
-    MetricsRepository
+    MetricsRepository, TimeSeriesForecastingMetricsEnum
 )
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class MetricByTask:
     __metric_by_task = {TaskTypesEnum.regression: RegressionMetricsEnum.RMSE,
                         TaskTypesEnum.classification: ClassificationMetricsEnum.ROCAUC_penalty,
                         TaskTypesEnum.clustering: ClusteringMetricsEnum.silhouette,
-                        TaskTypesEnum.ts_forecasting: RegressionMetricsEnum.RMSE,
+                        TaskTypesEnum.ts_forecasting: TimeSeriesForecastingMetricsEnum.RMSE,
                         }
 
     @staticmethod

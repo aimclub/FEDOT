@@ -5,7 +5,7 @@ from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.composer.metrics import Metric
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum, MetricType,
-                                                              MetricsEnum)
+                                                              MetricsEnum, TimeSeriesForecastingMetricsEnum)
 from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -25,6 +25,7 @@ class ApiMetrics:
         'mse': RegressionMetricsEnum.MSE,
         'msle': RegressionMetricsEnum.MSLE,
         'mape': RegressionMetricsEnum.MAPE,
+        'mase': TimeSeriesForecastingMetricsEnum.MASE,
         'smape': RegressionMetricsEnum.SMAPE,
         'r2': RegressionMetricsEnum.R2,
         'rmse': RegressionMetricsEnum.RMSE,
