@@ -1,3 +1,5 @@
+import platform
+
 import pytest
 import pickle
 import numpy as np
@@ -11,6 +13,12 @@ from fedot.core.pipelines.prediction_intervals.main import PredictionIntervals
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.metrics import interval_score, picp
 
+
+import pathlib
+
+plt = platform.system()
+if plt == 'Linux':
+    pathlib.WindowsPath = pathlib.PosixPath
 
 @pytest.fixture
 def params():
