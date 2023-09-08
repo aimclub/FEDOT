@@ -83,7 +83,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             numerical_columns.extend([str(int)] * encoded_columns_number)
 
             output_data.encoded_idx = self.encoded_ids
-            output_data.numerical_idx = self.new_numerical_idx
             output_data.supplementary_data.column_types['features'] = numerical_columns
 
     def _apply_one_hot_encoding(self, features: np.array) -> np.array:
@@ -105,7 +104,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             non_categorical_features = np.array(features[:, self.non_categorical_ids])
             frames = (non_categorical_features, transformed_categorical)
             transformed_features = np.hstack(frames)
-            self.new_numerical_idx = [i for i in range(non_categorical_features.shape[1])]
             self.encoded_ids = [i for i in range(non_categorical_features.shape[1], transformed_features.shape[1])]
 
         return transformed_features
