@@ -17,7 +17,7 @@ from fedot.core.pipelines.prediction_intervals.params import PredictionIntervals
 @pytest.fixture
 def params():
 
-    model_name = f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle'
+    model_name = f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/pred_ints_model_test.pickle'
     with open(model_name, 'rb') as f:
         model = pickle.load(f)
 
