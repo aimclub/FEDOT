@@ -91,7 +91,7 @@ class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
         self.model = CatBoostClassifier(**self.model_params)
 
     def predict_proba(self, input_data: InputData):
-        prediction = self.model.predict_proba(input_data.get_not_encoded_data.features)
+        prediction = self.model.predict_proba(input_data.get_not_encoded_data().features)
 
         return prediction
 

@@ -628,58 +628,88 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'}
             },
             'catboost': {
+                'iterations': {
+                    'hyperopt-dist': hp.randint,
+                    'sampling-scope': [500, 10000],
+                    'type': 'discrete'
+                },
+                'learning_rate': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                },
                 'max_depth': {
-                    'hyperopt-dist': hp.uniformint,
+                    'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
                 'max_leaves': {
-                    'hyperopt-dist': hp.uniformint,
+                    'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
-                'learning_rate': {
-                    'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [0.01, 0.5],
-                    'type': 'continuous'
-                },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 100],
+                    'sampling-scope': [0, 25],
                     'type': 'discrete'
                 },
                 'border_count': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [2, 255],
+                    'sampling-scope': [1, 65535],
                     'type': 'discrete'
                 },
                 'l2_leaf_reg': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniform,
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'
                 },
+                'colsample_bylevel': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                }
             },
             'catboostreg': {
-                'max_depth': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 11],
-                    'type': 'discrete'},
+                'iterations': {
+                    'hyperopt-dist': hp.randint,
+                    'sampling-scope': [500, 10000],
+                    'type': 'discrete'
+                },
                 'learning_rate': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.2, 1.0],
+                    'type': 'continuous'
+                },
+                'max_depth': {
                     'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [0.01, 0.2],
-                    'type': 'continuous'},
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'
+                },
+                'max_leaves': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'
+                },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 6],
-                    'type': 'discrete'},
+                    'sampling-scope': [0, 25],
+                    'type': 'discrete'
+                },
                 'border_count': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [2, 255],
-                    'type': 'discrete'},
+                    'sampling-scope': [1, 65535],
+                    'type': 'discrete'
+                },
                 'l2_leaf_reg': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniform,
                     'sampling-scope': [1e-8, 10],
-                    'type': 'continuous'}
+                    'type': 'continuous'
+                },
+                'colsample_bylevel': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                }
             },
             'resample': {
                 'balance': {
