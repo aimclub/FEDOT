@@ -1,24 +1,16 @@
-import platform
-
-import pytest
 import pickle
+
 import numpy as np
+import pytest
 
-from fedot.core.utils import fedot_project_root
 from fedot.core.data.data import InputData
-from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
-
 from fedot.core.pipelines.prediction_intervals.main import PredictionIntervals
-from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.metrics import interval_score, picp
+from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 
-
-import pathlib
-
-plt = platform.system()
-if plt == 'Linux':
-    pathlib.WindowsPath = pathlib.PosixPath
 
 @pytest.fixture
 def params():

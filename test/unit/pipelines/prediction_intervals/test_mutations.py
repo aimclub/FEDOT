@@ -1,25 +1,16 @@
-import platform
-
-import pytest
+import itertools
 import pickle
 from typing import List
-import itertools
 
-from golem.core.optimisers.opt_history_objects.individual import Individual
+import pytest
 from golem.core.log import default_log, Log
-
-from fedot.core.utils import fedot_project_root
-from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
-from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
+from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
-
-import pathlib
-
-plt = platform.system()
-if plt == 'Linux':
-    pathlib.WindowsPath = pathlib.PosixPath
+from fedot.core.pipelines.prediction_intervals.ts_mutation import get_ts_mutation, get_different_mutations
+from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
+from fedot.core.utils import fedot_project_root
 
 
 @pytest.fixture
