@@ -1,13 +1,12 @@
 import datetime
 import gc
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 from golem.core.log import default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
-from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.time import ApiTime
 from fedot.core.caching.pipelines_cache import OperationsCache
@@ -18,11 +17,12 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.quality_metrics_repository import MetricType
 
 
 class ApiComposer:
 
-    def __init__(self, api_params: ApiParams, metrics: ApiMetrics):
+    def __init__(self, api_params: ApiParams, metrics: Union[str, MetricType, Sequence]):
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
@@ -58,7 +58,7 @@ class ApiComposer:
 
         initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
 
-        multi_objective = len(self.metrics.metric_functions) > 1
+        multi_objective = len(self.metrics) > 1
         self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)
 
         self.log.message(f"AutoML configured."
@@ -117,7 +117,7 @@ class ApiComposer:
                                    .with_initial_pipelines(initial_assumption)
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
-                                   .with_metrics(self.metrics.metric_functions)
+                                   .with_metrics(self.metrics)
                                    .with_cache(self.pipelines_cache, self.preprocessing_cache)
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
@@ -147,7 +147,7 @@ class ApiComposer:
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
-                 .with_metric(self.metrics.metric_functions[0])
+                 .with_metric(self.metrics[0])
                  .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
                  .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
