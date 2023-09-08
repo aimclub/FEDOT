@@ -23,7 +23,8 @@ class MetricByTask:
         return [MetricByTask.__metric_by_task.get(task_type)]
 
     @staticmethod
-    def compute_default_metric(task_type: TaskTypesEnum, true: InputData, predicted: OutputData, round_up_to: int = 6) -> float:
+    def compute_default_metric(task_type: TaskTypesEnum, true: InputData, predicted: OutputData,
+                               round_up_to: int = 6) -> float:
         """Returns the value of metric defined by task"""
         metric_id = MetricByTask.get_default_quality_metrics(task_type)[0]
         metric = MetricsRepository.metric_class_by_id(metric_id)
