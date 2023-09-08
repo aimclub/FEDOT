@@ -509,27 +509,45 @@ class InputData(Data):
         return copied_data
 
     def get_not_encoded_data(self):
-        num_features = self.features[:, self.numerical_idx]
-        cat_features = self.categorical_features
+        new_features, new_features_names = None, None
+        new_num_idx, new_cat_idx = None, None
+        num_features, cat_features = None, None
+        num_features_names, cat_features_names = None, None
 
-        new_features = np.hstack((num_features, cat_features))
+        # Checking numerical data exists
+        if self.numerical_idx:
+            num_features = self.features[:, self.numerical_idx]
 
-        num_features_count = num_features.shape[1]
-        cat_features_count = cat_features.shape[1]
+            if self.features_names:
+                num_features_names = self.features_names[self.numerical_idx]
+            else:
+                num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
 
-        new_num_idx = np.array([i for i in range(num_features_count)])
-        new_cat_idx = np.array([i for i in range(num_features_count, num_features_count + cat_features_count)])
+        # Checking categorical data exists
+        if self.categorical_idx:
+            cat_features = self.categorical_features
 
-        if self.features_names is not None:
-            num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
-        else:
-            self.features_names = np.array([f'feature_{i}' for i in range(1, new_features.shape[1] + 1)])
-            num_idx = [idx for idx, _ in enumerate(self.features_names) if idx not in self.categorical_idx]
+            if self.features_names:
+                cat_features_names = self.features_names[self.categorical_features]
+            else:
+                cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
 
-        num_features_name = self.features_names[num_idx].tolist()
-        cat_features_name = self.features_names[self.categorical_idx].tolist()
+        if num_features and cat_features:
+            new_features = np.hstack((num_features, cat_features))
+            new_features_names = np.hstack(num_features_names, cat_features_names)
+            new_features_idx = np.array([i for i in range(new_features.shape[1])])
+            new_num_idx = new_features_idx[:new_features.shape[1]]
+            new_cat_idx = new_features_idx[cat_features.shape[1]:]
 
-        new_features_names = np.array(num_features_name + cat_features_name)
+        elif cat_features is not None:
+            new_features = cat_features
+            new_features_names = cat_features_names
+            new_cat_idx = np.array([i for i in range(new_features.shape[1])])
+
+        elif num_features is not None:
+            new_features = num_features
+            new_features_names = num_features_names
+            new_num_idx = np.array([i for i in range(new_features.shape[1])])
 
         return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
                          numerical_idx=new_num_idx, categorical_idx=new_cat_idx,
@@ -551,7 +569,6 @@ class OutputData(Data):
     features: Optional[np.ndarray] = None
     predict: np.ndarray = None
     target: Optional[np.ndarray] = None
-    numerical_idx: np.ndarray = None
     encoded_idx: np.ndarray = None
 
 
