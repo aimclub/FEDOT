@@ -15,8 +15,8 @@ from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
 @pytest.fixture
 def params():
-
-    with open(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/pred_ints_model_test.pickle', 'rb') as f:
+    with open(f'{fedot_project_root()}'
+              f'/test/unit/pipelines/prediction_intervals/data/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
     ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/train_ts.csv')
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
@@ -48,17 +48,17 @@ def test_solver_mutation_of_best_pipeline(params):
 
     for x in [params_default, params_with_replacement, params_different]:
         res = solver_mutation_of_best_pipeline(train_input=params['train_input'],
-                                     ind=params['ind'],
-                                     horizon=20,
-                                     forecast=params['forecast'],
-                                     logger=params['logger'],
-                                     number_mutations=x['number_mutations'],
-                                     operations=params['operations'],
-                                     n_jobs=-1,
-                                     show_progress=False,
-                                     mutations_choice=x['choice'],
-                                     discard_inapropriate_pipelines=x['discard'],
-                                     keep_percentage=x['percentage'])
+                                               ind=params['ind'],
+                                               horizon=20,
+                                               forecast=params['forecast'],
+                                               logger=params['logger'],
+                                               number_mutations=x['number_mutations'],
+                                               operations=params['operations'],
+                                               n_jobs=-1,
+                                               show_progress=False,
+                                               mutations_choice=x['choice'],
+                                               discard_inapropriate_pipelines=x['discard'],
+                                               keep_percentage=x['percentage'])
 
         if x == params_default:
             number_predictions = len(res)
