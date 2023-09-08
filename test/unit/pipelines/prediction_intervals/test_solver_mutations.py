@@ -1,3 +1,5 @@
+import platform
+
 import pytest
 import pickle
 import numpy as np
@@ -11,6 +13,12 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
+
+import pathlib
+
+plt = platform.system()
+if plt == 'Linux':
+    pathlib.WindowsPath = pathlib.PosixPath
 
 
 @pytest.fixture

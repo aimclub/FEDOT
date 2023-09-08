@@ -1,3 +1,5 @@
+import platform
+
 import pytest
 import pickle
 from typing import List
@@ -12,6 +14,12 @@ from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 
 from fedot.core.pipelines.prediction_intervals.graph_distance import get_distance_between
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
+
+import pathlib
+
+plt = platform.system()
+if plt == 'Linux':
+    pathlib.WindowsPath = pathlib.PosixPath
 
 
 @pytest.fixture
