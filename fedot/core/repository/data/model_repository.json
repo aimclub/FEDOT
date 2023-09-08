@@ -213,14 +213,14 @@
       "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non-default", "non_linear"
+        "simple", "boosting"
       ]
     },
     "catboostreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non_multi", "non-default", "non_linear"
+        "simple", "boosting"
       ]
     },
     "dt": {
