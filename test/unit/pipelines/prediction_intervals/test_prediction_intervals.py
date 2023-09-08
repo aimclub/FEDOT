@@ -15,10 +15,10 @@ from fedot.core.pipelines.prediction_intervals.metrics import interval_score, pi
 @pytest.fixture
 def params():
 
-    with open(f'{fedot_project_root()}/test/unit/data/prediction_intervals/pred_ints_model_test.pickle', 'rb') as f:
+    with open(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
-    ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/train_ts.csv')
-    ts_test = np.genfromtxt(f'{fedot_project_root()}/test/unit/data/prediction_intervals/test_ts.csv')
+    ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/train_ts.csv')
+    ts_test = np.genfromtxt(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/test_ts.csv')
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
     idx = np.arange(len(ts_train))
     train_input = InputData(idx=idx,

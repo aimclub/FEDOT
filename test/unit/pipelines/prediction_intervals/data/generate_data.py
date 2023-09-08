@@ -1,8 +1,10 @@
-# This script generates train ts, test ts and fedot model for testing prediction intervals
+# This script generates fedot model for testing prediction intervals
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+
+from numpy import genfromtxt
 
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.data.data import InputData
@@ -10,18 +12,8 @@ from fedot.api.main import Fedot
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-def synthetic_series(start, end):
-
-    trend = np.array([5 * np.sin(x / 20) + 0.1 * x - 2 * np.sqrt(x) for x in range(start, end)])
-    noise = np.random.normal(loc=0, scale=1, size=end - start)
-
-    return trend + noise
-
-
-ts_train = synthetic_series(0, 200)
-ts_test = synthetic_series(200, 220)
-np.savetxt("train_ts.csv", ts_train, delimiter=",")
-np.savetxt("test_ts.csv", ts_test, delimiter=",")
+ts_train = genfromtxt('train_ts.csv', delimiter=',')
+ts_test = genfromtxt('test_ts.csv', delimiter=',')
 
 fig, ax = plt.subplots()
 ax.plot(range(200), ts_train)
@@ -42,5 +34,5 @@ model = Fedot(problem='ts_forecasting',
 model.fit(train_input)
 model.forecast()
 
-with open('prediction_intervals_fedot_model.pickle', 'wb') as f:
+with open('pred_ints_model_test.pickle', 'wb') as f:
     pickle.dump(model, f)
