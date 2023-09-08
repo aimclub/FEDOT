@@ -15,15 +15,17 @@ class MetricsObjective(Objective):
         complexity_metrics = {}
 
         for metric in ensure_wrapped_in_sequence(metrics):
-            if isinstance(metric, MetricsEnum):
-                metric_func = MetricsRepository.metric_by_id(metric)
-
-                if isinstance(metric, ComplexityMetricsEnum):
-                    complexity_metrics[metric] = metric_func
-                else:
-                    quality_metrics[metric] = metric_func
-            elif isinstance(metric, Callable):
+            if isinstance(metric, Callable):
                 metric_id = str(metric)
                 quality_metrics[metric_id] = metric
+            else:
+                metric_func = MetricsRepository.metric_by_id(metric)
+                if metric_func:
+                    if ComplexityMetricsEnum.has_value(metric):
+                        complexity_metrics[metric] = metric_func
+                    else:
+                        quality_metrics[metric] = metric_func
+                else:
+                    raise ValueError(f'Incorrect metric {metric}')
 
         super().__init__(quality_metrics, complexity_metrics, is_multi_objective)
