@@ -639,12 +639,12 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'
                 },
                 'max_depth': {
-                    'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [1, 100],
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
                 'max_leaves': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
@@ -681,12 +681,12 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'
                 },
                 'max_depth': {
-                    'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [1, 100],
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [4, 10],
                     'type': 'discrete'
                 },
                 'max_leaves': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 100],
                     'type': 'discrete'
                 },
