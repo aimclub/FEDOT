@@ -49,7 +49,7 @@ class FedotCatBoostImplementation(ModelImplementation):
 
     def check_and_update_params(self):
         n_jobs = self.params.get('n_jobs')
-        self.params.update({'thread_count': n_jobs})
+        self.params.update(thread_count=n_jobs)
 
         use_best_model = self.params.get('use_best_model')
         early_stopping_rounds = self.params.get('early_stopping_rounds')
