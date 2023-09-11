@@ -532,7 +532,7 @@ class InputData(Data):
             else:
                 cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
 
-        if num_features and cat_features:
+        if num_features is not None and cat_features is not None:
             new_features = np.hstack((num_features, cat_features))
             new_features_names = np.hstack((num_features_names, cat_features_names))
             new_features_idx = np.array(range(new_features.shape[1]))
