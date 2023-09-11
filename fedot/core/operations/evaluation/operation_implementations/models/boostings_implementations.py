@@ -18,8 +18,7 @@ class FedotCatBoostImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
-        # TODO: Adding checking params compatibility with each other
-        self.params.update(**self.check_and_update_params(self.params.to_dict()))
+        self.check_and_update_params()
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
@@ -48,15 +47,16 @@ class FedotCatBoostImplementation(ModelImplementation):
 
         return prediction
 
-    @staticmethod
-    def check_and_update_params(params):
-        params['thread_count'] = params['n_jobs']
+    def check_and_update_params(self):
+        n_jobs = self.params.get('n_jobs')
+        self.params.update({'thread_count': n_jobs})
 
-        if params['use_best_model'] or params['early_stopping_rounds'] and not params['use_eval_set']:
-            params['use_best_model'] = False
-            params['early_stopping_rounds'] = False
+        use_best_model = self.params.get('use_best_model')
+        early_stopping_rounds = self.params.get('early_stopping_rounds')
+        use_eval_set = self.params.get('use_eval_set')
 
-        return params
+        if use_best_model or early_stopping_rounds and not use_eval_set:
+            self.params.update(dict(use_best_model=False, early_stopping_rounds=False))
 
     @staticmethod
     def convert_to_pool(data: Optional[InputData]):
