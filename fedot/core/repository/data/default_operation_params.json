@@ -15,7 +15,8 @@
     "iterations": 1000,
     "use_eval_set": false,
     "use_best_model": false,
-    "early_stopping_rounds": 100
+    "early_stopping_rounds": null,
+    "n_jobs": 1
   },
   "catboostreg": {
     "allow_writing_files": false,
@@ -23,7 +24,8 @@
     "iterations": 1000,
     "use_eval_set": false,
     "use_best_model": false,
-    "early_stopping_rounds": 100
+    "early_stopping_rounds": null,
+    "n_jobs": 1
   },
   "lgbm": {
     "num_leaves": 32,

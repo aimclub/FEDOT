@@ -13,15 +13,13 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotCatBoostImplementation(ModelImplementation):
-    __operation_params = ['use_eval_set']
+    __operation_params = ['use_eval_set', 'n_jobs']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
-        self.params.update(**self.params.to_dict())
-
         # TODO: Adding checking params compatibility with each other
-        # self.check_params(self.params.to_dict())
+        self.params.update(**self.check_and_update_params(self.params.to_dict()))
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
@@ -30,15 +28,13 @@ class FedotCatBoostImplementation(ModelImplementation):
         input_data = input_data.get_not_encoded_data()
 
         if self.params.get('use_eval_set'):
+            # TODO: Using this method for tuning
             train_input, eval_input = train_test_data_setup(input_data)
 
             train_input = self.convert_to_pool(train_input)
             eval_input = self.convert_to_pool(eval_input)
 
-            self.model.fit(
-                X=train_input,
-                eval_set=eval_input,
-            )
+            self.model.fit(X=train_input, eval_set=eval_input)
 
         else:
             train_input = self.convert_to_pool(input_data)
@@ -53,7 +49,9 @@ class FedotCatBoostImplementation(ModelImplementation):
         return prediction
 
     @staticmethod
-    def check_params(params):
+    def check_and_update_params(params):
+        params['thread_count'] = params['n_jobs']
+
         if params['use_best_model'] or params['early_stopping_rounds'] and not params['use_eval_set']:
             params['use_best_model'] = False
             params['early_stopping_rounds'] = False

@@ -47,8 +47,8 @@ def test_boosting_classification_operation():
     )
 
     for model_name in model_names:
-        pipeline = PipelineBuilder().add_node(model_name).build()
-        pipeline.fit(train_data, n_jobs=-1)
+        pipeline = PipelineBuilder().add_node(model_name, params={'n_jobs': -1}).build()
+        pipeline.fit(train_data)
         predicted_output = pipeline.predict(test_data, output_mode='labels')
         metric = roc_auc(test_data.target, predicted_output.predict)
 
