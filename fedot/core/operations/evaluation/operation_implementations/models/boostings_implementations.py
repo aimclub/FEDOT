@@ -18,17 +18,11 @@ class FedotCatBoostImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
-        default_params = {
-            'iterations': 1000,
-            'use_eval_set': False,
-            'use_best_model': False,
-            'early_stopping_rounds': 50
-        }
+        self.params.update(**self.params.to_dict())
 
-        complete_params = {**default_params, **self.params.to_dict()}
-        self.params.update(**complete_params)
         # TODO: Adding checking params compatibility with each other
         # self.check_params(self.params.to_dict())
+
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
 

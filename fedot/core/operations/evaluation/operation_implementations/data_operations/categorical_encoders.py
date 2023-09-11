@@ -104,7 +104,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             non_categorical_features = np.array(features[:, self.non_categorical_ids])
             frames = (non_categorical_features, transformed_categorical)
             transformed_features = np.hstack(frames)
-            self.encoded_ids = [i for i in range(non_categorical_features.shape[1], transformed_features.shape[1])]
+            self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
 
         return transformed_features
 
