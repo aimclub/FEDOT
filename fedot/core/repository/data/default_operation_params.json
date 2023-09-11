@@ -13,12 +13,18 @@
   "catboost": {
     "allow_writing_files": false,
     "verbose": false,
-    "thread_count": 1
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": 100
   },
   "catboostreg": {
     "allow_writing_files": false,
     "verbose": false,
-    "thread_count": 1
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": 100
   },
   "lgbm": {
     "num_leaves": 32,

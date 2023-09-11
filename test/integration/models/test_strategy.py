@@ -52,8 +52,6 @@ def test_boosting_classification_operation():
         predicted_output = pipeline.predict(test_data, output_mode='labels')
         metric = roc_auc(test_data.target, predicted_output.predict)
 
-        print(metric)
-
         assert isinstance(pipeline, Pipeline)
         assert predicted_output.predict.shape[0] == 240
         assert metric > 0.5
