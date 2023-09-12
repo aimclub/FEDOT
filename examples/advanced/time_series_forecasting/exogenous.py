@@ -33,7 +33,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
     exog_variable = np.array(df['Neighboring level'])
 
     task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
-    valiadion_blocks = 2
+    validation_blocks = 2
 
     # Target time series for lagged transformation
     train_lagged, predict_lagged = train_test_data_setup(InputData(idx=np.arange(len(time_series)),
@@ -41,7 +41,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                                                                    target=time_series,
                                                                    task=task,
                                                                    data_type=DataTypesEnum.ts),
-                                                         validation_blocks=valiadion_blocks)
+                                                         validation_blocks=validation_blocks)
 
     # Exogenous time series
     train_exog, predict_exog = train_test_data_setup(InputData(idx=np.arange(len(exog_variable)),
@@ -49,7 +49,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                                                                target=time_series,
                                                                task=task,
                                                                data_type=DataTypesEnum.ts),
-                                                     validation_blocks=valiadion_blocks)
+                                                     validation_blocks=validation_blocks)
 
     if with_exog:
         train_dataset = MultiModalData({
@@ -76,13 +76,14 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                   task_params=task.task_params,
                   timeout=10,
                   initial_assumption=pipeline,
+                  available_operations=['lagged', 'ridge', 'exog_ts'],
                   max_pipeline_fit_time=2,
                   n_jobs=-1)
     fedot.fit(train_dataset)
 
     # Predict
-    predicted = fedot.predict(predict_dataset, validation_blocks=valiadion_blocks)
-    print(fedot.get_metrics(metric_names='mae', validation_blocks=valiadion_blocks))
+    predicted = fedot.predict(predict_dataset, validation_blocks=validation_blocks)
+    print(fedot.get_metrics(metric_names='mae', validation_blocks=validation_blocks))
 
     if visualization:
         fedot.current_pipeline.show()
