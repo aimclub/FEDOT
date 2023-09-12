@@ -95,8 +95,10 @@ class Fedot:
 
                 - classification -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.ClassificationMetricsEnum`
-                - regression & time series forcasting -> \
+                - regression -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.RegressionMetricsEnum`
+                 time series forcasting -> \
+                    :class:`~fedot.core.repository.quality_metrics_repository.TimeSeriesForecastingMetricsEnum`
                 - pipeline complexity (task-independent)-> \
                     :class:`~fedot.core.repository.quality_metrics_repository.ComplexityMetricsEnum`
 
