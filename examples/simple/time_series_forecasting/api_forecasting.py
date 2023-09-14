@@ -41,6 +41,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                                    TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
                   n_jobs=-1,
+                  metric='mase',
                   with_tuning=with_tuning,
                   cv_folds=2, preset='fast_train')
 
@@ -50,7 +51,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     # use model to obtain two-step in-sample forecast
     in_sample_forecast = model.predict(test_data, validation_blocks=validation_blocks)
     print('Metrics for two-step in-sample forecast: ',
-          model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+          model.get_metrics(metric_names=['mase', 'mae', 'mape'],
                             validation_blocks=validation_blocks))
 
     # plot forecasting result
@@ -68,7 +69,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
         model.plot_prediction()
 
     # use model to obtain two-step out-of-sample forecast
-    out_of_sample_forecast = model.forecast(test_data, horizon=20)
+    out_of_sample_forecast = model.forecast(test_data, horizon=horizon * 2)
     # we can not calculate metrics because we do not have enough future values
     if visualization:
         model.plot_prediction()
@@ -77,4 +78,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='salaries', horizon=10, timeout=10., visualization=True)
+    run_ts_forecasting_example(dataset='beer', horizon=14, timeout=2., visualization=True)
