@@ -99,7 +99,7 @@ class Fedot:
                     :class:`~fedot.core.repository.quality_metrics_repository.RegressionMetricsEnum`
                 - time series forcasting -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.TimeSeriesForecastingMetricsEnum`
-                - pipeline complexity (task-independent)-> \
+                - pipeline complexity (task-independent) -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.ComplexityMetricsEnum`
 
         collect_intermediate_metric (bool): save metrics for intermediate (non-root) nodes in composed
