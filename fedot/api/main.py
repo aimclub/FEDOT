@@ -301,7 +301,7 @@ class Fedot:
         cv_folds = cv_folds or self.params.get('cv_folds')
         n_jobs = n_jobs or self.params.n_jobs
 
-        metric = ensure_wrapped_in_sequence(metric_name)[0] if metric_name else self.metrics[0]
+        metric = metric_name if metric_name else self.metrics[0]
 
         pipeline_tuner = (TunerBuilder(self.params.task)
                           .with_tuner(SimultaneousTuner)
@@ -508,7 +508,7 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
-        metric_names = [str(metric) for metric in ensure_wrapped_in_sequence(metrics)]
+        metric_names = [str(metric) for metric in metrics]
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 

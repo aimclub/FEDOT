@@ -14,7 +14,7 @@ class MetricsObjective(Objective):
         complexity_metrics = {}
 
         for metric in ensure_wrapped_in_sequence(metrics):
-            if isinstance(metric, Callable):
+            if callable(metric):
                 metric_id = str(metric)
                 quality_metrics[metric_id] = metric
             else:
