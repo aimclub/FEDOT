@@ -26,24 +26,32 @@ class GRUImplementation(ModelImplementation):
 
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self.max_step = params.get('max_step') or 500
-        self.seed = params.get('seed') or np.random.randint(0, np.iinfo(int).max)
+        self.seed = params.get('seed')
         self.model = None
         self.batch_size = 50
         self.validation_size = 0.2
-        self.generator = torch.Generator()
-        self.generator.manual_seed(self.seed)
+        if self.seed is not None:
+            self.generator = torch.Generator()
+            self.generator.manual_seed(self.seed)
+        else:
+            self.generator = None
 
-        self.preprocessing_type = None
-        self.preprocessing_mean = None
-        self.preprocessing_std = None
-        self.preprocessing_max = None
-        self.preprocessing_min = None
+        self.preprocessing_type = 'normalization'
+        self.preprocessing_params = dict()
 
-    def preprocessing(self, x):
+    def preprocessing(self, x, parameters_defining=False):
+        if parameters_defining not in (True, False):
+            raise ValueError(
+                f"parameters_defining should be one of (True, False) but {parameters_defining} is provided")
         if self.preprocessing_type == 'normalization':
-            return (x - self.preprocessing_mean) / (self.preprocessing_std + 1e-6)
+            return (x - self.preprocessing_params['mean']) / (self.preprocessing_params['std'] + 1e-6)
         elif self.preprocessing_type == 'minmax':
-            return (x - self.preprocessing_min) / (self.preprocessing_max - self.preprocessing_min)
+            return (x - self.preprocessing_params['min']) / (
+                        self.preprocessing_params['max'] - self.preprocessing_params['min'])
+        elif self.preprocessing_type == 'window_bias':
+            if parameters_defining:
+                self.preprocessing_params['window_bias'] = np.mean(x, axis=(2, 1)).reshape((-1, 1, 1))
+            return x - self.preprocessing_params['window_bias']
         elif self.preprocessing_type is None:
             return x
         else:
@@ -52,9 +60,12 @@ class GRUImplementation(ModelImplementation):
 
     def postprocessing(self, y):
         if self.preprocessing_type == 'normalization':
-            return y * self.preprocessing_std + self.preprocessing_mean
+            return y * self.preprocessing_params['std'] + self.preprocessing_params['mean']
         elif self.preprocessing_type == 'minmax':
-            return y * (self.preprocessing_max - self.preprocessing_min) + self.preprocessing_min
+            return y * (self.preprocessing_params['max'] - self.preprocessing_params['min']) + \
+                self.preprocessing_params['min']
+        elif self.preprocessing_type == 'window_bias':
+            return y + self.preprocessing_params['window_bias'].reshape((-1, 1, 1) if np.ndim(y) == 3 else (-1, 1))
         elif self.preprocessing_type is None:
             return y
         else:
@@ -64,7 +75,6 @@ class GRUImplementation(ModelImplementation):
     def numpy_to_torch(self, x, third_dimension=True):
         # (batch_size, num_timesteps or sequence_length, feature_size)
         x = x.astype(np.float32)
-        x = self.preprocessing(x)
         if third_dimension:
             x = x.reshape((x.shape[0], x.shape[1], 1))
         else:
@@ -100,15 +110,9 @@ class GRUImplementation(ModelImplementation):
 
         # prepare data
         x, y = data.features, data.target
-
-        self.preprocessing_type = 'normalization'
-        self.preprocessing_mean = np.mean(x[:, 0])
-        self.preprocessing_std = np.std(x[:, 0])
-        self.preprocessing_max = np.max(x[:, 0])
-        self.preprocessing_min = np.min(x[:, 0])
-
-        x = self.numpy_to_torch(x).to(self.device)
-        y = self.numpy_to_torch(y, False).to(self.device)
+        self.preprocessing_params = {'mean': np.mean(x), 'std': np.std(x), 'max': np.max(x), 'min': np.min(x)}
+        x, y = self.preprocessing(x, True), self.preprocessing(y, False)
+        x, y = self.numpy_to_torch(x).to(self.device), self.numpy_to_torch(y, False).to(self.device)
         batch_count = int(x.shape[0] / self.batch_size)
         train_count = int(batch_count * (1 - self.validation_size))
 
@@ -145,7 +149,8 @@ class GRUImplementation(ModelImplementation):
     def predict(self, data: InputData):
         self.model.eval()
         with torch.no_grad():
-            x = self.numpy_to_torch(data.features).to(self.device)
+            x = self.preprocessing(data.features, True)
+            x = self.numpy_to_torch(x).to(self.device)
             return self.postprocessing(self.model(x)[0].to('cpu').numpy())
 
 
