@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.pipelines.pipeline import Pipeline, PipelineNode
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
@@ -94,13 +95,15 @@ def test_pseudo_remote_composer_ts_forecasting():
         'show_progress': False
     }
 
-    preset = 'best_quality'
-    automl = Fedot(problem='ts_forecasting', timeout=0.2, task_params=TsForecastingParams(forecast_length=1),
-                   preset=preset, **composer_params)
+    automl = Fedot(problem='ts_forecasting', task_params=TsForecastingParams(forecast_length=1),
+                   **composer_params)
 
     path = os.path.join(fedot_project_root(), 'test', 'data', 'short_time_series.csv')
 
-    automl.fit(path, target='sea_height')
+    predefined_model = Pipeline(PipelineNode('ridge', nodes_from=[PipelineNode('lagged')]))
+
+    automl.fit(path, target='sea_height', predefined_model=predefined_model)
     predict = automl.predict(path)
-    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))  # recursive deleting
+    shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'),  # recursive deleting
+                  ignore_errors=True)
     assert predict is not None
