@@ -163,6 +163,12 @@ class Fedot:
             Default optimizer is :class:`~golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
             See the `example \
 <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_
+
+        NB! 'adaptive_mutation_type' and 'context_agent_type' can be specified with 'composer_tuner_params'.
+        Both these params are a part of experimental functionality for adaptive evolution.
+        Adaptive evolution uses multi-armed bandits to choose most promising mutation at each iteration
+        of evolution cycle.
+        The full range of context agents can be obtained in GOLEM: golem.core.optimizers.adaptive.context_agents
     """
 
     def __init__(self,
