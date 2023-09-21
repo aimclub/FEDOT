@@ -1,7 +1,6 @@
 from abc import ABC
 from typing import Optional
 
-from catboost import CatBoostClassifier, CatBoostRegressor
 from golem.core.utilities.random import RandomStateHandler
 from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier, XGBRegressor
@@ -10,6 +9,8 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.bag_ensembles.bag_ensemble import \
     KFoldBaggingClassifier, KFoldBaggingRegressor
+from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
+    FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
 
@@ -39,13 +40,13 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
 
     _operations_by_types = {
         # Classification
-        'bag_catboost': CatBoostClassifier,
+        'bag_catboost': FedotCatBoostClassificationImplementation,
         'bag_xgboost': XGBClassifier,
         'bag_lgbm': LGBMClassifier,
         'bag_lgbmxt': LGBMClassifier,
 
         # Regression
-        'bag_catboostreg': CatBoostRegressor,
+        'bag_catboostreg': FedotCatBoostRegressionImplementation,
         'bag_xgboostreg': XGBRegressor,
         'bag_lgbmreg': LGBMRegressor,
         'bag_lgbmxtreg': LGBMRegressor,
@@ -59,7 +60,7 @@ class KFoldBaggingStrategy(EvaluationStrategy, ABC):
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types.keys():
             if self._model_params:
-                self._bagging_params['model_base'] = self._operations_by_types[operation_type](**self._model_params)
+                self._bagging_params['model_base'] = self._operations_by_types[operation_type](self._model_params)
             else:
                 self._bagging_params['model_base'] = self._operations_by_types[operation_type]()
 
