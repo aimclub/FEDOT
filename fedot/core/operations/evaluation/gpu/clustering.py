@@ -3,7 +3,6 @@ import warnings
 from golem.utilities.requirements_notificator import warn_requirement
 
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.random import ImplementationRandomStateHandler
 
 try:
     from cuml import KMeans
@@ -16,8 +15,8 @@ except ModuleNotFoundError:
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
-
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):

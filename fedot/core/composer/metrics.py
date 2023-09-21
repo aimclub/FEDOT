@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absolute_error,
                              mean_absolute_percentage_error, mean_squared_error, mean_squared_log_error,
                              precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
+from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -230,6 +231,15 @@ class MAE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_absolute_error(y_true=reference.target, y_pred=predicted.predict)
+
+
+class MASE(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        history_series = reference.features
+        return mean_absolute_scaled_error(y_true=reference.target, y_pred=predicted.predict, y_train=history_series)
 
 
 class R2(QualityMetric):

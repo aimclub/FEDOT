@@ -1,20 +1,20 @@
 import logging
 from copy import deepcopy
-from typing import Any, List, Optional, Sequence, Tuple, Union, Callable
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from golem.core.dag.graph_utils import graph_structure
-from golem.core.log import default_log, Log
+from golem.core.log import Log, default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.input_analyser import InputAnalyser
-from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -32,6 +32,7 @@ from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
@@ -95,9 +96,11 @@ class Fedot:
 
                 - classification -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.ClassificationMetricsEnum`
-                - regression & time series forcasting -> \
+                - regression -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.RegressionMetricsEnum`
-                - pipeline complexity (task-independent)-> \
+                - time series forcasting -> \
+                    :class:`~fedot.core.repository.quality_metrics_repository.TimeSeriesForecastingMetricsEnum`
+                - pipeline complexity (task-independent) -> \
                     :class:`~fedot.core.repository.quality_metrics_repository.ComplexityMetricsEnum`
 
         collect_intermediate_metric (bool): save metrics for intermediate (non-root) nodes in composed
@@ -176,9 +179,12 @@ class Fedot:
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
 
-        # Classes for dealing with metrics, data sources and hyperparameters
+        # Attributes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
-        self.metrics = ApiMetrics(self.params.task, self.params.get('metric'))
+
+        default_metrics = MetricByTask.get_default_quality_metrics(self.params.task.task_type)
+        passed_metrics = self.params.get('metric')
+        self.metrics = ensure_wrapped_in_sequence(passed_metrics) if passed_metrics else default_metrics
 
         self.api_composer = ApiComposer(self.params, self.metrics)
 
@@ -297,7 +303,7 @@ class Fedot:
         cv_folds = cv_folds or self.params.get('cv_folds')
         n_jobs = n_jobs or self.params.n_jobs
 
-        metric = self.metrics.obtain_metrics(metric_name)[0] if metric_name else self.metrics.metric_functions[0]
+        metric = metric_name if metric_name else self.metrics[0]
 
         pipeline_tuner = (TunerBuilder(self.params.task)
                           .with_tuner(SimultaneousTuner)
@@ -435,7 +441,7 @@ class Fedot:
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
-        metric_names = self.metrics.metric_names
+        metric_names = [str(metric) for metric in self.metrics]
         # archive_history stores archives of the best models.
         # Each archive is sorted from the best to the worst model,
         # so the best_candidates is sorted too.
@@ -475,7 +481,8 @@ class Fedot:
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None,
                     in_sample: Optional[bool] = None,
-                    validation_blocks: Optional[int] = None) -> dict:
+                    validation_blocks: Optional[int] = None,
+                    rounding_order: int = 3) -> dict:
         """Gets quality metrics for the fitted graph
 
         Args:
@@ -484,6 +491,7 @@ class Fedot:
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
+            rounding_order: number of decimal places for metrics
 
         Returns:
             The values of quality metrics.
@@ -493,7 +501,7 @@ class Fedot:
 
         if target is not None:
             if self.test_data is None:
-                self.test_data = InputData(idx=range(len(self.prediction.predict)),
+                self.test_data = InputData(idx=np.arange(len(self.prediction.predict)),
                                            features=None,
                                            target=target[:len(self.prediction.predict)],
                                            task=self.train_data.task,
@@ -501,8 +509,8 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        metrics = self.metrics.obtain_metrics(metric_names) if metric_names else self.metrics.metric_functions
-        metric_names = self.metrics.get_metric_names(metrics)
+        metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
+        metric_names = [str(metric) for metric in metrics]
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
 
@@ -517,7 +525,8 @@ class Fedot:
                                              do_unfit=False)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
-        metrics = {metric_name: round(abs(metric), 3) for (metric_name, metric) in zip(metric_names, metrics)}
+        metrics = {metric_name: round(abs(metric), rounding_order) for (metric_name, metric) in
+                   zip(metric_names, metrics)}
 
         return metrics
 

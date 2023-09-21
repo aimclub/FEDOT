@@ -6,12 +6,16 @@ from golem.core.utilities.data_structures import ComparableEnum as Enum
 
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity)
+                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MASE)
 
 
 class MetricsEnum(Enum):
     def __str__(self):
         return self.value
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
 
 
 G = TypeVar('G', bound=Graph, covariant=True)
@@ -53,6 +57,18 @@ class RegressionMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
 
 
+class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
+    MASE = 'mase'
+    RMSE = 'rmse'
+    MSE = 'mse'
+    MSLE = 'neg_mean_squared_log_error'
+    MAPE = 'mape'
+    SMAPE = 'smape'
+    MAE = 'mae'
+    R2 = 'r2'
+    RMSE_penalty = 'rmse_pen'
+
+
 class MetricsRepository:
     _metrics_implementations = {
         # classification
@@ -72,6 +88,9 @@ class MetricsRepository:
         RegressionMetricsEnum.RMSE: RMSE.get_value,
         RegressionMetricsEnum.RMSE_penalty: RMSE.get_value_with_penalty,
         RegressionMetricsEnum.R2: R2.get_value,
+
+        # ts forecasting
+        TimeSeriesForecastingMetricsEnum.MASE: MASE.get_value,
 
         # clustering
         ClusteringMetricsEnum.silhouette: Silhouette.get_value,

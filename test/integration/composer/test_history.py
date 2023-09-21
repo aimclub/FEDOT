@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
+from fedot.core.repository.tasks import TaskTypesEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
@@ -118,8 +120,11 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     graph_gen_params = get_pipeline_generation_params()
     metrics = [metric]
 
-    data_source = DataSourceSplitter(validation_blocks=1).build(input_data)
-    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics), data_source)
+    validation_blocks = 1 if input_data.task.task_type is TaskTypesEnum.ts_forecasting else None
+    data_source = DataSourceSplitter(validation_blocks=validation_blocks).build(input_data)
+    objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics),
+                                               data_source,
+                                               validation_blocks=validation_blocks)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
     dispatcher.set_graph_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)

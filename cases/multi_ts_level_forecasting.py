@@ -1,7 +1,6 @@
 import os
 
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
@@ -52,7 +51,6 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
                   pop_size=15,
                   max_arity=4,
                   cv_folds=None,
-                  validation_blocks=None,
                   initial_assumption=init_pipeline
                   )
     # fit model

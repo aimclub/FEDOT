@@ -82,7 +82,7 @@ class OperationsPreset:
         filtered_operations = set(available_operations).difference(set(excluded_tree))
         available_operations = list(filtered_operations)
 
-        return available_operations
+        return sorted(available_operations)
 
     @staticmethod
     def new_operations_without_heavy(excluded_operations, available_operations) -> list:
