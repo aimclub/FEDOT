@@ -102,5 +102,5 @@ def test_pseudo_remote_composer_classification():
 #
 #     automl.fit(path, target='sea_height')
 #     predict = automl.predict(path)
-#     shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))  # recursive deleting
+#     shutil.rmtree(os.path.join(fedot_project_root(), 'test', 'data', 'remote', 'fitted_pipeline'))# recursive deleting
 #     assert predict is not None
