@@ -61,6 +61,7 @@ def test_pseudo_remote_composer_classification():
     assert predict is not None
 
 ## TODO: "No models were found" error as for 22.09.2023 appears. Fix it.
+# from fedot.core.repository.tasks import TsForecastingParams
 # def test_pseudo_remote_composer_ts_forecasting():
 #     connect_params = {}
 #     exec_params = {

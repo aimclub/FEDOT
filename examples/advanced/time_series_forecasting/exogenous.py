@@ -76,8 +76,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                   task_params=task.task_params,
                   timeout=10,
                   initial_assumption=pipeline,
-                  available_operations=['lagged', 'ridge', 'exog_ts'],
-                  max_pipeline_fit_time=2,
+                  max_pipeline_fit_time=1,
                   n_jobs=-1)
     fedot.fit(train_dataset)
 
