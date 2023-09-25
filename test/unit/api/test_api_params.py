@@ -2,6 +2,9 @@ import dataclasses
 from typing import Optional
 
 import pytest
+from joblib import cpu_count
+
+from fedot.api.api_utils.params import ApiParams
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
@@ -11,7 +14,7 @@ from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, TaskParams
 
 fedot_params_full = dict(parallelization_mode='populational',
                          show_progress=True,
@@ -88,3 +91,19 @@ def test_filter_params_correctly(input_params, case, correct_keys):
     assert output_params.keys() <= correct_keys
     # check all correct parameter in input params are in output params
     assert (input_params.keys() & correct_keys) <= output_params.keys()
+
+
+def test_n_jobs():
+    def_pars = {k: v for k, v in fedot_params_full.items() if k in correct_composer_attributes}
+
+    # check correct values
+    for n_jobs in range(-cpu_count(), cpu_count() + 5):
+        if n_jobs != 0:
+            params = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
+            correct_n_jobs = min(n_jobs, cpu_count()) if n_jobs > 0 else cpu_count() + 1 + n_jobs
+            assert params.n_jobs == correct_n_jobs
+
+    # check uncorrect values
+    for n_jobs in (0, -cpu_count() - 1, -cpu_count() - 2):
+        with pytest.raises(ValueError):
+            _ = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
