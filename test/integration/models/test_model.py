@@ -26,7 +26,7 @@ from fedot.core.operations.operation_parameters import get_default_params, Opera
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, AVAILABLE_REPO_NAMES
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
@@ -449,7 +449,6 @@ def test_models_does_not_fall_on_constant_data():
 
 
 def test_operations_are_serializable():
-    # models that raise exception
     to_skip = ['custom', 'decompose', 'class_decompose']
 
     for operation in OperationTypesRepository('all')._repo:

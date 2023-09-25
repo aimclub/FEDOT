@@ -113,11 +113,9 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
-        prefix = "Warning: window size of lagged transformation was changed"
 
         # Maximum threshold
-        removing_len = self.window_size + forecast_length
-        if removing_len > len(time_series):
+        if self.window_size + forecast_length > len(time_series):
             raise ValueError(f"Window size is to high ({self.window_size}) for provided data len {len(time_series)}")
 
         # Minimum threshold
