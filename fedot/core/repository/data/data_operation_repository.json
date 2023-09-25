@@ -309,7 +309,8 @@
 				"cutting",
 				"correct_params",
 				"non_lagged",
-				"ts_to_ts"
+				"ts_to_ts",
+				"non-default"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
