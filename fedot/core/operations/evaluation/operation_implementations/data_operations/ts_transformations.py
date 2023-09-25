@@ -118,17 +118,11 @@ class LaggedImplementation(DataOperationImplementation):
         # Maximum threshold
         removing_len = self.window_size + forecast_length
         if removing_len > len(time_series):
-            previous_size = self.window_size
-            # At least 10 objects we need for training, so minus 10
-            window_size = len(time_series) - forecast_length - 10
-            self.params.update(window_size=window_size)
-            self.log.info(f"{prefix} from {previous_size} to {self.window_size}.")
+            raise ValueError(f"Window size is to high ({self.window_size}) for provided data len {len(time_series)}")
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
-            previous_size = self.window_size
-            self.params.update(window_size=self.window_size_minimum)
-            self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
+            raise ValueError(f"Window size is to low {self.window_size}. It should be greater")
 
     def _update_column_types(self, output_data: OutputData):
         """Update column types after lagged transformation. All features becomes ``float``
