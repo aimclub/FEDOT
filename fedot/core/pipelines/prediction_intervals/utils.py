@@ -5,7 +5,6 @@ from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams

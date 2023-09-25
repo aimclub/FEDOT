@@ -1,4 +1,3 @@
-import numpy as np
 from typing import List
 
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
@@ -71,8 +70,9 @@ def get_different_mutations(individual: Individual,
     maximal_number_iterations = number_mutations * 3
     for _ in range(maximal_number_iterations):
         new_ind = get_ts_mutation(individual, operations)
-        if (new_ind is not None and
-            all(get_distance_between(new_ind.graph, x, compare_node_params=False) for x in graph_list)):
+        if new_ind is not None and all(get_distance_between(graph_1=new_ind.graph,
+                                                            graph_2=x,
+                                                            compare_node_params=False) for x in graph_list):
             graph_list.append(new_ind.graph)
             mutations.append(new_ind)
         if len(mutations) == number_mutations:
