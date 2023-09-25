@@ -67,7 +67,8 @@ def test_tuner_cv_correct():
     folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()
 
-    simple_pipeline = get_simple_ts_pipeline()
+    simple_pipeline = get_simple_ts_pipeline(window_size=2)
+
     tuner = TunerBuilder(time_series.task)\
         .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\

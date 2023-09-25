@@ -336,7 +336,7 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.sparse_transform = True
-        self.window_size_minimum = 6
+        self.window_size_minimum = 4
 
 
 class LaggedTransformationImplementation(LaggedImplementation):
@@ -727,8 +727,8 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool = Fal
         ``updated_idx`` -> clipped indices of time series\n
         ``features_columns`` -> lagged time series feature table
     """
-    _temp = [time_series[i:-(window_size - i - 1)] for i in range(window_size - 1)] + [time_series[window_size - 1:]]
-    features_columns = np.array(_temp).T
+    features_columns = np.array([time_series[i:window_size + i]
+                                 for i in range(time_series.shape[0] - window_size + 1)])
 
     if is_lag:
         updated_idx = np.concatenate([idx[window_size:], idx[-1:]])
@@ -826,9 +826,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
 
     # Multi-target transformation
     if forecast_length > 1:
-        _temp = ([ts_target[i:-(forecast_length - i - 1)] for i in range(forecast_length - 1)] +
-                 [ts_target[forecast_length - 1:]])
-        updated_target = np.array(_temp).T
+        updated_target = np.array([ts_target[i:forecast_length + i]
+                                   for i in range(ts_target.shape[0] - forecast_length + 1)])
 
         updated_idx = idx[: -forecast_length + 1]
         updated_features = features_columns[: -forecast_length]

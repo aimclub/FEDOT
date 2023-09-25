@@ -430,6 +430,13 @@ class ModelGapFiller(SimpleGapFiller):
                                task=task,
                                data_type=DataTypesEnum.ts)
 
+        for node in pipeline_for_forecast.nodes:
+            if node.name == 'lagged':
+                if (node.parameters['window_size'] + input_data.task.task_params.forecast_length
+                    >= input_data.features.shape[0]):
+                    node.parameters = {'window_size': input_data.features.shape[0] -
+                                                      input_data.task.task_params.forecast_length - 1}
+
         # Making predictions for the missing part in the time series
         pipeline_for_forecast.fit_from_scratch(input_data)
 
