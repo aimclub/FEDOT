@@ -2,6 +2,8 @@ from typing import Union, Optional, List
 from dataclasses import dataclass
 from dataclasses import field
 
+from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 
@@ -46,11 +48,7 @@ class PredictionIntervalsParams:
     # thus are removed.
     # In the future this should be solved...
     mutations_operations: List[str] = field(default_factory=lambda:
-                                            ['lagged', 'glm', 'ridge', 'sparse_lagged', 'lasso', 'ts_naive_average',
-                                             'locf', 'pca', 'linear', 'smoothing', 'adareg', 'dtreg', 'gbr', 'lgbmreg',
-                                             'rfr', 'polyfit', 'sgdr', 'ets', 'svr', 'treg', 'fast_ica',
-                                             'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg', 'cut',
-                                             'isolation_forest_reg', 'gaussian_filter', 'diff_filter', 'exog_ts'])
+                                            get_operations_for_task(task=Task(task_type=TaskTypesEnum.ts_forecasting)))
 
     ql_number_models: Union[int, str] = 10
     ql_low_tuner: Optional[SimultaneousTuner] = None

@@ -35,7 +35,6 @@ def get_ts_mutation(individual: Individual, operations: List[str]):
                                                   task=Task(task_type))
 
     mutation = Mutation(parameters, requirements, graph_params)
-
     return mutation._mutation(individual)[0]
 
 
@@ -51,8 +50,7 @@ def get_mutations(individual: Individual, number_mutations: int, operations: Lis
         list of mutations of given individual. Mutations can be identical.
     """
     mutations = [get_ts_mutation(individual, operations) for _ in range(number_mutations)]
-
-    return mutations
+    return [x for x in mutations if x is not None]
 
 
 def get_different_mutations(individual: Individual,
@@ -69,19 +67,18 @@ def get_different_mutations(individual: Individual,
     Returns:
         list of mutations of given individual. Mutations must be different.
     """
-    mutations = []
-    graph_list = []
-    s = 1
+    mutations, graph_list = [], []
     maximal_number_iterations = number_mutations * 3
-
-    while (len(mutations) < number_mutations and s <= maximal_number_iterations):
-        s += 1
+    for _ in range(maximal_number_iterations):
         new_ind = get_ts_mutation(individual, operations)
-        if np.array([get_distance_between(new_ind.graph, x, compare_node_params=False) > 0 for x in graph_list]).all():
+        if (new_ind is not None and
+            all(get_distance_between(new_ind.graph, x, compare_node_params=False) for x in graph_list)):
             graph_list.append(new_ind.graph)
             mutations.append(new_ind)
+        if len(mutations) == number_mutations:
+            break
 
-    if s == maximal_number_iterations + 1:
+    if len(mutations) != number_mutations:
         logger.warning(f"Maximal number attempts {maximal_number_iterations} to build different mutations used.")
     else:
         logger.info(f"{number_mutations} different mutations are succesfully created.")
