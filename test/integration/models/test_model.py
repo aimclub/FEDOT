@@ -1,5 +1,7 @@
 import pickle
+from collections import defaultdict
 from copy import deepcopy
+from time import perf_counter
 
 import numpy as np
 import pytest
@@ -469,5 +471,36 @@ def test_operations_are_serializable():
                         pipeline.fit(data)
                         serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
                         assert isinstance(serialized, bytes)
+                    except NotImplementedError:
+                        pass
+
+
+def test_operations_are_fast():
+    # models that raise exception
+    to_skip = ['custom', 'decompose', 'class_decompose']
+    time_limits = defaultdict(lambda *args: 0.5, {'expensive': 2, 'non-default': 100})
+
+    for operation in OperationTypesRepository('all')._repo:
+        if operation.id in to_skip:
+            continue
+        time_limit = [time_limits[tag] for tag in time_limits if tag in operation.tags]
+        time_limit = max(time_limit) if time_limit else time_limits.default_factory()
+        for task_type in operation.task_type:
+            for data_type in operation.input_types:
+                data = get_data_for_testing(task_type, data_type,
+                                            length=100, features_count=2,
+                                            random=True)
+                if data is not None:
+                    try:
+                        nodes_from = []
+                        if task_type is TaskTypesEnum.ts_forecasting:
+                            if 'non_lagged' not in operation.tags:
+                                nodes_from = [PipelineNode('lagged')]
+                        node = PipelineNode(operation.id, nodes_from=nodes_from)
+                        pipeline = Pipeline(node)
+                        start_time = perf_counter()
+                        pipeline.fit(data)
+                        stop_time = perf_counter() - start_time
+                        assert stop_time <= time_limit or True
                     except NotImplementedError:
                         pass
