@@ -838,7 +838,7 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
         # Forecast horizon equals to 1
         updated_idx = idx
         updated_features = features_columns[: -1]
-        updated_target = ts_target
+        updated_target = np.reshape(ts_target, (-1, 1))
 
     return updated_idx, updated_features, updated_target
 
