@@ -11,7 +11,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 
 
 def get_ts_pipeline(window_size):
