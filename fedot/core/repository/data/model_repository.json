@@ -157,7 +157,8 @@
       "meta": "ts_model",
       "presets": ["ts"],
       "tags": [
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "bernb": {
