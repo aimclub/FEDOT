@@ -201,7 +201,8 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "gbr": {
@@ -425,7 +426,8 @@
       "presets": ["*tree"],
       "tags": [
         "tree",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "xgboost": {
