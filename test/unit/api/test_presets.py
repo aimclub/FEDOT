@@ -96,7 +96,7 @@ def test_auto_preset_converted_correctly():
 
     simple_init_assumption = Pipeline(PipelineNode('logit'))
     fedot_model = Fedot(problem='classification', preset='auto', timeout=tiny_timeout_value,
-                        initial_assumption=simple_init_assumption, pop_size=large_pop_size)
+                        initial_assumption=simple_init_assumption, pop_size=large_pop_size, with_tuning=False)
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
     assert fedot_model.params.get('preset') == FAST_TRAIN_PRESET_NAME

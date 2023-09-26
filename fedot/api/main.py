@@ -127,7 +127,7 @@ class Fedot:
         genetic_scheme (str): name of the genetic scheme. Defaults to ``steady_state``.
 
         with_tuning (bool): flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
-            Defaults to ``False``.
+            Defaults to ``True``.
 
         preset (str): name of the preset for model building (e.g. ``'best_quality'``, ``'fast_train'``, ``'gpu'``).
             Default value is ``'auto'``.
