@@ -1,11 +1,12 @@
 from typing import List
 
 import numpy as np
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def get_data(data_length=500, test_length=100):
