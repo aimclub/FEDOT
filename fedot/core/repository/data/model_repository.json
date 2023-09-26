@@ -210,7 +210,8 @@
       "tags": [
         "boosting",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "kmeans": {
