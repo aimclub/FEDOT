@@ -419,7 +419,8 @@
       "meta": "sklearn_regr",
       "tags": [
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "treg": {
