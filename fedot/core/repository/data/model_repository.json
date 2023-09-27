@@ -125,8 +125,7 @@
       "tags": [
         "boosting",
         "non_multi",
-        "non_linear",
-        "non-default"
+        "non_linear"
       ]
     },
     "ar": {
@@ -202,8 +201,7 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear",
-        "non-default"
+        "non_linear"
       ]
     },
     "gbr": {
@@ -419,8 +417,7 @@
       "meta": "sklearn_regr",
       "tags": [
         "non_multi",
-        "non_linear",
-        "non-default"
+        "non_linear"
       ]
     },
     "treg": {
