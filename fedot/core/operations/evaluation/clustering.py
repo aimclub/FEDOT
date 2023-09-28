@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'kmeans': SklearnKmeans
     }
 
@@ -44,9 +44,3 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         prediction = trained_operation.predict(predict_data.features)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain SkLearn clustering strategy for {operation_type}')

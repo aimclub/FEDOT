@@ -42,7 +42,7 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
 
 class FedotClassificationStrategy(EvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'lda': LDAImplementation,
         'qda': QDAImplementation,
         'svc': FedotSVCImplementation,
@@ -93,19 +93,13 @@ class FedotClassificationStrategy(EvaluationStrategy):
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain Fedot Classification Strategy for {operation_type}')
-
 
 class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
     """ Strategy for applying custom algorithms from FEDOT to preprocess data
     for classification task
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'rfe_lin_class': LinearClassFSImplementation,
         'rfe_non_lin_class': NonLinearClassFSImplementation,
         'class_decompose': DecomposerClassImplementation,
@@ -153,9 +147,3 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain custom classification preprocessing strategy for {operation_type}')

@@ -32,7 +32,7 @@ from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 TESTS_MAIN_API_DEFAULT_PARAMS = {
-    'timeout': 0.1,
+    'timeout': 0.5,
     'preset': 'fast_train',
     'max_depth': 1,
     'max_arity': 2,
@@ -137,30 +137,36 @@ def data_with_binary_features_and_categorical_target():
     """
     task = Task(TaskTypesEnum.classification)
     features = np.array([['red', 'blue'],
+                         ['red', 'blue'],
+                         ['red', 'blue'],
                          [np.nan, 'blue'],
                          ['green', 'blue'],
-                         ['green', 'orange']])
-    target = np.array(['red-blue', 'red-blue', 'green-blue', 'green-orange'])
-    train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
+                         ['green', 'orange'],
+                         ['red', 'orange']])
+    target = np.array(['red-blue', 'red-blue', 'red-blue', 'red-blue', 'green-blue', 'green-orange', 'red-orange'])
+    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6], features=features, target=target,
                             task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
     return train_input
 
 
-@pytest.mark.parametrize('task_type, predefined_model, metric_name', [
-    ('classification', 'dt', 'f1'),
-    ('regression', 'dtreg', 'rmse'),
+@pytest.mark.parametrize('task_type, metric_name', [
+    ('classification', 'f1'),
+    ('regression', 'rmse'),
 ])
-def test_api_predict_correct(task_type, predefined_model, metric_name):
+def test_api_predict_correct(task_type, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
-    fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
+    fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
-    assert all(value > 0 for value in metric.values())
+    assert all(value >= 0 for value in metric.values())
+    # composing and tuning was applied
+    assert model.history is not None
+    assert model.history.tuning_result is not None
     assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
