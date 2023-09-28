@@ -97,14 +97,13 @@ def test_n_jobs():
     def_pars = {k: v for k, v in fedot_params_full.items() if k in correct_composer_attributes}
 
     # check correct values
-    if cpu_count() > 0:
-        for n_jobs in range(-cpu_count(), cpu_count() + 5):
-            if n_jobs != 0:
-                params = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
-                correct_n_jobs = min(n_jobs, cpu_count()) if n_jobs > 0 else cpu_count() + 1 + n_jobs
-                assert params.n_jobs == correct_n_jobs
+    for n_jobs in range(-cpu_count(), cpu_count() + 5):
+        if n_jobs != 0:
+            params = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
+            correct_n_jobs = min(n_jobs, cpu_count()) if n_jobs > 0 else cpu_count() + 1 + n_jobs
+            assert params.n_jobs == correct_n_jobs
 
-        # check uncorrect values
-        for n_jobs in (0, -cpu_count() - 1, -cpu_count() - 2):
-            with pytest.raises(ValueError):
-                _ = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
+    # check uncorrect values
+    for n_jobs in (0, -cpu_count() - 1, -cpu_count() - 2):
+        with pytest.raises(ValueError):
+            _ = ApiParams(def_pars, 'regression', TaskParams(), n_jobs, 10)
