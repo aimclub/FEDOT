@@ -103,7 +103,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     if discard_inapropriate_pipelines:
         predictions = []
         maximal_metric_value = np.quantile(np.array(metric_values), keep_percentage)
-        for i, m in enumerate(range(len(first_pred_constraints))):
+        for i in range(len(first_pred_constraints)):
             if first_pred_constraints[i] and deviance_pred_constraints[i] and metric_values[i] < maximal_metric_value:
                 predictions.append(raw_predictions[i])
     else:
