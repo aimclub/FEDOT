@@ -435,7 +435,7 @@ class ModelGapFiller(SimpleGapFiller):
         for node in pipeline_for_forecast.nodes:
             if node.name == 'lagged':
                 if node.parameters['window_size'] + forecast_length >= data_length:
-                    node.parameters['window_size'] = data_length - forecast_length - 1
+                    node.parameters = {'window_size': data_length - forecast_length - 1}
 
         # Making predictions for the missing part in the time series
         pipeline_for_forecast.fit_from_scratch(input_data)
