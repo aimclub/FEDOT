@@ -56,8 +56,8 @@ class BasePreprocessor(ABC):
         raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                              MultiModalData]:
         """
         Performs obligatory preprocessing for pipeline's predict method.
 
@@ -94,7 +94,7 @@ class BasePreprocessor(ABC):
         Args:
             pipeline: pipeline defining whether to use optional preprocessing
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
@@ -130,7 +130,7 @@ class BasePreprocessor(ABC):
 
         Args:
             column_to_transform: column to be encoded
-        
+
         Returns:
             encoded or untouched column
         """
