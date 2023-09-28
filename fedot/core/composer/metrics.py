@@ -45,12 +45,12 @@ class Metric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
 
 class QualityMetric:
@@ -61,7 +61,7 @@ class QualityMetric:
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     @classmethod
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,

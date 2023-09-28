@@ -149,7 +149,7 @@ class Operation:
         ``ts_type -> lagged -> tabular type``\n
         So, there is a need to assign column types to new data
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     def __str__(self):
         return f'{self.operation_type}'

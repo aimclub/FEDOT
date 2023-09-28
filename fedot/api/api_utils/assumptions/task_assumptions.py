@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List
 
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter
@@ -24,20 +25,23 @@ class TaskAssumptions:
             raise NotImplementedError(f"Don't have assumptions for task type: {task.task_type}")
         return assumptions_cls(repository)
 
+    @abstractmethod
     def ensemble_operation(self) -> str:
         """ Suitable ensemble operation used for MultiModalData case. """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
+    @abstractmethod
     def processing_builders(self) -> List[PipelineBuilder]:
         """ Returns alternatives of PipelineBuilders for core processing (without preprocessing). """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
+    @abstractmethod
     def fallback_builder(self, operations_filter: OperationsFilter) -> PipelineBuilder:
         """
         Returns default PipelineBuilder for case when primary alternatives are not valid.
         Have access for OperationsFilter for sampling available operations.
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
 
 class TSForecastingAssumptions(TaskAssumptions):

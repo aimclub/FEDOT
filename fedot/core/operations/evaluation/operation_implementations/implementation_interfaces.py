@@ -25,7 +25,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     @abstractmethod
     def transform(self, input_data: InputData) -> OutputData:
@@ -33,7 +33,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
         """ Method apply transform operation on a dataset for fit stage.
@@ -185,7 +185,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     @abstractmethod
     def predict(self, input_data: InputData) -> OutputData:
@@ -193,7 +193,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     def predict_for_fit(self, input_data: InputData) -> OutputData:
         """ Method make prediction while graph fitting.

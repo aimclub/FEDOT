@@ -8,9 +8,9 @@ class GraphOperationRepository(ABC):
     @abstractmethod
     def get_operations(self, **kwargs):
         """ Get models by specified model keys """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
     @abstractmethod
     def get_all_operations(self):
         """ Get all models with all keys """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')

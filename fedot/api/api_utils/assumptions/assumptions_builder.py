@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Union, Optional, Set, Tuple
 
 from golem.core.log import default_log
@@ -39,12 +40,14 @@ class AssumptionsBuilder:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
+    @abstractmethod
     def from_operations(self, available_operations: List[str]):
-        raise NotImplementedError('abstract')
+        raise NotImplementedError('Abstract method')
 
+    @abstractmethod
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
-        raise NotImplementedError('abstract')
+        raise NotImplementedError('Abstract method')
 
     def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:

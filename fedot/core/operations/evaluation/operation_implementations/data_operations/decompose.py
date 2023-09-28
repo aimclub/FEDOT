@@ -25,15 +25,6 @@ class DecomposerImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data: InputData) -> OutputData:
-        """
-        Method for modifying input_data for predict stage
-        :param input_data: data with features, target and ids
-
-        :return input_data: data with transformed features attribute
-        """
-        raise NotImplementedError()
-
     @staticmethod
     def divide_inputs(input_data: InputData) -> (np.array, np.array):
         """ Method for dividing InputData into parts:

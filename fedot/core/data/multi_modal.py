@@ -201,8 +201,7 @@ class MultiModalData(Dict[str, InputData]):
             columns_to_use = sorted(list(set(df.columns) - {index_col}))
 
         if is_predict:
-            raise NotImplementedError(
-                'Multivariate predict not supported in this function yet.')
+            raise NotImplementedError('Multivariate predict not supported in this function yet.')
 
         ts_data_detector = TimeSeriesDataDetector()
         data = ts_data_detector.prepare_multimodal_data(dataframe=df,

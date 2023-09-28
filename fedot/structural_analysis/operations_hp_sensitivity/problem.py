@@ -31,7 +31,7 @@ class Problem:
 
     @abstractmethod
     def convert_sample_to_dict(self, samples) -> Union[List[dict], List[List[dict]]]:
-        raise NotImplementedError
+        raise NotImplementedError('Abstract method')
 
     def clean_sample_variables(self, samples: List[dict]):
         """Make integer values for params if necessary"""

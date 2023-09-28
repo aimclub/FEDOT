@@ -142,7 +142,7 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
         prediction = trained_model.predict(transformed_x_test)
         if trained_model.num_classes < 2:
             logger.error('Data set contain only 1 target class. Please reformat your data.')
-            raise NotImplementedError()
+            raise ValueError('Data set contain only 1 target class. Please reformat your data.')
         elif trained_model.num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
             prediction = prediction[:, 1]
     else:

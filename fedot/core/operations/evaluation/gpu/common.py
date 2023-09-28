@@ -1,4 +1,5 @@
 import warnings
+from abc import abstractmethod
 from typing import Optional
 
 from golem.utilities.requirements_notificator import warn_requirement
@@ -87,6 +88,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
                 operation_implementation.fit(features, target)
         return operation_implementation
 
+    @abstractmethod
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
         This method used for prediction of the target data during predict stage.
@@ -94,4 +96,4 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :param predict_data: data to predict
         :return OutputData: passed data with new predicted target
         """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')

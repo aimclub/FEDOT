@@ -10,8 +10,8 @@ class Explainer:
 
     @abstractmethod
     def explain(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError('Abstract method')
 
     @abstractmethod
     def visualize(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError('Abstract method')

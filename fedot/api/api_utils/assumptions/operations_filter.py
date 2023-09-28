@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from random import choice
 from typing import Optional, Iterable
 
@@ -9,9 +10,10 @@ class OperationsFilter:
         """ Checks if all operations in a Pipeline satisify this filter. """
         return True
 
+    @abstractmethod
     def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
 
 
 class WhitelistOperationsFilter(OperationsFilter):

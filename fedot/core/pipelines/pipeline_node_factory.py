@@ -1,11 +1,11 @@
 from random import choice
 from typing import Optional, List
 
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from golem.core.optimisers.graph import OptNode
 from golem.core.optimisers.opt_node_factory import OptNodeFactory
 
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor, check_for_specific_operations
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 
 
@@ -66,4 +66,4 @@ class PipelineOptNodeFactory(OptNodeFactory):
         """
         # TODO: get_all_available_operations is abstract method in OptNodeFactory
         #       PipelineOptNodeFactory cannot be instantiate without that method
-        raise NotImplementedError()
+        raise NotImplementedError('Abstract method')
