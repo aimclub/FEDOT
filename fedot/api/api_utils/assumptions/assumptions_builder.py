@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from inspect import stack
 from typing import List, Union, Optional, Set, Tuple
 
 from golem.core.log import default_log
@@ -42,12 +43,12 @@ class AssumptionsBuilder:
 
     @abstractmethod
     def from_operations(self, available_operations: List[str]):
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:

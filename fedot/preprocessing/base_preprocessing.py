@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from inspect import stack
 from typing import Dict, List, Union, TYPE_CHECKING
 
 import numpy as np
@@ -52,7 +53,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
@@ -66,7 +67,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -81,7 +82,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -97,7 +98,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def label_encoding_for_fit(self, data: InputData, source_name: str = DEFAULT_SOURCE_NAME):
@@ -109,7 +110,7 @@ class BasePreprocessor(ABC):
             data: data to transform
             source_name: name of data source node
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def cut_dataset(self, data: InputData, border: int):
@@ -120,7 +121,7 @@ class BasePreprocessor(ABC):
             data: data to be cut
             border: number of objects to keep
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
@@ -133,7 +134,7 @@ class BasePreprocessor(ABC):
         Returns:
             encoded or untouched column
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
@@ -148,7 +149,7 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
@@ -163,7 +164,7 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
@@ -177,7 +178,7 @@ class BasePreprocessor(ABC):
         Returns:
             ``result`` with restored index
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[
@@ -191,7 +192,7 @@ class BasePreprocessor(ABC):
         Returns:
             data with the replaced indices
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData], *, is_obligatory: bool = True):

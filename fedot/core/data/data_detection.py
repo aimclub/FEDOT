@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from inspect import stack
 from typing import List
 
 import numpy as np
@@ -14,12 +15,12 @@ class DataDetector:
     @staticmethod
     @abstractmethod
     def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
 
     @staticmethod
     @abstractmethod
     def new_key_name(data_part_key: str) -> str:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
 
 
 class TextDataDetector(DataDetector):

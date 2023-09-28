@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from inspect import stack
 from random import choice
 from typing import Optional, Iterable
 
@@ -13,7 +14,7 @@ class OperationsFilter:
     @abstractmethod
     def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
 
 class WhitelistOperationsFilter(OperationsFilter):

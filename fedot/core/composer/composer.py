@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from inspect import stack
 from typing import List, Optional, Union
 
 from golem.core.log import default_log
@@ -45,4 +46,4 @@ class Composer(ABC):
             Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
 
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')

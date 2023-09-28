@@ -1,20 +1,19 @@
-import numpy as np
 from functools import partial
 from typing import Optional
 
-
+import numpy as np
 from golem.core.log import default_log, Log
+
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-
+from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
+from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
+from fedot.core.pipelines.prediction_intervals.solvers.last_generation_quantile_loss import solver_last_generation_ql
+from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 from fedot.core.pipelines.prediction_intervals.utils import compute_prediction_intervals, \
     get_base_quantiles, check_init_params, get_last_generations
 from fedot.core.pipelines.prediction_intervals.visualization import plot_prediction_intervals, \
     _plot_prediction_intervals
-from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
-from fedot.core.pipelines.prediction_intervals.solvers.last_generation_quantile_loss import solver_last_generation_ql
-from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
-from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 
 
 class PredictionIntervals:
@@ -121,7 +120,6 @@ class PredictionIntervals:
     regime_up = {'quantile': 'quantile_up', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'max'}
     regime_low = {'quantile': 'quantile_low', 'mean': 'mean', 'median': 'median', 'absolute_bounds': 'min'}
 
-
     def fit(self, train_input: InputData):
         """This method creates several np.arrays that will be used in method 'forecast' to build prediction intervals.
 
@@ -173,7 +171,6 @@ class PredictionIntervals:
 
         return {'up_int': self.up_int, 'low_int': self.low_int}
 
-
     def get_base_quantiles(self, train_input: InputData):
         """Method to get quantiles based on predictions of final pipeline over train_data.
 
@@ -193,7 +190,6 @@ class PredictionIntervals:
 
         return self.base_quantiles
 
-
     def plot(self,
              show_history: bool = True,
              show_forecast: bool = True,
@@ -212,13 +208,11 @@ class PredictionIntervals:
                                   ts_test=ts_test,
                                   labels='pred_ints')
 
-
     def plot_base_quantiles(self,
-                           show_history: bool = True,
-                           show_forecast: bool = True,
-                           ts_test: np.array = None):
+                            show_history: bool = True,
+                            show_forecast: bool = True,
+                            ts_test: np.array = None):
         """Method for plotting prediction intervals built on base quantiles, model forecast and test data."""
-
 
         if self.base_quantiles_are_computed is False:
             raise ValueError('Base quantiles are not computed! Use get_base_quantiles method first.')
@@ -231,7 +225,6 @@ class PredictionIntervals:
                                   show_forecast=show_forecast,
                                   ts_test=ts_test,
                                   labels='base_quantiles')
-
 
     def _plot(self,
               show_up_int=True,

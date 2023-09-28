@@ -1,3 +1,4 @@
+from inspect import stack
 from random import choice
 from typing import Optional, List
 
@@ -66,4 +67,4 @@ class PipelineOptNodeFactory(OptNodeFactory):
         """
         # TODO: get_all_available_operations is abstract method in OptNodeFactory
         #       PipelineOptNodeFactory cannot be instantiate without that method
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')

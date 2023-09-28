@@ -1,6 +1,7 @@
 import os.path
 import sys
 from abc import abstractmethod
+from inspect import stack
 from pathlib import Path
 from uuid import uuid4
 
@@ -45,12 +46,12 @@ class Metric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
 
 class QualityMetric:
@@ -61,7 +62,7 @@ class QualityMetric:
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
 
     @classmethod
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,

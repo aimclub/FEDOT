@@ -1,6 +1,7 @@
 import os
 from abc import abstractmethod
 from datetime import timedelta
+from inspect import stack
 from typing import Optional, Type, TypeVar
 
 from golem.core.log import default_log
@@ -35,7 +36,7 @@ class Client:
         :param config - configuration of pipeline fitting
         :return: id of created task
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def wait_until_ready(self) -> timedelta:
@@ -43,7 +44,7 @@ class Client:
         Delay execution until all remote tasks are ready
         :return: waiting time
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     @abstractmethod
     def download_result(self, execution_id: int, result_cls: Type[G]) -> G:
@@ -52,4 +53,4 @@ class Client:
         :param result_cls: result
         :return: fitted pipeline downloaded from the remote server
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')

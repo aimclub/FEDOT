@@ -1,5 +1,6 @@
 import json
 from abc import abstractmethod
+from inspect import stack
 from os.path import join
 from typing import List, Union
 
@@ -31,7 +32,7 @@ class Problem:
 
     @abstractmethod
     def convert_sample_to_dict(self, samples) -> Union[List[dict], List[List[dict]]]:
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
 
     def clean_sample_variables(self, samples: List[dict]):
         """Make integer values for params if necessary"""

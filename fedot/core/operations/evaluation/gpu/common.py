@@ -1,5 +1,6 @@
 import warnings
 from abc import abstractmethod
+from inspect import stack
 from typing import Optional
 
 from golem.utilities.requirements_notificator import warn_requirement
@@ -96,4 +97,4 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :param predict_data: data to predict
         :return OutputData: passed data with new predicted target
         """
-        raise NotImplementedError('Abstract method')
+        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
