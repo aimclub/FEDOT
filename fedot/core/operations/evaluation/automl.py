@@ -123,7 +123,6 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         out = self._convert_to_output(prediction, predict_data)
         return out
 
-
     def _data_transform(self, data: InputData) -> H2OFrame:
         concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
         frame = H2OFrame(python_obj=concat_data)
