@@ -7,16 +7,16 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation, \
     NumericalDerivativeFilterImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
-    RepeatLastValueImplementation, NaiveAverageForecastImplementation
-from fedot.core.operations.evaluation.operation_implementations.models. \
-    ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
     ARIMAImplementation, STLForecastARIMAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.cgru import \
     CGRUImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
+    RepeatLastValueImplementation, NaiveAverageForecastImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
+from fedot.core.operations.evaluation.operation_implementations.models. \
+    ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -34,7 +34,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         params: hyperparameters to fit the model with
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'arima': ARIMAImplementation,
         'ar': AutoRegImplementation,
         'stl_arima': STLForecastARIMAImplementation,
@@ -89,13 +89,6 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain custom time series forecasting '
-                             f'strategy for {operation_type}')
-
 
 class FedotTsTransformingStrategy(EvaluationStrategy):
     """
@@ -108,7 +101,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         params: hyperparameters to fit the model with
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'lagged': LaggedTransformationImplementation,
         'sparse_lagged': SparseLaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,
@@ -159,10 +152,3 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain custom time series transforming '
-                             f'strategy for {operation_type}')

@@ -35,7 +35,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
 
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'scaling': ScalingImplementation,
         'normalization': NormalizationImplementation,
         'simple_imputation': ImputationImplementation,
@@ -95,9 +95,3 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain custom preprocessing strategy for {operation_type}')
