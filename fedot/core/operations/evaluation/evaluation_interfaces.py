@@ -50,7 +50,6 @@ class EvaluationStrategy:
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.params_for_fit = params or OperationParameters()
         self.operation_id = operation_type
-
         self.output_mode = False
 
         self.log = default_log(self)
@@ -97,9 +96,11 @@ class EvaluationStrategy:
         """
         return self.predict(trained_operation, predict_data)
 
-    @abstractmethod
     def _convert_to_operation(self, operation_type: str):
-        raise NotImplementedError()
+        if operation_type in self._operations_by_types.keys():
+            return self._operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain {self.__class__} strategy for {operation_type}')
 
     @property
     def implementation_info(self) -> str:
@@ -170,7 +171,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         params: hyperparameters to fit the operation with
     """
 
-    __operations_by_types = {
+    _operations_by_types = {
         'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,
@@ -246,14 +247,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         """
         raise NotImplementedError()
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain SKlearn strategy for {operation_type}')
-
     def _find_operation_by_impl(self, impl):
-        for operation, operation_impl in self.__operations_by_types.items():
+        for operation, operation_impl in self._operations_by_types.items():
             if operation_impl == impl:
                 return operation
 

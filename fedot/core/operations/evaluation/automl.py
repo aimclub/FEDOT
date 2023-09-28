@@ -13,7 +13,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class H2OAutoMLRegressionStrategy(EvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'h2o_regr': H2OAutoML
     }
 
@@ -62,12 +62,6 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         out = self._convert_to_output(res, predict_data)
         return out
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain H2O AutoML Regression Strategy for {operation_type}')
-
     def _data_transform(self, data: InputData) -> H2OFrame:
         if len(data.target.shape) == 1:
             concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
@@ -83,7 +77,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
 
 
 class H2OAutoMLClassificationStrategy(EvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'h2o_class': H2OAutoML
     }
 
@@ -129,11 +123,6 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         out = self._convert_to_output(prediction, predict_data)
         return out
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain H2O AutoML Classification Strategy for {operation_type}')
 
     def _data_transform(self, data: InputData) -> H2OFrame:
         concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
@@ -147,7 +136,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
 
 
 class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'tpot_regr': TPOTRegressor
     }
 
@@ -189,15 +178,9 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         out = self._convert_to_output(res, predict_data)
         return out
 
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain H2O AutoML Regression Strategy for {operation_type}')
-
 
 class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'tpot_class': TPOTClassifier
     }
 
@@ -231,9 +214,3 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain H2O AutoML Classification Strategy for {operation_type}')

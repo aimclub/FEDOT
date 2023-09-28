@@ -20,7 +20,7 @@ from fedot.utilities.random import ImplementationRandomStateHandler
 
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
-    __operations_by_types = {
+    _operations_by_types = {
         'kmeans': KMeans
     }
 
@@ -61,9 +61,3 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
         converted = self._convert_to_output(prediction, predict_data)
 
         return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain SkLearn clustering strategy for {operation_type}')

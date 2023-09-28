@@ -35,7 +35,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
     :param dict params: hyperparameters to fit the operation with
     """
     try:
-        __operations_by_types = {
+        _operations_by_types = {
             'ridge': Ridge,
             'lasso': Lasso,
             'logit': LogisticRegression,
@@ -54,7 +54,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         }
     except NameError:
         # if cuML not installed
-        __operations_by_types = {}
+        _operations_by_types = {}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
@@ -95,9 +95,3 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain cuML strategy for {operation_type}')
