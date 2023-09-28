@@ -30,6 +30,7 @@ jobs:
         pip install pytest
         pip install .
         pip install pytest-cov
+        pip install git+https://github.com/aimclub/GOLEM.git@main
     - name: Test with pytest
       run: |
         pytest --cov=fedot -s test/unit
