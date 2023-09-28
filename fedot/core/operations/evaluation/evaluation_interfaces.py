@@ -97,7 +97,7 @@ class EvaluationStrategy:
         return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
-        if operation_type in self._operations_by_types.keys():
+        if operation_type in self._operations_by_types:
             return self._operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain {self.__class__} strategy for {operation_type}')
