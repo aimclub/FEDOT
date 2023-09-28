@@ -2,9 +2,7 @@ import dataclasses
 from typing import Optional
 
 import pytest
-from joblib import cpu_count
 
-from fedot.api.api_utils.params import ApiParams
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
@@ -14,7 +12,7 @@ from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
-from fedot.core.repository.tasks import TaskTypesEnum, TaskParams
+from fedot.core.repository.tasks import TaskTypesEnum
 
 fedot_params_full = dict(parallelization_mode='populational',
                          show_progress=True,
