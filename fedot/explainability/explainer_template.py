@@ -11,8 +11,8 @@ class Explainer:
 
     @abstractmethod
     def explain(self, *args, **kwargs):
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def visualize(self, *args, **kwargs):
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')

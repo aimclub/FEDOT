@@ -46,12 +46,12 @@ class Metric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
 
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
 
 
 class QualityMetric:
@@ -62,7 +62,7 @@ class QualityMetric:
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
 
     @classmethod
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,

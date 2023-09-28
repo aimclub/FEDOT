@@ -49,11 +49,11 @@ class BasePreprocessor(ABC):
 
         Args:
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
@@ -63,30 +63,30 @@ class BasePreprocessor(ABC):
 
         Args:
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                  MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline fitting.
 
         Args:
             pipeline: pipeline defining whether to make optional preprocessing
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                      MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline predict stage.
         Preprocessor must be already fitted.
@@ -98,7 +98,7 @@ class BasePreprocessor(ABC):
         Returns:
             preprocessed data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def label_encoding_for_fit(self, data: InputData, source_name: str = DEFAULT_SOURCE_NAME):
@@ -110,7 +110,7 @@ class BasePreprocessor(ABC):
             data: data to transform
             source_name: name of data source node
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def cut_dataset(self, data: InputData, border: int):
@@ -121,7 +121,7 @@ class BasePreprocessor(ABC):
             data: data to be cut
             border: number of objects to keep
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
@@ -134,11 +134,11 @@ class BasePreprocessor(ABC):
         Returns:
             encoded or untouched column
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> \
+            Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for fit
 
@@ -149,11 +149,11 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> \
+            Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for predict
 
@@ -164,13 +164,12 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
         """
         restores index from ``input_data`` into ``result``
-
         Args:
             input_data: data to take the index from
             result: data to store index into
@@ -178,21 +177,21 @@ class BasePreprocessor(ABC):
         Returns:
             ``result`` with restored index
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
-    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                   MultiModalData]:
         """
         Replaces indices for time series for predict stage
-        
+
         Args:
             test_data: data for replacing the indices
-        
+
         Returns:
             data with the replaced indices
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData], *, is_obligatory: bool = True):
@@ -220,7 +219,7 @@ class BasePreprocessor(ABC):
         Args:
             api_preprocessor: the one from the API
             pipeline_preprocessor: the one from the obtained pipeline
-        
+
         Returns:
             merged preprocessor
         """

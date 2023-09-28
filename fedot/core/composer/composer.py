@@ -46,4 +46,4 @@ class Composer(ABC):
             Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
 
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')

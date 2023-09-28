@@ -14,7 +14,7 @@ class OperationsFilter:
     @abstractmethod
     def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
 
 class WhitelistOperationsFilter(OperationsFilter):

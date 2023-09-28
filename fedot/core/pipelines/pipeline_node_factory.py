@@ -67,4 +67,4 @@ class PipelineOptNodeFactory(OptNodeFactory):
         """
         # TODO: get_all_available_operations is abstract method in OptNodeFactory
         #       PipelineOptNodeFactory cannot be instantiate without that method
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')

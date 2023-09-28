@@ -32,7 +32,7 @@ class Problem:
 
     @abstractmethod
     def convert_sample_to_dict(self, samples) -> Union[List[dict], List[List[dict]]]:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     def clean_sample_variables(self, samples: List[dict]):
         """Make integer values for params if necessary"""

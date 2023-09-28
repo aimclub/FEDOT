@@ -43,12 +43,12 @@ class AssumptionsBuilder:
 
     @abstractmethod
     def from_operations(self, available_operations: List[str]):
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:
@@ -122,9 +122,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         subpipelines: List[List[Pipeline]] = []
         initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = \
-                PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
-                    .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
+            first_node = PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
+                .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
             data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 

@@ -15,12 +15,12 @@ class DataDetector:
     @staticmethod
     @abstractmethod
     def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
 
     @staticmethod
     @abstractmethod
     def new_key_name(data_part_key: str) -> str:
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
 
 
 class TextDataDetector(DataDetector):

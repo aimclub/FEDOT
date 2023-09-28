@@ -26,7 +26,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def transform(self, input_data: InputData) -> OutputData:
@@ -34,7 +34,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
         """ Method apply transform operation on a dataset for fit stage.
@@ -186,7 +186,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     @abstractmethod
     def predict(self, input_data: InputData) -> OutputData:
@@ -194,7 +194,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} not implemented in {self.__class__}')
+        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
 
     def predict_for_fit(self, input_data: InputData) -> OutputData:
         """ Method make prediction while graph fitting.
