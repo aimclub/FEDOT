@@ -11,7 +11,7 @@ from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
 from golem.core.optimisers.opt_history_objects.individual import Individual
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate

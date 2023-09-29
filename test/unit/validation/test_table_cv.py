@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate

@@ -6,7 +6,7 @@ import pytest
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
 from test.integration.api.test_main_api import get_dataset
 

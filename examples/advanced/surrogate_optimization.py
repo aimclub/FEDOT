@@ -5,7 +5,7 @@ from golem.core.optimisers.meta.surrogate_model import SurrogateModel
 from golem.core.optimisers.meta.surrogate_optimizer import SurrogateEachNgenOptimizer
 
 from examples.simple.time_series_forecasting.api_forecasting import get_ts_data
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 

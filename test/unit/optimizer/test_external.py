@@ -9,7 +9,7 @@ from golem.core.optimisers.objective.objective import Objective, ObjectiveFuncti
 from golem.core.optimisers.optimization_parameters import OptimizationParameters
 from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, AlgorithmParameters
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

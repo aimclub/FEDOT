@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_absolute_error
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root

@@ -3,7 +3,7 @@ from typing import List
 
 from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task

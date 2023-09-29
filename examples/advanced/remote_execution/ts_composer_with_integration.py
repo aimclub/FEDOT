@@ -1,4 +1,4 @@
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed

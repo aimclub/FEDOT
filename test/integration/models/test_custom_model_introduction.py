@@ -9,7 +9,7 @@ import pandas as pd
 
 from examples.advanced.time_series_forecasting.custom_model_tuning import get_fitting_custom_pipeline
 from examples.simple.pipeline_import_export import create_correct_path
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData

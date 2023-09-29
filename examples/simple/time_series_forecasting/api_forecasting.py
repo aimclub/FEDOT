@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from examples.advanced.time_series_forecasting.multistep import TS_DATASETS
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
