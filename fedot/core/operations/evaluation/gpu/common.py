@@ -1,9 +1,10 @@
 import warnings
 from abc import abstractmethod
-from inspect import stack
 from typing import Optional
 
 from golem.utilities.requirements_notificator import warn_requirement
+
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 try:
     import cudf
@@ -97,4 +98,4 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :param predict_data: data to predict
         :return OutputData: passed data with new predicted target
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError

@@ -1,13 +1,13 @@
 import os
 from abc import abstractmethod
 from datetime import timedelta
-from inspect import stack
 from typing import Optional, Type, TypeVar
 
 from golem.core.log import default_log
 from golem.core.utilities.serializable import Serializable
 
 from fedot.core.utils import default_fedot_data_dir
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 G = TypeVar('G', bound=Serializable)
 
@@ -36,7 +36,7 @@ class Client:
         :param config - configuration of pipeline fitting
         :return: id of created task
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def wait_until_ready(self) -> timedelta:
@@ -44,7 +44,7 @@ class Client:
         Delay execution until all remote tasks are ready
         :return: waiting time
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def download_result(self, execution_id: int, result_cls: Type[G]) -> G:
@@ -53,4 +53,4 @@ class Client:
         :param result_cls: result
         :return: fitted pipeline downloaded from the remote server
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError

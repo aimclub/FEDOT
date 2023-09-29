@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from inspect import stack
 from random import choice
 from typing import Optional, Iterable
 
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class OperationsFilter:
@@ -14,7 +14,7 @@ class OperationsFilter:
     @abstractmethod
     def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
 
 class WhitelistOperationsFilter(OperationsFilter):

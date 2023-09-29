@@ -1,18 +1,20 @@
 from abc import abstractmethod
-from inspect import stack
+
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class Explainer:
     """
     An abstract class for various explanation methods.
     """
+
     def __init__(self, model):
         self.model = model
 
     @abstractmethod
     def explain(self, *args, **kwargs):
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def visualize(self, *args, **kwargs):
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError

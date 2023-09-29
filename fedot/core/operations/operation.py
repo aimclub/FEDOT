@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from inspect import stack
 from typing import Optional, Union, Dict, Any
 
 from golem.core.log import default_log
@@ -10,6 +9,7 @@ from fedot.core.operations.hyperparameters_preprocessing import HyperparametersP
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 @register_serializable
@@ -148,7 +148,7 @@ class Operation:
         ``ts_type -> lagged -> tabular type``\n
         So, there is a need to assign column types to new data
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented')
+        raise AbstractMethodNotImplementError
 
     def __str__(self):
         return f'{self.operation_type}'

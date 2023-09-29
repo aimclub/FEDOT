@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from inspect import stack
 from typing import List, Optional, Union
 
 from golem.core.log import default_log
@@ -10,6 +9,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class Composer(ABC):
@@ -46,4 +46,4 @@ class Composer(ABC):
             Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
 
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError

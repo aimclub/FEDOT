@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from inspect import stack
 from typing import Optional
 
 import numpy as np
@@ -9,6 +8,7 @@ from golem.core.log import default_log
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class DataOperationImplementation(ABC):
@@ -26,7 +26,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def transform(self, input_data: InputData) -> OutputData:
@@ -34,7 +34,7 @@ class DataOperationImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
         """ Method apply transform operation on a dataset for fit stage.
@@ -186,7 +186,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def predict(self, input_data: InputData) -> OutputData:
@@ -194,7 +194,7 @@ class ModelImplementation(ABC):
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     def predict_for_fit(self, input_data: InputData) -> OutputData:
         """ Method make prediction while graph fitting.

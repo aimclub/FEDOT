@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from inspect import stack
+
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class GraphOperationRepository(ABC):
@@ -9,9 +10,9 @@ class GraphOperationRepository(ABC):
     @abstractmethod
     def get_operations(self, **kwargs):
         """ Get models by specified model keys """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def get_all_operations(self):
         """ Get all models with all keys """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError

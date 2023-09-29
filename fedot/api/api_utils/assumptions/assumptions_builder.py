@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from inspect import stack
 from typing import List, Union, Optional, Set, Tuple
 
 from golem.core.log import default_log
@@ -14,6 +13,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class AssumptionsBuilder:
@@ -43,12 +43,12 @@ class AssumptionsBuilder:
 
     @abstractmethod
     def from_operations(self, available_operations: List[str]):
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:

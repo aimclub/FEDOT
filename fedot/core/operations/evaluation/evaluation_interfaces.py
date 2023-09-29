@@ -1,6 +1,5 @@
 import warnings
 from abc import abstractmethod
-from inspect import stack
 from typing import Optional
 
 import numpy as np
@@ -34,6 +33,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -69,7 +69,7 @@ class EvaluationStrategy:
         Returns:
 
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError(self.__class__)
 
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -82,7 +82,7 @@ class EvaluationStrategy:
         Returns:
             passed data with new predicted target
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
         """Method to predict the target data for fit stage.
@@ -247,7 +247,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         Returns:
             passed data with new predicted target
         """
-        raise NotImplementedError(f'Method {stack()[0][3]} is not implemented in {self.__class__}')
+        raise AbstractMethodNotImplementError
 
     def _find_operation_by_impl(self, impl):
         for operation, operation_impl in self._operations_by_types.items():
