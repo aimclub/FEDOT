@@ -220,7 +220,6 @@ class Fedot:
 
         Returns:
             :class:`Pipeline` object.
-
         """
 
         MemoryAnalytics.start()
@@ -294,7 +293,6 @@ class Fedot:
 
         Returns:
             :class:`Pipeline` object.
-
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -332,15 +330,14 @@ class Fedot:
         If ``in_sample=True`` performs in-sample forecast using features as sample.
 
         Args:
-            features: the array with features of test data.
+            features: an array with features of test data.
             save_predictions: if ``True`` - save predictions as csv-file in working directory.
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
 
-
         Returns:
-            The array with prediction values.
+            An array with prediction values.
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -365,12 +362,12 @@ class Fedot:
         """Predicts the probability of new target using already fitted classification model
 
         Args:
-            features: the array with features of test data.
+            features: an array with features of test data.
             save_predictions: if ``True`` - save predictions as ``.csv`` file in working directory.
             probs_for_all_classes: if ``True`` - return probability for each class even for binary classification.
 
         Returns:
-            The array with prediction values.
+            An array with prediction values.
         """
 
         if self.current_pipeline is None:
@@ -399,12 +396,12 @@ class Fedot:
         out-of-sample forecast is applied (not supported for multi-modal data).
 
         Args:
-            pre_history: the array with features for pre-history of the forecast.
+            pre_history: an array with features for pre-history of the forecast.
             horizon: amount of steps to forecast.
             save_predictions: if ``True`` save predictions as csv-file in working directory.
 
         Returns:
-            The array with prediction values.
+            An array with prediction values.
         """
         self._check_forecast_applicable()
 
@@ -451,13 +448,12 @@ class Fedot:
                          show=True)
 
     def plot_prediction(self, in_sample: Optional[bool] = None, target: Optional[Any] = None):
-        """Plots the prediction obtained from graph
+        """Plots prediction obtained from a graph.
 
         Args:
             in_sample: if current prediction is in_sample (for time-series forecasting), plots predictions as future
                 values.
             target: user-specified name of target variable for :class:`MultiModalData`.
-
         """
         task = self.params.task
 
@@ -483,18 +479,18 @@ class Fedot:
                     in_sample: Optional[bool] = None,
                     validation_blocks: Optional[int] = None,
                     rounding_order: int = 3) -> dict:
-        """Gets quality metrics for the fitted graph
+        """Gets quality metrics for a fitted graph
 
         Args:
-            target: the array with target values of test data. If ``None``, target specified for fit is used.
-            metric_names: the names of required metrics.
+            target: an array with target values of test data. If ``None``, target specified for fit is used.
+            metric_names: names of required metrics.
             in_sample: used for time series forecasting.
                 If True prediction will be obtained as ``.predict(..., in_sample=True)``.
             validation_blocks: number of validation blocks for time series in-sample forecast.
             rounding_order: number of decimal places for metrics
 
         Returns:
-            The values of quality metrics.
+            Values of quality metrics.
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -564,7 +560,7 @@ class Fedot:
             method: explanation method, defaults to ``surrogate_dt``
             visualization: print and plot the explanation simultaneously, defaults to ``True``.
         Notes:
-            The explanation can be retrieved later by executing :obj:`explainer.visualize()`.
+            An explanation can be retrieved later by executing :obj:`explainer.visualize()`.
         """
         pipeline = self.current_pipeline
         if features is None:

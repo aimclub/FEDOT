@@ -20,7 +20,7 @@ DEFAULT_VALUE = DefaultParamValue()
 class FedotBuilder:
     """
     Args:
-        problem: name of the modelling problem to solve.
+        problem: name of a modelling problem to solve.
             .. details:: Possible options:
 
                 - ``classification`` -> for classification task
@@ -48,7 +48,7 @@ class FedotBuilder:
         Args:
             timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time.
 
-            task_params: additional parameters of the task.
+            task_params: additional parameters of a task.
 
             seed: value for a fixed random seed.
 
@@ -115,7 +115,8 @@ class FedotBuilder:
         """
 
         Args:
-            logging_level: logging levels are the same as in `logging <https://docs.python.org/3/library/logging.html>`_.
+            logging_level: logging levels are the same as in
+            `logging <https://docs.python.org/3/library/logging.html>`_.
 
                 .. details:: Possible options:
 
@@ -128,10 +129,10 @@ class FedotBuilder:
 
             show_progress: indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
-            cache_dir: path to the directory containing cache files (if any cache is enabled).
-                By default, creates a folder named "FEDOT" in temporary system files of the OS.
+            cache_dir: path to a directory containing cache files (if any cache is enabled).
+                By default, creates a folder named "FEDOT" in temporary system files of an OS.
 
-            history_dir: relative or absolute path of the folder for composing history. Has the same default value
+            history_dir: relative or absolute path of a folder for composing history. Has the same default value
                 as ``cache_dir``. A relative path is relative to the default value.
 
         Returns:
@@ -211,9 +212,9 @@ class FedotBuilder:
         Args:
             available_operations: list of model names to use. Pick the names according to operations repository.
 
-            max_depth: max depth of the pipeline. Defaults to ``6``.
+            max_depth: max depth of a pipeline. Defaults to ``6``.
 
-            max_arity: max arity of the pipeline nodes. Defaults to ``3``.
+            max_arity: max arity of a pipeline nodes. Defaults to ``3``.
 
         Returns:
 
@@ -256,13 +257,13 @@ class FedotBuilder:
 
             cv_folds: number of folds for cross-validation.
 
-                .. details:: Default value depends on the given ``problem``:
+                .. details:: Default value depends on a given ``problem``:
 
                     - ``5`` -> for classification and regression tasks
                     - ``3`` -> for time series forecasting task
 
             max_pipeline_fit_time: time constraint for operation fitting (in minutes).
-                Once the limit is reached, the candidate pipeline will be dropped. Defaults to ``None`` - no limit.
+                Once the limit is reached, a candidate pipeline will be dropped. Defaults to ``None`` - no limit.
 
             collect_intermediate_metric: save metrics for intermediate (non-root) nodes in composed
                 :class:`Pipeline`.
@@ -287,7 +288,7 @@ class FedotBuilder:
         """
         Args:
             safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
-                instead of OneHot encoder if summary cardinality of categorical features is high.
+                instead of one-hot encoder if summary cardinality of categorical features is high.
                 Default value is ``False``.
 
             use_input_preprocessing: indicates whether to do preprocessing of further given data.
