@@ -244,7 +244,7 @@ def test_correct_api_dataset_with_pseudo_text_preprocessing():
     input_data = data_with_pseudo_text_features()
     fedot_model = Fedot(problem='classification')
     fedot_model.fit(input_data, predefined_model='auto')
-    predicted = fedot_model.predict(input_data)
+    fedot_model.predict(input_data)
 
     # Check there are no text nodes in the pipeline
     node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
