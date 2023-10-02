@@ -1,7 +1,6 @@
 from copy import deepcopy
 from typing import Tuple, Optional, Union
 
-import numpy as np
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
@@ -41,7 +40,13 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
                          target=target,
                          task=deepcopy(origin_input_data.task),
                          data_type=origin_input_data.data_type,
-                         supplementary_data=origin_input_data.supplementary_data)
+                         supplementary_data=origin_input_data.supplementary_data,
+                         categorical_features=origin_input_data.categorical_features,
+                         categorical_idx=origin_input_data.categorical_idx,
+                         numerical_idx=origin_input_data.numerical_idx,
+                         encoded_idx=origin_input_data.encoded_idx,
+                         features_names=origin_input_data.features_names,
+                         )
         return data
     else:
         raise TypeError(f'Unknown data type {type(origin_input_data)}')

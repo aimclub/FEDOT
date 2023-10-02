@@ -13,12 +13,20 @@
   "catboost": {
     "allow_writing_files": false,
     "verbose": false,
-    "thread_count": 1
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": null,
+    "n_jobs": 1
   },
   "catboostreg": {
     "allow_writing_files": false,
     "verbose": false,
-    "thread_count": 1
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": null,
+    "n_jobs": 1
   },
   "lgbm": {
     "num_leaves": 32,
@@ -29,6 +37,17 @@
     "n_estimators": 100,
     "n_jobs": 1
   },
+  "lgbmxt": {
+    "extra_tree": true,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 1000,
+    "num_leaves": 128,
+    "feature_fraction": 0.9,
+    "min_data_in_leaf": 5
+  },
   "lgbmreg": {
     "num_leaves": 32,
     "colsample_bytree": 0.8,
@@ -37,6 +56,15 @@
     "learning_rate": 0.03,
     "n_estimators": 100,
     "n_jobs": 1
+  },
+  "lgbmxtreg": {
+    "extra_tree": true,
+    "num_leaves": 32,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 100
   },
   "lagged": {
     "window_size": 10
@@ -146,5 +174,111 @@
   },
   "fast_ica": {
     "whiten": "unit-variance"
+  },
+  "bag_dt": {
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "max_samples": 0.6,
+    "n_jobs": 1,
+    "model_params": {
+      "max_depth": null,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1
+    }
+  },
+  "bag_dtreg": {
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "max_samples": 0.6,
+    "n_jobs": 1,
+    "model_params": {
+      "max_depth": null,
+      "min_samples_split": 2,
+      "min_samples_leaf": 1
+    }
+  },
+  "bag_adareg": {
+    "n_estimators": 25,
+    "bootstrap": true,
+    "oob_score": true,
+    "max_samples": 0.6,
+    "n_jobs": 1,
+    "model_params": null
+  },
+  "bag_catboost": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "allow_writing_files": false,
+      "verbose": false
+    }
+  },
+  "bag_catboostreg": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "allow_writing_files": false,
+      "verbose": false
+    }
+  },
+  "bag_xgboost": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "eval_metric": "mlogloss",
+      "nthread": -1
+    }
+  },
+  "bag_xgboostreg": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "eval_metric": "mlogloss",
+      "nthread": -1
+    }
+  },
+  "bag_lgbm": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "num_leaves": 32,
+      "colsample_bytree": 0.8,
+      "subsample": 0.8,
+      "subsample_freq": 10,
+      "learning_rate": 0.03,
+      "n_estimators": 100
+    }
+  },
+  "bag_lgbmreg": {
+    "model_base": null,
+    "n_repeats": 10,
+    "k_fold": 5,
+    "fold_fitting_strategy": "sequential",
+    "n_jobs": 1,
+    "model_base_kwargs": {
+      "num_leaves": 32,
+      "colsample_bytree": 0.8,
+      "subsample": 0.8,
+      "subsample_freq": 10,
+      "learning_rate": 0.03,
+      "n_estimators": 100
+    }
   }
 }

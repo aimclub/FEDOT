@@ -91,6 +91,44 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
+    "boosting_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Boosting models implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.boostings",
+        "BoostingClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "boosting",
+        "composition"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "boosting_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Boosting models implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.boostings",
+        "BoostingRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "boosting",
+        "composition"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts]",
@@ -116,6 +154,58 @@
         "non-default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
+    },
+    "bagging_class": {
+      "description": "SkLearn bagging of classification models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging",
+        "SkLearnBaggingClassificationStrategy"
+      ],
+      "tags": [
+        "bagging"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "bagging_regr": {
+      "description": "SkLearn bagging of regression models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging",
+        "SkLearnBaggingRegressionStrategy"
+      ],
+      "tags": [
+        "bagging"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
+    "kfold_bagging_class": {
+      "description": "K-fold n-repeated bagging of classification models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging_kfold",
+        "KFoldBaggingClassificationStrategy"
+      ],
+      "tags": [
+        "kfold_bagging"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "kfold_bagging_regr": {
+      "description": "K-fold n-repeated bagging of regression models implementation",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.bagging_kfold",
+        "KFoldBaggingRegressionStrategy"
+      ],
+      "tags": [
+        "kfold_bagging"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
     }
   },
   "operations": {
@@ -171,17 +261,17 @@
       ]
     },
     "catboost": {
-      "meta": "sklearn_class",
+      "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non-default", "non_linear"
+        "simple", "boosting"
       ]
     },
     "catboostreg": {
-      "meta": "sklearn_regr",
+      "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non_multi", "non-default", "non_linear"
+        "simple", "boosting"
       ]
     },
     "dt": {
@@ -191,7 +281,8 @@
         "simple",
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "dtreg": {
@@ -200,7 +291,8 @@
       "tags": [
         "tree",
         "interpretable",
-        "non_linear"
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "gbr": {
@@ -254,26 +346,60 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting", "tree", "non_linear"
+        "tree",
+        "non_linear",
+        "bagging_allowed"
+      ]
+    },
+    "lgbmxt": {
+      "meta": "sklearn_class",
+      "tags": [
+        "tree",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
-      "presets": ["*tree"],
+      "presets": [
+        "*tree"
+      ],
       "tags": [
-        "boosting", "tree", "non_multi", "non_linear"
+        "tree",
+        "non_multi",
+        "non_linear",
+        "bagging_allowed"
+      ]
+    },
+    "lgbmxtreg": {
+      "meta": "sklearn_regr",
+      "presets": [
+        "*tree"
+      ],
+      "tags": [
+        "tree",
+        "non_multi",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "linear": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "ts"],
+      "presets": [
+        "fast_train",
+        "ts"
+      ],
       "tags": [
-        "simple", "linear", "interpretable"
+        "simple",
+        "linear",
+        "interpretable"
       ]
     },
     "logit": {
       "meta": "sklearn_class",
-      "presets": ["fast_train"],
+      "presets": [
+        "fast_train"
+      ],
       "tags": [
         "simple",
         "linear",
@@ -430,14 +556,21 @@
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non-default", "non_linear"
+        "tree",
+        "non-default",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non-default", "non_linear"
+        "tree",
+        "non_multi",
+        "non-default",
+        "non_linear",
+        "bagging_allowed"
       ]
     },
     "cnn": {
@@ -454,6 +587,42 @@
           "custom_model",
           "non-default"
         ]
-	}
+    },
+    "bag_dt": {
+      "meta": "bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_dtreg": {
+      "meta": "bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_adareg": {
+      "meta": "bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_catboost": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_catboostreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_xgboost": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_xgboostreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
+    },
+    "bag_lgbm": {
+      "meta": "kfold_bagging_class",
+      "presets": ["bagging_class"]
+    },
+    "bag_lgbmreg": {
+      "meta": "kfold_bagging_regr",
+      "presets": ["bagging_regr"]
+    }
   }
 }

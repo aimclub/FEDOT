@@ -3,7 +3,6 @@ from abc import abstractmethod
 from typing import Optional
 
 import numpy as np
-from catboost import CatBoostClassifier, CatBoostRegressor
 from golem.core.log import default_log
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -157,6 +156,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``svr``-> SklearnSVR
                 - ``sgdr``-> SklearnSGD
                 - ``lgbmreg``-> LGBMRegressor
+                - ``lgbmxtreg``-> LGBMRegressor with Extra Tree
                 - ``catboostreg``-> CatBoostRegressor
                 - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
@@ -166,6 +166,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``rf``-> RandomForestClassifier
                 - ``mlp``-> MLPClassifier
                 - ``lgbm``-> LGBMClassifier
+                - ``lgbmxt``-> LGBMClassifier with Extra Tree
                 - ``catboost``-> CatBoostClassifier
                 - ``kmeans``-> SklearnKmeans
 
@@ -185,7 +186,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
         'lgbmreg': LGBMRegressor,
-        'catboostreg': CatBoostRegressor,
+        'lgbmxtreg': LGBMRegressor,
 
         'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
@@ -195,7 +196,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
         'lgbm': LGBMClassifier,
-        'catboost': CatBoostClassifier,
+        'lgbmxt': LGBMClassifier,
 
         'kmeans': SklearnKmeans,
     }

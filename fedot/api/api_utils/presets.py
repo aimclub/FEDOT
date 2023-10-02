@@ -51,9 +51,9 @@ class OperationsPreset:
             # Use best_quality preset but exclude several operations
             preset_name = BEST_QUALITY_PRESET_NAME
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                    'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
+                    'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample', 'stl_arima']
-        excluded_tree = ['xgboost', 'catboost', 'xgbreg', 'catboostreg']
+        excluded_tree = ['xgboost', 'xgbreg']
 
         if '*' in preset_name:
             self.modification_using = True

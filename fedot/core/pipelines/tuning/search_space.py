@@ -601,6 +601,15 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'}
             },
+            'lgbmxt': {
+                'class_weight': (hp.choice, [[None, 'balanced']]),
+                'num_leaves': (hp.uniformint, [2, 256]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+            },
             'lgbmreg': {
                 'num_leaves': {
                     'hyperopt-dist': hp.uniformint,
@@ -627,49 +636,97 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [1e-8, 10],
                     'type': 'continuous'}
             },
+            'lgbmxtreg': {
+                'num_leaves': (hp.uniformint, [2, 256]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+            },
             'catboost': {
-                'max_depth': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 11],
-                    'type': 'discrete'},
+                'iterations': {
+                    'hyperopt-dist': hp.randint,
+                    'sampling-scope': [500, 10000],
+                    'type': 'discrete'
+                },
                 'learning_rate': {
                     'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [0.01, 0.2],
-                    'type': 'continuous'},
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                },
+                'max_depth': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [4, 10],
+                    'type': 'discrete'
+                },
+                'max_leaves': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'
+                },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 6],
-                    'type': 'discrete'},
+                    'sampling-scope': [0, 25],
+                    'type': 'discrete'
+                },
                 'border_count': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [2, 255],
-                    'type': 'discrete'},
+                    'sampling-scope': [1, 65535],
+                    'type': 'discrete'
+                },
                 'l2_leaf_reg': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniform,
                     'sampling-scope': [1e-8, 10],
-                    'type': 'continuous'}
+                    'type': 'continuous'
+                },
+                'colsample_bylevel': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                }
             },
             'catboostreg': {
+                'iterations': {
+                    'hyperopt-dist': hp.randint,
+                    'sampling-scope': [500, 10000],
+                    'type': 'discrete'
+                },
+                'learning_rate': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.2, 1.0],
+                    'type': 'continuous'
+                },
                 'max_depth': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 11],
-                    'type': 'discrete'},
-                'learning_rate': {
-                    'hyperopt-dist': hp.loguniform,
-                    'sampling-scope': [0.01, 0.2],
-                    'type': 'continuous'},
+                    'sampling-scope': [4, 10],
+                    'type': 'discrete'
+                },
+                'max_leaves': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 100],
+                    'type': 'discrete'
+                },
                 'min_data_in_leaf': {
                     'hyperopt-dist': partial(hp.qloguniform, q=1),
-                    'sampling-scope': [0, 6],
-                    'type': 'discrete'},
+                    'sampling-scope': [0, 25],
+                    'type': 'discrete'
+                },
                 'border_count': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [2, 255],
-                    'type': 'discrete'},
+                    'sampling-scope': [1, 65535],
+                    'type': 'discrete'
+                },
                 'l2_leaf_reg': {
-                    'hyperopt-dist': hp.loguniform,
+                    'hyperopt-dist': hp.uniform,
                     'sampling-scope': [1e-8, 10],
-                    'type': 'continuous'}
+                    'type': 'continuous'
+                },
+                'colsample_bylevel': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'
+                }
             },
             'resample': {
                 'balance': {
@@ -727,6 +784,125 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.9, 0.99],
                     'type': 'continuous'}
+            },
+            'bag_dt': {
+                'n_estimators': (hp.uniformint, [3, 100]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'min_samples_split': (hp.uniformint, [2, 21]),
+                    'min_samples_leaf': (hp.uniformint, [1, 21])
+                }
+            },
+            'bag_dtreg': {
+                'n_estimators': (hp.uniformint, [3, 50]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
+                'model_params': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'min_samples_split': (hp.uniformint, [2, 21]),
+                    'min_samples_leaf': (hp.uniformint, [1, 21])
+                }
+            },
+            'bag_adareg': {
+                'n_estimators': (hp.uniformint, [3, 50]),
+                'max_samples': (hp.uniformint, [0.1, 1.0]),
+                'model_params': {
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'loss': (hp.choice, [["linear", "square", "exponential"]])
+                }
+            },
+            'bag_catboost': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                    'border_count': (hp.uniformint, [2, 255]),
+                    'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'loss_function': (hp.choice, [['Logloss', 'CrossEntropy']])
+                }
+            },
+            'bag_xgboost': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'max_depth': (hp.uniformint, [1, 7]),
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'subsample': (hp.uniform, [0.05, 0.99]),
+                    'min_child_weight': (hp.uniform, [1, 21])
+                }
+            },
+            'bag_lgbm': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'class_weight': (hp.choice, [[None, 'balanced']]),
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_lgbmxt': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'class_weight': (hp.choice, [[None, 'balanced']]),
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_catboostreg': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'max_depth': (hp.uniformint, [1, 11]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                    'border_count': (hp.uniformint, [2, 255]),
+                    'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_xgboostreg': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'max_depth': (hp.uniformint, [1, 7]),
+                    'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                    'subsample': (hp.uniform, [0.05, 0.99]),
+                    'min_child_weight': (hp.uniform, [1, 21])
+                }
+            },
+            'bag_lgbmreg': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
+            },
+            'bag_lgbmxtreg': {
+                'n_repeats': (hp.uniformint, [1, 25]),
+                'k_fold': (hp.uniformint, [3, 50]),
+                'model_base_kwargs': {
+                    'num_leaves': (hp.uniformint, [2, 256]),
+                    'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                    'colsample_bytree': (hp.uniform, [0.4, 1]),
+                    'subsample': (hp.uniform, [0.4, 1]),
+                    'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                    'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                }
             },
         }
 
