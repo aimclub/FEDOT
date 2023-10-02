@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import pandas as pd
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -244,7 +244,7 @@ def test_correct_api_dataset_with_pseudo_text_preprocessing():
     input_data = data_with_pseudo_text_features()
     fedot_model = Fedot(problem='classification')
     fedot_model.fit(input_data, predefined_model='auto')
-    predicted = fedot_model.predict(input_data)
+    fedot_model.predict(input_data)
 
     # Check there are no text nodes in the pipeline
     node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]

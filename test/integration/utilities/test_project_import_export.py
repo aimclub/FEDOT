@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.utils import fedot_project_root
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip, DEFAULT_PROJECTS_PATH
 from test.integration.models.test_atomized_model import create_pipeline

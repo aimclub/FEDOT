@@ -1,6 +1,6 @@
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

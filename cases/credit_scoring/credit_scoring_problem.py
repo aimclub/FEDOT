@@ -2,7 +2,7 @@ import logging
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root

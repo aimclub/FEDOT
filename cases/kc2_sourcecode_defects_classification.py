@@ -1,6 +1,6 @@
 from os.path import join
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import TaskTypesEnum, Task

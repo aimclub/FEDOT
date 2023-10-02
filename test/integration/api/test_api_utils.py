@@ -6,7 +6,7 @@ import pytest
 from examples.simple.classification.classification_pipelines import (classification_pipeline_with_balancing,
                                                                      classification_pipeline_without_balancing)
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

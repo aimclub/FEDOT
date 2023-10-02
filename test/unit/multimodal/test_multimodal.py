@@ -1,4 +1,4 @@
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
