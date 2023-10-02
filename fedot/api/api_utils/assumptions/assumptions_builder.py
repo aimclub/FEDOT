@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Union, Optional, Set, Tuple
 
 from golem.core.log import default_log
@@ -12,6 +13,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class AssumptionsBuilder:
@@ -39,12 +41,14 @@ class AssumptionsBuilder:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
+    @abstractmethod
     def from_operations(self, available_operations: List[str]):
-        raise NotImplementedError('abstract')
+        raise AbstractMethodNotImplementError
 
+    @abstractmethod
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
                     use_input_preprocessing: bool = True) -> List[PipelineBuilder]:
-        raise NotImplementedError('abstract')
+        raise AbstractMethodNotImplementError
 
     def build(self, initial_node: Optional[PipelineNode] = None,
               use_input_preprocessing: bool = True) -> List[Pipeline]:
@@ -118,9 +122,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         subpipelines: List[List[Pipeline]] = []
         initial_node_operation = initial_node.operation.operation_type if initial_node is not None else None
         for data_source_name, subbuilder in self._subbuilders:
-            first_node = \
-                PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
-                    .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
+            first_node = PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
+                .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
             data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 

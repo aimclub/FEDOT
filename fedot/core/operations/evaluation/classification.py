@@ -83,7 +83,7 @@ class FedotClassificationStrategy(EvaluationStrategy):
         elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = trained_operation.predict_proba(predict_data)
             if n_classes < 2:
-                raise NotImplementedError()
+                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:
                 prediction = prediction[:, 1]
         else:

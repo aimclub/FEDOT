@@ -4,6 +4,7 @@ from os.path import join
 from typing import List, Union
 
 from fedot.core.utils import fedot_project_root
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 def load_params_bounds_file():
@@ -31,7 +32,7 @@ class Problem:
 
     @abstractmethod
     def convert_sample_to_dict(self, samples) -> Union[List[dict], List[List[dict]]]:
-        raise NotImplementedError
+        raise AbstractMethodNotImplementError
 
     def clean_sample_variables(self, samples: List[dict]):
         """Make integer values for params if necessary"""

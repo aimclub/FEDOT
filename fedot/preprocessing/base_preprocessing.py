@@ -16,6 +16,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -48,44 +49,44 @@ class BasePreprocessor(ABC):
 
         Args:
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                              MultiModalData]:
         """
         Performs obligatory preprocessing for pipeline's predict method.
 
         Args:
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                  MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline fitting.
 
         Args:
             pipeline: pipeline defining whether to make optional preprocessing
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                      MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline predict stage.
         Preprocessor must be already fitted.
@@ -93,11 +94,11 @@ class BasePreprocessor(ABC):
         Args:
             pipeline: pipeline defining whether to use optional preprocessing
             data: data to be preprocessed
-        
+
         Returns:
             preprocessed data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def label_encoding_for_fit(self, data: InputData, source_name: str = DEFAULT_SOURCE_NAME):
@@ -109,7 +110,7 @@ class BasePreprocessor(ABC):
             data: data to transform
             source_name: name of data source node
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def cut_dataset(self, data: InputData, border: int):
@@ -120,7 +121,7 @@ class BasePreprocessor(ABC):
             data: data to be cut
             border: number of objects to keep
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def apply_inverse_target_encoding(self, column_to_transform: np.ndarray) -> np.ndarray:
@@ -129,15 +130,15 @@ class BasePreprocessor(ABC):
 
         Args:
             column_to_transform: column to be encoded
-        
+
         Returns:
             encoded or untouched column
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> \
+            Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for fit
 
@@ -148,11 +149,11 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> \
+            Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for predict
 
@@ -163,13 +164,12 @@ class BasePreprocessor(ABC):
         Returns:
             converted data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
         """
         restores index from ``input_data`` into ``result``
-
         Args:
             input_data: data to take the index from
             result: data to store index into
@@ -177,21 +177,21 @@ class BasePreprocessor(ABC):
         Returns:
             ``result`` with restored index
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[
-        InputData, MultiModalData]:
+    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[InputData,
+                                                                                                   MultiModalData]:
         """
         Replaces indices for time series for predict stage
-        
+
         Args:
             test_data: data for replacing the indices
-        
+
         Returns:
             data with the replaced indices
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData], *, is_obligatory: bool = True):
@@ -219,7 +219,7 @@ class BasePreprocessor(ABC):
         Args:
             api_preprocessor: the one from the API
             pipeline_preprocessor: the one from the obtained pipeline
-        
+
         Returns:
             merged preprocessor
         """

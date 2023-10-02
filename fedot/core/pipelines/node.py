@@ -383,7 +383,6 @@ def _combine_parents(parent_nodes: List[PipelineNode],
         target = input_data.target
     parent_results = []
     for parent in parent_nodes:
-
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
@@ -391,7 +390,7 @@ def _combine_parents(parent_nodes: List[PipelineNode],
             prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
         else:
-            raise NotImplementedError()
+            raise ValueError("Value parent_operation should be 'fit' or 'predict'")
         if input_data is None:
             # InputData was set to primary nodes
             target = prediction.target

@@ -16,6 +16,7 @@ from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.debug import is_analytic_mode
 
 
@@ -45,12 +46,12 @@ class Metric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
 
 class QualityMetric:
@@ -61,7 +62,7 @@ class QualityMetric:
     @staticmethod
     @abstractmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @classmethod
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,

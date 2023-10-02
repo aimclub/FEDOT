@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -14,12 +15,12 @@ class DataDetector:
     @staticmethod
     @abstractmethod
     def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     @staticmethod
     @abstractmethod
     def new_key_name(data_part_key: str) -> str:
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
 
 class TextDataDetector(DataDetector):

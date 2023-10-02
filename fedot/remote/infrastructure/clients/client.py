@@ -1,4 +1,5 @@
 import os
+from abc import abstractmethod
 from datetime import timedelta
 from typing import Optional, Type, TypeVar
 
@@ -6,6 +7,7 @@ from golem.core.log import default_log
 from golem.core.utilities.serializable import Serializable
 
 from fedot.core.utils import default_fedot_data_dir
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 G = TypeVar('G', bound=Serializable)
 
@@ -27,25 +29,28 @@ class Client:
             os.path.join(default_fedot_data_dir(), 'remote_fit_results')
         self._logger = default_log(prefix='ClientLog')
 
+    @abstractmethod
     def create_task(self, config: dict):
         """
         Create task for execution
         :param config - configuration of pipeline fitting
         :return: id of created task
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
+    @abstractmethod
     def wait_until_ready(self) -> timedelta:
         """
         Delay execution until all remote tasks are ready
         :return: waiting time
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
+    @abstractmethod
     def download_result(self, execution_id: int, result_cls: Type[G]) -> G:
         """
         :param execution_id: id of remote task
         :param result_cls: result
         :return: fitted pipeline downloaded from the remote server
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
