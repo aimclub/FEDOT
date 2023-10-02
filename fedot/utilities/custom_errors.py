@@ -8,4 +8,4 @@ class MethodNotImplementError(NotImplementedError):
 
 class AbstractMethodNotImplementError(NotImplementedError):
     def __init__(self):
-        super(AbstractMethodNotImplementError, self).__init__(f'Trying to invoke abstract method.')
+        super(AbstractMethodNotImplementError, self).__init__('Trying to invoke abstract method.')
