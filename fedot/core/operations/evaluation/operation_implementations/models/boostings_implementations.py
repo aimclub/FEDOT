@@ -56,7 +56,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         use_eval_set = self.params.get('use_eval_set')
 
         if use_best_model or early_stopping_rounds and not use_eval_set:
-            self.params.update(dict(use_best_model=False, early_stopping_rounds=False))
+            self.params.update(use_best_model=False, early_stopping_rounds=False)
 
     @staticmethod
     def convert_to_pool(data: Optional[InputData]):
