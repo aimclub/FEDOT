@@ -13,8 +13,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
-from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot import Fedot
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -436,7 +436,7 @@ def test_fill_nan_without_categorical():
 def test_dict_multimodal_input_for_api():
     data, target = load_categorical_multidata()
 
-    model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
+    model = Fedot(problem='classification', metric=['f1'], **TESTS_MAIN_API_DEFAULT_PARAMS)
 
     model.fit(features=data, target=target)
 
