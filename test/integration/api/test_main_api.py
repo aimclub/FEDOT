@@ -501,7 +501,8 @@ def test_pipeline_preprocessing_through_api_correctly():
     # Stand-alone pipeline with it's own preprocessing
     predicted = pipeline.predict(data, output_mode='labels')
 
-    assert predicted.predict[-1] == 'green-orange'
+    # check whether NaN-field was correctly predicted
+    assert predicted.predict[3] == 'red-blue'
 
 
 def test_data_from_csv_load_correctly():
