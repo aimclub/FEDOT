@@ -153,7 +153,7 @@ def data_with_binary_features_and_categorical_target():
 
 @pytest.mark.parametrize('task_type, metric_name', [
     ('classification', 'f1'),
-    ('regression', 'rmse'),
+    ('regression', 'rmse')
 ])
 def test_api_predict_correct(task_type, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
@@ -167,7 +167,7 @@ def test_api_predict_correct(task_type, metric_name):
     # composing and tuning was applied
     assert model.history is not None
     assert model.history.tuning_result is not None
-    assert is_predict_ignores_target(model.predict, train_data, 'features')
+    assert is_predict_ignores_target(model.predict, model.train_data, 'features')
 
 
 @pytest.mark.parametrize('task_type, metric_name, pred_model', [
