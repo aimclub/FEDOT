@@ -157,7 +157,7 @@ def data_with_binary_features_and_categorical_target():
 ])
 def test_api_predict_correct(task_type, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
+    model = Fedot(problem=task_type, metric=[metric_name], **TESTS_MAIN_API_DEFAULT_PARAMS)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
