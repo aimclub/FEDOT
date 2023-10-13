@@ -1,4 +1,4 @@
-from fedot.api.builder import FedotBuilder
+from fedot import FedotBuilder
 from fedot.core.utils import fedot_project_root, set_random_seed
 
 
