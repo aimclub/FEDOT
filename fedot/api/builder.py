@@ -14,11 +14,57 @@ class DefaultParamValue:
     pass
 
 
-DEFAULT_VALUE = DefaultParamValue()
+DEFAULT_VALUE = DefaultParamValue()  # Mock value used to filter out unset parameters.
 
 
 class FedotBuilder:
-    """
+    """ An alternative FEDOT API version with optional attributes being documented
+    and separated into groups by meaning.
+    Each of the groups has corresponding setter method, named starting with `setup_...`.
+    Use these methods to set corresponding API attributes:
+
+        - ``setup_composition`` -> general AutoML parameters
+        - ``setup_parallelization`` -> parameters of computational parallelization by CPU jobs
+        - ``setup_output`` -> parameters of outputs: logging, cache directories, etc.
+        - ``setup_evolution`` -> parameters of ML pipelines evolutionary optimization
+        - ``setup_pipeline_structure`` -> constrains on ML pipeline structure
+        - ``setup_pipeline_evaluation`` -> parameters of ML pipelines quality evaluation
+        - ``setup_data_preprocessing`` -> parameters of input data preprocessing
+
+    After all demanded attributes are set, use the method `build()` to get parametrized
+        FEDOT API (:class:`Fedot`) instance.
+
+    Example:
+        Example 1::
+            from fedot import FedotBuilder
+
+            fedot = (FedotBuilder(problem='classification')
+                  .setup_composition(timeout='10', with_tuning=True, preset='best_quality')
+                  .setup_pipeline_evaluation(max_pipeline_fit_time=5, metric=['roc_auc', 'precision'])
+                  .build())
+            fedot.fit(features=train_data_path, target='target')
+
+        Example 2::
+            from fedot import FedotBuilder
+            from fedot.core.utils import fedot_project_root
+
+            builder = (FedotBuilder('ts_forecasting')
+                       .setup_composition(preset='fast_train', timeout=0.5, with_tuning=True)
+                       .setup_evolution(num_of_generations=3)
+                       .setup_pipeline_evaluation(metric='mae'))
+
+            datasets_path = fedot_project_root() / 'examples/data/ts'
+            resulting_models = {}
+            for data_path in datasets_path.iterdir():
+                if data_path.name == 'ts_sea_level.csv':
+                    continue
+                fedot = builder.build()
+                fedot.fit(data_path, target='value')
+                fedot.predict(features=fedot.train_data, validation_blocks=2)
+                fedot.plot_prediction()
+                fedot.current_pipeline.show()
+                resulting_models[data_path.stem] = fedot
+
     Args:
         problem: name of a modelling problem to solve.
             .. details:: Possible options:
@@ -32,6 +78,8 @@ class FedotBuilder:
         self.api_params: Dict[Any, Any] = dict(problem=problem)
 
     def __update_params(self, **new_params):
+        """ Saves all parameters set by user to the dictionary `self.api_params`. """
+
         new_params = {k: v for k, v in new_params.items() if v != DEFAULT_VALUE}
         self.api_params.update(new_params)
 
@@ -44,7 +92,8 @@ class FedotBuilder:
             with_tuning: bool = DEFAULT_VALUE,
             use_meta_rules: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets general AutoML parameters.
+
         Args:
             timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time.
 
@@ -70,11 +119,11 @@ class FedotBuilder:
             with_tuning: flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
                 Defaults to ``True``.
 
-            use_meta_rules: indicates whether to change set params according to FEDOT meta rules.
+            use_meta_rules: indicates whether to change set parameters according to FEDOT meta rules.
 
 
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             timeout=timeout,
@@ -91,13 +140,14 @@ class FedotBuilder:
             n_jobs: int = DEFAULT_VALUE,
             parallelization_mode: str = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets parameters of computational parallelization by CPU jobs.
+
         Args:
             n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
             parallelization_mode: type of evaluation for groups of individuals (``'populational'`` or
                 ``'sequential'``). Default value is ``'populational'``.
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             n_jobs=n_jobs,
@@ -112,7 +162,7 @@ class FedotBuilder:
             cache_dir: Optional[str] = DEFAULT_VALUE,
             history_dir: Optional[str] = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets parameters of outputs: logging, cache directories, etc.
 
         Args:
             logging_level: logging levels are the same as in
@@ -136,7 +186,7 @@ class FedotBuilder:
                 as ``cache_dir``. A relative path is relative to the default value.
 
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             logging_level=logging_level,
@@ -158,7 +208,8 @@ class FedotBuilder:
             use_pipelines_cache: Optional[int] = DEFAULT_VALUE,
             optimizer: Optional[Type[GraphOptimizer]] = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets parameters of ML pipelines evolutionary optimization.
+
         Args:
             initial_assumption: initial assumption(s) for composer.
                 Can be either a single :class:`Pipeline` or sequence of ones. Default values are task-specific and
@@ -188,6 +239,9 @@ class FedotBuilder:
                 Default optimizer is :class:`~golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
             See the `example \
 <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_
+
+        Returns:
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             initial_assumption=initial_assumption,
@@ -208,7 +262,8 @@ class FedotBuilder:
             max_depth: Optional[int] = DEFAULT_VALUE,
             max_arity: Optional[int] = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets constrains on ML pipeline structure.
+
         Args:
             available_operations: list of model names to use. Pick the names according to operations repository.
 
@@ -217,7 +272,7 @@ class FedotBuilder:
             max_arity: max arity of a pipeline nodes. Defaults to ``3``.
 
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             available_operations=available_operations,
@@ -234,7 +289,8 @@ class FedotBuilder:
             max_pipeline_fit_time: Optional[int] = DEFAULT_VALUE,
             collect_intermediate_metric: Optional[bool] = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets parameters of ML pipelines quality evaluation.
+
         Args:
             metric:
                 metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``.
@@ -269,7 +325,7 @@ class FedotBuilder:
                 :class:`Pipeline`.
 
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             metric=metric,
@@ -279,13 +335,14 @@ class FedotBuilder:
         )
         return self
 
-    def setup_data_processing(
+    def setup_data_preprocessing(
             self,
             safe_mode: Optional[bool] = DEFAULT_VALUE,
             use_input_preprocessing: Optional[bool] = DEFAULT_VALUE,
             use_preprocessing_cache: Optional[bool] = DEFAULT_VALUE,
     ) -> FedotBuilder:
-        """
+        """ Sets parameters of input data preprocessing.
+
         Args:
             safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
                 instead of one-hot encoder if summary cardinality of categorical features is high.
@@ -298,7 +355,7 @@ class FedotBuilder:
                 Defaults to ``True``.
 
         Returns:
-
+            :class:`FedotBuilder` instance.
         """
         self.__update_params(
             safe_mode=safe_mode,
@@ -308,4 +365,9 @@ class FedotBuilder:
         return self
 
     def build(self) -> Fedot:
+        """ Initializes an instance of :class:`Fedot` with accumulated parameters.
+
+        Returns:
+            :class:`Fedot` instance.
+        """
         return Fedot(**self.api_params)

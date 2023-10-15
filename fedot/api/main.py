@@ -40,11 +40,10 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
 class Fedot:
-    """Main class for FEDOT API.
+    """ The main class for FEDOT AutoML API.
 
-    Facade for
-    :class:`ApiParams`, :class:`ApiDataProcessor`, :class:`ApiComposer`, :class:`ApiMetrics`,
-    :class:`~fedot.api.api_utils.assumptions.assumptions_handler.AssumptionsHandler`.
+    May also be initialized using the class :class:`FedotBuilder`,
+    where all the optional AutoML parameters are separated by meaning and documented.
 
     Args:
         problem: name of the modelling problem to solve.
@@ -73,6 +72,9 @@ class Fedot:
             Default value is ``False``.
 
         n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
+
+        composer_tuner_params: Additional optional parameters. See their documentation at the methods of
+            :class:`FedotBuilder`.
     """
 
     def __init__(self,
