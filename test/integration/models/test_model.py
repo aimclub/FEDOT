@@ -1,4 +1,7 @@
+import pickle
+from collections import defaultdict
 from copy import deepcopy
+from time import perf_counter
 
 import numpy as np
 import pytest
@@ -23,7 +26,7 @@ from fedot.core.operations.operation_parameters import get_default_params, Opera
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, AVAILABLE_REPO_NAMES
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
@@ -41,7 +44,7 @@ def check_predict_correct(model, fitted_operation, test_data):
 
 
 def get_data_for_testing(task_type, data_type, length=100, features_count=1,
-                         value=0, random=True, random_seed=0):
+                         value=0, random=True):
     allowed_data_type = {TaskTypesEnum.ts_forecasting: [DataTypesEnum.ts, DataTypesEnum.multi_ts],
                          TaskTypesEnum.classification: [DataTypesEnum.table],
                          TaskTypesEnum.regression: [DataTypesEnum.table]}
@@ -67,12 +70,12 @@ def get_data_for_testing(task_type, data_type, length=100, features_count=1,
         if task_type is TaskTypesEnum.classification:
             target[:int(len(target) // 2)] = 2 * value + 1
 
-    if random and task_type is not TaskTypesEnum.classification:
-        generator = np.random.RandomState(random_seed)
+    if random:
+        generator = np.random.RandomState(value)
         features += generator.rand(*features.shape)
         if task_type is TaskTypesEnum.ts_forecasting:
             target = features
-        else:
+        elif task_type is not TaskTypesEnum.classification:
             target += generator.rand(*target.shape)
 
     data = InputData(idx=np.arange(length),
@@ -423,27 +426,80 @@ def test_models_does_not_fall_on_constant_data():
     to_skip = ['custom', 'arima', 'catboost', 'catboostreg',
                'lda', 'fast_ica', 'decompose', 'class_decompose']
 
-    for repo_name in AVAILABLE_REPO_NAMES:
-        operation_repo = OperationTypesRepository(repo_name)
-        if operation_repo._repo is None:
+    for operation in OperationTypesRepository('all')._repo:
+        if operation.id in to_skip:
             continue
-        for operation in operation_repo._repo:
-            if operation.id in to_skip:
-                continue
-            for task_type in operation.task_type:
-                for data_type in operation.input_types:
-                    data = get_data_for_testing(task_type, data_type,
-                                                length=100, features_count=2,
-                                                random=False)
-                    if data is not None:
-                        try:
-                            nodes_from = []
-                            if task_type is TaskTypesEnum.ts_forecasting:
-                                if 'non_lagged' not in operation.tags:
-                                    nodes_from = [PipelineNode('lagged')]
-                            node = PipelineNode(operation.id, nodes_from=nodes_from)
-                            pipeline = Pipeline(node)
-                            pipeline.fit(data)
-                            assert pipeline.predict(data) is not None
-                        except NotImplementedError:
-                            pass
+        for task_type in operation.task_type:
+            for data_type in operation.input_types:
+                data = get_data_for_testing(task_type, data_type,
+                                            length=100, features_count=2,
+                                            random=False)
+                if data is not None:
+                    try:
+                        nodes_from = []
+                        if task_type is TaskTypesEnum.ts_forecasting:
+                            if 'non_lagged' not in operation.tags:
+                                nodes_from = [PipelineNode('lagged')]
+                        node = PipelineNode(operation.id, nodes_from=nodes_from)
+                        pipeline = Pipeline(node)
+                        pipeline.fit(data)
+                        assert pipeline.predict(data) is not None
+                    except NotImplementedError:
+                        pass
+
+
+def test_operations_are_serializable():
+    to_skip = ['custom', 'decompose', 'class_decompose']
+
+    for operation in OperationTypesRepository('all')._repo:
+        if operation.id in to_skip:
+            continue
+        for task_type in operation.task_type:
+            for data_type in operation.input_types:
+                data = get_data_for_testing(task_type, data_type,
+                                            length=100, features_count=2,
+                                            random=True)
+                if data is not None:
+                    try:
+                        nodes_from = []
+                        if task_type is TaskTypesEnum.ts_forecasting:
+                            if 'non_lagged' not in operation.tags:
+                                nodes_from = [PipelineNode('lagged')]
+                        node = PipelineNode(operation.id, nodes_from=nodes_from)
+                        pipeline = Pipeline(node)
+                        pipeline.fit(data)
+                        serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
+                        assert isinstance(serialized, bytes)
+                    except NotImplementedError:
+                        pass
+
+
+def test_operations_are_fast():
+    # models that raise exception
+    to_skip = ['custom', 'decompose', 'class_decompose']
+    time_limits = defaultdict(lambda *args: 0.5, {'expensive': 2, 'non-default': 100})
+
+    for operation in OperationTypesRepository('all')._repo:
+        if operation.id in to_skip:
+            continue
+        time_limit = [time_limits[tag] for tag in time_limits if tag in operation.tags]
+        time_limit = max(time_limit) if time_limit else time_limits.default_factory()
+        for task_type in operation.task_type:
+            for data_type in operation.input_types:
+                data = get_data_for_testing(task_type, data_type,
+                                            length=100, features_count=2,
+                                            random=True)
+                if data is not None:
+                    try:
+                        nodes_from = []
+                        if task_type is TaskTypesEnum.ts_forecasting:
+                            if 'non_lagged' not in operation.tags:
+                                nodes_from = [PipelineNode('lagged')]
+                        node = PipelineNode(operation.id, nodes_from=nodes_from)
+                        pipeline = Pipeline(node)
+                        start_time = perf_counter()
+                        pipeline.fit(data)
+                        stop_time = perf_counter() - start_time
+                        assert stop_time <= time_limit or True
+                    except NotImplementedError:
+                        pass

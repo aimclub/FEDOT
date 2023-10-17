@@ -157,7 +157,8 @@
       "meta": "ts_model",
       "presets": ["ts"],
       "tags": [
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "bernb": {
@@ -209,7 +210,8 @@
       "tags": [
         "boosting",
         "non_multi",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "kmeans": {
@@ -423,7 +425,8 @@
       "presets": ["*tree"],
       "tags": [
         "tree",
-        "non_linear"
+        "non_linear",
+        "non-default"
       ]
     },
     "xgboost": {

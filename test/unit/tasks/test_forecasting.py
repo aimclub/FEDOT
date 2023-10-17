@@ -74,17 +74,17 @@ def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):
     return train_test_data_setup(data)
 
 
-def get_multiscale_pipeline():
+def get_multiscale_pipeline(window_size1: int = 20, window_size2: int = 100):
     # First branch
     node_lagged_1 = PipelineNode('lagged')
-    node_lagged_1.parameters = {'window_size': 20}
+    node_lagged_1.parameters = {'window_size': window_size1}
     node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
 
     # Second branch, which will try to make prediction based on smoothed ts
     node_filtering = PipelineNode('gaussian_filter')
     node_filtering.parameters = {'sigma': 3}
     node_lagged_2 = PipelineNode('lagged', nodes_from=[node_filtering])
-    node_lagged_2.parameters = {'window_size': 100}
+    node_lagged_2.parameters = {'window_size': window_size2}
     node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
 
     node_final = PipelineNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
@@ -191,8 +191,7 @@ def test_ar_do_correct_lags():
 def test_regression_multiscale_pipeline_forecast_correct():
     train_data, test_data = get_ts_data(forecast_length=5)
 
-    pipeline = get_multiscale_pipeline()
-
+    pipeline = get_multiscale_pipeline(2, 4)
     pipeline.fit(input_data=train_data)
     test_pred = pipeline.predict(input_data=test_data)
 
@@ -256,7 +255,7 @@ def test_multistep_out_of_sample_forecasting():
     horizon = 12
     train_data, test_data = get_ts_data(forecast_length=5)
 
-    pipeline = get_multiscale_pipeline()
+    pipeline = get_multiscale_pipeline(2, 5)
 
     # Fit pipeline to make forecasts 5 elements above
     pipeline.fit(input_data=train_data)

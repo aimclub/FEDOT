@@ -71,7 +71,12 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
             s += 1
             pipeline.show()
             start_time = time.time()
-        pipeline.fit(train_input)
+        try:
+            # TODO: create new approach to mutation generation:
+            #       mutate and fit in one try in get_mutations/get_different_mutations
+            pipeline.fit(train_input)
+        except:
+            continue
         pred = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
         if show_progress:
@@ -98,7 +103,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     if discard_inapropriate_pipelines:
         predictions = []
         maximal_metric_value = np.quantile(np.array(metric_values), keep_percentage)
-        for i, m in enumerate(mutations_of_best_pipeline):
+        for i in range(len(first_pred_constraints)):
             if first_pred_constraints[i] and deviance_pred_constraints[i] and metric_values[i] < maximal_metric_value:
                 predictions.append(raw_predictions[i])
     else:

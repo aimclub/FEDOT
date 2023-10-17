@@ -217,11 +217,11 @@ class SimpleGapFiller:
         non_nan = output_data[non_nan_ids]
         if np.isclose(input_data[0], self.gap_value):
             # First element is a gap - replace with first known value
-            self.log.info(f'First element in the array were replaced by first known value')
+            self.log.info('First element in the array were replaced by first known value')
             output_data[0] = non_nan[0]
         if np.isclose(input_data[-1], self.gap_value):
             # Last element is a gap - last known value
-            self.log.info(f'Last element in the array were replaced by last known value')
+            self.log.info('Last element in the array were replaced by last known value')
             output_data[-1] = non_nan[-1]
 
         return output_data
@@ -429,6 +429,13 @@ class ModelGapFiller(SimpleGapFiller):
                                target=timeseries_train,
                                task=task,
                                data_type=DataTypesEnum.ts)
+
+        forecast_length = input_data.task.task_params.forecast_length
+        data_length = input_data.features.shape[0]
+        for node in pipeline_for_forecast.nodes:
+            if node.name == 'lagged':
+                if node.parameters['window_size'] + forecast_length >= data_length:
+                    node.parameters = {'window_size': data_length - forecast_length - 1}
 
         # Making predictions for the missing part in the time series
         pipeline_for_forecast.fit_from_scratch(input_data)
