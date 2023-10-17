@@ -156,7 +156,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``svr``-> SklearnSVR
                 - ``sgdr``-> SklearnSGD
                 - ``lgbmreg``-> LGBMRegressor
-                - ``catboostreg``-> CatBoostRegressor
                 - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
                 - ``bernb``-> SklearnBernoulliNB
@@ -165,7 +164,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``rf``-> RandomForestClassifier
                 - ``mlp``-> MLPClassifier
                 - ``lgbm``-> LGBMClassifier
-                - ``catboost``-> CatBoostClassifier
                 - ``kmeans``-> SklearnKmeans
 
         params: hyperparameters to fit the operation with

@@ -13,7 +13,6 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotCatBoostImplementation(ModelImplementation):
-    """ Catboost - https://catboost.ai/en/docs/ """
     __operation_params = ['use_eval_set', 'n_jobs']
 
     def __init__(self, params: Optional[OperationParameters] = None):
