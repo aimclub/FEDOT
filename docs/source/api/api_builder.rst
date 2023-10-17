@@ -1,5 +1,5 @@
-FEDOT API builder
-=================
+Builder for FEDOT API
+=====================
 
 .. autoclass:: fedot.api.builder.FedotBuilder
    :members:

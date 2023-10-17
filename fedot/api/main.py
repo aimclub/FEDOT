@@ -42,8 +42,8 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 class Fedot:
     """ The main class for FEDOT AutoML API.
 
-    May also be initialized using the class :class:`FedotBuilder`,
-    where all the optional AutoML parameters are separated by meaning and documented.
+    Alternatively, may be initialized using the class :class:`~fedot.api.builder.FedotBuilder`,
+    where all the optional AutoML parameters are documented and separated by meaning.
 
     Args:
         problem: name of the modelling problem to solve.
@@ -56,7 +56,8 @@ class Fedot:
         timeout: time for model design (in minutes): ``None`` or ``-1`` means infinite time.
         task_params: additional parameters of the task.
         seed: value for a fixed random seed.
-        logging_level: logging levels are the same as in `logging <https://docs.python.org/3/library/logging.html>`_.
+        logging_level: logging levels are the same as in
+            `built-in logging library <https://docs.python.org/3/library/logging.html>`_.
 
             .. details:: Possible options:
 
@@ -74,7 +75,7 @@ class Fedot:
         n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
 
         composer_tuner_params: Additional optional parameters. See their documentation at the methods of
-            :class:`FedotBuilder`.
+            :class:`~fedot.api.builder.FedotBuilder`.
     """
 
     def __init__(self,
@@ -125,9 +126,9 @@ class Fedot:
         Args:
             features: train data feature values in one of the supported features formats.
             target: train data target values in one of the supported target formats.
-            predefined_model: the name of a single model or a :class:`Pipeline` instance, or ``"auto"``.
+            predefined_model: the name of a single model or a :class:`Pipeline` instance, or ``auto``.
                 With any value specified, the method does not perform composing and tuning.
-                In case of ``"auto"``, the method generates a single initial assumption and then fits
+                In case of ``auto``, the method generates a single initial assumption and then fits
                 the created pipeline.
 
         Returns:
@@ -463,16 +464,17 @@ class Fedot:
         self.predict(self.test_data)
 
     def explain(self, features: FeaturesType = None,
-                method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> 'Explainer':
-        """Creates explanation for *current_pipeline* according to the selected 'method'.
-            An :obj:`Explainer` instance will return.
+                method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
+        """Creates explanation for :attr:`~Fedot.current_pipeline` according to the selected ``method``.
+
+        An :class:`Explainer` instance will return.
 
         Args:
             features: samples to be explained. If ``None``, ``train_data`` from last fit will be used.
             method: explanation method, defaults to ``surrogate_dt``
             visualization: print and plot the explanation simultaneously, defaults to ``True``.
         Notes:
-            An explanation can be retrieved later by executing :obj:`explainer.visualize()`.
+            An explanation can be retrieved later by executing :meth:`Explainer.visualize`.
         """
         pipeline = self.current_pipeline
         if features is None:

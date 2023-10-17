@@ -20,22 +20,23 @@ DEFAULT_VALUE = DefaultParamValue()  # Mock value used to filter out unset param
 class FedotBuilder:
     """ An alternative FEDOT API version with optional attributes being documented
     and separated into groups by meaning.
-    Each of the groups has corresponding setter method, named starting with `setup_...`.
+    Each of the groups has corresponding setter method, named starting with :obj:`setup_*`.
     Use these methods to set corresponding API attributes:
+        - :meth:`~FedotBuilder.setup_composition` -> general AutoML parameters
+        - :meth:`~FedotBuilder.setup_parallelization` -> parameters of computational parallelization by CPU jobs
+        - :meth:`~FedotBuilder.setup_output` -> parameters of outputs: logging, cache directories, etc.
+        - :meth:`~FedotBuilder.setup_evolution` -> parameters of ML pipelines evolutionary optimization
+        - :meth:`~FedotBuilder.setup_pipeline_structure` -> constrains on ML pipeline structure
+        - :meth:`~FedotBuilder.setup_pipeline_evaluation` -> parameters of ML pipelines quality evaluation
+        - :meth:`~FedotBuilder.setup_data_preprocessing` -> parameters of input data preprocessing
+    After all demanded attributes are set, use :meth:`~FedotBuilder.build` to get a parametrized instance of
+    :class:`~fedot.api.main.Fedot`.
 
-        - ``setup_composition`` -> general AutoML parameters
-        - ``setup_parallelization`` -> parameters of computational parallelization by CPU jobs
-        - ``setup_output`` -> parameters of outputs: logging, cache directories, etc.
-        - ``setup_evolution`` -> parameters of ML pipelines evolutionary optimization
-        - ``setup_pipeline_structure`` -> constrains on ML pipeline structure
-        - ``setup_pipeline_evaluation`` -> parameters of ML pipelines quality evaluation
-        - ``setup_data_preprocessing`` -> parameters of input data preprocessing
+    Examples:
+        Example 1:
 
-    After all demanded attributes are set, use the method `build()` to get parametrized
-        FEDOT API (:class:`Fedot`) instance.
+        .. code-block:: python
 
-    Example:
-        Example 1::
             from fedot import FedotBuilder
 
             fedot = (FedotBuilder(problem='classification')
@@ -44,7 +45,10 @@ class FedotBuilder:
                   .build())
             fedot.fit(features=train_data_path, target='target')
 
-        Example 2::
+        Example 2:
+
+        .. code-block:: python
+
             from fedot import FedotBuilder
             from fedot.core.utils import fedot_project_root
 
@@ -67,6 +71,7 @@ class FedotBuilder:
 
     Args:
         problem: name of a modelling problem to solve.
+
             .. details:: Possible options:
 
                 - ``classification`` -> for classification task
@@ -78,7 +83,7 @@ class FedotBuilder:
         self.api_params: Dict[Any, Any] = dict(problem=problem)
 
     def __update_params(self, **new_params):
-        """ Saves all parameters set by user to the dictionary `self.api_params`. """
+        """ Saves all parameters set by user to the dictionary ``self.api_params``. """
 
         new_params = {k: v for k, v in new_params.items() if v != DEFAULT_VALUE}
         self.api_params.update(new_params)
@@ -101,23 +106,23 @@ class FedotBuilder:
 
             seed: value for a fixed random seed.
 
-            preset: name of the preset for model building (e.g. ``'best_quality'``, ``'fast_train'``, ``'gpu'``).
-                Default value is ``'auto'``.
+            preset: name of the preset for model building (e.g. ``best_quality``, ``fast_train``, ``gpu``).
+                Default value is ``auto``.
 
                 .. details:: Possible options:
 
-                    - ``'best_quality'`` -> All models that are available for this data type and task are used
-                    - ``'fast_train'`` -> Models that learn quickly. This includes preprocessing operations
+                    - ``best_quality`` -> All models that are available for this data type and task are used
+                    - ``fast_train`` -> Models that learn quickly. This includes preprocessing operations
                       (data operations) that only reduce the dimensionality of the data, but cannot increase it.
                       For example, there are no polynomial features and one-hot encoding operations
-                    - ``'stable'`` -> The most reliable preset in which the most stable operations are included
-                    - ``'auto'`` -> Automatically determine which preset should be used
-                    - ``'gpu'`` -> Models that use GPU resources for computation
-                    - ``'ts'`` -> A special preset with models for time series forecasting task
-                    - ``'automl'`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations
+                    - ``stable`` -> The most reliable preset in which the most stable operations are included
+                    - ``auto`` -> Automatically determine which preset should be used
+                    - ``gpu`` -> Models that use GPU resources for computation
+                    - ``ts`` -> A special preset with models for time series forecasting task
+                    - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations
 
-            with_tuning: flag for tuning hyperparameters of the final evolved :class:`Pipeline`.
-                Defaults to ``True``.
+            with_tuning: flag for tuning hyperparameters of the final evolved
+                :class:`~fedot.core.pipelines.pipeline.Pipeline`. Defaults to ``True``.
 
             use_meta_rules: indicates whether to change set parameters according to FEDOT meta rules.
 
@@ -143,9 +148,9 @@ class FedotBuilder:
         """ Sets parameters of computational parallelization by CPU jobs.
 
         Args:
-            n_jobs: num of ``n_jobs`` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
-            parallelization_mode: type of evaluation for groups of individuals (``'populational'`` or
-                ``'sequential'``). Default value is ``'populational'``.
+            n_jobs: num of `jobs` for parallelization (set to ``-1`` to use all cpu's). Defaults to ``-1``.
+            parallelization_mode: type of evaluation for groups of individuals (``populational`` or
+                ``sequential``). Default value is ``populational``.
         Returns:
             :class:`FedotBuilder` instance.
         """
@@ -167,7 +172,7 @@ class FedotBuilder:
 
         Args:
             logging_level: logging levels are the same as in
-            `logging <https://docs.python.org/3/library/logging.html>`_.
+                `built-in logging library <https://docs.python.org/3/library/logging.html>`_.
 
                 .. details:: Possible options:
 
@@ -181,7 +186,7 @@ class FedotBuilder:
             show_progress: indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
             keep_history: indicates if the framework should track evolutionary optimization history
-                for possible further analysis. Defaults to `True`.
+                for possible further analysis. Defaults to ``True``.
 
             history_dir: relative or absolute path of a folder for composing history.
                 By default, creates a folder named "FEDOT" in temporary system files of an OS.
@@ -226,9 +231,9 @@ class FedotBuilder:
 
             num_of_generations: number of evolutionary generations for composer. Defaults to ``None`` - no limit.
 
-            early_stopping_iterations: composer will stop after `n` generation without improving.
+            early_stopping_iterations: composer will stop after ``n`` generation without improving.
 
-            early_stopping_timeout: stagnation timeout in minutes: composer will stop after `n` minutes
+            early_stopping_timeout: stagnation timeout in minutes: composer will stop after ``n`` minutes
                 without improving. Defaults to ``10``.
 
             pop_size: size of population (generation) during composing. Defaults to ``20``.
@@ -240,11 +245,10 @@ class FedotBuilder:
 
             use_pipelines_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
 
-            optimizer: inherit from :class:`~golem.core.optimisers.optimizer.GraphOptimizer`
+            optimizer: inherit from :class:`golem.core.optimisers.optimizer.GraphOptimizer`
                 to specify a custom optimizer.
-                Default optimizer is :class:`~golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
-            See the `example \
-<https://github.com/aimclub/FEDOT/blob/master/examples/advanced/fedot_based_solutions/external_optimizer.py>`_
+                Default optimizer is :class:`golem.core.optimisers.genetic.gp_optimizer.EvoGraphOptimizer`.
+                See the :doc:`example </advanced/external_optimizer>`.
 
         Returns:
             :class:`FedotBuilder` instance.
@@ -371,9 +375,9 @@ class FedotBuilder:
         return self
 
     def build(self) -> Fedot:
-        """ Initializes an instance of :class:`Fedot` with accumulated parameters.
+        """ Initializes an instance of :class:`~fedot.api.main.Fedot` with accumulated parameters.
 
         Returns:
-            :class:`Fedot` instance.
+            :class:`~fedot.api.main.Fedot` instance.
         """
         return Fedot(**self.api_params)

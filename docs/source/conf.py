@@ -98,6 +98,7 @@ autoclass_content = 'class'
 autodoc_typehints = 'description'
 autodoc_typehints_format = 'short'
 autodoc_mock_imports = ['objgraph', 'memory_profiler', 'gprof2dot', 'snakeviz', 'h2o', 'tpot']
+python_use_unqualified_type_names = True
 
 intersphinx_mapping = {
     'golem': ('https://thegolem.readthedocs.io/en/latest/', None),
