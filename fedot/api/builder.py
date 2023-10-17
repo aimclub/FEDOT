@@ -159,8 +159,9 @@ class FedotBuilder:
             self,
             logging_level: int = DEFAULT_VALUE,
             show_progress: bool = DEFAULT_VALUE,
-            cache_dir: Optional[str] = DEFAULT_VALUE,
+            keep_history: bool = DEFAULT_VALUE,
             history_dir: Optional[str] = DEFAULT_VALUE,
+            cache_dir: Optional[str] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of outputs: logging, cache directories, etc.
 
@@ -179,11 +180,15 @@ class FedotBuilder:
 
             show_progress: indicates whether to show progress using tqdm/tuner or not. Defaults to ``True``.
 
+            keep_history: indicates if the framework should track evolutionary optimization history
+                for possible further analysis. Defaults to `True`.
+
+            history_dir: relative or absolute path of a folder for composing history.
+                By default, creates a folder named "FEDOT" in temporary system files of an OS.
+                A relative path is relative to the default value.
+
             cache_dir: path to a directory containing cache files (if any cache is enabled).
                 By default, creates a folder named "FEDOT" in temporary system files of an OS.
-
-            history_dir: relative or absolute path of a folder for composing history. Has the same default value
-                as ``cache_dir``. A relative path is relative to the default value.
 
         Returns:
             :class:`FedotBuilder` instance.
@@ -191,8 +196,9 @@ class FedotBuilder:
         self.__update_params(
             logging_level=logging_level,
             show_progress=show_progress,
-            cache_dir=cache_dir,
+            keep_history=keep_history,
             history_dir=history_dir,
+            cache_dir=cache_dir,
         )
         return self
 
