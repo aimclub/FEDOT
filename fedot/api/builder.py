@@ -35,39 +35,11 @@ class FedotBuilder:
     Examples:
         Example 1:
 
-        .. code-block:: python
-
-            from fedot import FedotBuilder
-
-            fedot = (FedotBuilder(problem='classification')
-                  .setup_composition(timeout='10', with_tuning=True, preset='best_quality')
-                  .setup_pipeline_evaluation(max_pipeline_fit_time=5, metric=['roc_auc', 'precision'])
-                  .build())
-            fedot.fit(features=train_data_path, target='target')
+        .. literalinclude:: ../../../examples/simple/api_builder/classification_with_api_builder.py
 
         Example 2:
 
-        .. code-block:: python
-
-            from fedot import FedotBuilder
-            from fedot.core.utils import fedot_project_root
-
-            builder = (FedotBuilder('ts_forecasting')
-                       .setup_composition(preset='fast_train', timeout=0.5, with_tuning=True)
-                       .setup_evolution(num_of_generations=3)
-                       .setup_pipeline_evaluation(metric='mae'))
-
-            datasets_path = fedot_project_root() / 'examples/data/ts'
-            resulting_models = {}
-            for data_path in datasets_path.iterdir():
-                if data_path.name == 'ts_sea_level.csv':
-                    continue
-                fedot = builder.build()
-                fedot.fit(data_path, target='value')
-                fedot.predict(features=fedot.train_data, validation_blocks=2)
-                fedot.plot_prediction()
-                fedot.current_pipeline.show()
-                resulting_models[data_path.stem] = fedot
+        .. literalinclude:: ../../../examples/simple/api_builder/multiple_ts_forecasting_tasks.py
 
     Args:
         problem: name of a modelling problem to solve.
