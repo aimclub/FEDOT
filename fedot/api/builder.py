@@ -72,7 +72,7 @@ class FedotBuilder:
             self,
             timeout: Optional[float] = DEFAULT_VALUE,
             task_params: TaskParams = DEFAULT_VALUE,
-            seed: Optional[int] = DEFAULT_VALUE,
+            seed: int = DEFAULT_VALUE,
             preset: str = DEFAULT_VALUE,
             with_tuning: bool = DEFAULT_VALUE,
             use_meta_rules: bool = DEFAULT_VALUE,
@@ -189,14 +189,14 @@ class FedotBuilder:
 
     def setup_evolution(
             self,
-            initial_assumption: Optional[Union[Pipeline, List[Pipeline]]] = DEFAULT_VALUE,
+            initial_assumption: Union[Pipeline, List[Pipeline]] = DEFAULT_VALUE,
             num_of_generations: Optional[int] = DEFAULT_VALUE,
-            early_stopping_iterations: Optional[int] = DEFAULT_VALUE,
-            early_stopping_timeout: Optional[int] = DEFAULT_VALUE,
-            pop_size: Optional[int] = DEFAULT_VALUE,
-            keep_n_best: Optional[int] = DEFAULT_VALUE,
-            genetic_scheme: Optional[str] = DEFAULT_VALUE,
-            use_pipelines_cache: Optional[int] = DEFAULT_VALUE,
+            early_stopping_iterations: int = DEFAULT_VALUE,
+            early_stopping_timeout: int = DEFAULT_VALUE,
+            pop_size: int = DEFAULT_VALUE,
+            keep_n_best: int = DEFAULT_VALUE,
+            genetic_scheme: str = DEFAULT_VALUE,
+            use_pipelines_cache: bool = DEFAULT_VALUE,
             optimizer: Optional[Type[GraphOptimizer]] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of ML pipelines evolutionary optimization.
@@ -248,9 +248,9 @@ class FedotBuilder:
 
     def setup_pipeline_structure(
             self,
-            available_operations: Optional[List[str]] = DEFAULT_VALUE,
-            max_depth: Optional[int] = DEFAULT_VALUE,
-            max_arity: Optional[int] = DEFAULT_VALUE,
+            available_operations: List[str] = DEFAULT_VALUE,
+            max_depth: int = DEFAULT_VALUE,
+            max_arity: int = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets constrains on ML pipeline structure.
 
@@ -273,11 +273,10 @@ class FedotBuilder:
 
     def setup_pipeline_evaluation(
             self,
-            metric: Optional[
-                Union[str, Callable, MetricsEnum, List[Union[str, Callable, MetricsEnum]]]] = DEFAULT_VALUE,
-            cv_folds: Optional[int] = DEFAULT_VALUE,
+            metric: Union[str, Callable, MetricsEnum, List[Union[str, Callable, MetricsEnum]]] = DEFAULT_VALUE,
+            cv_folds: int = DEFAULT_VALUE,
             max_pipeline_fit_time: Optional[int] = DEFAULT_VALUE,
-            collect_intermediate_metric: Optional[bool] = DEFAULT_VALUE,
+            collect_intermediate_metric: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of ML pipelines quality evaluation.
 
@@ -327,9 +326,9 @@ class FedotBuilder:
 
     def setup_data_preprocessing(
             self,
-            safe_mode: Optional[bool] = DEFAULT_VALUE,
-            use_input_preprocessing: Optional[bool] = DEFAULT_VALUE,
-            use_preprocessing_cache: Optional[bool] = DEFAULT_VALUE,
+            safe_mode: bool = DEFAULT_VALUE,
+            use_input_preprocessing: bool = DEFAULT_VALUE,
+            use_preprocessing_cache: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of input data preprocessing.
 
