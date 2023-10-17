@@ -11,7 +11,8 @@ from fedot.core.repository.tasks import TaskParams
 
 
 class DefaultParamValue:
-    pass
+    def __repr__(self):
+        return '<default value>'  # Visible in the documentation.
 
 
 DEFAULT_VALUE = DefaultParamValue()  # Mock value used to filter out unset parameters.
