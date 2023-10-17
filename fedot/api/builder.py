@@ -22,13 +22,21 @@ class FedotBuilder:
     and separated into groups by meaning.
     Each of the groups has corresponding setter method, named starting with :obj:`setup_*`.
     Use these methods to set corresponding API attributes:
-        - :meth:`~FedotBuilder.setup_composition` -> general AutoML parameters
-        - :meth:`~FedotBuilder.setup_parallelization` -> parameters of computational parallelization by CPU jobs
-        - :meth:`~FedotBuilder.setup_output` -> parameters of outputs: logging, cache directories, etc.
-        - :meth:`~FedotBuilder.setup_evolution` -> parameters of ML pipelines evolutionary optimization
-        - :meth:`~FedotBuilder.setup_pipeline_structure` -> constrains on ML pipeline structure
-        - :meth:`~FedotBuilder.setup_pipeline_evaluation` -> parameters of ML pipelines quality evaluation
-        - :meth:`~FedotBuilder.setup_data_preprocessing` -> parameters of input data preprocessing
+
+    * :meth:`~FedotBuilder.setup_composition` -> general AutoML parameters
+
+    * :meth:`~FedotBuilder.setup_parallelization` -> parameters of computational parallelization by CPU jobs
+
+    * :meth:`~FedotBuilder.setup_output` -> parameters of outputs: logging, cache directories, etc.
+
+    * :meth:`~FedotBuilder.setup_evolution` -> parameters of ML pipelines evolutionary optimization
+
+    * :meth:`~FedotBuilder.setup_pipeline_structure` -> constrains on ML pipeline structure
+
+    * :meth:`~FedotBuilder.setup_pipeline_evaluation` -> parameters of ML pipelines quality evaluation
+
+    * :meth:`~FedotBuilder.setup_data_preprocessing` -> parameters of input data preprocessing
+
     After all demanded attributes are set, use :meth:`~FedotBuilder.build` to get a parametrized instance of
     :class:`~fedot.api.main.Fedot`.
 
