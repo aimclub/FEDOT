@@ -43,6 +43,11 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     features: np.ndarray
+    categorical_features: Optional[np.ndarray] = None
+    categorical_idx: Optional[np.ndarray] = None
+    numerical_idx: Optional[np.ndarray] = None
+    encoded_idx: Optional[np.ndarray] = None
+    features_names: Optional[np.ndarray[str]] = None
     target: Optional[np.ndarray] = None
 
     # Object with supplementary info
@@ -84,9 +89,15 @@ class Data:
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
+        if not target_columns:
+            features_names = df.columns.to_numpy()[:-1]
+        else:
+            features_names = df.drop(target_columns, axis=1).columns.to_numpy()
+
         features, target = process_target_and_features(df, target_columns)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
+                         features_names=features_names)
 
     @classmethod
     def from_csv_time_series(cls,
@@ -497,6 +508,51 @@ class InputData(Data):
             copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
+    def get_not_encoded_data(self):
+        new_features, new_features_names = None, None
+        new_num_idx, new_cat_idx = None, None
+        num_features, cat_features = None, None
+        num_features_names, cat_features_names = None, None
+
+        # Checking numerical data exists
+        if self.numerical_idx:
+            num_features = self.features[:, self.numerical_idx]
+
+            if self.features_names:
+                num_features_names = self.features_names[self.numerical_idx]
+            else:
+                num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
+
+        # Checking categorical data exists
+        if self.categorical_idx:
+            cat_features = self.categorical_features
+
+            if self.features_names:
+                cat_features_names = self.features_names[self.categorical_idx]
+            else:
+                cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
+
+        if num_features is not None and cat_features is not None:
+            new_features = np.hstack((num_features, cat_features))
+            new_features_names = np.hstack((num_features_names, cat_features_names))
+            new_features_idx = np.array(range(new_features.shape[1]))
+            new_num_idx = new_features_idx[:new_features.shape[1]]
+            new_cat_idx = new_features_idx[cat_features.shape[1]:]
+
+        elif cat_features is not None:
+            new_features = cat_features
+            new_features_names = cat_features_names
+            new_cat_idx = np.array(range(new_features.shape[1]))
+
+        elif num_features is not None:
+            new_features = num_features
+            new_features_names = num_features_names
+            new_num_idx = np.array(range(new_features.shape[1]))
+
+        return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
+                         numerical_idx=new_num_idx, categorical_idx=new_cat_idx,
+                         target=self.target, task=self.task, data_type=self.data_type)
+
     @staticmethod
     def _resolve_func(pipeline, x):
         return pipeline.last_idx_int + (x - pipeline.last_idx_dt) // pipeline.period
@@ -511,8 +567,9 @@ class OutputData(Data):
     """
 
     features: Optional[np.ndarray] = None
-    predict: np.ndarray = None
+    predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
+    encoded_idx: Optional[np.ndarray] = None
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

@@ -22,6 +22,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
         self.categorical_ids = None
         self.non_categorical_ids = None
+        self.encoded_ids = None
+        self.new_numerical_idx = None
 
     def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical features
@@ -80,6 +82,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
             numerical_columns.extend([str(int)] * encoded_columns_number)
 
+            output_data.encoded_idx = self.encoded_ids
             output_data.supplementary_data.column_types['features'] = numerical_columns
 
     def _apply_one_hot_encoding(self, features: np.array) -> np.array:
@@ -101,6 +104,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             non_categorical_features = np.array(features[:, self.non_categorical_ids])
             frames = (non_categorical_features, transformed_categorical)
             transformed_features = np.hstack(frames)
+            self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
 
         return transformed_features
 
