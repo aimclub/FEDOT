@@ -54,6 +54,57 @@ class Data:
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
     @classmethod
+    def from_numpy(cls,
+                   features_array: np.ndarray,
+                   target_array: np.ndarray,
+                   idx: Optional[np.ndarray] = None,
+                   task: Task = Task(TaskTypesEnum.classification),
+                   data_type: Optional[DataTypesEnum] = None) -> InputData:
+        """Import data from numpy array.
+
+                        Args:
+                            features_array: numpy array with features.
+                            target_array: numpy array with target.
+                            task: the :obj:`Task` to solve with the data.
+                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+
+                        Returns:
+                            data
+                        """
+        return array_to_input_data(features_array, target_array, idx, task, data_type)
+
+    @classmethod
+    def from_dataframe(cls,
+                       df: pd.DataFrame,
+                       task: Union[Task, str] = 'classification',
+                       data_type: DataTypesEnum = DataTypesEnum.table,
+                       target_columns: Union[str, List[Union[str, int]]] = '') -> InputData:
+        """Import data from pandas DataFrame.
+
+                Args:
+                    df: loaded pandas DataFrame.
+                    task: the :obj:`Task` to solve with the data.
+                    data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+                    target_columns: name of the target column (the last column if empty and no target if ``None``).
+
+                Returns:
+                    data
+                """
+
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+
+        idx = df.index.to_numpy()
+        if not target_columns:
+            features_names = df.columns.to_numpy()[:-1]
+        else:
+            features_names = df.drop(target_columns, axis=1).columns.to_numpy()
+        features, target = process_target_and_features(df, target_columns)
+
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
+                         features_names=features_names)
+
+    @classmethod
     def from_csv(cls,
                  file_path: PathType,
                  delimiter: str = ',',
