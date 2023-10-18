@@ -6,6 +6,7 @@ Modules
    :maxdepth: 1
 
    api
+   api_builder
    composer
    data
    strategies
