@@ -58,19 +58,45 @@ class Data:
                    features_array: np.ndarray,
                    target_array: np.ndarray,
                    idx: Optional[np.ndarray] = None,
-                   task: Task = Task(TaskTypesEnum.classification),
-                   data_type: Optional[DataTypesEnum] = None) -> InputData:
+                   task: Union[Task, str] = 'classification',
+                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table) -> InputData:
         """Import data from numpy array.
 
                         Args:
                             features_array: numpy array with features.
                             target_array: numpy array with target.
+                            idx: indices of arrays.
                             task: the :obj:`Task` to solve with the data.
                             data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
                         Returns:
                             data
                         """
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+        return array_to_input_data(features_array, target_array, idx, task, data_type)
+
+    @classmethod
+    def from_numpy_time_series(cls,
+                               features_array: np.ndarray,
+                               target_array: np.ndarray,
+                               idx: Optional[np.ndarray] = None,
+                               task: Union[Task, str] = 'ts_forecasting',
+                               data_type: Optional[DataTypesEnum] = DataTypesEnum.ts) -> InputData:
+        """Import time series from numpy array.
+
+                        Args:
+                            features_array: numpy array with features.
+                            target_array: numpy array with target.
+                            idx: indices of arrays.
+                            task: the :obj:`Task` to solve with the data.
+                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+
+                        Returns:
+                            data
+                        """
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
         return array_to_input_data(features_array, target_array, idx, task, data_type)
 
     @classmethod
