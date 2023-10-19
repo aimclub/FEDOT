@@ -147,7 +147,7 @@ def get_simple_pipeline(multi_data):
             exog_list.append(PipelineNode(data_id))
         if 'hist_' in data_id:
             lagged_node = PipelineNode('lagged', nodes_from=[PipelineNode(data_id)])
-            lagged_node.parameters = {'window_size': 1}
+            lagged_node.parameters = {'window_size': 2}
 
             hist_list.append(lagged_node)
 
