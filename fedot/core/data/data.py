@@ -101,17 +101,17 @@ class Data:
 
     @classmethod
     def from_dataframe(cls,
-                       df: pd.DataFrame,
+                       features_df: pd.DataFrame,
+                       target_df: pd.DataFrame,
                        task: Union[Task, str] = 'classification',
-                       data_type: DataTypesEnum = DataTypesEnum.table,
-                       target_columns: Union[str, List[Union[str, int]]] = '') -> InputData:
+                       data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
         """Import data from pandas DataFrame.
 
                 Args:
-                    df: loaded pandas DataFrame.
+                    features_df: loaded pandas DataFrame with features.
+                    target_df: loaded pandas DataFrame with target.
                     task: the :obj:`Task` to solve with the data.
                     data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
-                    target_columns: name of the target column (the last column if empty and no target if ``None``).
 
                 Returns:
                     data
@@ -120,11 +120,10 @@ class Data:
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        idx = df.index.to_numpy()
-        if not target_columns:
-            features_names = df.columns.to_numpy()[:-1]
-        else:
-            features_names = df.drop(target_columns, axis=1).columns.to_numpy()
+        idx = features_df.index.to_numpy()
+        target_columns = target_df.columns.to_list()
+        features_names = features_df.columns.to_numpy()
+        df = pd.concat([features_df, target_df], axis=1)
         features, target = process_target_and_features(df, target_columns)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
