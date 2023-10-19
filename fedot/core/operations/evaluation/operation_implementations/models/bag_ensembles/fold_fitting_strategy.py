@@ -1,6 +1,12 @@
 import copy
+import os
 from abc import abstractmethod, ABC
+
+import numpy as np
+from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from joblib import Parallel, cpu_count, delayed
+
+from fedot.core.utils import default_fedot_data_dir
 
 
 class AbstractFoldFittingStrategy:
@@ -58,6 +64,7 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
         self.oof_pred_model_repeats = oof_pred_model_repeats
 
         self.jobs = []
+        self.clear_saving_dir()
 
     def schedule_fold_model_fit(self, fold_ctx):
         raise NotImplementedError
@@ -65,11 +72,26 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
     def after_all_folds_scheduled(self):
         raise NotImplementedError
 
+    @staticmethod
+    def clear_saving_dir():
+        # TODO: Make more global
+        path_to_dir = os.path.join(default_fedot_data_dir(), f'catboost/')
+
+        try:
+            files = os.listdir(path_to_dir)
+            for file in files:
+                file_path = os.path.join(path_to_dir, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            print("All files deleted successfully.")
+
+        except OSError:
+            print("Error occurred while deleting files.")
+
     def _update_bagged_ensemble(self, fold_model, pred_proba, fold_ctx):
         val_indices = fold_ctx['val_indices']
 
-        # TODO: Saving fold model
-        # self.save(fold_model)
+        fold_model.save_model(model_name=fold_ctx['model_name_suffix'])
 
         self.oof_pred_proba[val_indices] += pred_proba
         self.oof_pred_model_repeats[val_indices] += 1
@@ -79,13 +101,13 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
         val_indices = fold_ctx.get('val_indices')
 
         X_val_fold = self.X[val_indices]
-        # y_val_fold = self.y[val_indices]
+        y_val_fold = self.y[val_indices]
 
         pred_proba = fold_model.predict_proba(X_val_fold)
 
         # TODO: Save val score metric into model or logger
-        # labels = np.argmax(pred_proba, axis=-1)
-        # fold_model.score(y_true=y_val_fold, y_score=pred)
+        labels = np.argmax(pred_proba, axis=-1)
+        fold_model.score(y_true=y_val_fold, y_score=labels)
 
         # TODO: Remove model to reduce RAM memory
         # self.reduce_memory(fold_model)
@@ -134,18 +156,7 @@ class ParallelFoldFittingStrategy(FoldFittingStrategy):
     def __init__(self, n_jobs=1, **kwargs):
         super(ParallelFoldFittingStrategy, self).__init__(**kwargs)
         self.tasks = []
-        self.n_jobs = self._set_cpus(n_jobs)
-
-    @staticmethod
-    def _set_cpus(n_jobs):
-        if n_jobs == -1:
-            return cpu_count()
-        elif n_jobs == -2:
-            return cpu_count() - 1
-        elif n_jobs <= cpu_count():
-            return n_jobs
-        else:
-            raise ValueError(f'n_jobs = {n_jobs} are bigger than available cpu = {cpu_count()}')
+        self.n_jobs = determine_n_jobs(n_jobs)
 
     def schedule_fold_model_fit(self, fold_ctx):
         self.tasks.append(delayed(self._fit_fold_model)(fold_ctx))

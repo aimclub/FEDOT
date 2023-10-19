@@ -186,7 +186,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.bagging_kfold",
+        "fedot.core.operations.evaluation.bagging",
         "KFoldBaggingClassificationStrategy"
       ],
       "tags": [
@@ -199,7 +199,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.bagging_kfold",
+        "fedot.core.operations.evaluation.bagging",
         "KFoldBaggingRegressionStrategy"
       ],
       "tags": [

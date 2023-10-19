@@ -11,28 +11,33 @@ from fedot.core.operations.evaluation.operation_implementations.models.bag_ensem
 
 class BaseKFoldBagging:
     """ Base k-fold n-repeated bagging ensemble class which provides some default implementation for specific
-        objects for each task. Bagged ensemble fits a given base model multiple times (n-repeats) across different
-        splits (k-fold) of the training data. Each model produce out-of-fold prediction and all probs or values stack into
+        objects for each task.
+
+        Bagged ensemble fits a given base model multiple times (n-repeats) across different splits (k-fold)
+        of the training data. Each model produce out-of-fold prediction and all probs or values stack into
         single prediction vector. This vector could be used in meta-model or fit another layer of bagged ensemble.
 
         Args:
-            model_base:
-            n_repeats:
-            k_fold:
-            fold_fitting_strategy:
-            n_jobs:
+            model_base: `ModelImplementation` the base model
+            k_fold: 'int' the number of data splits and base estimators in bagging ensembles
+            n_repeats: 'int' the number of fold fitting repeats per each estimator
+            fold_fitting_strategy: 'str' the fitting strategy
+            .. details:: possible strategy:
+                - ``sequential`` 'SequentialFoldFittingStrategy' each models in bagging layer fitting in the order of the queue
+                - ``parallel`` 'ParallelFoldFittingStrategy' the whole fitting process is divided between processors
 
-
+            n_jobs: the number of jobs to run in parallel for parallel strategy.
 
     """
     @abstractmethod
-    def __init__(self, model_base, n_repeats: int, k_fold: int, fold_fitting_strategy: str, n_jobs: int):
+    def __init__(self, model_base, k_fold: int = 1, n_repeats: int = 1, fold_fitting_strategy: str = 'sequential',
+                 n_jobs: int = 1):
         self.model_base = model_base
         # Store special
         self.models = []
 
-        self.n_repeated = n_repeats
         self.k_fold = k_fold
+        self.n_repeated = n_repeats
 
         self._oof_pred_proba = None
         self._oof_pred_model_repeats = None
@@ -40,6 +45,7 @@ class BaseKFoldBagging:
         self.X_new = None
         self.unique_class = None
         self.cv_splitter = self._get_cv_splitter(n_repeats, k_fold)
+        self.n_jobs = n_jobs
         self.kfold_fitting_strategy = self._get_fold_fitting_stratgey(fold_fitting_strategy)
 
     @staticmethod
@@ -57,14 +63,14 @@ class BaseKFoldBagging:
         return fold_fitting_strategy
 
     def _get_fold_fitting_args(self, X: np.ndarray, y: np.ndarray, oof_pred_proba: np.ndarray,
-                               oof_pred_model_repeats: np.ndarray, n_jobs: int) -> dict:
+                               oof_pred_model_repeats: np.ndarray) -> dict:
         return dict(
             model_base=self.model_base,
             bagged_ensemble_model=self,
             X=X, y=y,
             oof_pred_proba=oof_pred_proba,
             oof_pred_model_repeats=oof_pred_model_repeats,
-            n_jobs=n_jobs,
+            n_jobs=self.n_jobs,
         )
 
     @staticmethod
@@ -93,11 +99,16 @@ class BaseKFoldBagging:
 
         return folds_list
 
-    def _construct_empty_oof(self, X: np.ndarray, y: np.ndarray):
+    @staticmethod
+    def _construct_empty_oof(X: np.ndarray, y: np.ndarray):
         oof_pred_proba = np.zeros(shape=(len(X), len(np.unique(y))), dtype=np.float32)
         oof_pred_model_repeats = np.zeros(shape=len(X), dtype=np.uint8)
 
         return oof_pred_proba, oof_pred_model_repeats
+
+    @staticmethod
+    def _concatenate(prev_data, new_data):
+        return np.concatenate(prev_data, new_data.T, axis=-1)
 
     def add_model_to_bag(self, model):
         self.models.append(model)
@@ -111,9 +122,6 @@ class BaseKFoldBagging:
             self._oof_pred_proba += oof_pred_proba
             self._oof_pred_model_repeats += oof_pred_model_repeats
 
-    def _concatenate(self, prev_data, new_data):
-        return np.concatenate(prev_data, new_data.T, axis=-1)
-
 
 class KFoldBaggingClassifier(BaseKFoldBagging):
     def __init__(self, model_base, n_repeats: int, k_fold: int, fold_fitting_strategy: str, n_jobs: int):
@@ -124,7 +132,6 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
             fold_fitting_strategy=fold_fitting_strategy,
             n_jobs=n_jobs
         )
-        self.n_jobs = n_jobs
 
     def fit(self, X: np.ndarray, y: np.ndarray, features_type: np.ndarray):
         self.unique_class = np.unique(y)
@@ -132,7 +139,7 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
         folds_list = self._generate_folds(X=X, y=y, features_type=features_type)
         oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(X=X, y=y)
 
-        fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats, self.n_jobs)
+        fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats)
         fold_fitting_strategy = self.kfold_fitting_strategy(**fold_fitting_strategy_args)
 
         for fold_fit in folds_list:

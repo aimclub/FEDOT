@@ -1,50 +1,43 @@
 from abc import ABC
 from typing import Optional
 
-from golem.core.utilities.random import RandomStateHandler
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import BaggingClassifier, BaggingRegressor, AdaBoostRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.models.bag_ensembles.bag_ensemble import \
+    KFoldBaggingClassifier, KFoldBaggingRegressor
+from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
+    FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 
-class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
-    """ This class defines the certain base bagging operation implementation for the sklearn operations
-    defined in operation repository
-
-    Args:
-        operation_type: 'str' selected operation as a base model in bagging
-
-        .. details:: possible bagging operations:
-
-            - ``bag_dt`` -> Bagging for the Decision Tree
-            - ``bag_dtreg`` -> Bagging for the Decision Trees Regressors
-            - ``bag_adareg`` -> Bagging for AdaBoosting Regressor
-
-        params: operation's init and fitting hyperparameters
-
-        .. details:: explanation of params
-
-            - ``n_estimators`` - the number of base estimators in bagging ensemble
-            - ``bootstrap`` - whether samples are drawn with replacement. If False,
-                              sampling without replacement is performed.
-            - ``oob_score`` - whether to use out-of-bag samples to estimate the generalization error.
-                              Only available if bootstrap=True.
-            - ``max_samples`` - the number of samples to draw from X to train each base estimator
-            - ``max_features`` - the number of features to draw from X to train each base estimator
-            - ``n_jobs`` - the number of jobs to run in parallel
-            - ``model_params`` - model's fitting params
-    """
+class BaseBaggingStrategy(EvaluationStrategy, ABC):
+    """ This class defines base bagging operations implementation """
 
     _operations_by_types = {
         # Classification
+        # Sklearn Bagging Strategy
         'bag_dtreg': DecisionTreeRegressor,
         'bag_adareg': AdaBoostRegressor,
+        # K-fold Bagging Strategy
+        'bag_catboost': FedotCatBoostClassificationImplementation,
+        'bag_xgboost': XGBClassifier,
+        'bag_lgbm': LGBMClassifier,
+        'bag_lgbmxt': LGBMClassifier,
 
         # Regression
+        # Sklearn Bagging Strategy
         'bag_dt': DecisionTreeClassifier,
+        # K-fold Bagging Strategy
+        'bag_catboostreg': FedotCatBoostRegressionImplementation,
+        'bag_xgboostreg': XGBRegressor,
+        'bag_lgbmreg': LGBMRegressor,
+        'bag_lgbmxtreg': LGBMRegressor,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -76,13 +69,11 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
             if params.get('model_params'):
                 params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
-        self._model_params = params.get('model_params')
-        # TODO: sklearn param base_estimator will change to estimator in future since 1.4
-
+        self._model_params = params.get('model_base_kwargs')
         self._bagging_params = {}
 
         for param in params.keys():
-            if param != 'model_params':
+            if param != 'model_base_kwargs':
                 self._bagging_params.update({param: params.get(param)})
 
         return params
@@ -102,7 +93,7 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         """
         operation_implementation = self.operation_impl
 
-        with RandomStateHandler():
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data.features, train_data.target)
 
         return operation_implementation
@@ -120,18 +111,11 @@ class SkLearnBaggingStrategy(EvaluationStrategy, ABC):
         NotImplementedError()
 
 
-class SkLearnBaggingClassificationStrategy(SkLearnBaggingStrategy):
-    """ Classification bagging operation implementation
-
-        Args:
-            operation_type: 'str' selected operation as a base model in bagging
-            params: operation's init and fitting hyperparameters
-    """
-
+class BaseBaggingClassification(BaseBaggingStrategy):
+    """ This class defines general methods for classification problem. """
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
         params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
-        self.bagging_operation = BaggingClassifier
         self.operation_impl = self._convert_to_operation(operation_type)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -147,21 +131,110 @@ class SkLearnBaggingClassificationStrategy(SkLearnBaggingStrategy):
         return self._convert_to_output(prediction, predict_data)
 
 
-class SkLearnBaggingRegressionStrategy(SkLearnBaggingStrategy):
-    """ Regression bagging operation implementation
-
-        Args:
-            operation_type: 'str' selected operation as a base model in bagging
-            params: operation's init and fitting hyperparameters
-    """
-
+class BaseBaggingRegression(BaseBaggingStrategy):
+    """ This class defines general methods for Regression problem. """
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
         params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
-        self.bagging_operation = BaggingRegressor
         self.operation_impl = self._convert_to_operation(operation_type)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         prediction = trained_operation.predict(predict_data.features)
 
         return self._convert_to_output(prediction, predict_data)
+
+
+class SkLearnBaggingClassificationStrategy(BaseBaggingStrategy):
+    """ Bagging with the SklearnBaggingClassifier
+
+    Args:
+        operation_type: 'str' selected operation as a base model (estimator) in bagging
+        .. details:: possible bagging operations for classification:
+            - ``bag_dt`` -> Bagging for the Decision Tree
+            - ``bag_dtreg`` -> Bagging for the Decision Trees Regressors
+
+        params: operation's init and fitting hyperparameters
+        .. details:: explanation of params
+            - ``n_estimators`` - the number of base estimators in bagging ensemble
+            - ``bootstrap`` - whether samples are drawn with replacement. If False,
+                              sampling without replacement is performed.
+            - ``oob_score`` - whether to use out-of-bag samples to estimate the generalization error.
+                              Only available if bootstrap=True.
+            - ``max_samples`` - the number of samples to draw from X to train each base estimator
+            - ``max_features`` - the number of features to draw from X to train each base estimator
+            - ``n_jobs`` - the number of jobs to run in parallel
+            - ``model_params`` - model's fitting params
+    """
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.bagging_operation = BaggingClassifier
+
+
+class SkLearnBaggingRegressionStrategy(BaseBaggingStrategy):
+    """ Bagging with the SklearnBaggingRegressor
+
+    Args:
+        operation_type: 'str' selected operation as a base model (estimator) in bagging
+        .. details:: possible bagging operations:
+            - ``bag_adareg`` -> Bagging for the AdaBoosting Regressor
+
+        params: operation's init and fitting hyperparameters
+        .. details:: explanation of params
+            - ``n_estimators`` - the number of base estimators in bagging ensemble
+            - ``bootstrap`` - whether samples are drawn with replacement. If False,
+                              sampling without replacement is performed.
+            - ``oob_score`` - whether to use out-of-bag samples to estimate the generalization error.
+                              Only available if bootstrap=True.
+            - ``max_samples`` - the number of samples to draw from X to train each base estimator
+            - ``max_features`` - the number of features to draw from X to train each base estimator
+            - ``n_jobs`` - the number of jobs to run in parallel
+            - ``model_params`` - model's fitting params
+    """
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.bagging_operation = BaggingRegressor
+
+
+class KFoldBaggingClassificationStrategy(BaseBaggingStrategy):
+    """ Bagging with the KFoldBaggingClassifier (K-fold n-repeated bagging)
+
+    Args:
+        operation_type: 'str' selected operation as a base model in bagging
+        .. details:: possible bagging operations:
+            - ``bag_catboost`` -> Bagging for the CatBoost
+
+        params: operation's init and fitting hyperparameters
+        .. details:: explanation of params
+            - ``k_fold`` - the number of data splits and base estimators in bagging ensembles
+            - ``n_repeats`` - the number of fold fitting repeats per each estimator
+            - ``fold_fitting_strategy`` - the fitting strategy
+            - ``n_jobs`` - the number of jobs to run in parallel
+            - ``model_params`` - model's fitting params
+    """
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.bagging_operation = KFoldBaggingClassifier
+
+
+class KFoldBaggingRegressionStrategy(BaseBaggingStrategy):
+    """ Bagging with the KFoldBaggingRegressor (K-fold n-repeated bagging)
+
+    Args:
+        operation_type: 'str' selected operation as a base model in bagging
+        .. details:: possible bagging operations:
+            - ``bag_catboostreg`` -> Bagging for the CatBoost
+
+        params: operation's init and fitting hyperparameters
+        .. details:: explanation of params
+            - ``k_fold`` - the number of data splits and base estimators in bagging ensembles
+            - ``n_repeats`` - the number of fold fitting repeats per each estimator
+            - ``fold_fitting_strategy`` - the fitting strategy
+            - ``n_jobs`` - the number of jobs to run in parallel
+            - ``model_params`` - model's fitting params
+    """
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+        self.bagging_operation = KFoldBaggingRegressor

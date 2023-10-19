@@ -319,34 +319,19 @@ class TableTypesCorrector:
                 # Calculate number of unique values except nans
                 unique_numbers = len(numerical_column.dropna().unique())
 
-                if data.features_type is not None:
-                    if data.features_type[column_id] == 'cat':
-                        # Column need to be transformed into categorical (string) one
-                        self.numerical_into_str.append(column_id)
+                if 2 < unique_numbers < self.categorical_max_uniques_th:
+                    # Column need to be transformed into categorical (string) one
+                    self.numerical_into_str.append(column_id)
 
-                        # Convert into string
-                        converted_array = convert_num_column_into_string_array(numerical_column)
+                    # Convert into string
+                    converted_array = convert_num_column_into_string_array(numerical_column)
 
-                        # Store converted column into features table
-                        data.features[:, column_id] = converted_array
+                    # Store converted column into features table
+                    data.features[:, column_id] = converted_array
 
-                        # Update information about column types (in-place)
-                        features_types = data.supplementary_data.column_types['features']
-                        features_types[column_id] = NAME_CLASS_STR
-                else:
-                    if 2 < unique_numbers < self.categorical_max_uniques_th:
-                        # Column need to be transformed into categorical (string) one
-                        self.numerical_into_str.append(column_id)
-
-                        # Convert into string
-                        converted_array = convert_num_column_into_string_array(numerical_column)
-
-                        # Store converted column into features table
-                        data.features[:, column_id] = converted_array
-
-                        # Update information about column types (in-place)
-                        features_types = data.supplementary_data.column_types['features']
-                        features_types[column_id] = NAME_CLASS_STR
+                    # Update information about column types (in-place)
+                    features_types = data.supplementary_data.column_types['features']
+                    features_types[column_id] = NAME_CLASS_STR
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
