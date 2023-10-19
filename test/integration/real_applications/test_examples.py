@@ -84,6 +84,7 @@ def test_api_example():
     prediction = run_classification_example(timeout=1, with_tuning=with_tuning)
     assert prediction is not None
 
+    # TODO: timeout != 1 here causes test failure somehow
     forecast = run_ts_forecasting_example(dataset='australia', timeout=1, with_tuning=with_tuning)
     assert forecast is not None
 
