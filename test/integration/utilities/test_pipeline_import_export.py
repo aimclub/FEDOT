@@ -346,7 +346,7 @@ def test_export_without_path_correctly():
 
 
 def test_data_model_types_forecasting_pipeline_fit():
-    train_data, test_data = get_ts_data(n_steps = 200, forecast_length=10)
+    train_data, test_data = get_ts_data(n_steps = 200, forecast_length = 10)
 
     pipeline = get_multiscale_pipeline()
     pipeline.fit(train_data)
