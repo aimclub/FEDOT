@@ -1,3 +1,5 @@
+import os
+
 from datetime import timedelta
 
 import numpy as np
@@ -45,8 +47,10 @@ def test_gapfilling_example():
 
 def test_exogenous_ts_example():
     path = fedot_project_root().joinpath('test/data/simple_sea_level.csv')
+    test = os.environ.pop('PYTEST_CURRENT_TEST')
     run_exogenous_experiment(path_to_file=path,
                              len_forecast=50, with_exog=True)
+    os.environ['PYTEST_CURRENT_TEST'] = test
 
 
 def test_nemo_multiple_points_example():
@@ -84,8 +88,9 @@ def test_api_example():
     prediction = run_classification_example(timeout=1, with_tuning=with_tuning)
     assert prediction is not None
 
-    # TODO: timeout != 1 here causes test failure somehow
-    forecast = run_ts_forecasting_example(dataset='australia', timeout=1, with_tuning=with_tuning)
+    test = os.environ.pop('PYTEST_CURRENT_TEST')
+    forecast = run_ts_forecasting_example(dataset='australia', timeout=2, with_tuning=with_tuning)
+    os.environ['PYTEST_CURRENT_TEST'] = test
     assert forecast is not None
 
     pareto = run_classification_multiobj_example(timeout=1, with_tuning=with_tuning)
