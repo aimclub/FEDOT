@@ -1,9 +1,17 @@
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.pipelines.test_decompose_pipelines import get_classification_data
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def test_vectorize_tfidf_strategy():
@@ -29,3 +37,42 @@ def test_vectorize_tfidf_strategy():
 
     assert isinstance(vectorizer_fitted, TfidfVectorizer)
     assert len(predicted_labels[0]) == 7
+
+
+def test_boosting_classification_operation():
+    train_data, test_data = get_classification_data()
+
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.classification, tags=['boosting']
+    )
+
+    for model_name in model_names:
+        pipeline = PipelineBuilder().add_node(model_name, params={'n_jobs': -1}).build()
+        pipeline.fit(train_data)
+        predicted_output = pipeline.predict(test_data, output_mode='labels')
+        metric = roc_auc(test_data.target, predicted_output.predict)
+
+        assert isinstance(pipeline, Pipeline)
+        assert predicted_output.predict.shape[0] == 240
+        assert metric > 0.5
+
+
+def test_boosting_regression_operation():
+    n_samples = 2000
+    data = get_synthetic_regression_data(n_samples=n_samples, n_features=10, random_state=42)
+    train_data, test_data = train_test_data_setup(data)
+
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.regression, tags=['boosting']
+    )
+
+    for model_name in model_names:
+        pipeline = PipelineBuilder().add_node(model_name).build()
+        pipeline.fit(train_data, n_jobs=-1)
+        predicted_output = pipeline.predict(test_data)
+        metric = mean_squared_error(test_data.target, predicted_output.predict)
+        rmse_threshold = np.std(test_data.target) ** 2
+
+        assert isinstance(pipeline, Pipeline)
+        assert predicted_output.predict.shape[0] == n_samples * 0.2
+        assert metric < rmse_threshold

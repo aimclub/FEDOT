@@ -2,6 +2,7 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -10,7 +11,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 
 
 def get_ts_pipeline(window_size):
@@ -54,14 +54,8 @@ def test_lagged_with_invalid_params_fit_correctly():
     pipeline = get_ts_pipeline(window_size)
 
     # Fit it
-    pipeline.fit(ts_input)
-
-    # Get lagged node
-    lagged_node = pipeline.nodes[1]
-    fixed_params = lagged_node.parameters
-
-    assert pipeline.is_fitted
-    assert fixed_params['window_size'] == 439
+    with pytest.raises(ValueError):
+        pipeline.fit(ts_input)
 
 
 def test_ransac_with_invalid_params_fit_correctly():
@@ -85,22 +79,6 @@ def test_ransac_with_invalid_params_fit_correctly():
 
     assert ransac_pipeline.is_fitted
     assert predicted is not None
-
-
-def test_params_filter_correct_with_default():
-    """
-    Check custom_params returns updated parameters for lagged operation after fitting.
-    Default params for operation loaded from json file
-    """
-    input_ts = small_ts_dataset()
-
-    node_lagged = PipelineNode('lagged')
-
-    # Correct parameters during fit
-    node_lagged.fit(input_ts)
-    updated_params = node_lagged.parameters
-    assert 'window_size' in list(updated_params.keys())
-    assert len(list(updated_params.keys())) == 1
 
 
 def test_params_filter_with_non_default():

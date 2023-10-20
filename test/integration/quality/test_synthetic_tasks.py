@@ -4,7 +4,7 @@ from functools import partial
 
 from sklearn.metrics import mean_squared_error
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode

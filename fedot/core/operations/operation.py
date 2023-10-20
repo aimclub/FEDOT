@@ -9,6 +9,7 @@ from fedot.core.operations.hyperparameters_preprocessing import HyperparametersP
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 @register_serializable
@@ -118,8 +119,6 @@ class Operation:
 
     def _predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
                  output_mode: str = 'default', is_fit_stage: bool = False):
-
-
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
@@ -149,7 +148,7 @@ class Operation:
         ``ts_type -> lagged -> tabular type``\n
         So, there is a need to assign column types to new data
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     def __str__(self):
         return f'{self.operation_type}'

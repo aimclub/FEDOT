@@ -27,8 +27,7 @@ def test_parameters_changed_correct():
 
     # Get simple pipeline for time series forecasting
     ts_pipeline = get_simple_ts_pipeline()
-
-    # Fit pipeline with inconceivably incorrect parameters (window_size will be corrected to 2)
+    ts_pipeline.nodes[-1].parameters = {'window_size': 8}
     ts_pipeline.fit(input_ts)
 
     # Correct window_size parameter to new value

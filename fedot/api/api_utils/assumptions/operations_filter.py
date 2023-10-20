@@ -1,7 +1,9 @@
+from abc import abstractmethod
 from random import choice
 from typing import Optional, Iterable
 
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class OperationsFilter:
@@ -9,9 +11,10 @@ class OperationsFilter:
         """ Checks if all operations in a Pipeline satisify this filter. """
         return True
 
+    @abstractmethod
     def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
 
 class WhitelistOperationsFilter(OperationsFilter):

@@ -13,14 +13,6 @@ class KNeighborsImplementation(ModelImplementation):
         super().__init__(params)
         self.model = None
 
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-
-        raise NotImplementedError()
-
     def predict(self, input_data):
         """ Method for making prediction
 

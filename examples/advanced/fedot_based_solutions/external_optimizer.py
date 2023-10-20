@@ -2,7 +2,7 @@ import logging
 
 from golem.core.optimisers.random.random_mutation_optimizer import RandomMutationSearchOptimizer
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.utils import fedot_project_root
 
 

@@ -108,7 +108,7 @@ def plot_roc_auc(data: InputData, prediction: OutputData):
     :param data: the InputData with validation data
     :param prediction: prediction for data
     """
-    if data.num_classes == 2:
+    if data.num_classes == 2 and prediction.predict.shape[1] != 2:
         fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict)
         roc_auc = ROCAUC.auc(fpr, tpr)
         plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)

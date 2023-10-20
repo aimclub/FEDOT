@@ -220,7 +220,8 @@
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
 			"presets": ["fast_train", "*tree"],
-			"tags": ["affects_target", "non_linear", "filtering", "correct_params", "non_applicable_for_ts"]
+			"tags": ["affects_target", "non_linear", "filtering",
+				     "correct_params", "non_applicable_for_ts", "non-default"]
 		},
 		"isolation_forest_reg": {
 			"meta": "regression_preprocessing",
@@ -309,7 +310,8 @@
 				"cutting",
 				"correct_params",
 				"non_lagged",
-				"ts_to_ts"
+				"ts_to_ts",
+				"non-default"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},

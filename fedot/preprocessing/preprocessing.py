@@ -426,6 +426,7 @@ class DataPreprocessor(BasePreprocessor):
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
+        data.encoded_idx = output_data.encoded_idx
         data.supplementary_data = output_data.supplementary_data
         return data
 

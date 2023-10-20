@@ -79,7 +79,3 @@ class GPComposer(Composer):
             return None, []
         chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
         return chosen_best_pipeline, best_pipelines
-
-    @staticmethod
-    def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
-        raise NotImplementedError()

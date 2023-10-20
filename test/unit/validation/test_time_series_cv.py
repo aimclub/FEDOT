@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from hyperopt import hp
+
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -8,13 +10,14 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.data.cv_folds import cv_generator
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
@@ -67,13 +70,20 @@ def test_tuner_cv_correct():
     folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()
 
-    simple_pipeline = get_simple_ts_pipeline()
+    simple_pipeline = get_simple_ts_pipeline(window_size=2)
+
+    max_window = int(time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
+    ppl_ss = PipelineSearchSpace({'lagged': {'window_size': {'hyperopt-dist': hp.uniformint,
+                                                             'sampling-scope': [2, max_window],
+                                                             'type': 'discrete'}}})
+
     tuner = TunerBuilder(time_series.task)\
         .with_tuner(SimultaneousTuner)\
         .with_metric(RegressionMetricsEnum.MAE)\
         .with_cv_folds(folds) \
         .with_iterations(1) \
         .with_timeout(datetime.timedelta(minutes=1))\
+        .with_search_space(ppl_ss)\
         .build(time_series)
     _ = tuner.tune(simple_pipeline)
     is_tune_succeeded = True

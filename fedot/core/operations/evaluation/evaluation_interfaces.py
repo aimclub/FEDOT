@@ -3,7 +3,6 @@ from abc import abstractmethod
 from typing import Optional
 
 import numpy as np
-from catboost import CatBoostClassifier, CatBoostRegressor
 from golem.core.log import default_log
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -33,6 +32,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -68,7 +68,7 @@ class EvaluationStrategy:
         Returns:
 
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError(self.__class__)
 
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -81,7 +81,7 @@ class EvaluationStrategy:
         Returns:
             passed data with new predicted target
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
         """Method to predict the target data for fit stage.
@@ -156,7 +156,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``svr``-> SklearnSVR
                 - ``sgdr``-> SklearnSGD
                 - ``lgbmreg``-> LGBMRegressor
-                - ``catboostreg``-> CatBoostRegressor
                 - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
                 - ``bernb``-> SklearnBernoulliNB
@@ -165,7 +164,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``rf``-> RandomForestClassifier
                 - ``mlp``-> MLPClassifier
                 - ``lgbm``-> LGBMClassifier
-                - ``catboost``-> CatBoostClassifier
                 - ``kmeans``-> SklearnKmeans
 
         params: hyperparameters to fit the operation with
@@ -184,7 +182,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
         'lgbmreg': LGBMRegressor,
-        'catboostreg': CatBoostRegressor,
 
         'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
@@ -194,7 +191,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
         'lgbm': LGBMClassifier,
-        'catboost': CatBoostClassifier,
 
         'kmeans': SklearnKmeans,
     }
@@ -235,6 +231,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
+    @abstractmethod
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """This method used for prediction of the target data
 
@@ -245,7 +242,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         Returns:
             passed data with new predicted target
         """
-        raise NotImplementedError()
+        raise AbstractMethodNotImplementError
 
     def _find_operation_by_impl(self, impl):
         for operation, operation_impl in self._operations_by_types.items():
@@ -268,7 +265,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = trained_operation.predict_proba(features)
             if n_classes < 2:
-                raise NotImplementedError()
+                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs':
                 if is_multi_output_target:
                     prediction = np.stack([pred[:, 1] for pred in prediction]).T

@@ -1,6 +1,6 @@
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -13,7 +13,7 @@ def test_presets_classification():
     task = Task(TaskTypesEnum.classification)
     class_operations = get_operations_for_task(task=task, mode='all')
 
-    excluded_tree = ['xgboost', 'catboost', 'xgbreg', 'catboostreg']
+    excluded_tree = ['xgboost', 'xgbreg']
     filtered_operations = set(class_operations).difference(set(excluded_tree))
     available_operations = list(filtered_operations)
 

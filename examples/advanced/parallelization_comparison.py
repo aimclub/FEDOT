@@ -8,7 +8,7 @@ import pandas as pd
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from matplotlib import cm, colors, pyplot as plt
 
-from fedot.api.main import Fedot
+from fedot import Fedot
 from fedot.core.utils import fedot_project_root
 
 
