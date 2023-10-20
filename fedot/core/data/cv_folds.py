@@ -5,7 +5,7 @@ import numpy as np
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.tasks import TaskTypesEnum
 from sklearn.model_selection import KFold, TimeSeriesSplit
-from sklearn.model_selection._split import StratifiedKFold
+from sklearn.model_selection._split import StratifiedKFold, RepeatedStratifiedKFold
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import _split_input_data_by_indexes
@@ -44,11 +44,13 @@ class TsInputDataSplit(TimeSeriesSplit):
 
 def cv_generator(data: Union[InputData, MultiModalData],
                  cv_folds: int,
+                 n_repeats: int = None,
                  shuffle: bool = False,
                  random_seed: int = 42,
                  stratify: bool = True,
-                 validation_blocks: Optional[int] = None) -> Iterator[Tuple[Union[InputData, MultiModalData],
-                                                                            Union[InputData, MultiModalData]]]:
+                 validation_blocks: Optional[int] = None,
+                 return_indices: bool = False) -> \
+        Iterator[Tuple[Union[InputData, MultiModalData], Union[InputData, MultiModalData]]]:
     """ The function for splitting data into a train and test samples
         for cross validation. The function return a generator of tuples,
         consisting of a pair of train, test.
@@ -56,6 +58,7 @@ def cv_generator(data: Union[InputData, MultiModalData],
     :param data: data for train and test splitting
     :param shuffle: is data need shuffle
     :param cv_folds: number of folds
+    :param n_repeats: number of repeats in RepeatedStratifiedKFold
     :param random_seed: random seed for shuffle
     :param stratify: `True` to make stratified samples for classification task
     :param validation_blocks: validation blocks for timeseries data,
@@ -71,8 +74,11 @@ def cv_generator(data: Union[InputData, MultiModalData],
         kf = TsInputDataSplit(n_splits=cv_folds, test_size=horizon)
         # for multi_ts use first target column as main target
         retain_first_target = True
-    elif data.task.task_type is TaskTypesEnum.classification and stratify:
-        kf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_seed)
+    elif data.task.task_type is (TaskTypesEnum.classification or TaskTypesEnum.regression) and stratify:
+        if n_repeats:
+            kf = RepeatedStratifiedKFold(n_splits=cv_folds, n_repeats=n_repeats, random_state=random_seed)
+        else:
+            kf = StratifiedKFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
     else:
         kf = KFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
 
@@ -80,4 +86,9 @@ def cv_generator(data: Union[InputData, MultiModalData],
     for train_ids, test_ids in kf.split(data.target, data.target):
         train_data = _split_input_data_by_indexes(data, train_ids)
         test_data = _split_input_data_by_indexes(data, test_ids, retain_first_target=retain_first_target)
-        yield train_data, test_data
+
+        if return_indices:
+            yield train_data, test_data, train_ids, test_ids
+
+        else:
+            yield train_data, test_data

@@ -181,7 +181,7 @@
     "oob_score": true,
     "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": {
+    "model_base_kwargs": {
       "max_depth": null,
       "min_samples_split": 2,
       "min_samples_leaf": 1
@@ -193,7 +193,7 @@
     "oob_score": true,
     "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": {
+    "model_base_kwargs": {
       "max_depth": null,
       "min_samples_split": 2,
       "min_samples_leaf": 1
@@ -205,12 +205,11 @@
     "oob_score": true,
     "max_samples": 0.6,
     "n_jobs": 1,
-    "model_params": null
+    "model_base_kwargs": null
   },
   "bag_catboost": {
-    "model_base": null,
-    "n_repeats": 10,
     "k_fold": 5,
+    "n_repeats": 10,
     "fold_fitting_strategy": "sequential",
     "n_jobs": 1,
     "model_base_kwargs": {
@@ -219,66 +218,13 @@
     }
   },
   "bag_catboostreg": {
-    "model_base": null,
-    "n_repeats": 10,
     "k_fold": 5,
+    "n_repeats": 10,
     "fold_fitting_strategy": "sequential",
     "n_jobs": 1,
     "model_base_kwargs": {
       "allow_writing_files": false,
       "verbose": false
-    }
-  },
-  "bag_xgboost": {
-    "model_base": null,
-    "n_repeats": 10,
-    "k_fold": 5,
-    "fold_fitting_strategy": "sequential",
-    "n_jobs": 1,
-    "model_base_kwargs": {
-      "eval_metric": "mlogloss",
-      "nthread": -1
-    }
-  },
-  "bag_xgboostreg": {
-    "model_base": null,
-    "n_repeats": 10,
-    "k_fold": 5,
-    "fold_fitting_strategy": "sequential",
-    "n_jobs": 1,
-    "model_base_kwargs": {
-      "eval_metric": "mlogloss",
-      "nthread": -1
-    }
-  },
-  "bag_lgbm": {
-    "model_base": null,
-    "n_repeats": 10,
-    "k_fold": 5,
-    "fold_fitting_strategy": "sequential",
-    "n_jobs": 1,
-    "model_base_kwargs": {
-      "num_leaves": 32,
-      "colsample_bytree": 0.8,
-      "subsample": 0.8,
-      "subsample_freq": 10,
-      "learning_rate": 0.03,
-      "n_estimators": 100
-    }
-  },
-  "bag_lgbmreg": {
-    "model_base": null,
-    "n_repeats": 10,
-    "k_fold": 5,
-    "fold_fitting_strategy": "sequential",
-    "n_jobs": 1,
-    "model_base_kwargs": {
-      "num_leaves": 32,
-      "colsample_bytree": 0.8,
-      "subsample": 0.8,
-      "subsample_freq": 10,
-      "learning_rate": 0.03,
-      "n_estimators": 100
     }
   }
 }

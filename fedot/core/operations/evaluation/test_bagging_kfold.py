@@ -1,20 +1,14 @@
 import numpy as np
 import pandas as pd
-from lightgbm import LGBMClassifier
-from catboost import CatBoostClassifier
+from sklearn.datasets import load_breast_cancer
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.bagging_kfold import KFoldBaggingClassifier
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_decompose_pipelines import get_classification_data
-from sklearn.datasets import load_breast_cancer
 
 
 def get_flight():
@@ -30,8 +24,7 @@ def get_flight():
         target=np.array(train['dep_delayed_15min']),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
-        features_type=np.array(['cat', 'cat', 'cat', 'num', 'cat', 'cat', 'cat', 'num']),
-        encoding_required=False
+        features_names=np.array(test.columns)
     )
 
     test_data = InputData(
@@ -40,8 +33,7 @@ def get_flight():
         target=np.array(test['dep_delayed_15min']),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
-        features_type=np.array(['cat', 'cat', 'cat', 'num', 'cat', 'cat', 'cat', 'num']),
-        encoding_required=False
+        features_names=np.array(test.columns)
     )
 
     return train_data, test_data
@@ -57,8 +49,7 @@ def get_scoring():
         target=np.array(train.target),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
-        features_type=np.array(['num' for _ in range(10)]),
-        encoding_required=False
+        features_names=np.array(test.columns)
     )
 
     test_data = InputData(
@@ -67,8 +58,7 @@ def get_scoring():
         target=np.array(test.target),
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
-        features_type=np.array(['num' for _ in range(10)]),
-        encoding_required=False
+        features_names=np.array(test.columns)
     )
 
     return train_data, test_data
@@ -86,6 +76,7 @@ def get_iris():
         target=y_train,
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
+        features_names=np.array(iris.feature_names)
     )
 
     test_data = InputData(
@@ -94,17 +85,18 @@ def get_iris():
         target=y_test,
         task=Task(TaskTypesEnum.classification),
         data_type=DataTypesEnum.table,
+        features_names=np.array(iris.feature_names)
     )
 
     return train_data, test_data
 
 
 def test_bagged_ensemble():
-    train_data, test_data = get_iris()
+    train_data, test_data = get_flight()
 
-    params = {'fold_fitting_strategy': 'parallel', 'n_jobs': -2}
+    params = {'k_fold': 3, 'n_repeats': 1, 'fold_fitting_strategy': 'sequential', 'n_jobs': 1}
     pipeline = PipelineBuilder().add_node('bag_catboost', params=params).build()
-    implemented_model = pipeline.fit(train_data)
+    implemented_model = pipeline.fit(train_data, n_jobs=1)
 
     train_prediction = pipeline.predict(train_data)
     test_prediction = pipeline.predict(test_data)

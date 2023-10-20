@@ -1,12 +1,17 @@
 import copy
 import time
 from abc import abstractmethod
+from typing import Optional
 
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold
 
+from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.data import InputData
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.bag_ensembles.fold_fitting_strategy import \
     SequentialFoldFittingStrategy, ParallelFoldFittingStrategy
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class BaseKFoldBagging:
@@ -30,26 +35,26 @@ class BaseKFoldBagging:
 
     """
     @abstractmethod
-    def __init__(self, model_base, k_fold: int = 1, n_repeats: int = 1, fold_fitting_strategy: str = 'sequential',
-                 n_jobs: int = 1):
-        self.model_base = model_base
+    def __init__(self, estimator: ModelImplementation, k_fold: int = 1, n_repeats: int = 1, fold_fitting_strategy: str = 'sequential', n_jobs: int = 1, random_seed: int = 42):
+        self.model_base = estimator
         # Store special
         self.models = []
 
         self.k_fold = k_fold
-        self.n_repeated = n_repeats
+        self.n_repeats = n_repeats
 
         self._oof_pred_proba = None
         self._oof_pred_model_repeats = None
 
         self.X_new = None
         self.unique_class = None
-        self.cv_splitter = self._get_cv_splitter(n_repeats, k_fold)
         self.n_jobs = n_jobs
-        self.kfold_fitting_strategy = self._get_fold_fitting_stratgey(fold_fitting_strategy)
+        self.random_seed = random_seed
+        self.fold_fitting_strategy = fold_fitting_strategy
+        self.kfold_fitting_strategy = self._get_fold_fitting_strategy(self.fold_fitting_strategy)
 
     @staticmethod
-    def _get_fold_fitting_stratgey(fold_fitting_strategy):
+    def _get_fold_fitting_strategy(fold_fitting_strategy):
         if fold_fitting_strategy == 'sequential':
             fold_fitting_strategy = SequentialFoldFittingStrategy
 
@@ -62,37 +67,35 @@ class BaseKFoldBagging:
 
         return fold_fitting_strategy
 
-    def _get_fold_fitting_args(self, X: np.ndarray, y: np.ndarray, oof_pred_proba: np.ndarray,
+    def _get_fold_fitting_args(self, oof_pred_proba: np.ndarray,
                                oof_pred_model_repeats: np.ndarray) -> dict:
         return dict(
             model_base=self.model_base,
             bagged_ensemble_model=self,
-            X=X, y=y,
             oof_pred_proba=oof_pred_proba,
             oof_pred_model_repeats=oof_pred_model_repeats,
             n_jobs=self.n_jobs,
         )
 
-    @staticmethod
-    def _get_cv_splitter(n_repeats, k_fold):
-        if n_repeats < 1:
-            cv_splitter = StratifiedKFold(n_splits=k_fold)
-        else:
-            cv_splitter = RepeatedStratifiedKFold(n_splits=k_fold, n_repeats=n_repeats)
-
-        return cv_splitter
-
-    def _generate_folds(self, X: np.ndarray, y: np.ndarray, features_type: np.ndarray) -> list:
+    def _generate_folds(self, train_data: InputData) -> list:
         folds_list = []
+        cv = cv_generator(
+            data=train_data,
+            cv_folds=self.k_fold,
+            n_repeats=self.n_repeats,
+            random_seed=self.random_seed,
+            return_indices=True
+        )
 
-        for fold_num, (train_indices, val_indices) in enumerate(self.cv_splitter.split(X, y)):
+        for fold_num, (train, val, train_indices, val_indices) in enumerate(cv):
             suffix = f'Repeat_{fold_num // self.k_fold + 1}-Fold_{fold_num + 1}'
 
             fold_ctx = dict(
                 model_name_suffix=suffix,
+                train_data=train,
+                val_data=val,
                 train_indices=train_indices,
-                val_indices=val_indices,
-                features_type=features_type,
+                val_indices=val_indices
             )
 
             folds_list.append(fold_ctx)
@@ -100,7 +103,9 @@ class BaseKFoldBagging:
         return folds_list
 
     @staticmethod
-    def _construct_empty_oof(X: np.ndarray, y: np.ndarray):
+    def _construct_empty_oof(train_data):
+        X, y = train_data.features, train_data.target
+
         oof_pred_proba = np.zeros(shape=(len(X), len(np.unique(y))), dtype=np.float32)
         oof_pred_model_repeats = np.zeros(shape=len(X), dtype=np.uint8)
 
@@ -124,22 +129,20 @@ class BaseKFoldBagging:
 
 
 class KFoldBaggingClassifier(BaseKFoldBagging):
-    def __init__(self, model_base, n_repeats: int, k_fold: int, fold_fitting_strategy: str, n_jobs: int):
+    def __init__(self, estimator: ModelImplementation, k_fold: int, n_repeats: int, fold_fitting_strategy: str, n_jobs: int):
         super().__init__(
-            model_base=model_base,
+            estimator=estimator,
             n_repeats=n_repeats,
             k_fold=k_fold,
             fold_fitting_strategy=fold_fitting_strategy,
             n_jobs=n_jobs
         )
 
-    def fit(self, X: np.ndarray, y: np.ndarray, features_type: np.ndarray):
-        self.unique_class = np.unique(y)
+    def fit(self, train_data: InputData):
+        folds_list = self._generate_folds(train_data)
+        oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(train_data)
 
-        folds_list = self._generate_folds(X=X, y=y, features_type=features_type)
-        oof_pred_proba, oof_pred_model_repeats = self._construct_empty_oof(X=X, y=y)
-
-        fold_fitting_strategy_args = self._get_fold_fitting_args(X, y, oof_pred_proba, oof_pred_model_repeats)
+        fold_fitting_strategy_args = self._get_fold_fitting_args(oof_pred_proba, oof_pred_model_repeats)
         fold_fitting_strategy = self.kfold_fitting_strategy(**fold_fitting_strategy_args)
 
         for fold_fit in folds_list:
@@ -149,19 +152,19 @@ class KFoldBaggingClassifier(BaseKFoldBagging):
 
         self._update_oof(oof_pred_proba, oof_pred_model_repeats)
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        pred_proba = self.predict_proba(X)
+    def predict(self, input_data: InputData) -> np.ndarray:
+        pred_proba = self.predict_proba(input_data)
         pred = np.argmax(pred_proba, axis=-1)
 
         return pred
 
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+    def predict_proba(self, input_data: InputData) -> np.ndarray:
         model = self.models[0]
-        pred_proba = model.predict_proba(X=X)
+        pred_proba = model.predict_proba(input_data)
 
         for model in self.models[1:]:
             # model = self.load_child(model)
-            pred_proba += model.predict_proba(X=X)
+            pred_proba += model.predict_proba(input_data)
 
         pred_proba = pred_proba / len(self.models)
 

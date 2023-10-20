@@ -19,14 +19,22 @@ class FedotCatBoostImplementation(ModelImplementation):
         super().__init__(params)
 
         self.check_and_update_params()
-
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
 
-    def fit(self, input_data: InputData):
+    def fit(self, input_data: InputData, eval_data: InputData = None):
         input_data = input_data.get_not_encoded_data()
 
-        if self.params.get('use_eval_set'):
+        if eval_data is not None:
+            eval_data = eval_data.get_not_encoded_data()
+
+        if self.params.get('use_eval_set') or eval_data:
+            train_input = self.convert_to_pool(input_data)
+            eval_input = self.convert_to_pool(eval_data)
+
+            self.model.fit(X=train_input, eval_set=eval_input)
+
+        elif self.params.get('use_eval_set'):
             # TODO: Using this method for tuning
             train_input, eval_input = train_test_data_setup(input_data)
 
@@ -56,7 +64,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         use_eval_set = self.params.get('use_eval_set')
 
         if use_best_model or early_stopping_rounds and not use_eval_set:
-            self.params.update(dict(use_best_model=False, early_stopping_rounds=False))
+            self.params.update(use_best_model=False, early_stopping_rounds=False)
 
     @staticmethod
     def convert_to_pool(data: Optional[InputData]):
@@ -70,6 +78,8 @@ class FedotCatBoostImplementation(ModelImplementation):
     def save_model(self, model_name: str = 'catboost'):
         save_path = os.path.join(default_fedot_data_dir(), f'catboost/{model_name}.cbm')
         self.model.save_model(save_path, format='cbm')
+
+        return save_path
 
     def load_model(self, path):
         self.model = CatBoostClassifier()

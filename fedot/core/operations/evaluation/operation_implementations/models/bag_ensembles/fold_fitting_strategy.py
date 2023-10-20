@@ -52,11 +52,8 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
 
     """
 
-    def __init__(self, model_base, X, y, bagged_ensemble_model, oof_pred_proba, oof_pred_model_repeats):
+    def __init__(self, model_base, bagged_ensemble_model, oof_pred_proba, oof_pred_model_repeats):
         self.model_base = model_base
-
-        self.X = X
-        self.y = y
 
         self.bagged_ensemble_model = bagged_ensemble_model
 
@@ -83,6 +80,8 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
                 file_path = os.path.join(path_to_dir, file)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
+
+            # TODO: Add logger
             print("All files deleted successfully.")
 
         except OSError:
@@ -91,37 +90,33 @@ class FoldFittingStrategy(AbstractFoldFittingStrategy, ABC):
     def _update_bagged_ensemble(self, fold_model, pred_proba, fold_ctx):
         val_indices = fold_ctx['val_indices']
 
-        fold_model.save_model(model_name=fold_ctx['model_name_suffix'])
+        # fold_model_save_path = fold_model.save_model(model_name=fold_ctx['model_name_suffix'])
 
         self.oof_pred_proba[val_indices] += pred_proba
         self.oof_pred_model_repeats[val_indices] += 1
         self.bagged_ensemble_model.add_model_to_bag(model=fold_model)
 
     def _predict_oof(self, fold_model, fold_ctx):
-        val_indices = fold_ctx.get('val_indices')
+        val_data = fold_ctx.get('val_data')
 
-        X_val_fold = self.X[val_indices]
-        y_val_fold = self.y[val_indices]
-
-        pred_proba = fold_model.predict_proba(X_val_fold)
+        pred_proba = fold_model.predict_proba(val_data)
 
         # TODO: Save val score metric into model or logger
-        labels = np.argmax(pred_proba, axis=-1)
-        fold_model.score(y_true=y_val_fold, y_score=labels)
+        # labels = np.argmax(pred_proba, axis=-1)
+        # TODO: Get actual metric for calc the metric
+        # fold_model._get_score(y_true=y_val_fold, y_score=labels)
 
         # TODO: Remove model to reduce RAM memory
         # self.reduce_memory(fold_model)
 
         return fold_model, pred_proba
 
-    def _get_by_val_indices(self, indices):
-        return self.X[indices], self.y[indices]
-
 
 class SequentialFoldFittingStrategy(FoldFittingStrategy):
     """ Strategy for fitting models in a sequence """
-    def __init__(self, **kwargs):
+    def __init__(self, n_jobs=1, **kwargs):
         super(SequentialFoldFittingStrategy, self).__init__(**kwargs)
+        self.n_jobs = determine_n_jobs(n_jobs)
 
     def schedule_fold_model_fit(self, fold_ctx):
         self.jobs.append(fold_ctx)
@@ -137,16 +132,12 @@ class SequentialFoldFittingStrategy(FoldFittingStrategy):
         self._update_bagged_ensemble(fold_model, pred_proba, fold_ctx)
 
     def _fit(self, fold_ctx):
-        train_indices = fold_ctx.get('train_indices')
-        val_indices = fold_ctx.get('val_indices')
-        cat_features = [i for i, e in enumerate(fold_ctx.get('features_type')) if e == 'cat']
-
-        X_fold, y_fold = self._get_by_val_indices(train_indices)
-        X_val_fold, y_val_fold = self._get_by_val_indices(val_indices)
+        train_data = fold_ctx.get('train_data')
+        val_data = fold_ctx.get('val_data')
 
         fold_model = copy.deepcopy(self.model_base)
 
-        fold_model.fit(X=X_fold, y=y_fold, eval_set=(X_val_fold, y_val_fold), cat_features=cat_features)
+        fold_model.fit(train_data, val_data)
 
         return fold_model
 
@@ -170,14 +161,11 @@ class ParallelFoldFittingStrategy(FoldFittingStrategy):
         self._update_bagged_ensemble(fold_model, pred_proba, fold_ctx)
 
     def _fit(self, fold_ctx):
-        train_indices = fold_ctx.get('train_indices')
-        val_indices = fold_ctx.get('val_indices')
-
-        X_fold, y_fold = self._get_by_val_indices(train_indices)
-        X_val_fold, y_val_fold = self._get_by_val_indices(val_indices)
+        train_data = fold_ctx.get('train_data')
+        val_data = fold_ctx.get('val_data')
 
         fold_model = copy.deepcopy(self.model_base)
 
-        fold_model.fit(X=X_fold, y=y_fold, eval_set=(X_val_fold, y_val_fold))
+        fold_model.fit(train_data, val_data)
 
         return fold_model

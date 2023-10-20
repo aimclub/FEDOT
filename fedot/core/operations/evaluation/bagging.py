@@ -8,6 +8,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.bag_ensembles.bag_ensemble import \
     KFoldBaggingClassifier, KFoldBaggingRegressor
 from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
@@ -47,8 +48,12 @@ class BaseBaggingStrategy(EvaluationStrategy, ABC):
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types.keys():
-            if self._model_params:
+            if self._model_params and isinstance(self._model_params, dict):
                 self._bagging_params['estimator'] = self._operations_by_types[operation_type](**self._model_params)
+
+            elif self._model_params and isinstance(self._model_params, OperationParameters):
+                self._bagging_params['estimator'] = self._operations_by_types[operation_type](self._model_params)
+
             else:
                 self._bagging_params['estimator'] = self._operations_by_types[operation_type]()
 
@@ -66,7 +71,7 @@ class BaseBaggingStrategy(EvaluationStrategy, ABC):
 
         elif isinstance(params, OperationParameters):
             # Getting models params after applying mutation
-            if params.get('model_params'):
+            if params.get('model_base_kwargs'):
                 params = OperationParameters.from_operation_type(operation_type, **(params.to_dict()))
 
         self._model_params = params.get('model_base_kwargs')
@@ -114,9 +119,7 @@ class BaseBaggingStrategy(EvaluationStrategy, ABC):
 class BaseBaggingClassification(BaseBaggingStrategy):
     """ This class defines general methods for classification problem. """
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
-        params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
-        self.operation_impl = self._convert_to_operation(operation_type)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         if self.output_mode in ['default', 'labels']:
@@ -131,20 +134,7 @@ class BaseBaggingClassification(BaseBaggingStrategy):
         return self._convert_to_output(prediction, predict_data)
 
 
-class BaseBaggingRegression(BaseBaggingStrategy):
-    """ This class defines general methods for Regression problem. """
-    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
-        params = self._set_operation_params(operation_type, params)
-        super().__init__(operation_type, params)
-        self.operation_impl = self._convert_to_operation(operation_type)
-
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        prediction = trained_operation.predict(predict_data.features)
-
-        return self._convert_to_output(prediction, predict_data)
-
-
-class SkLearnBaggingClassificationStrategy(BaseBaggingStrategy):
+class SkLearnBaggingClassificationStrategy(BaseBaggingClassification):
     """ Bagging with the SklearnBaggingClassifier
 
     Args:
@@ -167,11 +157,81 @@ class SkLearnBaggingClassificationStrategy(BaseBaggingStrategy):
     """
 
     def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        params = self._set_operation_params(operation_type, params)
         super().__init__(operation_type, params)
         self.bagging_operation = BaggingClassifier
+        self.operation_impl = self._convert_to_operation(operation_type)
 
 
-class SkLearnBaggingRegressionStrategy(BaseBaggingStrategy):
+class KFoldBaggingClassificationStrategy(BaseBaggingClassification):
+    """ Bagging with the KFoldBaggingClassifier (K-fold n-repeated bagging)
+
+    Args:
+        operation_type: 'str' selected operation as a base model in bagging
+        .. details:: possible bagging operations:
+            - ``bag_catboost`` -> Bagging for the CatBoost
+
+        params: operation's init and fitting hyperparameters
+        .. details:: explanation of params
+            - ``k_fold`` - the number of data splits and base estimators in bagging ensembles
+            - ``n_repeats`` - the number of fold fitting repeats per each estimator
+            - ``fold_fitting_strategy`` - the fitting strategy
+            - ``n_jobs`` - the number of jobs to run in parallel
+            - ``model_params`` - model's fitting params
+    """
+
+    _child_operations = {
+        'bag_catboost': 'catboost',
+    }
+
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        params = self._set_operation_params(operation_type, params)
+        self._model_params = self._set_model_params(operation_type)
+
+        super().__init__(operation_type, params)
+
+        self.bagging_operation = KFoldBaggingClassifier
+        self.operation_impl = self._convert_to_operation(operation_type)
+
+    def _set_model_params(self, operation_type):
+        base_model_name = self._child_operations[operation_type]
+        return OperationParameters.from_operation_type(base_model_name, **self._model_params)
+
+    def fit(self, train_data: InputData):
+        operation_implementation = self.operation_impl
+
+        with ImplementationRandomStateHandler(implementation=operation_implementation):
+            operation_implementation.fit(train_data)
+
+        return operation_implementation
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if self.output_mode in ['default', 'labels']:
+            prediction = trained_operation.predict(predict_data)
+
+        elif self.output_mode in ['probs', 'full_probs'] and predict_data.task:
+            prediction = trained_operation.predict_proba(predict_data)
+
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        return self._convert_to_output(prediction, predict_data)
+
+
+class BaseBaggingRegression(BaseBaggingStrategy):
+    """ This class defines general methods for Regression problem. """
+    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
+        params = self._set_operation_params(operation_type, params)
+        super().__init__(operation_type, params)
+        self.operation_impl = self._convert_to_operation(operation_type)
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        prediction = trained_operation.predict(predict_data.features)
+
+        return self._convert_to_output(prediction, predict_data)
+
+
+class SkLearnBaggingRegressionStrategy(BaseBaggingRegression):
     """ Bagging with the SklearnBaggingRegressor
 
     Args:
@@ -196,29 +256,7 @@ class SkLearnBaggingRegressionStrategy(BaseBaggingStrategy):
         self.bagging_operation = BaggingRegressor
 
 
-class KFoldBaggingClassificationStrategy(BaseBaggingStrategy):
-    """ Bagging with the KFoldBaggingClassifier (K-fold n-repeated bagging)
-
-    Args:
-        operation_type: 'str' selected operation as a base model in bagging
-        .. details:: possible bagging operations:
-            - ``bag_catboost`` -> Bagging for the CatBoost
-
-        params: operation's init and fitting hyperparameters
-        .. details:: explanation of params
-            - ``k_fold`` - the number of data splits and base estimators in bagging ensembles
-            - ``n_repeats`` - the number of fold fitting repeats per each estimator
-            - ``fold_fitting_strategy`` - the fitting strategy
-            - ``n_jobs`` - the number of jobs to run in parallel
-            - ``model_params`` - model's fitting params
-    """
-
-    def __init__(self, operation_type, params: Optional[OperationParameters] = None):
-        super().__init__(operation_type, params)
-        self.bagging_operation = KFoldBaggingClassifier
-
-
-class KFoldBaggingRegressionStrategy(BaseBaggingStrategy):
+class KFoldBaggingRegressionStrategy(BaseBaggingRegression):
     """ Bagging with the KFoldBaggingRegressor (K-fold n-repeated bagging)
 
     Args:
