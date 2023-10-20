@@ -79,15 +79,15 @@ class Data:
     @classmethod
     def from_numpy_time_series(cls,
                                features_array: np.ndarray,
-                               target_array: np.ndarray,
+                               target_array: Optional[np.ndarray] = None,
                                idx: Optional[np.ndarray] = None,
                                task: Union[Task, str] = 'ts_forecasting',
                                data_type: Optional[DataTypesEnum] = DataTypesEnum.ts) -> InputData:
         """Import time series from numpy array.
 
                         Args:
-                            features_array: numpy array with features.
-                            target_array: numpy array with target.
+                            features_array: numpy array with features time series.
+                            target_array: numpy array with target time series (if None same as features).
                             idx: indices of arrays.
                             task: the :obj:`Task` to solve with the data.
                             data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
@@ -97,6 +97,8 @@ class Data:
                         """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
+        if not target_array:
+            target_array = features_array
         return array_to_input_data(features_array, target_array, idx, task, data_type)
 
     @classmethod
