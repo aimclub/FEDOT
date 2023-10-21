@@ -63,8 +63,8 @@ def test_data_from_csv():
         os.path.join(test_file_path, file)).features
     assert np.array_equal(expected_features, actual_features_from_csv)
     df.set_index('ID', drop=True, inplace=True)
-    features = df[df.columns.to_numpy()[:-1]]
-    target = df[df.columns.to_numpy()[-1]]
+    features = df[df.columns[:-1]]
+    target = df[df.columns[-1]]
     actual_features_from_df = InputData.from_dataframe(features, target).features
     assert np.array_equal(expected_features, actual_features_from_df)
 
