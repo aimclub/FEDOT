@@ -103,15 +103,15 @@ class Data:
 
     @classmethod
     def from_dataframe(cls,
-                       features_df: pd.DataFrame,
-                       target_df: pd.DataFrame,
+                       features_df: Union[pd.DataFrame, pd.Series],
+                       target_df: Union[pd.DataFrame, pd.Series],
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
         """Import data from pandas DataFrame.
 
                 Args:
-                    features_df: loaded pandas DataFrame with features.
-                    target_df: loaded pandas DataFrame with target.
+                    features_df: loaded pandas DataFrame or Series with features.
+                    target_df: loaded pandas DataFrame or Series with target.
                     task: the :obj:`Task` to solve with the data.
                     data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
@@ -121,6 +121,10 @@ class Data:
 
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
+        if isinstance(features_df, pd.Series):
+            features_df = pd.DataFrame(features_df)
+        if isinstance(target_df, pd.Series):
+            target_df = pd.DataFrame(target_df)
 
         idx = features_df.index.to_numpy()
         target_columns = target_df.columns.to_list()
