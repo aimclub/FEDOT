@@ -54,6 +54,88 @@ class Data:
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
     @classmethod
+    def from_numpy(cls,
+                   features_array: np.ndarray,
+                   target_array: np.ndarray,
+                   idx: Optional[np.ndarray] = None,
+                   task: Union[Task, str] = 'classification',
+                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table) -> InputData:
+        """Import data from numpy array.
+
+                        Args:
+                            features_array: numpy array with features.
+                            target_array: numpy array with target.
+                            idx: indices of arrays.
+                            task: the :obj:`Task` to solve with the data.
+                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+
+                        Returns:
+                            data
+                        """
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+        return array_to_input_data(features_array, target_array, idx, task, data_type)
+
+    @classmethod
+    def from_numpy_time_series(cls,
+                               features_array: np.ndarray,
+                               target_array: Optional[np.ndarray] = None,
+                               idx: Optional[np.ndarray] = None,
+                               task: Union[Task, str] = 'ts_forecasting',
+                               data_type: Optional[DataTypesEnum] = DataTypesEnum.ts) -> InputData:
+        """Import time series from numpy array.
+
+                        Args:
+                            features_array: numpy array with features time series.
+                            target_array: numpy array with target time series (if None same as features).
+                            idx: indices of arrays.
+                            task: the :obj:`Task` to solve with the data.
+                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+
+                        Returns:
+                            data
+                        """
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+        if not target_array:
+            target_array = features_array
+        return array_to_input_data(features_array, target_array, idx, task, data_type)
+
+    @classmethod
+    def from_dataframe(cls,
+                       features_df: Union[pd.DataFrame, pd.Series],
+                       target_df: Union[pd.DataFrame, pd.Series],
+                       task: Union[Task, str] = 'classification',
+                       data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
+        """Import data from pandas DataFrame.
+
+                Args:
+                    features_df: loaded pandas DataFrame or Series with features.
+                    target_df: loaded pandas DataFrame or Series with target.
+                    task: the :obj:`Task` to solve with the data.
+                    data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+
+                Returns:
+                    data
+                """
+
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+        if isinstance(features_df, pd.Series):
+            features_df = pd.DataFrame(features_df)
+        if isinstance(target_df, pd.Series):
+            target_df = pd.DataFrame(target_df)
+
+        idx = features_df.index.to_numpy()
+        target_columns = target_df.columns.to_list()
+        features_names = features_df.columns.to_numpy()
+        df = pd.concat([features_df, target_df], axis=1)
+        features, target = process_target_and_features(df, target_columns)
+
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
+                         features_names=features_names)
+
+    @classmethod
     def from_csv(cls,
                  file_path: PathType,
                  delimiter: str = ',',

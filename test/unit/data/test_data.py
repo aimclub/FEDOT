@@ -59,9 +59,14 @@ def test_data_from_csv():
                                   idx=idx,
                                   task=task,
                                   data_type=DataTypesEnum.table).features
-    actual_features = InputData.from_csv(
+    actual_features_from_csv = InputData.from_csv(
         os.path.join(test_file_path, file)).features
-    assert np.array_equal(expected_features, actual_features)
+    assert np.array_equal(expected_features, actual_features_from_csv)
+    df.set_index('ID', drop=True, inplace=True)
+    features = df[df.columns[:-1]]
+    target = df[df.columns[-1]]
+    actual_features_from_df = InputData.from_dataframe(features, target).features
+    assert np.array_equal(expected_features, actual_features_from_df)
 
 
 def test_with_custom_target():
