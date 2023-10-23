@@ -59,7 +59,7 @@ class TSForecastingAssumptions(TaskAssumptions):
                     .join_branches('ridge'),
             'lagged_ridge':
                 PipelineBuilder()
-                .add_sequence('lagged', 'ridge'),
+                    .add_sequence('lagged', 'ridge'),
             'polyfit_ridge':
                 PipelineBuilder()
                     .add_branch('polyfit', 'lagged')
