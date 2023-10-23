@@ -1,21 +1,30 @@
 import warnings
-from typing import List, Any
 
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
-from examples.simple.time_series_forecasting.api_forecasting import TS_DATASETS
+from examples.advanced.time_series_forecasting.composing_pipelines import get_border_line_info
 from examples.simple.time_series_forecasting.ts_pipelines import ts_ar_pipeline
+from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed
 
 warnings.filterwarnings('ignore')
+
+_TS_EXAMPLES_DATA_PATH = fedot_project_root().joinpath('examples/data/ts')
+
+TS_DATASETS = {
+    'm4_daily': _TS_EXAMPLES_DATA_PATH.joinpath('M4Daily.csv'),
+    'm4_monthly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Monthly.csv'),
+    'm4_quarterly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Quarterly.csv'),
+    'm4_weekly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Weekly.csv'),
+    'm4_yearly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Yearly.csv')}
 
 
 def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5,
@@ -36,7 +45,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                 TsForecastingParams(forecast_length=step_forecast))
 
     idx = np.arange(len(time_series['idx'].values))
-    time_series = time_series['value'].values
+    time_series = time_series['Level'].values
     train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
@@ -65,44 +74,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
         visualise(plot_info)
 
 
-def visualise(plot_info: List[dict]):
-    """
-    Creates a plot based on plot_info
-
-    :param plot_info: list of parameters for plot:
-    The possible parameters are:
-            'idx' - idx (or x axis data)
-            'series' - data to plot (or y axis data)
-            'label' - label for legend
-            'color' - (optional) color of line
-    """
-    plt.figure()
-    for p in plot_info:
-        color = p.get('color')
-        plt.plot(p['idx'], p['series'], label=p['label'], color=color)
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-
-def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str, color: str = 'black') -> dict:
-    """
-    Return plot_info for border vertical line that divides train and test part of data
-
-    :param idx: idx for vertical line
-    :param predict: predictions
-    :param time_series: full time series with test_data
-    :param label: label for a legend
-    :parma color: color of a line
-    """
-    return {'idx': [idx, idx],
-            'series': [min(np.concatenate([np.ravel(time_series), predict])),
-                       max(np.concatenate([np.ravel(time_series), predict]))],
-            'label': label,
-            'color': color}
-
-
 if __name__ == '__main__':
     set_random_seed(2020)
 
-    run_multistep("m4_monthly", ts_ar_pipeline(), step_forecast=10, visualisation=True)
+    run_multistep("australia", ts_ar_pipeline(), step_forecast=10, visualisation=True)
