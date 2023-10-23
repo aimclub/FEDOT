@@ -150,26 +150,65 @@
 			"tags": ["data_source_table", "nans-ignore", "categorical-ignore", "non_applicable_for_ts"]
 		},
 		"data_source_ts": {
-		  "meta": "data_sources",
-		  "tags": ["data_source_ts", "non_lagged", "non-default", "nans-ignore", "categorical-ignore"],
-		  "input_type": "[DataTypesEnum.ts]",
-		  "output_type": "[DataTypesEnum.ts]"
-		},
-		"scaling": {
-			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "feature_scaling", "non_applicable_for_ts"]
-		},
-		"normalization": {
-			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "feature_scaling", "non_applicable_for_ts"]
-		},
-		"simple_imputation": {
-			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*tree"],
-		  	"tags": ["simple", "imputation", "categorical-ignore", "non-default"]
-		},
+          "meta": "data_sources",
+          "tags": [
+            "data_source_ts",
+            "non_lagged",
+            "non-default",
+            "nans-ignore",
+            "categorical-ignore"
+          ],
+          "input_type": "[DataTypesEnum.ts]",
+          "output_type": "[DataTypesEnum.ts]"
+        },
+      "scaling": {
+        "meta": "custom_preprocessing",
+        "presets": [
+          "fast_train",
+          "ts",
+          "*tree"
+        ],
+        "tags": [
+          "simple",
+          "feature_scaling",
+          "non_applicable_for_ts"
+        ]
+      },
+      "topological_features": {
+        "meta": "custom_preprocessing",
+        "presets": [
+          "ts"
+        ],
+        "tags": [
+          "non_applicable_for_ts"
+        ]
+      },
+      "normalization": {
+        "meta": "custom_preprocessing",
+        "presets": [
+          "fast_train",
+          "ts",
+          "*tree"
+        ],
+        "tags": [
+          "simple",
+          "feature_scaling",
+          "non_applicable_for_ts"
+        ]
+      },
+      "simple_imputation": {
+        "meta": "custom_preprocessing",
+        "presets": [
+          "fast_train",
+          "*tree"
+        ],
+        "tags": [
+          "simple",
+          "imputation",
+          "categorical-ignore",
+          "non-default"
+        ]
+      },
 		"pca": {
 			"meta": "dimension_transformation",
 			"presets": ["fast_train", "ts", "*tree"],

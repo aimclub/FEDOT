@@ -20,11 +20,11 @@ warnings.filterwarnings('ignore')
 _TS_EXAMPLES_DATA_PATH = fedot_project_root().joinpath('examples/data/ts')
 
 TS_DATASETS = {
-    'australia': _TS_EXAMPLES_DATA_PATH.joinpath('australia.csv'),
-    'beer': _TS_EXAMPLES_DATA_PATH.joinpath('beer.csv'),
-    'salaries': _TS_EXAMPLES_DATA_PATH.joinpath('salaries.csv'),
-    'stackoverflow': _TS_EXAMPLES_DATA_PATH.joinpath('stackoverflow.csv'),
-    'test_sea': fedot_project_root().joinpath('test', 'data', 'simple_sea_level.csv')}
+    'm4_daily': _TS_EXAMPLES_DATA_PATH.joinpath('M4Daily.csv'),
+    'm4_monthly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Monthly.csv'),
+    'm4_quarterly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Quarterly.csv'),
+    'm4_weekly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Weekly.csv'),
+    'm4_yearly': _TS_EXAMPLES_DATA_PATH.joinpath('M4Yearly.csv')}
 
 
 def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5,
