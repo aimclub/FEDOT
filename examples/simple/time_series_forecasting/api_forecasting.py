@@ -33,7 +33,7 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
 
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
-                               visualization=False, with_tuning=True, validation_blocks=2):
+                               visualization=False, with_tuning=False, validation_blocks=2):
     train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',

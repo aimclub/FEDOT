@@ -79,6 +79,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                   metric=['mae'],
                   available_operations=['lagged', 'ridge', 'exog_ts', 'arima', 'knnreg', 'rfr', 'svr'],
                   max_pipeline_fit_time=2,
+                  with_tuning=False,
                   n_jobs=-1)
     fedot.fit(train_dataset)
 
