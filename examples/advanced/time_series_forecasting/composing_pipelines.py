@@ -1,25 +1,19 @@
 import datetime
-from typing import Any, List
 
 import numpy as np
-import pandas as pd
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+from examples.advanced.time_series_forecasting.multistep import get_border_line_info, visualise
+from examples.simple.time_series_forecasting.api_forecasting import get_ts_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.quality_metrics_repository import \
     RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 
 def get_available_operations():
@@ -28,13 +22,6 @@ def get_available_operations():
     secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
                             'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
     return primary_operations, secondary_operations
-
-
-datasets = {
-    'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
-    'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
-    'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
-    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
 def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
@@ -46,21 +33,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     # show initial pipeline
     pipeline.print_structure()
 
-    time_series = pd.read_csv(datasets[dataset])
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=len_forecast))
-    if dataset not in ['australia']:
-        idx = pd.to_datetime(time_series['idx'].values)
-    else:
-        # non datetime indexes
-        idx = time_series['idx'].values
-    time_series = time_series['value'].values
-    train_input = InputData(idx=idx,
-                            features=time_series,
-                            target=time_series,
-                            task=task,
-                            data_type=DataTypesEnum.ts)
-    train_data, test_data = train_test_data_setup(train_input)
+    train_data, test_data, label = get_ts_data(dataset, len_forecast)
     test_target = np.ravel(test_data.target)
 
     pipeline.fit(train_data)
@@ -70,8 +43,8 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
 
     plot_info = []
     metrics_info = {}
-    plot_info.append({'idx': idx,
-                      'series': time_series,
+    plot_info.append({'idx': np.concatenate([train_data.idx, test_data.idx]),
+                      'series': np.concatenate([test_data.features, test_data.target]),
                       'label': 'Actual time series'})
 
     rmse = mean_squared_error(test_target, predict, squared=False)
@@ -82,7 +55,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     plot_info.append({'idx': prediction.idx,
                       'series': predict,
                       'label': 'Forecast without composing'})
-    plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
+    plot_info.append(get_border_line_info(prediction.idx[0], predict, train_data.features, 'Border line'))
 
     # Get available_operations type
     primary_operations, secondary_operations = get_available_operations()
@@ -104,7 +77,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
                         MutationTypesEnum.reduce,
                         MutationTypesEnum.simple]
     )
-    composer = ComposerBuilder(task). \
+    composer = ComposerBuilder(train_data.task). \
         with_requirements(composer_requirements). \
         with_optimizer_params(optimizer_parameters). \
         with_metrics(RegressionMetricsEnum.RMSE). \
@@ -133,42 +106,5 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     obtained_pipeline.show()
 
 
-def visualise(plot_info: List[dict]):
-    """
-    Creates a plot based on plot_info
-
-    :param plot_info: list of parameters for plot:
-    The possible parameters are:
-            'idx' - idx (or x axis data)
-            'series' - data to plot (or y axis data)
-            'label' - label for legend
-            'color' - (optional) color of line
-    """
-    plt.figure()
-    for p in plot_info:
-        color = p.get('color')
-        plt.plot(p['idx'], p['series'], label=p['label'], color=color)
-    plt.legend()
-    plt.grid()
-    plt.show()
-
-
-def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str, color: str = 'black') -> dict:
-    """
-    Return plot_info for border vertical line that divides train and test part of data
-
-    :param idx: idx for vertical line
-    :param predict: predictions
-    :param time_series: full time series with test_data
-    :param label: label for a legend
-    :parma color: color of a line
-    """
-    return {'idx': [idx, idx],
-            'series': [min(np.concatenate([np.ravel(time_series), predict])),
-                       max(np.concatenate([np.ravel(time_series), predict]))],
-            'label': label,
-            'color': color}
-
-
 if __name__ == '__main__':
-    run_composing('australia', ts_complex_ridge_pipeline(), len_forecast=10)
+    run_composing('m4_monthly', ts_complex_ridge_pipeline(), len_forecast=10)
