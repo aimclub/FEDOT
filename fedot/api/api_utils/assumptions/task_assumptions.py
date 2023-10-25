@@ -51,15 +51,16 @@ class TSForecastingAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
+
+            'lagged_ridge':
+                PipelineBuilder()
+                    .add_sequence('lagged', 'ridge'),
             'topological':
                 PipelineBuilder()
                     .add_node('lagged')
                     .add_node('topological_features')
                     .add_node('lagged', branch_idx=1)
                     .join_branches('ridge'),
-            'lagged_ridge':
-                PipelineBuilder()
-                    .add_sequence('lagged', 'ridge'),
             'polyfit_ridge':
                 PipelineBuilder()
                     .add_branch('polyfit', 'lagged')
