@@ -130,8 +130,12 @@ class ApiParamsRepository:
                      MutationTypesEnum.single_edge]
 
         # TODO remove workaround after boosting mutation fix
+        #      Boosting mutation does not work due to problem with __eq__ with it copy.
+        #      ``partial`` refactor to ``def`` does not work
+        #      Also boosting mutation does not work by it own.
         if task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(partial(boosting_mutation, params=params))
+            # mutations.append(partial(boosting_mutation, params=params))
+            pass
         else:
             mutations.append(add_resample_mutation)
 
