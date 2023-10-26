@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Type, Union, Iterable, Sequence
+from typing import Iterable, Sequence, Type, Union
 
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -33,6 +33,7 @@ class TunerBuilder:
         self.eval_time_constraint = None
         self.additional_params = {}
         self.adapter = PipelineAdapter()
+        self.history = None
 
     def with_tuner(self, tuner: Type[BaseTuner]):
         self.tuner_class = tuner
@@ -87,6 +88,10 @@ class TunerBuilder:
 
     def with_adapter(self, adapter):
         self.adapter = adapter
+        return self
+
+    def with_history(self, history):
+        self.history = history
         return self
 
     def with_additional_params(self, **parameters):
