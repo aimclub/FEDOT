@@ -44,8 +44,8 @@ def lagged_ridge_rfr_pipeline():
 def _test_individuals_in_history(history: OptHistory):
     uids = set()
     ids = set()
-    for ind in chain(*history.individuals):
-        # All individuals in `history.individuals` must have a native generation.
+    for ind in chain(*history.generations):
+        # All individuals in `history.generations` must have a native generation.
         assert ind.has_native_generation
         assert ind.fitness
         if ind.native_generation == 0:
@@ -83,7 +83,7 @@ def test_newly_generated_history(n_jobs: int):
     history = auto_model.history
 
     assert history is not None
-    assert len(history.individuals) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
+    assert len(history.generations) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
     assert len(history.archive_history) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
     assert len(history.initial_assumptions) >= 2
     assert len(history.final_choices) == 1
@@ -151,15 +151,15 @@ def test_history_backward_compatibility():
     assert all_historical_fitness
     assert historical_fitness
     # Assert that all fitness properties are valid.
-    assert len(history.individuals) == len(historical_fitness)
+    assert len(history.generations) == len(historical_fitness)
     assert np.all(len(generation) == len(gen_fitness)
-                  for generation, gen_fitness in zip(history.individuals, historical_fitness))
-    assert np.all(np.equal([ind.fitness.value for ind in chain(*history.individuals)], all_historical_fitness))
+                  for generation, gen_fitness in zip(history.generations, historical_fitness))
+    assert np.all(np.equal([ind.fitness.value for ind in chain(*history.generations)], all_historical_fitness))
     # Assert that fitness, graph, parent_individuals, and objective are valid
-    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
-    assert all(ind.graph.nodes for ind in chain(*history.individuals))
+    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.generations))
+    assert all(ind.graph.nodes for ind in chain(*history.generations))
     assert all(isinstance(parent_ind, Individual)
-               for ind in chain(*history.individuals)
+               for ind in chain(*history.generations)
                for parent_op in ind.operators_from_prev_generation
                for parent_ind in parent_op.parent_individuals)
     _test_individuals_in_history(history)

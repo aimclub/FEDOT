@@ -153,10 +153,10 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                        y_score=predicted_gp_composed.predict)
 
-    all_individuals = len(gp_composer.history.individuals)
-    population_len = sum([len(history) for history in gp_composer.history.individuals]) / all_individuals
+    all_individuals = len(gp_composer.history.generations)
+    population_len = sum([len(history) for history in gp_composer.history.generations]) / all_individuals
 
-    assert population_len != len(gp_composer.history.individuals[0])
+    assert population_len != len(gp_composer.history.generations[0])
     assert roc_on_valid_gp_composed > 0.6
 
 
@@ -226,7 +226,7 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
 
     composer.compose_pipeline(data=dataset_to_compose)
 
-    generations = composer.history.individuals
+    generations = composer.history.generations
     current_depth = composer.optimizer.requirements.max_depth
     assert req.start_depth <= current_depth < max_depth, f"max depth couldn't have been reached in {num_gen}"
     assert all(ind.graph.depth < max_depth for ind in generations[-1]), "last generation is too deep"
