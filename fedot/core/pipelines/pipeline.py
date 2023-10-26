@@ -12,7 +12,7 @@ from golem.core.dag.linked_graph import LinkedGraph
 from golem.core.log import default_log
 from golem.core.optimisers.timer import Timer
 from golem.core.paths import copy_doc
-from golem.core.utilities.serializable import Serializable
+from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
 from fedot.core.caching.pipelines_cache import OperationsCache

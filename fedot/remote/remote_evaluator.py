@@ -5,7 +5,7 @@ from typing import List, Optional, Sequence, Any, TypeVar, Callable, Hashable
 import numpy as np
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.evaluation import DelegateEvaluator
-from golem.core.utilities.serializable import Serializable
+from golem.utilities.serializable import Serializable
 
 from fedot.core.data.data import InputData
 from fedot.remote.infrastructure.clients.client import Client

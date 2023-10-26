@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from golem.core.log import default_log
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum

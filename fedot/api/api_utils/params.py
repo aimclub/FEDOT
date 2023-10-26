@@ -4,9 +4,9 @@ from copy import deepcopy, copy
 from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
-from golem.core.optimisers.genetic.evaluation import determine_n_jobs
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.optimizer import GraphGenerationParams
+from golem.utilities.utilities import determine_n_jobs
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset

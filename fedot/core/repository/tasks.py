@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
-from golem.core.utilities.data_structures import ComparableEnum as Enum
+from golem.utilities.data_structures import ComparableEnum as Enum
 
 
 @dataclass

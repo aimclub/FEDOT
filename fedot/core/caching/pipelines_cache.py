@@ -1,7 +1,7 @@
 import sqlite3
 from typing import List, Optional, TYPE_CHECKING, Union
 
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
