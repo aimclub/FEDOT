@@ -1,9 +1,11 @@
-from typing import List, Iterable, Union
+from typing import List, Iterable, Union, Optional
+
+import numpy as np
 
 from golem.core.log import default_log
 from golem.utilities.data_structures import are_same_length
 
-from fedot.core.data.array_utilities import *
+from fedot.core.data.array_utilities import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
