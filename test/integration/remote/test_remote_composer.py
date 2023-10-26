@@ -47,7 +47,7 @@ def test_pseudo_remote_composer_classification():
         'pop_size': 3,
         'cv_folds': None,
         'with_tuning': False,
-        'preset': 'best_quality',
+        'preset': 'fast_train',
         'show_progress': False
     }
 

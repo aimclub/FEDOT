@@ -4,7 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union, Iterable, Any
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -600,7 +600,7 @@ class InputData(Data):
         if self.numerical_idx:
             num_features = self.features[:, self.numerical_idx]
 
-            if self.features_names:
+            if np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
             else:
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])

@@ -7,7 +7,7 @@ import pytest
 
 from fedot import Fedot
 from fedot.core.utils import fedot_project_root
-from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip, DEFAULT_PROJECTS_PATH
+from fedot.utilities.project_import_export import DEFAULT_PROJECTS_PATH, export_project_to_zip, import_project_from_zip
 from test.integration.models.test_atomized_model import create_pipeline
 from test.unit.validation.test_table_cv import get_classification_data
 
@@ -82,6 +82,7 @@ def test_export_import_api_correctly():
     train_data = test_data = get_classification_data()
 
     api = Fedot(problem='classification', timeout=-1,
+                preset='fast_train',
                 with_tuning=False,
                 num_of_generations=1,
                 pop_size=3,
