@@ -17,7 +17,7 @@ def test_composer_with_cv_optimization_correct():
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
 
     models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['linear'])
 
     metric_function = [ClassificationMetricsEnum.ROCAUC_penalty,
                        ClassificationMetricsEnum.accuracy,

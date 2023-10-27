@@ -59,7 +59,7 @@ def test_multiobjective_improvement():
     composer_params = dict(num_of_generations=10,
                            pop_size=10,
                            with_tuning=False,
-                           preset='best_quality',
+                           preset='fast_train',
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,

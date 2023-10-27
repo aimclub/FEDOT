@@ -609,7 +609,7 @@ class InputData(Data):
         if self.categorical_idx:
             cat_features = self.categorical_features
 
-            if self.features_names:
+            if np.size(self.features_names):
                 cat_features_names = self.features_names[self.categorical_idx]
             else:
                 cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])

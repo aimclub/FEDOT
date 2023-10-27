@@ -72,10 +72,10 @@ def test_result_changing():
         and makes different compose process in different run with different seeds """
     train, test = get_data()
 
-    fedots = [get_fitted_fedot(forecast_length=test.idx.shape[0],
+    fedots = [get_fitted_fedot(forecast_length=len(test.idx),
                                train_data=train,
                                seed=seed,
                                num_of_generations=1)
-              for seed in (0, 1)]
+              for seed in (0, 10)]
 
     check_fedots(fedots, test, are_same=False)
