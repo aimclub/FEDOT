@@ -99,8 +99,9 @@ class ParametersChanger:
         """ Next to the current value, the normally distributed new value is set aside """
         # TODO add the ability to limit the boundaries of the params ranges
         if kwargs['current_value']:
-            sigma = kwargs['current_value'] * 0.1
+            sigma = kwargs['current_value'] * 0.3
             new_value = random.normalvariate(kwargs['current_value'], sigma)
         else:
-            new_value = None
+            new_value = 30
+
         return {parameter_name: new_value}
