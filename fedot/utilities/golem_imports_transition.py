@@ -21,7 +21,7 @@ paths_map = {
     'fedot.core.adapter': 'golem.core.adapter',
     'fedot.core.dag': 'golem.core.dag',
     'fedot.core.optimisers': 'golem.core.optimisers',
-    'fedot.core.utilities': 'golem.core.utilities',
+    'fedot.core.utilities': 'golem.utilities',
 
     'fedot.core.serializers': 'golem.serializers',
     'fedot.core.visualisation': 'golem.visualisation',
