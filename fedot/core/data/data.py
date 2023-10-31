@@ -600,7 +600,7 @@ class InputData(Data):
         if self.numerical_idx:
             num_features = self.features[:, self.numerical_idx]
 
-            if np.size(self.features_names):
+            if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
             else:
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
@@ -609,7 +609,7 @@ class InputData(Data):
         if self.categorical_idx:
             cat_features = self.categorical_features
 
-            if np.size(self.features_names):
+            if self.features_names is not None and np.size(self.features_names):
                 cat_features_names = self.features_names[self.categorical_idx]
             else:
                 cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])

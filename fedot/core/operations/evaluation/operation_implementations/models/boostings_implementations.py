@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 import pandas as pd
-from catboost import Pool, CatBoostClassifier, CatBoostRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from matplotlib import pyplot as plt
 
 from fedot.core.data.data import InputData
@@ -64,7 +64,7 @@ class FedotCatBoostImplementation(ModelImplementation):
             data=data.features,
             label=data.target,
             cat_features=data.categorical_idx,
-            feature_names=data.features_names.tolist()
+            feature_names=data.features_names.tolist() if data.features_names is not None else None
         )
 
     def save_model(self, model_name: str = 'catboost'):
