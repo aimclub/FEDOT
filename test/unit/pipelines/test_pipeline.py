@@ -416,6 +416,7 @@ def test_pipeline_unfit(data_fixture, request):
 def test_ts_forecasting_pipeline_with_poly_features():
     """ Test pipeline with polynomial features in ts forecasting task """
     lagged_node = PipelineNode('lagged')
+    lagged_node.parameters = {'window_size': 10}
     poly_node = PipelineNode('poly_features', nodes_from=[lagged_node])
     ridge_node = PipelineNode('ridge', nodes_from=[poly_node])
     pipeline = Pipeline(ridge_node)

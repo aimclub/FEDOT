@@ -118,6 +118,7 @@ def get_multiple_ts_pipeline():
     node_filter_second.parameters = {'sigma': 2}
 
     node_lagged = PipelineNode('lagged', nodes_from=[node_filter_first, node_filter_second])
+    node_lagged.parameters = {'window_size': 10}
     node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
     return Pipeline(node_ridge)
 

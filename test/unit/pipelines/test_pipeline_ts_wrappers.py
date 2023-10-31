@@ -51,10 +51,13 @@ def get_simple_short_lagged_pipeline():
 def get_ts_pipelines_for_testing():
     """ Generate simple specific pipelines for testing """
     node_lagged = PipelineNode('sparse_lagged')
+
+    node_lagged.parameters = {'window_size': 10}
     node_final = PipelineNode('linear', nodes_from=[node_lagged])
     sparse_lagged_pipeline = Pipeline(node_final)
 
     node_lagged = PipelineNode('lagged')
+    node_lagged.parameters = {'window_size': 10}
     node_final = PipelineNode('linear', nodes_from=[node_lagged])
     lagged_pipeline = Pipeline(node_final)
 
