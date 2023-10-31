@@ -25,12 +25,11 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params
 
             # Perform specific change for particular parameter
             changer = ParametersChanger(operation_name, current_params)
-            try:
-                new_params = changer.get_new_operation_params()
-                if new_params is not None:
-                    node.parameters = new_params
-            except Exception as ex:
-                pipeline.log.error(ex)
+
+            new_params = changer.get_new_operation_params()
+            if new_params is not None:
+                node.parameters = new_params
+
     return pipeline
 
 

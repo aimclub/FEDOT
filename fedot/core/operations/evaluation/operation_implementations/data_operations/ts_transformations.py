@@ -13,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.utilities.window_size_selector import WindowSizeSelector
 
 
 class LaggedImplementation(DataOperationImplementation):
@@ -23,7 +24,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
-
+        self.w_size = None
         # Define logger object
         self.log = default_log(self)
 
@@ -32,6 +33,8 @@ class LaggedImplementation(DataOperationImplementation):
         window_size = self.params.get('window_size')
         if window_size:
             window_size = round(window_size)
+        else:
+            window_size = self.w_size
         return window_size
 
     @property
@@ -80,27 +83,34 @@ class LaggedImplementation(DataOperationImplementation):
         Returns:
             output data with transformed features table
         """
-        new_input_data = copy(input_data)
-        forecast_length = new_input_data.task.task_params.forecast_length
+        if not self.params.get('window_size'):
+            self.w_size = int(
+                WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(input_data.features) * len(
+                    input_data.features) / 100)
 
-        # Correct window size parameter
-        self._check_and_correct_window_size(new_input_data.features, forecast_length)
+            new_input_data = copy(input_data)
+            forecast_length = new_input_data.task.task_params.forecast_length
 
-        target = np.array(new_input_data.target)
-        features = np.array(new_input_data.features)
-        old_idx = new_input_data.idx
+            # Correct window size parameter
+            self._check_and_correct_window_size(new_input_data.features, forecast_length)
 
-        new_target, new_idx = self._apply_transformation_for_fit(new_input_data, features,
-                                                                 target, forecast_length, old_idx)
+            target = np.array(new_input_data.target)
+            features = np.array(new_input_data.features)
+            old_idx = new_input_data.idx
 
-        # Update target for Input Data
-        new_input_data.target = new_target
-        new_input_data.idx = new_idx
-        output_data = self._convert_to_output(new_input_data,
-                                              self.features_columns,
-                                              data_type=DataTypesEnum.table)
-        self._update_column_types(output_data)
-        return output_data
+            new_target, new_idx = self._apply_transformation_for_fit(new_input_data, features,
+                                                                     target, forecast_length, old_idx)
+
+            # Update target for Input Data
+            new_input_data.target = new_target
+            new_input_data.idx = new_idx
+            output_data = self._convert_to_output(new_input_data,
+
+                                                  self.features_columns,
+                                                  data_type=DataTypesEnum.table)
+            self._update_column_types(output_data)
+
+            return output_data
 
     def _check_and_correct_window_size(self, time_series: np.array, forecast_length: int):
         """ Method check if the length of the time series is not enough for

@@ -85,4 +85,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='m4_monthly', horizon=14, timeout=2., visualization=True)
+    run_ts_forecasting_example(dataset='m4_monthly', horizon=14, timeout=2., validation_blocks=None, visualization=True)
