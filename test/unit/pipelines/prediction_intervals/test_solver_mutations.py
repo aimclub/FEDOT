@@ -1,16 +1,16 @@
-import pickle
-
-import numpy as np
-import pytest
-from golem.core.log import default_log, Log
-
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
-from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
-from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root
+# import pickle
+#
+# import numpy as np
+# import pytest
+# from golem.core.log import default_log, Log
+#
+# from fedot.core.data.data import InputData
+# from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
+# from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
+# from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
+# from fedot.core.repository.dataset_types import DataTypesEnum
+# from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+# from fedot.core.utils import fedot_project_root
 
 
 # TODO fix test
