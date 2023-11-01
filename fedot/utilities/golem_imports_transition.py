@@ -21,7 +21,7 @@ paths_map = {
     'fedot.core.adapter': 'golem.core.adapter',
     'fedot.core.dag': 'golem.core.dag',
     'fedot.core.optimisers': 'golem.core.optimisers',
-    'fedot.core.utilities': 'golem.core.utilities',
+    'fedot.core.utilities': 'golem.utilities',
 
     'fedot.core.serializers': 'golem.serializers',
     'fedot.core.visualisation': 'golem.visualisation',
@@ -77,8 +77,8 @@ def rename_substrings_recursively(mapping: Mapping[str, str],
 
 
 if __name__ == "__main__":
-    """ВАЖНО: Этот скрипт переписывает файлы проекта напрямую, так что 
-    перед запуском убедитесь, что все ваши локальные изменения сохранены в git. 
+    """ВАЖНО: Этот скрипт переписывает файлы проекта напрямую, так что
+    перед запуском убедитесь, что все ваши локальные изменения сохранены в git.
     Тогда в случае чего вы сможете откатиться.
 
     Для тестового запуска передайте параметр `dry_run=True`.

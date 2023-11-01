@@ -7,7 +7,7 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from golem.core.utilities.random import RandomStateHandler
+from golem.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'

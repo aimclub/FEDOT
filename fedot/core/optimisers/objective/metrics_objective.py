@@ -1,7 +1,7 @@
-from typing import Union, Iterable, Callable
+from typing import Union, Iterable
 
 from golem.core.optimisers.objective import Objective
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository, ComplexityMetricsEnum
 

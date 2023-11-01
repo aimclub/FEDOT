@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Tuple, Union, Optional, Sequence
 
 import pytest
-from golem.core.utilities.serializable import Serializable
+from golem.utilities.serializable import Serializable
 
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams

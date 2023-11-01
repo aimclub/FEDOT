@@ -4,7 +4,7 @@ from typing import Type, Union, Iterable, Sequence
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData

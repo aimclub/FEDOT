@@ -1,9 +1,11 @@
-from typing import List, Iterable, Union
+from typing import List, Iterable, Union, Optional
+
+import numpy as np
 
 from golem.core.log import default_log
-from golem.core.utilities.data_structures import are_same_length
+from golem.utilities.data_structures import are_same_length
 
-from fedot.core.data.array_utilities import *
+from fedot.core.data.array_utilities import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -30,7 +32,7 @@ class DataMerger:
         idx_list = [np.asarray(output.idx) for output in outputs]
         self.common_indices = find_common_elements(*idx_list)
         if len(self.common_indices) == 0:
-            raise ValueError(f'There are no common indices for outputs')
+            raise ValueError('There are no common indices for outputs')
 
         # Find first output with the main target & resulting task
         self.main_output = DataMerger.find_main_output(outputs)

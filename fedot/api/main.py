@@ -8,7 +8,7 @@ from golem.core.dag.graph_utils import graph_structure
 from golem.core.log import Log, default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from golem.core.utilities.data_structures import ensure_wrapped_in_sequence
+from golem.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
