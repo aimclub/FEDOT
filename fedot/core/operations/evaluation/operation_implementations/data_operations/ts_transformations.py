@@ -345,7 +345,7 @@ class LaggedTransformationImplementation(LaggedImplementation):
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-        self.window_size_minimum = 2
+        self.window_size_minimum = 1
 
 
 class TsSmoothingImplementation(DataOperationImplementation):
