@@ -473,10 +473,11 @@ class InputData(Data):
     """
 
     def __post_init__(self):
-        if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
-            self.numerical_idx = list(range(self.features.shape[1]))
-        else:
-            self.numerical_idx = [0]
+        if self.numerical_idx is None:
+            if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
+                self.numerical_idx = list(range(self.features.shape[1]))
+            else:
+                self.numerical_idx = [0]
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -624,8 +625,8 @@ class InputData(Data):
             new_features = np.hstack((num_features, cat_features))
             new_features_names = np.hstack((num_features_names, cat_features_names))
             new_features_idx = np.array(range(new_features.shape[1]))
-            new_num_idx = new_features_idx[:new_features.shape[1]]
-            new_cat_idx = new_features_idx[cat_features.shape[1]:]
+            new_num_idx = new_features_idx[:num_features.shape[1]]
+            new_cat_idx = new_features_idx[-cat_features.shape[1]:]
 
         elif cat_features is not None:
             new_features = cat_features
