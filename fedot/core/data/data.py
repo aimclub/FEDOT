@@ -472,6 +472,12 @@ class InputData(Data):
     """Data class for input data for the nodes
     """
 
+    def __post_init__(self):
+        if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
+            self.numerical_idx = list(range(self.features.shape[1]))
+        else:
+            self.numerical_idx = [0]
+
     @property
     def num_classes(self) -> Optional[int]:
         """Returns number of classes that are present in the target.
@@ -630,6 +636,8 @@ class InputData(Data):
             new_features = num_features
             new_features_names = num_features_names
             new_num_idx = np.array(range(new_features.shape[1]))
+        else:
+            raise ValueError('There is no features')
 
         return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
                          numerical_idx=new_num_idx, categorical_idx=new_cat_idx,
