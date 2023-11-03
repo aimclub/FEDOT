@@ -76,6 +76,6 @@ def test_result_changing():
                                train_data=train,
                                seed=seed,
                                num_of_generations=1)
-              for seed in (0, 1)]
+              for seed in (0, 10)]
 
     check_fedots(fedots, test, are_same=False)
