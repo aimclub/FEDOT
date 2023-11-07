@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from matplotlib import pyplot as plt
@@ -79,12 +80,15 @@ class FedotCatBoostImplementation(ModelImplementation):
 class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-
         self.model = CatBoostClassifier(**self.model_params)
+        self.classes_ = None
+
+    def fit(self, input_data: InputData):
+        self.classes_ = np.unique(np.array(input_data.target))
+        return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
         prediction = self.model.predict_proba(input_data.get_not_encoded_data().features)
-
         return prediction
 
     def get_feature_importance(self):
