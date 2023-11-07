@@ -121,7 +121,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
-        if features.n_dim == 1:
+        if features.ndim == 1:
             features = np.reshape(features, (-1, 1))
         features_to_process = np.array(features[:, self.ids_to_process])
         transformed_part = self.operation.transform(features_to_process)
