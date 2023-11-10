@@ -219,6 +219,9 @@ def run_pipeline_tuner(train_data,
                        iterations=3,
                        early_stopping_rounds=None, **kwargs):
 
+    # if data is time series then lagged window should be tuned correctly
+    # because lagged window raises error if windows size is uncorrect
+    # and tuner will fall
     if train_data.data_type in (DataTypesEnum.ts, DataTypesEnum.multi_ts):
         forecast_length = train_data.task.task_params.forecast_length
         folds = cv or 1
