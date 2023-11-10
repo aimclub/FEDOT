@@ -56,6 +56,9 @@ class TSForecastingAssumptions(TaskAssumptions):
                 .add_branch('glm', 'lagged')
                 .add_node('ridge', branch_idx=1)
                 .join_branches('ridge'),
+            'locf':
+                PipelineBuilder()
+                .add_node('locf'),
             'lagged_ridge':
                 PipelineBuilder()
                 .add_sequence('lagged', 'ridge'),
