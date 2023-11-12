@@ -27,11 +27,11 @@ You also can define metric parameter (ROC-AUC in this example), timeout in minut
 
 .. note::
 
-    Class ``Fedot.__init__()`` has more, e.g.
+    Class ``Fedot.__init__()`` has more parameters, e.g.
     ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API </api/api>` section in our documentation.
 
-To train our model we should call method ``fit()``. You need to provide table with features and target in ``features``
-and pass name of target column in ``target`` field. This method returns the best pipeline was obtained during optimization.
+To train our model we should call method ``fit()``. You need to provide path to table with features and target to ``features``
+and pass name of target column to ``target`` field. Method runs optimization and returns the best pipeline was obtained during optimization.
 
 .. code-block:: python
 
@@ -66,16 +66,12 @@ And in plot format:
    :width: 80%
 
 
-To obtain prediction for test data you need call ``predict()`` or ``predict_proba()`` method from ``Fedot`` class.
+To obtain prediction for test data you need to call ``predict()`` or ``predict_proba()`` method from ``Fedot`` class.
 Since we want to calculate ROC-AUC metric for our test data we should use ``predict_proba()`` method.
 
 .. code-block:: python
 
-    prediction = model.predict_proba(features=test_data_path)
-
-
-    if visualization:
-        auto_model.plot_prediction()
+    prediction = model.predict_proba(features=test) # csv file should contains target column too for metric calculation
 
 .. hint::
 
@@ -85,7 +81,7 @@ The ``get_metrics()`` method estimates the quality of predictions according the 
 
 .. code-block:: python
 
-     print(auto_model.get_metrics(rounding_order=4))  # we can control the rounding of metrics
+     print(model.get_metrics(rounding_order=4))  # we can control the rounding of metrics
 
 .. note::
 
@@ -94,6 +90,7 @@ The ``get_metrics()`` method estimates the quality of predictions according the 
 
 Since you got a prediction and calculated metrics you can plot your prediction by calling ``plot_prediction()`` method.
 For classification task it plots ROC curve.
+
 .. code-block:: python
 
      model.plot_prediction()
@@ -102,7 +99,7 @@ You may interested to save the model. To perform that just call ``best_pipeline.
 
 .. code-block:: python
 
-     pipeline.save(path='path_to_save_and_load', create_subdir=False, is_datetime_in_path=False)
+     best_pipeline.save(path='path_to_save_and_load', create_subdir=False, is_datetime_in_path=False)
 
 
 
@@ -117,6 +114,7 @@ To load fitted pipeline you can invoke ``.load()`` from just initialised ``Pipel
 And you can do inference:
 
 .. code-block:: python
+
      import pandas as pd
      from fedot.core.repository.dataset_types import DataTypesEnum
      from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -127,9 +125,10 @@ And you can do inference:
                                      task=Task(TaskTypesEnum.classification),
                                      data_type=DataTypesEnum.table)
      prediction = loaded_pipeline.predict(new_data_to_predict).predict # Note that we should take .predict field for prediction
+
 .. note::
 
-    ``Pipeline`` don't have method ``predict_proba()``, you need to use param
+    ``Pipeline`` doesn't have method ``predict_proba()``, you need to use param
     output_mode: desired form of output for operations
 
             .. details:: possible ``output_mode`` options:
