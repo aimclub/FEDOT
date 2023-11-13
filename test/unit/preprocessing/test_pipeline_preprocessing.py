@@ -70,7 +70,7 @@ def correct_preprocessing_params(pipeline, categorical_max_uniques_th: int = Non
     return pipeline
 
 
-def     test_only_categorical_data_process_correctly():
+def test_only_categorical_data_process_correctly():
     """
     Check if data with only categorical features processed correctly
     Source 3-feature categorical dataset must be transformed into 5-feature
