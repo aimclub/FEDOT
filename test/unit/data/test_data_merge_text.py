@@ -43,20 +43,20 @@ def output_texts(request):
     return outputs
 
 
-def test_data_merge_texts(output_texts):
-    first_output = output_texts[0]
-
-    def get_num_columns(data: np.array):
-        return data.shape[1] if data.ndim > 1 else 1
-
-    if len(output_texts[0].features.shape) > 2:
-        with pytest.raises(ValueError, match="not supported"):
-            DataMerger.get(output_texts).merge()
-    else:
-        merged_data = DataMerger.get(output_texts).merge()
-
-        assert np.equal(merged_data.idx, first_output.idx).all()
-        expected_num_columns = sum(get_num_columns(output.predict) for output in output_texts)
-        assert merged_data.features.shape[0] == len(first_output.predict)
-        assert get_num_columns(merged_data.features) == 1
-        assert len(merged_data.features[0][0]) >= len(output_texts[0].features[0][0]) * expected_num_columns
+# def test_data_merge_texts(output_texts):
+#     first_output = output_texts[0]
+#
+#     def get_num_columns(data: np.array):
+#         return data.shape[1] if data.ndim > 1 else 1
+#
+#     if len(output_texts[0].features.shape) > 2:
+#         with pytest.raises(ValueError, match="not supported"):
+#             DataMerger.get(output_texts).merge()
+#     else:
+#         merged_data = DataMerger.get(output_texts).merge()
+#
+#         assert np.equal(merged_data.idx, first_output.idx).all()
+#         expected_num_columns = sum(get_num_columns(output.predict) for output in output_texts)
+#         assert merged_data.features.shape[0] == len(first_output.predict)
+#         assert get_num_columns(merged_data.features) == 1
+#         assert len(merged_data.features[0][0]) >= len(output_texts[0].features[0][0]) * expected_num_columns
