@@ -172,7 +172,10 @@ def test_complicated_table_types_processed_correctly():
 
     # Table types corrector after fitting
     types_correctors = pipeline.preprocessor.types_correctors
-    assert train_predicted.features.shape[1] == 57
+    if pipeline.preprocessor.use_label_encoder:
+        assert train_predicted.features.shape[1] == 10
+    else:
+        assert train_predicted.features.shape[1] == 57
     # Source id 9 became 7th - column must be converted into float
     assert types_correctors[DEFAULT_SOURCE_NAME].categorical_into_float[0] == 1
     # Three columns in the table must be converted into string
@@ -228,15 +231,19 @@ def fit_predict_cycle_for_testing(idx: int):
     pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline)
     train_predicted = pipeline.fit(train_data)
-    return train_predicted
+    return train_predicted, pipeline.preprocessor.use_label_encoder
 
 
 def test_mixed_column_with_str_and_float_values():
     """ Checks if columns with different data type ratio process correctly """
 
     # column with index 0 must be converted to string and encoded with OHE
-    train_predicted = fit_predict_cycle_for_testing(idx=0)
-    assert train_predicted.features.shape[1] == 5
+    train_predicted, use_label_encoder = fit_predict_cycle_for_testing(idx=0)
+    if use_label_encoder:
+        assert train_predicted.features.shape[1] == 1
+    else:
+        assert train_predicted.features.shape[1] == 5
+
     assert all(isinstance(el, np.ndarray) for el in train_predicted.features)
 
     # column with index 1 must be converted to float and the gaps must be filled

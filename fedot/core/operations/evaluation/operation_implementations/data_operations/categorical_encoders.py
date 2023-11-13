@@ -192,10 +192,11 @@ class LabelEncodingImplementation(DataOperationImplementation):
         column_encoder.classes_ = np.array(encoder_classes)
 
         transformed_column = column_encoder.transform(categorical_column)
-        if len(gap_ids) > 0:
-            # Store np.nan values
-            transformed_column = transformed_column.astype(object)
-            transformed_column[gap_ids] = np.nan
+
+        # if len(gap_ids) > 0:
+        #     # Store np.nan values
+        #     transformed_column = transformed_column.astype(object)
+        #     transformed_column[gap_ids] = np.nan
 
         return transformed_column
 

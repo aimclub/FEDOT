@@ -82,7 +82,11 @@ def test_only_categorical_data_process_correctly():
     fitted_ridge = pipeline.nodes[0]
     coefficients = fitted_ridge.operation.fitted_operation.coef_
     coefficients_shape = coefficients.shape
-    assert 5 == coefficients_shape[1]
+
+    if pipeline.preprocessor.use_label_encoder:
+        assert 3 == coefficients_shape
+    else:
+        assert 5 == coefficients_shape[1]
 
 
 def test_nans_columns_process_correctly():
@@ -176,8 +180,12 @@ def test_pipeline_with_imputer():
 
     # Coefficients for ridge regression
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
-    # Linear must use 12 features - several of them are encoded ones
-    assert coefficients.shape[1] == 12
+
+    if pipeline.preprocessor.use_label_encoder:
+        assert coefficients.shape[1] == 7
+    else:
+        # Linear must use 12 features - several of them are encoded ones
+        assert coefficients.shape[1] == 12
 
 
 def test_pipeline_with_encoder():
@@ -256,7 +264,11 @@ def test_data_with_mixed_types_per_column_processed_correctly():
 
     importances = pipeline.nodes[0].operation.fitted_operation.feature_importances_
 
-    # Finally, seven features were used to give a forecast
-    assert len(importances) == 7
+    if pipeline.preprocessor.use_label_encoder:
+        assert len(importances) == 4
+    else:
+        # Finally, seven features were used to give a forecast
+        assert len(importances) == 7
+
     # Target must contain 4 labels
     assert predicted.predict.shape[-1] == 4
