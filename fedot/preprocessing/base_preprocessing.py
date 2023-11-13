@@ -4,6 +4,7 @@ from typing import Dict, List, Union, TYPE_CHECKING
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
+from fedot.core.constants import USE_LABEL_ENC_AS_DEFAULT
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
@@ -31,7 +32,7 @@ class BasePreprocessor(ABC):
         # There was performed encoding for string target column or not
         self.target_encoders: Dict[str, LabelEncoder] = {}
         self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
-        self.use_label_encoder: bool = False
+        self.use_label_encoder: bool = USE_LABEL_ENC_AS_DEFAULT
         self.features_imputers: Dict[str, ImputationImplementation] = {}
         self.ids_relevant_features: Dict[str, List[int]] = {}
 
