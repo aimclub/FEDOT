@@ -14,7 +14,10 @@ def test_multimodal_predict_correct():
     predicted = pipeline.predict(mm_data)
 
     # Union of several tables into one feature table
-    assert predicted.features.shape == (9, 24)
+    if pipeline.preprocessor.use_label_encoder:
+        assert predicted.features.shape == (9, 4)
+    else:
+        assert predicted.features.shape == (9, 24)
     assert predicted.predict[0, 0] > 0.5
     assert predicted_labels.predict[0, 0] == 'true'
 

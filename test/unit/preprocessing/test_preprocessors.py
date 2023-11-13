@@ -247,7 +247,7 @@ def test_mixed_column_with_str_and_float_values():
     assert all(isinstance(el, np.ndarray) for el in train_predicted.features)
 
     # column with index 1 must be converted to float and the gaps must be filled
-    train_predicted = fit_predict_cycle_for_testing(idx=1)
+    train_predicted, _ = fit_predict_cycle_for_testing(idx=1)
     assert train_predicted.features.shape[1] == 1
     assert all(isinstance(el[0], float) for el in train_predicted.features)
 
