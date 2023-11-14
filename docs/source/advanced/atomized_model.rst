@@ -13,7 +13,7 @@ pipeline in the AtomizedModel class and all the functionality will be saved.
 .. code-block:: python
 
     from fedot.core.pipelines.pipeline import Pipeline
-    from fedot.core.models.atomized_model import AtomizedModel
+    from fedot.core.operations.atomized_model import AtomizedModel
 
     pipeline = Pipeline()
     nested_pipeline = Pipeline()
