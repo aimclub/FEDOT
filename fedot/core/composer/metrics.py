@@ -251,9 +251,10 @@ class LinearWeightedRMSE(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        coeffs = np.linspace(0.2, 1, len(predicted.predict))
-        return mean_squared_error(y_true=reference.target, y_pred=predicted.predict,
-                                  squared=False, sample_weight=coeffs)
+        length = len(predicted.predict)
+        coeff = 2 / ((1 + 0.2) * length)
+        coeffs = np.linspace(0.2 * coeff, 1 * coeff, length)
+        return np.sqrt(np.sum(np.square(reference.target - predicted.predict) * coeffs) / length)
 
 
 class DTW(QualityMetric):
