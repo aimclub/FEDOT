@@ -12,10 +12,11 @@ pipeline in the AtomizedModel class and all the functionality will be saved.
 
 .. code-block:: python
 
+    from fedot.core.pipelines.node import PipelineNode
     from fedot.core.pipelines.pipeline import Pipeline
     from fedot.core.operations.atomized_model import AtomizedModel
 
     pipeline = Pipeline()
-    nested_pipeline = Pipeline()
-    atomized_model = AtomizedModel(nested_pipeline)
+    nested_pipeline = Pipeline(PipelineNode('ridge'))
+    atomized_model = PipelineNode(AtomizedModel(nested_pipeline))
     pipeline.add_node(atomized_model)
