@@ -6,7 +6,9 @@ from golem.utilities.data_structures import ComparableEnum as Enum
 
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MASE)
+                                         RMSE, ROCAUC, Silhouette, StructuralComplexity,
+                                         # time series
+                                         MASE, LinearWeightedRMSE, DTW, StatsFeaturesError, FourieRMSE)
 
 
 class MetricsEnum(Enum):
@@ -67,6 +69,10 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     MAE = 'mae'
     R2 = 'r2'
     RMSE_penalty = 'rmse_pen'
+    LinearWeightedRMSE = 'linear_weighted_rmse'
+    DTW = 'dynamic_time_warping'
+    StatsFeaturesError = 'stats_features_error'
+    FourieRMSE = 'fourie_rmse'
 
 
 class MetricsRepository:
@@ -91,6 +97,10 @@ class MetricsRepository:
 
         # ts forecasting
         TimeSeriesForecastingMetricsEnum.MASE: MASE.get_value,
+        TimeSeriesForecastingMetricsEnum.LinearWeightedRMSE: LinearWeightedRMSE.get_value,
+        TimeSeriesForecastingMetricsEnum.DTW: DTW.get_value,
+        TimeSeriesForecastingMetricsEnum.StatsFeaturesError: StatsFeaturesError.get_value,
+        TimeSeriesForecastingMetricsEnum.FourieRMSE: FourieRMSE.get_value,
 
         # clustering
         ClusteringMetricsEnum.silhouette: Silhouette.get_value,

@@ -5,10 +5,12 @@ from pathlib import Path
 from uuid import uuid4
 
 import numpy as np
+from numpy.fft import fft
 from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absolute_error,
                              mean_absolute_percentage_error, mean_squared_error, mean_squared_log_error,
                              precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
+from sktime.dists_kernels.dtw import DtwDist
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -235,12 +237,64 @@ class MAE(QualityMetric):
 
 
 class MASE(QualityMetric):
+    """ For times series """
     default_value = sys.maxsize
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         history_series = reference.features
         return mean_absolute_scaled_error(y_true=reference.target, y_pred=predicted.predict, y_train=history_series)
+
+class LinearWeightedRMSE(QualityMetric):
+    """ For times series """
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        coeffs = np.linspace(0.2, 1, len(predicted.predict))
+        return mean_squared_error(y_true=reference.target, y_pred=predicted.predict,
+                                  squared=False, sample_weight=coeffs)
+
+
+class DTW(QualityMetric):
+    """ For time series """
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        """ In accordance to docs ``window`` should be int, but it does not work
+            Metric is slow for long sequences or large windows, be careful """
+        return DtwDist(weighted=True, window=0.1)(reference.target, predicted.predict)[0, 0]
+
+
+class FourieRMSE(QualityMetric):
+    """ For time series """
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        """ FFT + RMSE """
+        return mean_squared_error(y_true=np.abs(fft(reference.target)), y_pred=np.abs(fft(predicted.predict)),
+                                  squared=False)
+
+
+class StatsFeaturesError(QualityMetric):
+    """ For time series """
+    default_value = sys.maxsize
+
+    @staticmethod
+    def get_stat_features(data: np.ndarray) -> np.ndarray:
+        return np.array([np.mean(data),
+                         np.max(data),
+                         np.min(data),
+                         np.std(data)])
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        """ L2 distance between manual generated time series features """
+        target = StatsFeaturesError.get_stat_features(reference.target)
+        predict = StatsFeaturesError.get_stat_features(predicted.predict)
+        return mean_squared_error(y_true=target, y_pred=predict, squared=False)
 
 
 class R2(QualityMetric):
