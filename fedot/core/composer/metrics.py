@@ -252,9 +252,10 @@ class LinearWeightedRMSE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         length = len(predicted.predict)
-        coeff = 2 / ((1 + 0.2) * length)
-        coeffs = np.linspace(0.2 * coeff, 1 * coeff, length)
-        return np.sqrt(np.sum(np.square(reference.target - predicted.predict) * coeffs) / length)
+        relation = 3  # relation between max and min weight
+        coeff = 2 / ((relation + 1) * length)
+        coeffs = np.linspace(coeff, relation * coeff, length)
+        return np.sqrt(np.sum(np.square((reference.target - predicted.predict) * coeffs)) / length)
 
 
 class DTW(QualityMetric):
@@ -265,7 +266,7 @@ class DTW(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         """ In accordance to docs ``window`` should be int, but it does not work
             Metric is slow for long sequences or large windows, be careful """
-        return DtwDist(weighted=True, window=0.1)(reference.target, predicted.predict)[0, 0]
+        return DtwDist(weighted=True, window=0.2)(reference.target, predicted.predict)[0, 0]
 
 
 class FourieRMSE(QualityMetric):
@@ -277,25 +278,6 @@ class FourieRMSE(QualityMetric):
         """ FFT + RMSE """
         return mean_squared_error(y_true=np.abs(fft(reference.target)), y_pred=np.abs(fft(predicted.predict)),
                                   squared=False)
-
-
-class StatsFeaturesError(QualityMetric):
-    """ For time series """
-    default_value = sys.maxsize
-
-    @staticmethod
-    def get_stat_features(data: np.ndarray) -> np.ndarray:
-        return np.array([np.mean(data),
-                         np.max(data),
-                         np.min(data),
-                         np.std(data)])
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        """ L2 distance between manual generated time series features """
-        target = StatsFeaturesError.get_stat_features(reference.target)
-        predict = StatsFeaturesError.get_stat_features(predicted.predict)
-        return mean_squared_error(y_true=target, y_pred=predict, squared=False)
 
 
 class R2(QualityMetric):

@@ -8,7 +8,7 @@ from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
                                          RMSE, ROCAUC, Silhouette, StructuralComplexity,
                                          # time series
-                                         MASE, LinearWeightedRMSE, DTW, StatsFeaturesError, FourieRMSE)
+                                         MASE, LinearWeightedRMSE, DTW, FourieRMSE)
 
 
 class MetricsEnum(Enum):
@@ -71,7 +71,6 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
     LinearWeightedRMSE = 'linear_weighted_rmse'
     DTW = 'dynamic_time_warping'
-    StatsFeaturesError = 'stats_features_error'
     FourieRMSE = 'fourie_rmse'
 
 
@@ -99,7 +98,6 @@ class MetricsRepository:
         TimeSeriesForecastingMetricsEnum.MASE: MASE.get_value,
         TimeSeriesForecastingMetricsEnum.LinearWeightedRMSE: LinearWeightedRMSE.get_value,
         TimeSeriesForecastingMetricsEnum.DTW: DTW.get_value,
-        TimeSeriesForecastingMetricsEnum.StatsFeaturesError: StatsFeaturesError.get_value,
         TimeSeriesForecastingMetricsEnum.FourieRMSE: FourieRMSE.get_value,
 
         # clustering
