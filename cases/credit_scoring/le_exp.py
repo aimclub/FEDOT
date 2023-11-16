@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.preprocessing import LabelEncoder
@@ -30,7 +31,6 @@ def run_problem(timeout: float = 5.0,
     full_path_train = fedot_project_root().joinpath(file_path_train)
 
     data = InputData.from_csv(full_path_train, task='classification', target_columns='class')
-
     target = data.target
     encoded = LabelEncoder().fit_transform(target)
     data.target = encoded
@@ -43,9 +43,14 @@ def run_problem(timeout: float = 5.0,
                    metric='f1',
                    **composer_args)
     if model_type != "auto":
+        start_time = datetime.now()
         automl.fit(train, predefined_model=model_type)
+        end_time = datetime.now()
+        print(end_time - start_time)
+        print(train.features.shape)
     else:
         automl.fit(train)
+
 
     automl.predict(test)
     metrics = automl.get_metrics()
@@ -66,7 +71,7 @@ if __name__ == '__main__':
     set_random_seed(42)
 
     Consts.USE_LABEL_ENC_AS_DEFAULT = True
-
+    print('Labelenc')
     run_problem(timeout=1,
                 visualization=False,
                 with_tuning=False, model_type='logit')
@@ -75,20 +80,22 @@ if __name__ == '__main__':
                 visualization=False,
                 with_tuning=False, model_type='xgboost')
 
-    run_problem(timeout=10,
-                visualization=True,
-                with_tuning=True, model_type='auto')
+    # run_problem(timeout=10,
+    #             visualization=True,
+    #             with_tuning=True, model_type='auto')
+
+    print('OH etc')
 
     Consts.USE_LABEL_ENC_AS_DEFAULT = False
 
     run_problem(timeout=1,
-                visualization=True,
+                visualization=False,
                 with_tuning=True, model_type='logit')
 
     run_problem(timeout=1,
                 visualization=False,
                 with_tuning=False, model_type='xgboost')
 
-    run_problem(timeout=10,
-                visualization=True,
-                with_tuning=True, model_type='auto')
+    # run_problem(timeout=10,
+    #             visualization=True,
+    #             with_tuning=True, model_type='auto')
