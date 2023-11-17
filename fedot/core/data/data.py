@@ -4,6 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import List, Optional, Tuple, Union, Iterable, Any
 
 import numpy as np
@@ -33,6 +34,12 @@ POSSIBLE_TS_IDX_KEYWORDS = ['datetime', 'date', 'time', 'unnamed: 0']
 PathType = Union[os.PathLike, str]
 
 
+class FeatureType(Enum):
+    numerical = 'numerical'
+    categorical = 'categorical'
+    other = 'other'
+
+
 @dataclass
 class Data:
     """
@@ -49,6 +56,8 @@ class Data:
     encoded_idx: Optional[np.ndarray] = None
     features_names: Optional[np.ndarray[str]] = None
     target: Optional[np.ndarray] = None
+    feature_names: Optional[List[str]] = None
+    feature_types: Optional[List[FeatureType]] = None
 
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
@@ -465,6 +474,10 @@ class Data:
         if self.target is not None:
             dataframe['target'] = self.target
         dataframe.to_csv(path_to_save)
+
+    @property
+    def categorical_features_map(self) -> List[bool]:
+        return [feature_type is FeatureType.categorical for feature_type in self.feature_types]
 
 
 @dataclass
