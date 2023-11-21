@@ -87,6 +87,11 @@ class ParametersChanger:
         # Randomly choose new value
         rng = np.random.default_rng(random.randint(0, np.iinfo(np.int32).max))
         new_value = hp_sample(space, rng=rng)
+        if isinstance(new_value, np.ndarray) and new_value.size == 1:
+            if len(new_value.shape) == 0:
+                new_value = new_value.item()
+            else:
+                new_value = new_value[0]
         return {parameter_name: new_value}
 
     @staticmethod

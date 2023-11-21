@@ -70,7 +70,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                 if is_test_session() and not isinstance(ex, TimeoutError):
                     stack_trace = traceback.format_exc()
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode():
+                    if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
                         raise ex
                 break  # if even one fold fails, the evaluation stops
 

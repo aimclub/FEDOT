@@ -7,7 +7,7 @@ from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 logging.raiseExceptions = False
 
@@ -33,7 +33,7 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
 
 
 def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None,
-                               visualization=False, with_tuning=True, validation_blocks=2):
+                               visualization=False, with_tuning=False, validation_blocks=2):
     train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
@@ -41,7 +41,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                                    TsForecastingParams(forecast_length=horizon)).task_params,
                   timeout=timeout,
                   n_jobs=-1,
-                  metric='mase',
+                  metric=['mase', 'mae', 'mape', 'rmse'],
                   with_tuning=with_tuning,
                   cv_folds=2, preset='fast_train')
 

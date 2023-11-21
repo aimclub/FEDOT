@@ -1,12 +1,10 @@
 import datetime
-from functools import partial
 from typing import Sequence
 
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation, \
-    add_resample_mutation
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
@@ -130,8 +128,12 @@ class ApiParamsRepository:
                      MutationTypesEnum.single_edge]
 
         # TODO remove workaround after boosting mutation fix
+        #      Boosting mutation does not work due to problem with __eq__ with it copy.
+        #      ``partial`` refactor to ``def`` does not work
+        #      Also boosting mutation does not work by it own.
         if task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(partial(boosting_mutation, params=params))
+            # mutations.append(partial(boosting_mutation, params=params))
+            pass
         else:
             mutations.append(add_resample_mutation)
 

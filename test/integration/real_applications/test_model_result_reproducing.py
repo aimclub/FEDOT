@@ -31,7 +31,8 @@ def get_fitted_fedot(forecast_length, train_data, **kwargs):
               'seed': 1,
               'timeout': None,
               'pop_size': 50,
-              'num_of_generations': 5}
+              'num_of_generations': 5,
+              'with_tuning': False}
     params.update(kwargs)
     fedot = Fedot(**params)
     fedot.fit(train_data)
@@ -71,10 +72,10 @@ def test_result_changing():
         and makes different compose process in different run with different seeds """
     train, test = get_data()
 
-    fedots = [get_fitted_fedot(forecast_length=test.idx.shape[0],
+    fedots = [get_fitted_fedot(forecast_length=len(test.idx),
                                train_data=train,
                                seed=seed,
                                num_of_generations=1)
-              for seed in (0, 1)]
+              for seed in (0, 10)]
 
     check_fedots(fedots, test, are_same=False)

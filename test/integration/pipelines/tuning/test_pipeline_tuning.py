@@ -2,6 +2,8 @@ import os
 from time import time
 
 import pytest
+
+from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.optuna_tuner import OptunaTuner
@@ -216,6 +218,23 @@ def run_pipeline_tuner(train_data,
                        cv=None,
                        iterations=3,
                        early_stopping_rounds=None, **kwargs):
+
+    # if data is time series then lagged window should be tuned correctly
+    # because lagged window raises error if windows size is uncorrect
+    # and tuner will fall
+    if train_data.data_type in (DataTypesEnum.ts, DataTypesEnum.multi_ts):
+        forecast_length = train_data.task.task_params.forecast_length
+        folds = cv or 1
+        validation_blocks = 1
+        max_window = int(train_data.features.shape[0] / (folds + 1)) - (forecast_length * validation_blocks) - 1
+        ssp = {'window_size': {'hyperopt-dist': hp.uniformint, 'sampling-scope': [2, max_window], 'type': 'discrete'}}
+        if search_space.custom_search_space is None:
+            search_space.custom_search_space = {'lagged': ssp}
+        else:
+            search_space.custom_search_space['lagged'] = ssp
+        search_space.replace_default_search_space = True
+        search_space.parameters_per_operation = search_space.get_parameters_dict()
+
     # Pipeline tuning
     pipeline_tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \

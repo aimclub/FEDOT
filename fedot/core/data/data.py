@@ -4,7 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Union, Iterable, Any
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -472,6 +472,13 @@ class InputData(Data):
     """Data class for input data for the nodes
     """
 
+    def __post_init__(self):
+        if self.numerical_idx is None:
+            if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
+                self.numerical_idx = list(range(self.features.shape[1]))
+            else:
+                self.numerical_idx = [0]
+
     @property
     def num_classes(self) -> Optional[int]:
         """Returns number of classes that are present in the target.
@@ -600,7 +607,7 @@ class InputData(Data):
         if self.numerical_idx:
             num_features = self.features[:, self.numerical_idx]
 
-            if self.features_names:
+            if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
             else:
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
@@ -609,7 +616,7 @@ class InputData(Data):
         if self.categorical_idx:
             cat_features = self.categorical_features
 
-            if self.features_names:
+            if self.features_names is not None and np.size(self.features_names):
                 cat_features_names = self.features_names[self.categorical_idx]
             else:
                 cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
@@ -618,8 +625,8 @@ class InputData(Data):
             new_features = np.hstack((num_features, cat_features))
             new_features_names = np.hstack((num_features_names, cat_features_names))
             new_features_idx = np.array(range(new_features.shape[1]))
-            new_num_idx = new_features_idx[:new_features.shape[1]]
-            new_cat_idx = new_features_idx[cat_features.shape[1]:]
+            new_num_idx = new_features_idx[:num_features.shape[1]]
+            new_cat_idx = new_features_idx[-cat_features.shape[1]:]
 
         elif cat_features is not None:
             new_features = cat_features
@@ -630,6 +637,8 @@ class InputData(Data):
             new_features = num_features
             new_features_names = num_features_names
             new_num_idx = np.array(range(new_features.shape[1]))
+        else:
+            raise ValueError('There is no features')
 
         return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
                          numerical_idx=new_num_idx, categorical_idx=new_cat_idx,

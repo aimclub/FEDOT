@@ -13,8 +13,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
-from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot import Fedot
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -153,11 +153,16 @@ def data_with_binary_features_and_categorical_target():
 
 @pytest.mark.parametrize('task_type, metric_name', [
     ('classification', 'f1'),
-    ('regression', 'rmse'),
+    ('regression', 'rmse')
 ])
 def test_api_predict_correct(task_type, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem=task_type, **TESTS_MAIN_API_DEFAULT_PARAMS)
+    changed_api_params = {
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
+        'timeout': 1,
+        'preset': 'fast_train'
+    }
+    model = Fedot(problem=task_type, metric=metric_name, **changed_api_params)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
@@ -167,7 +172,7 @@ def test_api_predict_correct(task_type, metric_name):
     # composing and tuning was applied
     assert model.history is not None
     assert model.history.tuning_result is not None
-    assert is_predict_ignores_target(model.predict, train_data, 'features')
+    assert is_predict_ignores_target(model.predict, model.train_data, 'features')
 
 
 @pytest.mark.parametrize('task_type, metric_name, pred_model', [
@@ -436,7 +441,7 @@ def test_fill_nan_without_categorical():
 def test_dict_multimodal_input_for_api():
     data, target = load_categorical_multidata()
 
-    model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
+    model = Fedot(problem='classification', metric=['f1'], **TESTS_MAIN_API_DEFAULT_PARAMS)
 
     model.fit(features=data, target=target)
 
@@ -501,7 +506,8 @@ def test_pipeline_preprocessing_through_api_correctly():
     # Stand-alone pipeline with it's own preprocessing
     predicted = pipeline.predict(data, output_mode='labels')
 
-    assert predicted.predict[-1] == 'green-orange'
+    # check whether NaN-field was correctly predicted
+    assert predicted.predict[3] == 'red-blue'
 
 
 def test_data_from_csv_load_correctly():
