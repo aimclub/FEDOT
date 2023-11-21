@@ -94,7 +94,7 @@ class QualityMetric:
                         metrics.append(cls.metric(reference_data_out, results))
                     metric = np.mean(metrics)
                 else:
-                    reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+                    reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
                     metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
