@@ -51,7 +51,7 @@
   },
   "lagged": {
     "window_size": 10,
-    "stride": 20
+    "stride": 1
   },
   "diff_filter": {
     "window_size": 3,

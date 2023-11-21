@@ -844,16 +844,18 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
 
     # Multi-target transformation
     updated_idx = idx
-    updated_features = features_columns
     if forecast_length > 1:
         updated_target = []
         for i in row_nums:
-            updated_target.append(target[i:forecast_length + i])
-        if len(updated_target[-1]) != forecast_length:
-            del updated_target[-1]
-            updated_features = features_columns[:-1, :]
-            updated_idx = idx[:-1]
+            t = target[i:forecast_length + i]
+            if t.shape[0] < forecast_length:
+                break
+            updated_target.append(t)
+
+        updated_features = features_columns[:len(updated_target), :]
+        updated_idx = idx[:len(updated_target)]
         updated_target = np.array(updated_target)
+
     else:
         # Forecast horizon equals to 1
         updated_features = features_columns[: -1]
