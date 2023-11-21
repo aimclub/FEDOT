@@ -76,10 +76,11 @@ class QualityMetric:
                 metric = cls.metric(reference_data, results)
             else:
                 # Perform time series in-sample validation
-                is_multimodal = isinstance(reference_data, MultiModalData)
-                if ((is_multimodal and reference_data[list(reference_data)[0]].is_multi_ts) or
-                        ((not is_multimodal) and reference_data.is_multi_ts)):
-                    # multi_ts
+                if isinstance(reference_data, MultiModalData):
+                    is_multi_ts = reference_data[list(reference_data)[0]].data_type is DataTypesEnum.multi_ts
+                else:
+                    is_multi_ts = reference_data.data_type is DataTypesEnum.multi_ts
+                if is_multi_ts:
                     metrics = []
                     # rebuild multi_ts data as simple ts data for each ts in multi_ts
                     for i in range(reference_data.features.shape[1]):
@@ -93,7 +94,6 @@ class QualityMetric:
                         metrics.append(cls.metric(reference_data_out, results))
                     metric = np.mean(metrics)
                 else:
-                    # ts
                     reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
                     metric = cls.metric(reference_data, results)
 
