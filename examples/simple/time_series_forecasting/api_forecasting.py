@@ -12,6 +12,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.utilities.window_size_selector import WindowSizeSelector
 
 logging.raiseExceptions = False
 
@@ -61,6 +62,10 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     pipeline.fit(train_data)
     pred = np.ravel(pipeline.predict(test_data).predict)
 
+    window_size = int(
+        WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(train_data.features) * len(
+            train_data.features) / 100)
+
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
                                    TsForecastingParams(forecast_length=horizon)).task_params,
@@ -68,7 +73,9 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                   n_jobs=-1,
                   metric='mae',
                   with_tuning=True,
-                  cv_folds=2)
+                  cv_folds=2,
+                  initial_assumption=PipelineBuilder().add_node('lagged', params={'window_size': window_size}).add_node(
+                      'ridge').build())
 
     model.fit(train_data)
 

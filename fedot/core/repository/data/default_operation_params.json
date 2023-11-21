@@ -49,6 +49,11 @@
     "n_jobs": 1,
     "verbose": -1
   },
+  "lagged": {
+    "window_size": 10,
+    "stride": 1
+  },
+
   "diff_filter": {
     "window_size": 3,
     "poly_degree": 2,
@@ -60,7 +65,8 @@
   "sparse_lagged": {
     "n_components": 0.5,
     "sparse_transform": true,
-    "use_svd": false
+    "use_svd": false,
+    "stride": 1
   },
   "ar": {
     "lag_1": 7,

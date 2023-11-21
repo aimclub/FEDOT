@@ -102,7 +102,6 @@ class LaggedImplementation(DataOperationImplementation):
         new_input_data.target = new_target
         new_input_data.idx = new_idx
         output_data = self._convert_to_output(new_input_data,
-
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
         self._update_column_types(output_data)
@@ -731,6 +730,7 @@ def ts_to_table(idx, time_series: np.array, window_size: int, stride: int = 1, i
         idx: the indices of the time series to convert
         time_series: source time series
         window_size: size of sliding window, which defines lag
+        stride: stride parameter for memory and time saving
         is_lag: is function used for lagged transformation.
             ``False`` needs to convert one dimensional output to lagged form.
 
