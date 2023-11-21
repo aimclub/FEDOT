@@ -63,27 +63,25 @@ class AssumptionsHandler:
         :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
         :param eval_n_jobs: number of jobs to fit the initial pipeline
         """
-        try:
-            data_train, data_test = train_test_data_setup(self.data)
-            self.log.info('Initial pipeline fitting started')
-            # load preprocessing
-            pipeline.try_load_from_cache(pipelines_cache, preprocessing_cache)
-            pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
-            if pipelines_cache is not None:
-                pipelines_cache.save_pipeline(pipeline)
-            if preprocessing_cache is not None:
-                preprocessing_cache.add_preprocessor(pipeline)
+        data_train, data_test = train_test_data_setup(self.data)
+        self.log.info('Initial pipeline fitting started')
+        # load preprocessing
+        pipeline.try_load_from_cache(pipelines_cache, preprocessing_cache)
+        pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
-            pipeline.predict(data_test)
-            self.log.info('Initial pipeline was fitted successfully')
+        if pipelines_cache is not None:
+            pipelines_cache.save_pipeline(pipeline)
+        if preprocessing_cache is not None:
+            preprocessing_cache.add_preprocessor(pipeline)
 
-            MemoryAnalytics.log(self.log,
-                                additional_info='fitting of the initial pipeline',
-                                logging_level=45)  # message logging level
+        pipeline.predict(data_test)
+        self.log.info('Initial pipeline was fitted successfully')
 
-        except Exception as ex:
-            self._raise_evaluating_exception(ex)
+        MemoryAnalytics.log(self.log,
+                            additional_info='fitting of the initial pipeline',
+                            logging_level=45)  # message logging level
+
         return pipeline
 
     def _raise_evaluating_exception(self, ex: Exception):
