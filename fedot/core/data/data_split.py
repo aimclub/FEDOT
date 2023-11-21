@@ -11,30 +11,24 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData],
-                                 index,
-                                 retain_first_target=False):
+                                 index):
     """ The function get InputData or MultiModalData and return
         only data with indexes in index, not in idx
         f.e. index = [0, 1, 2, 3] == input_data.features[[0, 1, 2, 3], :]
         :param origin_input_data: data to split
         :param index: indexes that needed in output data
-        :param retain_first_target: set to True for use only first column of target
         """
 
     if isinstance(origin_input_data, MultiModalData):
         data = MultiModalData()
         for key in origin_input_data:
             data[key] = _split_input_data_by_indexes(origin_input_data[key],
-                                                     index=index,
-                                                     retain_first_target=retain_first_target)
+                                                     index=index)
         return data
     elif isinstance(origin_input_data, InputData):
         idx = np.take(origin_input_data.idx, index, 0)
         target = np.take(origin_input_data.target, index, 0)
         features = np.take(origin_input_data.features, index, 0)
-
-        if retain_first_target and len(target.shape) > 1:
-            target = target[:, 0]
 
         data = InputData(idx=idx,
                          features=features,
@@ -68,8 +62,7 @@ def _split_time_series(data: InputData,
 
     target_length = len(data.target)
     train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
-    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length),
-                                             retain_first_target=True)
+    test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length))
 
     if validation_blocks is None:
         # for in-sample
