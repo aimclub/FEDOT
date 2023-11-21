@@ -12,6 +12,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.utilities.window_size_selector import WindowSizeSelector
 
 logging.raiseExceptions = False
 
@@ -53,9 +54,13 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                                visualization=False, with_tuning=True, validation_blocks=2):
     train_data, test_data, label = get_ts_data(dataset, horizon, validation_blocks=validation_blocks)
     # init model for the time series forecasting
-    pipeline = PipelineBuilder().add_node('lagged') \
+    window_size = int(
+        WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(train_data.features) * len(
+            train_data.features) / 100)
+
+    pipeline = PipelineBuilder().add_node('lagged', params={'window_size': window_size}) \
         .add_node('topological_features') \
-        .add_node('lagged', branch_idx=1) \
+        .add_node('lagged', params={'window_size': window_size}, branch_idx=1) \
         .join_branches('ridge').build()
 
     pipeline.fit(train_data)
@@ -68,7 +73,9 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                   n_jobs=-1,
                   metric='mae',
                   with_tuning=True,
-                  cv_folds=2)
+                  cv_folds=2,
+                  initial_assumption=PipelineBuilder().add_node('lagged', params={'window_size': window_size}).add_node(
+                      'ridge').build())
 
     model.fit(train_data)
 

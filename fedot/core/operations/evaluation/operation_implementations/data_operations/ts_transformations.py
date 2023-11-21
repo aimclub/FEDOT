@@ -24,7 +24,6 @@ class LaggedImplementation(DataOperationImplementation):
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
-        self.should_find_w_s = self.params.get('window_size') is None
         # Define logger object
         self.log = default_log(self)
 
@@ -86,14 +85,6 @@ class LaggedImplementation(DataOperationImplementation):
         Returns:
             output data with transformed features table
         """
-        if self.should_find_w_s:
-            new_window_size = int(
-                WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(input_data.features) * len(
-                    input_data.features) / 100)
-            if new_window_size < self.window_size_minimum:
-                new_window_size = self.window_size_minimum
-            self.params.update(window_size=new_window_size)
-
         new_input_data = copy(input_data)
         forecast_length = new_input_data.task.task_params.forecast_length
 
