@@ -178,6 +178,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     shuffle |= stratify
     # shuffle is allowed only with random_seed and vise versa
     random_seed = (random_seed or 42) if shuffle else None
+    # no shuffle for time series
+    shuffle &= data.task.task_type is not TaskTypesEnum.ts_forecasting
 
     input_arguments = {'split_ratio': split_ratio,
                        'shuffle': shuffle,
@@ -185,20 +187,14 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                        'random_seed': random_seed,
                        'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
-                           DataTypesEnum.ts: _split_time_series,
-                           DataTypesEnum.table: _split_any,
-                           DataTypesEnum.image: _split_any,
-                           DataTypesEnum.text: _split_any}
-
-        if data.data_type not in split_func_dict:
-            raise TypeError((f'Unknown data type {type(data)}. Supported data types:'
-                             f' {", ".join(str(x) for x in split_func_dict)}'))
-
-        split_func = split_func_dict[data.data_type]
-        train_data, test_data = split_func(data, **input_arguments)
+        if data.data_type in (DataTypesEnum.multi_ts, DataTypesEnum.ts):
+            train_data, test_data = _split_time_series(data, **input_arguments)
+        else:
+            train_data, test_data = _split_any(data, **input_arguments)
     elif isinstance(data, MultiModalData):
         train_data, test_data = MultiModalData(), MultiModalData()
+        # set random_seed for correct shuffle
+        input_arguments['random_seed'] = input_arguments['random_seed'] or np.random.randint(0, np.iinfo(int).max)
         for node in data.keys():
             train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
     else:

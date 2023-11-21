@@ -71,6 +71,7 @@ class DataSourceSplitter:
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
             raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
+        self.stratify &= data.task.task_type is TaskTypesEnum.classification
         if self.stratify:
             # check that stratification can be done
             # for cross validation split ratio is defined as validation_size / all_data_size
@@ -81,6 +82,8 @@ class DataSourceSplitter:
 
         # Stratification can not be done without shuffle
         self.shuffle |= self.stratify
+        # no shuffle for time series
+        self.shuffle &= data.task.task_type is not TaskTypesEnum.ts_forecasting
 
         # Random seed depends on shuffle
         self.random_seed = (self.random_seed or 42) if self.shuffle else None
