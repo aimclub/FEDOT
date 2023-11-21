@@ -509,7 +509,7 @@ def test_lagged_with_multivariate_time_series():
     correct_predict_output = np.array([[8, 9, 18, 19]])
 
     input_data = get_multivariate_time_series()
-    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2))
+    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2, stride=1))
 
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
@@ -545,7 +545,7 @@ def test_lagged_with_multi_ts_type():
                                    [16., 17.]])
     correct_predict_output = np.array([[8, 9]])
     input_data = get_multivariate_time_series(mutli_ts=True)
-    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2))
+    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2, stride=1))
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
 

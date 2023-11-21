@@ -65,7 +65,8 @@
     "window_size": 10,
     "n_components": 0.5,
     "sparse_transform": true,
-    "use_svd": false
+    "use_svd": false,
+    "stride": 1
   },
   "ar": {
     "lag_1": 7,

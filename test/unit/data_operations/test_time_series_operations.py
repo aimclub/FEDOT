@@ -17,6 +17,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 _WINDOW_SIZE = 4
+_STRIDE = 1
 _FORECAST_LENGTH = 4
 
 
@@ -121,7 +122,7 @@ def test_ts_to_lagged_table():
                             (90., 100., 110., 120.),
                             (100., 110., 120., 130.))
 
-    correct_new_idx = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13)
+    correct_new_idx = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
 
     # Convert into tuple for comparison
     new_idx_as_tuple = tuple(new_idx)
@@ -180,7 +181,7 @@ def test_forecast_with_sparse_lagged():
 
     node_lagged = PipelineNode('sparse_lagged')
     # Set window size for lagged transformation
-    node_lagged.parameters = {'window_size': _WINDOW_SIZE}
+    node_lagged.parameters = {'window_size': _WINDOW_SIZE, 'stride': _STRIDE}
 
     node_final = PipelineNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
@@ -199,7 +200,7 @@ def test_forecast_with_exog():
     # Source data for lagged node
     node_lagged = PipelineNode('lagged')
     # Set window size for lagged transformation
-    node_lagged.parameters = {'window_size': _WINDOW_SIZE}
+    node_lagged.parameters = {'window_size': _WINDOW_SIZE, 'stride': _STRIDE}
     # Exogenous variable for exog node
     node_exog = PipelineNode('exog_ts')
 

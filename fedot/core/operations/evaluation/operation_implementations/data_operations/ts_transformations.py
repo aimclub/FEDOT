@@ -851,8 +851,10 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
             if t.shape[0] < forecast_length:
                 break
             updated_target.append(t)
-
-        updated_features = features_columns[:len(updated_target), :]
+        if len(features_columns.shape) > 1:
+            updated_features = features_columns[:len(updated_target), :]
+        else:
+            updated_features = features_columns[:len(updated_target)]
         updated_idx = idx[:len(updated_target)]
         updated_target = np.array(updated_target)
 
