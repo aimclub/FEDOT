@@ -88,7 +88,10 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
         if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+            if features.ndim > 1:
+                features_to_process = np.array(features[:, ids_to_process])
+            else:
+                features_to_process = features.reshape((-1, 1))
             self.operation.fit(features_to_process)
         return self.operation
 
@@ -119,7 +122,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
-        features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+        features_to_process = (np.array(features[:, self.ids_to_process])
+                               if features.ndim > 1 else features.reshape((-1, 1)))
         transformed_part = self.operation.transform(features_to_process)
 
         # If there are no binary features in the dataset
@@ -160,7 +164,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         # For every column in table make check
         for column_id in range(0, columns_amount):
-            column = features[:, column_id] if columns_amount > 1 else features.copy()
+            column = features[:, column_id] if columns_amount > 1 else features.reshape((-1, 1))
             if len(np.unique(column)) > 2:
                 non_bool_ids.append(column_id)
             else:
