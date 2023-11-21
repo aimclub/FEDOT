@@ -27,30 +27,38 @@ def run_problem(timeout: float = 5.0,
                 target='target',
                 model_type="auto",
                 **composer_args):
-    file_path_train = 'cases/data/mfeat-pixel.csv'
+
+    # file_path_train = 'cases/data/mfeat-pixel.csv'
+    # full_path_train = fedot_project_root().joinpath(file_path_train)
+
+    file_path_train = 'cases/data/cows/train.csv'
     full_path_train = fedot_project_root().joinpath(file_path_train)
 
-    data = InputData.from_csv(full_path_train, task='classification', target_columns='class')
-    target = data.target
-    encoded = LabelEncoder().fit_transform(target)
-    data.target = encoded
+    data = InputData.from_csv(full_path_train, task='regression', target_columns='milk_yield_10')
+    # target = data.target
+
+    # encoded = LabelEncoder().fit_transform(target)
+    # data.target = encoded
 
     train, test = train_test_data_setup(data, shuffle=True)
-    print(model_type, Consts.USE_LABEL_ENC_AS_DEFAULT)
-    automl = Fedot(problem='classification',
+    print('Model:', model_type, '-- Use Label Encoding:', Consts.USE_LABEL_ENC_AS_DEFAULT, end='\t')
+    print('-- Before preprocessing', train.features.shape, end=' ')
+
+    metric_name = 'rmse'
+    automl = Fedot(problem='regression',
                    timeout=timeout,
                    logging_level=logging.FATAL,
-                   metric='f1',
+                   metric=metric_name,
                    **composer_args)
+
     if model_type != "auto":
         start_time = datetime.now()
         automl.fit(train, predefined_model=model_type)
         end_time = datetime.now()
-        print(end_time - start_time)
-        print(train.features.shape)
+        print('-- Stated Time limit:', timeout, end=' ')
+        print('- Run Time:', end_time - start_time, end='\t')
     else:
         automl.fit(train)
-
 
     automl.predict(test)
     metrics = automl.get_metrics()
@@ -62,7 +70,8 @@ def run_problem(timeout: float = 5.0,
     if visualization:
         automl.current_pipeline.show()
 
-    print(f'f1 is {round(metrics["f1"], 3)}')
+    print(f'{metric_name} = {round(metrics["f1"], 3)}')
+    print('-' * 10)
 
     return metrics["f1"]
 
@@ -71,31 +80,55 @@ if __name__ == '__main__':
     set_random_seed(42)
 
     Consts.USE_LABEL_ENC_AS_DEFAULT = True
-    print('Labelenc')
-    run_problem(timeout=1,
+    print('\t\t -- Label Encoding --')
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='logit')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='dt')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='rf')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='xgboost')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='lgbm')
+
+    run_problem(timeout=10,
                 visualization=False,
-                with_tuning=False, model_type='logit')
+                with_tuning=True, model_type='auto')
 
-    run_problem(timeout=1,
-                visualization=False,
-                with_tuning=False, model_type='xgboost')
-
-    # run_problem(timeout=10,
-    #             visualization=True,
-    #             with_tuning=True, model_type='auto')
-
-    print('OH etc')
+    print('\t\t -- One Hot Encoding --')
 
     Consts.USE_LABEL_ENC_AS_DEFAULT = False
 
-    run_problem(timeout=1,
-                visualization=False,
-                with_tuning=True, model_type='logit')
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=True, model_type='logit')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='dt')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='rf')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='xgboost')
+    #
+    # run_problem(timeout=1,
+    #             visualization=False,
+    #             with_tuning=False, model_type='lgbm')
 
-    run_problem(timeout=1,
+    run_problem(timeout=10,
                 visualization=False,
-                with_tuning=False, model_type='xgboost')
-
-    # run_problem(timeout=10,
-    #             visualization=True,
-    #             with_tuning=True, model_type='auto')
+                with_tuning=True, model_type='auto')

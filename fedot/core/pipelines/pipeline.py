@@ -186,6 +186,9 @@ class Pipeline(GraphDelegate, Serializable):
 
         copied_input_data = self._preprocess(input_data)
 
+        # print('- After preprocessing:', copied_input_data.features.shape, end=' ')
+        # print('- Number of categorical features:', len(copied_input_data.categorical_idx), end='\t')
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
