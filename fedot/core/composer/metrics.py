@@ -11,6 +11,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -72,10 +73,29 @@ class QualityMetric:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
                 results, reference_data = cls._simple_prediction(pipeline, reference_data)
+                metric = cls.metric(reference_data, results)
             else:
                 # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
-            metric = cls.metric(reference_data, results)
+                is_multimodal = isinstance(reference_data, MultiModalData)
+                if ((is_multimodal and reference_data[list(reference_data)[0]].is_multi_ts) or
+                        ((not is_multimodal) and reference_data.is_multi_ts)):
+                    # multi_ts
+                    metrics = []
+                    # rebuild multi_ts data as simple ts data for each ts in multi_ts
+                    for i in range(reference_data.features.shape[1]):
+                        data = InputData(features=reference_data.features[:, [i]],
+                                         data_type=DataTypesEnum.ts,
+                                         target=reference_data.target[:, [i]],
+                                         task=reference_data.task,
+                                         idx=reference_data.idx,
+                                         supplementary_data=reference_data.supplementary_data)
+                        reference_data_out, results = cls._in_sample_prediction(pipeline, data, validation_blocks)
+                        metrics.append(cls.metric(reference_data_out, results))
+                    metric = np.mean(metrics)
+                else:
+                    # ts
+                    reference_data_out, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+                    metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
                 from fedot.core.data.visualisation import plot_forecast

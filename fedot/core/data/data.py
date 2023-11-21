@@ -528,7 +528,8 @@ class InputData(Data):
         subsample_features = self.features[:, features_ids]
         subsample_input = InputData(features=subsample_features,
                                     data_type=self.data_type,
-                                    target=self.target, task=self.task,
+                                    target=self.target,
+                                    task=self.task,
                                     idx=self.idx,
                                     supplementary_data=self.supplementary_data)
 
