@@ -1,0 +1,346 @@
+{
+  "metadata": {
+    "data_sources": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "accepted_node_types": [
+        "PrimaryNode"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.data_source",
+        "DataSourceStrategy"
+      ],
+      "tags": [
+        "non-default",
+        "data_source"
+      ],
+      "description": "Implementations of data sources in multi-modal pipelines"
+    },
+    "custom_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the preprocessing from scikit-learn framework"
+    },
+    "image_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.image]",
+      "output_type": "[DataTypesEnum.image]",
+      "accepted_node_types": [
+        "PrimaryNode"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "examples.simple.classification.cust.image_preproc",
+        "ImagePreprocessingStrategy"
+      ],
+      "tags": [
+        "custom"
+      ],
+      "description": "Implementations of the preprocessing from scikit-learn framework"
+    },
+    "sklearn_categorical": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "primary"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"
+    },
+    "dimension_transformation": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"
+    },
+    "regression_preprocessing": {
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.regression",
+        "FedotRegressionPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"
+    },
+    "classification_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.classification",
+        "FedotClassificationPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"
+    }
+  },
+  "operations": {
+    "data_source_img": {
+      "meta": "data_sources",
+      "input_type": "[DataTypesEnum.image]",
+      "output_type": "[DataTypesEnum.image]",
+      "tags": [
+        "data_source_img",
+        "nans-ignore",
+        "categorical-ignore"
+      ]
+    },
+    "scaling": {
+      "meta": "custom_preprocessing",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "simple",
+        "feature_scaling"
+      ]
+    },
+    "normalization": {
+      "meta": "custom_preprocessing",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "simple",
+        "feature_scaling",
+        "non_applicable_for_ts"
+      ]
+    },
+    "simple_imputation": {
+      "meta": "custom_preprocessing",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "simple",
+        "imputation",
+        "categorical-ignore",
+        "non-default"
+      ]
+    },
+    "pca": {
+      "meta": "dimension_transformation",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "feature_reduction"
+      ]
+    },
+    "kernel_pca": {
+      "meta": "dimension_transformation",
+      "presets": [
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "non_linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "non-default",
+        "feature_reduction"
+      ]
+    },
+    "fast_ica": {
+      "meta": "dimension_transformation",
+      "presets": [
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "non_linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "feature_reduction"
+      ]
+    },
+    "poly_features": {
+      "meta": "dimension_transformation",
+      "tags": [
+        "non_linear",
+        "dimensionality_transforming",
+        "non_applicable_for_ts",
+        "feature_engineering"
+      ]
+    },
+    "ransac_lin_reg": {
+      "meta": "regression_preprocessing",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "affects_target",
+        "linear",
+        "filtering",
+        "correct_params",
+        "non_applicable_for_ts"
+      ]
+    },
+    "ransac_non_lin_reg": {
+      "meta": "regression_preprocessing",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "affects_target",
+        "non_linear",
+        "filtering",
+        "correct_params",
+        "non_applicable_for_ts",
+        "non-default"
+      ]
+    },
+    "isolation_forest_reg": {
+      "meta": "regression_preprocessing",
+      "tags": [
+        "non_linear",
+        "filtering",
+        "non_applicable_for_ts"
+      ]
+    },
+    "isolation_forest_class": {
+      "meta": "classification_preprocessing",
+      "tags": [
+        "non_linear",
+        "filtering"
+      ]
+    },
+    "rfe_lin_reg": {
+      "meta": "regression_preprocessing",
+      "tags": [
+        "linear",
+        "feature_selection",
+        "non_applicable_for_ts",
+        "non-default",
+        "non_applicable_for_ts"
+      ]
+    },
+    "rfe_non_lin_reg": {
+      "meta": "regression_preprocessing",
+      "tags": [
+        "non_linear",
+        "feature_selection",
+        "non_applicable_for_ts",
+        "non-default",
+        "non_applicable_for_ts"
+      ]
+    },
+    "rfe_lin_class": {
+      "meta": "classification_preprocessing",
+      "tags": [
+        "linear",
+        "feature_selection",
+        "non-default"
+      ]
+    },
+    "rfe_non_lin_class": {
+      "meta": "classification_preprocessing",
+      "tags": [
+        "non_linear",
+        "feature_selection",
+        "non-default"
+      ]
+    },
+    "decompose": {
+      "meta": "regression_preprocessing",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "non-default",
+        "decompose"
+      ]
+    },
+    "class_decompose": {
+      "meta": "classification_preprocessing",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "non-default",
+        "decompose"
+      ]
+    },
+    "resample": {
+      "meta": "classification_preprocessing",
+      "tags": [
+        "imbalanced"
+      ]
+    },
+    "gamma_filt": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
+    },
+    "negamma_filt": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
+    }
+  }
+}

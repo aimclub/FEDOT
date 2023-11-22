@@ -110,10 +110,10 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
 
     :param composite_flag:  add additional random forest estimator
     """
-    node_first = PipelineNode('custom/preproc_image')
+    node_first = PipelineNode('gamma')
     node_first.parameters = {'model_predict': preproc_predict}
 
-    node_second = PipelineNode('custom/cnn_1', nodes_from=[node_first])
+    node_second = PipelineNode('cnn_1', nodes_from=[node_first])
     node_second.parameters = {'model_predict': cnn_model_predict,
                               'model_fit': cnn_model_fit}
 
