@@ -13,8 +13,6 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearClassFSImplementation, NonLinearClassFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     discriminant_analysis import LDAImplementation, QDAImplementation
-from fedot.core.operations.evaluation.operation_implementations.models. \
-    keras import FedotCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -46,7 +44,6 @@ class FedotClassificationStrategy(EvaluationStrategy):
         'lda': LDAImplementation,
         'qda': QDAImplementation,
         'svc': FedotSVCImplementation,
-        'cnn': FedotCNNImplementation,
         'knn': FedotKnnClassImplementation
     }
 
