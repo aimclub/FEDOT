@@ -30,6 +30,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         :return: list of candidates with str operations
         """
         operation_id = node.content['name']
+
         # data source, exog_ts and custom models replacement is useless
         if check_for_specific_operations(operation_id):
             return []
@@ -43,9 +44,13 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
             # lagged transform can be replaced only to lagged
             candidates = set.intersection({'lagged', 'sparse_lagged'}, set(possible_operations))
 
+        if 'cnn' in operation_id:
+            candidates = [c for c in candidates if 'cnn' in candidates]
+
         if operation_id in candidates:
             # the change to the same node is not meaningful
             candidates.remove(operation_id)
+
         return candidates
 
     def propose_parent(self, node: OptNode, possible_operations: List[str]) -> List[str]:

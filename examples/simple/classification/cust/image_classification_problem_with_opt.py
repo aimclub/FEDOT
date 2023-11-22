@@ -44,7 +44,6 @@ custom_search_space = {'gamma_filt': {
 
 }
 
-
 def calculate_validation_metric(predicted: OutputData, dataset_to_validate: InputData) -> float:
     # the quality assessment for the simulation results
     roc_auc_value = roc_auc(y_true=dataset_to_validate.target,

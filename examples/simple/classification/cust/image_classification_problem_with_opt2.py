@@ -6,6 +6,7 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.base_mutations import MutationTypesEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.tuning.simultaneous import SimultaneousTuner
 from hyperopt import hp
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -16,6 +17,9 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
+from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import get_operations_for_task, OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -25,21 +29,14 @@ custom_search_space = {'gamma_filt': {
     'r': {
         'hyperopt-dist': hp.uniformint,
         'sampling-scope': [-254, 254],
-        'type': 'discrete'},
-    'g': {
-        'hyperopt-dist': hp.uniformint,
-        'sampling-scope': [-254, 254],
-        'type': 'discrete'},
-    'b': {
-        'hyperopt-dist': hp.uniformint,
-        'sampling-scope': [-254, 254],
-        'type': 'discrete'},
-    'ksize': {
-        'hyperopt-dist': hp.uniformint,
-        'sampling-scope': [0, 20],
         'type': 'discrete'}
-}
-
+},
+    'negamma_filt': {
+        'r': {
+            'hyperopt-dist': hp.uniformint,
+            'sampling-scope': [-254, 254],
+            'type': 'discrete'},
+    }
 }
 
 
@@ -123,9 +120,13 @@ def run_image_classification_problem(train_dataset: tuple,
     )
 
     pop_size = 5
+
+    # search space for hyper-parametric mutation
+    ParametersChanger.custom_search_space = custom_search_space
+
     params = GPAlgorithmParameters(
         selection_types=[SelectionTypesEnum.spea2],
-        genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[MutationTypesEnum.single_change, parameter_change_mutation],
         pop_size=pop_size
     )
@@ -148,14 +149,22 @@ def run_image_classification_problem(train_dataset: tuple,
 
     pipeline_evo_composed.fit(input_data=dataset_to_train)
 
-    # auto_model = Fedot(problem='classification', timeout=1, n_jobs=-1, preset='best_quality',
-    #                    metric=['f1'], with_tuning=True, initial_assumption = pipeline,
-    #                    available_models=[])
-    #
-    # auto_model.fit(features=dataset_to_train)
+    replace_default_search_space = True
+    cv_folds = 1
+    search_space = PipelineSearchSpace(custom_search_space=custom_search_space,
+                                       replace_default_search_space=replace_default_search_space)
 
-    # auto_model.predict(dataset_to_validate)
-    # predictions = auto_model.prediction
+    predictions = pipeline_evo_composed.predict(dataset_to_validate)
+
+    # .with_cv_folds(cv_folds) \
+    pipeline_tuner = TunerBuilder(dataset_to_train.task) \
+        .with_tuner(SimultaneousTuner) \
+        .with_metric(ClassificationMetricsEnum.ROCAUC) \
+        .with_cv_folds(cv_folds) \
+        .with_iterations(50) \
+        .with_search_space(search_space).build(dataset_to_train)
+
+    pipeline = pipeline_tuner.tune(pipeline_evo_composed)
 
     predictions = pipeline_evo_composed.predict(dataset_to_validate)
 

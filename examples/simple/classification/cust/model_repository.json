@@ -1,17 +1,17 @@
 {
   "metadata": {
-    "image_class": {
-      "accepted_node_types": [
-        "any"
-      ],
-      "description": "Implementations of the custom classification models",
-      "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.image]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "examples.simple.classification.cust.image_class",
-        "ImageClassificationStrategy"
-      ],
+     "image_class": {
+       "accepted_node_types": [
+         "any"
+       ],
+       "description": "Implementations of the custom classification models",
+       "forbidden_node_types": "[]",
+       "input_type": "[DataTypesEnum.image]",
+       "output_type": "[DataTypesEnum.table]",
+       "strategies": [
+         "examples.simple.classification.cust.image_class",
+         "ImageClassificationStrategy"
+       ],
       "tags": [
         "ml",
         "custom"
