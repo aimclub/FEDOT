@@ -16,6 +16,8 @@ class ParametersChanger:
     :param current_params: current parameters value
     """
 
+    custom_search_space = None
+
     def __init__(self, operation_name, current_params):
         self.operation_name = operation_name
         self.current_params = current_params
@@ -25,7 +27,8 @@ class ParametersChanger:
         """ Function return a dictionary with new parameters values """
 
         # Get available parameters for operation
-        params_list = PipelineSearchSpace().get_parameters_for_operation(self.operation_name)
+        params_list = \
+            PipelineSearchSpace(ParametersChanger.custom_search_space).get_parameters_for_operation(self.operation_name)
 
         if not params_list:
             params_dict = None
