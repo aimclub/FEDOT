@@ -120,7 +120,9 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
-            raise ValueError(f"Window size is to low {self.window_size}. It should be greater")
+            self.log.info((f"Warning: window size of lagged transformation was changed "
+                           f"from {self.params.get('window_size')} to {self.window_size_minimum}"))
+            self.params.update(window_size=self.window_size_minimum)
 
     def _update_column_types(self, output_data: OutputData):
         """Update column types after lagged transformation. All features becomes ``float``
