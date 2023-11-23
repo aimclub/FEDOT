@@ -14,6 +14,7 @@ from examples.simple.classification.classification_pipelines import cnn_composit
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -86,6 +87,9 @@ def run_image_classification_problem(train_dataset: tuple,
     task = Task(TaskTypesEnum.classification)
 
     setup_repository()
+    OperationParameters.custom_default_params_path = Path(fedot_project_root(),
+                                                          'examples', 'simple', 'classification', 'cust',
+                                                          'my_default_operation_params.json')
 
     x_train, y_train = train_dataset[0], train_dataset[1]
     x_test, y_test = test_dataset[0], test_dataset[1]

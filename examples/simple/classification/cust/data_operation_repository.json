@@ -141,6 +141,12 @@
       "tags": [
         "filtering"
       ]
+    },
+    "yet_anothe_filt": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
     }
   }
 }

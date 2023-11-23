@@ -92,5 +92,8 @@
   },
   "fast_ica": {
     "whiten": "unit-variance"
+  },
+  "gamma_filt": {
+    "a": "42"
   }
 }

@@ -18,6 +18,8 @@ class OperationParameters:
 
     """
 
+    custom_default_params_path = 'default_operation_params.json'
+
     def __init__(self, **parameters):
         self._parameters = parameters
         self._changed_keys: list = []
@@ -65,5 +67,5 @@ def get_default_params(operation_type: str) -> dict:
 
     :return: default repository parameters for the model name
     """
-    with DefaultOperationParamsRepository() as default_params_repo:
+    with DefaultOperationParamsRepository(OperationParameters.custom_default_params_path) as default_params_repo:
         return default_params_repo.get_default_params_for_operation(operation_type)
