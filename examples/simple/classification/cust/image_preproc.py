@@ -31,7 +31,9 @@ class ImagePreprocessingStrategy(EvaluationStrategy):
 
     _operations_by_types = {
         'gamma_filt': GammaFiltImplementation,
-        'negamma_filt': GammaFiltImplementation
+        'negamma_filt': GammaFiltImplementation,
+        'yet_anothe_filt': GammaFiltImplementation
+
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
