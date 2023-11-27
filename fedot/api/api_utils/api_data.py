@@ -133,7 +133,7 @@ class ApiDataProcessor:
     def fit_transform(self, train_data: InputData) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(sys.getsizeof(train_data))
+        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -144,7 +144,7 @@ class ApiDataProcessor:
         train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(sys.getsizeof(train_data))
+        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -153,7 +153,7 @@ class ApiDataProcessor:
 
         return train_data
 
-    def transform(self, test_data: InputData) -> InputData:
+    def transform(self, test_data: InputData, current_pipeline) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
         memory_usage = convert_memory_size(sys.getsizeof(test_data))
@@ -163,8 +163,8 @@ class ApiDataProcessor:
             f'Test Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
 
         test_data = self.preprocessor.obligatory_prepare_for_predict(data=test_data)
-        test_data = self.preprocessor.optional_prepare_for_predict(pipeline=Pipeline(), data=test_data)
-        test_data = self.preprocessor.convert_indexes_for_predict(pipeline=Pipeline(), data=test_data)
+        test_data = self.preprocessor.optional_prepare_for_predict(pipeline=current_pipeline, data=test_data)
+        test_data = self.preprocessor.convert_indexes_for_predict(pipeline=current_pipeline, data=test_data)
         test_data = self.preprocessor.update_indices_for_time_series(test_data)
         test_data.supplementary_data.is_auto_preprocessed = True
 

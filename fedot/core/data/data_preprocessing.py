@@ -98,15 +98,16 @@ def data_has_categorical_features(data: InputData) -> bool:
     if data.data_type is not DataTypesEnum.table:
         return False
 
-    column_type_ids = data.supplementary_data.col_type_ids['features']
-    cat_ids, non_cat_ids = find_categorical_columns(data.features, column_type_ids)
-    data_has_categorical_columns = len(cat_ids) > 0
+    feature_type_ids = data.supplementary_data.col_type_ids['features']
+    cat_ids, non_cat_ids = find_categorical_columns(data.features, feature_type_ids)
 
     data.numerical_idx = non_cat_ids
     data.categorical_idx = cat_ids
-    data.categorical_features = data.subset_features(cat_ids).features
 
-    return data_has_categorical_columns
+    if len(cat_ids) > 0:
+        data.categorical_features = data.subset_features(cat_ids).features
+
+    return bool(cat_ids)
 
 
 def data_has_text_features(data: InputData) -> bool:

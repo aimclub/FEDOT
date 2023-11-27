@@ -211,7 +211,9 @@ class BasePreprocessor(ABC):
 
     @staticmethod
     def merge_preprocessors(api_preprocessor: 'BasePreprocessor',
-                            pipeline_preprocessor: 'BasePreprocessor') -> 'BasePreprocessor':
+                            pipeline_preprocessor: 'BasePreprocessor',
+                            use_input_preprocessing: bool,
+                            ) -> 'BasePreprocessor':
         """
         Combines two preprocessor's objects.
 
@@ -222,11 +224,32 @@ class BasePreprocessor(ABC):
         Returns:
             merged preprocessor
         """
-        # Take all obligatory data preprocessing from API
-        new_data_preprocessor = api_preprocessor
+        # If was used auto preprocessor
+        if use_input_preprocessing:
+            # Take all obligatory data preprocessing from obtained pipelines
+            new_data_preprocessor = pipeline_preprocessor
 
-        # Update optional preprocessing (take it from obtained pipeline)
-        if not new_data_preprocessor.features_encoders:
-            # Store features encoder from obtained pipeline because in API there are no encoding
-            new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
+            # Update optional preprocessing (take it from API preprocessor)
+            if not new_data_preprocessor.features_encoders:
+                # Store features encoder from API preprocessor because there are no encoding in obtained pipelines
+                new_data_preprocessor.features_encoders = api_preprocessor.features_encoders
+
+            if not new_data_preprocessor.features_imputers:
+                # Same with Nan's imputers
+                new_data_preprocessor.features_imputers = api_preprocessor.features_imputers
+
+        # If was used pipelines preprocessors
+        else:
+            # Take all obligatory data preprocessing from API
+            new_data_preprocessor = api_preprocessor
+
+            # Update optional preprocessing (take it from obtained pipeline)
+            if not new_data_preprocessor.features_encoders:
+                # Store features encoder from obtained pipeline because in API there are no encoding
+                new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
+
+            if not new_data_preprocessor.features_imputers:
+                # Same with Nan's imputers
+                new_data_preprocessor.features_imputers = pipeline_preprocessor.features_imputers
+
         return new_data_preprocessor

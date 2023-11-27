@@ -86,7 +86,6 @@ class Fedot:
                  logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
-                 auto_preprocessing: bool = False,
                  **composer_tuner_params
                  ):
 
@@ -102,7 +101,6 @@ class Fedot:
 
         self.api_composer = ApiComposer(self.params, self.metrics)
 
-        self.auto_preprocessing = auto_preprocessing
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
@@ -158,7 +156,7 @@ class Fedot:
 
         self._init_remote_if_necessary()
 
-        if self.auto_preprocessing:
+        if self.params.get('use_input_preprocessing'):
             self.train_data = self.data_processor.fit_transform(self.train_data)
 
         if predefined_model is not None:
@@ -180,9 +178,12 @@ class Fedot:
             else:
                 self.log.message('Already fitted initial pipeline is used')
 
-        # Store data encoder in the pipeline if it is required
+        # Merge API & pipelines encoders if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            self.data_processor.preprocessor, self.current_pipeline.preprocessor)
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_input_preprocessing=self.params.get('use_input_preprocessing')
+        )
 
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
 
@@ -263,8 +264,8 @@ class Fedot:
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
 
-        if self.auto_preprocessing:
-            self.test_data = self.data_processor.transform(self.test_data)
+        if self.params.get('use_input_preprocessing'):
+            self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,
