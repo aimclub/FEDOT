@@ -86,6 +86,7 @@ class Fedot:
                  logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
+                 auto_preprocessing: bool = False,
                  **composer_tuner_params
                  ):
 
@@ -101,6 +102,7 @@ class Fedot:
 
         self.api_composer = ApiComposer(self.params, self.metrics)
 
+        self.auto_preprocessing = auto_preprocessing
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,
                                                use_input_preprocessing=self.params.get('use_input_preprocessing'))
@@ -155,6 +157,9 @@ class Fedot:
             recommendations_for_data = None
 
         self._init_remote_if_necessary()
+
+        if self.auto_preprocessing:
+            self.train_data = self.data_processor.fit_transform(self.train_data)
 
         if predefined_model is not None:
             # Fit predefined model and return it without composing
@@ -257,6 +262,9 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
+
+        if self.auto_preprocessing:
+            self.test_data = self.data_processor.transform(self.test_data)
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,

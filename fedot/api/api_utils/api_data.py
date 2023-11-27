@@ -1,7 +1,10 @@
+import sys
+from datetime import datetime
 from typing import Dict, Union
 from typing import Optional
 
 import numpy as np
+from golem.core.log import default_log
 
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
@@ -10,6 +13,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import convert_memory_size
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
@@ -38,6 +42,8 @@ class ApiDataProcessor:
             # to encode features using label encoder). Parameters for transformation provided also
             self._recommendations = {'cut': self.preprocessor.cut_dataset,
                                      'label_encoded': self.preprocessor.label_encoding_for_fit}
+
+        self.log = default_log(self)
 
     def define_data(self,
                     features: FeaturesType,
@@ -123,3 +129,51 @@ class ApiDataProcessor:
             for name, rec in recommendations.items():
                 # Apply desired preprocessing function
                 self._recommendations[name](input_data, *rec.values())
+
+    def fit_transform(self, train_data: InputData) -> InputData:
+        start_time = datetime.now()
+        self.log.message('Preprocessing data')
+        memory_usage = convert_memory_size(sys.getsizeof(train_data))
+        features_shape = train_data.features.shape
+        target_shape = train_data.target.shape
+        self.log.message(
+            f'Train Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
+
+        train_data = self.preprocessor.obligatory_prepare_for_fit(data=train_data)
+        train_data = self.preprocessor.optional_prepare_for_fit(pipeline=Pipeline(), data=train_data)
+        train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
+        train_data.supplementary_data.is_auto_preprocessed = True
+
+        memory_usage = convert_memory_size(sys.getsizeof(train_data))
+        features_shape = train_data.features.shape
+        target_shape = train_data.target.shape
+        self.log.message(
+            f'Train Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
+        self.log.message(f'Data preprocessing runtime = {datetime.now() - start_time}')
+
+        return train_data
+
+    def transform(self, test_data: InputData) -> InputData:
+        start_time = datetime.now()
+        self.log.message('Preprocessing data')
+        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        features_shape = test_data.features.shape
+        target_shape = test_data.target.shape
+        self.log.message(
+            f'Test Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
+
+        test_data = self.preprocessor.obligatory_prepare_for_predict(data=test_data)
+        test_data = self.preprocessor.optional_prepare_for_predict(pipeline=Pipeline(), data=test_data)
+        test_data = self.preprocessor.convert_indexes_for_predict(pipeline=Pipeline(), data=test_data)
+        test_data = self.preprocessor.update_indices_for_time_series(test_data)
+        test_data.supplementary_data.is_auto_preprocessed = True
+
+        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        features_shape = test_data.features.shape
+        target_shape = test_data.target.shape
+        self.log.message(
+            f'Test Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
+        self.log.message(f'Data preprocessing runtime = {datetime.now() - start_time}')
+
+        return test_data
+

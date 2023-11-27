@@ -29,6 +29,8 @@ class SupplementaryData:
     non_int_idx: Optional[list] = None
     # Dictionary with features and target column type numeric identificators
     col_type_ids: Optional[Dict[str, np.ndarray]] = None
+    # Was the data preprocessed before composer
+    is_auto_preprocessed: bool = False
 
     @property
     def compound_mask(self):
