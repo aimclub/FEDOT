@@ -150,7 +150,7 @@ class PipelineSearchSpace(SearchSpace):
                 'min_child_weight': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 21],
-                    'type': 'discrete'},
+                    'type': 'discrete'}
             },
             'xgboost': {
                 'max_depth': {
@@ -168,7 +168,11 @@ class PipelineSearchSpace(SearchSpace):
                 'min_child_weight': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 21],
-                    'type': 'discrete'}
+                    'type': 'discrete'},
+                'booster': {
+                    'hyperopt-dist': hp.choice,
+                    'samplin-score': [['gbtree', 'dart', 'gblinear']],
+                    'type': 'categorical'}
             },
             'svr': {
                 'C': {
