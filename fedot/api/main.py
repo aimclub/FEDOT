@@ -142,7 +142,7 @@ class Fedot:
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self.params.update_available_operations_by_preset(self.train_data)
 
-        if self.params.get('use_input_preprocessing'):
+        if self.params.get('use_auto_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations_for_data, recommendations_for_params = \
                 self.data_analyser.give_recommendations(input_data=self.train_data,
@@ -156,7 +156,7 @@ class Fedot:
 
         self._init_remote_if_necessary()
 
-        if self.params.get('use_input_preprocessing'):
+        if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
             self.train_data = self.data_processor.fit_transform(self.train_data)
 
         if predefined_model is not None:
@@ -182,7 +182,7 @@ class Fedot:
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             api_preprocessor=self.data_processor.preprocessor,
             pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_input_preprocessing=self.params.get('use_input_preprocessing')
+            use_input_preprocessing=self.params.get('use_auto_preprocessing')
         )
 
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
@@ -264,7 +264,7 @@ class Fedot:
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
 
-        if self.params.get('use_input_preprocessing'):
+        if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
             self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,

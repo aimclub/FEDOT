@@ -16,7 +16,7 @@ def data_with_only_categorical_features():
     features = np.array([["'a'", "0", "1"],
                          ["'b'", "1", "0"],
                          ["'c'", "1", "0"]], dtype=object)
-    input_data = InputData(idx=[0, 1, 2], features=features,
+    input_data = InputData(idx=np.array([0, 1, 2]), features=features,
                            target=np.array([0, 1, 2]),
                            task=task, data_type=DataTypesEnum.table,
                            supplementary_data=supp_data)
@@ -41,7 +41,7 @@ def data_with_too_much_nans():
                          [9, '1', np.inf],
                          [8, np.nan, np.inf]], dtype=object)
     target = np.array([[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -61,7 +61,7 @@ def data_with_spaces_and_nans_in_features():
                          ['0  ', '  1'],
                          ['1 ', '  0']], dtype=object)
     target = np.array([[0], [1], [2], [3], [4], [5]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -78,7 +78,7 @@ def data_with_nans_in_target_column():
                          [3, 4],
                          [1, 3]])
     target = np.array([[0], [1], [np.nan], [np.nan], [4], [5]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -98,7 +98,7 @@ def data_with_nans_in_multi_target():
                          [3, 4],
                          [1, 3]])
     target = np.array([[0, 2], [1, 3], [np.nan, np.nan], [3, np.nan], [4, 4], [5, 6]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -123,7 +123,7 @@ def data_with_categorical_target(with_nan: bool = False):
         target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
     else:
         target = np.array(['blue', 'da', 'ba', 'di'], dtype=str)
-    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -140,7 +140,7 @@ def data_with_text_features():
                         dtype=object)
 
     target = np.array([[0], [1], [0], [1]])
-    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.text,
                             supplementary_data=SupplementaryData())
 
@@ -159,7 +159,7 @@ def data_with_pseudo_text_features():
                         dtype=object)
 
     target = np.array([[0], [1], [0], [1], [0]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
@@ -177,7 +177,7 @@ def data_with_text_features_and_nans():
                         dtype=object)
 
     target = np.array([[0], [1], [0], [1], [0]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
+    train_input = InputData(idx=np.array([0, 1, 2, 3, 4]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.text,
                             supplementary_data=SupplementaryData())
 
@@ -250,3 +250,25 @@ def test_correct_api_dataset_with_pseudo_text_preprocessing():
     node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
     assert not any('text' in current_tags for current_tags in node_tags)
     assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]
+
+
+def test_auto_preprocessing_mode():
+    funcs = [data_with_only_categorical_features, data_with_too_much_nans,
+             data_with_spaces_and_nans_in_features, data_with_nans_in_target_column,
+             data_with_nans_in_multi_target]
+
+    # Check for all datasets
+    for data_generator in funcs:
+        input_data = data_generator()
+        single_processing = Fedot(problem='regression', use_auto_preprocessing=True)
+        multi_processing = Fedot(problem='regression', use_auto_preprocessing=False)
+
+        pipeline_single = single_processing.fit(input_data, predefined_model='auto')
+        pipeline_multi = multi_processing.fit(input_data, predefined_model='auto')
+
+        prediction_single = pipeline_single.predict(input_data)
+        prediction_multi = pipeline_multi.predict(input_data)
+
+        assert prediction_single.features.shape == prediction_multi.features.shape
+        assert (prediction_single.features == prediction_single.features).all()
+        assert (prediction_single.predict == prediction_single.predict).all()

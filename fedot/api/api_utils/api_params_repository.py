@@ -18,7 +18,7 @@ class ApiParamsRepository:
 
     COMPOSER_REQUIREMENTS_KEYS = {'max_arity', 'max_depth', 'num_of_generations',
                                   'early_stopping_iterations', 'early_stopping_timeout',
-                                  'parallelization_mode', 'use_input_preprocessing',
+                                  'parallelization_mode', 'use_input_preprocessing', 'use_auto_preprocessing',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
                                   'keep_history', 'history_dir', 'cv_folds'}
 
@@ -62,6 +62,7 @@ class ApiParamsRepository:
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
+            use_auto_preprocessing=False,
             use_meta_rules=False,
             cache_dir=default_fedot_data_dir(),
             keep_history=True,
