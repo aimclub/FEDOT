@@ -1,12 +1,11 @@
-from numbers import Real
-from typing import Callable, Union, TypeVar
+from typing import Dict, Optional, Protocol, TypeVar, Union
 
-from golem.core.dag.graph import Graph
 from golem.utilities.data_structures import ComparableEnum as Enum
 
-from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
-                                         MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MASE)
+from fedot.core.composer.metrics import (Accuracy, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE, MSLE, Metric,
+                                         NodeNum, Precision, R2, RMSE, ROCAUC, SMAPE, Silhouette, StructuralComplexity)
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 class MetricsEnum(Enum):
@@ -18,8 +17,24 @@ class MetricsEnum(Enum):
         return value in cls._value2member_map_
 
 
-G = TypeVar('G', bound=Graph, covariant=True)
-MetricCallable = Callable[[G], Real]
+NumberType = Union[int, float, complex]
+PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
+
+
+class QualityMetricCallable(Protocol):
+    def __self__(self) -> Metric: ...
+
+    def __call__(self, pipeline: PipelineType, reference_data: InputData,
+                 validation_blocks: Optional[int] = None) -> NumberType: ...
+
+
+class ComplexityMetricCallable(Protocol):
+    def __self__(self) -> Metric: ...
+
+    def __call__(self, pipeline: PipelineType) -> NumberType: ...
+
+
+MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
 MetricType = Union[MetricCallable, MetricsEnum]
 
 
@@ -70,7 +85,7 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
 
 
 class MetricsRepository:
-    _metrics_implementations = {
+    _metrics_implementations: Dict[MetricsEnum, MetricCallable] = {
         # classification
         ClassificationMetricsEnum.ROCAUC: ROCAUC.get_value,
         ClassificationMetricsEnum.ROCAUC_penalty: ROCAUC.get_value_with_penalty,
@@ -102,7 +117,7 @@ class MetricsRepository:
     }
 
     @staticmethod
-    def metric_by_id(metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
+    def metric_by_id(metric_id: MetricsEnum, default_callable: Optional[MetricCallable] = None) -> MetricCallable:
         return MetricsRepository._metrics_implementations.get(metric_id, default_callable)
 
     @staticmethod
