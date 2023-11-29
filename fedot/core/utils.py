@@ -75,14 +75,6 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
-def make_pipeline_generator(pipeline):
-    visited_nodes = set()
-    for node in pipeline.nodes:
-        if node.uid not in visited_nodes:
-            visited_nodes.add(node.uid)
-            yield node
-
-
 def set_random_seed(seed: Optional[int]):
     """ Sets random seed for evaluation of models"""
     if seed is not None:

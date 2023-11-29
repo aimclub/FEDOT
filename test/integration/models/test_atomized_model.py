@@ -11,7 +11,7 @@ from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import fedot_project_root, make_pipeline_generator
+from fedot.core.utils import fedot_project_root
 from test.integration.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
@@ -97,7 +97,7 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
 
 def get_some_atomized_nodes():
     pipeline = create_pipeline_with_several_nested_atomized_model()
-    return [node for node in make_pipeline_generator(pipeline) if isinstance(node.operation, AtomizedModel)]
+    return [node for node in pipeline.nodes if isinstance(node.operation, AtomizedModel)]
 
 
 def create_input_data():

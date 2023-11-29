@@ -12,7 +12,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
-from fedot.core.utils import make_pipeline_generator
 
 
 class AtomizedModel(Operation):
@@ -62,7 +61,7 @@ class AtomizedModel(Operation):
         root_node = self.pipeline.root_node
 
         def extract_metadata_from_pipeline(attr_name: str, node_filter: Optional[Callable] = None):
-            nodes_to_extract_metadata = make_pipeline_generator(self.pipeline)
+            nodes_to_extract_metadata = self.pipeline.nodes
             if node_filter is not None:
                 nodes_to_extract_metadata = [node for node in nodes_to_extract_metadata if node_filter(node)]
             data = [getattr(node.operation.metadata, attr_name) for node in nodes_to_extract_metadata]
@@ -89,7 +88,7 @@ class AtomizedModel(Operation):
         operation_depth = self.pipeline.depth
         operation_id = self.pipeline.root_node.descriptive_id
         operation_types = map(lambda node: node.operation.operation_type,
-                              make_pipeline_generator(self.pipeline))
+                              self.pipeline.nodes)
         operation_types_dict = dict(Counter(operation_types))
         return f'{operation_type}_length:{operation_length}_depth:{operation_depth}' \
                f'_types:{operation_types_dict}_id:{operation_id}'
