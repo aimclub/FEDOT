@@ -7,6 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
     atomized_model_type
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import make_pipeline_generator
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -135,20 +136,11 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
 
 def is_pipeline_contains_ts_operations_in_correct_order(pipeline: Pipeline):
     """ Function checks is the node has parents with correct data types """
-    visited_nodes = set()
-    to_look = [pipeline.root_node]
-    while to_look:
-        node = to_look.pop()
-        if node.uid in visited_nodes:
-            continue
-        visited_nodes.add(node.uid)
-
-        if not node.nodes_from:
-            # if it is primary node
+    for node in make_pipeline_generator(pipeline):
+        if node.is_primary:
             types_are_correct = DataTypesEnum.ts in node.operation.metadata.input_types
         else:
             # check that parent output data types are the same and match to node input data type
-            to_look.extend(node.nodes_from)
             types = set(node.operation.metadata.input_types)
             for _node in node.nodes_from:
                 types &= set(_node.operation.metadata.output_types)
