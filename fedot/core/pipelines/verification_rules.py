@@ -84,39 +84,6 @@ def has_correct_data_connections(pipeline: Pipeline):
     return True
 
 
-def is_pipeline_contains_ts_operations(pipeline: Pipeline):
-    """ Function checks is the model primary operations intended for time series
-    forecasting """
-    # check that primary nodes can get time series
-    if any(DataTypesEnum.ts not in node.operation.metadata.input_types
-           for node in pipeline.nodes
-           if not node.nodes_from):
-        raise ValueError(f'{ERROR_PREFIX} pipeline has primary node that is not intended for time series processing')
-
-    # check that there are correct data types for all nodes
-    visited_nodes = set()
-    to_look = [pipeline.root_node]
-    while to_look:
-        node = to_look.pop()
-        if node.uid in visited_nodes or not node.nodes_from:
-            continue
-
-        # check that parent output data types are the same and match to node input data type
-        types_from_parents = None
-        for _node in node.nodes_from:
-            if types_from_parents is None:
-                types_from_parents = set(_node.operation.metadata.output_types)
-            else:
-                types_from_parents &= set(_node.operation.metadata.output_types)
-        if len(types_from_parents) == 0 or len(set(node.operation.metadata.input_types) & types_from_parents) == 0:
-            raise ValueError(f'{ERROR_PREFIX} pipeline cannot be evaluated due to problem with data types')
-
-        visited_nodes.add(node.uid)
-        to_look.extend(node.nodes_from)
-
-    return True
-
-
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
     task = Task(TaskTypesEnum.ts_forecasting)
@@ -163,6 +130,32 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
         else:
             if current_operation in need_to_have_parent:
                 raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
+    return True
+
+
+def is_pipeline_contains_ts_operations_in_correct_order(pipeline: Pipeline):
+    """ Function checks is the node has parents with correct data types """
+    visited_nodes = set()
+    to_look = [pipeline.root_node]
+    while to_look:
+        node = to_look.pop()
+        if node.uid in visited_nodes:
+            continue
+        visited_nodes.add(node.uid)
+
+        if not node.nodes_from:
+            # if it is primary node
+            types_are_correct = DataTypesEnum.ts in node.operation.metadata.input_types
+        else:
+            # check that parent output data types are the same and match to node input data type
+            to_look.extend(node.nodes_from)
+            types = set(node.operation.metadata.input_types)
+            for _node in node.nodes_from:
+                types &= set(_node.operation.metadata.output_types)
+            types_are_correct = len(types) > 0
+
+        if not types_are_correct:
+            raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
 
