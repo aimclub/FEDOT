@@ -50,7 +50,6 @@
     "verbose": -1
   },
   "lagged": {
-    "window_size": 10,
     "stride": 1
   },
 

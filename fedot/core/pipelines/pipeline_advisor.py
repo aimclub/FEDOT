@@ -82,3 +82,9 @@ def check_for_specific_operations(operation_id: str):
             'exog_ts' in operation_id or 'custom' in operation_id):
         return True
     return False
+
+def check_for_need_lagged_operations(operation_id: str):
+    need_lagged_models = ['adareg', 'dtreg', 'lasso', 'rfr', 'ridge', 'sgdr', 'svr']
+    if operation_id in need_lagged_models:
+        return True
+    return False

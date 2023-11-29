@@ -524,10 +524,6 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [5, 500],
                     'type': 'discrete'},
-                'stride': {
-                    'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 100],
-                    'type': 'discrete'}
             },
             'sparse_lagged': {
                 'window_size': {

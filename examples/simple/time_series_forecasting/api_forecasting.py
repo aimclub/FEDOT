@@ -8,8 +8,11 @@ from matplotlib import pyplot as plt
 from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
+    LaggedImplementation
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from fedot.utilities.window_size_selector import WindowSizeSelector
@@ -65,7 +68,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     window_size = int(
         WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(train_data.features) * len(
             train_data.features) / 100)
-
+    with DefaultOperationParamsRepository() as default_params_repo:
+        default_params_repo._repo['lagged']['window_size'] = window_size
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
                                    TsForecastingParams(forecast_length=horizon)).task_params,
@@ -78,9 +82,9 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                       'ridge').build())
 
     model.fit(train_data)
-
+    model.current_pipeline.show()
     pred_fedot = model.forecast(test_data)
-
+    print(window_size)
     plt.plot(train_data.idx, train_data.features, label='features')
     plt.plot(test_data.idx, test_data.target, label='target')
     plt.plot(test_data.idx, pred, label='(lagged->topological_extractor)->ridge')

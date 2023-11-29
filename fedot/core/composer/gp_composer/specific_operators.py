@@ -1,7 +1,12 @@
 from random import choice, random
 from typing import List
 
+import numpy.random
+from golem.core.adapter import register_native
 from golem.core.optimisers.genetic.operators.base_mutations import get_mutation_prob
+from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.optimization_parameters import GraphRequirements
+from golem.core.optimisers.optimizer import GraphGenerationParams, AlgorithmParameters
 
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -32,6 +37,50 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params
             except Exception as ex:
                 pipeline.log.error(ex)
     return pipeline
+
+@register_native
+def add_lagged_branch_mutation(pipeline: Pipeline,
+                        requirements: GraphRequirements,
+                        graph_gen_params: GraphGenerationParams,
+                        parameters: AlgorithmParameters
+                        ) -> OptGraph:
+    """
+    Add new node between two sequential existing modes
+
+    :param graph: graph to mutate
+    """
+
+    if pipeline.depth >= requirements.max_depth+1:
+        # add mutation is not possible
+        return pipeline
+
+    node_to_mutate = choice(pipeline.nodes)
+    new_node = graph_gen_params.node_factory.get_required_lagged_node(node_to_mutate)
+    if not new_node:
+        # there is no possible operators
+        return pipeline
+    if node_to_mutate.nodes_from:
+        node_to_mutate.nodes_from.append(new_node)
+    else:
+        node_to_mutate.nodes_from = [new_node]
+    pipeline.nodes.append(new_node)
+
+    lagged_node = OptNode(content={'name': 'lagged'})
+    pipeline.nodes.append(lagged_node)
+    if numpy.random.random() > 0.7:
+        topo_node = OptNode(content={'name': 'topological_features'})
+        pipeline.nodes.append(topo_node)
+        new_node.nodes_from = [topo_node]
+        topo_node.nodes_from = [lagged_node]
+    else:
+        new_node.nodes_from = [lagged_node]
+
+
+    return pipeline
+
+
+    return result
+
 
 
 def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwargs) -> Pipeline:

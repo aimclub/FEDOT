@@ -24,6 +24,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
+        self.should_find_w_s = self.params.get('window_size') is None
         # Define logger object
         self.log = default_log(self)
 
@@ -32,12 +33,8 @@ class LaggedImplementation(DataOperationImplementation):
         window_size = self.params.get('window_size')
         if window_size:
             window_size = round(window_size)
+        print(window_size)
         return window_size
-
-    @property
-    def stride(self) -> Optional[int]:
-        stride = self.params.get('stride')
-        return stride
 
     @property
     def n_components(self) -> Optional[int]:
@@ -85,6 +82,14 @@ class LaggedImplementation(DataOperationImplementation):
         Returns:
             output data with transformed features table
         """
+        if self.should_find_w_s:
+            new_window_size = int(
+                WindowSizeSelector(method='hac', window_range=(5, 25)).get_window_size(input_data.features) * len(
+                    input_data.features) / 100)
+            if new_window_size < self.window_size_minimum:
+                new_window_size = self.window_size_minimum
+            self.params.update(window_size=new_window_size)
+
         new_input_data = copy(input_data)
         forecast_length = new_input_data.task.task_params.forecast_length
 
@@ -102,6 +107,7 @@ class LaggedImplementation(DataOperationImplementation):
         new_input_data.target = new_target
         new_input_data.idx = new_idx
         output_data = self._convert_to_output(new_input_data,
+
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
         self._update_column_types(output_data)
@@ -166,8 +172,7 @@ class LaggedImplementation(DataOperationImplementation):
             new_idx, transformed_cols = ts_to_table(idx=old_idx,
                                                     time_series=current_ts,
                                                     window_size=self.window_size,
-                                                    is_lag=True,
-                                                    stride=self.stride)
+                                                    is_lag=True)
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
@@ -329,8 +334,7 @@ class LaggedImplementation(DataOperationImplementation):
         new_idx, transformed_cols = ts_to_table(idx=idx,
                                                 time_series=time_series,
                                                 window_size=self.window_size,
-                                                is_lag=True,
-                                                stride=self.stride)
+                                                is_lag=True)
         # Sparsing
         transformed_cols = _sparse_matrix(self.log,
                                           transformed_cols,
@@ -723,14 +727,13 @@ class CutImplementation(DataOperationImplementation):
         return input_copy
 
 
-def ts_to_table(idx, time_series: np.array, window_size: int, stride: int = 1, is_lag: bool = False):
+def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool = False):
     """Method convert time series to lagged form.
 
     Args:
         idx: the indices of the time series to convert
         time_series: source time series
         window_size: size of sliding window, which defines lag
-        stride: stride parameter for memory and time saving
         is_lag: is function used for lagged transformation.
             ``False`` needs to convert one dimensional output to lagged form.
 
@@ -739,10 +742,10 @@ def ts_to_table(idx, time_series: np.array, window_size: int, stride: int = 1, i
         ``features_columns`` -> lagged time series feature table
     """
     features_columns = np.array([time_series[i:window_size + i]
-                                 for i in range(0, time_series.shape[0] - window_size + 1, stride)])
+                                 for i in range(time_series.shape[0] - window_size + 1)])
 
     if is_lag:
-        updated_idx = np.concatenate([idx[window_size::stride]])
+        updated_idx = np.concatenate([idx[window_size:], idx[-1:]])
     else:
         updated_idx = idx[:len(idx) - window_size + 1]
 
@@ -826,6 +829,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
             - ``updated_target`` -> lagged target table
 
     """
+    # Remove last repeated element
+    idx = idx[: -1]
 
     # Update target (clip first "window size" values)
     # be careful, some implementation may be dramatically slow
@@ -834,23 +839,15 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     ts_target = target[row_nums]
 
     # Multi-target transformation
-    updated_idx = idx
     if forecast_length > 1:
-        updated_target = []
-        for i in row_nums:
-            t = target[i:forecast_length + i]
-            if t.shape[0] < forecast_length:
-                break
-            updated_target.append(t)
-        if len(features_columns.shape) > 1:
-            updated_features = features_columns[:len(updated_target), :]
-        else:
-            updated_features = features_columns[:len(updated_target)]
-        updated_idx = idx[:len(updated_target)]
-        updated_target = np.array(updated_target)
+        updated_target = np.array([ts_target[i:forecast_length + i]
+                                   for i in range(ts_target.shape[0] - forecast_length + 1)])
 
+        updated_idx = idx[: -forecast_length + 1]
+        updated_features = features_columns[: -forecast_length]
     else:
         # Forecast horizon equals to 1
+        updated_idx = idx
         updated_features = features_columns[: -1]
         updated_target = np.reshape(ts_target, (-1, 1))
 

@@ -4,7 +4,8 @@ from typing import Optional, List
 from golem.core.optimisers.graph import OptNode
 from golem.core.optimisers.opt_node_factory import OptNodeFactory
 
-from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor, check_for_specific_operations
+from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor, check_for_specific_operations, \
+    check_for_need_lagged_operations
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.utilities.custom_errors import MethodNotImplementError
@@ -51,6 +52,12 @@ class PipelineOptNodeFactory(OptNodeFactory):
         candidates = self.filter_specific_candidates(candidates)
         return self._return_node(candidates)
 
+    def get_required_lagged_node(self, node: OptNode
+                                 ):
+        candidates = self.graph_model_repository.get_operations(is_primary=False)
+        candidates = self.filter_lagged_candidates(candidates)
+        return self._return_node(candidates)
+
     @staticmethod
     def _return_node(candidates) -> Optional[OptNode]:
         if not candidates:
@@ -59,6 +66,14 @@ class PipelineOptNodeFactory(OptNodeFactory):
 
     @staticmethod
     def filter_specific_candidates(candidates: list):
+        return sorted(list(filter(lambda x: not check_for_specific_operations(x), candidates)))
+
+    @staticmethod
+    def filter_lagged_candidates(candidates: list):
+        return sorted(list(filter(lambda x: check_for_need_lagged_operations(x), candidates)))
+
+    @staticmethod
+    def filter_nodes_by_tag(candidates: list):
         return sorted(list(filter(lambda x: not check_for_specific_operations(x), candidates)))
 
     def get_all_available_operations(self) -> Optional[List[str]]:

@@ -1,10 +1,12 @@
 import datetime
+from functools import partial
 from typing import Sequence
 
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation, \
+    add_lagged_branch_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
@@ -133,7 +135,7 @@ class ApiParamsRepository:
         #      Also boosting mutation does not work by it own.
         if task_type == TaskTypesEnum.ts_forecasting:
             # mutations.append(partial(boosting_mutation, params=params))
-            pass
+            mutations.append(add_lagged_branch_mutation)
         else:
             mutations.append(add_resample_mutation)
 
