@@ -1,6 +1,7 @@
 import os.path
 import sys
 from abc import abstractmethod
+from functools import wraps
 from pathlib import Path
 from uuid import uuid4
 
@@ -21,6 +22,7 @@ from fedot.utilities.debug import is_analytic_mode
 
 
 def from_maximised_metric(metric_func):
+    @wraps(metric_func)
     def wrapper(*args, **kwargs):
         return -metric_func(*args, **kwargs)
 
@@ -43,7 +45,7 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
         raise AbstractMethodNotImplementError
@@ -65,7 +67,7 @@ class QualityMetric:
         raise AbstractMethodNotImplementError
 
     @classmethod
-    def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
                   validation_blocks: int = None) -> float:
         metric = cls.default_value
         try:
@@ -95,7 +97,7 @@ class QualityMetric:
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: 'Pipeline', reference_data: InputData):
+    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData):
         """ Method prepares data for metric evaluation and perform simple validation """
         results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
@@ -129,7 +131,7 @@ class QualityMetric:
         return results, reference_data
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: 'Pipeline', reference_data: InputData,
+    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
                                validation_blocks: int = None) -> float:
         quality_metric = cls.get_value(pipeline, reference_data)
         structural_metric = StructuralComplexity.get_value(pipeline)
@@ -140,7 +142,7 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_prediction(pipeline: 'Pipeline', data: InputData, validation_blocks: int):
+    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int):
         """ Performs in-sample pipeline validation for time series prediction """
 
         horizon = int(validation_blocks * data.task.task_params.forecast_length)
@@ -159,6 +161,14 @@ class QualityMetric:
                                    task=data.task, target=actual_values, data_type=DataTypesEnum.ts)
 
         return reference_data, results
+
+    @staticmethod
+    def _get_least_frequent_val(array: np.ndarray):
+        """ Returns the least frequent value in a flattened numpy array. """
+        unique_vals, count = np.unique(np.ravel(array), return_counts=True)
+        least_frequent_idx = np.argmin(count)
+        least_frequent_val = unique_vals[least_frequent_idx]
+        return least_frequent_val
 
 
 class RMSE(QualityMetric):
@@ -214,16 +224,12 @@ class F1(QualityMetric):
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
-        n_classes = reference.num_classes
-        if n_classes > 2:
-            additional_params = {'average': F1.multiclass_averaging_mode}
+        if reference.num_classes == 2:
+            pos_label = QualityMetric._get_least_frequent_val(reference.target)
+            additional_params = dict(average=F1.binary_averaging_mode, pos_label=pos_label)
         else:
-            u, count = np.unique(np.ravel(reference.target), return_counts=True)
-            count_sort_ind = np.argsort(count)
-            pos_label = u[count_sort_ind[0]].item()
-            additional_params = {'average': F1.binary_averaging_mode, 'pos_label': pos_label}
-        return f1_score(y_true=reference.target, y_pred=predicted.predict,
-                        **additional_params)
+            additional_params = dict(average=F1.multiclass_averaging_mode)
+        return f1_score(y_true=reference.target, y_pred=predicted.predict, **additional_params)
 
 
 class MAE(QualityMetric):
@@ -259,15 +265,13 @@ class ROCAUC(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         n_classes = reference.num_classes
         if n_classes > 2:
-            additional_params = {'multi_class': 'ovr', 'average': 'macro'}
+            additional_params = dict(multi_class='ovr', average='macro')
         else:
-            additional_params = {}
+            additional_params = dict()
 
-        score = round(roc_auc_score(y_score=predicted.predict,
-                                    y_true=reference.target,
-                                    **additional_params), 3)
-
-        return score
+        return roc_auc_score(y_score=predicted.predict,
+                             y_true=reference.target,
+                             **additional_params)
 
     @staticmethod
     def roc_curve(target: np.ndarray, predict: np.ndarray, pos_label=None):
@@ -281,20 +285,19 @@ class ROCAUC(QualityMetric):
 
 class Precision(QualityMetric):
     output_mode = 'labels'
+    binary_averaging_mode = 'binary'
+    multiclass_averaging_mode = 'macro'
 
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
         n_classes = reference.num_classes
         if n_classes > 2:
-            return precision_score(y_true=reference.target, y_pred=predicted.predict)
+            additional_params = dict(average=Precision.multiclass_averaging_mode)
         else:
-            u, count = np.unique(np.ravel(reference.target), return_counts=True)
-            count_sort_ind = np.argsort(count)
-            pos_label = u[count_sort_ind[0]].item()
-            additional_params = {'pos_label': pos_label}
-            return precision_score(y_true=reference.target, y_pred=predicted.predict,
-                                   **additional_params)
+            pos_label = QualityMetric._get_least_frequent_val(reference.target)
+            additional_params = dict(pos_label=pos_label, average=Precision.binary_averaging_mode)
+        return precision_score(y_true=reference.target, y_pred=predicted.predict, **additional_params)
 
 
 class Logloss(QualityMetric):
@@ -326,19 +329,19 @@ class Silhouette(QualityMetric):
 
 class StructuralComplexity(Metric):
     @classmethod
-    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
         norm_constant = 30
         return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
 class NodeNum(Metric):
     @classmethod
-    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
         norm_constant = 10
         return pipeline.length / norm_constant
 
 
 class ComputationTime(Metric):
     @classmethod
-    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
         return pipeline.computation_time
