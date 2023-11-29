@@ -100,7 +100,7 @@ def is_pipeline_contains_ts_operations(pipeline: Pipeline):
     if len(set(operations_in_pipeline) - set(ts_operations)) == 0:
         return True
     else:
-        raise ValueError(f'{ERROR_PREFIX} pipeline not contains operations for time series processing')
+        raise ValueError(f'{ERROR_PREFIX} pipeline has primary node that is not intended for time series processing')
 
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
