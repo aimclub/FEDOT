@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricCallable, MetricsEnum
 from fedot.core.repository.tasks import TaskParams
 
 
@@ -274,7 +274,7 @@ class FedotBuilder:
 
     def setup_pipeline_evaluation(
             self,
-            metric: Union[str, Callable, MetricsEnum, List[Union[str, Callable, MetricsEnum]]] = DEFAULT_VALUE,
+            metric: Union[str, MetricCallable, MetricsEnum, List[Union[str, MetricCallable, MetricsEnum]]] = DEFAULT_VALUE,
             cv_folds: int = DEFAULT_VALUE,
             max_pipeline_fit_time: Optional[int] = DEFAULT_VALUE,
             collect_intermediate_metric: bool = DEFAULT_VALUE,

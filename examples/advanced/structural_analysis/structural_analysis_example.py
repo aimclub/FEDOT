@@ -1,15 +1,15 @@
 import os
 from copy import deepcopy
 from functools import partial
+from typing import Callable, Dict, List, Optional, Tuple
 
 from golem.core.dag.graph_verifier import GraphVerifier
-from golem.core.dag.verification_rules import has_one_root, has_no_cycle, has_no_isolated_components, \
-    has_no_isolated_nodes, has_no_self_cycled_nodes
+from golem.core.dag.verification_rules import (has_no_cycle, has_no_isolated_components, has_no_isolated_nodes,
+                                               has_no_self_cycled_nodes, has_one_root)
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.objective import Objective
 from golem.structural_analysis.graph_sa.graph_structural_analysis import GraphStructuralAnalysis
 from golem.structural_analysis.graph_sa.sa_requirements import StructuralAnalysisRequirements
-from typing import Callable, Dict, Any, Optional, Tuple, List
 
 from examples.advanced.structural_analysis.dataset_access import get_scoring_data
 from examples.advanced.structural_analysis.pipelines_access import get_three_depth_manual_class_pipeline
@@ -20,8 +20,9 @@ from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, QualityMetricsEnum, \
-    MetricsRepository
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricCallable,
+                                                              ComplexityMetricsEnum, MetricsRepository,
+                                                              QualityMetricCallable, QualityMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.project_import_export import DEFAULT_PATH
 
@@ -31,17 +32,18 @@ class SAObjective(Objective):
     This objective has to evaluate pipeline in __call__ method and have 'metrics' field to identify
     which metrics are optimized.
     """
+
     def __init__(self,
                  objective: Callable,
-                 quality_metrics: Dict[Any, Callable],
-                 complexity_metrics: Optional[Dict[Any, Callable]] = None,
+                 quality_metrics: Dict[QualityMetricsEnum, QualityMetricCallable],
+                 complexity_metrics: Optional[Dict[ComplexityMetricsEnum, ComplexityMetricCallable]] = None,
                  is_multi_objective: bool = False,
                  ):
         self.objective = objective
         super().__init__(quality_metrics=quality_metrics, complexity_metrics=complexity_metrics,
                          is_multi_objective=is_multi_objective)
 
-    def __call__(self, graph: OptGraph) -> float:
+    def __call__(self, graph: OptGraph, **kwargs) -> float:
         pip = PipelineAdapter().restore(graph)
         return self.objective(pip)
 
@@ -53,11 +55,12 @@ def structural_analysis_set_up(train_data: InputData, test_data: InputData,
         -> Tuple[PipelineOptNodeFactory, SAObjective, SAObjective]:
     """ Build initial infrastructure for performing SA: node factory, objectives.
     Can be reused for other SA applications, appropriate parameters must be specified then. """
+
     def _construct_objective(data: InputData, metric: QualityMetricsEnum) -> SAObjective:
         """ Build objective function with fit and predict functions inside. """
         metric_func = MetricsRepository.metric_by_id(metric)
         get_value = partial(metric_func, reference_data=data)
-        metrics_ = {metric: data}
+        metrics_ = {metric: metric_func}
 
         data_producer = DataSourceSplitter().build(data=data)
         objective_function = PipelineObjectiveEvaluate(objective=Objective(quality_metrics=get_value),
