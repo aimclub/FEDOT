@@ -11,6 +11,10 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
+def pipeline_generator_with_atomized_nodes(pipeline):
+    raise NotImplementedError()
+
+
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
     if task_type and task_type not in pipeline.root_node.operation.acceptable_task_types:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
@@ -58,7 +62,7 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
 
 def has_correct_data_connections(pipeline: Pipeline):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    for node in pipeline.nodes:
+    for node in pipeline_generator_with_atomized_nodes(pipeline):
         if not (node.is_primary or node.operation.operation_type == 'custom'):
             types = set(node.operation.metadata.input_types)
             for _node in node.nodes_from:
