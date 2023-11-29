@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
@@ -10,9 +11,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.composer.test_quality_metrics import multi_target_data_setup
-
-_ = multi_target_data_setup
+from test.unit.composer.test_quality_metrics import data_setup  # noqa
 
 
 def check_predict_correct(pipeline, input_data):
@@ -101,9 +100,10 @@ def test_regression_pipeline_with_data_operation_fit_predict_correct():
     assert check_predict_correct(pipeline, train_data)
 
 
-def test_multi_target_regression_composing_correct(multi_target_data_setup):
+@pytest.mark.parametrize('data_setup', ['multitarget'], indirect=True)
+def test_multi_target_regression_composing_correct(data_setup):
     # Load simple dataset for multi-target
-    train, test = multi_target_data_setup
+    train, test = data_setup
 
     problem = 'regression'
     timeout = 0.1
