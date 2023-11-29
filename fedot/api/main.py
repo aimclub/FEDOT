@@ -142,7 +142,7 @@ class Fedot:
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self.params.update_available_operations_by_preset(self.train_data)
 
-        if self.params.get('use_auto_preprocessing'):
+        if self.params.get('use_input_preprocessing'):
             # Launch data analyser - it gives recommendations for data preprocessing
             recommendations_for_data, recommendations_for_params = \
                 self.data_analyser.give_recommendations(input_data=self.train_data,
