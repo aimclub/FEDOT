@@ -45,14 +45,8 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
-                  validation_blocks: int) -> float:
+    def get_value(cls, pipeline) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
-        raise AbstractMethodNotImplementError
-
-    @staticmethod
-    @abstractmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
         raise AbstractMethodNotImplementError
 
 
@@ -68,7 +62,7 @@ class QualityMetric:
 
     @classmethod
     def get_value(cls, pipeline: Pipeline, reference_data: InputData,
-                  validation_blocks: int = None) -> float:
+                  validation_blocks: Optional[int] = None) -> float:
         metric = cls.default_value
         try:
             if validation_blocks is None:
@@ -301,19 +295,19 @@ class Silhouette(QualityMetric):
 
 class StructuralComplexity(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: Pipeline) -> float:
         norm_constant = 30
         return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
 class NodeNum(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: Pipeline) -> float:
         norm_constant = 10
         return pipeline.length / norm_constant
 
 
 class ComputationTime(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: Pipeline) -> float:
         return pipeline.computation_time
