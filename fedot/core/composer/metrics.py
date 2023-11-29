@@ -3,6 +3,7 @@ import sys
 from abc import abstractmethod
 from functools import wraps
 from pathlib import Path
+from typing import Optional, Tuple
 from uuid import uuid4
 
 import numpy as np
@@ -15,7 +16,6 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.debug import is_analytic_mode
@@ -73,7 +73,7 @@ class QualityMetric:
         try:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                results, reference_data = cls._simple_prediction(pipeline, reference_data)
+                results = cls._simple_prediction(pipeline, reference_data)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
@@ -97,43 +97,14 @@ class QualityMetric:
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData):
-        """ Method prepares data for metric evaluation and perform simple validation """
-        results = pipeline.predict(reference_data, output_mode=cls.output_mode)
-
-        # Define conditions for target and predictions transforming
-        is_regression = reference_data.task.task_type == TaskTypesEnum.regression
-        is_multi_target = len(np.array(results.predict).shape) > 1
-        is_multi_target_regression = is_regression and is_multi_target
-
-        # Time series forecasting
-        is_ts_forecasting = reference_data.task.task_type == TaskTypesEnum.ts_forecasting
-        if is_ts_forecasting or is_multi_target_regression:
-            results, reference_data = cls.flatten_convert(results, reference_data)
-
-        return results, reference_data
-
-    @staticmethod
-    def flatten_convert(results, reference_data):
-        """ Transform target and predictions by converting them into
-        one-dimensional array
-
-        :param results: output from pipeline
-        :param reference_data: actual data for validation
-        """
-        # Predictions convert into uni-variate array
-        forecast_values = np.ravel(np.array(results.predict))
-        results.predict = forecast_values
-        # Target convert into uni-variate array
-        target_values = np.ravel(np.array(reference_data.target))
-        reference_data.target = target_values
-
-        return results, reference_data
+    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData) -> OutputData:
+        """ Method calls pipeline.predict() and returns the result. """
+        return pipeline.predict(reference_data, output_mode=cls.output_mode)
 
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
-                               validation_blocks: int = None) -> float:
-        quality_metric = cls.get_value(pipeline, reference_data)
+                               validation_blocks: Optional[int] = None) -> float:
+        quality_metric = cls.get_value(pipeline, reference_data, validation_blocks)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
@@ -142,7 +113,8 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int):
+    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int
+                              ) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
 
         horizon = int(validation_blocks * data.task.task_params.forecast_length)
