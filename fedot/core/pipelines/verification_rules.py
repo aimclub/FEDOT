@@ -7,7 +7,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
     atomized_model_type
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import make_pipeline_generator
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -27,10 +26,10 @@ def has_primary_nodes(pipeline: Pipeline):
 def has_final_operation_as_model(pipeline: Pipeline):
     """ Check if the operation in root node is model or not """
     root_node = pipeline.root_node
-    # TODO @YamLyubov refactor check for AtomizedModel (fix circular import)
-    if type(root_node.operation) is not Model and root_node.operation.operation_type != atomized_model_type():
+    if root_node.operation.operation_type == atomized_model_type():
+        has_final_operation_as_model(root_node.operation.pipeline)
+    elif type(root_node.operation) is not Model:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
-
     return True
 
 
@@ -59,15 +58,15 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
 
 def has_correct_data_connections(pipeline: Pipeline):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    for node in make_pipeline_generator(pipeline):
+    for node in pipeline.nodes:
         if not (node.is_primary or node.operation.operation_type == 'custom'):
             types = set(node.operation.metadata.input_types)
             for _node in node.nodes_from:
                 if node.operation.operation_type != 'custom':
                     types &= set(_node.operation.metadata.output_types)
                 if len(types) == 0:
-                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
-
+                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with '
+                                     f'wrong parent nodes combination')
     return True
 
 
@@ -99,7 +98,7 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                                                                  non_ts_data_operations,
                                                                  ts_models)
 
-    for node in make_pipeline_generator(pipeline):
+    for node in pipeline.nodes:
         raise_error = False
         if node.is_primary:
             # if node is primary then it should use time series
