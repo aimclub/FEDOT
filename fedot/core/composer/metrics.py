@@ -295,19 +295,19 @@ class Silhouette(QualityMetric):
 
 class StructuralComplexity(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
+    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
         norm_constant = 30
         return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
 class NodeNum(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
+    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
         norm_constant = 10
         return pipeline.length / norm_constant
 
 
 class ComputationTime(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
+    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
         return pipeline.computation_time
