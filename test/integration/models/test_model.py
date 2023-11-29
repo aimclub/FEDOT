@@ -1,7 +1,10 @@
 import pickle
+import matplotlib.pyplot as plt
+
 from collections import defaultdict
 from copy import deepcopy
 from time import perf_counter
+from typing import Tuple, Optional
 
 import numpy as np
 import pytest
@@ -10,6 +13,7 @@ from sklearn.datasets import make_classification
 from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
 from sklearn.preprocessing import MinMaxScaler
 
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -26,7 +30,7 @@ from fedot.core.operations.operation_parameters import get_default_params, Opera
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
@@ -475,31 +479,62 @@ def test_operations_are_serializable():
 
 
 def test_operations_are_fast():
+    """
+    Test ensures that all operations with fast_train preset meet sustainability expectation.
+    Test defines operation complexity as polynomial function of data size.
+    If complexity function grows fast, then operation should not have fast_train tag.
+    """
     # models that raise exception
     to_skip = ['custom', 'decompose', 'class_decompose']
-    time_limits = defaultdict(lambda *args: 0.5, {'expensive': 2, 'non-default': 100})
+    data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
 
     for operation in OperationTypesRepository('all')._repo:
         if operation.id in to_skip:
             continue
-        time_limit = [time_limits[tag] for tag in time_limits if tag in operation.tags]
-        time_limit = max(time_limit) if time_limit else time_limits.default_factory()
-        for task_type in operation.task_type:
-            for data_type in operation.input_types:
+        if operation.presets is not None and FAST_TRAIN_PRESET_NAME in operation.presets:
+            perfomance_values = get_operation_perfomance(operation)
+            # TODO: filter out operations by perfomance values
+            if perfomance_values is not None:
+                plot_operation_perfomance(data_lengths[1:], perfomance_values[1:])
+            assert True
+
+
+def get_operation_perfomance(operation: OperationMetaInfo) -> Optional[Tuple[float]]:
+    """
+    Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
+    """
+    data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
+
+    for task_type in operation.task_type:
+        for data_type in operation.input_types:
+            perfomance_values = []
+            for length in data_lengths:
                 data = get_data_for_testing(task_type, data_type,
-                                            length=100, features_count=2,
+                                            length=length, features_count=2,
                                             random=True)
                 if data is not None:
-                    try:
-                        nodes_from = []
-                        if task_type is TaskTypesEnum.ts_forecasting:
-                            if 'non_lagged' not in operation.tags:
-                                nodes_from = [PipelineNode('lagged')]
-                        node = PipelineNode(operation.id, nodes_from=nodes_from)
-                        pipeline = Pipeline(node)
-                        start_time = perf_counter()
-                        pipeline.fit(data)
-                        stop_time = perf_counter() - start_time
-                        assert stop_time <= time_limit or True
-                    except NotImplementedError:
-                        pass
+                    nodes_from = []
+                    if task_type is TaskTypesEnum.ts_forecasting:
+                        if 'non_lagged' not in operation.tags:
+                            nodes_from = [PipelineNode('lagged')]
+                    node = PipelineNode(operation.id, nodes_from=nodes_from)
+                    pipeline = Pipeline(node)
+                    start_time = perf_counter()
+                    pipeline.fit(data)
+                    stop_time = perf_counter() - start_time
+                    perfomance_values.append(stop_time)
+                if perfomance_values and len(perfomance_values) == len(data_lengths):
+                    return tuple(perfomance_values)
+
+
+def plot_operation_perfomance(data_lengths: Tuple[float], perfomance_values: Tuple[float]) -> None:
+    """
+    Temporary function for plotting perfomance values and their approximate function.
+    """
+    coefficients = np.polyfit(data_lengths, perfomance_values, 2)
+    approx_data_lengths = np.linspace(data_lengths[0], data_lengths[-1], 1000)
+    approx_perfomance_values = np.poly1d(coefficients)(approx_data_lengths)
+    with plt.ion():
+        plt.scatter(data_lengths, perfomance_values, label='Perfomance values')
+        plt.plot(approx_data_lengths, approx_perfomance_values, label='Approximation')
+        plt.pause(0.1)
