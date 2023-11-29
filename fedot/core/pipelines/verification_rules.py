@@ -85,19 +85,19 @@ def has_correct_data_connections(pipeline: Pipeline):
 
 
 def is_pipeline_contains_ts_operations(pipeline: Pipeline):
-    """ Function checks is the model contains operations for time series
+    """ Function checks is the model primary operations intended for time series
     forecasting """
 
     # Get time series specific operations with tag "non_lagged"
     ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
                                             tags=["non_lagged"], mode='all')
 
-    # List with operations in considering pipeline
-    operations_in_pipeline = []
-    for node in pipeline.nodes:
-        operations_in_pipeline.append(node.operation.operation_type)
+    # List with primary operations in considering pipeline
+    operations_in_pipeline = [node.operation.operation_type
+                              for node in pipeline.nodes
+                              if not node.nodes_from]
 
-    if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
+    if len(set(operations_in_pipeline) - set(ts_operations)) == 0:
         return True
     else:
         raise ValueError(f'{ERROR_PREFIX} pipeline not contains operations for time series processing')
