@@ -25,7 +25,6 @@ from fedot.core.pipelines.verification_rules import (
     has_no_conflicts_with_data_flow,
     has_no_data_flow_conflicts_in_ts_pipeline,
     has_primary_nodes,
-    is_pipeline_contains_ts_operations_in_correct_order,
     only_non_lagged_operations_are_primary, has_correct_location_of_resample
 )
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -43,8 +42,7 @@ common_rules = [has_one_root,
                 has_correct_data_sources,
                 has_correct_location_of_resample]
 
-ts_rules = [is_pipeline_contains_ts_operations_in_correct_order,
-            only_non_lagged_operations_are_primary,
+ts_rules = [only_non_lagged_operations_are_primary,
             has_no_data_flow_conflicts_in_ts_pipeline]
 
 class_rules = [has_no_conflicts_during_multitask,

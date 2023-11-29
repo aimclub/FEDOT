@@ -59,28 +59,14 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
 
 def has_correct_data_connections(pipeline: Pipeline):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    _repo = OperationTypesRepository(operation_type='all')
-
-    for node in pipeline.nodes:
-        parent_nodes = node.nodes_from
-
-        if parent_nodes is not None and len(parent_nodes) > 0:
-            for parent_node in parent_nodes:
-                if 'custom' in str(parent_node) or 'custom' in str(node):
-                    return True
-
-                current_nodes_supported_data_types = _repo.operation_info_by_id(node.operation.operation_type)
-                parent_node_supported_data_types = _repo.operation_info_by_id(parent_node.operation.operation_type)
-
-                if current_nodes_supported_data_types is None:
-                    # case for atomic model
-                    return True
-
-                node_dtypes = set(current_nodes_supported_data_types.input_types)
-                parent_dtypes = set(parent_node_supported_data_types.output_types) \
-                    if parent_node_supported_data_types else node_dtypes
-                if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
-                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect data connections')
+    for node in make_pipeline_generator(pipeline):
+        if not (node.is_primary or node.operation.operation_type == 'custom'):
+            types = set(node.operation.metadata.input_types)
+            for _node in node.nodes_from:
+                if node.operation.operation_type != 'custom':
+                    types &= set(_node.operation.metadata.output_types)
+                if len(types) == 0:
+                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
 
     return True
 
@@ -113,40 +99,25 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
                                                                  non_ts_data_operations,
                                                                  ts_models)
 
-    for node in pipeline.nodes:
-        # Operation name in the current node
-        current_operation = node.operation.operation_type
-        parent_nodes = node.nodes_from
-        if current_operation in limit_parents_count:
-            if limit_parents_count[current_operation] < len(parent_nodes):
-                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
-        if parent_nodes is not None:
-            # There are several parents for current node or at least 1
-            for parent in parent_nodes:
-                parent_operation = parent.operation.operation_type
-
-                forbidden_parents = wrong_connections.get(current_operation)
-                if forbidden_parents is not None:
-                    __check_connection(parent_operation, forbidden_parents)
-        else:
-            if current_operation in need_to_have_parent:
-                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
-    return True
-
-
-def is_pipeline_contains_ts_operations_in_correct_order(pipeline: Pipeline):
-    """ Function checks is the node has parents with correct data types """
     for node in make_pipeline_generator(pipeline):
+        raise_error = False
         if node.is_primary:
-            types_are_correct = DataTypesEnum.ts in node.operation.metadata.input_types
+            # if node is primary then it should use time series
+            raise_error = DataTypesEnum.ts not in node.operation.metadata.input_types
+            raise_error |= node.operation.operation_type in need_to_have_parent
         else:
-            # check that parent output data types are the same and match to node input data type
-            types = set(node.operation.metadata.input_types)
-            for _node in node.nodes_from:
-                types &= set(_node.operation.metadata.output_types)
-            types_are_correct = len(types) > 0
+            # Operation name in the current node
+            current_operation = node.operation.operation_type
+            if current_operation in limit_parents_count:
+                raise_error = limit_parents_count[current_operation] < len(node.nodes_from)
 
-        if not types_are_correct:
+            # There are several parents for current node or at least 1
+            if not raise_error:
+                forbidden_parents = wrong_connections.get(current_operation)
+                if forbidden_parents:
+                    parents = set(parent.operation.operation_type for parent in node.nodes_from)
+                    raise_error = set(forbidden_parents) & parents
+        if raise_error:
             raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
@@ -329,11 +300,6 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
                 raise ValueError(error_message)
 
     return True
-
-
-def __check_connection(parent_operation, forbidden_parents):
-    if parent_operation in forbidden_parents:
-        raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
 
 
 def __check_decompose_parent_position(nodes_to_check: list):
