@@ -87,20 +87,34 @@ def has_correct_data_connections(pipeline: Pipeline):
 def is_pipeline_contains_ts_operations(pipeline: Pipeline):
     """ Function checks is the model primary operations intended for time series
     forecasting """
-
-    # Get time series specific operations with tag "non_lagged"
-    ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
-                                            tags=["non_lagged"], mode='all')
-
-    # List with primary operations in considering pipeline
-    operations_in_pipeline = [node.operation.operation_type
-                              for node in pipeline.nodes
-                              if not node.nodes_from]
-
-    if len(set(operations_in_pipeline) - set(ts_operations)) == 0:
-        return True
-    else:
+    # check that primary nodes can get time series
+    if any(DataTypesEnum.ts not in node.operation.metadata.input_types
+           for node in pipeline.nodes
+           if not node.nodes_from):
         raise ValueError(f'{ERROR_PREFIX} pipeline has primary node that is not intended for time series processing')
+
+    # check that there are correct data types for all nodes
+    visited_nodes = set()
+    to_look = [pipeline.root_node]
+    while to_look:
+        node = to_look.pop()
+        if node.uid in visited_nodes or not node.nodes_from:
+            continue
+
+        # check that parent output data types are the same and match to node input data type
+        types_from_parents = None
+        for _node in node.nodes_from:
+            if types_from_parents is None:
+                types_from_parents = set(_node.operation.metadata.output_types)
+            else:
+                types_from_parents &= set(_node.operation.metadata.output_types)
+        if len(types_from_parents) == 0 or len(set(node.operation.metadata.input_types) & types_from_parents) == 0:
+            raise ValueError(f'{ERROR_PREFIX} pipeline cannot be evaluated due to problem with data types')
+
+        visited_nodes.add(node.uid)
+        to_look.extend(node.nodes_from)
+
+    return True
 
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
