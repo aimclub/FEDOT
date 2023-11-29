@@ -1,5 +1,6 @@
 import json
 import os
+from functools import reduce
 
 import numpy as np
 import pytest
@@ -8,9 +9,12 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import fedot_project_root
+from fedot.core.pipelines.random_pipeline_factory import RandomPipelineFactory
+from fedot.core.utils import fedot_project_root, make_pipeline_generator
+from golem.core.dag.graph_verifier import GraphVerifier
 from test.integration.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
@@ -94,6 +98,11 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     return pipeline
 
 
+def get_some_atomized_nodes():
+    pipeline = create_pipeline_with_several_nested_atomized_model()
+    return [node for node in make_pipeline_generator(pipeline) if isinstance(node.operation, AtomizedModel)]
+
+
 def create_input_data():
     train_file_path = os.path.join('test', 'data', 'scoring', 'scoring_train.csv')
     test_file_path = os.path.join('test', 'data', 'scoring', 'scoring_test.csv')
@@ -104,6 +113,31 @@ def create_input_data():
     test_data = InputData.from_csv(full_test_file_path)
 
     return train_data, test_data
+
+
+def test_atomized_model_metadata():
+    for atomized_node in get_some_atomized_nodes():
+        pipeline = atomized_node.operation.pipeline
+        input_types = reduce(lambda types, node: types | set(node.operation.metadata.input_types),
+                             pipeline.primary_nodes,
+                             set())
+        assert input_types == set(atomized_node.operation.metadata.input_types)
+
+        output_types = set(pipeline.root_node.operation.metadata.output_types)
+        assert output_types == set(atomized_node.operation.metadata.output_types)
+
+        tags = reduce(lambda types, node: types | set(node.operation.metadata.tags),
+                      pipeline.nodes,
+                      set())
+        assert tags == set(atomized_node.operation.metadata.tags)
+
+        presets = reduce(lambda types, node: types | set(node.operation.metadata.presets),
+                         pipeline.nodes,
+                         set())
+        assert presets == set(atomized_node.operation.metadata.presets)
+
+        task_type = set(pipeline.root_node.operation.metadata.task_type)
+        assert task_type == set(atomized_node.operation.metadata.task_type)
 
 
 def test_save_load_atomized_pipeline_correctly():

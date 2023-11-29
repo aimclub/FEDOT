@@ -76,11 +76,10 @@ def ensure_directory_exists(dir_names: list):
 
 
 def make_pipeline_generator(pipeline):
-    visited_nodes = []
-
+    visited_nodes = set()
     for node in pipeline.nodes:
-        if node not in visited_nodes:
-            visited_nodes.append(node)
+        if node.uid not in visited_nodes:
+            visited_nodes.add(node.uid)
             yield node
 
 

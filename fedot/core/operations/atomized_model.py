@@ -1,5 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
+from functools import reduce
+from itertools import chain
 from typing import Callable, Union, Optional
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -23,22 +25,18 @@ class AtomizedModel(Operation):
 
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
-        self.unique_id = self.pipeline.root_node.descriptive_id
 
     def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
-
-        copied_input_data = deepcopy(data)
-        predicted_train = self.pipeline.fit(input_data=copied_input_data)
+        predicted_train = self.pipeline.fit(input_data=data)
         fitted_atomized_operation = self.pipeline
-
         return fitted_atomized_operation, predicted_train
 
     def predict(self, fitted_operation, data: InputData,
-                params: Optional[Union[OperationParameters, dict]] = None, output_mode: str = 'default'):
+                params: Optional[Union[OperationParameters, dict]] = None,
+                output_mode: str = 'default'):
 
         # Preprocessing applied
-        copied_input_data = deepcopy(data)
-        prediction = fitted_operation.predict(input_data=copied_input_data, output_mode=output_mode)
+        prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 
@@ -62,30 +60,35 @@ class AtomizedModel(Operation):
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        generator = make_pipeline_generator(self.pipeline)
-        tags = set()
-
-        for node in generator:
-            tags.update(node.operation_tags)
-
         root_node = self.pipeline.root_node
-        supported_strategies = None
-        allowed_positions = ['any']
-        tags = list(tags)
 
-        operation_info = OperationMetaInfo(root_node.operation.supplementary_data.id,
-                                           root_node.operation.supplementary_data.input_types,
-                                           root_node.operation.supplementary_data.output_types,
-                                           root_node.operation.supplementary_data.task_type,
-                                           supported_strategies, allowed_positions,
-                                           tags)
+        def extract_metadata_from_pipeline(attr_name: str, node_filter: Optional[Callable] = None):
+            nodes_to_extract_metadata = make_pipeline_generator(self.pipeline)
+            if node_filter is not None:
+                nodes_to_extract_metadata = [node for node in nodes_to_extract_metadata if node_filter(node)]
+            data = [getattr(node.operation.metadata, attr_name) for node in nodes_to_extract_metadata]
+            return list(set(chain(*data)))
+
+        tags = extract_metadata_from_pipeline('tags')
+        input_types = extract_metadata_from_pipeline('input_types', node_filter=lambda node: node.is_primary)
+        output_types = root_node.operation.metadata.output_types
+        presets = extract_metadata_from_pipeline('presets')
+
+        operation_info = OperationMetaInfo(id=root_node.operation.metadata.id,
+                                           input_types=input_types,
+                                           output_types=output_types,
+                                           task_type=root_node.operation.metadata.task_type,
+                                           supported_strategies=None,
+                                           allowed_positions=['any'],
+                                           tags=tags,
+                                           presets=presets)
         return operation_info
 
     def description(self, operation_params: Optional[dict]):
         operation_type = self.operation_type
         operation_length = self.pipeline.length
         operation_depth = self.pipeline.depth
-        operation_id = self.unique_id
+        operation_id = self.pipeline.root_node.descriptive_id
         operation_types = {}
 
         for node in self.pipeline.nodes:
