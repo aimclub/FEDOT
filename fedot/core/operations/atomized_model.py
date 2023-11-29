@@ -1,6 +1,5 @@
-from copy import deepcopy
+from collections import Counter
 from datetime import timedelta
-from functools import reduce
 from itertools import chain
 from typing import Callable, Union, Optional
 
@@ -89,16 +88,11 @@ class AtomizedModel(Operation):
         operation_length = self.pipeline.length
         operation_depth = self.pipeline.depth
         operation_id = self.pipeline.root_node.descriptive_id
-        operation_types = {}
-
-        for node in self.pipeline.nodes:
-            if node.operation.operation_type in operation_types:
-                operation_types[node.operation.operation_type] += 1
-            else:
-                operation_types[node.operation.operation_type] = 1
-
+        operation_types = map(lambda node: node.operation.operation_type,
+                              make_pipeline_generator(self.pipeline))
+        operation_types_dict = dict(Counter(operation_types))
         return f'{operation_type}_length:{operation_length}_depth:{operation_depth}' \
-               f'_types:{operation_types}_id:{operation_id}'
+               f'_types:{operation_types_dict}_id:{operation_id}'
 
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData,
