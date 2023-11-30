@@ -4,7 +4,7 @@ import sys
 from typing import Union
 
 from golem.core.log import default_log
-from golem.core.utilities.random import RandomStateHandler
+from golem.utilities.random import RandomStateHandler
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData

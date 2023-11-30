@@ -1,7 +1,7 @@
 from typing import List, Iterable, Union
 
 from golem.core.log import default_log
-from golem.core.utilities.data_structures import are_same_length
+from golem.utilities.data_structures import are_same_length
 
 from fedot.core.data.array_utilities import *
 from fedot.core.data.data import OutputData, InputData

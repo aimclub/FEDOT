@@ -1,4 +1,4 @@
-from golem.core.utilities.data_structures import ComparableEnum as Enum
+from golem.utilities.data_structures import ComparableEnum as Enum
 
 
 class DataTypesEnum(Enum):
