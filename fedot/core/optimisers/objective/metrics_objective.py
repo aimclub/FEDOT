@@ -3,7 +3,7 @@ from typing import Union, Iterable
 from golem.core.optimisers.objective import Objective
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.repository.quality_metrics_repository import MetricIDType, MetricsRepository, ComplexityMetricsEnum
+from fedot.core.repository.metrics_repository import MetricIDType, MetricsRepository, ComplexityMetricsEnum
 
 
 class MetricsObjective(Objective):

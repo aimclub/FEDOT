@@ -26,7 +26,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import MetricCallable
+from fedot.core.repository.metrics_repository import MetricCallable
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.explainability.explainer_template import Explainer

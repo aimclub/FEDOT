@@ -20,9 +20,9 @@ from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricCallable,
-                                                              ComplexityMetricsEnum, MetricsRepository,
-                                                              QualityMetricCallable, QualityMetricsEnum)
+from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, ComplexityMetricCallable,
+                                                      ComplexityMetricsEnum, MetricsRepository,
+                                                      QualityMetricCallable, QualityMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.project_import_export import DEFAULT_PATH
 

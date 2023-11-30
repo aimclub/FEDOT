@@ -18,8 +18,8 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricIDType,
-                                                              RegressionMetricsEnum)
+from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, MetricIDType,
+                                                      RegressionMetricsEnum)
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data

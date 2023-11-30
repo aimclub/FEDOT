@@ -14,7 +14,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.repository.quality_metrics_repository import MetricIDType, MetricsEnum
+from fedot.core.repository.metrics_repository import MetricIDType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
 

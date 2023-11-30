@@ -12,9 +12,9 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricsEnum,
-                                                              MetricsRepository, RegressionMetricsEnum,
-                                                              TimeSeriesForecastingMetricsEnum)
+from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, ComplexityMetricsEnum,
+                                                      MetricsRepository, RegressionMetricsEnum,
+                                                      TimeSeriesForecastingMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 

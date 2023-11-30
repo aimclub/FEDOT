@@ -20,7 +20,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricIDType, MetricsEnum
+from fedot.core.repository.metrics_repository import ComplexityMetricsEnum, MetricIDType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask

@@ -1,7 +1,7 @@
 from typing import List
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.quality_metrics_repository import (
+from fedot.core.repository.metrics_repository import (
     MetricsEnum,
     RegressionMetricsEnum,
     ClassificationMetricsEnum,

@@ -6,7 +6,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricCallable, MetricIDType, MetricsEnum
+from fedot.core.repository.metrics_repository import MetricCallable, MetricIDType, MetricsEnum
 from fedot.core.repository.tasks import TaskParams
 
 
@@ -293,13 +293,13 @@ class FedotBuilder:
                 .. details:: Available metrics are listed in the following enumerations:
 
                     - classification -> \
-                        :class:`~fedot.core.repository.quality_metrics_repository.ClassificationMetricsEnum`
+                        :class:`~fedot.core.repository.metrics_repository.ClassificationMetricsEnum`
                     - regression -> \
-                        :class:`~fedot.core.repository.quality_metrics_repository.RegressionMetricsEnum`
+                        :class:`~fedot.core.repository.metrics_repository.RegressionMetricsEnum`
                     - time series forcasting -> \
-                        :class:`~fedot.core.repository.quality_metrics_repository.TimeSeriesForecastingMetricsEnum`
+                        :class:`~fedot.core.repository.metrics_repository.TimeSeriesForecastingMetricsEnum`
                     - pipeline complexity (task-independent) -> \
-                        :class:`~fedot.core.repository.quality_metrics_repository.ComplexityMetricsEnum`
+                        :class:`~fedot.core.repository.metrics_repository.ComplexityMetricsEnum`
 
             cv_folds: number of folds for cross-validation.
 

@@ -17,7 +17,7 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import MetricIDType
+from fedot.core.repository.metrics_repository import MetricIDType
 
 
 class ApiComposer:

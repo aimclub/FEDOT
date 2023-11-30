@@ -15,7 +15,7 @@ from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridg
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import \
+from fedot.core.repository.metrics_repository import \
     RegressionMetricsEnum
 
 

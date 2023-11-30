@@ -12,8 +12,8 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.metrics_repository import MetricCallable
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, atomized_model_type
-from fedot.core.repository.quality_metrics_repository import MetricCallable
 
 
 class AtomizedModel(Operation):
