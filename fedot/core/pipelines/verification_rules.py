@@ -1,5 +1,7 @@
 from typing import Optional
+from collections import Counter
 
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -12,7 +14,19 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 def pipeline_generator_with_atomized_nodes(pipeline):
-    raise NotImplementedError()
+    visited_nodes = set()
+    to_visit = [pipeline.root_node]
+    while to_visit:
+        node = to_visit.pop()
+        if id(node) in visited_nodes:
+            continue
+        visited_nodes.add(id(node))
+        if isinstance(node.operation, AtomizedModel):
+            yield from pipeline_generator_with_atomized_nodes(node.operation.pipeline)
+        else:
+            yield node
+        if node.nodes_from:
+            to_visit.extend(node.nodes_from)
 
 
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
@@ -50,27 +64,37 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
             # There are several parents
             operation_names = []
             for parent in parent_nodes:
-                operation_names.append(parent.operation.operation_type)
+                if parent.operation.operation_type in forbidden_parents_combination:
+                    operation_names.append(parent.operation.operation_type)
+            operation_counter = Counter(operation_names)
 
-            # If operations are identical
-            if len(set(operation_names)) == 1:
-                # And if it is forbidden to combine them
-                if operation_names[0] in forbidden_parents_combination:
-                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
+            # If there are some identical operations
+            if any(count > 1 for count in operation_counter.values()):
+                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
     return True
 
 
 def has_correct_data_connections(pipeline: Pipeline):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    for node in pipeline_generator_with_atomized_nodes(pipeline):
-        if not (node.is_primary or node.operation.operation_type == 'custom'):
-            types = set(node.operation.metadata.input_types)
-            for _node in node.nodes_from:
-                if node.operation.operation_type != 'custom':
-                    types &= set(_node.operation.metadata.output_types)
-                if len(types) == 0:
-                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with '
-                                     f'wrong parent nodes combination')
+    for node in pipeline.nodes:
+        # check atomized pipeline
+        if isinstance(node.operation, AtomizedModel):
+            has_correct_data_connections(node.operation.pipeline)
+
+        # skip custom node
+        if node.operation.operation_type == 'custom':
+            continue
+
+        # skip primary node
+        if node.is_primary:
+            continue
+
+        # check node (also if it is atomized)
+        types = set(node.operation.metadata.input_types)
+        for _node in node.nodes_from:
+            types &= set(_node.operation.metadata.output_types)
+            if len(types) == 0:
+                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
 
