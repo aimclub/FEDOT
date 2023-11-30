@@ -22,15 +22,11 @@ PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
 
 
 class QualityMetricCallable(Protocol):
-    def __self__(self) -> Metric: ...
-
     def __call__(self, pipeline: PipelineType, reference_data: InputData,
                  validation_blocks: Optional[int] = None) -> NumberType: ...
 
 
 class ComplexityMetricCallable(Protocol):
-    def __self__(self) -> Metric: ...
-
     def __call__(self, pipeline: PipelineType) -> NumberType: ...
 
 
@@ -117,9 +113,13 @@ class MetricsRepository:
     }
 
     @staticmethod
-    def metric_by_id(metric_id: MetricsEnum, default_callable: Optional[MetricCallable] = None) -> MetricCallable:
-        return MetricsRepository._metrics_implementations.get(metric_id, default_callable)
+    def metric_by_id(metric_id: MetricsEnum) -> MetricCallable:
+        return MetricsRepository._metrics_implementations[metric_id]
 
     @staticmethod
     def metric_class_by_id(metric_id: MetricsEnum) -> Metric:
-        return MetricsRepository._metrics_implementations[metric_id].__self__()
+        metric_func = MetricsRepository._metrics_implementations[metric_id]
+        if hasattr(metric_func, '__self__'):
+            return metric_func.__self__()
+        else:
+            raise ValueError(f'The metric {metric_id} is not a class method.')
