@@ -11,7 +11,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.common_tests import is_predict_ignores_target
-from test.unit.composer.test_quality_metrics import data_setup  # noqa
+from test.unit.composer.test_metrics import data_setup  # noqa
 
 
 def check_predict_correct(pipeline, input_data):
