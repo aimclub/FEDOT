@@ -76,7 +76,8 @@ def has_correct_data_connections(pipeline: Pipeline):
         # check node (also if it is atomized)
         types = set(node.operation.metadata.input_types)
         for _node in node.nodes_from:
-            types &= set(_node.operation.metadata.output_types)
+            if _node.operation.operation_type != 'custom':
+                types &= set(_node.operation.metadata.output_types)
             if len(types) == 0:
                 raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
