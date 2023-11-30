@@ -21,19 +21,6 @@ NumberType = Union[int, float, complex]
 PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
 
 
-class QualityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType, reference_data: InputData,
-                 validation_blocks: Optional[int] = None) -> NumberType: ...
-
-
-class ComplexityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType) -> NumberType: ...
-
-
-MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
-MetricIDType = Union[MetricCallable, MetricsEnum]
-
-
 class QualityMetricsEnum(MetricsEnum): ...
 
 
@@ -77,19 +64,6 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     MAE = 'mae'
     R2 = 'r2'
     RMSE_penalty = 'rmse_pen'
-
-
-class QualityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType, reference_data: InputData,
-                 validation_blocks: Optional[int] = None) -> NumberType: ...
-
-
-class ComplexityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType) -> NumberType: ...
-
-
-MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
-MetricIDType = Union[MetricCallable, MetricsEnum]
 
 
 class MetricsRepository:
