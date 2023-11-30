@@ -1,4 +1,5 @@
 import sys
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,10 +12,8 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum,
-                                                              ComplexityMetricsEnum,
-                                                              MetricsRepository,
-                                                              RegressionMetricsEnum,
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricsEnum,
+                                                              MetricsRepository, RegressionMetricsEnum,
                                                               TimeSeriesForecastingMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
@@ -81,9 +80,7 @@ def get_classification_pipeline():
 
 def get_regression_pipeline():
     first = PipelineNode(operation_type='scaling')
-    second = PipelineNode(operation_type='linear', nodes_from=[first])
-    third = PipelineNode(operation_type='linear', nodes_from=[first])
-    final = PipelineNode(operation_type='linear', nodes_from=[second, third])
+    final = PipelineNode(operation_type='linear', nodes_from=[first])
 
     pipeline = Pipeline(final)
 
@@ -102,12 +99,11 @@ def get_ts_pipeline(window_size):
 
 @pytest.mark.parametrize('metric', ComplexityMetricsEnum)
 @pytest.mark.parametrize('data_setup', ['binary'], indirect=True)
-def test_structural_quality_metrics(metric, data_setup):
-    metric: ComplexityMetricsEnum
+def test_structural_metrics(data_setup: Tuple[InputData, InputData], metric: ComplexityMetricsEnum):
     train, _ = data_setup
     pipeline = get_classification_pipeline()
     pipeline.fit(train)
-    metric_function = MetricsRepository().metric_by_id(metric)
+    metric_function = MetricsRepository.metric_by_id(metric)
     expected_metric_values = {
         ComplexityMetricsEnum.structural: 0.43,
         ComplexityMetricsEnum.node_number: 0.40,
@@ -120,45 +116,42 @@ def test_structural_quality_metrics(metric, data_setup):
 
 @pytest.mark.parametrize('metric', ClassificationMetricsEnum)
 @pytest.mark.parametrize('data_setup', ['binary', 'multiclass'], indirect=True)
-def test_classification_quality_metric(data_setup, metric):
-    metric: ClassificationMetricsEnum
+def test_classification_quality_metric(data_setup: Tuple[InputData, InputData], metric: ClassificationMetricsEnum):
     train, _ = data_setup
     pipeline = get_classification_pipeline()
     pipeline.fit(input_data=train)
     metric_function = MetricsRepository().metric_by_id(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != metric_function.__self__().default_value
+    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
 
 
 @pytest.mark.parametrize('metric', RegressionMetricsEnum)
 @pytest.mark.parametrize('data_setup', ['regression', 'multitarget'], indirect=True)
-def test_regression_quality_metric(data_setup, metric):
-    metric: RegressionMetricsEnum
+def test_regression_quality_metric(data_setup: Tuple[InputData, InputData], metric: RegressionMetricsEnum):
     train, _ = data_setup
     pipeline = get_regression_pipeline()
     pipeline.fit(input_data=train)
     metric_function = MetricsRepository().metric_by_id(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != metric_function.__self__().default_value
+    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
 
 
 @pytest.mark.parametrize('metric', TimeSeriesForecastingMetricsEnum)
 @pytest.mark.parametrize('data_setup', ['ts', 'multits'], indirect=True)
-def test_ts_quality_metric(data_setup, metric):
-    metric: TimeSeriesForecastingMetricsEnum
+def test_ts_quality_metric(data_setup: Tuple[InputData, InputData], metric: TimeSeriesForecastingMetricsEnum):
     train, _ = data_setup
     pipeline = get_ts_pipeline(len(train.features) / 3)
     pipeline.fit(input_data=train)
     metric_function = MetricsRepository().metric_by_id(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train, validation_blocks=2)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != metric_function.__self__().default_value
+    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
 
 
 @pytest.mark.parametrize('data_setup', ['multitarget'], indirect=True)
-def test_predict_shape_multi_target(data_setup):
+def test_predict_shape_multi_target(data_setup: Tuple[InputData, InputData]):
     train, test = data_setup
     simple_pipeline = Pipeline(PipelineNode('linear'))
     simple_pipeline.fit(input_data=train)
