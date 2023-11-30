@@ -13,22 +13,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-def pipeline_generator_with_atomized_nodes(pipeline):
-    visited_nodes = set()
-    to_visit = [pipeline.root_node]
-    while to_visit:
-        node = to_visit.pop()
-        if id(node) in visited_nodes:
-            continue
-        visited_nodes.add(id(node))
-        if isinstance(node.operation, AtomizedModel):
-            yield from pipeline_generator_with_atomized_nodes(node.operation.pipeline)
-        else:
-            yield node
-        if node.nodes_from:
-            to_visit.extend(node.nodes_from)
-
-
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
     if task_type and task_type not in pipeline.root_node.operation.acceptable_task_types:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
