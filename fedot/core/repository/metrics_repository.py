@@ -3,7 +3,8 @@ from typing import Dict, Optional, Protocol, TypeVar, Union
 from golem.utilities.data_structures import ComparableEnum as Enum
 
 from fedot.core.composer.metrics import (Accuracy, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE, MSLE, Metric,
-                                         NodeNum, Precision, R2, RMSE, ROCAUC, SMAPE, Silhouette, StructuralComplexity)
+                                         NodeNum, Precision, R2, RMSE, ROCAUC, SMAPE, Silhouette,
+                                         StructuralComplexity)
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -17,11 +18,7 @@ class MetricsEnum(Enum):
         return value in cls._value2member_map_
 
 
-NumberType = Union[int, float, complex]
-PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
-
-
-class QualityMetricsEnum(MetricsEnum): ...
+class QualityMetricsEnum(MetricsEnum): pass
 
 
 class ComplexityMetricsEnum(MetricsEnum):
@@ -64,6 +61,23 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     MAE = 'mae'
     R2 = 'r2'
     RMSE_penalty = 'rmse_pen'
+
+
+NumberType = Union[int, float, complex]
+PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
+
+
+class QualityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType, reference_data: InputData,
+                 validation_blocks: Optional[int] = None) -> NumberType: pass
+
+
+class ComplexityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType) -> NumberType: pass
+
+
+MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
+MetricIDType = Union[MetricCallable, MetricsEnum]
 
 
 class MetricsRepository:

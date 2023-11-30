@@ -40,17 +40,14 @@ def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 
 class Metric:
-    output_mode = 'default'
-    default_value = 0
-
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline) -> float:
-        """ Get metrics values based on pipeline and InputData for validation """
+    def get_value(cls, **kwargs) -> float:
+        """ Get metrics value based on pipeline and other optional arguments. """
         raise AbstractMethodNotImplementError
 
 
-class QualityMetric:
+class QualityMetric(Metric):
     max_penalty_part = 0.01
     output_mode = 'default'
     default_value = 0
@@ -63,6 +60,13 @@ class QualityMetric:
     @classmethod
     def get_value(cls, pipeline: Pipeline, reference_data: InputData,
                   validation_blocks: Optional[int] = None) -> float:
+        """ Get metric value based on pipeline, reference data, and number of validation blocks.
+        Args:
+            pipeline: a :class:`Pipeline` instance for evaluation.
+            reference_data: :class:`InputData` for evaluation.
+            validation_blocks: number of validation blocks. Used only for time series forecasting.
+                If ``None``, data separation is not performed.
+        """
         metric = cls.default_value
         try:
             if validation_blocks is None:
@@ -293,21 +297,32 @@ class Silhouette(QualityMetric):
         return silhouette_score(reference.features, labels=predicted.predict)
 
 
-class StructuralComplexity(Metric):
+class ComplexityMetric(Metric):
+    output_mode = 'default'
+    default_value = 0
+
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
+    @abstractmethod
+    def get_value(cls, pipeline: Pipeline) -> float:
+        """ Get metrics value based on pipeline. """
+        raise AbstractMethodNotImplementError
+
+
+class StructuralComplexity(ComplexityMetric):
+    @classmethod
+    def get_value(cls, pipeline: Pipeline) -> float:
         norm_constant = 30
         return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
-class NodeNum(Metric):
+class NodeNum(ComplexityMetric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
+    def get_value(cls, pipeline: Pipeline) -> float:
         norm_constant = 10
         return pipeline.length / norm_constant
 
 
-class ComputationTime(Metric):
+class ComputationTime(ComplexityMetric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
+    def get_value(cls, pipeline: Pipeline) -> float:
         return pipeline.computation_time
