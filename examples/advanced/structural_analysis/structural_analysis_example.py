@@ -58,7 +58,7 @@ def structural_analysis_set_up(train_data: InputData, test_data: InputData,
 
     def _construct_objective(data: InputData, metric: QualityMetricsEnum) -> SAObjective:
         """ Build objective function with fit and predict functions inside. """
-        metric_func = MetricsRepository.metric_by_id(metric)
+        metric_func = MetricsRepository.get_metric(metric)
         get_value = partial(metric_func, reference_data=data)
         metrics_ = {metric: metric_func}
 

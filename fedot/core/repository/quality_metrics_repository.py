@@ -112,14 +112,13 @@ class MetricsRepository:
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
+    _metrics_classes = {metric_id: getattr(metric_func, '__self__')
+                        for metric_id, metric_func in _metrics_implementations.items()}
+
     @staticmethod
-    def metric_by_id(metric_id: MetricsEnum) -> MetricCallable:
+    def get_metric(metric_id: MetricsEnum) -> MetricCallable:
         return MetricsRepository._metrics_implementations[metric_id]
 
     @staticmethod
-    def metric_class_by_id(metric_id: MetricsEnum) -> Metric:
-        metric_func = MetricsRepository._metrics_implementations[metric_id]
-        if hasattr(metric_func, '__self__'):
-            return metric_func.__self__()
-        else:
-            raise ValueError(f'The metric {metric_id} is not a class method.')
+    def get_metric_class(metric_id: MetricsEnum) -> Metric:
+        return MetricsRepository._metrics_classes[metric_id]

@@ -112,7 +112,7 @@ def test_composer_cv_correct():
     )
 
     init_pipeline = get_simple_ts_pipeline()
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    metric_function = MetricsRepository.get_metric(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
         with_optimizer_params(parameters). \
         with_requirements(composer_requirements). \

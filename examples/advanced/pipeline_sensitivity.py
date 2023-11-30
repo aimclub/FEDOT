@@ -123,7 +123,7 @@ def run_class_scoring_case(is_composed: bool, path_to_save=None):
     train_data, test_data = get_scoring_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'scoring_composed'
@@ -141,7 +141,7 @@ def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_kc2_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'kc2_composed'
@@ -159,7 +159,7 @@ def run_regr_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_cholesterol_data()
     task = Task(TaskTypesEnum.regression)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    metric_function = MetricsRepository.get_metric(RegressionMetricsEnum.RMSE)
 
     if is_composed:
         case = 'cholesterol_composed'

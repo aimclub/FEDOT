@@ -103,7 +103,7 @@ def test_structural_metrics(data_setup: Tuple[InputData, InputData], metric: Com
     train, _ = data_setup
     pipeline = get_classification_pipeline()
     pipeline.fit(train)
-    metric_function = MetricsRepository.metric_by_id(metric)
+    metric_function = MetricsRepository.get_metric(metric)
     expected_metric_values = {
         ComplexityMetricsEnum.structural: 0.43,
         ComplexityMetricsEnum.node_number: 0.40,
@@ -120,10 +120,10 @@ def test_classification_quality_metric(data_setup: Tuple[InputData, InputData], 
     train, _ = data_setup
     pipeline = get_classification_pipeline()
     pipeline.fit(input_data=train)
-    metric_function = MetricsRepository().metric_by_id(metric)
+    metric_function = MetricsRepository.get_metric(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
+    assert metric_value != MetricsRepository.get_metric_class(metric).default_value
 
 
 @pytest.mark.parametrize('metric', RegressionMetricsEnum)
@@ -132,10 +132,10 @@ def test_regression_quality_metric(data_setup: Tuple[InputData, InputData], metr
     train, _ = data_setup
     pipeline = get_regression_pipeline()
     pipeline.fit(input_data=train)
-    metric_function = MetricsRepository().metric_by_id(metric)
+    metric_function = MetricsRepository.get_metric(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
+    assert metric_value != MetricsRepository.get_metric_class(metric).default_value
 
 
 @pytest.mark.parametrize('metric', TimeSeriesForecastingMetricsEnum)
@@ -144,10 +144,10 @@ def test_ts_quality_metric(data_setup: Tuple[InputData, InputData], metric: Time
     train, _ = data_setup
     pipeline = get_ts_pipeline(len(train.features) / 3)
     pipeline.fit(input_data=train)
-    metric_function = MetricsRepository().metric_by_id(metric)
+    metric_function = MetricsRepository.get_metric(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=train, validation_blocks=2)
     assert 0 < abs(metric_value) < sys.maxsize
-    assert metric_value != MetricsRepository.metric_class_by_id(metric).default_value
+    assert metric_value != MetricsRepository.get_metric_class(metric).default_value
 
 
 @pytest.mark.parametrize('data_setup', ['multitarget'], indirect=True)

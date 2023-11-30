@@ -18,7 +18,7 @@ class MetricsObjective(Objective):
                 metric_id = str(metric)
                 quality_metrics[metric_id] = metric
             else:
-                metric_func = MetricsRepository.metric_by_id(metric)
+                metric_func = MetricsRepository.get_metric(metric)
                 if metric_func:
                     if ComplexityMetricsEnum.has_value(metric):
                         complexity_metrics[metric] = metric_func
