@@ -31,11 +31,10 @@ class ComplexityMetricCallable(Protocol):
 
 
 MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
-MetricType = Union[MetricCallable, MetricsEnum]
+MetricIDType = Union[MetricCallable, MetricsEnum]
 
 
-class QualityMetricsEnum(MetricsEnum):
-    pass
+class QualityMetricsEnum(MetricsEnum): ...
 
 
 class ComplexityMetricsEnum(MetricsEnum):
@@ -80,6 +79,19 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
 
 
+class QualityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType, reference_data: InputData,
+                 validation_blocks: Optional[int] = None) -> NumberType: ...
+
+
+class ComplexityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType) -> NumberType: ...
+
+
+MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
+MetricIDType = Union[MetricCallable, MetricsEnum]
+
+
 class MetricsRepository:
     _metrics_implementations: Dict[MetricsEnum, MetricCallable] = {
         # classification
@@ -116,9 +128,9 @@ class MetricsRepository:
                         for metric_id, metric_func in _metrics_implementations.items()}
 
     @staticmethod
-    def get_metric(metric_id: MetricsEnum) -> MetricCallable:
-        return MetricsRepository._metrics_implementations[metric_id]
+    def get_metric(metric_name: MetricsEnum) -> MetricCallable:
+        return MetricsRepository._metrics_implementations[metric_name]
 
     @staticmethod
-    def get_metric_class(metric_id: MetricsEnum) -> Metric:
-        return MetricsRepository._metrics_classes[metric_id]
+    def get_metric_class(metric_name: MetricsEnum) -> Metric:
+        return MetricsRepository._metrics_classes[metric_name]
