@@ -1,5 +1,10 @@
-import pytest
+from enum import Enum, auto
+from itertools import chain, product
 
+import pytest
+from typing import List, Optional, Dict
+
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import (verify_pipeline)
@@ -13,14 +18,82 @@ from golem.core.dag.verification_rules import has_no_cycle
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
 GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
+RANDOM_SEED = 0
 
 
-def valid_pipeline():
+class NodeLocation(Enum):
+    PRIMARY = auto()
+    INTERMEDIATE = auto()
+    ROOT = auto()
+
+
+def node_generator(operation: str = 'logit',
+                   nodes_from: Optional[List[PipelineNode]] = None,
+                   all_count: int = 1,
+                   atomized_count: int = 0,
+                   atomized_pipeline: Optional[Pipeline] = None,
+                   custom_count: int = 0):
+    nodes = list()
+
+    nodes += [PipelineNode(operation, nodes_from=nodes_from)
+              for _ in range(all_count - atomized_count - custom_count)]
+    nodes += [PipelineNode('custom', nodes_from=nodes_from)
+              for _ in range(custom_count)]
+
+    for _ in range(atomized_count):
+        pipeline = atomized_pipeline or generate_pipeline()
+        node = PipelineNode(AtomizedModel(pipeline), nodes_from=nodes_from)
+        nodes.append(node)
+    return nodes
+
+
+def generate_pipeline(operation: Optional[Dict[NodeLocation, str]] = None,
+                      primary_nodes_count=1,
+                      root_nodes_count=1,
+                      data_source_count=0,
+                      depth=3,
+                      width=3,
+                      atomized_nodes_location: Optional[List[NodeLocation]] = None,
+                      atomized_pipeline: Optional[Pipeline] = None,
+                      custom_nodes_location: Optional[List[NodeLocation]] = None,):
+    """ Generate fully connected pipeline """
+
+    operation = {val: 'logit' for val in NodeLocation}
+    atomized_count = {val: int(val in atomized_nodes_location) for val in NodeLocation}
+    custom_count = {val: int(val in custom_nodes_location) for val in NodeLocation}
+    nodes_count = {val: count for val, count in zip(NodeLocation, (primary_nodes_count, width, root_nodes_count))}
+
+    def get_params(location: NodeLocation):
+        return {'operation': operation[location],
+                'count': nodes_count[location],
+                'atomized_count': atomized_count[location],
+                'custom_count': custom_count[location],
+                'atomized_pipeline': atomized_pipeline}
+
+    nodes = [node_generator(**get_params(NodeLocation.PRIMARY))]
+    for _ in range(depth - 2):
+        nodes += node_generator(nodes_from=nodes[-1], **get_params(NodeLocation.INTERMEDIATE))
+    nodes += node_generator(nodes_from=nodes[-1], **get_params(NodeLocation.ROOT))
+
+    return Pipeline(nodes=list(chain(*nodes)))
+
+
+def valid_pipeline(use_atomized=False, use_custom=False):
     first = PipelineNode(operation_type='logit')
-    second = PipelineNode(operation_type='logit',
-                          nodes_from=[first])
-    third = PipelineNode(operation_type='logit',
-                         nodes_from=[second])
+
+    if use_custom:
+        PipelineNode(operation_type='custom',
+                     nodes_from=[first])
+    else:
+        second = PipelineNode(operation_type='logit',
+                              nodes_from=[first])
+    if use_atomized:
+        third = PipelineNode(AtomizedModel(valid_pipeline()),
+                             nodes_from=[second])
+    else:
+        third = PipelineNode(operation_type='logit',
+                             nodes_from=[second])
+
     last = PipelineNode(operation_type='logit',
                         nodes_from=[third])
 
@@ -190,21 +263,50 @@ def pipeline_with_incorrect_resample_node():
     return pipeline
 
 
-def test_multi_root_pipeline_raise_exception():
-    pipeline = pipeline_with_multiple_roots()
-
+@pytest.mark.parametrize('pipeline',
+                         (generate_pipeline(root_nodes_count=2),  # simple case
+                          # double root in atomized node
+                          generate_pipeline(root_nodes_count=1,
+                                            atomized_nodes_location=[NodeLocation.ROOT],
+                                            atomized_pipeline=generate_pipeline(root_nodes_count=2)),
+                          generate_pipeline(root_nodes_count=2,
+                                            atomized_nodes_location=[NodeLocation.ROOT]),  # atomized in root
+                          generate_pipeline(root_nodes_count=2,
+                                            custom_nodes_location=[NodeLocation.ROOT]),  # custom in root
+                          generate_pipeline(root_nodes_count=3,
+                                            atomized_nodes_location=[NodeLocation.ROOT],
+                                            custom_nodes_location=[NodeLocation.ROOT]),  # custom & atomized in root
+                          ))
+def test_multi_root_pipeline_raise_exception(pipeline):
     with pytest.raises(Exception) as exc:
         assert pipeline.root_node
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} More than 1 root_nodes in pipeline'
 
 
-def test_pipeline_with_primary_nodes_correct():
-    pipeline = valid_pipeline()
+@pytest.mark.parametrize('pipeline',
+                         (generate_pipeline(primary_nodes_count=1),
+                          generate_pipeline(primary_nodes_count=2),
+                          generate_pipeline(primary_nodes_count=1,
+                                            atomized_nodes_location=[NodeLocation.PRIMARY]),
+                          generate_pipeline(primary_nodes_count=1,
+                                            custom_nodes_location=[NodeLocation.PRIMARY]),
+                          generate_pipeline(primary_nodes_count=2,
+                                            atomized_nodes_location=[NodeLocation.PRIMARY],
+                                            custom_nodes_location=[NodeLocation.PRIMARY]),
+                          ))
+def test_pipeline_with_primary_nodes_correct(pipeline):
     assert has_primary_nodes(pipeline)
 
-
-def test_pipeline_validate_correct():
-    pipeline = valid_pipeline()
+@pytest.mark.parametrize('primary_nodes_count', (1, 3))
+@pytest.mark.parametrize('atomized_nodes_location', list(product(*[[val, None] for val in NodeLocation])))
+@pytest.mark.parametrize('custom_nodes_location', list(product(*[[val, None] for val in NodeLocation])))
+@pytest.mark.parametrize('atomized_pipeline', (generate_pipeline(primary_nodes_count=4), None))
+def test_pipeline_validate_correct(primary_nodes_count, atomized_nodes_location,
+                                   custom_nodes_location, atomized_pipeline):
+    pipeline = generate_pipeline(primary_nodes_count=primary_nodes_count,
+                                 atomized_nodes_location=atomized_nodes_location,
+                                 custom_nodes_location=custom_nodes_location,
+                                 atomized_pipeline=atomized_pipeline)
     verify_pipeline(pipeline)
 
 
