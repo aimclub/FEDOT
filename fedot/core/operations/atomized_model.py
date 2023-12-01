@@ -24,27 +24,34 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
+    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData) -> ('Pipeline', OutputData):
         predicted_train = self.pipeline.fit(input_data=data)
         fitted_atomized_operation = self.pipeline
         return fitted_atomized_operation, predicted_train
 
-    def predict(self, fitted_operation, data: InputData,
+    def predict(self,
+                fitted_operation: 'Pipeline',
+                data: InputData,
                 params: Optional[Union[OperationParameters, dict]] = None,
-                output_mode: str = 'default'):
+                output_mode: str = 'default') -> OutputData:
 
         # Preprocessing applied
         prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-                        output_mode: str = 'default'):
+    def predict_for_fit(self,
+                        fitted_operation: 'Pipeline',
+                        data: InputData,
+                        params: Optional[OperationParameters] = None,
+                        output_mode: str = 'default') -> OutputData:
         return self.predict(fitted_operation, data, params, output_mode)
 
-    def fine_tune(self, metric_function: Callable,
-                  input_data: InputData = None, iterations: int = 50,
-                  timeout: int = 5):
+    def fine_tune(self,
+                  metric_function: Callable,
+                  input_data: Optional[InputData] = None,
+                  iterations: int = 50,
+                  timeout: int = 5) -> 'AtomizedModel':
         """ Method for tuning hyperparameters """
         tuner = TunerBuilder(input_data.task)\
             .with_tuner(SimultaneousTuner)\
@@ -82,7 +89,7 @@ class AtomizedModel(Operation):
                                            presets=presets)
         return operation_info
 
-    def description(self, operation_params: Optional[dict]):
+    def description(self, operation_params: Optional[dict] = None) -> str:
         operation_type = self.operation_type
         operation_length = self.pipeline.length
         operation_depth = self.pipeline.depth
