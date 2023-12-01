@@ -243,8 +243,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
 def has_correct_data_sources(pipeline: Pipeline):
     """ Checks that data sources and other nodes are not mixed """
 
-    is_data_source_in_names_conds = [node.operation.metadata.id.startswith('data_source')
-                                     for node in pipeline.primary_nodes]
+    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if
+                                     (isinstance(n, PipelineNode) and n.is_primary)]
 
     if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
         raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
