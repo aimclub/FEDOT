@@ -71,7 +71,7 @@ class QualityMetric(Metric):
         try:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                results = cls._simple_prediction(pipeline, reference_data)
+                reference_data, results = cls._simple_prediction(pipeline, reference_data)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
@@ -95,9 +95,9 @@ class QualityMetric(Metric):
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData) -> OutputData:
+    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData) -> Tuple[InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
-        return pipeline.predict(reference_data, output_mode=cls.output_mode)
+        return reference_data, pipeline.predict(reference_data, output_mode=cls.output_mode)
 
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
@@ -330,6 +330,8 @@ class NodeNum(ComplexityMetric):
 
 
 class ComputationTime(ComplexityMetric):
+    default_value = sys.maxsize
+
     @classmethod
     def metric(cls, pipeline: Pipeline, **kwargs) -> float:
         return pipeline.computation_time
