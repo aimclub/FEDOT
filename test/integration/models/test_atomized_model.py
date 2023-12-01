@@ -112,31 +112,35 @@ def create_input_data():
     return train_data, test_data
 
 
-def test_atomized_model_metadata():
-    for atomized_node in get_some_atomized_nodes():
-        pipeline = atomized_node.operation.pipeline
-        input_types = reduce(lambda types, node: types | set(node.operation.metadata.input_types),
-                             pipeline.primary_nodes,
-                             set())
-        assert input_types == set(atomized_node.operation.metadata.input_types)
+@pytest.mark.parametrize('atomized_node', get_some_atomized_nodes())
+def test_atomized_model_metadata(atomized_node):
+    pipeline = atomized_node.operation.pipeline
 
-        output_types = set(pipeline.root_node.operation.metadata.output_types)
-        assert output_types == set(atomized_node.operation.metadata.output_types)
-
-        tags = reduce(lambda types, node: types | set(node.operation.metadata.tags),
-                      pipeline.nodes,
-                      set())
-        assert tags == set(atomized_node.operation.metadata.tags)
-
-        presets = reduce(lambda types, node: types | set(node.operation.metadata.presets),
-                         pipeline.nodes,
+    # check input types, it should be union of input types of primary nodes
+    input_types = reduce(lambda types, node: types | set(node.operation.metadata.input_types),
+                         pipeline.primary_nodes,
                          set())
-        assert presets == set(atomized_node.operation.metadata.presets)
+    assert input_types == set(atomized_node.operation.metadata.input_types)
 
-        atomized_node.operation.description(None)
+    # check output types, it should be output types of root node
+    output_types = set(pipeline.root_node.operation.metadata.output_types)
+    assert output_types == set(atomized_node.operation.metadata.output_types)
 
-        task_type = set(pipeline.root_node.operation.metadata.task_type)
-        assert task_type == set(atomized_node.operation.metadata.task_type)
+    # check tags, it should be union of tags of pipeline nodes
+    tags = reduce(lambda types, node: types | set(node.operation.metadata.tags),
+                  pipeline.nodes,
+                  set())
+    assert tags == set(atomized_node.operation.metadata.tags)
+
+    # check presets, it should be union of presets of pipeline nodes
+    presets = reduce(lambda types, node: types | set(node.operation.metadata.presets),
+                     pipeline.nodes,
+                     set())
+    assert presets == set(atomized_node.operation.metadata.presets)
+
+    # check task_type
+    task_type = set(pipeline.root_node.operation.metadata.task_type)
+    assert task_type == set(atomized_node.operation.metadata.task_type)
 
 
 def test_save_load_atomized_pipeline_correctly():
