@@ -68,10 +68,19 @@
 			"strategies": ["fedot.core.operations.evaluation.classification", "FedotClassificationPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
-		"custom_time_series_transformation": {
+		"custom_time_series_to_table_transformation": {
 			"tasks": "[TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
-			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsTransformingStrategy"],
+			"tags": ["time_series"],
+			"description": "Preprocessing for converting uni-variate time-series into table form or transform it"},
+		"custom_time_series_to_time_series_transformation": {
+			"tasks": "[TaskTypesEnum.ts_forecasting]",
+			"input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
+			"output_type": "[DataTypesEnum.ts]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsTransformingStrategy"],
@@ -248,7 +257,7 @@
 			"tags": ["non_linear", "feature_selection", "non-default"]
 		},
 		"lagged": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_table_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"affects_target",
@@ -260,7 +269,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"sparse_lagged": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_table_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"affects_target",
@@ -272,7 +281,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"smoothing": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_time_series_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
@@ -282,7 +291,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"gaussian_filter": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_time_series_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
@@ -292,7 +301,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"diff_filter": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_time_series_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"differential",
@@ -303,7 +312,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"cut": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_time_series_transformation",
 			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
@@ -316,7 +325,7 @@
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"exog_ts": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_time_series_to_table_transformation",
 			"tags": [
 				"simple",
 				"non_lagged",

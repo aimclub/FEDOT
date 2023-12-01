@@ -48,13 +48,13 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
             # There are several parents
             operation_names = []
             for parent in parent_nodes:
-                if parent.operation.operation_type in forbidden_parents_combination:
-                    operation_names.append(parent.operation.operation_type)
-            operation_counter = Counter(operation_names)
+                operation_names.append(parent.operation.operation_type)
 
-            # If there are some identical operations
-            if any(count > 1 for count in operation_counter.values()):
-                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
+            # If operations are identical
+            if len(set(operation_names)) == 1:
+                # And if it is forbidden to combine them
+                if operation_names[0] in forbidden_parents_combination:
+                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
     return True
 
 
@@ -66,7 +66,7 @@ def has_correct_data_connections(pipeline: Pipeline):
             has_correct_data_connections(node.operation.pipeline)
 
         # skip custom node
-        if node.operation.operation_type == 'custom':
+        if node.operation.metadata.id == 'custom':
             continue
 
         # skip primary node
@@ -76,7 +76,7 @@ def has_correct_data_connections(pipeline: Pipeline):
         # check node (also if it is atomized)
         types = set(node.operation.metadata.input_types)
         for _node in node.nodes_from:
-            if _node.operation.operation_type != 'custom':
+            if _node.operation.metadata.id != 'custom':
                 types &= set(_node.operation.metadata.output_types)
             if len(types) == 0:
                 raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
@@ -243,8 +243,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
 def has_correct_data_sources(pipeline: Pipeline):
     """ Checks that data sources and other nodes are not mixed """
 
-    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if
-                                     (isinstance(n, PipelineNode) and n.is_primary)]
+    is_data_source_in_names_conds = [node.operation.metadata.id.startswith('data_source')
+                                     for node in pipeline.primary_nodes]
 
     if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
         raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
