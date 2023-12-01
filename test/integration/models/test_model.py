@@ -1,7 +1,6 @@
 import pickle
 import matplotlib.pyplot as plt
 
-from collections import defaultdict
 from copy import deepcopy
 from time import perf_counter
 from typing import Tuple, Optional
@@ -487,24 +486,33 @@ def test_operations_are_fast():
     # models that raise exception
     to_skip = ['custom', 'decompose', 'class_decompose']
     data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
+    reference_operations = ['rf', 'rfr']
+    reference_max_time, reference_second_max_time = float('inf'), float('inf')
 
     for operation in OperationTypesRepository('all')._repo:
-        if operation.id in to_skip:
-            continue
-        if operation.presets is not None and FAST_TRAIN_PRESET_NAME in operation.presets:
-            perfomance_values = get_operation_perfomance(operation)
-            # TODO: filter out operations by perfomance values
+        if operation.id in reference_operations:
+            perfomance_values = get_operation_perfomance(operation, data_lengths)
             if perfomance_values is not None:
-                plot_operation_perfomance(data_lengths[1:], perfomance_values[1:])
-            assert True
+                reference_max_time = min(reference_max_time, perfomance_values[-1])
+                reference_second_max_time = min(reference_second_max_time, perfomance_values[-2])
+
+    if reference_max_time < float('inf'):
+        for operation in OperationTypesRepository('all')._repo:
+            if operation.id in to_skip or operation.id in reference_operations:
+                continue
+            if operation.presets is not None and FAST_TRAIN_PRESET_NAME in operation.presets:
+                perfomance_values = get_operation_perfomance(operation, data_lengths)
+                if perfomance_values is not None:
+                    max_time = perfomance_values[-1]
+                    second_max_time = perfomance_values[-2]
+                    assert max_time <= reference_max_time and second_max_time <= reference_second_max_time, \
+                        f'operation {operation.id} should not have fast_train preset'
 
 
-def get_operation_perfomance(operation: OperationMetaInfo) -> Optional[Tuple[float]]:
+def get_operation_perfomance(operation: OperationMetaInfo, data_lengths: Tuple[float, ...]) -> Optional[Tuple[float, ...]]:
     """
     Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
     """
-    data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
-
     for task_type in operation.task_type:
         for data_type in operation.input_types:
             perfomance_values = []
@@ -525,16 +533,3 @@ def get_operation_perfomance(operation: OperationMetaInfo) -> Optional[Tuple[flo
                     perfomance_values.append(stop_time)
                 if perfomance_values and len(perfomance_values) == len(data_lengths):
                     return tuple(perfomance_values)
-
-
-def plot_operation_perfomance(data_lengths: Tuple[float], perfomance_values: Tuple[float]) -> None:
-    """
-    Temporary function for plotting perfomance values and their approximate function.
-    """
-    coefficients = np.polyfit(data_lengths, perfomance_values, 2)
-    approx_data_lengths = np.linspace(data_lengths[0], data_lengths[-1], 1000)
-    approx_perfomance_values = np.poly1d(coefficients)(approx_data_lengths)
-    with plt.ion():
-        plt.scatter(data_lengths, perfomance_values, label='Perfomance values')
-        plt.plot(approx_data_lengths, approx_perfomance_values, label='Approximation')
-        plt.pause(0.1)
