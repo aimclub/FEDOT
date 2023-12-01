@@ -274,6 +274,9 @@ class Pipeline(GraphDelegate, Serializable):
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
 
+        if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            result.predict = result.predict.ravel()
+
         result = self._postprocess(copied_input_data, result, output_mode)
         return result
 
