@@ -298,31 +298,38 @@ class Silhouette(QualityMetric):
 
 
 class ComplexityMetric(Metric):
-    output_mode = 'default'
     default_value = 0
+    norm_constant = 1
+
+    @classmethod
+    def get_value(cls, pipeline: Pipeline, **kwargs) -> float:
+        """ Get metric value and apply norm_constant to it. """
+        return cls.metric(pipeline, **kwargs) / cls.norm_constant
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
+    def metric(cls, pipeline: Pipeline, **kwargs) -> float:
         """ Get metrics value based on pipeline. """
         raise AbstractMethodNotImplementError
 
 
 class StructuralComplexity(ComplexityMetric):
+    norm_constant = 30
+
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
-        norm_constant = 30
-        return (pipeline.depth ** 2 + pipeline.length) / norm_constant
+    def metric(cls, pipeline: Pipeline, **kwargs) -> float:
+        return pipeline.depth ** 2 + pipeline.length
 
 
 class NodeNum(ComplexityMetric):
+    norm_constant = 10
+
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
-        norm_constant = 10
-        return pipeline.length / norm_constant
+    def metric(cls, pipeline: Pipeline, **kwargs) -> float:
+        return pipeline.length
 
 
 class ComputationTime(ComplexityMetric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline) -> float:
+    def metric(cls, pipeline: Pipeline, **kwargs) -> float:
         return pipeline.computation_time
