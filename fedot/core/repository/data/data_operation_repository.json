@@ -293,7 +293,7 @@
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "ts"],
+			"presets": ["ts"],
 			"tags": [
 				"differential",
 				"non_lagged",
