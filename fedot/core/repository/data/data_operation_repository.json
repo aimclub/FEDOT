@@ -219,7 +219,7 @@
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"presets": ["fast_train", "*tree"],
+			"presets": ["*tree"],
 			"tags": ["affects_target", "non_linear", "filtering",
 				     "correct_params", "non_applicable_for_ts", "non-default"]
 		},
