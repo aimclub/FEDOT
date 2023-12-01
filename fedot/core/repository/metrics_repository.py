@@ -2,8 +2,8 @@ from typing import Dict, Optional, Protocol, TypeVar, Union
 
 from golem.utilities.data_structures import ComparableEnum as Enum
 
-from fedot.core.composer.metrics import (Accuracy, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE, MSLE, Metric,
-                                         NodeNum, Precision, R2, RMSE, ROCAUC, SMAPE, Silhouette,
+from fedot.core.composer.metrics import (Accuracy, ComplexityMetric, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE,
+                                         MSLE, NodeNum, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,
                                          StructuralComplexity)
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -73,7 +73,7 @@ class QualityMetricCallable(Protocol):
 
 
 class ComplexityMetricCallable(Protocol):
-    def __call__(self, pipeline: PipelineType) -> NumberType: pass
+    def __call__(self, pipeline: PipelineType, **kwargs) -> NumberType: pass
 
 
 MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
@@ -120,5 +120,5 @@ class MetricsRepository:
         return MetricsRepository._metrics_implementations[metric_name]
 
     @staticmethod
-    def get_metric_class(metric_name: MetricsEnum) -> Metric:
+    def get_metric_class(metric_name: MetricsEnum) -> Union[QualityMetric, ComplexityMetric]:
         return MetricsRepository._metrics_classes[metric_name]
