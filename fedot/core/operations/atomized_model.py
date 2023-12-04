@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import timedelta
 from functools import reduce
 from itertools import chain
-from typing import Callable, Union, Optional, Set, List
+from typing import Callable, Union, Optional, Set, List, Any, Dict
 
 from fedot.core.pipelines.node import PipelineNode
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -34,7 +34,7 @@ class AtomizedModel(Operation):
     def predict(self,
                 fitted_operation: 'Pipeline',
                 data: InputData,
-                params: Optional[Union[OperationParameters, dict]] = None,
+                params: Optional[Union[OperationParameters, Dict[str, Any]]] = None,
                 output_mode: str = 'default') -> OutputData:
 
         # Preprocessing applied
