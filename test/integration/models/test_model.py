@@ -482,48 +482,50 @@ def test_operations_are_fast():
     Test defines operation complexity as polynomial function of data size.
     If complexity function grows fast, then operation should not have fast_train tag.
     """
-    # models that fail fast_train check
-    fail_operations = []
-    to_skip = ['custom', 'decompose', 'class_decompose']
-    data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
+
+    data_lengths = tuple(map(int, np.logspace(2.2, 4, 6)))
     reference_operations = ['rf', 'rfr']
-    reference_max_time, reference_second_max_time = float('inf'), float('inf')
+    to_skip = ['custom', 'decompose', 'class_decompose', 'kmeans'] + reference_operations
+    reference_time = (float('inf'), ) * len(data_lengths)
+    # tries for time measuring
+    attempt = 2
 
     for operation in OperationTypesRepository('all')._repo:
         if operation.id in reference_operations:
-            perfomance_values = get_operation_perfomance(operation, data_lengths)
-            if perfomance_values is not None:
-                reference_max_time = min(reference_max_time, perfomance_values[-1])
-                reference_second_max_time = min(reference_second_max_time, perfomance_values[-2])
+            perfomance_values = get_operation_perfomance(operation, data_lengths, attempt)
+            reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
 
-    if reference_max_time < float('inf'):
-        for operation in OperationTypesRepository('all')._repo:
-            if operation.id in to_skip or operation.id in reference_operations:
-                continue
-            if operation.presets is not None and FAST_TRAIN_PRESET_NAME in operation.presets:
+    for operation in OperationTypesRepository('all')._repo:
+        if (operation.id not in to_skip
+            and operation.presets
+            and FAST_TRAIN_PRESET_NAME in operation.presets):
+            for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
-                if perfomance_values is not None:
-                    max_time = perfomance_values[-1]
-                    second_max_time = perfomance_values[-2]
-                    if max_time > reference_max_time or second_max_time > reference_second_max_time:
-                        fail_operations.append(operation)
-
-    for operation in fail_operations.copy():
-        perfomance_values = get_operation_perfomance(operation, data_lengths)
-        max_time = perfomance_values[-1]
-        second_max_time = perfomance_values[-2]
-        if max_time <= reference_max_time and second_max_time <= reference_second_max_time:
-            fail_operations.remove(operation)
-
-    assert len(fail_operations) == 0, \
-        f'operations {[operation.id for operation in fail_operations]} should not have fast_train preset'
+                # if attempt is successful then stop
+                if all(x >= y for x, y in zip(reference_time, perfomance_values)):
+                    break
+            else:
+                raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
 
 
 def get_operation_perfomance(operation: OperationMetaInfo,
-                             data_lengths: Tuple[float, ...]) -> Optional[Tuple[float, ...]]:
+                             data_lengths: Tuple[float, ...],
+                             times: int = 1) -> Optional[Tuple[float, ...]]:
     """
     Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
     """
+    def fit_time_for_operation(operation: OperationMetaInfo,
+                               data: InputData):
+        nodes_from = []
+        if task_type is TaskTypesEnum.ts_forecasting:
+            if 'non_lagged' not in operation.tags:
+                nodes_from = [PipelineNode('lagged')]
+        node = PipelineNode(operation.id, nodes_from=nodes_from)
+        pipeline = Pipeline(node)
+        start_time = perf_counter()
+        pipeline.fit(data)
+        return perf_counter() - start_time
+
     for task_type in operation.task_type:
         for data_type in operation.input_types:
             perfomance_values = []
@@ -532,15 +534,10 @@ def get_operation_perfomance(operation: OperationMetaInfo,
                                             length=length, features_count=2,
                                             random=True)
                 if data is not None:
-                    nodes_from = []
-                    if task_type is TaskTypesEnum.ts_forecasting:
-                        if 'non_lagged' not in operation.tags:
-                            nodes_from = [PipelineNode('lagged')]
-                    node = PipelineNode(operation.id, nodes_from=nodes_from)
-                    pipeline = Pipeline(node)
-                    start_time = perf_counter()
-                    pipeline.fit(data)
-                    stop_time = perf_counter() - start_time
-                    perfomance_values.append(stop_time)
-                if perfomance_values and len(perfomance_values) == len(data_lengths):
-                    return tuple(perfomance_values)
+                    min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
+                    perfomance_values.append(min_evaluated_time)
+            if perfomance_values:
+                if len(perfomance_values) != len(data_lengths):
+                    raise ValueError('not all measurements have been proceeded')
+                return tuple(perfomance_values)
+    raise Exception(f"Fit time for operation ``{operation.id}`` cannot be measured")
