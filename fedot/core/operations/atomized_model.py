@@ -1,7 +1,7 @@
 from collections import Counter
 from datetime import timedelta
 from functools import reduce
-from itertools import chain
+from operator import and_, or_
 from typing import Callable, Union, Optional, Set, List, Any, Dict
 
 from fedot.core.pipelines.node import PipelineNode
@@ -71,19 +71,24 @@ class AtomizedModel(Operation):
 
         def extract_metadata_from_pipeline(attr_name: str,
                                            node_filter: Optional[Callable[[PipelineNode], bool]] = None,
-                                           reduce_function: Optional[Callable[[List[Set]], Set]] = None):
+                                           reduce_function: Optional[Callable[[Set], Set]] = None) -> List[Any]:
+            """ Extract metadata from atomized pipeline
+                :param attr_name: extracting metadata property
+                :param node_filter: return True for nodes with extracting metadata
+                :param reduce_function: function is used for combining extracted
+                                        metadata in ``reduce`` function
+                :return: list with extracted metadata
+                """
             nodes_to_extract_metadata = self.pipeline.nodes
             if node_filter is not None:
                 nodes_to_extract_metadata = [node for node in nodes_to_extract_metadata if node_filter(node)]
             data = [set(getattr(node.operation.metadata, attr_name)) for node in nodes_to_extract_metadata]
-            if reduce_function is None:
-                reduce_function = lambda x, y: x | y
-            return list(reduce(reduce_function, data))
+            return list(reduce(reduce_function or or_, data))
 
         tags = extract_metadata_from_pipeline('tags')
         input_types = extract_metadata_from_pipeline('input_types',
                                                      node_filter=lambda node: node.is_primary,
-                                                     reduce_function=lambda x, y: x & y)
+                                                     reduce_function=and_)
         output_types = root_node.operation.metadata.output_types
         presets = extract_metadata_from_pipeline('presets')
 
