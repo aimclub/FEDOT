@@ -137,6 +137,41 @@ def get_pca_incorrect_data():
     return input_data
 
 
+def get_operation_perfomance(operation: OperationMetaInfo,
+                             data_lengths: Tuple[float, ...],
+                             times: int = 1) -> Optional[Tuple[float, ...]]:
+    """
+    Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
+    """
+    def fit_time_for_operation(operation: OperationMetaInfo,
+                               data: InputData):
+        nodes_from = []
+        if task_type is TaskTypesEnum.ts_forecasting:
+            if 'non_lagged' not in operation.tags:
+                nodes_from = [PipelineNode('lagged')]
+        node = PipelineNode(operation.id, nodes_from=nodes_from)
+        pipeline = Pipeline(node)
+        start_time = perf_counter()
+        pipeline.fit(data)
+        return perf_counter() - start_time
+
+    for task_type in operation.task_type:
+        for data_type in operation.input_types:
+            perfomance_values = []
+            for length in data_lengths:
+                data = get_data_for_testing(task_type, data_type,
+                                            length=length, features_count=2,
+                                            random=True)
+                if data is not None:
+                    min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
+                    perfomance_values.append(min_evaluated_time)
+            if perfomance_values:
+                if len(perfomance_values) != len(data_lengths):
+                    raise ValueError('not all measurements have been proceeded')
+                return tuple(perfomance_values)
+    raise Exception(f"Fit time for operation ``{operation.id}`` cannot be measured")
+
+
 @pytest.fixture()
 def classification_dataset():
     samples = 1000
@@ -506,38 +541,3 @@ def test_operations_are_fast():
                     break
             else:
                 raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
-
-
-def get_operation_perfomance(operation: OperationMetaInfo,
-                             data_lengths: Tuple[float, ...],
-                             times: int = 1) -> Optional[Tuple[float, ...]]:
-    """
-    Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
-    """
-    def fit_time_for_operation(operation: OperationMetaInfo,
-                               data: InputData):
-        nodes_from = []
-        if task_type is TaskTypesEnum.ts_forecasting:
-            if 'non_lagged' not in operation.tags:
-                nodes_from = [PipelineNode('lagged')]
-        node = PipelineNode(operation.id, nodes_from=nodes_from)
-        pipeline = Pipeline(node)
-        start_time = perf_counter()
-        pipeline.fit(data)
-        return perf_counter() - start_time
-
-    for task_type in operation.task_type:
-        for data_type in operation.input_types:
-            perfomance_values = []
-            for length in data_lengths:
-                data = get_data_for_testing(task_type, data_type,
-                                            length=length, features_count=2,
-                                            random=True)
-                if data is not None:
-                    min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
-                    perfomance_values.append(min_evaluated_time)
-            if perfomance_values:
-                if len(perfomance_values) != len(data_lengths):
-                    raise ValueError('not all measurements have been proceeded')
-                return tuple(perfomance_values)
-    raise Exception(f"Fit time for operation ``{operation.id}`` cannot be measured")
