@@ -1,8 +1,13 @@
 from collections import Counter
 from datetime import timedelta
+<<<<<<< HEAD
 from functools import reduce
 from operator import and_, or_
 from typing import Callable, Union, Optional, Set, List, Any, Dict
+=======
+from itertools import chain
+from typing import Callable, Union, Optional
+>>>>>>> 19508593 (pep8 and small fix)
 
 from fedot.core.pipelines.node import PipelineNode
 from golem.core.tuning.simultaneous import SimultaneousTuner

@@ -9,12 +9,9 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
-from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.random_pipeline_factory import RandomPipelineFactory
 from fedot.core.utils import fedot_project_root, make_pipeline_generator
-from golem.core.dag.graph_verifier import GraphVerifier
 from test.integration.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
