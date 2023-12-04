@@ -1,5 +1,4 @@
 from typing import Optional
-from collections import Counter
 
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
