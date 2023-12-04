@@ -117,9 +117,8 @@ def test_atomized_model_metadata(atomized_node):
     pipeline = atomized_node.operation.pipeline
 
     # check input types, it should be union of input types of primary nodes
-    input_types = reduce(lambda types, node: types | set(node.operation.metadata.input_types),
-                         pipeline.primary_nodes,
-                         set())
+    input_types = reduce(lambda types, input_types: types & set(input_types),
+                         [set(node.operation.metadata.input_types) for node in pipeline.primary_nodes])
     assert input_types == set(atomized_node.operation.metadata.input_types)
 
     # check output types, it should be output types of root node
