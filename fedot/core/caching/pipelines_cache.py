@@ -35,8 +35,12 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            unexpected_exc = not (isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
-            self.log.warning(f'Nodes can not be saved: {ex}. Continue', exc=ex, raise_if_test=unexpected_exc)
+            exc_is_expected = (isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
+            msg = 'Nodes can not be saved'
+            if exc_is_expected:
+                self.log.warning(msg, exc_info=ex)
+            else:
+                self.log.log_or_raise('warning', ValueError(msg))
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -61,8 +65,8 @@ class OperationsCache(BaseCache):
                     nodes_lst[idx].fitted_operation = cached_op
                 else:
                     nodes_lst[idx].fitted_operation = None
-        except Exception as ex:
-            self.log.warning(f'Cache can not be loaded: {ex}. Continue.', exc=ex, raise_if_test=True)
+        except Exception:
+            self.log.log_or_raise('info', ValueError('Cache can not be loaded.'))
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
