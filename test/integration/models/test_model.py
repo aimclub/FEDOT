@@ -508,7 +508,7 @@ def test_operations_are_fast():
                     if max_time > reference_max_time or second_max_time > reference_second_max_time:
                         fail_operations.append(operation)
 
-    for operation in fail_operations:
+    for operation in fail_operations.copy():
         perfomance_values = get_operation_perfomance(operation, data_lengths)
         max_time = perfomance_values[-1]
         second_max_time = perfomance_values[-2]
@@ -516,7 +516,7 @@ def test_operations_are_fast():
             fail_operations.remove(operation)
 
     assert len(fail_operations) == 0, \
-        f'operations {[op for op in fail_operations]} should not have fast_train preset'
+        f'operations {[operation.id for operation in fail_operations]} should not have fast_train preset'
 
 
 def get_operation_perfomance(operation: OperationMetaInfo,
