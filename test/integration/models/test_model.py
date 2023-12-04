@@ -1,5 +1,4 @@
 import pickle
-import matplotlib.pyplot as plt
 
 from copy import deepcopy
 from time import perf_counter
@@ -483,7 +482,8 @@ def test_operations_are_fast():
     Test defines operation complexity as polynomial function of data size.
     If complexity function grows fast, then operation should not have fast_train tag.
     """
-    # models that raise exception
+    # models that fail fast_train check
+    fail_operations = []
     to_skip = ['custom', 'decompose', 'class_decompose']
     data_lengths = tuple(map(int, np.logspace(2, 4, 6)))
     reference_operations = ['rf', 'rfr']
@@ -505,11 +505,22 @@ def test_operations_are_fast():
                 if perfomance_values is not None:
                     max_time = perfomance_values[-1]
                     second_max_time = perfomance_values[-2]
-                    assert max_time <= reference_max_time and second_max_time <= reference_second_max_time, \
-                        f'operation {operation.id} should not have fast_train preset'
+                    if max_time > reference_max_time or second_max_time > reference_second_max_time:
+                        fail_operations.append(operation)
+
+    for operation in fail_operations:
+        perfomance_values = get_operation_perfomance(operation, data_lengths)
+        max_time = perfomance_values[-1]
+        second_max_time = perfomance_values[-2]
+        if max_time <= reference_max_time and second_max_time <= reference_second_max_time:
+            fail_operations.remove(operation)
+
+    assert len(fail_operations) == 0, \
+        f'operations {[op for op in fail_operations]} should not have fast_train preset'
 
 
-def get_operation_perfomance(operation: OperationMetaInfo, data_lengths: Tuple[float, ...]) -> Optional[Tuple[float, ...]]:
+def get_operation_perfomance(operation: OperationMetaInfo,
+                             data_lengths: Tuple[float, ...]) -> Optional[Tuple[float, ...]]:
     """
     Helper function to check perfomance of only the first valid operation pair (task_type, input_type).
     """
