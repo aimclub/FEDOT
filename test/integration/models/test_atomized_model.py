@@ -1,5 +1,6 @@
 import json
 import os
+from functools import reduce
 
 import numpy as np
 import pytest
@@ -94,6 +95,11 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     return pipeline
 
 
+def get_some_atomized_nodes():
+    pipeline = create_pipeline_with_several_nested_atomized_model()
+    return [node for node in pipeline.nodes if isinstance(node.operation, AtomizedModel)]
+
+
 def create_input_data():
     train_file_path = os.path.join('test', 'data', 'scoring', 'scoring_train.csv')
     test_file_path = os.path.join('test', 'data', 'scoring', 'scoring_test.csv')
@@ -104,6 +110,36 @@ def create_input_data():
     test_data = InputData.from_csv(full_test_file_path)
 
     return train_data, test_data
+
+
+@pytest.mark.parametrize('atomized_node', get_some_atomized_nodes())
+def test_atomized_model_metadata(atomized_node):
+    pipeline = atomized_node.operation.pipeline
+
+    # check input types, it should be union of input types of primary nodes
+    input_types = reduce(lambda types, input_types: types & set(input_types),
+                         [set(node.operation.metadata.input_types) for node in pipeline.primary_nodes])
+    assert input_types == set(atomized_node.operation.metadata.input_types)
+
+    # check output types, it should be output types of root node
+    output_types = set(pipeline.root_node.operation.metadata.output_types)
+    assert output_types == set(atomized_node.operation.metadata.output_types)
+
+    # check tags, it should be union of tags of pipeline nodes
+    tags = reduce(lambda types, node: types | set(node.operation.metadata.tags),
+                  pipeline.nodes,
+                  set())
+    assert tags == set(atomized_node.operation.metadata.tags)
+
+    # check presets, it should be union of presets of pipeline nodes
+    presets = reduce(lambda types, node: types | set(node.operation.metadata.presets),
+                     pipeline.nodes,
+                     set())
+    assert presets == set(atomized_node.operation.metadata.presets)
+
+    # check task_type
+    task_type = set(pipeline.root_node.operation.metadata.task_type)
+    assert task_type == set(atomized_node.operation.metadata.task_type)
 
 
 def test_save_load_atomized_pipeline_correctly():
