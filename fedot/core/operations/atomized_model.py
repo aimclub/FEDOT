@@ -1,8 +1,10 @@
 from collections import Counter
 from datetime import timedelta
+from functools import reduce
 from itertools import chain
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Set, List
 
+from fedot.core.pipelines.node import PipelineNode
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.core.data.data import InputData, OutputData
@@ -67,15 +69,21 @@ class AtomizedModel(Operation):
     def metadata(self) -> OperationMetaInfo:
         root_node = self.pipeline.root_node
 
-        def extract_metadata_from_pipeline(attr_name: str, node_filter: Optional[Callable] = None):
+        def extract_metadata_from_pipeline(attr_name: str,
+                                           node_filter: Optional[Callable[[PipelineNode], bool]] = None,
+                                           reduce_function: Optional[Callable[[List[Set]], Set]] = None):
             nodes_to_extract_metadata = self.pipeline.nodes
             if node_filter is not None:
                 nodes_to_extract_metadata = [node for node in nodes_to_extract_metadata if node_filter(node)]
-            data = [getattr(node.operation.metadata, attr_name) for node in nodes_to_extract_metadata]
-            return list(set(chain(*data)))
+            data = [set(getattr(node.operation.metadata, attr_name)) for node in nodes_to_extract_metadata]
+            if reduce_function is None:
+                reduce_function = lambda x, y: x | y
+            return list(reduce(reduce_function, data))
 
         tags = extract_metadata_from_pipeline('tags')
-        input_types = extract_metadata_from_pipeline('input_types', node_filter=lambda node: node.is_primary)
+        input_types = extract_metadata_from_pipeline('input_types',
+                                                     node_filter=lambda node: node.is_primary,
+                                                     reduce_function=lambda x, y: x & y)
         output_types = root_node.operation.metadata.output_types
         presets = extract_metadata_from_pipeline('presets')
 
