@@ -172,7 +172,15 @@ class PipelineSearchSpace(SearchSpace):
                 'booster': {
                     'hyperopt-dist': hp.choice,
                     'samplin-score': [['gbtree', 'dart', 'gblinear']],
-                    'type': 'categorical'}
+                    'type': 'categorical'},
+                'lambda': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-score': [0, 1000],
+                    'type': 'discrete'},
+                'alpha': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-score': [0, 1000],
+                    'type': 'discrete'},
             },
             'svr': {
                 'C': {
