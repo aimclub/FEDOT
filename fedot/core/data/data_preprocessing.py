@@ -72,15 +72,9 @@ def find_categorical_columns(table: np.ndarray, column_type_ids: Optional[np.nda
 
 def force_categorical_determination(table: np.ndarray):
     """ Find string columns using 'computationally expensive' approach """
-    categorical_ids = []
-    non_categorical_ids = []
-    # For every column in table make check
-    for column_id, column in enumerate(table.T):
-        # Check if column is of string objects
-        if pd.api.types.infer_dtype(column, skipna=True) == 'string':
-            categorical_ids.append(column_id)
-        else:
-            non_categorical_ids.append(column_id)
+    real_columns_selector = np.all(np.isreal(table), axis=0)
+    non_categorical_ids = np.flatnonzero(real_columns_selector).tolist()
+    categorical_ids = np.flatnonzero(~real_columns_selector).tolist()
 
     return categorical_ids, non_categorical_ids
 

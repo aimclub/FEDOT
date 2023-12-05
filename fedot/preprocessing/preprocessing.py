@@ -314,11 +314,9 @@ class DataPreprocessor(BasePreprocessor):
         """
 
         def strip_all_strs(item: Union[object, str]):
-            try:
+            if isinstance(item, str):
                 return item.strip()
-            except AttributeError:
-                # not an str object
-                return item
+            return item
 
         features_df = pd.DataFrame(data.features)
         mixed_or_str = features_df.select_dtypes(object)
