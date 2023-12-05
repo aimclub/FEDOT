@@ -1,5 +1,5 @@
 import json
-import pickle
+import sys
 from itertools import product
 from typing import Callable, Dict, Tuple, Union
 
@@ -110,7 +110,7 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 
 @pytest.mark.parametrize(
     'metric, pipeline_func, data_setup',
-    [
+    [  # TODO: Add binary classification to the test after completion of https://github.com/aimclub/FEDOT/issues/1221.
         *product(ComplexityMetricsEnum, [get_classification_pipeline], ['complexity']),
         *product(ClassificationMetricsEnum, [get_classification_pipeline], ['multiclass']),
         *product(RegressionMetricsEnum, [get_regression_pipeline], ['regression', 'multitarget']),
@@ -139,6 +139,28 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
 
     assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
     assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
+
+
+@pytest.mark.parametrize(
+    'metric, pipeline_func, data_setup',
+    [
+        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['binary']),
+    ],
+    indirect=['data_setup']
+)
+def test_binary_classification(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
+                               data_setup: Tuple[InputData, InputData, str, Union[int, None]],
+                               expected_values: Dict[str, Dict[str, float]]):
+    train, test, task_type, validation_blocks = data_setup
+
+    pipeline = pipeline_func()
+    pipeline.fit(input_data=train)
+    metric_function = MetricsRepository.get_metric(metric)
+    metric_class = MetricsRepository.get_metric_class(metric)
+    metric_value = metric_function(pipeline=pipeline, reference_data=test, validation_blocks=validation_blocks)
+
+    assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
+    assert 0 < abs(metric_value) < sys.maxsize
 
 
 @pytest.mark.parametrize(
