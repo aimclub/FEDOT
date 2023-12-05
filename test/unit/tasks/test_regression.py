@@ -103,7 +103,7 @@ def test_regression_pipeline_with_data_operation_fit_predict_correct():
 @pytest.mark.parametrize('data_setup', ['multitarget'], indirect=True)
 def test_multi_target_regression_composing_correct(data_setup):
     # Load simple dataset for multi-target
-    train, test, _ = data_setup
+    train, test, _, _ = data_setup
 
     problem = 'regression'
     timeout = 0.1

@@ -1,4 +1,5 @@
 import json
+import pickle
 from itertools import product
 from typing import Callable, Dict, Tuple, Union
 
@@ -23,6 +24,7 @@ from fedot.core.utils import fedot_project_root
 @pytest.fixture(scope='session')
 def data_setup(request):
     task_type = request.param
+    validation_blocks = None
     if task_type in ('binary', 'complexity'):
         x, y = load_breast_cancer(return_X_y=True)
         task = Task(TaskTypesEnum.classification)
@@ -45,6 +47,7 @@ def data_setup(request):
         x = y = df['sea_height'].to_numpy()
         task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))
         data_type = DataTypesEnum.ts
+        validation_blocks = 2
     elif task_type == 'multits':
         file_path = fedot_project_root() / 'test/data/short_time_series.csv'
         df = pd.read_csv(file_path)
@@ -52,6 +55,7 @@ def data_setup(request):
         y = df['sea_height'].to_numpy()
         task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))
         data_type = DataTypesEnum.multi_ts
+        validation_blocks = 2
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
 
@@ -64,8 +68,8 @@ def data_setup(request):
                            task=task,
                            data_type=data_type)
     # Train test split
-    train_data, test_data = train_test_data_setup(input_data)
-    return train_data, test_data, task_type
+    train_data, test_data = train_test_data_setup(input_data, validation_blocks=validation_blocks)
+    return train_data, test_data, task_type, validation_blocks
 
 
 def get_classification_pipeline():
@@ -105,31 +109,31 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 
 
 @pytest.mark.parametrize(
-    'metric, pipeline_func, data_setup, validation_blocks',
+    'metric, pipeline_func, data_setup',
     [
-        *product(ComplexityMetricsEnum, [get_classification_pipeline], ['complexity'], [None]),
-        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['binary', 'multiclass'], [None]),
-        *product(RegressionMetricsEnum, [get_regression_pipeline], ['regression', 'multitarget'], [None]),
-        *product(TimeSeriesForecastingMetricsEnum, [get_ts_pipeline], ['ts', 'multits'], [2])
+        *product(ComplexityMetricsEnum, [get_classification_pipeline], ['complexity']),
+        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['multiclass']),
+        *product(RegressionMetricsEnum, [get_regression_pipeline], ['regression', 'multitarget']),
+        *product(TimeSeriesForecastingMetricsEnum, [get_ts_pipeline], ['ts', 'multits'])
     ],
     indirect=['data_setup']
 )
 def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
-                 validation_blocks: Union[int, None], data_setup: Tuple[InputData, InputData, str],
-                 expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = False):
-    train, _, task_type = data_setup
+                 data_setup: Tuple[InputData, InputData, str, Union[int, None]],
+                 expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = True):
+    train, test, task_type, validation_blocks = data_setup
 
     pipeline = pipeline_func()
     pipeline.fit(input_data=train)
     metric_function = MetricsRepository.get_metric(metric)
     metric_class = MetricsRepository.get_metric_class(metric)
-    metric_value = metric_function(pipeline=pipeline, reference_data=train, validation_blocks=validation_blocks)
+    metric_value = metric_function(pipeline=pipeline, reference_data=test, validation_blocks=validation_blocks)
 
     if update_expected_values:
         with open(fedot_project_root() / 'test/data/expected_metric_values.json', 'w') as f:
-            expected_values = dict(binary={}, multiclass={}, regression={}, multitarget={}, ts={}, multits={})
+            expected_values[task_type] = expected_values.get(task_type) or {}
             expected_values[task_type][str(metric)] = metric_value
-            json.dump(expected_values, f)
+            json.dump(expected_values, f, indent=2)
 
     expected_value = expected_values[task_type][str(metric)]
 
@@ -149,7 +153,7 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
 def test_ideal_case_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
                             validation_blocks: Union[int, None], data_setup: Tuple[InputData, InputData, str],
                             expected_values):
-    reference, _, task_type = data_setup
+    reference, _, task_type, _ = data_setup
     metric_class = MetricsRepository.get_metric_class(metric)
     predicted = OutputData(idx=reference.idx, task=reference.task, data_type=reference.data_type)
     if task_type == 'multiclass' and metric_class.output_mode != 'labels':
@@ -167,7 +171,7 @@ def test_ideal_case_metrics(metric: ClassificationMetricsEnum, pipeline_func: Ca
 
 @pytest.mark.parametrize('data_setup', ['multitarget'], indirect=True)
 def test_predict_shape_multi_target(data_setup: Tuple[InputData, InputData, str]):
-    train, test, _ = data_setup
+    train, test, _, _ = data_setup
     simple_pipeline = Pipeline(PipelineNode('linear'))
     simple_pipeline.fit(input_data=train)
 
