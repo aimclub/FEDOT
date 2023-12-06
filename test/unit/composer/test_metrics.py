@@ -120,8 +120,9 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 )
 def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
                  data_setup: Tuple[InputData, InputData, str, Union[int, None]],
-                 expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = False):
+                 expected_values: Dict[str, Dict[str, float]]):
     set_random_seed(0)
+    update_expected_values: bool = False
 
     train, test, task_type, validation_blocks = data_setup
 
@@ -131,16 +132,17 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
     metric_class = MetricsRepository.get_metric_class(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=test, validation_blocks=validation_blocks)
 
-    expected_value = expected_values[task_type][str(metric)]
-
-    assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
-    assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
-
-    if update_expected_values:
+    if not update_expected_values:
+        expected_value = expected_values[task_type][str(metric)]
+        assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
+        assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
+    else:
         with open(fedot_project_root() / 'test/data/expected_metric_values.json', 'w') as f:
             expected_values[task_type] = expected_values.get(task_type) or {}
             expected_values[task_type][str(metric)] = metric_value
             json.dump(expected_values, f, indent=2)
+        raise ValueError('The value of `update_expected_values` should equal to `False` '
+                         'in order for this test to pass.')
 
 
 @pytest.mark.parametrize(
