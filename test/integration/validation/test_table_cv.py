@@ -7,7 +7,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.validation.test_table_cv import get_classification_data
 

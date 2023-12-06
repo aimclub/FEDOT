@@ -3,8 +3,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
-from fedot.core.repository.tasks import TaskTypesEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
@@ -20,8 +18,9 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    RegressionMetricsEnum, MetricType
+from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum, MetricIDType,
+                                                      RegressionMetricsEnum)
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -116,7 +115,7 @@ def assert_intermediate_metrics(pipeline: Graph):
                            get_ts_data()[0],
                            RegressionMetricsEnum.RMSE),
                           ])
-def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, metric: MetricType):
+def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, metric: MetricIDType):
     graph_gen_params = get_pipeline_generation_params()
     metrics = [metric]
 

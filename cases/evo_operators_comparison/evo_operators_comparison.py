@@ -16,7 +16,7 @@ from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 

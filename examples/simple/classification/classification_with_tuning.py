@@ -7,7 +7,7 @@ from examples.simple.classification.classification_pipelines import classificati
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.utilities.synth_dataset_generator import classification_dataset

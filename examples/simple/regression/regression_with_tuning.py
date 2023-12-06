@@ -9,7 +9,7 @@ from examples.simple.regression.regression_pipelines import regression_ransac_pi
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+from fedot.core.repository.metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.utilities.synth_dataset_generator import regression_dataset

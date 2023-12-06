@@ -9,7 +9,7 @@ from examples.simple.classification.classification_pipelines import classificati
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 
 
 def get_case_train_test_data():

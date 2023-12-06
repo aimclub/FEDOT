@@ -11,7 +11,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+from fedot.core.repository.metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
