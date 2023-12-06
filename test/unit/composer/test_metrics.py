@@ -110,7 +110,7 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 
 @pytest.mark.parametrize(
     'metric, pipeline_func, data_setup',
-    [  # TODO: Add binary classification to the test after completion of https://github.com/aimclub/FEDOT/issues/1221.
+    [
         *product(ComplexityMetricsEnum, [get_classification_pipeline], ['complexity']),
         *product(ClassificationMetricsEnum, [get_classification_pipeline], ['multiclass', 'binary']),
         *product(RegressionMetricsEnum, [get_regression_pipeline], ['regression', 'multitarget']),
@@ -120,7 +120,7 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 )
 def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
                  data_setup: Tuple[InputData, InputData, str, Union[int, None]],
-                 expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = True):
+                 expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = False):
     set_random_seed(0)
 
     train, test, task_type, validation_blocks = data_setup
@@ -131,38 +131,16 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
     metric_class = MetricsRepository.get_metric_class(metric)
     metric_value = metric_function(pipeline=pipeline, reference_data=test, validation_blocks=validation_blocks)
 
-    if update_expected_values:
-        with open(fedot_project_root() / 'test/data/expected_metric_values.json', 'w') as f:
-            expected_values[task_type] = expected_values.get(task_type) or {}
-            expected_values[task_type][str(metric)] = metric_value
-            json.dump(expected_values, f, indent=2)
-
     expected_value = expected_values[task_type][str(metric)]
 
     assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
     assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
 
-
-@pytest.mark.parametrize(
-    'metric, pipeline_func, data_setup',
-    [
-        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['binary']),
-    ],
-    indirect=['data_setup']
-)
-def test_binary_classification(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
-                               data_setup: Tuple[InputData, InputData, str, Union[int, None]],
-                               expected_values: Dict[str, Dict[str, float]]):
-    train, test, task_type, validation_blocks = data_setup
-
-    pipeline = pipeline_func()
-    pipeline.fit(input_data=train)
-    metric_function = MetricsRepository.get_metric(metric)
-    metric_class = MetricsRepository.get_metric_class(metric)
-    metric_value = metric_function(pipeline=pipeline, reference_data=test, validation_blocks=validation_blocks)
-
-    assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
-    assert 0 < abs(metric_value) < sys.maxsize
+    if update_expected_values:
+        with open(fedot_project_root() / 'test/data/expected_metric_values.json', 'w') as f:
+            expected_values[task_type] = expected_values.get(task_type) or {}
+            expected_values[task_type][str(metric)] = metric_value
+            json.dump(expected_values, f, indent=2)
 
 
 @pytest.mark.parametrize(
