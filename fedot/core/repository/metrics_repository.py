@@ -77,7 +77,7 @@ class ComplexityMetricCallable(Protocol):
 
 
 MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
-MetricIDType = Union[MetricCallable, MetricsEnum]
+MetricIDType = Union[str, MetricsEnum, MetricCallable]
 
 
 class MetricsRepository:
