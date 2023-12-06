@@ -45,7 +45,7 @@ class SAObjective(Objective):
 
     def __call__(self, graph: OptGraph, **kwargs) -> float:
         pip = PipelineAdapter().restore(graph)
-        return self.objective(pip)
+        return self.objective(pip, **kwargs)
 
 
 def structural_analysis_set_up(train_data: InputData, test_data: InputData,
