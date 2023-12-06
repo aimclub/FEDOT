@@ -18,7 +18,7 @@ from fedot.core.repository.metrics_repository import (ClassificationMetricsEnum,
                                                       MetricsRepository, RegressionMetricsEnum,
                                                       TimeSeriesForecastingMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, set_random_seed
 
 
 @pytest.fixture(scope='session')
@@ -112,7 +112,7 @@ def expected_values() -> Dict[str, Dict[str, float]]:
     'metric, pipeline_func, data_setup',
     [  # TODO: Add binary classification to the test after completion of https://github.com/aimclub/FEDOT/issues/1221.
         *product(ComplexityMetricsEnum, [get_classification_pipeline], ['complexity']),
-        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['multiclass']),
+        *product(ClassificationMetricsEnum, [get_classification_pipeline], ['multiclass', 'binary']),
         *product(RegressionMetricsEnum, [get_regression_pipeline], ['regression', 'multitarget']),
         *product(TimeSeriesForecastingMetricsEnum, [get_ts_pipeline], ['ts', 'multits'])
     ],
@@ -121,6 +121,8 @@ def expected_values() -> Dict[str, Dict[str, float]]:
 def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], Pipeline],
                  data_setup: Tuple[InputData, InputData, str, Union[int, None]],
                  expected_values: Dict[str, Dict[str, float]], update_expected_values: bool = True):
+    set_random_seed(0)
+
     train, test, task_type, validation_blocks = data_setup
 
     pipeline = pipeline_func()
