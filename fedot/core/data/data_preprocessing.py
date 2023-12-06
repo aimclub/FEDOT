@@ -82,6 +82,8 @@ def force_categorical_determination(table: np.ndarray):
         else:
             non_categorical_ids.append(column_id)
 
+    return categorical_ids, non_categorical_ids
+
 
 def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
