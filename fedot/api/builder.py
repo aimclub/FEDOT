@@ -6,7 +6,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.metrics_repository import MetricCallable, MetricIDType, MetricsEnum
+from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.core.repository.tasks import TaskParams
 
 
