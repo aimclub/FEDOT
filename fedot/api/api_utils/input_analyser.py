@@ -77,7 +77,7 @@ class InputAnalyser:
                 recommendations_for_data['cut'] = {'border': border}
             is_label_encoding_needed = self.control_categorical(input_data)
             if is_label_encoding_needed:
-                self._log('Switch categorical encoder to label encoder')
+                self._log.info('Switch categorical encoder to label encoder')
                 recommendations_for_data['label_encoded'] = {}
         return recommendations_for_data
 
