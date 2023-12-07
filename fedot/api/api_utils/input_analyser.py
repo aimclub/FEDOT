@@ -77,6 +77,7 @@ class InputAnalyser:
                 recommendations_for_data['cut'] = {'border': border}
             is_label_encoding_needed = self.control_categorical(input_data)
             if is_label_encoding_needed:
+                self._log('Switch categorical encoder to label encoder')
                 recommendations_for_data['label_encoded'] = {}
         return recommendations_for_data
 
@@ -115,5 +116,6 @@ class InputAnalyser:
         """
 
         categorical_ids, _ = find_categorical_columns(input_data.features)
-        uniques = np.unique(input_data.features[:, categorical_ids].astype(str))
-        return len(uniques) > self.max_cat_cardinality
+        # Counts unique categories for each feature, and then counts their number
+        uniques_cats = sum([len(np.unique(feature)) for feature in input_data.features[:, categorical_ids].astype(str)])
+        return uniques_cats > self.max_cat_cardinality
