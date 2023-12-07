@@ -89,7 +89,7 @@ class QualityMetric:
                               save_path=Path(save_path, 'forecast.png'))
 
         except Exception as ex:
-            pipeline.log.info(f'Metric can not be evaluated because of: {ex}', raise_if_test=True)
+            pipeline.log.log_or_raise('info', ValueError('Metric can not be evaluated'))
 
         return metric
 
