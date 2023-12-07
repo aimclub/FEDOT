@@ -115,46 +115,8 @@ Apart from that there are other options whose names speak for themselves: ``'sta
     To make it simple, FEDOT uses ``auto`` by default to identify the best choice for you.
 
 
-Preprocessing operations
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. csv-table:: Preprocessing operations
-   :header: API name,Model used,Definition,Problem,Tags
-
-   `scaling`,`sklearn.preprocessing.StandardScaler`,Scaling,Feature Scaling,"`fast_train`, `ts`, `*tree`"
-   `normalization`,`sklearn.preprocessing.MinMaxScaler`,Normalization,Feature Scaling,"`fast_train`, `ts`, `*tree`"
-   `simple_imputation`,`sklearn.impute.SimpleImputer`,Imputation,Feature Imputation,"`fast_train`, `*tree`"
-   `pca`,`sklearn.decomposition.PCA`,Principal Component Analysis,Feature Reduction,"`fast_train`, `ts`, `*tree`"
-   `kernel_pca`,`sklearn.decomposition.KernelPCA`,Kernel Principal Component Analysis,Feature Reduction,"`ts`, `*tree`"
-   `fast_ica`,`sklearn.decomposition.FastICA`,Independent Component Analysis,Feature Reduction,"`ts`, `*tree`"
-   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`,Polynomial Features,Feature Engineering,""
-   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,Ohe-Hot Encoder,Feature Encoding,""
-   `label_encoding`,`sklearn.preprocessing.LabelEncoder`,Label Encoder,Feature Encoding,"`fast_train`, `*tree`"
-   `rfe_lin_reg`,`sklearn.feature_selection.RFE`,Linear Regression Recursive Feature Elimination,Feature Selection,""
-   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination,Feature Selection,""
-   `rfe_lin_class`,`sklearn.feature_selection.RFE`,Logistic Regression Recursive Feature Elimination,Feature Selection,""
-   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination,Feature Selection,""
-   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`,Regression Isolation Forest,Feature Filtering,""
-   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,Classification Isolation Forest,Feature Filtering,""
-   `decompose`,`DecomposerRegImplementation`,Regression Decomposition,Decomposition,"`fast_train`, `ts`, `*tree`"
-   `class_decompose`,`DecomposerClassImplementation`,Classification Decomposition,Decomposition,"`fast_train`, `*tree`"
-   `resample`,`ResampleImplementation`,Resample features,Resampling,""
-   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Regression Random Sample Consensus,Feature Filtering,"`fast_train`, `*tree`"
-   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,DecisionTreeRegressor Random Sample Consensus,Feature Filtering,"`fast_train`, `*tree`"
-   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`,Count Vectorizer,Text Processing,""
-   `text_clean`,`nltk.stem.WordNetLemmatizer, nltk.stem.SnowballStemmer`,Lemmatization and Stemming,Text Processing,""
-   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`,TF-IDF Vectorizer,Text Processing,""
-   `word2vec_pretrained`,`PretrainedEmbeddingsImplementation`,Word2Vec,Text Processing,""
-   `lagged`,`LaggedTransformationImplementation`,Lagged Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `sparse_lagged`,`SparseLaggedTransformationImplementation`,Sparse Lagged Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `smoothing`,`TsSmoothingImplementation`,Smoothing Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `gaussian_filter`,`GaussianFilterImplementation`,Gaussian Filter Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `diff_filter`,`NumericalDerivativeFilterImplementation`,Derivative Filter Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `cut`,`CutImplementation`,Cut Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
-   `exog_ts`,`ExogDataTransformationImplementation`,Exogeneus Tranformation,Timeseries Tranformation,""
-
 .. csv-table:: Available models
-   :header: API name,Model used,Definition,Problem,Tags
+   :header: "API name","Model used","Definition","Problem","Tags"
 
    `adareg`,`sklearn.ensemble.AdaBoostRegressor`,AdaBoost regressor,Regression,"`fast_train`, `ts`, `*tree`"
    `ar`,`statsmodels.tsa.ar_model.AutoReg`,AutoRegression,Forecasting,"`fast_train`, `ts`"
@@ -194,3 +156,42 @@ Preprocessing operations
    `xgboost`,`xgboost.XGBClassifier`,Extreme Gradient Boosting classifier,Classification,"`*tree`"
    `xgbreg`,`xgboost.XGBRegressor`,Extreme Gradient Boosting regressor,Regression,"`*tree`"
    `cnn`,`FedotCNNImplementation`,Convolutional Neural Network,Classification,""
+
+
+Preprocessing operations
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. csv-table:: Preprocessing operations
+   :header: "API name","Model used","Definition","Problem","Tags"
+
+   `scaling`,`sklearn.preprocessing.StandardScaler`,Scaling,Feature Scaling,"`fast_train`, `ts`, `*tree`"
+   `normalization`,`sklearn.preprocessing.MinMaxScaler`,Normalization,Feature Scaling,"`fast_train`, `ts`, `*tree`"
+   `simple_imputation`,`sklearn.impute.SimpleImputer`,Imputation,Feature Imputation,"`fast_train`, `*tree`"
+   `pca`,`sklearn.decomposition.PCA`,Principal Component Analysis,Feature Reduction,"`fast_train`, `ts`, `*tree`"
+   `kernel_pca`,`sklearn.decomposition.KernelPCA`,Kernel Principal Component Analysis,Feature Reduction,"`ts`, `*tree`"
+   `fast_ica`,`sklearn.decomposition.FastICA`,Independent Component Analysis,Feature Reduction,"`ts`, `*tree`"
+   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`,Polynomial Features,Feature Engineering,""
+   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,Ohe-Hot Encoder,Feature Encoding,""
+   `label_encoding`,`sklearn.preprocessing.LabelEncoder`,Label Encoder,Feature Encoding,"`fast_train`, `*tree`"
+   `rfe_lin_reg`,`sklearn.feature_selection.RFE`,Linear Regression Recursive Feature Elimination,Feature Selection,""
+   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination,Feature Selection,""
+   `rfe_lin_class`,`sklearn.feature_selection.RFE`,Logistic Regression Recursive Feature Elimination,Feature Selection,""
+   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination,Feature Selection,""
+   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`,Regression Isolation Forest,Feature Filtering,""
+   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,Classification Isolation Forest,Feature Filtering,""
+   `decompose`,`DecomposerRegImplementation`,Regression Decomposition,Decomposition,"`fast_train`, `ts`, `*tree`"
+   `class_decompose`,`DecomposerClassImplementation`,Classification Decomposition,Decomposition,"`fast_train`, `*tree`"
+   `resample`,`ResampleImplementation`,Resample features,Resampling,""
+   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Regression Random Sample Consensus,Feature Filtering,"`fast_train`, `*tree`"
+   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,DecisionTreeRegressor Random Sample Consensus,Feature Filtering,"`fast_train`, `*tree`"
+   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`,Count Vectorizer,Text Processing,""
+   `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`,Lemmatization and Stemming,Text Processing,""
+   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`,TF-IDF Vectorizer,Text Processing,""
+   `word2vec_pretrained`,`PretrainedEmbeddingsImplementation`,Word2Vec,Text Processing,""
+   `lagged`,`LaggedTransformationImplementation`,Lagged Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `sparse_lagged`,`SparseLaggedTransformationImplementation`,Sparse Lagged Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `smoothing`,`TsSmoothingImplementation`,Smoothing Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `gaussian_filter`,`GaussianFilterImplementation`,Gaussian Filter Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `diff_filter`,`NumericalDerivativeFilterImplementation`,Derivative Filter Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `cut`,`CutImplementation`,Cut Tranformation,Timeseries Tranformation,"`fast_train`, `ts`"
+   `exog_ts`,`ExogDataTransformationImplementation`,Exogeneus Tranformation,Timeseries Tranformation,""
