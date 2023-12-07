@@ -115,5 +115,5 @@ class InputAnalyser:
         """
 
         categorical_ids, _ = find_categorical_columns(input_data.features)
-        uniques = np.unique(input_data.features[:, categorical_ids].astype(str))
+        uniques = np.unique(input_data.features[:, categorical_ids])
         return len(uniques) > self.max_cat_cardinality
