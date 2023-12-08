@@ -182,7 +182,7 @@ class Fedot:
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
             api_preprocessor=self.data_processor.preprocessor,
             pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_input_preprocessing=self.params.get('use_auto_preprocessing')
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
         )
 
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
