@@ -130,6 +130,7 @@ To load fitted pipeline you can invoke ``.load()`` from just initialised ``Pipel
 And you can do inference:
 
 .. code-block:: python
+
      import pandas as pd
      from fedot.core.repository.dataset_types import DataTypesEnum
      from fedot.core.repository.tasks import Task, TaskTypesEnum
