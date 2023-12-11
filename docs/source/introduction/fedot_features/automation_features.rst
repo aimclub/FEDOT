@@ -51,7 +51,7 @@ These algorithms are used for filtering and selecting specific features.
    `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`,Regression Isolation Forest
    `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,Classification Isolation Forest
    `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Regression Random Sample Consensus
-   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,DecisionTreeRegressor Random Sample Consensus
+   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Decision Tree Random Sample Consensus
 
 
 Feature extraction
