@@ -12,17 +12,18 @@ to import certain object:
     from fedot import Fedot
 Then we have to load data and split it on train and test set.
 Fedot uses it's own data object notation (InputData). It contains index,
-features and target for each sample. You can create it from file using ``InputData.from_csv()`` method.
+features and target for each sample. You can create it from file using ``InputData.from_dataframe()`` method.
 You need to provide ``Task`` object with type of task you want to solve.
-
+You also can find another ways of data passing in  `this example <data>`.
 .. code-block:: python
 
 
     from fedot.core.data.data import InputData
     data_path = 'path_to_data'
 
-    data = InputData.from_csv(data_path,
-                              task=Task(TaskTypesEnum.regression))
+    data = InputData.from_dataframe(features_df,
+                                    target_df,
+                                    task=Task(TaskTypesEnum.classification))
     train, test = train_test_data_setup(data)
 
 .. note::
@@ -45,12 +46,11 @@ You also can define seed parameter for reproducibility, timeout in minutes (in t
     Class ``Fedot.__init__()`` has more, e.g.
     ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API </api/api>` section in our documentation.
 
-To train our model we should call method ``fit()``. You need to provide table with features and target in ``features``
-and pass name of target column in ``target`` field. This method returns the best pipeline was obtained during optimization.
+To train our model we should call method ``fit()``. This method returns the best pipeline was obtained during optimization.
 
 .. code-block:: python
 
-    best_pipeline = model.fit(features=train, target='target')
+    best_pipeline = model.fit(train)
 
 After the fitting is completed, you can look at the structure of the resulting pipeline.
 For example, let best pipeline consist of two nodes: resampling operation (*resample*) and Random Forest Regressor (*rfr*).
@@ -85,7 +85,7 @@ To obtain prediction for test data you need call ``predict()`` from ``Fedot`` cl
 
 .. code-block:: python
 
-    prediction = model.predict(features=test_data_path)
+    prediction = model.predict(test)
 
 
     if visualization:
@@ -132,9 +132,20 @@ And you can do inference:
 
 .. code-block:: python
      import pandas as pd
-     new_data_to_predict = pd.read_csv('new_data.csv') # It could be np.array, pd.DataFrame or InputData object
+     from fedot.core.repository.dataset_types import DataTypesEnum
+     from fedot.core.repository.tasks import Task, TaskTypesEnum
+     new_features = pd.read_csv('new_data.csv')
+     new_data_to_predict = InputData(features=new_features.values,
+                                     target=None,  # if you don't know your target
+                                     idx=new_features.index.values,
+                                     task=Task(TaskTypesEnum.classification),
+                                     data_type=DataTypesEnum.table)
      prediction = loaded_pipeline.predict(new_data_to_predict).predict # Note that we should take .predict field for prediction
 
-Thus by this example we learned how to solve classification task with Fedot.
+.. note::
+
+    For more detail about pipelines save and load, please visit `this section </basics/pipeline_save_load>`.
+
+Thus by this example we learned how to solve regression task with Fedot.
 
 

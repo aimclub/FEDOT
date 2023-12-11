@@ -77,7 +77,7 @@ Firstly you need to create a ``Task`` object:
 .. code-block:: python
 
 
-     from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+    from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
     # specify the task and the forecast length (required depth of forecast)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=your_forecast_length))

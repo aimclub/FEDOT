@@ -131,5 +131,9 @@ Also you should refit your model for a new data:
 
      forecast = loaded_pipeline.predict(forecast_length=10).predict # Note that we should take .predict field for prediction
 
+.. note::
+
+    For more detail about pipelines save and load, please visit `this section </basics/pipeline_save_load>`.
+
 Thus by this example we learned how to solve time series forecasting task with Fedot.
 

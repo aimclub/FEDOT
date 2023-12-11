@@ -10,14 +10,28 @@ to import certain object:
 
     from fedot import Fedot
 
-Then we have to load data. In Fedot you can do it by providing path to csv format data files.
-
+Then we have to load data and split it on train and test set.
+Fedot uses it's own data object notation (InputData). It contains index,
+features and target for each sample. You can create it from file using ``InputData.from_dataframe()`` method.
+You need to provide ``Task`` object with type of task you want to solve.
+You also can find another ways of data passing in  `this example <data>`.
 .. code-block:: python
 
 
-    train_data_path = 'path_to_train_file'
-    test_data_path = 'path_to_test_file'
+    from fedot.core.data.data import InputData
+    data_path = 'path_to_data'
 
+    data = InputData.from_dataframe(features_df,
+                                    target_df,
+                                    task=Task(TaskTypesEnum.classification))
+    train, test = train_test_data_setup(data)
+
+.. note::
+
+    There are 3 possible values for TaskType:
+    * TaskTypesEnum.classification
+    * TaskTypesEnum.regression
+    * TaskTypesEnum.ts_forecasting
 Initialize the FEDOT object and define the type of modeling problem. In this case, problem is ``classification``.
 You also can define metric parameter (ROC-AUC in this example), timeout in minutes (in this example we limit fedot for 5 minutes).
 
@@ -30,12 +44,11 @@ You also can define metric parameter (ROC-AUC in this example), timeout in minut
     Class ``Fedot.__init__()`` has more, e.g.
     ``n_jobs`` for parallelization. For more details, see the :doc:`FEDOT API </api/api>` section in our documentation.
 
-To train our model we should call method ``fit()``. You need to provide table with features and target in ``features``
-and pass name of target column in ``target`` field. This method returns the best pipeline was obtained during optimization.
+To train our model we should call method ``fit()``.  This method returns the best pipeline was obtained during optimization.
 
 .. code-block:: python
 
-    best_pipeline = model.fit(features=train, target='target')
+    best_pipeline = model.fit(features=train)
 
 After the fitting is completed, you can look at the structure of the resulting pipeline.
 For example, let best pipeline consist of two nodes: resampling operation (*resample*) and Random Forest (*rf*).
@@ -71,7 +84,7 @@ Since we want to calculate ROC-AUC metric for our test data we should use ``pred
 
 .. code-block:: python
 
-    prediction = model.predict_proba(features=test_data_path)
+    prediction = model.predict_proba(features=test)
 
 
     if visualization:
@@ -138,6 +151,11 @@ And you can do inference:
                 - ``labels`` -> (numbers of classes - for classification)
                 - ``probs`` -> (probabilities - for classification == default)
                 - ``full_probs`` -> (return all probabilities - for binary classification)
+
+.. note::
+
+    For more detail about pipelines save and load, please visit `this section </basics/pipeline_save_load>`.
+
 
 Thus by this example we learned how to solve classification task with Fedot.
 
