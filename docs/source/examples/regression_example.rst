@@ -10,16 +10,16 @@ to import certain object:
 .. code-block:: python
 
     from fedot import Fedot
+
 Then we have to load data and split it on train and test set.
 Fedot uses it's own data object notation (InputData). It contains index,
 features and target for each sample. You can create it from file using ``InputData.from_dataframe()`` method.
 You need to provide ``Task`` object with type of task you want to solve.
 You also can find another ways of data passing in  `this example <data>`.
+
 .. code-block:: python
 
-
     from fedot.core.data.data import InputData
-    data_path = 'path_to_data'
 
     data = InputData.from_dataframe(features_df,
                                     target_df,

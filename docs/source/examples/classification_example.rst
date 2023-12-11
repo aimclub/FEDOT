@@ -15,11 +15,10 @@ Fedot uses it's own data object notation (InputData). It contains index,
 features and target for each sample. You can create it from file using ``InputData.from_dataframe()`` method.
 You need to provide ``Task`` object with type of task you want to solve.
 You also can find another ways of data passing in  `this example <data>`.
+
 .. code-block:: python
 
-
     from fedot.core.data.data import InputData
-    data_path = 'path_to_data'
 
     data = InputData.from_dataframe(features_df,
                                     target_df,
@@ -32,6 +31,7 @@ You also can find another ways of data passing in  `this example <data>`.
     * TaskTypesEnum.classification
     * TaskTypesEnum.regression
     * TaskTypesEnum.ts_forecasting
+
 Initialize the FEDOT object and define the type of modeling problem. In this case, problem is ``classification``.
 You also can define metric parameter (ROC-AUC in this example), timeout in minutes (in this example we limit fedot for 5 minutes).
 
