@@ -184,7 +184,10 @@ class Pipeline(GraphDelegate, Serializable):
         """
         self.replace_n_jobs_in_nodes(n_jobs)
 
-        copied_input_data = self._preprocess(input_data)
+        if isinstance(input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed:
+            copied_input_data = deepcopy(input_data)
+        else:
+            copied_input_data = self._preprocess(input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
@@ -268,8 +271,11 @@ class Pipeline(GraphDelegate, Serializable):
             self.log.error(ex)
             raise ValueError(ex)
 
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = self._preprocess(input_data, is_fit_stage=False)
+        if isinstance(input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed:
+            copied_input_data = deepcopy(input_data)
+        else:
+            # Make copy of the input data to avoid performing inplace operations
+            copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)

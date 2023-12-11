@@ -330,6 +330,7 @@ class FedotBuilder:
             safe_mode: bool = DEFAULT_VALUE,
             use_input_preprocessing: bool = DEFAULT_VALUE,
             use_preprocessing_cache: bool = DEFAULT_VALUE,
+            use_auto_preprocessing: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of input data preprocessing.
 
@@ -351,6 +352,7 @@ class FedotBuilder:
             safe_mode=safe_mode,
             use_input_preprocessing=use_input_preprocessing,
             use_preprocessing_cache=use_preprocessing_cache,
+            use_auto_preprocessing=use_auto_preprocessing,
         )
         return self
 

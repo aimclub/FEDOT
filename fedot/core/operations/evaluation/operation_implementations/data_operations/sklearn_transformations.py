@@ -3,16 +3,17 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import KernelPCA, PCA, FastICA
+from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData, data_type_is_table, OutputData
-from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
-    divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
+from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
+    divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
@@ -87,8 +88,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         """Update column types after applying PCA operations
         """
 
-        n_rows, n_cols = output_data.predict.shape
-        output_data.supplementary_data.column_types['features'] = [str(float) * n_cols]
+        _, n_cols = output_data.predict.shape
+        output_data.supplementary_data.col_type_ids['features'] = np.array([TYPE_TO_ID[float]] * n_cols)
         return output_data
 
 
@@ -127,6 +128,7 @@ class FastICAImplementation(ComponentAnalysisImplementation):
     Args:
         params: OperationParameters with the hyperparameters
     """
+
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = FastICA(**self.params.to_dict())
@@ -194,9 +196,9 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             cols_number_added = output_data.predict.shape[1] - source_features_shape[1]
             if cols_number_added > 0:
                 # There are new columns in the table
-                col_types = output_data.supplementary_data.column_types['features']
-                col_types.extend([str(float)] * cols_number_added)
-                output_data.supplementary_data.column_types['features'] = col_types
+                feature_type_ids = output_data.supplementary_data.col_type_ids['features']
+                new_types = [TYPE_TO_ID[float]] * cols_number_added
+                output_data.supplementary_data.col_type_ids['features'] = np.append(feature_type_ids, new_types)
 
 
 class ScalingImplementation(EncodedInvariantImplementation):
@@ -288,9 +290,9 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
-            features_types = input_data.supplementary_data.column_types.get('features')
+            feature_type_ids = input_data.supplementary_data.col_type_ids['features']
             self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
-                                                                                      features_types)
+                                                                                      feature_type_ids)
             numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
                                                                        self.non_categorical_ids)
 

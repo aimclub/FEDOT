@@ -1,4 +1,5 @@
 .idea/
+.vscode/
 **/.pytest_cache/
 **/__pycache__/
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm

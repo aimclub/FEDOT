@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -27,8 +27,10 @@ class SupplementaryData:
     optionally_preprocessed: bool = False
     # Collection with non-int indexes
     non_int_idx: Optional[list] = None
-    # Dictionary with features and target column types
-    column_types: Optional[dict] = None
+    # Dictionary with features and target column type numeric identificators
+    col_type_ids: Optional[Dict[str, np.ndarray]] = None
+    # Was the data preprocessed before composer
+    is_auto_preprocessed: bool = False
 
     @property
     def compound_mask(self):
@@ -53,7 +55,7 @@ class SupplementaryData:
         :param task: task to solve
         """
         if not isinstance(self.previous_operations, list) or len(self.previous_operations) == 1:
-            raise ValueError(f'Data was received from one node but at least two nodes are required')
+            raise ValueError('Data was received from one node but at least two nodes are required')
 
         data_operations = OperationTypesRepository('data_operation').suitable_operation(task_type=task)
 

@@ -62,6 +62,7 @@ class ApiParamsRepository:
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
+            use_auto_preprocessing=False,
             use_meta_rules=False,
             cache_dir=default_fedot_data_dir(),
             keep_history=True,
