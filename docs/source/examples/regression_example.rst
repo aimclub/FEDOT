@@ -142,6 +142,7 @@ And you can do inference:
                                      data_type=DataTypesEnum.table)
      prediction = loaded_pipeline.predict(new_data_to_predict).predict # Note that we should take .predict field for prediction
 
+
 .. note::
 
     For more detail about pipelines save and load, please visit `this section </basics/pipeline_save_load>`.

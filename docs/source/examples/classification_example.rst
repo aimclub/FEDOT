@@ -140,6 +140,7 @@ And you can do inference:
                                      task=Task(TaskTypesEnum.classification),
                                      data_type=DataTypesEnum.table)
      prediction = loaded_pipeline.predict(new_data_to_predict).predict # Note that we should take .predict field for prediction
+
 .. note::
 
     ``Pipeline`` don't have method ``predict_proba()``, you need to use param
