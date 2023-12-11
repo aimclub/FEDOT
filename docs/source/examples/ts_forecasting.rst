@@ -16,6 +16,7 @@ But firstly we need to define forecast length. Let it be equal 10.
 We have to create ``InputData`` object - it contains features, indexes, and target (for time series forecasting task) the
 target - time series itself. ``InputData.from_csv_time_series()`` may be used. Then we just split our time series into
 train and test part (test part has 10 last time series elements).
+You also can find another ways of data passing in  `this example <data>`.
 
 .. code-block:: python
 
