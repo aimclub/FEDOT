@@ -137,8 +137,8 @@ def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str =
 def convert_memory_size(size_bytes):
     if size_bytes == 0:
         return "0B"
-    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    i = int(math.floor(math.log(size_bytes, 1024)))
-    p = math.pow(1024, i)
-    s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_name[i])
+    digit_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    integer_size_value = int(math.floor(math.log(size_bytes, 1024)))
+    byte_digit = math.pow(1024, integer_size_value)
+    size_in_digit_name = round(size_bytes / byte_digit, 2)
+    return "%s %s" % (size_in_digit_name, digit_name[integer_size_value])

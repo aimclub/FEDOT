@@ -317,7 +317,7 @@ class DataPreprocessor(BasePreprocessor):
             try:
                 return item.strip()
             except AttributeError:
-                # not an str object
+                # not a str object
                 return item
 
         features_df = pd.DataFrame(data.features)
