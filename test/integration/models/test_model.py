@@ -532,9 +532,9 @@ def test_operations_are_fast():
             reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
 
     for operation in OperationTypesRepository('all')._repo:
-        if (operation.id not in to_skip
-            and operation.presets
-            and FAST_TRAIN_PRESET_NAME in operation.presets):
+        if (operation.id not in to_skip and
+            operation.presets and
+            FAST_TRAIN_PRESET_NAME in operation.presets):
             for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
                 # if attempt is successful then stop
