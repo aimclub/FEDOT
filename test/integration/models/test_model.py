@@ -543,18 +543,16 @@ def test_operations_are_fast():
                 raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
 
 
+
 def test_all_operations_are_documented():
     # All operations should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
     to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'}
     path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
+    docs_text = None
 
     with open(path_to_docs, 'r') as docs_:
+        docs_text = docs_.read()
         for operation in OperationTypesRepository('all')._repo:
             if operation.id not in to_skip:
-                operation_found = False
-                docs_.seek(0)  # reset the file pointer to the beginning
-                for line in docs_:
-                    if operation.id in line:
-                        operation_found = True
-                        break
-                assert operation_found, f"Operation {operation.id} is not documented in {path_to_docs}"
+                assert operation.id in docs_text, \
+                    f"Operation {operation.id} is not documented in {path_to_docs}"
