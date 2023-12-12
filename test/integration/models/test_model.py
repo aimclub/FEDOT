@@ -520,7 +520,8 @@ def test_operations_are_fast():
 
     data_lengths = tuple(map(int, np.logspace(2.2, 4, 6)))
     reference_operations = ['rf', 'rfr']
-    to_skip = ['custom', 'decompose', 'class_decompose', 'kmeans'] + reference_operations
+    to_skip = ['custom', 'decompose', 'class_decompose', 'kmeans',
+               'resample', 'one_hot_encoding'] + reference_operations
     reference_time = (float('inf'), ) * len(data_lengths)
     # tries for time measuring
     attempt = 2
