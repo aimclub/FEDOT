@@ -36,12 +36,7 @@ Dimensional operations
 
 FEDOT supports bunch of dimensionality preprocessing operations that can be be added to the pipeline as a node.
 
-Feature selection
-"""""""""""""""""
-
-These algorithms are used for filtering and selecting specific features.
-
-.. csv-table:: Feature selection operations
+.. csv-table:: Feature transformation operations
    :header: "API name","Model used","Definition"
 
    `rfe_lin_reg`,`sklearn.feature_selection.RFE`,Linear Regression Recursive Feature Elimination
@@ -52,16 +47,6 @@ These algorithms are used for filtering and selecting specific features.
    `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,Classification Isolation Forest
    `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Regression Random Sample Consensus
    `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Decision Tree Random Sample Consensus
-
-
-Feature extraction
-""""""""""""""""""
-
-These algorithms are used for generating new features.
-
-.. csv-table:: Feature extraction operations
-   :header: "API name","Model used","Definition"
-
    `pca`,`sklearn.decomposition.PCA`,Principal Component Analysis
    `kernel_pca`,`sklearn.decomposition.KernelPCA`,Kernel Principal Component Analysis
    `fast_ica`,`sklearn.decomposition.FastICA`,Independent Component Analysis
@@ -79,16 +64,6 @@ These algorithms are used for generating new features.
    `diff_filter`,`NumericalDerivativeFilterImplementation`,Derivative Filter timeseries tranformation
    `cut`,`CutImplementation`,Cut timeseries tranformation
    `exog_ts`,`ExogDataTransformationImplementation`,Exogeneus timeseries tranformation
-
-
-Feature expansion
-"""""""""""""""""
-
-These methods are used for expanding specific features to a bigger amount or changing their bounds.
-
-.. csv-table:: Feature expansion operations
-   :header: "API name","Model used","Definition"
-
    `scaling`,`sklearn.preprocessing.StandardScaler`,Scaling
    `normalization`,`sklearn.preprocessing.MinMaxScaler`,Normalization
    `simple_imputation`,`sklearn.impute.SimpleImputer`,Imputation
