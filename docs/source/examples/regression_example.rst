@@ -77,7 +77,7 @@ And in plot format:
 
 |pipeline_structure|
 
-.. |pipeline_structure| image:: img_utilities/pipeline_regression_example.png
+.. |pipeline_structure| image:: img_utilities/pipeline_example_regression.png
    :width: 80%
 
 
