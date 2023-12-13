@@ -775,6 +775,9 @@ class PipelineSearchSpace(SearchSpace):
                 parameters_per_operation.update(self.custom_search_space)
             else:
                 for operation_name, operation_dct in self.custom_search_space.items():
-                    parameters_per_operation[operation_name].update(operation_dct)
+                    if operation_name in parameters_per_operation.keys():
+                        parameters_per_operation[operation_name].update(operation_dct)
+                    else:
+                        parameters_per_operation[operation_name] = operation_dct
 
         return parameters_per_operation
