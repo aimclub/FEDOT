@@ -4,7 +4,7 @@ from copy import deepcopy
 import pandas as pd
 
 from fedot import Fedot
-from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder

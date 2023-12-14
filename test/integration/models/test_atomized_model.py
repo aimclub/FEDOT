@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
-from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root

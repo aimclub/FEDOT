@@ -10,7 +10,7 @@ import joblib
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.operations.atomized_template import AtomizedModelTemplate
+from fedot.core.operations.atomized_model.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import PipelineNode
 

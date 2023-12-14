@@ -10,7 +10,7 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
         # Need use the imports inside the class because of the problem of circular imports.
         from fedot.core.pipelines.pipeline import Pipeline
         from fedot.core.pipelines.template import PipelineTemplate
-        from fedot.core.operations.atomized_model import AtomizedModel
+        from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 
         super().__init__()
         self.atomized_model_json_path = None
