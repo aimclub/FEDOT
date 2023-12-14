@@ -31,6 +31,8 @@ class SupplementaryData:
     col_type_ids: Optional[Dict[str, np.ndarray]] = None
     # Was the data preprocessed before composer
     is_auto_preprocessed: bool = False
+    # time series bias for time series forecasting problem
+    time_series_bias: Optional[np.ndarray] = None
 
     @property
     def compound_mask(self):
