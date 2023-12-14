@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Union
 
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.optimizer import GraphGenerationParams
+from golem.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, AlgorithmParameters
 from golem.utilities.utilities import determine_n_jobs
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
@@ -39,6 +39,7 @@ class ApiParams(UserDict):
 
         self.composer_requirements = None
         self.graph_generation_params = None
+        self.optimizer = None
         self.optimizer_params = None
 
     def update_available_operations_by_preset(self, data: InputData):
@@ -112,7 +113,7 @@ class ApiParams(UserDict):
         """ Method to initialize ``PipelineComposerRequirements``, ``GPAlgorithmParameters``,
         ``GraphGenerationParams``"""
         self.init_composer_requirements(datetime_composing)
-        self.init_optimizer_params(multi_objective=multi_objective)
+        self.init_optimizer(multi_objective=multi_objective)
         self.init_graph_generation_params(requirements=self.composer_requirements)
 
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
@@ -135,14 +136,11 @@ class ApiParams(UserDict):
                                                                   n_jobs=self.n_jobs, **composer_requirements_params)
         return self.composer_requirements
 
-    def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
-        """Method to initialize ``GPAlgorithmParameters``"""
-        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self.data)
-
-        self.optimizer_params = GPAlgorithmParameters(
-            multi_objective=multi_objective, **gp_algorithm_parameters
-        )
-        return self.optimizer_params
+    def init_optimizer(self, multi_objective: bool) -> (GraphOptimizer, AlgorithmParameters):
+        """Method to initialize ``AlgorithmParameters``"""
+        self.optimizer, self.optimizer_params = self._params_repository.get_params_for_algorithm_params(multi_objective,
+                                                                                                        self.data)
+        return self.optimizer, self.optimizer_params
 
     def init_graph_generation_params(self, requirements: PipelineComposerRequirements) -> GraphGenerationParams:
         """Method to initialize ``GraphGenerationParameters``"""

@@ -115,7 +115,7 @@ class ApiComposer:
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
                                    .with_initial_pipelines(initial_assumption)
-                                   .with_optimizer(self.params.get('optimizer'))
+                                   .with_optimizer(self.params.optimizer)
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
                                    .with_cache(self.pipelines_cache, self.preprocessing_cache)

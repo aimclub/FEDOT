@@ -1,13 +1,18 @@
 import datetime
 from typing import Sequence
 
+from fedot.core.optimisers.stages_builder.optimizer_stages_builder import OptimizerStagesBuilder
+from golem.core.optimisers.common_optimizer.common_optimizer import CommonOptimizer
+from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
+from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import default_fedot_data_dir
+from golem.core.optimisers.optimizer import GraphOptimizer, AlgorithmParameters
 
 
 class ApiParamsRepository:
@@ -110,15 +115,27 @@ class ApiParamsRepository:
         composer_requirements_params['static_individual_metadata'] = static_individual_metadata
         return composer_requirements_params
 
-    def get_params_for_gp_algorithm_params(self, params: dict) -> dict:
-        """ Returns dict with parameters suitable for ``GPAlgorithmParameters``"""
-        gp_algorithm_params = {'pop_size': params.get('pop_size'),
-                               'genetic_scheme_type': GeneticSchemeTypesEnum.parameter_free}
-        if params.get('genetic_scheme') == 'steady_state':
-            gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
+    def get_params_for_algorithm_params(self,
+                                        multi_objective: bool,
+                                        params: dict) -> (GraphOptimizer, AlgorithmParameters):
+        # define parameters
+        genetic_scheme_type = (GeneticSchemeTypesEnum.steady_state
+                               if params.get('genetic_scheme') == 'steady_state'
+                               else GeneticSchemeTypesEnum.parameter_free)
+        mutation_types = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        algorithm_params = GPAlgorithmParameters(multi_objective=multi_objective,
+                                                 pop_size=params.get('pop_size'),
+                                                 genetic_scheme_type=genetic_scheme_type,
+                                                 mutation_types=mutation_types)
 
-        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
-        return gp_algorithm_params
+        # define optimizer
+        if self.task_type is TaskTypesEnum.ts_forecasting:
+            algorithm = CommonOptimizer
+            algorithm_params.stages = OptimizerStagesBuilder(self.task_type).build()
+        else:
+            algorithm = EvoGraphOptimizer
+
+        return algorithm, algorithm_params
 
     @staticmethod
     def _get_default_mutations(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
