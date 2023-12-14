@@ -3,12 +3,23 @@ from typing import Union, Optional, Any, Dict
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-class AtomizedLaggedTimeSeriesDecompose(AtomizedModel):
+class AtomizedTimeSeriesDecompose(AtomizedModel):
     """ Contains pipeline that forecasts previous (in pipeline) model forecast error
         and restore origin time series as sum of forecasted error and previous model forecasting """
+
+    def __init__(self, params_or_pipeline: Optional[Union[OperationParameters, Pipeline]] = None):
+        if isinstance(params_or_pipeline, OperationParameters):
+            pipeline = Pipeline(PipelineNode(params_or_pipeline.get('initial_model', 'ridge')))
+        elif params_or_pipeline is None:
+            pipeline = Pipeline(PipelineNode('ridge'))
+        else:
+            pipeline = params_or_pipeline
+        super().__init__(pipeline=pipeline)
 
     def _decompose(self, data: InputData):
         time_series_bias = data.features
