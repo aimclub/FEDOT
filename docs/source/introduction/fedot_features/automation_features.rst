@@ -51,25 +51,25 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `kernel_pca`,`sklearn.decomposition.KernelPCA`,Kernel Principal Component Analysis
    `fast_ica`,`sklearn.decomposition.FastICA`,Independent Component Analysis
    `poly_features`,`sklearn.preprocessing.PolynomialFeatures`,Polynomial Features
-   `decompose`,`DecomposerRegImplementation`,Regression Decomposition
-   `class_decompose`,`DecomposerClassImplementation`,Classification Decomposition
+   `decompose`,`FEDOT model`,Set the difference between the prediction and the target as the new target
+   `class_decompose`,`FEDOT model`,Set the difference between the prediction and the target as the new target
    `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`,Count Vectorizer
    `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`,Lemmatization and Stemming
    `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`,TF-IDF Vectorizer
-   `word2vec_pretrained`,`PretrainedEmbeddingsImplementation`,Word2Vec
-   `lagged`,`LaggedTransformationImplementation`,Lagged timeseries tranformation
-   `sparse_lagged`,`SparseLaggedTransformationImplementation`,Sparse Lagged timeseries tranformation
-   `smoothing`,`TsSmoothingImplementation`,Smoothing timeseries tranformation
-   `gaussian_filter`,`GaussianFilterImplementation`,Gaussian Filter timeseries tranformation
-   `diff_filter`,`NumericalDerivativeFilterImplementation`,Derivative Filter timeseries tranformation
-   `cut`,`CutImplementation`,Cut timeseries tranformation
-   `exog_ts`,`ExogDataTransformationImplementation`,Exogeneus timeseries tranformation
+   `word2vec_pretrained`,[Gensin-data model](https://github.com/piskvorky/gensim-data),Text vectorization
+   `lagged`,FEDOT model,Lagged time series transformation/Time series to the Hankel matrix transformation
+   `sparse_lagged`,FEDOT model,As `lagged` but with sparsing
+   `smoothing`,FEDOT model,Moving average timeseries transformation
+   `gaussian_filter`,FEDOT model,Gaussian Filter timeseries tranformation
+   `diff_filter`,FEDOT model,Derivative Filter timeseries transformation
+   `cut`,FEDOT model,Cut timeseries
    `scaling`,`sklearn.preprocessing.StandardScaler`,Scaling
    `normalization`,`sklearn.preprocessing.MinMaxScaler`,Normalization
    `simple_imputation`,`sklearn.impute.SimpleImputer`,Imputation
    `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,Ohe-Hot Encoder
    `label_encoding`,`sklearn.preprocessing.LabelEncoder`,Label Encoder
-   `resample`,`ResampleImplementation`,Resample features
+   `resample`,FEDOT model,Imbalanced binary class transformation for
+    classification task by using method from `sklearn.utils.resample`
 
 
 Models used
@@ -113,7 +113,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `xgbreg`,`xgboost.XGBRegressor`,Extreme Gradient Boosting regressor,Regression
    `bernb`,`sklearn.naive_bayes.BernoulliNB`,Naive Bayes classifier (multivariate Bernoulli),Classification
    `catboost`,`catboost.CatBoostClassifier`,Catboost classifier,Classification
-   `cnn`,`FedotCNNImplementation`,Convolutional Neural Network,Classification
+   `cnn`,FEDOT model,Convolutional Neural Network,Classification
    `dt`,`sklearn.tree.DecisionTreeClassifier`,Decision Tree classifier,Classification
    `knn`,`sklearn.neighbors.KNeighborsClassifier`,K-nearest neighbors classifier,Classification
    `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`,Linear Discriminant Analysis,Classification
@@ -128,10 +128,10 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `kmeans`,`sklearn.cluster.Kmeans`,K-Means clustering,Clustering
    `ar`,`statsmodels.tsa.ar_model.AutoReg`,AutoRegression,Forecasting
    `arima`,`statsmodels.tsa.arima.model.ARIMA`,ARIMA,Forecasting
-   `cgru`,`CGRUImplementation`,Convolutional Gated Recurrent Unit,Forecasting
+   `cgru`,FEDOT model,Convolutional Gated Recurrent Unit,Forecasting
    `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`,Exponential Smoothing,Forecasting
    `glm`,`statsmodels.genmod.generalized_linear_model.GLM`,Generalized Linear Models,Forecasting
-   `locf`,`RepeatLastValueImplementation`,Last Observation Carried Forward,Forecasting
-   `polyfit`,`PolyfitImplementation`,Polynomial fitter,Forecasting
+   `locf`,FEDOT model,Last Observation Carried Forward,Forecasting
+   `polyfit`,FEDOT model,Polynomial approximation,Forecasting
    `stl_arima`,`statsmodels.tsa.api.STLForecast`,STL Decomposition with ARIMA,Forecasting
-   `ts_naive_average`,`NaiveAverageForecastImplementation`,Naive Average,Forecasting
+   `ts_naive_average`,FEDOT model,Naive Average,Forecasting
