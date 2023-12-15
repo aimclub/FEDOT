@@ -121,6 +121,7 @@ class ApiParamsRepository:
 
     @staticmethod
     def _get_default_mutations(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
+        
         mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
