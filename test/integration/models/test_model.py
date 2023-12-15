@@ -543,7 +543,6 @@ def test_operations_are_fast():
                 raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
 
 
-
 def test_all_operations_are_documented():
     # All operations should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
     to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}

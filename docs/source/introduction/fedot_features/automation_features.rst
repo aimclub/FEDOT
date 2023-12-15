@@ -72,38 +72,38 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
 
 
 .. csv-table:: Feature transformation operations implementations
-   :header: "API name","Model used"
+   :header: "API name","Model used","Presets"
 
-   `rfe_lin_reg`,`sklearn.feature_selection.RFE`
-   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`
-   `rfe_lin_class`,`sklearn.feature_selection.RFE`
-   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`
-   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`
-   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`
-   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`
-   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`
-   `pca`,`sklearn.decomposition.PCA`
-   `kernel_pca`,`sklearn.decomposition.KernelPCA`
-   `fast_ica`,`sklearn.decomposition.FastICA`
-   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`
-   `decompose`,`FEDOT model`
-   `class_decompose`,`FEDOT model`
-   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`
-   `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`
-   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`
-   `word2vec_pretrained`,`Gensin-data model <https://github.com/piskvorky/gensim-data>`_
-   `lagged`,`FEDOT model`
-   `sparse_lagged`,`FEDOT model`
-   `smoothing`,`FEDOT model`
-   `gaussian_filter`,`FEDOT model`
-   `diff_filter`,`FEDOT model`
-   `cut`,`FEDOT model`
-   `scaling`,`sklearn.preprocessing.StandardScaler`
-   `normalization`,`sklearn.preprocessing.MinMaxScaler`
-   `simple_imputation`,`sklearn.impute.SimpleImputer`
-   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`
-   `label_encoding`,`sklearn.preprocessing.LabelEncoder`
-   `resample`,`FEDOT model using sklearn.utils.resample`
+   `rfe_lin_reg`,`sklearn.feature_selection.RFE`, 
+   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`,
+   `rfe_lin_class`,`sklearn.feature_selection.RFE`,
+   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`,
+   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`,
+   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,
+   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,`fast_train` `*tree`
+   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`, `*tree`
+   `pca`,`sklearn.decomposition.PCA`,`fast_train` `ts` `*tree`
+   `kernel_pca`,`sklearn.decomposition.KernelPCA`,`ts` `*tree`
+   `fast_ica`,`sklearn.decomposition.FastICA`,`ts` `*tree`
+   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`,
+   `decompose`,`FEDOT model`,`fast_train` `ts` `*tree`
+   `class_decompose`,`FEDOT model`,`fast_train` `*tree`
+   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`,
+   `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`,
+   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`,
+   `word2vec_pretrained`,`Gensin-data model <https://github.com/piskvorky/gensim-data>`_,
+   `lagged`,`FEDOT model`,`fast_train` `ts`
+   `sparse_lagged`,`FEDOT model`,`fast_train` `ts`
+   `smoothing`,`FEDOT model`,`fast_train` `ts`
+   `gaussian_filter`,`FEDOT model`,`fast_train` `ts`
+   `diff_filter`,`FEDOT model`,`ts`
+   `cut`,`FEDOT model`,`fast_train` `ts`
+   `scaling`,`sklearn.preprocessing.StandardScaler`,`fast_train` `ts` `*tree`
+   `normalization`,`sklearn.preprocessing.MinMaxScaler`,`fast_train` `ts` `*tree`
+   `simple_imputation`,`sklearn.impute.SimpleImputer`,`fast_train` `*tree`
+   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,
+   `label_encoding`,`sklearn.preprocessing.LabelEncoder`,`fast_train` `*tree`
+   `resample`,`FEDOT model using sklearn.utils.resample`,
 
 
 Models used
@@ -172,43 +172,43 @@ Apart from that there are other options whose names speak for themselves: ``'sta
 
 
 .. csv-table:: Available models implementations
-   :header: "API name","Model used"
+   :header: "API name","Model used","Presets"
 
-   `adareg`,`sklearn.ensemble.AdaBoostRegressor`
-   `catboostreg`,`catboost.CatBoostRegressor`
-   `dtreg`,`sklearn.tree.DecisionTreeRegressor`
-   `gbr`,`sklearn.ensemble.GradientBoostingRegressor`
-   `knnreg`,`sklearn.neighbors.KNeighborsRegressor`
-   `lasso`,`sklearn.linear_model.Lasso`
-   `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`
-   `linear`,`sklearn.linear_model.LinearRegression`
-   `rfr`,`sklearn.ensemble.RandomForestRegressor`
-   `ridge`,`sklearn.linear_model.Ridge`
-   `sgdr`,`sklearn.linear_model.SGDRegressor`
-   `svr`,`sklearn.svm.LinearSVR`
-   `treg`,`sklearn.ensemble.ExtraTreesRegressor`
-   `xgbreg`,`xgboost.XGBRegressor`
-   `bernb`,`sklearn.naive_bayes.BernoulliNB`
-   `catboost`,`catboost.CatBoostClassifier`
-   `cnn`,`FEDOT model`
-   `dt`,`sklearn.tree.DecisionTreeClassifier`
-   `knn`,`sklearn.neighbors.KNeighborsClassifier`
-   `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`
-   `lgbm`,`lightgbm.sklearn.LGBMClassifier`
-   `logit`,`sklearn.linear_model.LogisticRegression`
-   `mlp`,`sklearn.neural_network.MLPClassifier`
-   `multinb`,`sklearn.naive_bayes.MultinomialNB`
-   `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`
-   `rf`,`sklearn.ensemble.RandomForestClassifier`
-   `svc`,`sklearn.svm.SVC`
-   `xgboost`,`xgboost.XGBClassifier`
-   `kmeans`,`sklearn.cluster.Kmeans`
-   `ar`,`statsmodels.tsa.ar_model.AutoReg`
-   `arima`,`statsmodels.tsa.arima.model.ARIMA`
-   `cgru`,`FEDOT model`
-   `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`
-   `glm`,`statsmodels.genmod.generalized_linear_model.GLM`
-   `locf`,`FEDOT model`
-   `polyfit`,`FEDOT model`
-   `stl_arima`,`statsmodels.tsa.api.STLForecast`
-   `ts_naive_average`,`FEDOT model`
+   `adareg`,`sklearn.ensemble.AdaBoostRegressor`,`fast_train` `ts` `*tree`
+   `catboostreg`,`catboost.CatBoostRegressor`,`*tree`
+   `dtreg`,`sklearn.tree.DecisionTreeRegressor`,`fast_train` `ts` `*tree`
+   `gbr`,`sklearn.ensemble.GradientBoostingRegressor`,`*tree`
+   `knnreg`,`sklearn.neighbors.KNeighborsRegressor`,`fast_train` `ts`
+   `lasso`,`sklearn.linear_model.Lasso`,`fast_train` `ts`
+   `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`,`*tree`
+   `linear`,`sklearn.linear_model.LinearRegression`,`fast_train` `ts`
+   `rfr`,`sklearn.ensemble.RandomForestRegressor`,`fast_train` `*tree`
+   `ridge`,`sklearn.linear_model.Ridge`,`fast_train` `ts`
+   `sgdr`,`sklearn.linear_model.SGDRegressor`,`fast_train` `ts`
+   `svr`,`sklearn.svm.LinearSVR`,
+   `treg`,`sklearn.ensemble.ExtraTreesRegressor`,`*tree`
+   `xgbreg`,`xgboost.XGBRegressor`,`*tree`
+   `bernb`,`sklearn.naive_bayes.BernoulliNB`,`fast_train`
+   `catboost`,`catboost.CatBoostClassifier`,`*tree`
+   `cnn`,`FEDOT model`,
+   `dt`,`sklearn.tree.DecisionTreeClassifier`,`fast_train` `*tree`
+   `knn`,`sklearn.neighbors.KNeighborsClassifier`,`fast_train`
+   `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`,`fast_train`
+   `lgbm`,`lightgbm.sklearn.LGBMClassifier`,
+   `logit`,`sklearn.linear_model.LogisticRegression`,`fast_train`
+   `mlp`,`sklearn.neural_network.MLPClassifier`,
+   `multinb`,`sklearn.naive_bayes.MultinomialNB`,`fast_train`
+   `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`,`fast_train`
+   `rf`,`sklearn.ensemble.RandomForestClassifier`,`fast_train` `*tree`
+   `svc`,`sklearn.svm.SVC`,
+   `xgboost`,`xgboost.XGBClassifier`,`*tree`
+   `kmeans`,`sklearn.cluster.Kmeans`,`fast_train`
+   `ar`,`statsmodels.tsa.ar_model.AutoReg`,`fast_train` `ts`
+   `arima`,`statsmodels.tsa.arima.model.ARIMA`,`ts`
+   `cgru`,`FEDOT model`,`ts`
+   `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`,`fast_train` `ts`
+   `glm`,`statsmodels.genmod.generalized_linear_model.GLM`,`fast_train` `ts`
+   `locf`,`FEDOT model`,`fast_train` `ts`
+   `polyfit`,`FEDOT model`,`fast_train` `ts`
+   `stl_arima`,`statsmodels.tsa.api.STLForecast`,`ts`
+   `ts_naive_average`,`FEDOT model`,`fast_train` `ts`
