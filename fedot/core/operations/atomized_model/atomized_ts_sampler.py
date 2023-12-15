@@ -20,6 +20,9 @@ class AtomizedTimeSeriesDataSample(AtomizedModel):
 
         self.mode = mode
 
+    def description(self, operation_params: Optional[dict] = None) -> str:
+        return f"{self.__class__}({super().description(operation_params)})"
+
     def _sample(self, data: InputData):
         # TODO refactor
         if self.mode == 'sparse':
