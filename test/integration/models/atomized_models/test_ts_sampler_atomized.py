@@ -11,7 +11,6 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.operations.atomized_model.atomized_decompose import AtomizedTimeSeriesDecompose
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.atomized_model.atomized_ts_sampler import AtomizedTimeSeriesDataSample
 from fedot.core.pipelines.node import PipelineNode
