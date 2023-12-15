@@ -5,7 +5,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import (verify_pipeline)
 from fedot.core.pipelines.verification_rules import has_correct_operations_for_task, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
-    has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
+    has_primary_nodes, only_non_lagged_operations_are_primary, \
     has_correct_data_sources, has_parent_contain_single_resample, has_no_conflicts_during_multitask, \
     has_no_conflicts_after_class_decompose
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -236,14 +236,11 @@ def test_pipeline_with_incorrect_data_flow():
 def test_ts_pipeline_with_incorrect_data_flow():
     incorrect_pipeline = ts_pipeline_with_incorrect_data_flow()
 
-    if is_pipeline_contains_ts_operations(incorrect_pipeline):
-        with pytest.raises(Exception) as exc:
-            assert has_no_data_flow_conflicts_in_ts_pipeline(incorrect_pipeline)
+    with pytest.raises(Exception) as exc:
+        assert has_no_data_flow_conflicts_in_ts_pipeline(incorrect_pipeline)
 
-        assert str(exc.value) == \
-               f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination'
-    else:
-        assert False
+    assert str(exc.value) == \
+           f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination'
 
 
 def test_only_non_lagged_operations_are_primary():
