@@ -1,18 +1,15 @@
 from functools import partial
 from inspect import signature
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
-from typing import Dict, Tuple, Any, Union
-
 from golem.core.log import default_log
 
-from fedot.core.composer.meta_rules import get_cv_folds_number, get_recommended_preset, \
-    get_early_stopping_generations
+from fedot.core.composer.meta_rules import get_cv_folds_number, get_early_stopping_generations, get_recommended_preset
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
-
 
 meta_rules = [get_cv_folds_number,
               get_recommended_preset,
@@ -80,6 +77,7 @@ class InputAnalyser:
                 recommendations_for_data['cut'] = {'border': border}
             is_label_encoding_needed = self.control_categorical(input_data)
             if is_label_encoding_needed:
+                self._log.info('Switch categorical encoder to label encoder')
                 recommendations_for_data['label_encoded'] = {}
         return recommendations_for_data
 
@@ -118,11 +116,6 @@ class InputAnalyser:
         """
 
         categorical_ids, _ = find_categorical_columns(input_data.features)
-        all_cardinality = 0
-        need_label = False
-        for idx in categorical_ids:
-            all_cardinality += np.unique(input_data.features[:, idx].astype(str)).shape[0]
-            if all_cardinality > self.max_cat_cardinality:
-                need_label = True
-                break
-        return need_label
+        # Counts unique categories for each feature, and then counts their number
+        uniques_cats = sum([len(np.unique(feature)) for feature in input_data.features[:, categorical_ids].astype(str)])
+        return uniques_cats > self.max_cat_cardinality

@@ -17,12 +17,12 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import MetricType
+from fedot.core.repository.metrics_repository import MetricIDType
 
 
 class ApiComposer:
 
-    def __init__(self, api_params: ApiParams, metrics: Union[str, MetricType, Sequence]):
+    def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics

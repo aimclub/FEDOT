@@ -37,8 +37,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
-                  task_params=Task(TaskTypesEnum.ts_forecasting,
-                                   TsForecastingParams(forecast_length=horizon)).task_params,
+
                   timeout=timeout,
                   n_jobs=-1,
                   metric=['mase', 'mae', 'mape', 'rmse'],

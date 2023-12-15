@@ -11,7 +11,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir, fedot_project_root
@@ -123,7 +123,7 @@ def run_class_scoring_case(is_composed: bool, path_to_save=None):
     train_data, test_data = get_scoring_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'scoring_composed'
@@ -141,7 +141,7 @@ def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_kc2_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'kc2_composed'
@@ -159,7 +159,7 @@ def run_regr_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_cholesterol_data()
     task = Task(TaskTypesEnum.regression)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    metric_function = MetricsRepository.get_metric(RegressionMetricsEnum.RMSE)
 
     if is_composed:
         case = 'cholesterol_composed'

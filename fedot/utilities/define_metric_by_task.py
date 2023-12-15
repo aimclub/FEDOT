@@ -1,7 +1,7 @@
 from typing import List
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.quality_metrics_repository import (
+from fedot.core.repository.metrics_repository import (
     MetricsEnum,
     RegressionMetricsEnum,
     ClassificationMetricsEnum,
@@ -27,7 +27,7 @@ class MetricByTask:
                                round_up_to: int = 6) -> float:
         """Returns the value of metric defined by task"""
         metric_id = MetricByTask.get_default_quality_metrics(task_type)[0]
-        metric = MetricsRepository.metric_class_by_id(metric_id)
+        metric = MetricsRepository.get_metric_class(metric_id)
         try:
             return round(metric.metric(reference=true, predicted=predicted), round_up_to)
         except ValueError:

@@ -13,7 +13,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.integration.models.test_model import classification_dataset, classification_dataset_with_str_labels
@@ -51,7 +51,7 @@ def actual_fitness(data_split, pipeline, metric):
     metric_values = []
     for (train_data, test_data) in data_split():
         pipeline.fit(train_data)
-        metric_function = MetricsRepository().metric_by_id(metric, default_callable=metric)
+        metric_function = MetricsRepository.get_metric(metric)
         metric_values.append(metric_function(pipeline=pipeline, reference_data=test_data))
     mean_metric = np.mean(metric_values, axis=0)
     return SingleObjFitness(mean_metric)

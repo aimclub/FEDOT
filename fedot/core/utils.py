@@ -1,3 +1,4 @@
+import math
 import os
 import platform
 import random
@@ -122,3 +123,13 @@ def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str =
     if table.parent.name != 'div':
         table = table.wrap(doc.new_tag('div', style='overflow: auto;'))
         file.write_text(doc.prettify())
+
+
+def convert_memory_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    digit_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    integer_size_value = int(math.floor(math.log(size_bytes, 1024)))
+    byte_digit = math.pow(1024, integer_size_value)
+    size_in_digit_name = round(size_bytes / byte_digit, 2)
+    return "%s %s" % (size_in_digit_name, digit_name[integer_size_value])

@@ -1,5 +1,4 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 
@@ -104,9 +103,9 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         """ Get desired part of time series for averaging and calculate mean value """
         forecast_length = input_data.task.task_params.forecast_length
 
-        elements_to_take = self._how_many_elements_use_for_averaging(input_data.features)
+        window = self._window(input_data.features)
         # Prepare single forecast
-        mean_value = np.nanmean(input_data.features[-elements_to_take:])
+        mean_value = np.nanmean(input_data.features[-window:])
         forecast = np.array([mean_value] * forecast_length).reshape((1, -1))
 
         output_data = self._convert_to_output(input_data,
@@ -117,9 +116,13 @@ class NaiveAverageForecastImplementation(ModelImplementation):
     def predict_for_fit(self, input_data: InputData) -> OutputData:
         input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
-        parts = split_rolling_slices(input_data)
-        mean_values_for_chunks = self.average_by_axis(parts)
-        forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
+        features = input_data.features
+        shape = features.shape[0]
+
+        window = self._window(features)
+        mean_values = np.array([np.mean(features[-window-shape+i:i+1]) for i in range(shape)])
+
+        forecast = np.repeat(mean_values.reshape((-1, 1)), forecast_length, axis=1)
 
         # Update target
         new_idx, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
@@ -133,42 +136,5 @@ class NaiveAverageForecastImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def average_by_axis(self, parts: np.array):
-        """ Perform averaging for each column using last part of it """
-        mean_values_for_chunks = np.apply_along_axis(self._average, 1, parts)
-        return mean_values_for_chunks
-
-    def _average(self, row: np.array):
-        row = row[np.logical_not(np.isnan(row))]
-        if len(row) == 1:
-            return row
-
-        elements_to_take = self._how_many_elements_use_for_averaging(row)
-        return np.mean(row[-elements_to_take:])
-
-    def _how_many_elements_use_for_averaging(self, time_series: np.array):
-        elements_to_take = round(len(time_series) * self.part_for_averaging)
-        elements_to_take = fix_elements_number(elements_to_take)
-        return elements_to_take
-
-
-def split_rolling_slices(input_data: InputData):
-    """ Prepare slices for features series.
-    Example of result for time series [0, 1, 2, 3]:
-    [[0, nan, nan, nan],
-     [0,   1, nan, nan],
-     [0,   1,   2, nan],
-     [0,   1,   2,   3]]
-    """
-    nan_mask = np.triu(np.ones_like(input_data.features, dtype=bool), k=1)
-    final_matrix = np.tril(input_data.features, k=0)
-    final_matrix = np.array(final_matrix, dtype=float)
-    final_matrix[nan_mask] = np.nan
-
-    return final_matrix
-
-
-def fix_elements_number(elements_to_take: int):
-    if elements_to_take < 2:
-        return 2
-    return elements_to_take
+    def _window(self, time_series: np.ndarray):
+        return max(2, round(time_series.shape[0] * self.part_for_averaging))

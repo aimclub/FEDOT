@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import Dict, Union, TYPE_CHECKING
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -33,10 +33,8 @@ class BasePreprocessor(ABC):
         self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
         self.use_label_encoder: bool = False
         self.features_imputers: Dict[str, ImputationImplementation] = {}
-        self.ids_relevant_features: Dict[str, List[int]] = {}
+        self.ids_relevant_features: Dict[str, np.ndarray] = {}
 
-        # Cannot be processed due to incorrect types or large number of nans
-        self.ids_incorrect_features: Dict[str, List[int]] = {}
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
@@ -56,8 +54,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                              MultiModalData]:
+    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]
+                                       ) -> Union[InputData, MultiModalData]:
         """
         Performs obligatory preprocessing for pipeline's predict method.
 
@@ -70,8 +68,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                  MultiModalData]:
+    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]
+                                 ) -> Union[InputData, MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline fitting.
 
@@ -85,8 +83,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                      MultiModalData]:
+    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]
+                                     ) -> Union[InputData, MultiModalData]:
         """
         Launches preprocessing operations if it is necessary for pipeline predict stage.
         Preprocessor must be already fitted.
@@ -137,8 +135,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]) -> \
-            Union[InputData, MultiModalData]:
+    def convert_indexes_for_fit(self, pipeline: 'Pipeline', data: Union[InputData, MultiModalData]
+                                ) -> Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for fit
 
@@ -152,8 +150,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]) -> \
-            Union[InputData, MultiModalData]:
+    def convert_indexes_for_predict(self, pipeline, data: Union[InputData, MultiModalData]
+                                    ) -> Union[InputData, MultiModalData]:
         """
         Converts provided data's and pipeline's indexes for predict
 
@@ -170,6 +168,7 @@ class BasePreprocessor(ABC):
     def restore_index(self, input_data: InputData, result: OutputData) -> OutputData:
         """
         restores index from ``input_data`` into ``result``
+
         Args:
             input_data: data to take the index from
             result: data to store index into
@@ -180,8 +179,8 @@ class BasePreprocessor(ABC):
         raise AbstractMethodNotImplementError
 
     @abstractmethod
-    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]) -> Union[InputData,
-                                                                                                   MultiModalData]:
+    def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]
+                                       ) -> Union[InputData, MultiModalData]:
         """
         Replaces indices for time series for predict stage
 
@@ -212,7 +211,9 @@ class BasePreprocessor(ABC):
 
     @staticmethod
     def merge_preprocessors(api_preprocessor: 'BasePreprocessor',
-                            pipeline_preprocessor: 'BasePreprocessor') -> 'BasePreprocessor':
+                            pipeline_preprocessor: 'BasePreprocessor',
+                            use_auto_preprocessing: bool,
+                            ) -> 'BasePreprocessor':
         """
         Combines two preprocessor's objects.
 
@@ -223,11 +224,23 @@ class BasePreprocessor(ABC):
         Returns:
             merged preprocessor
         """
-        # Take all obligatory data preprocessing from API
-        new_data_preprocessor = api_preprocessor
+        # If was used auto preprocessor
+        if use_auto_preprocessing:
+            # Take all obligatory data preprocessing from obtained pipelines
+            new_data_preprocessor = api_preprocessor
 
-        # Update optional preprocessing (take it from obtained pipeline)
-        if not new_data_preprocessor.features_encoders:
-            # Store features encoder from obtained pipeline because in API there are no encoding
-            new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
+        # If was used pipelines preprocessors
+        else:
+            # Take all obligatory data preprocessing from API
+            new_data_preprocessor = api_preprocessor
+
+            # Update optional preprocessing (take it from obtained pipeline)
+            if not new_data_preprocessor.features_encoders:
+                # Store features encoder from obtained pipeline because in API there are no encoding
+                new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
+
+            if not new_data_preprocessor.features_imputers:
+                # Same with Nan's imputers
+                new_data_preprocessor.features_imputers = pipeline_preprocessor.features_imputers
+
         return new_data_preprocessor

@@ -10,7 +10,7 @@ from golem.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth
 from test.unit.validation.test_table_cv import get_classification_data
 

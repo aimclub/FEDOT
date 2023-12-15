@@ -11,7 +11,7 @@ from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+from fedot.core.repository.metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 fedot_params_full = dict(parallelization_mode='populational',
@@ -35,6 +35,7 @@ fedot_params_full = dict(parallelization_mode='populational',
                          use_pipelines_cache=True,
                          use_preprocessing_cache=True,
                          use_input_preprocessing=True,
+                         use_auto_preprocessing=False,
                          cache_dir='cache',
                          keep_history=True,
                          history_dir='history',

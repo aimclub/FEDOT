@@ -528,11 +528,14 @@ class InputData(Data):
                          target=self.target[row_nums],
                          task=self.task, data_type=self.data_type)
 
-    def subset_features(self, features_ids: list):
-        """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
+    def subset_features(self, feature_ids: list) -> Optional[InputData]:
         """
+        Return new :obj:`InputData` with subset of features based on non-empty ``features_ids`` list or `None` otherwise
+        """
+        if not feature_ids:
+            return None
 
-        subsample_features = self.features[:, features_ids]
+        subsample_features = self.features[:, feature_ids]
         subsample_input = InputData(features=subsample_features,
                                     data_type=self.data_type,
                                     target=self.target, task=self.task,

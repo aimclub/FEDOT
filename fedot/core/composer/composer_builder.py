@@ -6,8 +6,8 @@ from typing import List, Optional, Sequence, Type, Union
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
-from golem.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
-from golem.core.optimisers.optimizer import GraphOptimizer, AlgorithmParameters, GraphGenerationParams
+from golem.core.optimisers.initial_graphs_generator import GenerationFunction, InitialPopulationGenerator
+from golem.core.optimisers.optimizer import AlgorithmParameters, GraphGenerationParams, GraphOptimizer
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.pipelines_cache import OperationsCache
@@ -20,11 +20,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import (
-    ComplexityMetricsEnum,
-    MetricsEnum,
-    MetricType
-)
+from fedot.core.repository.metrics_repository import ComplexityMetricsEnum, MetricIDType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -88,7 +84,7 @@ class ComposerBuilder:
         self.graph_generation_params = graph_generation_params
         return self
 
-    def with_metrics(self, metrics: Union[MetricType, List[MetricType]]):
+    def with_metrics(self, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
         self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 

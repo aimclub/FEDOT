@@ -2,14 +2,14 @@ import pickle
 
 import numpy as np
 import pytest
-from golem.core.log import default_log, Log
+from golem.core.log import Log, default_log
 
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
@@ -42,9 +42,9 @@ def test_solver_mutation_of_best_pipeline(params):
     params_default = {'choice': 'different', 'discard': True, 'percentage': 0.66, 'number_mutations': 10,
                       'message': 'default solver_mutation_of_best_pipeline failed.'}
     params_with_replacement = {'choice': 'with_replacement', 'discard': True, 'percentage': 0.5, 'number_mutations': 30,
-                               'message': 'solver_mutation_of_best_pipeline with inapropriate pipelines failed.'}
+                               'message': 'solver_mutation_of_best_pipeline with inappropriate pipelines failed.'}
     params_different = {'choice': 'different', 'discard': False, 'percentage': 0.8, 'number_mutations': 10,
-                        'mesage': 'solver_mutation_of_best_pipeline failed.'}
+                        'message': 'solver_mutation_of_best_pipeline failed.'}
 
     for x in [params_default, params_with_replacement, params_different]:
         res = solver_mutation_of_best_pipeline(train_input=params['train_input'],

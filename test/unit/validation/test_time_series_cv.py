@@ -14,7 +14,7 @@ from fedot import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.quality_metrics_repository import \
+from fedot.core.repository.metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -112,7 +112,7 @@ def test_composer_cv_correct():
     )
 
     init_pipeline = get_simple_ts_pipeline()
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    metric_function = MetricsRepository.get_metric(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
         with_optimizer_params(parameters). \
         with_requirements(composer_requirements). \

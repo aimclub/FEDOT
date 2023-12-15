@@ -5,7 +5,7 @@ from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from fedot.core.data.data import OutputData, InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -77,16 +77,14 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         """ Update column types after applying feature selection operations """
         if len(source_features_shape) < 2:
             return output_data
-        else:
-            if self.features_columns_number > 1:
-                cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
-                if cols_number_removed > 0:
-                    # There are several columns, which were dropped
-                    col_types = output_data.supplementary_data.column_types['features']
+        if self.features_columns_number > 1:
+            cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
+            if cols_number_removed:
+                # There are several columns, which were dropped
+                feature_type_ids = output_data.supplementary_data.col_type_ids['features']
 
-                    # Calculate
-                    remained_column_types = np.array(col_types)[self.remain_features_mask]
-                    output_data.supplementary_data.column_types['features'] = list(remained_column_types)
+                # Calculate
+                output_data.supplementary_data.col_type_ids['features'] = feature_type_ids[self.remain_features_mask]
 
     def _make_new_table(self, features):
         """

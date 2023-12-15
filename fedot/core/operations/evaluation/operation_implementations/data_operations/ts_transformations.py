@@ -13,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class LaggedImplementation(DataOperationImplementation):
@@ -128,14 +129,15 @@ class LaggedImplementation(DataOperationImplementation):
         """Update column types after lagged transformation. All features becomes ``float``
         """
 
-        features_n_rows, features_n_cols = output_data.predict.shape
-        features_column_types = [str(float)] * features_n_cols
-        column_types = {'features': features_column_types}
+        _, features_n_cols = output_data.predict.shape
+        feature_type_ids = np.array([TYPE_TO_ID[float]] * features_n_cols)
+        col_type_ids = {'features': feature_type_ids}
 
         if output_data.target is not None and len(output_data.target.shape) > 1:
-            target_n_rows, target_n_cols = output_data.target.shape
-            column_types.update({'target': [str(float)] * target_n_cols})
-        output_data.supplementary_data.column_types = column_types
+            _, target_n_cols = output_data.target.shape
+            target_type_ids = np.array([TYPE_TO_ID[float]] * target_n_cols)
+            col_type_ids['target'] = target_type_ids
+        output_data.supplementary_data.col_type_ids = col_type_ids
 
     def _apply_transformation_for_fit(self, input_data: InputData, features: np.array, target: np.array,
                                       forecast_length: int, old_idx: np.array):

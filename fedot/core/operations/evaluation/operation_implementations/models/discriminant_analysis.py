@@ -1,7 +1,6 @@
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -29,7 +28,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
         """
         prediction = self.model.predict(input_data.features)
 
-        prediction = nan_to_num(prediction)
+        prediction = np.nan_to_num(prediction)
 
         return prediction
 
@@ -40,7 +39,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
         """
         prediction = self.model.predict_proba(input_data.features)
 
-        prediction = nan_to_num(prediction)
+        prediction = np.nan_to_num(prediction)
 
         return prediction
 
@@ -93,14 +92,3 @@ class QDAImplementation(DiscriminantAnalysisImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = QuadraticDiscriminantAnalysis(**self.params.to_dict())
-
-
-def nan_to_num(prediction):
-    """ Function converts nan values to numerical
-
-    :return prediction: prediction without nans
-    """
-    if np.array([pd.isna(_) for _ in prediction]).any():
-        prediction = np.nan_to_num(prediction)
-
-    return prediction

@@ -1,6 +1,6 @@
 import logging
 from copy import deepcopy
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -26,6 +26,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.metrics_repository import MetricCallable
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 from fedot.explainability.explainer_template import Explainer
@@ -156,6 +157,9 @@ class Fedot:
 
         self._init_remote_if_necessary()
 
+        if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
+            self.train_data = self.data_processor.fit_transform(self.train_data)
+
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
@@ -175,9 +179,12 @@ class Fedot:
             else:
                 self.log.message('Already fitted initial pipeline is used')
 
-        # Store data encoder in the pipeline if it is required
+        # Merge API & pipelines encoders if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            self.data_processor.preprocessor, self.current_pipeline.preprocessor)
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+        )
 
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
 
@@ -187,7 +194,7 @@ class Fedot:
 
     def tune(self,
              input_data: Optional[InputData] = None,
-             metric_name: Optional[Union[str, Callable]] = None,
+             metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
              cv_folds: Optional[int] = None,
@@ -257,6 +264,9 @@ class Fedot:
 
         self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
+
+        if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
+            self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
 
         self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                  test_data=self.test_data,

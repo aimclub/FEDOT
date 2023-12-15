@@ -8,6 +8,7 @@ on:
     branches: [ master, release ]
   pull_request:
     branches: [ master, release ]
+  workflow_dispatch:  # manually launch from GitHub actions
 
 jobs:
   build:

@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.data.data import OutputData, InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
@@ -219,7 +219,7 @@ class ModelImplementation(ABC):
         return converted
 
 
-def _convert_to_output_function(input_data: InputData, transformed_features: np.array,
+def _convert_to_output_function(input_data: InputData, transformed_features: np.ndarray,
                                 data_type: DataTypesEnum = DataTypesEnum.table):
     """ Function prepare prediction of operation as OutputData object
 

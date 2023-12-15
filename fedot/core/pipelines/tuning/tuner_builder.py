@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Type, Union, Iterable, Sequence
+from typing import Iterable, Sequence, Type, Union
 
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -14,7 +14,7 @@ from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
+from fedot.core.repository.metrics_repository import MetricIDType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -55,7 +55,7 @@ class TunerBuilder:
         self.n_jobs = n_jobs
         return self
 
-    def with_metric(self, metrics: Union[MetricType, Iterable[MetricType]]):
+    def with_metric(self, metrics: Union[MetricIDType, Iterable[MetricIDType]]):
         self.metric = ensure_wrapped_in_sequence(metrics)
         return self
 

@@ -228,9 +228,9 @@
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"presets": ["fast_train", "*tree"],
+			"presets": ["*tree"],
 			"tags": ["affects_target", "non_linear", "filtering",
-				     "correct_params", "non_applicable_for_ts", "non-default"]
+				     "correct_params", "non_applicable_for_ts"]
 		},
 		"isolation_forest_reg": {
 			"meta": "regression_preprocessing",
@@ -302,7 +302,7 @@
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_to_time_series_transformation",
-			"presets": ["fast_train", "ts"],
+			"presets": ["ts"],
 			"tags": [
 				"differential",
 				"non_lagged",

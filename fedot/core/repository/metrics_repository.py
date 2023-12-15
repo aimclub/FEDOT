@@ -1,15 +1,15 @@
-from numbers import Real
-from typing import Callable, Union, TypeVar
+from typing import Dict, Optional, Protocol, TypeVar, Union
 
-from golem.core.dag.graph import Graph
-from golem.utilities.data_structures import ComparableEnum as Enum
+from golem.utilities.data_structures import ComparableEnum
 
-from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
-                                         MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MASE)
+from fedot.core.composer.metrics import (Accuracy, ComplexityMetric, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE,
+                                         MSLE, NodeNum, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,
+                                         StructuralComplexity)
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 
 
-class MetricsEnum(Enum):
+class MetricsEnum(ComparableEnum):
     def __str__(self):
         return self.value
 
@@ -18,13 +18,7 @@ class MetricsEnum(Enum):
         return value in cls._value2member_map_
 
 
-G = TypeVar('G', bound=Graph, covariant=True)
-MetricCallable = Callable[[G], Real]
-MetricType = Union[MetricCallable, MetricsEnum]
-
-
-class QualityMetricsEnum(MetricsEnum):
-    pass
+class QualityMetricsEnum(MetricsEnum): pass
 
 
 class ComplexityMetricsEnum(MetricsEnum):
@@ -69,8 +63,25 @@ class TimeSeriesForecastingMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
 
 
+NumberType = Union[int, float, complex]
+PipelineType = TypeVar('PipelineType', bound=Pipeline, covariant=True)
+
+
+class QualityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType, reference_data: InputData,
+                 validation_blocks: Optional[int] = None) -> NumberType: pass
+
+
+class ComplexityMetricCallable(Protocol):
+    def __call__(self, pipeline: PipelineType, **kwargs) -> NumberType: pass
+
+
+MetricCallable = Union[QualityMetricCallable, ComplexityMetricCallable]
+MetricIDType = Union[str, MetricsEnum, MetricCallable]
+
+
 class MetricsRepository:
-    _metrics_implementations = {
+    _metrics_implementations: Dict[MetricsEnum, MetricCallable] = {
         # classification
         ClassificationMetricsEnum.ROCAUC: ROCAUC.get_value,
         ClassificationMetricsEnum.ROCAUC_penalty: ROCAUC.get_value_with_penalty,
@@ -101,10 +112,13 @@ class MetricsRepository:
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
-    @staticmethod
-    def metric_by_id(metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
-        return MetricsRepository._metrics_implementations.get(metric_id, default_callable)
+    _metrics_classes = {metric_id: getattr(metric_func, '__self__')
+                        for metric_id, metric_func in _metrics_implementations.items()}
 
     @staticmethod
-    def metric_class_by_id(metric_id: MetricsEnum) -> Metric:
-        return MetricsRepository._metrics_implementations[metric_id].__self__()
+    def get_metric(metric_name: MetricsEnum) -> MetricCallable:
+        return MetricsRepository._metrics_implementations[metric_name]
+
+    @staticmethod
+    def get_metric_class(metric_name: MetricsEnum) -> Union[QualityMetric, ComplexityMetric]:
+        return MetricsRepository._metrics_classes[metric_name]

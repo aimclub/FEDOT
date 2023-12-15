@@ -7,12 +7,13 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.preprocessing.data_types import TYPE_TO_ID
 from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
-from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
-    correct_preprocessing_params
+from test.unit.preprocessing.test_pipeline_preprocessing import correct_preprocessing_params, \
+    data_with_mixed_types_in_each_column
 
 
 def get_mixed_data_with_str_and_float_values(idx: int = None):
@@ -128,15 +129,13 @@ def test_column_types_converting_correctly():
     types_corr = TableTypesCorrector()
     data = types_corr.convert_data_for_fit(data)
 
-    features_types = data.supplementary_data.column_types['features']
-    target_types = data.supplementary_data.column_types['target']
+    feature_type_ids = data.supplementary_data.col_type_ids['features']
+    target_type_ids = data.supplementary_data.col_type_ids['target']
 
-    assert len(features_types) == 4
-    assert len(target_types) == 2
-    assert features_types[0] == "<class 'str'>"
-    assert features_types[1] == "<class 'str'>"
-    assert features_types[2] == "<class 'str'>"
-    assert target_types[0] == target_types[0] == "<class 'str'>"
+    assert len(feature_type_ids) == 4
+    assert len(target_type_ids) == 2
+    assert (feature_type_ids[[0, 1, 2]] == TYPE_TO_ID[str]).all()
+    assert (target_type_ids == TYPE_TO_ID[str]).all()
 
 
 def test_column_types_process_correctly():
@@ -155,10 +154,10 @@ def test_column_types_process_correctly():
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 
-    features_columns = predicted.supplementary_data.column_types['features']
-    assert len(features_columns) == predicted.predict.shape[1]
+    feature_type_ids = predicted.supplementary_data.col_type_ids['features']
+    assert len(feature_type_ids) == predicted.predict.shape[1]
     # All output values are float
-    assert all('float' in str(feature_type) for feature_type in features_columns)
+    assert (feature_type_ids == TYPE_TO_ID[float]).all()
 
 
 def test_complicated_table_types_processed_correctly():
@@ -263,7 +262,7 @@ def test_str_numbers_with_dots_and_commas_in_predict():
     input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
-    transformed_predict = apply_type_transformation(table=input_data.features, column_types=['int'],
+    transformed_predict = apply_type_transformation(table=input_data.features, col_type_ids=[TYPE_TO_ID[int]],
                                                     log=default_log('test_str_numbers_with_dots_and_commas_in_predict'))
 
     assert all(transformed_predict == np.array([[8], [4], [3], [6]]))

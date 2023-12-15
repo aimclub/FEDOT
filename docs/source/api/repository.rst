@@ -16,7 +16,7 @@ Operation Types
 Quality metrics
 ---------------
 
-.. automodule:: fedot.core.repository.quality_metrics_repository
+.. automodule:: fedot.core.repository.metrics_repository
    :members:
    :no-undoc-members:
 

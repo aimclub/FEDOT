@@ -9,6 +9,10 @@ In this section you can find notebooks and useful pipeline structures for variou
    :maxdepth: 1
    :caption: Contents
 
+   classification_example
+   regression_example
+   ts_forecasting
+   data
    notebooks
    classification_pipelines
    regression_pipelines
