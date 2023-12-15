@@ -547,7 +547,6 @@ def test_all_operations_are_documented():
     # All operations should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
     to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}
     path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
-    docs_text = None
 
     with open(path_to_docs, 'r') as docs_:
         docs_text = docs_.read()
@@ -555,3 +554,23 @@ def test_all_operations_are_documented():
             if operation.id not in to_skip:
                 assert operation.id in docs_text, \
                     f"Operation {operation.id} is not documented in {path_to_docs}"
+
+
+def test_all_presets_are_documented():
+    # All operations presets should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
+    to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}
+    path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
+    docs_lines = None
+
+    with open(path_to_docs, 'r') as docs_:
+        docs_lines = docs_.readlines()
+    if docs_lines:
+        for operation in OperationTypesRepository('all')._repo:
+            if operation.id not in to_skip and operation.presets:
+                reference_found = False
+                for line in docs_lines:
+                    if operation.id in line and all(preset in line for preset in operation.presets):
+                        reference_found = True
+                        break
+                assert reference_found, \
+                    f"Operation {operation.id} presets {operation.presets} are not documented in {path_to_docs}"
