@@ -32,11 +32,11 @@ class AtomizedTimeSeriesDataSample(AtomizedModel):
             new_features = np.concatenate([features[:, ::2],
                                            features[:, 1::2]], axis=0)
 
-            target = data.target
-            if target.ndim == 1:
-                target = target.reshape(1, -1)
-
-            new_target = np.concatenate([target, target], axis=0)
+            new_target = data.target
+            if new_target is not None:
+                if new_target.ndim == 1:
+                    target = new_target.reshape(1, -1)
+                new_target = np.concatenate([new_target, new_target], axis=0)
         else:
             raise ValueError(f"Unknown mode {self.mode}")
 
@@ -66,7 +66,7 @@ class AtomizedTimeSeriesDataSample(AtomizedModel):
         for i in range(new_data.features.shape[0]):
             new_data1 = InputData(idx=new_data.idx,
                                   features=new_data.features[i, :].reshape((1, -1)),
-                                  target=new_data.target[i, :],
+                                  target=new_data.target[i, :] if new_data.target is not None else new_data.target,
                                   task=new_data.task,
                                   data_type=new_data.data_type,
                                   supplementary_data=new_data.supplementary_data)
