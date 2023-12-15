@@ -1,27 +1,18 @@
-import json
-import os
-from functools import reduce
-
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import pytest
 from sklearn.metrics import mean_squared_error
 from typing import Type
 
-from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.atomized_model.atomized_ts_differ import AtomizedTimeSeriesDiffer
-from fedot.core.operations.atomized_model.atomized_ts_sampler import AtomizedTimeSeriesDataSample
+from fedot.core.operations.atomized_model.atomized_ts_sampler import AtomizedTimeSeriesSampler
 from fedot.core.operations.atomized_model.atomized_ts_scaler import AtomizedTimeSeriesScaler
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
-from fedot.core.utils import fedot_project_root
-from test.integration.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 
 
@@ -58,7 +49,7 @@ def predict(pipeline: Pipeline, train: InputData, test: InputData):
 
 
 @pytest.mark.parametrize(('data_length', 'atomized_class'),
-                         [(100, AtomizedTimeSeriesDataSample),
+                         [(100, AtomizedTimeSeriesSampler),
                           (1000, AtomizedTimeSeriesScaler),
                           (1000, AtomizedTimeSeriesDiffer),
                           ])

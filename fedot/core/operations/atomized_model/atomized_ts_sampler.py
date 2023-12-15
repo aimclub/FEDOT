@@ -10,7 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 
 
-class AtomizedTimeSeriesDataSample(AtomizedModel):
+class AtomizedTimeSeriesSampler(AtomizedModel):
     """ Increase data for fitting for short time series """
 
     def __init__(self, pipeline: Optional['Pipeline'] = None, mode='sparse'):

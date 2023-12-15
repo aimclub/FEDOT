@@ -2,6 +2,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from typing import Any, List, Optional, Type, Callable
+
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
@@ -20,6 +23,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation
 from test.integration.composer.test_composer import to_categorical_codes
 from test.unit.dag.test_graph_utils import find_first
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -39,7 +43,7 @@ def file_data():
     return input_data
 
 
-def get_mutation_obj() -> Mutation:
+def get_mutation_obj(mutation_types: Optional[List[Any]] = None) -> Mutation:
     """
     Function for initializing mutation interface
     """
@@ -51,8 +55,11 @@ def get_mutation_obj() -> Mutation:
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=task)
-    parameters = GPAlgorithmParameters(mutation_strength=MutationStrengthEnum.strong,
-                                       mutation_prob=1)
+    kwargs = dict(mutation_strength=MutationStrengthEnum.strong,
+                  mutation_prob=1)
+    if mutation_types is not None:
+        kwargs = {'mutation_types': mutation_types, **kwargs}
+    parameters = GPAlgorithmParameters(**kwargs)
 
     mutation = Mutation(parameters, requirements, graph_params)
     return mutation
@@ -102,6 +109,32 @@ def get_ts_forecasting_graph_with_boosting() -> Pipeline:
     node_final = PipelineNode('ridge', nodes_from=[node_ridge, node_model])
     pipeline = Pipeline(node_final)
     return pipeline
+
+
+def get_graph_with_two_nested_atomized_models(atomized_model):
+    simple_pipeline = (PipelineBuilder()
+                       .add_node('scaling')
+                       .add_branch('linear', 'poly_features')
+                       .grow_branches('rf', 'catboost')
+                       .join_branches('ridge')
+                       .build())
+
+    node1 = PipelineNode('a')
+    node2 = PipelineNode('b', nodes_from=[node1])
+    node3 = PipelineNode(atomized_model(simple_pipeline), nodes_from=[node1])
+    node4 = PipelineNode('c', nodes_from=[node1, node3])
+    node5 = PipelineNode('d', nodes_from=[node2, node4])
+    node6 = PipelineNode('e', nodes_from=[node2, node5])
+    pipeline_with_atomized = Pipeline(node6)
+
+    node1 = PipelineNode('1')
+    node2 = PipelineNode('2', nodes_from=[node1])
+    node3 = PipelineNode(atomized_model(pipeline_with_atomized), nodes_from=[node1])
+    node4 = PipelineNode('3', nodes_from=[node1, node3])
+    node5 = PipelineNode('4', nodes_from=[node2, node4])
+    node6 = PipelineNode('5', nodes_from=[node2, node5])
+    pipeline_with_atomized = Pipeline(node6)
+    return PipelineAdapter().adapt(pipeline_with_atomized)
 
 
 def test_boosting_mutation_for_linear_graph():
@@ -170,3 +203,30 @@ def test_no_opt_or_graph_nodes_after_mutation():
     new_pipeline = adapter.restore(graph)
 
     assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
+
+
+@pytest.mark.parametrize('atomized_model',
+                         (AtomizedModel, ))
+@pytest.mark.parametrize('mutation_type',
+                         (fedot_single_edge_mutation, ))
+def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel],
+                                             mutation_type: Callable[[OptGraph], OptGraph]):
+    mutation = get_mutation_obj(mutation_types=[mutation_type])
+    # check that mutation_type has been set correctly
+    assert len(mutation.parameters.mutation_types) == 1
+    assert mutation.parameters.mutation_types[0] is mutation_type
+
+    # make mutation some times
+    mut = mutation.parameters.mutation_types[0]
+    origin_graph = get_graph_with_two_nested_atomized_models(atomized_model)
+    origin_descriptive_id = origin_graph.descriptive_id
+
+    atomized_1_mutation_count = 0
+    atomized_2_mutation_count = 0
+
+    for _ in range(20):
+        graph, _ = mutation._adapt_and_apply_mutation(new_graph=deepcopy(origin_graph), mutation_type=mut)
+
+        # check that mutation was made
+        assert graph.descriptive_id != origin_descriptive_id
+
