@@ -305,7 +305,7 @@ class FedotBuilder:
                     - ``kernel_pca`` -> Kernel Principal Component Analysis
                     - ``fast_ica`` -> Independent Component Analysis
                     - ``poly_features`` -> Polynomial Features
-                    - ``one_hot_encoding`` -> Ohe-Hot Encoder
+                    - ``one_hot_encoding`` -> One-Hot Encoder
                     - ``label_encoding`` -> Label Encoder
                     - ``rfe_lin_reg`` -> Linear Regression Recursive Feature Elimination
                     - ``rfe_non_lin_reg`` -> Decision Tree Recursive Feature Elimination
@@ -322,13 +322,13 @@ class FedotBuilder:
                     - ``text_clean`` -> Lemmatization and Stemming
                     - ``tfidf`` -> TF-IDF Vectorizer
                     - ``word2vec_pretrained`` -> Word2Vec
-                    - ``lagged`` -> Lagged Tranformation
-                    - ``sparse_lagged`` -> Sparse Lagged Tranformation
-                    - ``smoothing`` -> Smoothing Tranformation
-                    - ``gaussian_filter`` -> Gaussian Filter Tranformation
-                    - ``diff_filter`` -> Derivative Filter Tranformation
-                    - ``cut`` -> Cut Tranformation
-                    - ``exog_ts`` -> Exogeneus Tranformation
+                    - ``lagged`` -> Lagged Transformation
+                    - ``sparse_lagged`` -> Sparse Lagged Transformation
+                    - ``smoothing`` -> Smoothing Transformation
+                    - ``gaussian_filter`` -> Gaussian Filter Transformation
+                    - ``diff_filter`` -> Derivative Filter Transformation
+                    - ``cut`` -> Cut Transformation
+                    - ``exog_ts`` -> Exogeneus Transformation
 
             max_depth: max depth of a pipeline. Defaults to ``6``.
 

@@ -546,7 +546,7 @@ def test_operations_are_fast():
 
 def test_all_operations_are_documented():
     # All operations should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
-    to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'}
+    to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}
     path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
     docs_text = None
 

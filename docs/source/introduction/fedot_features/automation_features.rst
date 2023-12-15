@@ -36,40 +36,74 @@ Dimensional operations
 
 FEDOT supports bunch of dimensionality preprocessing operations that can be be added to the pipeline as a node.
 
-.. csv-table:: Feature transformation operations
-   :header: "API name","Model used","Definition"
+.. csv-table:: Feature transformation operations definitions
+   :header: "API name","Definition", "Problem"
 
-   `rfe_lin_reg`,`sklearn.feature_selection.RFE`,Linear Regression Recursive Feature Elimination
-   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination
-   `rfe_lin_class`,`sklearn.feature_selection.RFE`,Logistic Regression Recursive Feature Elimination
-   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`,Decision Tree Recursive Feature Elimination
-   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`,Regression Isolation Forest
-   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`,Classification Isolation Forest
-   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Regression Random Sample Consensus
-   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`,Decision Tree Random Sample Consensus
-   `pca`,`sklearn.decomposition.PCA`,Principal Component Analysis
-   `kernel_pca`,`sklearn.decomposition.KernelPCA`,Kernel Principal Component Analysis
-   `fast_ica`,`sklearn.decomposition.FastICA`,Independent Component Analysis
-   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`,Polynomial Features
-   `decompose`,`FEDOT model`,Set the difference between the prediction and the target as the new target
-   `class_decompose`,`FEDOT model`,Set the difference between the prediction and the target as the new target
-   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`,Count Vectorizer
-   `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`,Lemmatization and Stemming
-   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`,TF-IDF Vectorizer
-   `word2vec_pretrained`,[Gensin-data model](https://github.com/piskvorky/gensim-data),Text vectorization
-   `lagged`,FEDOT model,Lagged time series transformation/Time series to the Hankel matrix transformation
-   `sparse_lagged`,FEDOT model,As `lagged` but with sparsing
-   `smoothing`,FEDOT model,Moving average timeseries transformation
-   `gaussian_filter`,FEDOT model,Gaussian Filter timeseries tranformation
-   `diff_filter`,FEDOT model,Derivative Filter timeseries transformation
-   `cut`,FEDOT model,Cut timeseries
-   `scaling`,`sklearn.preprocessing.StandardScaler`,Scaling
-   `normalization`,`sklearn.preprocessing.MinMaxScaler`,Normalization
-   `simple_imputation`,`sklearn.impute.SimpleImputer`,Imputation
-   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,Ohe-Hot Encoder
-   `label_encoding`,`sklearn.preprocessing.LabelEncoder`,Label Encoder
-   `resample`,FEDOT model,Imbalanced binary class transformation for
-    classification task by using method from `sklearn.utils.resample`
+   `rfe_lin_reg`,Linear Regression Recursive Feature Elimination, Feature extraction
+   `rfe_non_lin_reg`,Decision Tree Recursive Feature Elimination, Feature extraction
+   `rfe_lin_class`,Logistic Regression Recursive Feature Elimination, Feature extraction
+   `rfe_non_lin_class`,Decision Tree Recursive Feature Elimination, Feature extraction
+   `isolation_forest_reg`,Regression Isolation Forest, Regression anomaly detection
+   `isolation_forest_class`,Classification Isolation Forest, Classification anomaly detection
+   `ransac_lin_reg`,Regression Random Sample Consensus, Outlier detection
+   `ransac_non_lin_reg`,Decision Tree Random Sample Consensus, Outlier detection
+   `pca`,Principal Component Analysis, Dimensionality reduction
+   `kernel_pca`,Kernel Principal Component Analysis, Dimensionality reduction
+   `fast_ica`,Independent Component Analysis, Feature extraction
+   `poly_features`,Polynomial Features, Feature engineering
+   `decompose`,Diff regression prediction and target for new target, Feature extraction
+   `class_decompose`,Diff classification prediction and target for new target, Feature extraction
+   `cntvect`,Count Vectorizer, Text feature extraction
+   `text_clean`,Lemmatization and Stemming, Text data processing
+   `tfidf`,TF-IDF Vectorizer, Text feature extraction
+   `word2vec_pretrained`,Text vectorization, Text feature extraction
+   `lagged`,Time series to the Hankel matrix transformation, Time series transformation
+   `sparse_lagged`,As `lagged` but with sparsing, Time series transformation
+   `smoothing`,Moving average, Time series transformation
+   `gaussian_filter`,Gaussian Filter, Time series transformation
+   `diff_filter`,Derivative Filter, Time series transformation
+   `cut`,Cut timeseries, Timeseries transformation
+   `scaling`,Scaling, Feature scaling
+   `normalization`,Normalization, Feature normalization
+   `simple_imputation`,Imputation, Data imputation
+   `one_hot_encoding`,One-Hot Encoder, Feature encoding
+   `label_encoding`,Label Encoder, Feature encoding
+   `resample`,Imbalanced binary class transformation in classification, Data transformation
+
+
+.. csv-table:: Feature transformation operations implementations
+   :header: "API name","Model used"
+
+   `rfe_lin_reg`,`sklearn.feature_selection.RFE`
+   `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`
+   `rfe_lin_class`,`sklearn.feature_selection.RFE`
+   `rfe_non_lin_class`,`sklearn.feature_selection.RFE`
+   `isolation_forest_reg`,`sklearn.ensemble.IsolationForest`
+   `isolation_forest_class`,`sklearn.ensemble.IsolationForest`
+   `ransac_lin_reg`,`sklearn.linear_model.RANSACRegressor`
+   `ransac_non_lin_reg`,`sklearn.linear_model.RANSACRegressor`
+   `pca`,`sklearn.decomposition.PCA`
+   `kernel_pca`,`sklearn.decomposition.KernelPCA`
+   `fast_ica`,`sklearn.decomposition.FastICA`
+   `poly_features`,`sklearn.preprocessing.PolynomialFeatures`
+   `decompose`,`FEDOT model`
+   `class_decompose`,`FEDOT model`
+   `cntvect`,`sklearn.feature_extraction.text.CountVectorizer`
+   `text_clean`,`nltk.stem.WordNetLemmatizer nltk.stem.SnowballStemmer`
+   `tfidf`,`sklearn.feature_extraction.text.TfidfVectorizer`
+   `word2vec_pretrained`,`Gensin-data model <https://github.com/piskvorky/gensim-data>`_
+   `lagged`,`FEDOT model`
+   `sparse_lagged`,`FEDOT model`
+   `smoothing`,`FEDOT model`
+   `gaussian_filter`,`FEDOT model`
+   `diff_filter`,`FEDOT model`
+   `cut`,`FEDOT model`
+   `scaling`,`sklearn.preprocessing.StandardScaler`
+   `normalization`,`sklearn.preprocessing.MinMaxScaler`
+   `simple_imputation`,`sklearn.impute.SimpleImputer`
+   `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`
+   `label_encoding`,`sklearn.preprocessing.LabelEncoder`
+   `resample`,`FEDOT model using sklearn.utils.resample`
 
 
 Models used
@@ -94,44 +128,87 @@ Apart from that there are other options whose names speak for themselves: ``'sta
     To make it simple, FEDOT uses ``auto`` by default to identify the best choice for you.
 
 
-.. csv-table:: Available models
-   :header: "API name","Model used","Definition","Problem"
+.. csv-table:: Available models definitions
+   :header: "API name","Definition","Problem"
 
-   `adareg`,`sklearn.ensemble.AdaBoostRegressor`,AdaBoost regressor,Regression
-   `catboostreg`,`catboost.CatBoostRegressor`,Catboost regressor,Regression
-   `dtreg`,`sklearn.tree.DecisionTreeRegressor`,Decision Tree regressor,Regression
-   `gbr`,`sklearn.ensemble.GradientBoostingRegressor`,Gradient Boosting regressor,Regression
-   `knnreg`,`sklearn.neighbors.KNeighborsRegressor`,K-nearest neighbors regressor,Regression
-   `lasso`,`sklearn.linear_model.Lasso`,Lasso Linear regressor,Regression
-   `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`,Light Gradient Boosting Machine regressor,Regression
-   `linear`,`sklearn.linear_model.LinearRegression`,Linear Regression regressor,Regression
-   `rfr`,`sklearn.ensemble.RandomForestRegressor`,Random Forest regressor,Regression
-   `ridge`,`sklearn.linear_model.Ridge`,Ridge Linear regressor,Regression
-   `sgdr`,`sklearn.linear_model.SGDRegressor`,Stochastic Gradient Descent regressor,Regression
-   `svr`,`sklearn.svm.LinearSVR`,Linear Support Vector regressor,Regression
-   `treg`,`sklearn.ensemble.ExtraTreesRegressor`,Extra Trees regressor,Regression
-   `xgbreg`,`xgboost.XGBRegressor`,Extreme Gradient Boosting regressor,Regression
-   `bernb`,`sklearn.naive_bayes.BernoulliNB`,Naive Bayes classifier (multivariate Bernoulli),Classification
-   `catboost`,`catboost.CatBoostClassifier`,Catboost classifier,Classification
-   `cnn`,FEDOT model,Convolutional Neural Network,Classification
-   `dt`,`sklearn.tree.DecisionTreeClassifier`,Decision Tree classifier,Classification
-   `knn`,`sklearn.neighbors.KNeighborsClassifier`,K-nearest neighbors classifier,Classification
-   `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`,Linear Discriminant Analysis,Classification
-   `lgbm`,`lightgbm.sklearn.LGBMClassifier`,Light Gradient Boosting Machine classifier,Classification
-   `logit`,`sklearn.linear_model.LogisticRegression`,Logistic Regression classifier,Classification
-   `mlp`,`sklearn.neural_network.MLPClassifier`,Multi-layer Perceptron classifier,Classification
-   `multinb`,`sklearn.naive_bayes.MultinomialNB`,Naive Bayes classifier (multinomial),Classification
-   `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`,Quadratic Discriminant Analysis,Classification
-   `rf`,`sklearn.ensemble.RandomForestClassifier`,Random Forest classifier,Classification
-   `svc`,`sklearn.svm.SVC`,Support Vector classifier,Classification
-   `xgboost`,`xgboost.XGBClassifier`,Extreme Gradient Boosting classifier,Classification
-   `kmeans`,`sklearn.cluster.Kmeans`,K-Means clustering,Clustering
-   `ar`,`statsmodels.tsa.ar_model.AutoReg`,AutoRegression,Forecasting
-   `arima`,`statsmodels.tsa.arima.model.ARIMA`,ARIMA,Forecasting
-   `cgru`,FEDOT model,Convolutional Gated Recurrent Unit,Forecasting
-   `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`,Exponential Smoothing,Forecasting
-   `glm`,`statsmodels.genmod.generalized_linear_model.GLM`,Generalized Linear Models,Forecasting
-   `locf`,FEDOT model,Last Observation Carried Forward,Forecasting
-   `polyfit`,FEDOT model,Polynomial approximation,Forecasting
-   `stl_arima`,`statsmodels.tsa.api.STLForecast`,STL Decomposition with ARIMA,Forecasting
-   `ts_naive_average`,FEDOT model,Naive Average,Forecasting
+   `adareg`,AdaBoost regressor,Regression
+   `catboostreg`,Catboost regressor,Regression
+   `dtreg`,Decision Tree regressor,Regression
+   `gbr`,Gradient Boosting regressor,Regression
+   `knnreg`,K-nearest neighbors regressor,Regression
+   `lasso`,Lasso Linear regressor,Regression
+   `lgbmreg`,Light Gradient Boosting Machine regressor,Regression
+   `linear`,Linear Regression regressor,Regression
+   `rfr`,Random Forest regressor,Regression
+   `ridge`,Ridge Linear regressor,Regression
+   `sgdr`,Stochastic Gradient Descent regressor,Regression
+   `svr`,Linear Support Vector regressor,Regression
+   `treg`,Extra Trees regressor,Regression
+   `xgbreg`,Extreme Gradient Boosting regressor,Regression
+   `bernb`,Naive Bayes classifier (multivariate Bernoulli),Classification
+   `catboost`,Catboost classifier,Classification
+   `cnn`,Convolutional Neural Network,Classification
+   `dt`,Decision Tree classifier,Classification
+   `knn`,K-nearest neighbors classifier,Classification
+   `lda`,Linear Discriminant Analysis,Classification
+   `lgbm`,Light Gradient Boosting Machine classifier,Classification
+   `logit`,Logistic Regression classifier,Classification
+   `mlp`,Multi-layer Perceptron classifier,Classification
+   `multinb`,Naive Bayes classifier (multinomial),Classification
+   `qda`,Quadratic Discriminant Analysis,Classification
+   `rf`,Random Forest classifier,Classification
+   `svc`,Support Vector classifier,Classification
+   `xgboost`,Extreme Gradient Boosting classifier,Classification
+   `kmeans`,K-Means clustering,Clustering
+   `ar`,AutoRegression,Forecasting
+   `arima`,ARIMA,Forecasting
+   `cgru`,Convolutional Gated Recurrent Unit,Forecasting
+   `ets`,Exponential Smoothing,Forecasting
+   `glm`,Generalized Linear Models,Forecasting
+   `locf`,Last Observation Carried Forward,Forecasting
+   `polyfit`,Polynomial approximation,Forecasting
+   `stl_arima`,STL Decomposition with ARIMA,Forecasting
+   `ts_naive_average`,Naive Average,Forecasting
+
+
+.. csv-table:: Available models implementations
+   :header: "API name","Model used"
+
+   `adareg`,`sklearn.ensemble.AdaBoostRegressor`
+   `catboostreg`,`catboost.CatBoostRegressor`
+   `dtreg`,`sklearn.tree.DecisionTreeRegressor`
+   `gbr`,`sklearn.ensemble.GradientBoostingRegressor`
+   `knnreg`,`sklearn.neighbors.KNeighborsRegressor`
+   `lasso`,`sklearn.linear_model.Lasso`
+   `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`
+   `linear`,`sklearn.linear_model.LinearRegression`
+   `rfr`,`sklearn.ensemble.RandomForestRegressor`
+   `ridge`,`sklearn.linear_model.Ridge`
+   `sgdr`,`sklearn.linear_model.SGDRegressor`
+   `svr`,`sklearn.svm.LinearSVR`
+   `treg`,`sklearn.ensemble.ExtraTreesRegressor`
+   `xgbreg`,`xgboost.XGBRegressor`
+   `bernb`,`sklearn.naive_bayes.BernoulliNB`
+   `catboost`,`catboost.CatBoostClassifier`
+   `cnn`,`FEDOT model`
+   `dt`,`sklearn.tree.DecisionTreeClassifier`
+   `knn`,`sklearn.neighbors.KNeighborsClassifier`
+   `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`
+   `lgbm`,`lightgbm.sklearn.LGBMClassifier`
+   `logit`,`sklearn.linear_model.LogisticRegression`
+   `mlp`,`sklearn.neural_network.MLPClassifier`
+   `multinb`,`sklearn.naive_bayes.MultinomialNB`
+   `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`
+   `rf`,`sklearn.ensemble.RandomForestClassifier`
+   `svc`,`sklearn.svm.SVC`
+   `xgboost`,`xgboost.XGBClassifier`
+   `kmeans`,`sklearn.cluster.Kmeans`
+   `ar`,`statsmodels.tsa.ar_model.AutoReg`
+   `arima`,`statsmodels.tsa.arima.model.ARIMA`
+   `cgru`,`FEDOT model`
+   `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`
+   `glm`,`statsmodels.genmod.generalized_linear_model.GLM`
+   `locf`,`FEDOT model`
+   `polyfit`,`FEDOT model`
+   `stl_arima`,`statsmodels.tsa.api.STLForecast`
+   `ts_naive_average`,`FEDOT model`
