@@ -13,6 +13,7 @@ from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
+from fedot.core.operations.atomized_model.atomized_ts_differ import AtomizedTimeSeriesDiffer
 from fedot.core.operations.atomized_model.atomized_ts_sampler import AtomizedTimeSeriesDataSample
 from fedot.core.operations.atomized_model.atomized_ts_scaler import AtomizedTimeSeriesScaler
 from fedot.core.pipelines.node import PipelineNode
@@ -56,15 +57,15 @@ def predict(pipeline: Pipeline, train: InputData, test: InputData):
     return in_sample_ts_forecast(pipeline, test, len(test.target))
 
 
-def test_atomized_lagged_ts_sampler():
-    train, test = get_data(100)
-    atomized_predict = predict(get_pipeline(AtomizedTimeSeriesDataSample), train, test)
+@pytest.mark.parametrize(('data_length', 'atomized_class'),
+                         [(100, AtomizedTimeSeriesDataSample),
+                          (1000, AtomizedTimeSeriesScaler),
+                          (1000, AtomizedTimeSeriesDiffer),
+                          ])
+def test_atomized_operations(data_length: int, atomized_class: Type[AtomizedModel]):
+    train, test = get_data(data_length)
+    atomized_predict = predict(get_pipeline(atomized_class), train, test)
     simple_predict = predict(get_pipeline(), train, test)
-    assert mean_squared_error(test.target, simple_predict) >= mean_squared_error(test.target, atomized_predict)
-
-
-def test_atomized_lagged_ts_scaler():
-    train, test = get_data(1000)
-    atomized_predict = predict(get_pipeline(AtomizedTimeSeriesScaler), train, test)
-    simple_predict = predict(get_pipeline(), train, test)
+    # pd.DataFrame([test.target, simple_predict, atomized_predict], index=['target', 'simple', 'atomized']).T.plot()
+    # print(mean_squared_error(test.target, simple_predict) - mean_squared_error(test.target, atomized_predict))
     assert mean_squared_error(test.target, simple_predict) >= mean_squared_error(test.target, atomized_predict)
