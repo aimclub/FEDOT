@@ -26,6 +26,11 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
 
+    @property
+    def acceptable_task_types(self):
+        root_operation = self.pipeline.root_node.operation
+        return root_operation.acceptable_task_types
+
     def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData) -> ('Pipeline', OutputData):
         predicted_train = self.pipeline.fit(input_data=data)
         fitted_atomized_operation = self.pipeline
