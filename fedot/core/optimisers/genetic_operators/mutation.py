@@ -1,4 +1,4 @@
-from functools import partial, wraps
+from functools import partial, wraps, WRAPPER_ASSIGNMENTS
 from itertools import chain
 from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Optional, Dict, Callable
@@ -59,7 +59,6 @@ MutationFun = Callable[[Pipeline, GraphRequirements, GraphGenerationParams, GPAl
 
 
 def atomized_mutation(mutation_fun: MutationFun) -> MutationFun:
-    # @wraps
     def mutation_for_atomized_graph(pipeline: Pipeline,
                                     requirements: GraphRequirements,
                                     graph_gen_params: GraphGenerationParams,
@@ -67,20 +66,20 @@ def atomized_mutation(mutation_fun: MutationFun) -> MutationFun:
                                     ) -> OptGraph:
         # get all pipelines
         pipelines = _extract_pipelines(pipeline)
-
-        # select pipeline to mutate
         node_uid, pipeline_to_mutate = choice(list(pipelines.items()))
 
-        # mutate with GOLEM mutation fun
         mutated_pipeline = mutation_fun(graph=pipeline_to_mutate,
                                         requirements=requirements,
                                         graph_gen_params=graph_gen_params,
                                         parameters=parameters)
 
-        # insert mutated pipeline inside origin pipeline
         new_pipeline = _insert_pipelines(pipeline, node_uid, mutated_pipeline)
-
         return new_pipeline
+
+    # TODO use functools.wraps. now it brokes something in GOLEM.
+    for attr in WRAPPER_ASSIGNMENTS:
+        setattr(mutation_for_atomized_graph, attr, getattr(mutation_fun, attr))
+    mutation_for_atomized_graph.__wrapped__ = mutation_fun
 
     return mutation_for_atomized_graph
 
