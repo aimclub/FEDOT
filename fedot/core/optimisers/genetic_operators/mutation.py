@@ -4,7 +4,7 @@ from random import choice
 from typing import Dict, Callable
 
 from golem.core.adapter import register_native
-from golem.core.optimisers.genetic.operators.base_mutations import  single_edge_mutation, single_add_mutation, \
+from golem.core.optimisers.genetic.operators.base_mutations import single_edge_mutation, single_add_mutation, \
     single_change_mutation, single_drop_mutation
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimization_parameters import GraphRequirements
@@ -42,7 +42,7 @@ def _insert_graphs(full_graph: OptGraph, node_uid: str, graph: OptGraph) -> OptG
         else:
             raise ValueError(f"Unknown node uid: {node_uid}")
         if 'inner_graph' not in node.content:
-            raise ValueError(f"Cannot insert graph to non AtomizedModel")
+            raise ValueError('Cannot insert graph to non AtomizedModel')
         node.content['inner_graph'] = graph
     return full_graph
 
