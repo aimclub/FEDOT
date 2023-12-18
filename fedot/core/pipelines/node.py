@@ -99,6 +99,7 @@ class PipelineNode(LinkedGraphNode):
 
     def description(self) -> str:
         # TODO add test
+        # TODO there is description in `Operation` why is it not used?
         node_label = super().description()
         if isinstance(self.operation, AtomizedModel):
             root_nodes = self.operation.pipeline.root_nodes()

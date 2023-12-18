@@ -138,72 +138,72 @@ def get_graph_with_two_nested_atomized_models(atomized_model):
     return PipelineAdapter().adapt(pipeline_with_atomized)
 
 
-# def test_boosting_mutation_for_linear_graph():
-#     """
-#     Tests boosting mutation can add correct boosting cascade
-#     """
-#
-#     graph = PipelineAdapter().restore(get_simple_linear_graph())
-#     boosting_graph = get_simple_linear_boosting_pipeline()
-#     requirements = PipelineComposerRequirements(primary=['logit'],
-#                                                 secondary=['logit'])
-#     pipeline = boosting_mutation(graph,
-#                                  requirements,
-#                                  get_pipeline_generation_params(requirements=requirements,
-#                                                                 rules_for_constraint=DEFAULT_DAG_RULES,
-#                                                                 task=Task(TaskTypesEnum.classification)))
-#     data = file_data()
-#     pipeline.fit(data)
-#     result = pipeline.predict(data)
-#     assert pipeline.descriptive_id == boosting_graph.descriptive_id
-#     assert result is not None
-#
-#
-# def test_boosting_mutation_for_non_lagged_ts_model():
-#     """
-#     Tests boosting mutation can add correct boosting cascade for ts forecasting with non-lagged model
-#     """
-#
-#     graph = PipelineAdapter().restore(get_ts_forecasting_graph())
-#
-#     boosting_graph = get_ts_forecasting_graph_with_boosting()
-#     requirements = PipelineComposerRequirements(primary=['ridge'],
-#                                                 secondary=['ridge'])
-#     pipeline = boosting_mutation(graph,
-#                                  requirements,
-#                                  get_pipeline_generation_params(requirements=requirements,
-#                                                                 rules_for_constraint=DEFAULT_DAG_RULES,
-#                                                                 task=Task(TaskTypesEnum.ts_forecasting)))
-#     data_train, data_test = get_ts_data()
-#     pipeline.fit(data_train)
-#     result = pipeline.predict(data_test)
-#     assert boosting_graph.descriptive_id == pipeline.descriptive_id
-#     assert result is not None
-#
-#
-# @pytest.mark.parametrize('pipeline, requirements, params',
-#                          [(PipelineBuilder().add_node('scaling').add_node('rf').build(),
-#                            *get_requirements_and_params_for_task(TaskTypesEnum.classification)),
-#                           (PipelineBuilder().add_node('smoothing').add_node('ar').build(),
-#                            *get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
-#                           ])
-# def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
-#                                             params: GraphGenerationParams):
-#     new_pipeline = deepcopy(pipeline)
-#     new_pipeline = boosting_mutation(new_pipeline, requirements, params)
-#     assert new_pipeline.descriptive_id != pipeline.descriptive_id
-#     assert 'class_decompose' in new_pipeline.descriptive_id or 'decompose' in new_pipeline.descriptive_id
-#
-#
-# def test_no_opt_or_graph_nodes_after_mutation():
-#     adapter = PipelineAdapter()
-#     graph = get_simple_linear_graph()
-#     mutation = get_mutation_obj()
-#     for mut in mutation.parameters.mutation_types:
-#         graph, _ = mutation._adapt_and_apply_mutation(new_graph=graph, mutation_type=mut)
-#     new_pipeline = adapter.restore(graph)
-#
-#     assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
+def test_boosting_mutation_for_linear_graph():
+    """
+    Tests boosting mutation can add correct boosting cascade
+    """
+
+    graph = PipelineAdapter().restore(get_simple_linear_graph())
+    boosting_graph = get_simple_linear_boosting_pipeline()
+    requirements = PipelineComposerRequirements(primary=['logit'],
+                                                secondary=['logit'])
+    pipeline = boosting_mutation(graph,
+                                 requirements,
+                                 get_pipeline_generation_params(requirements=requirements,
+                                                                rules_for_constraint=DEFAULT_DAG_RULES,
+                                                                task=Task(TaskTypesEnum.classification)))
+    data = file_data()
+    pipeline.fit(data)
+    result = pipeline.predict(data)
+    assert pipeline.descriptive_id == boosting_graph.descriptive_id
+    assert result is not None
+
+
+def test_boosting_mutation_for_non_lagged_ts_model():
+    """
+    Tests boosting mutation can add correct boosting cascade for ts forecasting with non-lagged model
+    """
+
+    graph = PipelineAdapter().restore(get_ts_forecasting_graph())
+
+    boosting_graph = get_ts_forecasting_graph_with_boosting()
+    requirements = PipelineComposerRequirements(primary=['ridge'],
+                                                secondary=['ridge'])
+    pipeline = boosting_mutation(graph,
+                                 requirements,
+                                 get_pipeline_generation_params(requirements=requirements,
+                                                                rules_for_constraint=DEFAULT_DAG_RULES,
+                                                                task=Task(TaskTypesEnum.ts_forecasting)))
+    data_train, data_test = get_ts_data()
+    pipeline.fit(data_train)
+    result = pipeline.predict(data_test)
+    assert boosting_graph.descriptive_id == pipeline.descriptive_id
+    assert result is not None
+
+
+@pytest.mark.parametrize('pipeline, requirements, params',
+                         [(PipelineBuilder().add_node('scaling').add_node('rf').build(),
+                           *get_requirements_and_params_for_task(TaskTypesEnum.classification)),
+                          (PipelineBuilder().add_node('smoothing').add_node('ar').build(),
+                           *get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
+                          ])
+def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
+                                            params: GraphGenerationParams):
+    new_pipeline = deepcopy(pipeline)
+    new_pipeline = boosting_mutation(new_pipeline, requirements, params)
+    assert new_pipeline.descriptive_id != pipeline.descriptive_id
+    assert 'class_decompose' in new_pipeline.descriptive_id or 'decompose' in new_pipeline.descriptive_id
+
+
+def test_no_opt_or_graph_nodes_after_mutation():
+    adapter = PipelineAdapter()
+    graph = get_simple_linear_graph()
+    mutation = get_mutation_obj()
+    for mut in mutation.parameters.mutation_types:
+        graph, _ = mutation._adapt_and_apply_mutation(new_graph=graph, mutation_type=mut)
+    new_pipeline = adapter.restore(graph)
+
+    assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
 
 
 @pytest.mark.parametrize('atomized_model',
