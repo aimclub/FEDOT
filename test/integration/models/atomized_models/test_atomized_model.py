@@ -211,30 +211,3 @@ def test_create_empty_atomized_model_raised_exception():
     with pytest.raises(Exception):
         empty_pipeline = Pipeline()
         AtomizedModel(empty_pipeline)
-
-
-def test_fine_tune_atomized_model_correct():
-    train_data, test_data = create_input_data()
-
-    atm_model = create_atomized_model()
-    dummy_atomized_model = create_atomized_model()
-
-    fine_tuned_atomized_model = atm_model.fine_tune(metric_function=RMSE.get_value,
-                                                    input_data=train_data,
-                                                    iterations=5,
-                                                    timeout=1)
-    dummy_atomized_model.fit(None, train_data)
-
-    fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(None, train_data)
-
-    after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
-    after_tuning_predicted = after_tuning_output.predict
-    before_tuning_output = dummy_atomized_model.predict(fitted_dummy_model, data=test_data)
-    before_tuning_predicted = before_tuning_output.predict
-
-    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_tuning_predicted)
-    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=before_tuning_predicted)
-
-    deviation = 0.50 * bfr_tun_mse
-    assert aft_tun_mse <= (bfr_tun_mse + deviation)

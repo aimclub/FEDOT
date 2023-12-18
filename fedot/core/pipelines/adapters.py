@@ -4,9 +4,9 @@ from typing import Any, Optional, Dict
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from golem.core.adapter import BaseOptimizationAdapter
 from golem.core.dag.graph_utils import map_dag_nodes
-from golem.core.optimisers.graph import OptGraph, OptNode
+from golem.core.optimisers.graph import OptGraph
 
-from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.node import PipelineNode, OptNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 

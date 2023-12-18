@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

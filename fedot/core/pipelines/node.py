@@ -4,8 +4,11 @@ from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
+
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.log import default_log
+from golem.core.optimisers.graph import OptNode as GolemOptNode
 from golem.core.optimisers.timer import Timer
 from golem.serializers.serializer import register_serializable
 
@@ -28,6 +31,18 @@ class NodeMetadata:
     """
 
     metric: Optional[float] = None
+
+
+class OptNode(GolemOptNode):
+    """ Wrap for GOLEM OptNode that adds ability to descript nodes with AtomizedModel
+        It is used in PipelineAdapter for convert graph to GOLEM representation """
+    def description(self) -> str:
+        # TODO add test
+        node_label = super().description()
+        if 'inner_graph' in self.content:
+            root_nodes = self.content['inner_graph'].root_nodes()
+            node_label = f"{node_label}(INNER{''.join(node.descriptive_id for node in root_nodes)}INNER)"
+        return node_label
 
 
 class PipelineNode(LinkedGraphNode):
@@ -81,6 +96,14 @@ class PipelineNode(LinkedGraphNode):
     def is_primary(self):
         if not self.nodes_from or len(self.nodes_from) == 0:
             return True
+
+    def description(self) -> str:
+        # TODO add test
+        node_label = super().description()
+        if isinstance(self.operation, AtomizedModel):
+            root_nodes = self.operation.pipeline.root_nodes()
+            node_label = f"{node_label}(INNER{''.join(node.descriptive_id for node in root_nodes)}INNER)"
+        return node_label
 
     def _process_content_init(self, passed_content: dict) -> Operation:
         """ Updating content in the node """

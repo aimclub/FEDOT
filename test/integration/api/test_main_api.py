@@ -1,11 +1,15 @@
 import os
 import shutil
 from copy import deepcopy
+from itertools import chain
 from typing import Optional
 
 import numpy as np
 import pandas as pd
 import pytest
+
+from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
+from fedot.core.pipelines.adapters import PipelineAdapter
 from golem.core.dag.graph_utils import graph_structure
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -547,6 +551,43 @@ def test_default_forecast():
     forecast = model.forecast()
     assert len(forecast) == forecast_length
     assert np.array_equal(model.test_data.idx, train_data.idx)
+
+
+def test_atomized_model_are_mutated():
+    # prepare pipeline with atomized model as initial assumption
+    node = PipelineNode('lagged')
+    node = PipelineNode('ridge', nodes_from=[node])
+    inner_node = PipelineNode('rfr', nodes_from=[PipelineNode('linear')])
+    node = PipelineNode(AtomizedModel(Pipeline(inner_node)), nodes_from=[node])
+    initial_assumption = Pipeline(node)
+
+    # prepare data
+    forecast_length = 2
+    train_data, test_data, _ = get_dataset('ts_forecasting',
+                                           forecast_length=forecast_length,
+                                           validation_blocks=1)
+    # get and fit fedot
+    model = Fedot(problem='ts_forecasting',
+                  pop_size=10,
+                  num_of_generations=1,
+                  with_tuning=False,
+                  timeout=1,
+                  task_params=TsForecastingParams(forecast_length=forecast_length),
+                  initial_assumption=initial_assumption)
+    model.fit(train_data)
+
+    # extract descriptive_id of atomized pipeline
+    pipelines_in_atomized_descriptive_id = []
+    for generation in model.history.generations:
+        for ind in generation:
+            if 'atomized' in ind.graph.descriptive_id:
+                ppl = PipelineAdapter()._restore(ind.graph)
+                for node in ppl.nodes:
+                    if isinstance(node.operation, AtomizedModel):
+                        pipelines_in_atomized_descriptive_id.append(node.operation.pipeline.descriptive_id)
+
+    # check that there are some different atomized pipelines after composition
+    assert len(set(pipelines_in_atomized_descriptive_id)) > 1
 
 
 @pytest.mark.parametrize('horizon', [1, 2, 3, 4])

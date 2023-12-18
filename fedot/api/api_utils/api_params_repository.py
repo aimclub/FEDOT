@@ -1,6 +1,8 @@
 import datetime
 from typing import Sequence
 
+from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation, fedot_single_add_mutation, \
+    fedot_single_change_mutation, fedot_single_drop_mutation
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
@@ -128,13 +130,22 @@ class ApiParamsRepository:
                      MutationTypesEnum.single_add,
                      MutationTypesEnum.single_edge]
 
-        # TODO remove workaround after boosting mutation fix
-        #      Boosting mutation does not work due to problem with __eq__ with it copy.
-        #      ``partial`` refactor to ``def`` does not work
-        #      Also boosting mutation does not work by it own.
         if task_type == TaskTypesEnum.ts_forecasting:
+            # TODO remove workaround after boosting mutation fix
+            #      Boosting mutation does not work due to problem with __eq__ with it copy.
+            #      ``partial`` refactor to ``def`` does not work
+            #      Also boosting mutation does not work by it own.
             # mutations.append(partial(boosting_mutation, params=params))
-            pass
+
+            # TODO remove when tests will ends
+            # add for testing purpose
+            mutations = [parameter_change_mutation,
+                         fedot_single_edge_mutation,
+                         fedot_single_add_mutation,
+                         fedot_single_change_mutation,
+                         fedot_single_drop_mutation]
+            mutations = [fedot_single_add_mutation,
+                         fedot_single_drop_mutation]
         else:
             mutations.append(add_resample_mutation)
 
