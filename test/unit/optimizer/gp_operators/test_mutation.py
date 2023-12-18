@@ -232,9 +232,11 @@ def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel]
         graph, _ = mutation._adapt_and_apply_mutation(new_graph=deepcopy(origin_graphs[0]), mutation_type=mut)
         graphs = extract_all_graphs(graph)
 
-        # check that there was the only one mutation in any graph
+        # check that there was the only one mutation in all graph
         assert sum(x != y for x, y in zip(origin_graphs, graphs)) == 1
 
         all_mutations = [x + (y != z) for x, y, z in zip(all_mutations, origin_graphs, graphs)]
-    print(1)
+
+    # check that all graphs receive at least 20% of mutations share
+    assert all(x / sum(all_mutations) > 0.2 for x in all_mutations)
 
