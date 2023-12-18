@@ -316,7 +316,7 @@ class PipelineTemplate:
         if preprocessor_file:
             try:
                 pipeline.preprocessor = joblib.load(preprocessor_file)
-            except ModuleNotFoundError as ex:
+            except ModuleNotFoundError:
                 self.log.warning(f'Could not load preprocessor from file `{preprocessor_file}` '
                                  f'due to legacy incompatibility. Please refit the preprocessor.')
         else:

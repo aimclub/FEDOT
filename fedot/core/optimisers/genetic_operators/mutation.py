@@ -1,24 +1,14 @@
 from copy import deepcopy
-from functools import partial, wraps, WRAPPER_ASSIGNMENTS
-from itertools import chain
-from random import choice, randint, random, sample
-from typing import TYPE_CHECKING, Optional, Dict, Callable
+from functools import WRAPPER_ASSIGNMENTS
+from random import choice
+from typing import Dict, Callable
 
-from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
-from fedot.core.pipelines.pipeline import Pipeline
 from golem.core.adapter import register_native
-from golem.core.dag.graph import ReconnectType
-from golem.core.dag.graph_node import GraphNode
-from golem.core.dag.graph_utils import distance_to_root_level, distance_to_primary_level, graph_has_cycle
-from golem.core.optimisers.advisor import RemoveType
-from golem.core.optimisers.genetic.operators.base_mutations import \
-    add_as_child, add_separate_parent_node, add_intermediate_node, single_edge_mutation, single_add_mutation, \
+from golem.core.optimisers.genetic.operators.base_mutations import  single_edge_mutation, single_add_mutation, \
     single_change_mutation, single_drop_mutation
-from golem.core.optimisers.graph import OptGraph, OptNode
-from golem.core.optimisers.opt_node_factory import OptNodeFactory
+from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimization_parameters import GraphRequirements
-from golem.core.optimisers.optimizer import GraphGenerationParams, AlgorithmParameters
-from golem.utilities.data_structures import ComparableEnum as Enum
+from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 
 
