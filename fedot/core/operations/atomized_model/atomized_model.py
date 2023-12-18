@@ -11,7 +11,7 @@ from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+# from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricCallable
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, atomized_model_type
 
@@ -55,15 +55,17 @@ class AtomizedModel(Operation):
                   iterations: int = 50,
                   timeout: int = 5) -> 'AtomizedModel':
         """ Method for tuning hyperparameters """
-        tuner = TunerBuilder(input_data.task) \
-            .with_tuner(SimultaneousTuner) \
-            .with_metric(metric_function) \
-            .with_iterations(iterations) \
-            .with_timeout(timedelta(minutes=timeout)) \
-            .build(input_data)
-        tuned_pipeline = tuner.tune(self.pipeline)
-        tuned_atomized_model = AtomizedModel(tuned_pipeline)
-        return tuned_atomized_model
+        # TODO Fix tuner with atomized model
+        #      cannot be made by that way due to problem with circular import
+        # tuner = TunerBuilder(input_data.task) \
+        #     .with_tuner(SimultaneousTuner) \
+        #     .with_metric(metric_function) \
+        #     .with_iterations(iterations) \
+        #     .with_timeout(timedelta(minutes=timeout)) \
+        #     .build(input_data)
+        # tuned_pipeline = tuner.tune(self.pipeline)
+        # tuned_atomized_model = AtomizedModel(tuned_pipeline)
+        # return tuned_atomized_model
 
     @property
     def metadata(self) -> OperationMetaInfo:
