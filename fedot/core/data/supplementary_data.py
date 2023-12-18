@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Dict, Optional, List
+from dataclasses import dataclass
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -31,8 +31,6 @@ class SupplementaryData:
     col_type_ids: Optional[Dict[str, np.ndarray]] = None
     # Was the data preprocessed before composer
     is_auto_preprocessed: bool = False
-    # time series bias for time series forecasting problem
-    time_series_bias: List[np.ndarray] = field(default_factory=list)
 
     @property
     def compound_mask(self):
