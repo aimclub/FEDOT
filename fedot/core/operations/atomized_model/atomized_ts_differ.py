@@ -13,6 +13,8 @@ from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 class AtomizedTimeSeriesDiffer(AtomizedModel):
     """ Get diff of timeseries, train model/forecast, integrate result """
 
+    operation_type = 'atomized_ts_differ'
+
     def __init__(self, pipeline: Optional['Pipeline'] = None):
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))

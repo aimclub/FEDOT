@@ -256,4 +256,3 @@ def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel]
 
     # check that all graphs receive at least 20% of mutations share
     assert all(x / sum(all_mutations) > 0.1 for x in all_mutations)
-

@@ -225,7 +225,6 @@ class PipelineNode(LinkedGraphNode):
                                                                               data=input_data)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-
             operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
                                                                data=input_data,
                                                                params=self._parameters)

@@ -34,6 +34,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
 
         # add data about inner graph if it is atomized model
         if isinstance(node.operation, AtomizedModel):
+            content['atomized_class'] = node.operation.__class__
             content['inner_graph'] = PipelineAdapter()._adapt(node.operation.pipeline)
 
         return OptNode(content)
@@ -42,7 +43,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
     def _transform_to_pipeline_node(node: OptNode) -> PipelineNode:
         if 'inner_graph' in node.content:
             atomized_pipeline = PipelineAdapter()._restore(node.content['inner_graph'])
-            return PipelineNode(AtomizedModel(atomized_pipeline))
+            return PipelineNode(node.content['atomized_class'](atomized_pipeline))
         else:
             # deepcopy to avoid accidental information sharing between opt graphs & pipelines
             content = deepcopy(node.content)

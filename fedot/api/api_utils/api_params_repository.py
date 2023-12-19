@@ -2,7 +2,7 @@ import datetime
 from typing import Sequence
 
 from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation, fedot_single_add_mutation, \
-    fedot_single_change_mutation, fedot_single_drop_mutation
+    fedot_single_change_mutation, fedot_single_drop_mutation, insert_atomized_operation
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
@@ -143,7 +143,8 @@ class ApiParamsRepository:
                          fedot_single_edge_mutation,
                          fedot_single_add_mutation,
                          fedot_single_change_mutation,
-                         fedot_single_drop_mutation]
+                         fedot_single_drop_mutation,
+                         insert_atomized_operation]
         else:
             mutations.append(add_resample_mutation)
 

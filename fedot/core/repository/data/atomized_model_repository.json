@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "regr": {
+      "accepted_node_types": ["any"],
+      "description": "Implementations of the regression models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "tags": ["ml", "atomized"],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+      "strategies": ["fedot.core.operations.evaluation.regression", "FedotRegressionStrategy"]
+    }
+  },
+  "operations": {
+    "atomized_ts_differ": {
+      "meta": "regr",
+      "presets": ["fast_train", "ts"],
+      "tags": ["linear", "used_for_mutation"]
+    },
+    "atomized_ts_sampler": {
+      "meta": "regr",
+      "presets": ["fast_train", "ts"],
+      "tags": ["linear", "used_for_mutation"]
+    },
+    "atomized_ts_scaler": {
+      "meta": "regr",
+      "presets": ["fast_train", "ts"],
+      "tags": ["linear", "used_for_mutation"]
+    }
+  }
+}

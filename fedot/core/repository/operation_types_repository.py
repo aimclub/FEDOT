@@ -74,7 +74,8 @@ class OperationTypesRepository:
         'model': {'file': 'model_repository.json', 'initialized_repo': None, 'default_tags': DEFAULT_MODEL_TAGS},
         'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None,
                            'default_tags': DEFAULT_DATA_OPERATION_TAGS},
-        'automl': {'file': 'automl_repository.json', 'initialized_repo': None, 'default_tags': []}
+        'automl': {'file': 'automl_repository.json', 'initialized_repo': None, 'default_tags': []},
+        'atomized': {'file': 'atomized_model_repository.json', 'initialized_repo': None, 'default_tags': []}
 
     }
 
@@ -111,6 +112,13 @@ class OperationTypesRepository:
             if cls.__repository_dict__[t]['initialized_repo'] is not None:
                 operation_types.append(t)
         return operation_types
+
+    @classmethod
+    def init_repository(cls, repo_name: str):
+        if repo_name not in cls.__repository_dict__:
+            raise ValueError(f"Unknown repo {repo_name}")
+        file_name = cls.__repository_dict__[repo_name]['file']
+        cls.assign_repo(repo_name, file_name)
 
     @classmethod
     def init_automl_repository(cls):

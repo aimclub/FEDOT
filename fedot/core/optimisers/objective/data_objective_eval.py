@@ -3,6 +3,8 @@ from datetime import timedelta
 from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
+
+from fedot.core.pipelines.adapters import PipelineAdapter
 from golem.core.log import default_log, is_test_session
 from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
@@ -65,6 +67,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
+                ppl = PipelineAdapter()._restore(graph)
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
                 if is_test_session() and not isinstance(ex, TimeoutError):

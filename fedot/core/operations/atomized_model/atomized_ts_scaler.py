@@ -12,6 +12,9 @@ from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 
 class AtomizedTimeSeriesScaler(AtomizedModel):
     """ Add bias to data in window """
+    # TODO refactor with any sklearn scaler
+
+    operation_type = 'atomized_ts_scaler'
 
     def __init__(self, pipeline: Optional['Pipeline'] = None):
         if pipeline is None:
