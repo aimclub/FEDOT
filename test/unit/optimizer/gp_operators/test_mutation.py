@@ -211,9 +211,9 @@ def test_no_opt_or_graph_nodes_after_mutation():
                          (AtomizedModel, ))
 @pytest.mark.parametrize('mutation_type',
                          (fedot_single_edge_mutation,
-                         fedot_single_change_mutation,
-                         fedot_single_change_mutation,
-                         fedot_single_drop_mutation))
+                          fedot_single_change_mutation,
+                          fedot_single_change_mutation,
+                          fedot_single_drop_mutation))
 def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel],
                                              mutation_type: Callable[[OptGraph], OptGraph]):
 
