@@ -475,7 +475,7 @@
         "tree", "non-default", "non_linear"
       ]
     },
-    "xgbreg": {
+    "xgboostreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
