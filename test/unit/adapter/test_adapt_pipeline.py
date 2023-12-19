@@ -7,11 +7,10 @@ import pytest
 from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.graph_verifier import GraphVerifier
 from golem.core.dag.verification_rules import DEFAULT_DAG_RULES
-from golem.core.optimisers.graph import OptNode
 
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.adapters import PipelineAdapter
-from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.node import PipelineNode, OptNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from test.unit.dag.test_graph_utils import find_first

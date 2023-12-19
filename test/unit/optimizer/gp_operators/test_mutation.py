@@ -24,7 +24,8 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation
+from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation, fedot_single_change_mutation, \
+    fedot_single_drop_mutation
 from test.integration.composer.test_composer import to_categorical_codes
 from test.unit.dag.test_graph_utils import find_first
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -209,7 +210,10 @@ def test_no_opt_or_graph_nodes_after_mutation():
 @pytest.mark.parametrize('atomized_model',
                          (AtomizedModel, ))
 @pytest.mark.parametrize('mutation_type',
-                         (fedot_single_edge_mutation, ))
+                         (fedot_single_edge_mutation,
+                         fedot_single_change_mutation,
+                         fedot_single_change_mutation,
+                         fedot_single_drop_mutation))
 def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel],
                                              mutation_type: Callable[[OptGraph], OptGraph]):
 
@@ -219,6 +223,18 @@ def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel]
         atomized_graphs = list(chain(*[extract_all_graphs(node.content['inner_graph']) for node in atomized_nodes]))
         return [graph] + atomized_graphs
 
+    def descriptive_id_without_atomized(graph: OptGraph):
+        description = ''
+        nodes = graph.root_nodes()
+        while nodes:
+            node = nodes.pop()
+            if 'inner_graph' in node.content:
+                description += 'atomized'
+            else:
+                description += node.description()
+            nodes.extend(node.nodes_from)
+        return description
+
     mutation = get_mutation_obj(mutation_types=[mutation_type])
     # check that mutation_type has been set correctly
     assert len(mutation.parameters.mutation_types) == 1
@@ -227,15 +243,16 @@ def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel]
     # make mutation some times
     mut = mutation.parameters.mutation_types[0]
     origin_graphs = extract_all_graphs(get_graph_with_two_nested_atomized_models(atomized_model))
+    origin_descriptive_ids = [descriptive_id_without_atomized(x) for x in origin_graphs]
     all_mutations = [0, 0, 0]
     for _ in range(20):
         graph, _ = mutation._adapt_and_apply_mutation(new_graph=deepcopy(origin_graphs[0]), mutation_type=mut)
-        graphs = extract_all_graphs(graph)
+        descriptive_ids = [descriptive_id_without_atomized(x) for x in extract_all_graphs(graph)]
 
         # check that there was the only one mutation in all graph
-        assert sum(x != y for x, y in zip(origin_graphs, graphs)) == 1
+        assert sum(x != y for x, y in zip(origin_descriptive_ids, descriptive_ids)) == 1
 
-        all_mutations = [x + (y != z) for x, y, z in zip(all_mutations, origin_graphs, graphs)]
+        all_mutations = [x + (y != z) for x, y, z in zip(all_mutations, origin_descriptive_ids, descriptive_ids)]
 
     # check that all graphs receive at least 20% of mutations share
     assert all(x / sum(all_mutations) > 0.2 for x in all_mutations)
