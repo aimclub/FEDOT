@@ -171,16 +171,24 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'discrete'},
                 'booster': {
                     'hyperopt-dist': hp.choice,
-                    'samplin-score': [['gbtree', 'dart', 'gblinear']],
+                    'sampling-scope': [['gbtree', 'dart', 'gblinear']],
                     'type': 'categorical'},
                 'lambda': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-score': [0, 1000],
+                    'sampling-scope': [0, 1000],
                     'type': 'discrete'},
                 'alpha': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-score': [0, 1000],
+                    'sampling-scope': [0, 1000],
                     'type': 'discrete'},
+                'colsample_bytree': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [1e-4, 1],
+                    'type': 'continuous'},
+                'scale_pos_weight': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 20],
+                    'type': 'continuous'},
             },
             'svr': {
                 'C': {
@@ -803,6 +811,7 @@ class PipelineSearchSpace(SearchSpace):
                 parameters_per_operation.update(self.custom_search_space)
             else:
                 for operation_name, operation_dct in self.custom_search_space.items():
-                    parameters_per_operation[operation_name].update(operation_dct)
+                    parameters_per_operation[operation_name].update(
+                        operation_dct)
 
         return parameters_per_operation
