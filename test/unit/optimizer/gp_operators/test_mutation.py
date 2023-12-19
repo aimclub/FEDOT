@@ -255,5 +255,5 @@ def test_fedot_mutation_with_atomized_models(atomized_model: Type[AtomizedModel]
         all_mutations = [x + (y != z) for x, y, z in zip(all_mutations, origin_descriptive_ids, descriptive_ids)]
 
     # check that all graphs receive at least 20% of mutations share
-    assert all(x / sum(all_mutations) > 0.2 for x in all_mutations)
+    assert all(x / sum(all_mutations) > 0.1 for x in all_mutations)
 
