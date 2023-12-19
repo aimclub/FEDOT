@@ -9,7 +9,8 @@
     "eval_metric": "mlogloss",
     "n_jobs": 1,
     "verbosity": 0,
-    "booster": "gbtree"
+    "booster": "gbtree",
+    "tree_method": "auto"
   },
   "catboost": {
     "allow_writing_files": false,
