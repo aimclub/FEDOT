@@ -10,15 +10,13 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 
 
-class AtomizedTimeSeriesDiffer(AtomizedModel):
+class AtomizedTimeSeriesDiffer:
     """ Get diff of timeseries, train model/forecast, integrate result """
-
-    operation_type = 'atomized_ts_differ'
 
     def __init__(self, pipeline: Optional['Pipeline'] = None):
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))
-        super().__init__(pipeline=pipeline)
+        self.pipeline = pipeline
 
     def _diff(self, data: InputData, fit_stage: bool):
         new_features = np.diff(data.features, axis=1)
@@ -34,7 +32,7 @@ class AtomizedTimeSeriesDiffer(AtomizedModel):
             new_target = data.target
 
         supplementary_data = data.supplementary_data
-        supplementary_data.time_series_bias.append(bias)
+        # supplementary_data.time_series_bias.append(bias)
 
         new_data = InputData(idx=data.idx,
                              features=new_features,
@@ -42,31 +40,27 @@ class AtomizedTimeSeriesDiffer(AtomizedModel):
                              task=data.task,
                              data_type=data.data_type,
                              supplementary_data=supplementary_data)
-        return new_data
+        return new_data, bias
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
+    def fit(self, data: InputData):
+        # TODO define is there need for unfit
         if data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError(f"{self.__class__} supports only time series forecasting task")
-        return super().fit(params, self._diff(data, fit_stage=True))
+        data, _ = self._diff(data, fit_stage=True)
+        self.pipeline.fit(data)
+        return self
 
-    def _sample_predict(self,
-                        fitted_operation: 'Pipeline',
-                        data: InputData,
-                        params: Optional[Union[OperationParameters, Dict[str, Any]]] = None,
-                        output_mode: str = 'default') -> OutputData:
-        new_data = self._diff(data, fit_stage=False)
-        prediction = super().predict(fitted_operation=fitted_operation,
-                                     data=new_data,
-                                     params=params,
-                                     output_mode=output_mode)
-        bias = prediction.supplementary_data.time_series_bias.pop()
+    def predict(self, data: InputData) -> OutputData:
+        new_data, bias = self._diff(data, fit_stage=False)
+        prediction = self.pipeline.predict(new_data)
         new_predict = np.cumsum(prediction.predict.reshape((bias.shape[0], -1)), axis=1) + bias
         new_predict = new_predict.reshape(prediction.predict.shape)
         prediction.predict = new_predict
+
+        prediction.idx = data.idx
+        if prediction.target is not None:
+            prediction.predict = np.reshape(prediction.predict, prediction.target.shape)
         return prediction
 
-    def predict(self, *args, **kwargs) -> OutputData:
-        return self._sample_predict(*args, **kwargs)
-
-    def predict_for_fit(self, *args, **kwargs) -> OutputData:
-        return self._sample_predict(*args, **kwargs)
+    def predict_for_fit(self, data: InputData) -> OutputData:
+        return self.predict(data)

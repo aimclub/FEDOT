@@ -6,26 +6,26 @@
       "forbidden_node_types": "[]",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
-      "tags": ["ml", "atomized"],
+      "tags": ["ml", "atomized", "non-default"],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
-      "strategies": ["fedot.core.operations.evaluation.regression", "FedotRegressionStrategy"]
+      "strategies": ["fedot.core.operations.evaluation.atomized", "FedotAtomizedStrategy"]
     }
   },
   "operations": {
     "atomized_ts_differ": {
       "meta": "regr",
       "presets": ["fast_train", "ts"],
-      "tags": ["linear", "used_for_mutation"]
+      "tags": ["linear"]
     },
     "atomized_ts_sampler": {
       "meta": "regr",
       "presets": ["fast_train", "ts"],
-      "tags": ["linear", "used_for_mutation"]
+      "tags": ["linear"]
     },
     "atomized_ts_scaler": {
       "meta": "regr",
       "presets": ["fast_train", "ts"],
-      "tags": ["linear", "used_for_mutation"]
+      "tags": ["linear"]
     }
   }
 }

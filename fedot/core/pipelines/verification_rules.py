@@ -1,5 +1,6 @@
 from typing import Optional
 
+from fedot.core.operations.atomized import Atomized
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
@@ -29,6 +30,8 @@ def has_final_operation_as_model(pipeline: Pipeline):
     root_node = pipeline.root_node
     if root_node.operation.operation_type == atomized_model_type():
         has_final_operation_as_model(root_node.operation.pipeline)
+    elif isinstance(root_node.operation, Atomized):
+        has_final_operation_as_model(root_node.content['params']['pipeline'])
     elif type(root_node.operation) is not Model:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
     return True

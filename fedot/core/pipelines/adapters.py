@@ -18,7 +18,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         fitted models) that can be used for reconstructing Pipelines.
     """
 
-    # TODO add tests for correct convertation of AtomizedModel
+    # TODO add tests for correct convertation of Atomized
 
     def __init__(self, use_input_preprocessing: bool = True):
         super().__init__(base_graph_class=Pipeline)
@@ -34,8 +34,11 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
 
         # add data about inner graph if it is atomized model
         if isinstance(node.operation, AtomizedModel):
-            content['atomized_class'] = node.operation.__class__
             content['inner_graph'] = PipelineAdapter()._adapt(node.operation.pipeline)
+
+        # add data about inner graph if it is atomized
+        if 'pipeline' in content['params']:
+            content['params']['pipeline'] = PipelineAdapter()._adapt(content['params']['pipeline'])
 
         return OptNode(content)
 
@@ -47,6 +50,8 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         else:
             # deepcopy to avoid accidental information sharing between opt graphs & pipelines
             content = deepcopy(node.content)
+            if 'params' in content and 'pipeline' in content['params']:
+                content['params']['pipeline'] = PipelineAdapter()._restore(content['params']['pipeline'])
             return PipelineNode(operation_type=content['name'], content=content)
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:

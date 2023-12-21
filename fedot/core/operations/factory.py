@@ -1,3 +1,4 @@
+from fedot.core.operations.atomized import Atomized
 from fedot.core.operations.automl import AutoML
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
@@ -15,7 +16,9 @@ class OperationFactory:
 
     def __init__(self, operation_name):
         self.operation_name = operation_name
-        self.operation_type = self._define_operation_type()
+        self.operation_type = (OperationTypesRepository('all')
+                               .operation_info_by_id(self.operation_name)
+                               .repository_name)
 
     def get_operation(self) -> Operation:
         """
@@ -30,39 +33,9 @@ class OperationFactory:
             operation = DataOperation(operation_type=self.operation_name)
         elif self.operation_type == 'automl':
             operation = AutoML(operation_type=self.operation_name)
+        elif self.operation_type == 'atomized':
+            operation = Atomized(operation_type=self.operation_name)
         else:
             raise ValueError(f'Operation type {self.operation_type} is not supported')
 
         return operation
-
-    @property
-    def operation_type_name(self):
-        return self.operation_type
-
-    def _define_operation_type(self) -> str:
-        """
-        The method determines what type of operations is set for this node
-
-        :return : operations type 'model', 'automl' or 'data_operation'
-        """
-
-        # Get available models from model_repository.json file
-        operations_repo = OperationTypesRepository('data_operation')
-        operations = operations_repo.operations
-        if 'automl' in OperationTypesRepository.get_available_repositories():
-            automl_repo = OperationTypesRepository('automl')
-            models_automl = automl_repo.operations
-        else:
-            models_automl = []
-
-        operation_name = get_operation_type_from_id(self.operation_name)
-
-        # If there is a such model in the list
-        if any(operation_name == model.id for model in operations):
-            operation_type = 'data_operation'
-        elif any(operation_name == model.id for model in models_automl):
-            operation_type = 'automl'
-        # Otherwise - it is model
-        else:
-            operation_type = 'model'
-        return operation_type

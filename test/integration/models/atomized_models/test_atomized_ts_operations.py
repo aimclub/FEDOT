@@ -6,9 +6,9 @@ from typing import Type
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
-from fedot.core.operations.atomized_model.atomized_ts_differ import AtomizedTimeSeriesDiffer
-from fedot.core.operations.atomized_model.atomized_ts_sampler import AtomizedTimeSeriesSampler
-from fedot.core.operations.atomized_model.atomized_ts_scaler import AtomizedTimeSeriesScaler
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_differ import AtomizedTimeSeriesDiffer
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_sampler import AtomizedTimeSeriesSampler
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_scaler import AtomizedTimeSeriesScaler
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

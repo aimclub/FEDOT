@@ -16,7 +16,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
-AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
+AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl', 'atomized']
 
 
 @dataclass
@@ -29,6 +29,7 @@ class OperationMetaInfo:
     allowed_positions: List[str]
     tags: Optional[List[str]] = None
     presets: Optional[List[str]] = None
+    repository_name: Optional[str] = None
 
     def current_strategy(self, task: TaskTypesEnum) -> Optional['EvaluationStrategy']:
         """
@@ -213,6 +214,11 @@ class OperationTypesRepository:
             # Unit tags
             tags = meta_tags + operation_tags
 
+            repo = [k for k, v in cls.__repository_dict__.items() if os.path.basename(repo_path) == v['file']]
+            if not repo:
+                raise ValueError('There is no repo_path in __repository_dict__')
+            repo = repo[0]
+
             operation = OperationMetaInfo(id=current_operation_key,
                                           input_types=input_type,
                                           output_types=output_type,
@@ -220,7 +226,8 @@ class OperationTypesRepository:
                                           supported_strategies=supported_strategies,
                                           allowed_positions=allowed_positions,
                                           tags=tags,
-                                          presets=presets)
+                                          presets=presets,
+                                          repository_name=repo)
             operations_list.append(operation)
 
         return operations_list

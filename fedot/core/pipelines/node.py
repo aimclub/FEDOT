@@ -42,6 +42,9 @@ class OptNode(GolemOptNode):
         if 'inner_graph' in self.content:
             root_nodes = self.content['inner_graph'].root_nodes()
             node_label = f"{node_label}(INNER{''.join(node.descriptive_id for node in root_nodes)}INNER)"
+        if 'params' in self.content and 'pipeline' in self.content['params']:
+            root_nodes = self.content['params']['pipeline'].root_nodes()
+            node_label = f"{node_label}(INNER{''.join(node.descriptive_id for node in root_nodes)}INNER)"
         return node_label
 
 
