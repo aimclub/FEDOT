@@ -1,15 +1,18 @@
 from copy import deepcopy
 from functools import WRAPPER_ASSIGNMENTS
 from random import choice
-from typing import Dict, Callable, Union
 
+from typing import Callable, Union
+
+from fedot.core.optimisers.genetic_operators.atomized_operators_wrapper import \
+    extract_graphs_from_atomized, insert_graphs_to_atomized
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from golem.core.adapter import register_native
 from golem.core.optimisers.genetic.operators.base_mutations import \
     single_edge_mutation, single_add_mutation, \
-    single_change_mutation, single_drop_mutation
+    single_change_mutation, single_drop_mutation, tree_growth
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimization_parameters import GraphRequirements
 from golem.core.optimisers.optimizer import GraphGenerationParams
@@ -19,54 +22,17 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 OperationTypesRepository.init_repository('atomized')
 ATOMIZED_OPERATION_REPOSITORY = OperationTypesRepository('atomized')
 
-
-def _extract_graphs(graph: OptGraph) -> Dict[str, OptGraph]:
-    """ Get all graphs from graph with atomized nodes
-        Return dict with key as node uid (where graph is stored in atomized models)
-        and values as graphs """
-    graphs = {'': graph}
-    for node in graph.nodes:
-        if 'pipeline' in node.parameters:
-            extracted_graphs = _extract_graphs(node.parameters['pipeline'])
-            for k, v in extracted_graphs.items():
-                graphs[k or node.uid] = v
-    return graphs
-
-
-def _insert_graphs(full_graph: OptGraph, node_uid: str, graph: OptGraph) -> OptGraph:
-    """ Insert graph to full_graph with atomized model in node with uid node_uid """
-    if node_uid == '':
-        full_graph = graph
-    else:
-        full_graph = full_graph
-        # look for node with uid == node_uid
-        nodes = full_graph.nodes[:]
-        while nodes:
-            node = nodes.pop()
-            if node.uid == node_uid:
-                break
-            if 'pipeline' in node.content['params']:
-                nodes.extend(node.content['params']['pipeline'].nodes)
-        else:
-            raise ValueError(f"Unknown node uid: {node_uid}")
-        if 'pipeline' not in node.content['params']:
-            raise ValueError(f"Cannot insert graph to non atomized model")
-        node.content['params']['pipeline'] = graph
-    return full_graph
-
-
-MutationFun = Callable[[Union[OptGraph, Pipeline], GraphRequirements, GraphGenerationParams, GPAlgorithmParameters],
-                       Union[OptGraph, Pipeline]]
+MutationFun = Callable[[OptGraph, GraphRequirements, GraphGenerationParams, GPAlgorithmParameters], OptGraph]
 
 
 def atomized_mutation(mutation_fun: MutationFun) -> MutationFun:
-    def mutation_for_atomized_graph(graph: Union[OptGraph, Pipeline],
+    def mutation_for_atomized_graph(graph: OptGraph,
                                     requirements: GraphRequirements,
                                     graph_gen_params: GraphGenerationParams,
                                     parameters: GPAlgorithmParameters,
-                                    ) -> Union[OptGraph, Pipeline]:
+                                    ) -> OptGraph:
         graph = deepcopy(graph)
-        graphs = _extract_graphs(graph)
+        graphs = extract_graphs_from_atomized(graph)
         node_uid, graph_to_mutate = choice(list(graphs.items()))
 
         mutated_graph = mutation_fun(graph_to_mutate,
@@ -74,7 +40,7 @@ def atomized_mutation(mutation_fun: MutationFun) -> MutationFun:
                                      graph_gen_params=graph_gen_params,
                                      parameters=parameters)
 
-        new_graph = _insert_graphs(graph, node_uid, mutated_graph)
+        new_graph = insert_graphs_to_atomized(graph, node_uid, mutated_graph)
         return new_graph
 
     # TODO use functools.wraps. now it brokes something in GOLEM.
@@ -85,11 +51,12 @@ def atomized_mutation(mutation_fun: MutationFun) -> MutationFun:
     return mutation_for_atomized_graph
 
 
+
 fedot_single_edge_mutation = register_native(atomized_mutation(single_edge_mutation))
 fedot_single_add_mutation = register_native(atomized_mutation(single_add_mutation))
 fedot_single_change_mutation = register_native(atomized_mutation(single_change_mutation))
 fedot_single_drop_mutation = register_native(atomized_mutation(single_drop_mutation))
-
+fedot_tree_growth = register_native(atomized_mutation(tree_growth))
 
 
 @atomized_mutation
@@ -104,6 +71,7 @@ def insert_atomized_operation(pipeline: Pipeline,
     atomized_operations = ATOMIZED_OPERATION_REPOSITORY.suitable_operation(task_type=task_type, tags=['non-default'])
     atomized_operation = choice(atomized_operations)
     atomized_operation = 'atomized_ts_differ'
+
     info = ATOMIZED_OPERATION_REPOSITORY.operation_info_by_id(atomized_operation)
     it, ot = set(info.input_types), set(info.output_types)
 
@@ -116,6 +84,15 @@ def insert_atomized_operation(pipeline: Pipeline,
     if nodes:
         node = choice(nodes)
         inner_pipeline = Pipeline(PipelineNode(content=node.content))
+
+        # create new node_factory and graph_random_factory for new pipeline
+        strategy = info.current_strategy(graph_gen_params.advisor.task)
+        operation_class = strategy._operations_by_types[atomized_operation]
+        node_factory, graph_random_factory = operation_class.build_factories(requirements, graph_gen_params)
+        inner_pipeline.node_factory = node_factory
+        inner_pipeline.graph_random_factory = graph_random_factory
+
+        # build new node with inner pipeline
         new_node = PipelineNode(content={'name': atomized_operation, 'params': {'pipeline': inner_pipeline}})
         pipeline.update_node(node, new_node)
     return pipeline

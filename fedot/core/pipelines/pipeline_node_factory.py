@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, random
 from typing import Optional, List
 
 from golem.core.optimisers.graph import OptNode
@@ -45,8 +45,8 @@ class PipelineOptNodeFactory(OptNodeFactory):
         candidates = self.filter_specific_candidates(candidates)
         return self._return_node(candidates)
 
-    def get_node(self,
-                 is_primary: bool):
+    def get_node(self, is_primary: Optional[bool] = None):
+        is_primary = is_primary or bool(random() > 0.5)
         candidates = self.graph_model_repository.get_operations(is_primary=is_primary)
         candidates = self.filter_specific_candidates(candidates)
         return self._return_node(candidates)

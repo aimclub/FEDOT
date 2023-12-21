@@ -10,6 +10,8 @@ from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.graph_utils import distance_to_primary_level, graph_structure
 from golem.core.dag.linked_graph import LinkedGraph
 from golem.core.log import default_log
+from golem.core.optimisers.opt_node_factory import OptNodeFactory
+from golem.core.optimisers.random_graph_factory import RandomGraphFactory
 from golem.core.optimisers.timer import Timer
 from golem.core.paths import copy_doc
 from golem.utilities.serializable import Serializable
@@ -39,8 +41,16 @@ class Pipeline(GraphDelegate, Serializable):
         use_input_preprocessing: whether to do input preprocessing or not, ``True`` by default.
     """
 
-    def __init__(self, nodes: Union[PipelineNode, Sequence[PipelineNode]] = (), use_input_preprocessing: bool = True):
-        super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
+    def __init__(self,
+                 nodes: Union[PipelineNode, Sequence[PipelineNode]] = (),
+                 use_input_preprocessing: bool = True,
+                 node_factory: Optional[OptNodeFactory] = None,
+                 random_graph_factory: Optional[RandomGraphFactory] = None,
+                 ):
+        super().__init__(nodes,
+                         _graph_nodes_to_pipeline_nodes,
+                         node_factory=node_factory,
+                         random_graph_factory=random_graph_factory)
 
         self.computation_time = None
         self.log = default_log(self)

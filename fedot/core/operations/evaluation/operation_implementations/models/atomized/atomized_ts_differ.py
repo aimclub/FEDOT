@@ -7,6 +7,9 @@ from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
+from fedot.core.pipelines.random_pipeline_factory import RandomPipelineFactory
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 
 
@@ -17,6 +20,14 @@ class AtomizedTimeSeriesDiffer:
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))
         self.pipeline = pipeline
+
+    @classmethod
+    def build_factories(cls, requirements, graph_generation_params):
+        graph_model_repository = PipelineOperationRepository(operations_by_keys={'primary': requirements.secondary,
+                                                             'secondary': requirements.secondary})
+        node_factory = PipelineOptNodeFactory(requirements, graph_generation_params.advisor, graph_model_repository)
+        random_pipeline_factory = RandomPipelineFactory(graph_generation_params.verifier, node_factory)
+        return node_factory, random_pipeline_factory
 
     def _diff(self, data: InputData, fit_stage: bool):
         new_features = np.diff(data.features, axis=1)

@@ -1,8 +1,10 @@
 import datetime
 from typing import Sequence
 
+from fedot.core.optimisers.genetic_operators.crossover import fedot_subtree_crossover, fedot_one_point_crossover
 from fedot.core.optimisers.genetic_operators.mutation import fedot_single_edge_mutation, fedot_single_add_mutation, \
-    fedot_single_change_mutation, fedot_single_drop_mutation, insert_atomized_operation
+    fedot_single_change_mutation, fedot_single_drop_mutation, insert_atomized_operation, fedot_tree_growth
+from golem.core.optimisers.genetic.operators.crossover import CrossoverTypesEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
@@ -120,6 +122,7 @@ class ApiParamsRepository:
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
         gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        gp_algorithm_params['crossover_types'] = ApiParamsRepository._get_default_crossovers(self.task_type, params)
         return gp_algorithm_params
 
     @staticmethod
@@ -145,7 +148,21 @@ class ApiParamsRepository:
                          fedot_single_change_mutation,
                          fedot_single_drop_mutation,
                          insert_atomized_operation]
+            mutations = [fedot_single_edge_mutation,
+                         fedot_single_add_mutation,
+                         fedot_single_change_mutation,
+                         fedot_single_drop_mutation,
+                         fedot_tree_growth,
+                         insert_atomized_operation]
         else:
             mutations.append(add_resample_mutation)
 
         return mutations
+
+    @staticmethod
+    def _get_default_crossovers(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
+        if task_type == TaskTypesEnum.ts_forecasting:
+            crossovers = [fedot_subtree_crossover, fedot_one_point_crossover]
+        else:
+            crossovers = [CrossoverTypesEnum.one_point]
+        return crossovers

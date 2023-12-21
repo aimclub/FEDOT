@@ -56,11 +56,17 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:
         adapted_nodes = map_dag_nodes(self._transform_to_opt_node, adaptee.nodes)
-        return OptGraph(adapted_nodes)
+        return OptGraph(adapted_nodes,
+                        node_factory=adaptee.node_factory,
+                        random_graph_factory=adaptee.random_graph_factory)
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
         restored_nodes = map_dag_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
-        pipeline = Pipeline(restored_nodes, use_input_preprocessing=self.use_input_preprocessing)
+        pipeline = Pipeline(restored_nodes,
+                            use_input_preprocessing=self.use_input_preprocessing,
+                            node_factory=opt_graph.node_factory,
+                            random_graph_factory=opt_graph.random_graph_factory
+                            )
 
         metadata = metadata or {}
         pipeline.computation_time = metadata.get('computation_time_in_seconds')
