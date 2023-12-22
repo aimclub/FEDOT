@@ -68,33 +68,35 @@ def insert_atomized_operation(pipeline: Pipeline,
     """ Wrap part of pipeline to atomized operation
     """
     task_type = graph_gen_params.advisor.task.task_type
-    atomized_operations = ATOMIZED_OPERATION_REPOSITORY.suitable_operation(task_type=task_type, tags=['non-default'])
-    atomized_operation = choice(atomized_operations)
-    atomized_operation = 'atomized_ts_differ'
+    atomized_operations = ATOMIZED_OPERATION_REPOSITORY.suitable_operation(task_type=task_type,
+                                                                           tags=['non-default'],
+                                                                           forbidden_tags=['not-for-mutation'])
+    if atomized_operations:
+        atomized_operation = choice(atomized_operations)
 
-    info = ATOMIZED_OPERATION_REPOSITORY.operation_info_by_id(atomized_operation)
-    it, ot = set(info.input_types), set(info.output_types)
+        info = ATOMIZED_OPERATION_REPOSITORY.operation_info_by_id(atomized_operation)
+        it, ot = set(info.input_types), set(info.output_types)
 
-    nodes = list()
-    for node in pipeline.nodes:
-        if (set(node.operation.metadata.input_types) == it and
-            set(node.operation.metadata.output_types) == ot):
-            nodes.append(node)
+        nodes = list()
+        for node in pipeline.nodes:
+            if (set(node.operation.metadata.input_types) == it and
+                set(node.operation.metadata.output_types) == ot):
+                nodes.append(node)
 
-    if nodes:
-        node = choice(nodes)
-        inner_pipeline = Pipeline(PipelineNode(content=node.content))
+        if nodes:
+            node = choice(nodes)
+            inner_pipeline = Pipeline(PipelineNode(content=node.content))
 
-        # create new node_factory and graph_random_factory for new pipeline
-        strategy = info.current_strategy(graph_gen_params.advisor.task)
-        operation_class = strategy._operations_by_types[atomized_operation]
-        node_factory, graph_random_factory = operation_class.build_factories(requirements, graph_gen_params)
-        inner_pipeline.node_factory = node_factory
-        inner_pipeline.graph_random_factory = graph_random_factory
+            # create new node_factory and graph_random_factory for new pipeline
+            strategy = info.current_strategy(graph_gen_params.advisor.task)
+            operation_class = strategy._operations_by_types[atomized_operation]
+            node_factory, graph_random_factory = operation_class.build_factories(requirements, graph_gen_params)
+            inner_pipeline.node_factory = node_factory
+            inner_pipeline.graph_random_factory = graph_random_factory
 
-        # build new node with inner pipeline
-        new_node = PipelineNode(content={'name': atomized_operation, 'params': {'pipeline': inner_pipeline}})
-        pipeline.update_node(node, new_node)
+            # build new node with inner pipeline
+            new_node = PipelineNode(content={'name': atomized_operation, 'params': {'pipeline': inner_pipeline}})
+            pipeline.update_node(node, new_node)
     return pipeline
 
 

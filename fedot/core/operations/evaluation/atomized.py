@@ -17,6 +17,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.atomized.
     AtomizedTimeSeriesSampler
 from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_scaler import \
     AtomizedTimeSeriesScaler
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_transform_to_time import \
+    AtomizedTimeSeriesToTime
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
@@ -28,7 +30,8 @@ class FedotAtomizedStrategy(EvaluationStrategy):
     _operations_by_types = {
         'atomized_ts_differ': AtomizedTimeSeriesDiffer,
         'atomized_ts_scaler': AtomizedTimeSeriesScaler,
-        'atomized_ts_sampler': AtomizedTimeSeriesSampler
+        'atomized_ts_sampler': AtomizedTimeSeriesSampler,
+        'atomized_ts_to_time': AtomizedTimeSeriesToTime,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

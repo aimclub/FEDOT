@@ -4,6 +4,8 @@ import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_mixins import \
+    AtomizedTimeSeriesBuildFactoriesMixin
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -13,21 +15,13 @@ from fedot.core.repository.pipeline_operation_repository import PipelineOperatio
 from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
 
 
-class AtomizedTimeSeriesDiffer:
+class AtomizedTimeSeriesDiffer(AtomizedTimeSeriesBuildFactoriesMixin):
     """ Get diff of timeseries, train model/forecast, integrate result """
 
     def __init__(self, pipeline: Optional['Pipeline'] = None):
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))
         self.pipeline = pipeline
-
-    @classmethod
-    def build_factories(cls, requirements, graph_generation_params):
-        graph_model_repository = PipelineOperationRepository(operations_by_keys={'primary': requirements.secondary,
-                                                             'secondary': requirements.secondary})
-        node_factory = PipelineOptNodeFactory(requirements, graph_generation_params.advisor, graph_model_repository)
-        random_pipeline_factory = RandomPipelineFactory(graph_generation_params.verifier, node_factory)
-        return node_factory, random_pipeline_factory
 
     def _diff(self, data: InputData, fit_stage: bool):
         new_features = np.diff(data.features, axis=1)
@@ -54,7 +48,7 @@ class AtomizedTimeSeriesDiffer:
         return new_data, bias
 
     def fit(self, data: InputData):
-        # TODO define is there need for unfit
+        # TODO is there need for unfit?
         if data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError(f"{self.__class__} supports only time series forecasting task")
         data, _ = self._diff(data, fit_stage=True)
@@ -64,11 +58,10 @@ class AtomizedTimeSeriesDiffer:
     def predict(self, data: InputData) -> OutputData:
         new_data, bias = self._diff(data, fit_stage=False)
         prediction = self.pipeline.predict(new_data)
-        new_predict = np.cumsum(prediction.predict.reshape((bias.shape[0], -1)), axis=1) + bias
-        new_predict = new_predict.reshape(prediction.predict.shape)
-        prediction.predict = new_predict
+        prediction.predict = np.cumsum(prediction.predict.reshape((bias.shape[0], -1)), axis=1) + bias
 
         prediction.idx = data.idx
+        prediction.target = data.target
         if prediction.target is not None:
             prediction.predict = np.reshape(prediction.predict, prediction.target.shape)
         return prediction
