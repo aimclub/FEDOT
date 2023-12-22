@@ -1,3 +1,4 @@
+from collections import Counter
 from typing import Optional
 
 from fedot.core.operations.atomized import Atomized
@@ -66,6 +67,8 @@ def has_correct_data_connections(pipeline: Pipeline):
         # check atomized pipeline
         if isinstance(node.operation, AtomizedModel):
             has_correct_data_connections(node.operation.pipeline)
+        if 'pipeline' in node.parameters:
+            has_correct_data_connections(node.parameters['pipeline'])
 
         # skip custom node
         if node.operation.metadata.id == 'custom':
@@ -290,6 +293,23 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
             # There are operations in the pipeline that solve different tasks
             __check_multitask_operation_location(pipeline, classification_operations)
 
+    return True
+
+
+def correct_connection_with_atomized(pipeline: Pipeline):
+    for node in pipeline.nodes:
+        if isinstance(node.operation, Atomized):
+            if node.name == 'atomized_ts_to_time':
+                counter = Counter(parent.operation.metadata.repository_name for parent in node.nodes_from)
+                if counter.get('data_operation', 0) > 0:
+                    if counter['data_operation'] > 1 or (counter['data_operation'] != sum(counter.values())):
+                        return False
+            inner_pipeline = node.parameters['pipeline']
+            for inner_node in inner_pipeline.primary_nodes:
+                if DataTypesEnum.table not in inner_node.operation.metadata.input_types:
+                    return False
+            if not correct_connection_with_atomized(inner_pipeline):
+                return False
     return True
 
 

@@ -2,10 +2,13 @@ from abc import abstractmethod
 from typing import List
 
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
+from golem.core.optimisers.opt_graph_builder import OptGraphBuilder
 
 
 class TaskAssumptions:
@@ -64,9 +67,17 @@ class TSForecastingAssumptions(TaskAssumptions):
                 .add_branch('polyfit', 'lagged')
                 .grow_branches(None, 'ridge')
                 .join_branches('ridge'),
-            'smoothing_ar':
+            'atomized_ts_differ':
                 PipelineBuilder()
-                .add_sequence('smoothing', 'ar'),
+                .add_branch('lagged', 'lagged')
+                .add_node('ridge', branch_idx=0)
+                .add_node('atomized_ts_differ', branch_idx=1, params={'pipeline': PipelineBuilder()
+                                                                                  .add_node('ridge').build()})
+                .join_branches('ridge'),
+            'atomized_ts_to_time':
+                PipelineBuilder()
+                .add_sequence('lagged', 'ridge')
+                .add_node('atomized_ts_to_time', params={'pipeline': PipelineBuilder().add_node('ridge').build()}),
         }
 
     def ensemble_operation(self) -> str:

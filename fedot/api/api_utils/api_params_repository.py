@@ -154,11 +154,10 @@ class ApiParamsRepository:
                          fedot_single_drop_mutation,
                          fedot_tree_growth,
                          insert_atomized_operation]
-            mutations = [fedot_single_edge_mutation,
-                         fedot_single_add_mutation,
-                         fedot_single_change_mutation,
-                         fedot_single_drop_mutation,
-                         insert_atomized_operation]
+            # mutations = [fedot_single_edge_mutation,
+            #              fedot_single_add_mutation,
+            #              fedot_single_drop_mutation,
+            #              insert_atomized_operation]
         else:
             mutations.append(add_resample_mutation)
 
@@ -168,6 +167,7 @@ class ApiParamsRepository:
     def _get_default_crossovers(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
         if task_type == TaskTypesEnum.ts_forecasting:
             crossovers = [fedot_subtree_crossover, fedot_one_point_crossover]
+            crossovers = [fedot_one_point_crossover]
         else:
             crossovers = [CrossoverTypesEnum.one_point]
         return crossovers
