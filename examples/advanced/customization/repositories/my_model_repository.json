@@ -9,7 +9,7 @@
        "input_type": "[DataTypesEnum.image]",
        "output_type": "[DataTypesEnum.table]",
        "strategies": [
-         "examples.simple.classification.cust.image_class",
+         "examples.advanced.customization.strategies.image_class",
          "ImageClassificationStrategy"
        ],
       "tags": [

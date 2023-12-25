@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from examples.simple.classification.cust.cnn_impls import MyCNNImplementation
+from examples.advanced.customization.implementations.cnn_impls import MyCNNImplementation
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters

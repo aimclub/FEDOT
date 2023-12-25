@@ -33,25 +33,6 @@ def check_input_array(x_train):
     return transformed_x_train, transform_flag
 
 
-def create_deep_cnn(input_shape: tuple,
-                    num_classes: int):
-    model = tf.keras.Sequential(
-        [
-            tf.keras.layers.InputLayer(input_shape=input_shape),
-            tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes, activation="softmax"),
-        ]
-    )
-    return model
-
-
 def create_simple_cnn(input_shape: tuple,
                       num_classes: int):
     model = tf.keras.Sequential(
@@ -65,16 +46,6 @@ def create_simple_cnn(input_shape: tuple,
         ]
     )
 
-    return model
-
-
-def create_vgg16(input_shape: tuple,
-                 num_classes: int):
-    model = tf.keras.applications.vgg16.VGG16(include_top=True,
-                                              weights=None,
-                                              input_shape=input_shape,
-                                              classes=num_classes,
-                                              classifier_activation='sigmoid')
     return model
 
 
@@ -125,36 +96,11 @@ def fit_cnn(train_data: InputData,
 
 
 def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labels', logger=None) -> OutputData:
-    # x_test = predict_data.features
-    # transformed_x_test, transform_flag = check_input_array(x_test)
-    #
-    # if logger is None:
-    #     logger = default_log(prefix=__name__)
-    #
-    # if np.max(transformed_x_test) > 1:
-    #     logger.warning('Test data set was not scaled. The data was divided by 255.')
-    #
-    # if len(x_test.shape) == 3:
-    #     transformed_x_test = np.expand_dims(x_test, -1)
-    #
-    # if output_mode == 'labels':
-    #     prediction = np.round(trained_model.predict(transformed_x_test))
-    # elif output_mode in ['probs', 'full_probs', 'default']:
-    #     prediction = trained_model.predict(transformed_x_test)
-    #     if trained_model.num_classes < 2:
-    #         logger.error('Data set contain only 1 target class. Please reformat your data.')
-    #         raise ValueError('Data set contain only 1 target class. Please reformat your data.')
-    #     elif trained_model.num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
-    #         prediction = prediction[:, 1]
-    # else:
-    #     raise ValueError(f'Output model {output_mode} is not supported')
     prediction = np.asarray([[random.random()] for j in range(predict_data.features.shape[0])])
     return prediction
 
 
-cnn_model_dict = {'deep': create_deep_cnn,
-                  'simplified': create_simple_cnn,
-                  'vgg16': create_vgg16}
+cnn_model_dict = {'simplified': create_simple_cnn}
 
 
 class MyCNNImplementation(ModelImplementation):

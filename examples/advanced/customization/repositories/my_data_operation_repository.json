@@ -42,7 +42,7 @@
       ],
       "forbidden_node_types": "[]",
       "strategies": [
-        "examples.simple.classification.cust.image_preproc",
+        "examples.advanced.customization.strategies.image_preproc",
         "ImagePreprocessingStrategy"
       ],
       "tags": [
@@ -130,19 +130,19 @@
         "categorical-ignore"
       ]
     },
-    "gamma_filt": {
+    "filter_1": {
       "meta": "image_preprocessing",
       "tags": [
         "filtering"
       ]
     },
-    "negamma_filt": {
+    "filter_2": {
       "meta": "image_preprocessing",
       "tags": [
         "filtering"
       ]
     },
-    "yet_anothe_filt": {
+    "filter_3": {
       "meta": "image_preprocessing",
       "tags": [
         "filtering"

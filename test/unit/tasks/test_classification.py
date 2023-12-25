@@ -1,10 +1,10 @@
 import os
 
 import numpy as np
+from examples.advanced.cust import run_image_classification_problem
 from sklearn.datasets import load_iris, make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from examples.simple.classification.cust.image_classification_problem import run_image_classification_problem
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData

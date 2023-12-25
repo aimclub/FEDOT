@@ -21,18 +21,18 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task, OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import set_random_seed, fedot_project_root
 
-custom_search_space = {'gamma_filt': {
+custom_search_space = {'filter_1': {
     'r': {
         'hyperopt-dist': hp.uniformint,
         'sampling-scope': [-254, 254],
         'type': 'discrete'}
 },
-    'negamma_filt': {
+    'filter_2': {
         'r': {
             'hyperopt-dist': hp.uniformint,
             'sampling-scope': [-254, 254],
@@ -50,17 +50,7 @@ def calculate_validation_metric(predicted: OutputData, dataset_to_validate: Inpu
 
 
 def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
-    """
-    Returns pipeline with the following structure:
-
-    .. image:: img_classification_pipelines/cnn_composite_pipeline.png
-      :width: 55%
-
-    Where cnn - convolutional neural network, rf - random forest
-
-    :param composite_flag:  add additional random forest estimator
-    """
-    node_first = PipelineNode('gamma_filt')
+    node_first = PipelineNode('filter_1')
 
     node_second = PipelineNode('cnn_1', nodes_from=[node_first])
 
@@ -71,14 +61,16 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
 
 
 def setup_repository():
+    repo_folder = Path(fedot_project_root(), 'examples', 'advanced', 'customization',
+                       'repositories')
     OperationTypesRepository.__repository_dict__ = {
-        'model': {'file': Path(fedot_project_root(), 'examples', 'simple', 'classification', 'cust',
-                               'model_repository.json'), 'initialized_repo': None, 'default_tags': []},
-        'data_operation': {'file': Path(fedot_project_root(),
-                                        'examples', 'simple', 'classification', 'cust',
-                                        'data_operation_repository.json'),
+        'model': {'file': Path(repo_folder, 'my_model_repository.json'), 'initialized_repo': None, 'default_tags': []},
+        'data_operation': {'file': Path(repo_folder, 'my_data_operation_repository.json'),
                            'initialized_repo': None, 'default_tags': []}
     }
+
+    OperationParameters.custom_default_params_path = Path(repo_folder,
+                                                          'my_default_operation_params.json')
 
 
 def run_image_classification_problem(train_dataset: tuple,
@@ -87,9 +79,6 @@ def run_image_classification_problem(train_dataset: tuple,
     task = Task(TaskTypesEnum.classification)
 
     setup_repository()
-    OperationParameters.custom_default_params_path = Path(fedot_project_root(),
-                                                          'examples', 'simple', 'classification', 'cust',
-                                                          'my_default_operation_params.json')
 
     x_train, y_train = train_dataset[0], train_dataset[1]
     x_test, y_test = test_dataset[0], test_dataset[1]

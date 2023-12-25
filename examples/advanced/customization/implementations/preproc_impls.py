@@ -11,14 +11,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class GammaFiltImplementation(DataOperationImplementation):
-    """ Class for application of :obj:`PolynomialFeatures` operation on data,
-    where only not encoded features (were not converted from categorical using
-    ``OneHot encoding``) are used
-
-    Args:
-        params: OperationParameters with the arguments
-    """
-
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         if not self.params:
