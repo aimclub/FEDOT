@@ -10,7 +10,6 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from hyperopt import hp
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from examples.simple.classification.classification_pipelines import cnn_composite_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData, OutputData
@@ -49,7 +48,7 @@ def calculate_validation_metric(predicted: OutputData, dataset_to_validate: Inpu
     return roc_auc_value
 
 
-def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
+def cnn_composite_pipeline() -> Pipeline:
     node_first = PipelineNode('filter_1')
 
     node_second = PipelineNode('cnn_1', nodes_from=[node_first])
@@ -73,9 +72,8 @@ def setup_repository():
                                                           'my_default_operation_params.json')
 
 
-def run_image_classification_problem(train_dataset: tuple,
-                                     test_dataset: tuple,
-                                     composite_flag: bool = True):
+def run_image_classification_automl(train_dataset: tuple,
+                                    test_dataset: tuple):
     task = Task(TaskTypesEnum.classification)
 
     setup_repository()
@@ -92,7 +90,7 @@ def run_image_classification_problem(train_dataset: tuple,
 
     dataset_to_train = dataset_to_train.subset_range(0, 100)
 
-    initial_pipeline = cnn_composite_pipeline(composite_flag)
+    initial_pipeline = cnn_composite_pipeline()
     initial_pipeline.show()
     initial_pipeline.fit(dataset_to_train)
     predictions = initial_pipeline.predict(dataset_to_validate)
@@ -147,7 +145,7 @@ def run_image_classification_problem(train_dataset: tuple,
     search_space = PipelineSearchSpace(custom_search_space=custom_search_space,
                                        replace_default_search_space=replace_default_search_space)
 
-    predictions = pipeline_evo_composed.predict(dataset_to_validate)
+    pipeline_evo_composed.predict(dataset_to_validate)
 
     # .with_cv_folds(cv_folds) \
     pipeline_tuner = TunerBuilder(dataset_to_train.task) \
@@ -157,7 +155,7 @@ def run_image_classification_problem(train_dataset: tuple,
         .with_iterations(50) \
         .with_search_space(search_space).build(dataset_to_train)
 
-    pipeline = pipeline_tuner.tune(pipeline_evo_composed)
+    pipeline_tuner.tune(pipeline_evo_composed)
 
     predictions = pipeline_evo_composed.predict(dataset_to_validate)
 
@@ -170,7 +168,7 @@ if __name__ == '__main__':
     set_random_seed(1)
 
     training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
-    roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+    roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_automl(
         train_dataset=training_set,
         test_dataset=testing_set)
 
