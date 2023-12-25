@@ -15,6 +15,7 @@ from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.utils import fedot_project_root
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
@@ -540,3 +541,22 @@ def test_operations_are_fast():
                     break
             else:
                 raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
+
+
+def test_all_operations_are_documented():
+    # All operations and presets should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
+    to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}
+    path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
+    docs_lines = None
+
+    with open(path_to_docs, 'r') as docs_:
+        docs_lines = docs_.readlines()
+    if docs_lines:
+        for operation in OperationTypesRepository('all')._repo:
+            if operation.id not in to_skip:
+                for line in docs_lines:
+                    if operation.id in line and all(preset in line for preset in operation.presets):
+                        break
+                else:
+                    raise Exception(f"Operation {operation.id} with presets {operation.presets} \
+                                    are not documented in {path_to_docs}")

@@ -258,6 +258,78 @@ class FedotBuilder:
         Args:
             available_operations: list of model names to use. Pick the names according to operations repository.
 
+                .. details:: Possible options:
+
+                    - ``adareg`` -> AdaBoost Regressor
+                    - ``ar`` -> AutoRegression
+                    - ``arima`` -> ARIMA
+                    - ``cgru`` -> Convolutional Gated Recurrent Unit
+                    - ``bernb`` -> Naive Bayes Classifier (multivariate Bernoulli)
+                    - ``catboost`` -> Catboost Classifier
+                    - ``catboostreg`` -> Catboost Regressor
+                    - ``dt`` -> Decision Tree Classifier
+                    - ``dtreg`` -> Decision Tree Regressor
+                    - ``gbr`` -> Gradient Boosting Regressor
+                    - ``kmeans`` -> K-Means clustering
+                    - ``knn`` -> K-nearest neighbors Classifier
+                    - ``knnreg`` -> K-nearest neighbors Regressor
+                    - ``lasso`` -> Lasso Linear Regressor
+                    - ``lda`` -> Linear Discriminant Analysis
+                    - ``lgbm`` -> Light Gradient Boosting Machine Classifier
+                    - ``lgbmreg`` -> Light Gradient Boosting Machine Regressor
+                    - ``linear`` -> Linear Regression Regressor
+                    - ``logit`` -> Logistic Regression Classifier
+                    - ``mlp`` -> Multi-layer Perceptron Classifier
+                    - ``multinb`` -> Naive Bayes Classifier (multinomial)
+                    - ``qda`` -> Quadratic Discriminant Analysis
+                    - ``rf`` -> Random Forest Classifier
+                    - ``rfr`` -> Random Forest Regressor
+                    - ``ridge`` -> Ridge Linear Regressor
+                    - ``polyfit`` -> Polynomial fitter
+                    - ``sgdr`` -> Stochastic Gradient Descent Regressor
+                    - ``stl_arima`` -> STL Decomposition with ARIMA
+                    - ``glm`` -> Generalized Linear Models
+                    - ``ets`` -> Exponential Smoothing
+                    - ``locf`` -> Last Observation Carried Forward
+                    - ``ts_naive_average`` -> Naive Average
+                    - ``svc`` -> Support Vector Classifier
+                    - ``svr`` -> Linear Support Vector Regressor
+                    - ``treg`` -> Extra Trees Regressor
+                    - ``xgboost`` -> Extreme Gradient Boosting Classifier
+                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
+                    - ``cnn`` -> Convolutional Neural Network
+                    - ``scaling`` -> Scaling
+                    - ``normalization`` -> Normalization
+                    - ``simple_imputation`` -> Imputation
+                    - ``pca`` -> Principal Component Analysis
+                    - ``kernel_pca`` -> Kernel Principal Component Analysis
+                    - ``fast_ica`` -> Independent Component Analysis
+                    - ``poly_features`` -> Polynomial Features
+                    - ``one_hot_encoding`` -> One-Hot Encoder
+                    - ``label_encoding`` -> Label Encoder
+                    - ``rfe_lin_reg`` -> Linear Regression Recursive Feature Elimination
+                    - ``rfe_non_lin_reg`` -> Decision Tree Recursive Feature Elimination
+                    - ``rfe_lin_class`` -> Logistic Regression Recursive Feature Elimination
+                    - ``rfe_non_lin_class`` -> Decision Tree Recursive Feature Elimination
+                    - ``isolation_forest_reg`` -> Regression Isolation Forest
+                    - ``isolation_forest_class`` -> Classification Isolation Forest
+                    - ``decompose`` -> Regression Decomposition
+                    - ``class_decompose`` -> Classification Decomposition
+                    - ``resample`` -> Resample features
+                    - ``ransac_lin_reg`` -> Regression Random Sample Consensus
+                    - ``ransac_non_lin_reg`` -> Decision Tree Random Sample Consensus
+                    - ``cntvect`` -> Count Vectorizer
+                    - ``text_clean`` -> Lemmatization and Stemming
+                    - ``tfidf`` -> TF-IDF Vectorizer
+                    - ``word2vec_pretrained`` -> Word2Vec
+                    - ``lagged`` -> Lagged Transformation
+                    - ``sparse_lagged`` -> Sparse Lagged Transformation
+                    - ``smoothing`` -> Smoothing Transformation
+                    - ``gaussian_filter`` -> Gaussian Filter Transformation
+                    - ``diff_filter`` -> Derivative Filter Transformation
+                    - ``cut`` -> Cut Transformation
+                    - ``exog_ts`` -> Exogeneus Transformation
+
             max_depth: max depth of a pipeline. Defaults to ``6``.
 
             max_arity: max arity of a pipeline nodes. Defaults to ``3``.
