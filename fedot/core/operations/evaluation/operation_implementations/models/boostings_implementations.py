@@ -20,10 +20,7 @@ class FedotXGBoostImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
-        self.check_and_update_params()
-
-        self.model_params = {k: v for k, v in self.params.to_dict(
-        ).items() if k not in self.__operation_params}
+        self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
 
     def fit(self, input_data: InputData):
@@ -32,42 +29,43 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            self.model.fit(X=train_input.features, y=train_input.target, eval_set=[
-                           (eval_input.features, eval_input.target)])
+            train_input = self.convert_to_dataframe(train_input)
+            eval_input = self.convert_to_dataframe(eval_input)
+
+            train_x, train_y = train_input.drop(columns=['target']), train_input['target']
+            eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
+
+            self.model.fit(X=train_x, y=train_y,
+                           eval_set=[(eval_x, eval_y)])
 
         else:
 
-            self.model.fit(X=input_data.features, y=input_data.target)
+            train_data = self.convert_to_dataframe(input_data)
+            train_x, train_y = train_data.drop(columns=['target']), train_data['target']
+            self.model.fit(X=train_x, y=train_y)
 
         return self.model
 
     def predict(self, input_data: InputData):
-        prediction = self.model.predict(
-            input_data.get_not_encoded_data().features)
+        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        prediction = self.model.predict(input_data)
 
         return prediction
 
-    def check_and_update_params(self):
-        n_jobs = self.params.get('n_jobs')
-        self.params.update(thread_count=n_jobs)
-
-        use_best_model = self.params.get('use_best_model')
-        early_stopping_rounds = self.params.get('early_stopping_rounds')
-        use_eval_set = self.params.get('use_eval_set')
-
-        if use_best_model or early_stopping_rounds and not use_eval_set:
-            self.params.update(use_best_model=False,
-                               early_stopping_rounds=False)
-
     @staticmethod
-    def convert_to_dmatrix(data: Optional[InputData]):
-        return DMatrix(
-            data=data.features,
-            label=data.target,
-            enable_categorical=True,
-            feature_names=data.features_names.tolist().tolist(
-            ) if data.features_names is not None else None
-        )
+    def convert_to_dataframe(data: Optional[InputData]):
+        dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
+        dataframe['target'] = data.target
+
+        if data.categorical_idx is not None:
+            for col in dataframe.columns[data.categorical_idx]:
+                dataframe[col] = dataframe[col].astype('category')
+
+        if data.numerical_idx is not None:
+            for col in dataframe.columns[data.numerical_idx]:
+                dataframe[col] = dataframe[col].astype('float')
+
+        return dataframe
 
 
 class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
@@ -81,8 +79,9 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
         return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
-        prediction = self.model.predict_proba(
-            input_data.get_not_encoded_data().features)
+        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        train_x, _ = input_data.drop(columns=['target']), input_data['target']
+        prediction = self.model.predict_proba(train_x)
         return prediction
 
 
@@ -123,8 +122,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         return self.model
 
     def predict(self, input_data: InputData):
-        prediction = self.model.predict(
-            input_data.get_not_encoded_data().features)
+        prediction = self.model.predict(input_data.get_not_encoded_data().features)
 
         return prediction
 
@@ -145,13 +143,11 @@ class FedotCatBoostImplementation(ModelImplementation):
             data=data.features,
             label=data.target,
             cat_features=data.categorical_idx,
-            feature_names=data.features_names.tolist(
-            ) if data.features_names is not None else None
+            feature_names=data.features_names.tolist() if data.features_names is not None else None
         )
 
     def save_model(self, model_name: str = 'catboost'):
-        save_path = os.path.join(
-            default_fedot_data_dir(), f'catboost/{model_name}.cbm')
+        save_path = os.path.join(default_fedot_data_dir(), f'catboost/{model_name}.cbm')
         self.model.save_model(save_path, format='cbm')
 
     def load_model(self, path):
@@ -170,8 +166,7 @@ class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
         return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
-        prediction = self.model.predict_proba(
-            input_data.get_not_encoded_data().features)
+        prediction = self.model.predict_proba(input_data.get_not_encoded_data().features)
         return prediction
 
     def get_feature_importance(self):
@@ -182,8 +177,7 @@ class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
         fi['importance'] = self.model.feature_importances_
 
         fi.loc[fi['importance'] > 0.1].sort_values('importance').plot(
-            kind='barh', figsize=(16, 9), title='Feature Importance'
-        )
+            kind='barh', figsize=(16, 9), title='Feature Importance')
 
         plt.show()
 
