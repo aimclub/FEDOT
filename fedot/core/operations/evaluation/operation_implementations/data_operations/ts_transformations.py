@@ -105,7 +105,7 @@ class LaggedImplementation(DataOperationImplementation):
         self._update_column_types(output_data)
         return output_data
 
-    def _check_and_correct_window_size(self, time_series: np.array, forecast_length: int):
+    def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
         """ Method check if the length of the time series is not enough for
             lagged transformation - clip it
 
@@ -118,8 +118,15 @@ class LaggedImplementation(DataOperationImplementation):
             """
 
         if self.params.get('autotune_window', 0) == 1:
-            new = int(WindowSizeSelector(method='hac', window_range=(5, 25))
-                      .get_window_size(time_series) * len(time_series) / 100)
+            def get_window(ts: np.ndarray):
+                return int(WindowSizeSelector(method='hac', window_range=(5, 60))
+                           .get_window_size(ts) * len(ts) / 100)
+
+            if time_series.ndim > 1:
+                new = np.mean([get_window(time_series[:, i].ravel()) for i in range(time_series.shape[1])])
+            else:
+                new = get_window(time_series)
+                
             self.params.update(window_size=new, autotune_window=0)
 
         # Maximum threshold
