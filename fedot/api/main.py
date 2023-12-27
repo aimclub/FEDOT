@@ -119,6 +119,8 @@ class Fedot:
         self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
 
+        fedot_ind_timer.reset_timer()
+
     def fit(self,
             features: FeaturesType,
             target: TargetType = 'target',
