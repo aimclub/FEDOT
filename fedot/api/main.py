@@ -515,8 +515,8 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        out = pd.DataFrame.from_dict(report).astype('')
-        out.head(100)
+        out = pd.DataFrame(data=report.values(), index=report.keys())
+        print(out.head(10))
 
     @staticmethod
     def _init_logger(logging_level: int):
