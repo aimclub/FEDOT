@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import timedelta
+from datetime import timedelta, datetime
 from os import PathLike
 from typing import Optional, Tuple, Union, Sequence, List, Dict
 
@@ -27,6 +27,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.utilities.industrial_timer import fedot_ind_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -187,13 +188,16 @@ class Pipeline(GraphDelegate, Serializable):
         if isinstance(input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed:
             copied_input_data = deepcopy(input_data)
         else:
-            copied_input_data = self._preprocess(input_data)
+            with fedot_ind_timer.launch_preprocessing():
+                copied_input_data = self._preprocess(input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
+
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
         else:
             train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
+
         return train_predicted
 
     @property
