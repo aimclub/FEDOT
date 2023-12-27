@@ -117,7 +117,7 @@ class LaggedImplementation(DataOperationImplementation):
 
             """
 
-        if self.params.get('autotune_window', 0) == 1:
+        if self.window_size == 0:
             def get_window(ts: np.ndarray):
                 return int(WindowSizeSelector(method='hac', window_range=(5, 60))
                            .get_window_size(ts) * len(ts) / 100)
@@ -126,8 +126,8 @@ class LaggedImplementation(DataOperationImplementation):
                 new = np.mean([get_window(time_series[:, i].ravel()) for i in range(time_series.shape[1])])
             else:
                 new = get_window(time_series)
-                
-            self.params.update(window_size=new, autotune_window=0)
+
+            self.params.update(window_size=new)
 
         # Maximum threshold
         if self.window_size + forecast_length > len(time_series):
