@@ -73,15 +73,47 @@ def insert_atomized_operation(pipeline: Pipeline,
                                                                            forbidden_tags=['not-for-mutation'])
     if atomized_operations:
         atomized_operation = choice(atomized_operations)
+        atomized_operation = 'atomized_ts_decomposer'
 
         info = ATOMIZED_OPERATION_REPOSITORY.operation_info_by_id(atomized_operation)
         it, ot = set(info.input_types), set(info.output_types)
 
-        nodes = list()
-        for node in pipeline.nodes:
-            if (set(node.operation.metadata.input_types) == it and
-                set(node.operation.metadata.output_types) == ot):
-                nodes.append(node)
+        if atomized_operation == 'atomized_ts_decomposer':
+            lagged_nodes = ('lagged', 'sparse_lagged', 'exog_ts')
+            nodes = list()
+            for node in pipeline.nodes:
+                correct_data_types = (set(node.operation.metadata.input_types) == it and
+                                      set(node.operation.metadata.output_types) == ot)
+                correct_input_nodes = (isinstance(node.nodes_from, list)
+                                       and len(node.nodes_from) == 2
+                                       and node.nodes_from[0].operation.operation_type in lagged_nodes
+                                       and node.nodes_from[1].operation.metadata.repository_name != 'data_operation')
+                if correct_data_types and correct_input_nodes:
+                    nodes.append(node)
+            if not nodes:
+                root_node = pipeline.root_node
+
+                laggeds = [node for node in pipeline.nodes if node.operation.operation_type in lagged_nodes]
+                if not laggeds:
+                    laggeds.append(PipelineNode('lagged'))
+                lagged = choice(laggeds)
+
+                models = [node for node in pipeline.nodes
+                          if node.operation.metadata.repository_name != 'data_operation'
+                             and node != root_node]
+                if not models:
+                    models.append(PipelineNode('ridge', nodes_from=[lagged]))
+                model = choice(models)
+
+                nodes = [PipelineNode('ridge', nodes_from=[lagged, model])]
+                root_node.nodes_from.append(nodes[-1])
+                pipeline = Pipeline(root_node)
+        else:
+            nodes = list()
+            for node in pipeline.nodes:
+                if (set(node.operation.metadata.input_types) == it and
+                    set(node.operation.metadata.output_types) == ot):
+                    nodes.append(node)
 
         if nodes:
             node = choice(nodes)
@@ -98,27 +130,3 @@ def insert_atomized_operation(pipeline: Pipeline,
             new_node = PipelineNode(content={'name': atomized_operation, 'params': {'pipeline': inner_pipeline}})
             pipeline.update_node(node, new_node)
     return pipeline
-
-
-# # idea is to get any part of graph and put it to new operation
-# # TODO refactor and make more common algorithm
-# # TODO adapt algorithm for high depth graphs
-# root_nodes = pipeline.root_nodes()
-# if len(root_nodes) != 1:
-#     raise ValueError('mutation works with the only root node')
-#
-# allowed_operations = get_operations_for_task(None, mode='model')
-# nodes_to_wrap = list()
-# while not nodes_to_wrap:
-#     nodes = deepcopy(root_nodes)
-#     while nodes:
-#         node = nodes.pop()
-#         next_nodes = list()
-#         for _node in node.nodes_from:
-#             if random() > 0.3:
-#                 next_nodes.append(deepcopy(_node))
-#         if random() > 0.5:
-#             node.nodes_from = next_nodes
-#             nodes_to_wrap.append(node)
-#             nodes.extend(next_nodes)
-# pipeline = Pipeline(nodes_to_wrap[0])

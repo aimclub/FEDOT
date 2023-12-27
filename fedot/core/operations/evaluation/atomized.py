@@ -11,6 +11,8 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_decompose import \
+    AtomizedTimeSeriesDecomposer
 from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_differ import \
     AtomizedTimeSeriesDiffer
 from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_sampler import \
@@ -32,6 +34,7 @@ class FedotAtomizedStrategy(EvaluationStrategy):
         'atomized_ts_scaler': AtomizedTimeSeriesScaler,
         'atomized_ts_sampler': AtomizedTimeSeriesSampler,
         'atomized_ts_to_time': AtomizedTimeSeriesToTime,
+        'atomized_ts_decomposer': AtomizedTimeSeriesDecomposer,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

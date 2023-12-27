@@ -1,18 +1,13 @@
-from typing import Union, Optional, Any, Dict
+from typing import Optional
 
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.evaluation.operation_implementations.models.atomized.atomized_ts_mixins import \
     AtomizedTimeSeriesBuildFactoriesMixin
-from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.pipelines.random_pipeline_factory import RandomPipelineFactory
-from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class AtomizedTimeSeriesDiffer(AtomizedTimeSeriesBuildFactoriesMixin):

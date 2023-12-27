@@ -1,13 +1,11 @@
 from typing import Union, Optional, Any, Dict
 
-import numpy as np
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.atomized_model.atomized_model import AtomizedModel
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams, Task
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class AtomizedTimeSeriesScaler(AtomizedModel):

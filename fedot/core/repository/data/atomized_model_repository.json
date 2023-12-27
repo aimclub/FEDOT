@@ -30,6 +30,10 @@
     "atomized_ts_to_time": {
       "meta": "regr",
       "presets": ["fast_train", "ts"]
+    },
+    "atomized_ts_decomposer": {
+      "meta": "regr",
+      "presets": ["fast_train", "ts"]
     }
   }
 }

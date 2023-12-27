@@ -154,8 +154,8 @@ class ApiParamsRepository:
             #              fedot_single_drop_mutation,
             #              fedot_tree_growth,
             #              insert_atomized_operation]
-            # mutations = [fedot_single_edge_mutation,
-            #              fedot_single_add_mutation,
+            # mutations = [fedot_single_add_mutation,
+            #              fedot_single_change_mutation,
             #              fedot_single_drop_mutation,
             #              insert_atomized_operation]
         else:

@@ -299,11 +299,18 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
 def correct_connection_with_atomized(pipeline: Pipeline):
     for node in pipeline.nodes:
         if isinstance(node.operation, Atomized):
-            if node.name == 'atomized_ts_to_time':
+            if node.operation.operation_type == 'atomized_ts_to_time':
                 counter = Counter(parent.operation.metadata.repository_name for parent in node.nodes_from)
                 if counter.get('data_operation', 0) > 0:
                     if counter['data_operation'] > 1 or (counter['data_operation'] != sum(counter.values())):
                         return False
+            elif node.operation.operation_type == 'atomized_ts_decomposer':
+                if not isinstance(node.nodes_from, list) or len(node.nodes_from) != 2:
+                    return False
+                if not (node.nodes_from[0].operation.operation_type in ('lagged', 'sparse_lagged', 'exog_ts')
+                        and node.nodes_from[1].operation.metadata.repository_name != 'data_operation'):
+                    return False
+
             inner_pipeline = node.parameters['pipeline']
             for inner_node in inner_pipeline.primary_nodes:
                 if DataTypesEnum.table not in inner_node.operation.metadata.input_types:
