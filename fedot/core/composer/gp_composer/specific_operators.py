@@ -19,7 +19,7 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params
     node_mutation_probability = get_mutation_prob(mut_id=parameters.mutation_strength,
                                                   node=pipeline.root_node)
     for node in pipeline.nodes:
-        if random() < node_mutation_probability:
+        if node.operation.metadata.id != 'lagged' and random() < node_mutation_probability:
             operation_name = node.operation.operation_type
             current_params = node.parameters
 
