@@ -509,14 +509,14 @@ class Fedot:
 
         return explainer
 
-    def show_report(self):
+    def return_report(self) -> pd.DataFrame:
         report = fedot_ind_timer.report
 
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        out = pd.DataFrame(data=report.values(), index=report.keys())
-        print(out.head(10))
+        report = pd.DataFrame(data=report.values(), index=report.keys())
+        return report.iloc[:, 0].dt.components.iloc[:, :-2]
 
     @staticmethod
     def _init_logger(logging_level: int):
