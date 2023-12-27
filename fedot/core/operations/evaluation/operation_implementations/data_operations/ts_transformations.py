@@ -107,7 +107,7 @@ class LaggedImplementation(DataOperationImplementation):
 
     def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
         """ Method check if the length of the time series is not enough for
-            lagged transformation - clip it
+            lagged transformation
 
             Args:
                 time_series: time series for transformation
@@ -116,6 +116,7 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
+        max_allowed_window_size = len(time_series) - forecast_length
 
         if self.window_size == 0:
             def get_window(ts: np.ndarray):
@@ -126,11 +127,11 @@ class LaggedImplementation(DataOperationImplementation):
                 new = np.mean([get_window(time_series[:, i].ravel()) for i in range(time_series.shape[1])])
             else:
                 new = get_window(time_series)
-
+            new = min(max_allowed_window_size, new)
             self.params.update(window_size=new)
 
         # Maximum threshold
-        if self.window_size + forecast_length > len(time_series):
+        if self.window_size > max_allowed_window_size:
             raise ValueError(f"Window size is to high ({self.window_size}) for provided data len {len(time_series)}")
 
         # Minimum threshold

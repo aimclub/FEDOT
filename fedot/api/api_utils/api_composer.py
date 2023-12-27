@@ -1,5 +1,6 @@
 import datetime
 import gc
+from copy import deepcopy
 from typing import List, Optional, Sequence, Tuple, Union
 
 from golem.core.log import default_log
@@ -97,7 +98,7 @@ class ApiComposer:
 
         with self.timer.launch_assumption_fit():
             fitted_assumption = \
-                assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                assumption_handler.fit_assumption_and_check_correctness(deepcopy(initial_assumption[0]),
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache,
                                                                         eval_n_jobs=self.params.n_jobs)
