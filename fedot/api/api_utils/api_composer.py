@@ -19,6 +19,7 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
+from fedot.utilities.industrial_timer import fedot_ind_timer
 
 
 class ApiComposer:
@@ -73,7 +74,9 @@ class ApiComposer:
             fitted_assumption
         )
         if with_tuning:
-            best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+            with fedot_ind_timer.launch_tuning():
+                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
             gp_composer.history.tuning_result = adapter.adapt(best_pipeline)
