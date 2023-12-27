@@ -131,8 +131,6 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     """
 
     graph = PipelineAdapter().restore(get_ts_forecasting_graph())
-
-    boosting_graph = get_ts_forecasting_graph_with_boosting()
     requirements = PipelineComposerRequirements(primary=['ridge'],
                                                 secondary=['ridge'])
     pipeline = boosting_mutation(graph,
@@ -143,7 +141,11 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     data_train, data_test = get_ts_data()
     pipeline.fit(data_train)
     result = pipeline.predict(data_test)
-    assert boosting_graph.descriptive_id == pipeline.descriptive_id
+
+    boosting_pipeline = PipelineAdapter().restore(get_ts_forecasting_graph_with_boosting())
+    boosting_pipeline.fit(data_train)
+
+    assert boosting_pipeline.descriptive_id == pipeline.descriptive_id
     assert result is not None
 
 
