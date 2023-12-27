@@ -3,6 +3,8 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+
+from fedot.utilities.window_size_selector import WindowSizeSelector
 from golem.core.log import default_log
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
@@ -114,6 +116,11 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
+
+        if self.params.get('autotune_window', 0) == 1:
+            new = int(WindowSizeSelector(method='hac', window_range=(5, 25))
+                      .get_window_size(time_series) * len(time_series) / 100)
+            self.params.update(window_size=new, autotune_window=0)
 
         # Maximum threshold
         if self.window_size + forecast_length > len(time_series):
