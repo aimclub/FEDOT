@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-
 from golem.core.log import LoggerAdapter, default_log
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -108,7 +107,8 @@ class TableTypesCorrector:
         data.features = data.features.astype(object)
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
         data.features = apply_type_transformation(data.features, self.feature_type_ids, self.log)
-        data.target = apply_type_transformation(data.target, self.target_type_ids, self.log)
+        if data.target is not None:
+            data.target = apply_type_transformation(data.target, self.target_type_ids, self.log)
         data.supplementary_data.col_type_ids = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
