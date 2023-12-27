@@ -50,7 +50,8 @@
     "verbose": -1
   },
   "lagged": {
-    "window_size": 10
+    "window_size": 10,
+    "autotune_window": 1
   },
   "diff_filter": {
     "window_size": 3,
