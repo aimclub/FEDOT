@@ -225,7 +225,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        with fedot_ind_timer.launch_tuning():
+        with fedot_ind_timer.launch_tuning('post'):
             input_data = input_data or self.train_data
             cv_folds = cv_folds or self.params.get('cv_folds')
             n_jobs = n_jobs or self.params.n_jobs

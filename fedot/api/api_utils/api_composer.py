@@ -74,7 +74,7 @@ class ApiComposer:
             fitted_assumption
         )
         if with_tuning:
-            with fedot_ind_timer.launch_tuning():
+            with fedot_ind_timer.launch_tuning('composing'):
                 best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
 
         if gp_composer.history:
