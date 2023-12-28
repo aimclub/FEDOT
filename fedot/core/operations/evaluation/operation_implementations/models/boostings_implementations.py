@@ -48,7 +48,8 @@ class FedotXGBoostImplementation(ModelImplementation):
 
     def predict(self, input_data: InputData):
         input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
-        prediction = self.model.predict(input_data)
+        train_x, _ = input_data.drop(columns=['target']), input_data['target']
+        prediction = self.model.predict(train_x)
 
         return prediction
 
