@@ -30,7 +30,6 @@ seaborn>=0.9.0
 func_timeout==4.3.5
 joblib>=0.17.0
 requests>=2.0
-tqdm
 typing>=3.7.0
 psutil>=5.9.2
 

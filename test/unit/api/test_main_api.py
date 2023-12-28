@@ -147,6 +147,7 @@ def test_ts_from_array():
     assert np.array_equal(data.target, data.features)
 
 
+
 def test_default_forecast():
     forecast_length = 2
     train_data, test_data, _ = get_dataset('ts_forecasting')
@@ -159,10 +160,16 @@ def test_default_forecast():
     assert np.array_equal(model.test_data.idx, train_data.idx)
 
     metrics = model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
-                                validation_blocks=1)
+                                validation_blocks=1, target=test_data.target)
 
     assert len(metrics) == 3
-    assert all([m > 0 for m in metrics])
+    assert all([m > 0 for m in metrics.values()])
+
+    in_sample_forecast = model.predict(test_data, validation_blocks=1)
+    metrics = model.get_metrics(metric_names=['mase', 'mae', 'mape'],
+                                validation_blocks=1)
+    assert in_sample_forecast is not None
+    assert all([m > 0 for m in metrics.values()])
 
 
 def test_categorical_preprocessing_unidata_predefined():
