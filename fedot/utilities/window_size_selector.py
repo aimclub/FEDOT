@@ -52,6 +52,10 @@ class WindowSizeSelector:
 
         if window_range[0] >= window_range[1]:
             raise ValueError('Upper bound of window range should be bigger than lower bound')
+        if window_range[0] < 0:
+            raise ValueError('Lower bound of window range should be bigger or equal to 0')
+        if window_range[1] > 100:
+            raise ValueError('Upper bound of window range should be lower or equal to 100')
 
         self.dict_methods = {WindowSizeSelectorMethodsEnum.HAC: self.autocorrelation,
                              WindowSizeSelectorMethodsEnum.DFF: self.dominant_fourier_frequency,
