@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from ripser import ripser, Rips
-from torch.nn.init import sparse
+from ripser import Rips
 
 from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.hankel_matrix import \
     HankelMatrix
@@ -47,31 +46,6 @@ class TopologicalTransformation:
     @staticmethod
     def __create_epsilon_range(epsilon):
         return np.array([y * float(1 / epsilon) for y in range(epsilon)])
-
-    @staticmethod
-    def __compute_persistence_landscapes(ts):
-
-        N = len(ts)
-        I = np.arange(N - 1)
-        J = np.arange(1, N)
-        V = np.maximum(ts[0:-1], ts[1::])
-
-        # Add vertex birth times along the diagonal of the distance matrix
-        I = np.concatenate((I, np.arange(N)))
-        J = np.concatenate((J, np.arange(N)))
-        V = np.concatenate((V, ts))
-
-        # Create the sparse distance matrix
-        D = sparse.coo_matrix((V, (I, J)), shape=(N, N)).tocsr()
-        dgm0 = ripser(D, maxdim=0, distance_matrix=True)['dgms'][0]
-        dgm0 = dgm0[dgm0[:, 1] - dgm0[:, 0] > 1e-3, :]
-
-        allgrid = np.unique(dgm0.flatten())
-        allgrid = allgrid[allgrid < np.inf]
-
-        xs = np.unique(dgm0[:, 0])
-        ys = np.unique(dgm0[:, 1])
-        ys = ys[ys < np.inf]
 
     def time_series_to_point_cloud(self,
                                    input_data: np.array = None,
