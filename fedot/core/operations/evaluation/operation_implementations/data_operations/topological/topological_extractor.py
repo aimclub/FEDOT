@@ -10,9 +10,10 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.point_cloud import \
     TopologicalTransformation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological import \
-    HolesNumberFeature, MaxHoleLifeTimeFeature, RelevantHolesNumber, AverageHoleLifetimeFeature, SumHoleLifetimeFeature, \
-    PersistenceEntropyFeature, SimultaneousAliveHolesFeature, AveragePersistenceLandscapeFeature, \
-    BettiNumbersSumFeature, RadiusAtMaxBNFeature, PersistenceDiagramsExtractor, TopologicalFeaturesExtractor
+    HolesNumberFeature, MaxHoleLifeTimeFeature, RelevantHolesNumber, AverageHoleLifetimeFeature, \
+    SumHoleLifetimeFeature, PersistenceEntropyFeature, SimultaneousAliveHolesFeature, \
+    AveragePersistenceLandscapeFeature, BettiNumbersSumFeature, RadiusAtMaxBNFeature, PersistenceDiagramsExtractor, \
+    TopologicalFeaturesExtractor
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
