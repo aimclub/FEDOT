@@ -66,7 +66,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
                 if is_test_session() and not isinstance(ex, TimeoutError):
