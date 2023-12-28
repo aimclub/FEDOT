@@ -147,7 +147,6 @@ def test_ts_from_array():
     assert np.array_equal(data.target, data.features)
 
 
-
 def test_default_forecast():
     forecast_length = 2
     train_data, test_data, _ = get_dataset('ts_forecasting')
