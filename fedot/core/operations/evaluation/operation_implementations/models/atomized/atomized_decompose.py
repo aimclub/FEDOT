@@ -15,8 +15,9 @@ class AtomizedTimeSeriesDecomposer(AtomizedTimeSeriesBuildFactoriesMixin):
 
     def _decompose(self, data: InputData, fit_stage: bool):
         # get merged data from lagged and any model
-        data_from_lagged = data.features[:, :-data.target.shape[1]]
-        data_from_model = data.features[:, -data.target.shape[1]:]
+        forecast_length = data.task.task_params.forecast_length
+        data_from_lagged = data.features[:, :-forecast_length]
+        data_from_model = data.features[:, -forecast_length:]
         new_target = data.target
         if fit_stage:
             new_target -= data_from_model
@@ -24,7 +25,9 @@ class AtomizedTimeSeriesDecomposer(AtomizedTimeSeriesBuildFactoriesMixin):
         new_data = InputData(idx=data.idx,
                              features=data_from_lagged,
                              target=new_target,
-                             data_type=data.data_type, task=data.task)
+                             data_type=data.data_type,
+                             task=data.task,
+                             supplementary_data=data.supplementary_data)
         return new_data
 
     def fit(self, data: InputData):

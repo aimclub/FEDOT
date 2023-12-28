@@ -20,12 +20,12 @@
     "atomized_ts_sampler": {
       "meta": "regr",
       "presets": ["fast_train", "ts"],
-      "tags": ["linear", "not-for-mutation"]
+      "tags": ["linear", "ts", "not-for-mutation"]
     },
     "atomized_ts_scaler": {
       "meta": "regr",
       "presets": ["fast_train", "ts"],
-      "tags": ["linear", "not-for-mutation"]
+      "tags": ["linear", "ts", "not-for-mutation"]
     },
     "atomized_ts_to_time": {
       "meta": "regr",
@@ -33,7 +33,7 @@
     },
     "atomized_ts_decomposer": {
       "meta": "regr",
-      "presets": ["fast_train", "ts"]
+      "presets": ["fast_train", "ts", "not-for-mutation"]
     }
   }
 }

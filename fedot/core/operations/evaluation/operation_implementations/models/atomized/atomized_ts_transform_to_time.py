@@ -18,35 +18,33 @@ class AtomizedTimeSeriesToTime(AtomizedTimeSeriesBuildFactoriesMixin):
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))
         self.pipeline = pipeline
-        self._target_shape = None
 
     def _convert_task(self, data: InputData, fit_stage: bool):
         # TODO add test that model correctly transform data
+        forecast_length = data.task.task_params.forecast_length
         if fit_stage:
-            target_ts = np.concatenate([data.target[0, :].ravel(), data.target[1:,-1].ravel()])
-            self._target_shape = data.target.shape
+            target_ts = np.concatenate([data.target[0, :].ravel(), data.target[1:, -1].ravel()])
         else:
             target_ts = None
 
         dt = data.idx[1] - data.idx[0]
         time = np.concatenate([np.arange(data.idx[0] - (data.features.shape[1] - 1) * dt, data.idx[0], dt),
                                data.idx,
-                               np.arange(data.idx[-1], data.idx[-1] + self._target_shape[1] * dt, dt)])
+                               np.arange(data.idx[-1], data.idx[-1] + forecast_length * dt, dt)])
         features = data.features
-        if features.shape[1] < self._target_shape[1]:
+        if features.shape[1] < forecast_length:
             # previous model is ts-to-table
             # do not use that data
             previous_forecast = 0
-        elif features.shape[1] == self._target_shape[1]:
+        elif features.shape[1] == forecast_length:
             # previous model is the only table-to-table
             previous_forecast = np.concatenate([data.features[0, :].ravel(), data.features[1:, -1].ravel()])
-        elif features.shape[1] % self._target_shape[1] == 0:
+        elif features.shape[1] % forecast_length == 0:
             # previous models are some models of type table-to-table
             features = np.mean(np.reshape(features,
-                                          (features.shape[0], self._target_shape[1], -1),
+                                          (features.shape[0], forecast_length, -1),
                                           order='F'), axis=2)
             previous_forecast = np.concatenate([features[0, :].ravel(), features[1:, -1].ravel()])
-            self._mode = 3
         else:
             raise ValueError('Previous nodes types cannot be defined')
 
@@ -55,7 +53,7 @@ class AtomizedTimeSeriesToTime(AtomizedTimeSeriesBuildFactoriesMixin):
         else:
             new_target = None
 
-        predict_length = self._target_shape[1] + features.shape[0] - 1
+        predict_length = forecast_length + features.shape[0] - 1
         new_data = InputData(idx=time[-predict_length:],
                              features=time[-predict_length:].reshape((-1, 1)),
                              target=new_target,

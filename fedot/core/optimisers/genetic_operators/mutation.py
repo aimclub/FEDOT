@@ -73,7 +73,6 @@ def insert_atomized_operation(pipeline: Pipeline,
                                                                            forbidden_tags=['not-for-mutation'])
     if atomized_operations:
         atomized_operation = choice(atomized_operations)
-        atomized_operation = 'atomized_ts_decomposer'
 
         info = ATOMIZED_OPERATION_REPOSITORY.operation_info_by_id(atomized_operation)
         it, ot = set(info.input_types), set(info.output_types)
