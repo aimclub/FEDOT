@@ -27,6 +27,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineVisualizer
 from fedot.preprocessing.dummy_preprocessing import DummyPreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.utilities.industrial_timer import fedot_ind_timer
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -184,7 +185,8 @@ class Pipeline(GraphDelegate, Serializable):
         """
         self.replace_n_jobs_in_nodes(n_jobs)
 
-        copied_input_data = self._preprocess(input_data)
+        with fedot_ind_timer.launch_preprocessing():
+            copied_input_data = self._preprocess(input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         if time_constraint is None:
@@ -269,7 +271,8 @@ class Pipeline(GraphDelegate, Serializable):
             raise ValueError(ex)
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = self._preprocess(input_data, is_fit_stage=False)
+        with fedot_ind_timer.launch_preprocessing():
+            copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
