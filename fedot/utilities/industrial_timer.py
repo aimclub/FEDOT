@@ -91,7 +91,7 @@ class FedotIndustrialTimer:
         output = {
             'Data Definition (fit)': self.data_definition_fit_spend_time,
             'Applying Recommendation (fit)': self.applying_recs_fit_spend_time,
-            'Data Preprocessing': self.predicting_spend_time,
+            'Data Preprocessing': self.preprocessing_spend_time,
             'Fitting': self.fitting_spend_time,
             'Tuning (composing)': self.tuning_composing_spend_time,
             'Tuning (post)': self.tuning_post_spend_time,
