@@ -39,9 +39,8 @@ def prepare_logging():
     return records
 
 def check_window_size_selector_logging(records):
-    return [hasattr(record, 'msg') and
-            'LaggedTransformationImplementation' in record.msg and
-            'WindowSizeSelector' in record.msg
+    return ['LaggedTransformationImplementation' in str(record) and
+            'WindowSizeSelector' in str(record)
             for record in records]
 
 
