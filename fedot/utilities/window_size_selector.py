@@ -89,8 +89,6 @@ class WindowSizeSelector:
         Returns:
             window_size_selected: value which has been chosen as appropriate window size
         """
-        if time_series.shape[0] == 1:  # If time series is a part of multivariate one
-            time_series = np.array(time_series[0])
         self.length_ts = len(time_series)
 
         self.window_max = int(round(self.length_ts * self.window_range[1] / 100))  # in real values

@@ -122,6 +122,8 @@ class LaggedImplementation(DataOperationImplementation):
             selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
             new = int(selector.apply(time_series) * time_series.shape[0] * 0.01)
             new = min(max_allowed_window_size, new)
+            self.log.info((f"Window size of lagged transformation was changed "
+                           f"by WindowSizeSelector from {self.params.get('window_size')} to {new}"))
             self.params.update(window_size=new)
 
         # Maximum threshold

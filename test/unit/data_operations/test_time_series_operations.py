@@ -1,8 +1,13 @@
+import logging
+
 import numpy as np
 import pytest
 
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
@@ -19,6 +24,26 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 _WINDOW_SIZE = 4
 _FORECAST_LENGTH = 4
+
+
+def prepare_logging():
+    old_factory = logging.getLogRecordFactory()
+    records = []
+
+    def record_factory(*args, **kwargs):
+        record = old_factory(*args, **kwargs)
+        records.append(record)
+        return record
+
+    logging.setLogRecordFactory(record_factory)
+    return records
+
+def check_window_size_selector_logging(records):
+    return [hasattr(record, 'message') and
+            record.message.startswith('LaggedTransformationImplementation') and
+            'WindowSizeSelector' in record.message
+            for record in records]
+
 
 
 def synthetic_univariate_ts():
@@ -47,10 +72,15 @@ def synthetic_univariate_ts():
 
 
 def get_timeseries(length=10, features_count=1,
-                   target_count=1, forecast_length=_FORECAST_LENGTH):
+                   target_count=1, forecast_length=_FORECAST_LENGTH,
+                   random=False):
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
-    features = np.arange(0, length * features_count) * 10
+    if random:
+        features = np.random.rand(length, features_count) * 10
+        features = features.ravel() if features_count == 1 else features
+    else:
+        features = np.arange(0, length * features_count) * 10
     if features_count > 1:
         features = np.reshape(features, (features_count, length)).T
         for i in range(features_count):
@@ -253,7 +283,7 @@ def test_lagged_window_size_selector_tune_window_by_default():
 
 
 @pytest.mark.parametrize('origin_window_size', [10, 20, 100])
-def test_lagged_window_size_selector_does_not_tune_set_window(origin_window_size):
+def test_lagged_window_size_selector_does_not_tune_defined_window(origin_window_size):
     ts = get_timeseries(length=1000)
     pipeline = (PipelineBuilder()
                 .add_node('lagged', params={'window_size': origin_window_size})
@@ -261,6 +291,15 @@ def test_lagged_window_size_selector_does_not_tune_set_window(origin_window_size
     assert origin_window_size == pipeline.nodes[-1].parameters['window_size']
     pipeline.fit(ts)
     assert origin_window_size == pipeline.nodes[-1].parameters['window_size']
+
+
+@pytest.mark.parametrize('window_size', [10, 20, 100])
+def test_lagged_window_size_selector_does_not_tune_manual_defined_window(window_size):
+    ts = get_timeseries(length=1000)
+    pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+    pipeline.nodes[-1].parameters = {'window_size': window_size}
+    pipeline.fit(ts)
+    assert window_size == pipeline.nodes[-1].parameters['window_size']
 
 
 @pytest.mark.parametrize('freq', [5, 10, 20])
@@ -276,3 +315,47 @@ def test_lagged_window_size_selector_adequate(freq):
     expected_window = ts.features.shape[0] / (freq * 2)
 
     assert expected_window / 2 <= window <= expected_window * 2
+
+
+@pytest.mark.parametrize('n_jobs', (1, -1))
+def test_evaluation_correctly_work_with_window_size_selector(n_jobs):
+    ts = get_timeseries(length=1000)
+    data_splitter = DataSourceSplitter(cv_folds=3)
+    data_producer = data_splitter.build(ts)
+    objective = MetricsObjective('rmse', False)
+    objective_evaluator = PipelineObjectiveEvaluate(objective=objective,
+                                                    data_producer=data_producer,
+                                                    validation_blocks=data_splitter.validation_blocks,
+                                                    eval_n_jobs=n_jobs)
+    objective_function = objective_evaluator.evaluate
+
+    pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+
+    # prepare factory to get all records
+    records = prepare_logging()
+
+    # run objective function
+    objective_function(pipeline)
+
+    # check that WindowSizeSelector runs once
+    assert sum(check_window_size_selector_logging(records)) == 1
+
+
+def test_tuner_correctly_work_with_window_size_selector():
+    ts = get_timeseries(length=1000, random=True)
+
+    autotuned_pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+    autotuned_pipeline.fit(ts)
+    autotuned_window = autotuned_pipeline.nodes[-1].parameters['window_size']
+
+    # prepare factory to get all records
+    records = prepare_logging()
+
+    tuner_tuned_pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+    tuner = TunerBuilder(task=ts.task).with_iterations(10).build(data=ts)
+    tuned_pipeline = tuner.tune(graph=tuner_tuned_pipeline, show_progress=False)
+    tuner_tuned_window = tuned_pipeline.nodes[-1].parameters['window_size']
+
+    assert autotuned_window != tuner_tuned_window
+    # check that WindowSizeSelector runs twice due to tuner graph copying in initialization
+    assert sum(check_window_size_selector_logging(records)) == 2
