@@ -4,7 +4,7 @@ from typing import Optional, Union
 import numpy as np
 import pandas as pd
 
-from fedot.utilities.window_size_selector import WindowSizeSelector
+from fedot.utilities.window_size_selector import WindowSizeSelector, WindowSizeSelectorMethodsEnum
 from golem.core.log import default_log
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
@@ -119,14 +119,8 @@ class LaggedImplementation(DataOperationImplementation):
         max_allowed_window_size = len(time_series) - forecast_length
 
         if self.window_size == 0:
-            def get_window(ts: np.ndarray):
-                return int(WindowSizeSelector(method='hac', window_range=(5, 60))
-                           .get_window_size(ts) * len(ts) / 100)
-
-            if time_series.ndim > 1:
-                new = np.mean([get_window(time_series[:, i].ravel()) for i in range(time_series.shape[1])])
-            else:
-                new = get_window(time_series)
+            selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
+            new = int(selector.apply(time_series) * time_series.shape[0] * 0.01)
             new = min(max_allowed_window_size, new)
             self.params.update(window_size=new)
 

@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
@@ -238,3 +239,40 @@ def test_lagged_node(length, features_count, target_count, window_size):
 
     predict = node.predict(test)
     assert np.all(predict.predict[-1, :] == np.reshape(test.features[-window_size:].T, (-1, )))
+
+
+def test_lagged_window_size_selector_tune_window_by_default():
+    ts = get_timeseries(length=1000)
+    pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+    origin_window_size = pipeline.nodes[-1].parameters['window_size']
+    pipeline.fit(ts)
+    new_window_size = pipeline.nodes[-1].parameters['window_size']
+
+    assert origin_window_size != new_window_size
+    assert 0 < new_window_size < ts.features.shape[0]
+
+
+@pytest.mark.parametrize('origin_window_size', [10, 20, 100])
+def test_lagged_window_size_selector_does_not_tune_set_window(origin_window_size):
+    ts = get_timeseries(length=1000)
+    pipeline = (PipelineBuilder()
+                .add_node('lagged', params={'window_size': origin_window_size})
+                .add_node('ridge').build())
+    assert origin_window_size == pipeline.nodes[-1].parameters['window_size']
+    pipeline.fit(ts)
+    assert origin_window_size == pipeline.nodes[-1].parameters['window_size']
+
+
+@pytest.mark.parametrize('freq', [5, 10, 20])
+def test_lagged_window_size_selector_adequate(freq):
+    ts = get_timeseries(length=1000)
+    time = np.linspace(0, 1, ts.features.shape[0])
+    ts.features = np.sin(2 * np.pi * freq * time)
+
+    pipeline = PipelineBuilder().add_sequence('lagged', 'ridge').build()
+    pipeline.fit(ts)
+
+    window = pipeline.nodes[-1].parameters['window_size']
+    expected_window = ts.features.shape[0] / (freq * 2)
+
+    assert expected_window / 2 <= window <= expected_window * 2

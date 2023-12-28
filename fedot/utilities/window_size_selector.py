@@ -1,4 +1,5 @@
 import math
+from enum import Enum, auto
 from typing import Union
 
 import numpy as np
@@ -7,18 +8,24 @@ from scipy.signal import find_peaks
 from statsmodels.tsa.stattools import acf
 
 
+class WindowSizeSelectorMethodsEnum(Enum):
+    DFF = auto()
+    HAC = auto()
+    MWF = auto()
+    SSS = auto()
+
+
 class WindowSizeSelector:
     """Class to select appropriate window size to catch periodicity for time series analysis.
     There are two group of algorithms implemented:
     Whole-Series-Based (WSB):
-        1. 'hac' - highest_autocorrelation
-        2. 'dff' - dominant_fourier_frequency
+        1. WindowSizeSelectorMethodsEnum.HAC - highest_autocorrelation
+        2. WindowSizeSelectorMethodsEnum.DFF - dominant_fourier_frequency
     Subsequence-based (SB):
-        1. 'mwf' - multi_window_finder
-        2. 'sss' - summary_statistics_subsequence
+        1. WindowSizeSelectorMethodsEnum.MWF - multi_window_finder
+        2. WindowSizeSelectorMethodsEnum.SSS - summary_statistics_subsequence
     Args:
-        method: by ``default``, it is 'dff'.
-            You can choose between: 'hac', 'dff', 'sss' or 'mwf'.
+        method: by ``default``, it is WindowSizeSelectorMethodsEnum.DFF.
         window_range: % of time series length, by ``default`` it is (5, 50).
     Attributes:
         length_ts(int): length of the time_series.
@@ -39,21 +46,24 @@ class WindowSizeSelector:
         Patrick Schafer, and Ulf Leser. 2022"
     """
 
-    def __init__(self, method: str = 'dff', window_range: tuple = (5, 50)):
+    def __init__(self,
+                 method: WindowSizeSelectorMethodsEnum = WindowSizeSelectorMethodsEnum.DFF,
+                 window_range: tuple = (5, 50)):
 
-        assert window_range[0] < window_range[1], 'Upper bound of window range should be bigger than lower bound'
+        if window_range[0] >= window_range[1]:
+            raise ValueError('Upper bound of window range should be bigger than lower bound')
 
-        self.dict_methods = {'hac': self.autocorrelation,
-                             'dff': self.dominant_fourier_frequency,
-                             'mwf': self.mwf,
-                             'sss': self.summary_statistics_subsequence}
+        self.dict_methods = {WindowSizeSelectorMethodsEnum.HAC: self.autocorrelation,
+                             WindowSizeSelectorMethodsEnum.DFF: self.dominant_fourier_frequency,
+                             WindowSizeSelectorMethodsEnum.MWF: self.mwf,
+                             WindowSizeSelectorMethodsEnum.SSS: self.summary_statistics_subsequence}
         self.wss_algorithm = method
         self.window_range = window_range
         self.window_max = None
         self.window_min = None
         self.length_ts = None
 
-    def apply(self, time_series: Union[pd.DataFrame, np.array], average: str = 'median') -> int:
+    def apply(self, time_series: np.ndarray, average: str = 'median') -> int:
         """Method to run WSS class over selected time series in parallel mode via joblib
         Args:
             time_series: time series to study
@@ -62,15 +72,12 @@ class WindowSizeSelector:
             window_size_selected: value which has been chosen as appropriate window size
         """
         methods = {'mean': np.mean, 'median': np.median}
-        assert average in methods.keys(), 'Hyperparameters error: `average` should be mean or median'
-
-        if isinstance(time_series, pd.DataFrame):
-            time_series = time_series.values
-
-        window_list = [self.get_window_size(ts) for ts in time_series]
+        if time_series.ndim == 1:
+            time_series = time_series.reshape((-1, 1))
+        window_list = [self.get_window_size(time_series[:, i].ravel()) for i in range(time_series.shape[1])]
         return round(methods[average](window_list))
 
-    def get_window_size(self, time_series: np.array) -> int:
+    def get_window_size(self, time_series: np.ndarray) -> int:
         """Main function to run WSS class over selected time series
         Note:
             One of the reason of ValueError is that time series size can be equal or smaller than 50.
@@ -86,9 +93,12 @@ class WindowSizeSelector:
         self.window_min = int(round(self.length_ts * self.window_range[0] / 100))  # in real values
 
         window_size_selected = self.dict_methods[self.wss_algorithm](time_series=time_series)
-        return round(window_size_selected * 100 / self.length_ts)  # in %
+        window_size_selected = round(window_size_selected * 100 / self.length_ts)
+        window_size_selected = max(self.window_range[0], window_size_selected)
+        window_size_selected = min(self.window_range[1], window_size_selected)
+        return window_size_selected
 
-    def dominant_fourier_frequency(self, time_series: np.array) -> int:
+    def dominant_fourier_frequency(self, time_series: np.ndarray) -> int:
         """
         Method to find dominant fourier frequency in time series and return appropriate window size. It is based on
         the assumption that the dominant frequency is the one with the highest magnitude in the Fourier transform. The
@@ -107,8 +117,10 @@ class WindowSizeSelector:
                 if self.window_min <= window_size < self.window_max:
                     window_sizes.append(window_size)
                     magnitudes.append(mag)
-
-        return window_sizes[np.argmax(magnitudes)]
+        if window_sizes and magnitudes:
+            return window_sizes[np.argmax(magnitudes)]
+        else:
+            return self.window_min
 
     def autocorrelation(self, time_series: np.array) -> int:
         """Method to find the highest autocorrelation in time series and return appropriate window size. It is based on
@@ -186,6 +198,9 @@ class WindowSizeSelector:
         # exponential search (to find window size interval)
         while True:
             window_size = 2 ** exp
+
+            if window_size > self.window_max:
+                break
 
             if window_size < self.window_min:
                 exp += 1
