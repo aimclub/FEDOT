@@ -88,11 +88,12 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
     Test for checking if AR and ARIMA works correctly in insample forecasting task
     """
     # horizon
-    forecast_length = 80
+    forecast_length = 20
     # one-step horizon
-    one_step_length = 40
-    path = os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'stackoverflow.csv')
-    time_series = pd.read_csv(path)['value']
+    one_step_length = 10
+    path = os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'M4Yearly.csv')
+    time_series = pd.read_csv(path)
+    time_series = time_series[time_series['label'] == 'Y15626']['value']
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
@@ -106,7 +107,6 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
                             data_type=DataTypesEnum.ts)
 
     train_data, test_data = train_test_data_setup(full_series)
-    # we train our model only for length = 50 elements
     train_data.task = Task(TaskTypesEnum.ts_forecasting,
                            TsForecastingParams(forecast_length=one_step_length))
     full_series.task = Task(TaskTypesEnum.ts_forecasting,
