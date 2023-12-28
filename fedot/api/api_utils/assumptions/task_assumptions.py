@@ -51,8 +51,10 @@ class TSForecastingAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
+
             'lagged_ridge':
-                PipelineBuilder().add_sequence('lagged', 'ridge'),
+                PipelineBuilder()
+                    .add_sequence('lagged', 'ridge'),
             'topological':
                 PipelineBuilder()
                     .add_node('lagged')
