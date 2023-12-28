@@ -154,8 +154,15 @@ def test_default_forecast():
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     model.fit(train_data, predefined_model='auto')
     forecast = model.forecast()
+
     assert len(forecast) == forecast_length
     assert np.array_equal(model.test_data.idx, train_data.idx)
+
+    metrics = model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
+                                validation_blocks=1)
+
+    assert len(metrics) == 3
+    assert all([m > 0 for m in metrics])
 
 
 def test_categorical_preprocessing_unidata_predefined():
