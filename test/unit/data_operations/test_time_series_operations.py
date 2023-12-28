@@ -39,9 +39,14 @@ def prepare_logging():
     return records
 
 def check_window_size_selector_logging(records):
-    return ['LaggedTransformationImplementation' in str(record) and
+    print('---------------------------'*20)
+    print(records)
+    res = ['LaggedTransformationImplementation' in str(record) and
             'WindowSizeSelector' in str(record)
             for record in records]
+    print(res)
+    print('---------------------------' * 20)
+    return res
 
 
 

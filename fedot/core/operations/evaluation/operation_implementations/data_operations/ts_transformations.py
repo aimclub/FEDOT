@@ -118,9 +118,6 @@ class LaggedImplementation(DataOperationImplementation):
             """
         max_allowed_window_size = len(time_series) - forecast_length
 
-        self.log.info((f"Window size of lagged transformation was changed "
-                       f"by WindowSizeSelector from "))
-
         if self.window_size == 0:
             selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
             new = int(selector.apply(time_series) * time_series.shape[0] * 0.01)
