@@ -18,45 +18,58 @@ class AtomizedTimeSeriesToTime(AtomizedTimeSeriesBuildFactoriesMixin):
         if pipeline is None:
             pipeline = Pipeline(PipelineNode('ridge'))
         self.pipeline = pipeline
+        self._target_shape = None
 
-    def _convert_task(self, data: InputData):
-        # TODO add verification rule
-        #      1. can be after ts-to-table model (only one)
-        #      2. can be after table-to-table models (any)
-        #      3. not any combination of ts-to-table and table-to-table
-        target_ts = np.concatenate([data.target[0, :].ravel(), data.target[1:,-1].ravel()])
+    def _convert_task(self, data: InputData, fit_stage: bool):
+        # TODO add test that model correctly transform data
+        if fit_stage:
+            target_ts = np.concatenate([data.target[0, :].ravel(), data.target[1:,-1].ravel()])
+            self._target_shape = data.target.shape
+        else:
+            target_ts = None
+
         dt = data.idx[1] - data.idx[0]
         time = np.concatenate([np.arange(data.idx[0] - (data.features.shape[1] - 1) * dt, data.idx[0], dt),
                                data.idx,
-                               np.arange(data.idx[-1], data.idx[-1] + data.target.shape[1] * dt, dt)])
-
+                               np.arange(data.idx[-1], data.idx[-1] + self._target_shape[1] * dt, dt)])
         features = data.features
-        if features.shape[1] < data.target.shape[1]:
+        if features.shape[1] < self._target_shape[1]:
             # previous model is ts-to-table
             # do not use that data
-            previous_forecast = np.zeros(target_ts.shape)
-        elif features.shape[1] == data.target.shape[1]:
-            # previous model is table-to-table
+            previous_forecast = 0
+        elif features.shape[1] == self._target_shape[1]:
+            # previous model is the only table-to-table
             previous_forecast = np.concatenate([data.features[0, :].ravel(), data.features[1:, -1].ravel()])
-        else:
+        elif features.shape[1] % self._target_shape[1] == 0:
+            # previous models are some models of type table-to-table
             features = np.mean(np.reshape(features,
-                                          (features.shape[0], data.target.shape[1], -1),
+                                          (features.shape[0], self._target_shape[1], -1),
                                           order='F'), axis=2)
             previous_forecast = np.concatenate([features[0, :].ravel(), features[1:, -1].ravel()])
+            self._mode = 3
+        else:
+            raise ValueError('Previous nodes types cannot be defined')
 
-        new_data = InputData(idx=time[-target_ts.shape[0]:],
-                             features=time[-target_ts.shape[0]:].reshape((-1, 1)),
-                             target=(target_ts - previous_forecast).reshape((-1, 1)),
-                             data_type=DataTypesEnum.table, task=Task(TaskTypesEnum.regression))
+        if fit_stage:
+            new_target = (target_ts - previous_forecast).reshape((-1, 1))
+        else:
+            new_target = None
+
+        predict_length = self._target_shape[1] + features.shape[0] - 1
+        new_data = InputData(idx=time[-predict_length:],
+                             features=time[-predict_length:].reshape((-1, 1)),
+                             target=new_target,
+                             data_type=DataTypesEnum.table,
+                             task=Task(TaskTypesEnum.regression))
         return new_data, previous_forecast
 
     def fit(self, data: InputData):
-        new_data, previous_forecast = self._convert_task(data)
+        new_data, previous_forecast = self._convert_task(data, fit_stage=True)
         self.pipeline.fit(new_data)
         return self
 
     def predict(self, data: InputData) -> OutputData:
-        new_data, previous_forecast = self._convert_task(data)
+        new_data, previous_forecast = self._convert_task(data, fit_stage=False)
         prediction = self.pipeline.predict(new_data)
         predict = prediction.predict.ravel() + previous_forecast
 
