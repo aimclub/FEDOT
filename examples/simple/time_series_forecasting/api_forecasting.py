@@ -43,7 +43,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                   task_params=TsForecastingParams(forecast_length=horizon))
 
     # run AutoML model design in the same way
-    pipeline = model.fit(train_data, predefined_model='auto')
+    pipeline = model.fit(train_data)
 
     # use model to obtain two-step in-sample forecast
     in_sample_forecast = model.predict(test_data, validation_blocks=validation_blocks)
