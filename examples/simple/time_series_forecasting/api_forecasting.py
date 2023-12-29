@@ -37,12 +37,10 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     train_data, test_data = get_ts_data(dataset, horizon, validation_blocks)
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
-
                   timeout=timeout,
                   n_jobs=-1,
                   metric=['mase', 'mae', 'mape', 'rmse'],
-                  with_tuning=with_tuning,
-                  cv_folds=2, preset='fast_train')
+                  task_params=TsForecastingParams(forecast_length=horizon))
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
@@ -51,7 +49,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     in_sample_forecast = model.predict(test_data, validation_blocks=validation_blocks)
     print('Metrics for two-step in-sample forecast: ',
           model.get_metrics(metric_names=['mase', 'mae', 'mape'],
-                            validation_blocks=validation_blocks))
+                            validation_blocks=validation_blocks,
+                            target=test_data.target))
 
     # plot forecasting result
     if visualization:
@@ -63,7 +62,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     simple_forecast = model.forecast(test_data)
     print('Metrics for one-step forecast: ',
           model.get_metrics(metric_names=['rmse', 'mae', 'mape'],
-                            validation_blocks=validation_blocks))
+                            validation_blocks=validation_blocks,
+                            target=test_data.target))
     if visualization:
         model.plot_prediction()
 
@@ -77,4 +77,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='beer', horizon=14, timeout=2., visualization=True)
+    run_ts_forecasting_example(dataset='beer', horizon=2, timeout=0.1, visualization=True)
