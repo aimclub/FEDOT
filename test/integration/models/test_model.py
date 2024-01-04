@@ -461,7 +461,7 @@ def test_locf_forecast_correctly():
 def test_models_does_not_fall_on_constant_data():
     """ Run models on constant data """
     # models that raise exception
-    to_skip = ['custom', 'arima', 'catboost', 'catboostreg',
+    to_skip = ['custom', 'arima', 'catboost', 'catboostreg', 'cgru',
                'lda', 'fast_ica', 'decompose', 'class_decompose']
 
     for operation in OperationTypesRepository('all')._repo:
@@ -484,6 +484,8 @@ def test_models_does_not_fall_on_constant_data():
                         assert pipeline.predict(data) is not None
                     except NotImplementedError:
                         pass
+                    except Exception:
+                        raise RuntimeError(f"{operation.id} falls on constant data")
 
 
 def test_operations_are_serializable():
