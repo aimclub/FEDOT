@@ -78,20 +78,24 @@ def test_multistep_example():
     run_multistep('test_sea', pipeline, step_forecast=20, future_steps=5)
 
 
-def test_api_example():
-    with_tuning = False
-
-    prediction = run_classification_example(timeout=1, with_tuning=with_tuning)
+def test_api_classification_example():
+    prediction = run_classification_example(timeout=1, with_tuning=False)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(dataset='australia', timeout=2, with_tuning=with_tuning)
+
+def test_api_ts_forecasting_example():
+    forecast = run_ts_forecasting_example(dataset='australia', timeout=1, with_tuning=False)
     assert forecast is not None
 
-    pareto = run_classification_multiobj_example(timeout=1, with_tuning=with_tuning)
+
+def test_api_classification_multiobj_example():
+    pareto = run_classification_multiobj_example(timeout=1, with_tuning=False)
     assert pareto is not None
 
-    explainer = run_api_explain_example(timeout=1, with_tuning=with_tuning)
-    assert explainer is not None
+
+def test_api_explain_example():
+        explainer = run_api_explain_example(timeout=1, with_tuning=False)
+        assert explainer is not None
 
 
 def test_multi_modal_example():
