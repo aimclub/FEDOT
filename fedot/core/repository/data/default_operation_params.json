@@ -61,7 +61,7 @@
     "cut_part": 0.5
   },
   "sparse_lagged": {
-    "window_size": 10,
+    "window_size": 0,
     "n_components": 0.5,
     "sparse_transform": true,
     "use_svd": false
