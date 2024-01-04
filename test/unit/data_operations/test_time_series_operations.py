@@ -38,11 +38,11 @@ def prepare_logging():
     logging.setLogRecordFactory(record_factory)
     return records
 
+
 def check_window_size_selector_logging(records):
     return ['LaggedTransformationImplementation' in str(record) and
             'WindowSizeSelector' in str(record)
             for record in records]
-
 
 
 def synthetic_univariate_ts():

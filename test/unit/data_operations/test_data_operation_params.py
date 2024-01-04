@@ -2,7 +2,6 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -56,7 +55,6 @@ def test_lagged_with_invalid_params_fit_correctly():
     # Fit it
     pipeline.fit(ts_input)
     assert 1 <= pipeline.nodes[-1].parameters.window_size <= len(time_series) - len_forecast
-    
 
 
 def test_ransac_with_invalid_params_fit_correctly():

@@ -132,7 +132,8 @@ class LaggedImplementation(DataOperationImplementation):
             new = int(random() * max_allowed_window_size)
             new = min(new, max_allowed_window_size)
             new = max(new, self.window_size_minimum)
-            self.log.info((f"Window size of lagged transformation was changed from {self.params.get('window_size')} to {new}"))
+            self.log.info(("Window size of lagged transformation was changed "
+                           f"from {self.params.get('window_size')} to {new}"))
             self.params.update(window_size=new)
 
         # Minimum threshold

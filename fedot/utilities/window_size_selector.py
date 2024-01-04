@@ -1,6 +1,5 @@
 import math
 from enum import Enum, auto
-from typing import Union
 
 import numpy as np
 import pandas as pd
