@@ -1,8 +1,11 @@
 from copy import copy, deepcopy
+from random import random
 from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+
+from fedot.utilities.window_size_selector import WindowSizeSelector, WindowSizeSelectorMethodsEnum
 from golem.core.log import default_log
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
@@ -103,9 +106,9 @@ class LaggedImplementation(DataOperationImplementation):
         self._update_column_types(output_data)
         return output_data
 
-    def _check_and_correct_window_size(self, time_series: np.array, forecast_length: int):
+    def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
         """ Method check if the length of the time series is not enough for
-            lagged transformation - clip it
+            lagged transformation
 
             Args:
                 time_series: time series for transformation
@@ -114,10 +117,24 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
+        max_allowed_window_size = max(1, len(time_series) - forecast_length - 1)
+
+        if self.window_size == 0:
+            selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
+            new = int(selector.apply(time_series) * time_series.shape[0] * 0.01)
+            new = min(max_allowed_window_size, new)
+            self.log.message((f"Window size of lagged transformation was changed "
+                              f"by WindowSizeSelector from {self.params.get('window_size')} to {new}"))
+            self.params.update(window_size=new)
 
         # Maximum threshold
-        if self.window_size + forecast_length > len(time_series):
-            raise ValueError(f"Window size is to high ({self.window_size}) for provided data len {len(time_series)}")
+        if self.window_size > max_allowed_window_size:
+            new = int(random() * max_allowed_window_size)
+            new = min(new, max_allowed_window_size)
+            new = max(new, self.window_size_minimum)
+            self.log.info(("Window size of lagged transformation was changed "
+                           f"from {self.params.get('window_size')} to {new}"))
+            self.params.update(window_size=new)
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
