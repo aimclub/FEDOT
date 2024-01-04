@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+from random import random
 from typing import Optional, Union
 
 import numpy as np
@@ -128,10 +129,10 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Maximum threshold
         if self.window_size > max_allowed_window_size:
-            new = int(np.random.rand() * max_allowed_window_size)
+            new = int(random() * max_allowed_window_size)
             new = min(new, max_allowed_window_size)
             new = max(new, self.window_size_minimum)
-            self.log.message((f"Window size of lagged transformation was changed from {self.params.get('window_size')} to {new}"))
+            self.log.info((f"Window size of lagged transformation was changed from {self.params.get('window_size')} to {new}"))
             self.params.update(window_size=new)
 
         # Minimum threshold
