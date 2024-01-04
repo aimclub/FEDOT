@@ -94,8 +94,8 @@ def test_api_classification_multiobj_example():
 
 
 def test_api_explain_example():
-        explainer = run_api_explain_example(timeout=1, with_tuning=False)
-        assert explainer is not None
+    explainer = run_api_explain_example(timeout=1, with_tuning=False)
+    assert explainer is not None
 
 
 def test_multi_modal_example():
