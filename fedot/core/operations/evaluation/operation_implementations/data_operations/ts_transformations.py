@@ -116,7 +116,7 @@ class LaggedImplementation(DataOperationImplementation):
             Returns:
 
             """
-        max_allowed_window_size = len(time_series) - forecast_length
+        max_allowed_window_size = max(1, len(time_series) - forecast_length - 1)
 
         if self.window_size == 0:
             selector = WindowSizeSelector(method=WindowSizeSelectorMethodsEnum.HAC, window_range=(5, 60))
@@ -128,7 +128,11 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Maximum threshold
         if self.window_size > max_allowed_window_size:
-            raise ValueError(f"Window size is to high ({self.window_size}) for provided data len {len(time_series)}")
+            new = int(np.random.rand() * max_allowed_window_size)
+            new = min(new, max_allowed_window_size)
+            new = max(new, self.window_size_minimum)
+            self.log.message((f"Window size of lagged transformation was changed from {self.params.get('window_size')} to {new}"))
+            self.params.update(window_size=new)
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
