@@ -22,7 +22,8 @@ def get_ts_data(dataset='australia', horizon: int = 30, validation_blocks=None):
     else:
         # non datetime indexes
         idx = time_series['idx'].values
-    time_series = time_series['value'].values
+    col = {'test_sea': 'Level'}.get(dataset, 'value')
+    time_series = time_series[col].values
     train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
