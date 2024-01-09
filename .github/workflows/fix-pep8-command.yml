@@ -24,11 +24,11 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -am "Automated autopep8 fixes"
           git push
-      - name: Create comment
-        if: steps.cap8c.outcome == 'success'
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
-          body: |
-            Fixed PEP8 problems!
+      # - name: Create comment
+      #   if: steps.cap8c.outcome == 'success'
+      #   uses: peter-evans/create-or-update-comment@v3
+      #   with:
+      #     repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+      #     issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+      #     body: |
+      #       Fixed PEP8 problems!
