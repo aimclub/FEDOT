@@ -246,11 +246,11 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
    :target: https://fedot.readthedocs.io/en/latest/
    :alt: Documentation Status
 
-.. |build| image:: https://github.com/aimclub/FEDOT/workflows/Build/badge.svg?branch=master
+.. |build| image:: https://github.com/aimclub/FEDOT/actions/workflows/unit-build.yml/badge.svg
    :alt: Build Status
    :target: https://github.com/aimclub/FEDOT/actions/workflows/unit-build.yml
 
-.. |integration| image:: https://github.com/aimclub/FEDOT/workflows/Integration/badge.svg?branch=master
+.. |integration| image:: https://github.com/aimclub/FEDOT/actions/workflows/integration-build.yml/badge.svg
    :alt: Integration Build Status
    :target: https://github.com/aimclub/FEDOT/actions/workflows/integration-build.yml
 
