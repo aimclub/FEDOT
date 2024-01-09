@@ -1,5 +1,4 @@
 from abc import ABC
-from multiprocessing.dummy import Pool as ThreadPool
 
 import numpy as np
 import pandas as pd
@@ -29,7 +28,6 @@ class PersistenceDiagramsExtractor:
         homology_dimensions: Homology dimensions to compute.
         filtering: Whether to filter the persistence diagrams.
         filtering_dimensions: Homology dimensions to filter.
-        parallel: Whether to parallelize the computation.
 
     """
 
@@ -37,27 +35,18 @@ class PersistenceDiagramsExtractor:
                  takens_embedding_delay: int,
                  homology_dimensions: tuple,
                  filtering: bool = False,
-                 filtering_dimensions: tuple = (1, 2),
-                 parallel: bool = False):
+                 filtering_dimensions: tuple = (1, 2)):
         self.takens_embedding_dim_ = takens_embedding_dim
         self.takens_embedding_delay_ = takens_embedding_delay
         self.homology_dimensions_ = homology_dimensions
         self.filtering_ = filtering
         self.filtering_dimensions_ = filtering_dimensions
-        self.parallel_ = parallel
         self.n_job = None
 
     def persistence_diagrams_(self, x_embeddings):
-        if self.parallel_:
-            pool = ThreadPool()
-            x_transformed = pool.map(self.parallel_embed_, x_embeddings)
-            pool.close()
-            pool.join()
-            return x_transformed
-        else:
-            return self.parallel_embed_(x_embeddings)
+        return self._embed(x_embeddings)
 
-    def parallel_embed_(self, embedding):
+    def _embed(self, embedding):
         vr = VietorisRipsPersistence(metric='euclidean', homology_dimensions=self.homology_dimensions_,
                                      n_jobs=self.n_job)
         diagram_scaler = Scaler(n_jobs=self.n_job)
@@ -83,16 +72,10 @@ class TopologicalFeaturesExtractor:
         feature_list = []
         column_list = []
         for feature_name, feature_model in self.persistence_diagram_features_.items():
-            try:
-                x_features = feature_model.fit_transform(x_pers_diag)
-                feature_list.append(x_features)
-                for dim in range(len(x_features)):
-                    column_list.append('{}_{}'.format(feature_name, dim))
-            except Exception:
-                feature_list.append(np.array([0 for i in range(len(x_features))]))
-                for dim in range(len(x_features)):
-                    column_list.append('{}_{}'.format(feature_name, dim))
-                continue
+            x_features = feature_model.fit_transform(x_pers_diag)
+            feature_list.append(x_features)
+            for dim in range(len(x_features)):
+                column_list.append(f"{feature_name}_{dim}")
         x_transformed = pd.DataFrame(data=np.hstack(feature_list)).T
         x_transformed.columns = column_list
         return x_transformed
@@ -140,7 +123,7 @@ class RelevantHolesNumber(PersistenceDiagramFeatureExtractor):
         for hole in persistence_diagram:
             index = int(hole[2])
             lifetime = hole[1] - hole[0]
-            if np.equal(lifetime, self.ratio_ * max_lifetimes[index]):
+            if lifetime == self.ratio_ * max_lifetimes[index]:
                 feature[index] += 1.0
 
         return feature
@@ -238,7 +221,7 @@ class AveragePersistenceLandscapeFeature(PersistenceDiagramFeatureExtractor):
 
     def extract_feature_(self, persistence_diagram):
         # As practice shows, only 1st layer of 1st homology dimension plays role
-        persistence_landscape = PersistenceLandscape(n_jobs=-1).fit_transform([persistence_diagram])[0, 1, 0, :]
+        persistence_landscape = PersistenceLandscape(n_jobs=1).fit_transform([persistence_diagram])[:, 0, :]
         return np.array([np.sum(persistence_landscape) / persistence_landscape.shape[0]])
 
 

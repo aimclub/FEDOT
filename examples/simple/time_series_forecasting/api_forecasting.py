@@ -79,7 +79,6 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     plt.grid()
     plt.legend()
     plt.show()
-    print(1)
     return None
 
 

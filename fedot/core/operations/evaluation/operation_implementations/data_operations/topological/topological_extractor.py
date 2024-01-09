@@ -33,8 +33,7 @@ PERSISTENCE_DIAGRAM_FEATURES = {'HolesNumberFeature': HolesNumberFeature(),
 
 PERSISTENCE_DIAGRAM_EXTRACTOR = PersistenceDiagramsExtractor(takens_embedding_dim=1,
                                                              takens_embedding_delay=2,
-                                                             homology_dimensions=(0, 1),
-                                                             parallel=False)
+                                                             homology_dimensions=(0, 1))
 
 
 class TopologicalFeaturesImplementation(DataOperationImplementation):
@@ -45,6 +44,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         self.feature_extractor = TopologicalFeaturesExtractor(
             persistence_diagram_extractor=PERSISTENCE_DIAGRAM_EXTRACTOR,
             persistence_diagram_features=PERSISTENCE_DIAGRAM_FEATURES)
+        self.data_transformer = TopologicalTransformation()
 
     def fit(self, input_data: InputData):
         pass
@@ -52,6 +52,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
     def transform(self, input_data: InputData) -> OutputData:
         parallel = Parallel(n_jobs=self.n_processes, verbose=0, pre_dispatch="2*n_jobs")
         feature_matrix = parallel(delayed(self.generate_features_from_ts)(sample) for sample in input_data.features)
+        # feature_matrix = [self.generate_features_from_ts(sample) for sample in input_data.features]
         predict = self._clean_predict(np.array([ts for ts in feature_matrix]))
         return predict
 
@@ -65,9 +66,6 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         return predict
 
     def generate_features_from_ts(self, ts_data: np.array):
-        self.data_transformer = TopologicalTransformation(
-            window_length=0)
-
-        point_cloud = self.data_transformer.time_series_to_point_cloud(input_data=ts_data)
+        point_cloud = self.data_transformer.time_series_to_point_cloud(ts_data)
         topological_features = self.feature_extractor.transform(point_cloud)
         return topological_features

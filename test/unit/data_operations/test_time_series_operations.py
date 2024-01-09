@@ -358,3 +358,28 @@ def test_tuner_correctly_work_with_window_size_selector():
     assert autotuned_window != tuner_tuned_window
     # check that WindowSizeSelector runs twice due to tuner graph copying in initialization
     assert sum(check_window_size_selector_logging(records)) == 2
+
+@pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
+                         [(40 + _FORECAST_LENGTH * 2, 1, 1, 10),
+                          (40 + _FORECAST_LENGTH * 2, 2, 1, 10),
+                          ])
+def test_topological_node(length, features_count, target_count, window_size):
+    data = get_timeseries(length=length, features_count=features_count, target_count=target_count)
+    train, test = train_test_data_setup(data, split_ratio=0.5)
+    forecast_length = data.task.task_params.forecast_length
+    lagged_node = PipelineNode('lagged')
+    lagged_node.parameters = {'window_size': window_size}
+    topo_input = lagged_node.fit(train)
+    topological_node = PipelineNode('topological_features')
+    fit_res = topological_node.fit(topo_input)
+
+    assert np.all(fit_res.idx == train.idx[window_size:-forecast_length + 1])
+    assert np.all(np.ravel(fit_res.features[0, :]) ==
+                  np.reshape(train.features[:window_size].T, (-1,)))
+    assert np.all(np.ravel(fit_res.features[-1, :]) ==
+                  np.reshape(train.features[:-forecast_length][-window_size:].T, (-1,)))
+    assert np.all(fit_res.target[0, :] == train.target[window_size:window_size + forecast_length])
+    assert np.all(fit_res.target[-1, :] == train.target[-forecast_length:])
+
+    predict = node.predict(test)
+    assert np.all(predict.predict[-1, :] == np.reshape(test.features[-window_size:].T, (-1,)))
