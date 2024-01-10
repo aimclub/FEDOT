@@ -17,6 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from golem.utilities.utilities import determine_n_jobs
 
 sys.setrecursionlimit(1000000000)
 
@@ -40,8 +41,7 @@ PERSISTENCE_DIAGRAM_EXTRACTOR = PersistenceDiagramsExtractor(takens_embedding_di
 class TopologicalFeaturesImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.n_processes = math.ceil(cpu_count() * 0.7) if cpu_count() > 1 else 1
-
+        self.n_jobs = determine_n_jobs(params.get('n_jobs', 1))
         self.feature_extractor = TopologicalFeaturesExtractor(
             persistence_diagram_extractor=PERSISTENCE_DIAGRAM_EXTRACTOR,
             persistence_diagram_features=PERSISTENCE_DIAGRAM_FEATURES)
@@ -50,7 +50,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         pass
 
     def transform(self, input_data: InputData) -> OutputData:
-        parallel = Parallel(n_jobs=self.n_processes, verbose=0, pre_dispatch="2*n_jobs")
+        parallel = Parallel(n_jobs=self.n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         feature_matrix = parallel(delayed(self.generate_features_from_ts)(sample) for sample in input_data.features)
         predict = self._clean_predict(np.array([ts for ts in feature_matrix]))
         return predict
