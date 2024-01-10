@@ -100,17 +100,17 @@ More details you can find in the follow links:
 
 **Simple**
 
-* `Classification using API <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/api_classification.py>`_
-* `Regression using API <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/api_regression.py>`_
-* `Classification with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
-* `Regression with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
+* `Classification using API <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/api_classification.py>`_
+* `Regression using API <https://github.com/aimclub/FEDOT/blob/master/examples/simple/regression/api_regression.py>`_
+* `Classification with tuning <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
+* `Regression with tuning <https://github.com/aimclub/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
 
 **Advanced**
 
-* `Multiclass classification problem <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/multiclass_prediction.py>`_
-* `Classification with unbalanced data <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/resample_examples.py>`_
-* `Image classification problem <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/image_classification_problem.py>`_
+* `Multiclass classification problem <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/multiclass_prediction.py>`_
+* `Classification with unbalanced data <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/resample_examples.py>`_
+* `Image classification problem <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/image_classification_problem.py>`_
 
 **Cases**
 
-* `Case: Credit scoring problem <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`_
+* `Case: Credit scoring problem <https://github.com/aimclub/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`_

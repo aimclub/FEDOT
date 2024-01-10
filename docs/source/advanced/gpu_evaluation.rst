@@ -22,7 +22,7 @@ every time.
 That is why we want to share the way we use RAPIDS:
 
 -  Clone the project
-   ``git clone https://github.com/nccr-itmo/FEDOT.git``
+   ``git clone https://github.com/aimclub/FEDOT.git``
 -  Use your lovely FTP client to copy the project to the host where the
    Docker is preinstalled or make the deployment via IDE you use
 -  Pull the RAPIDS image via
@@ -36,5 +36,5 @@ This approach doesn’t has an entry point for the container so it allows
 you make contributions and check the changes in place.
 
 
-.. _Dockerfile: https://github.com/nccr-itmo/FEDOT/blob/master/gpu/Dockerfile
+.. _Dockerfile: https://github.com/aimclub/FEDOT/blob/master/gpu/Dockerfile
 .. _RAPIDS official page: https://rapids.ai/start.html
