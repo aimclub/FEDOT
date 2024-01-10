@@ -35,8 +35,15 @@ class FedotXGBoostImplementation(ModelImplementation):
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
+            if self.classes_ is None:
+                eval_metric = 'rmse'
+            elif len(self.classes_) < 3:
+                eval_metric = 'auc'
+            else:
+                eval_metric = 'mlogloss'
+
             self.model.fit(X=train_x, y=train_y,
-                           eval_set=[(eval_x, eval_y)])
+                           eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
 
         else:
 
@@ -89,6 +96,7 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
 class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+        self.classes_ = None
         self.model = XGBRegressor(**self.model_params)
 
 
