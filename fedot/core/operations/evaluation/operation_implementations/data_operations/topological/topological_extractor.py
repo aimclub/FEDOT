@@ -34,8 +34,7 @@ PERSISTENCE_DIAGRAM_FEATURES = {'HolesNumberFeature': HolesNumberFeature(),
 
 PERSISTENCE_DIAGRAM_EXTRACTOR = PersistenceDiagramsExtractor(takens_embedding_dim=1,
                                                              takens_embedding_delay=2,
-                                                             homology_dimensions=(0, 1),
-                                                             parallel=False)
+                                                             homology_dimensions=(0, 1))
 
 
 class TopologicalFeaturesImplementation(DataOperationImplementation):
