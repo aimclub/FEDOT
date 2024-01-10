@@ -1,5 +1,5 @@
 name: Format python code with autopep8
-on: push
+on: pull_request
 jobs:
   autopep8:
     runs-on: ubuntu-latest
@@ -10,29 +10,24 @@ jobs:
         uses: peter-evans/autopep8@v2
         with:
           args: --exit-code --max-line-length 120 --recursive --in-place --aggressive --aggressive .
-      - name: Get Pull Request Number
-        id: pr
-        run: echo "::set-output name=pull_request_number::$(gh pr view --json number -q .number || echo "")"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: fc
         with:
-          issue-number: ${{ steps.pr.outputs.pull_request_number }}
+          issue-number: ${{ github.event.pull_request.number }}
           comment-author: "github-actions[bot]"
       - name: Create comment if autopep8 made NO changes
         if: ${{ steps.fc.outputs.comment-id == '' && steps.autopep8.outputs.exit-code != 2}}
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ steps.pr.outputs.pull_request_number }}
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             Code has no PEP8 errors!
       - name: Create comment if autopep8 made changes
         if: ${{ steps.fc.outputs.comment-id == '' && steps.autopep8.outputs.exit-code == 2}}
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ steps.pr.outputs.pull_request_number }}
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             Code in this pull request contains PEP8 errors, please write the `/fix-pep8` command in the comments below to create commit with automatic fixes.
       - name: Update comment if NOT fixed

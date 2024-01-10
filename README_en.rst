@@ -274,17 +274,17 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
    :target: https://pepy.tech/project/fedot
 
 .. |tg| image:: https://img.shields.io/badge/Telegram-Group-blue.svg
-          :target: https://t.me/FEDOT_helpdesk
-          :alt: Telegram Chat
+   :target: https://t.me/FEDOT_helpdesk
+   :alt: Telegram Chat
 
-.. |ITMO| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/ITMO_badge_rus.svg
+.. |ITMO| image:: https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge_rus.svg
    :alt: Acknowledgement to ITMO
    :target: https://itmo.ru
 
-.. |NCCR| image:: https://github.com/ITMO-NSS-team/open-source-ops/blob/add_badge/badges/NCCR_badge.svg
+.. |NCCR| image:: https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg
    :alt: Acknowledgement to NCCR
    :target: https://actcognitive.org/
 
-.. |gitlab| image:: https://camo.githubusercontent.com/9bd7b8c5b418f1364e72110a83629772729b29e8f3393b6c86bff237a6b784f6/68747470733a2f2f62616467656e2e6e65742f62616467652f6769746c61622f6d6972726f722f6f72616e67653f69636f6e3d6769746c6162
+.. |gitlab| image:: https://img.shields.io/badge/mirror-GitLab-orange
    :alt: GitLab mirror for this repository
    :target: https://gitlab.actcognitive.org/itmo-nss-team/FEDOT
