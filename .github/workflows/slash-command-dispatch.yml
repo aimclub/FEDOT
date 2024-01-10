@@ -12,5 +12,5 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           reactions: true
           commands: fix-pep8
-          permission: read
+          permission: none
           issue-type: pull-request
