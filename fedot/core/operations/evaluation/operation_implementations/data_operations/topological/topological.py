@@ -15,6 +15,8 @@ class PersistenceDiagramFeatureExtractor(ABC):
 
     """
 
+    native = False
+
     def extract_feature_(self, persistence_diagram):
         pass
 
@@ -57,7 +59,21 @@ class TopologicalFeaturesExtractor:
         for dim in self.persistence_diagram_extractor_.homology_dimensions_:
             if len(x_pers_diag[dim]) > 0:
                 for j, feature_model in enumerate(self.persistence_diagram_features_.values()):
-                    x_transformed[j, dim] = feature_model.fit_transform(x_pers_diag[dim])
+                    if not feature_model.native:
+                        x_transformed[j, dim] = feature_model.fit_transform(x_pers_diag[dim])
+
+        data = list()
+        for dim, _x in enumerate(x_pers_diag):
+            if len(_x) > 0:
+                _data = np.concatenate([_x, np.full((_x.shape[0], 1), dim)], axis=1)
+            else:
+                _data = np.array([[0, 0, dim]])
+            data.append(_data)
+        data = np.concatenate(data)
+
+        for j, feature_model in enumerate(self.persistence_diagram_features_.values()):
+            if feature_model.native:
+                x_transformed[j, :] = feature_model.fit_transform(data)
         return x_transformed
 
 
@@ -118,27 +134,30 @@ class SimultaneousAliveHolesFeature(PersistenceDiagramFeatureExtractor):
 
 
 class AveragePersistenceLandscapeFeature(PersistenceDiagramFeatureExtractor):
+
+    native = True
+
     def extract_feature_(self, persistence_diagram):
         # As practice shows, only 1st layer of 1st homology dimension plays role
-        persistence_landscape = PersistenceLandscape(n_jobs=-1).fit_transform([persistence_diagram])[0, 1, 0, :]
+        persistence_landscape = PersistenceLandscape(n_jobs=1).fit_transform([persistence_diagram])[0, 1, 0, :]
         return np.array([np.sum(persistence_landscape) / persistence_landscape.shape[0]])
 
 
 class BettiNumbersSumFeature(PersistenceDiagramFeatureExtractor):
-    def __init__(self):
-        super(BettiNumbersSumFeature).__init__()
+
+    native = True
 
     def extract_feature_(self, persistence_diagram):
-        betti_curve = BettiCurve(n_jobs=-1).fit_transform([persistence_diagram])[0]
+        betti_curve = BettiCurve(n_jobs=1).fit_transform([persistence_diagram])[0]
         return np.array([np.sum(betti_curve[i, :]) for i in range(int(np.max(persistence_diagram[:, 2])) + 1)])
 
 
 class RadiusAtMaxBNFeature(PersistenceDiagramFeatureExtractor):
-    def __init__(self):
-        super(RadiusAtMaxBNFeature).__init__()
+
+    native = True
 
     def extract_feature_(self, persistence_diagram, n_bins=100):
-        betti_curve = BettiCurve(n_jobs=-1, n_bins=n_bins).fit_transform([persistence_diagram])[0]
+        betti_curve = BettiCurve(n_jobs=1, n_bins=n_bins).fit_transform([persistence_diagram])[0]
         max_dim = int(np.max(persistence_diagram[:, 2])) + 1
         max_bettis = np.array([np.max(betti_curve[i, :]) for i in range(max_dim)])
         return np.array(
