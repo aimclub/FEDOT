@@ -80,7 +80,7 @@ def get_composite_pipeline():
     node_linear_2 = PipelineNode('linear', nodes_from=[node_2])
 
     node_final = PipelineNode('ridge', nodes_from=[node_linear_1,
-                                                    node_linear_2])
+                                                   node_linear_2])
     pipeline = Pipeline(node_final)
     return pipeline
 

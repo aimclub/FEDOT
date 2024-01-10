@@ -8,5 +8,5 @@ def test_data_from_image():
     _, _, dataset_to_validate = get_image_classification_data()
 
     assert dataset_to_validate.data_type == DataTypesEnum.image
-    assert type(dataset_to_validate.features) == np.ndarray
-    assert type(dataset_to_validate.target) == np.ndarray
+    assert isinstance(dataset_to_validate.features, np.ndarray)
+    assert isinstance(dataset_to_validate.target, np.ndarray)

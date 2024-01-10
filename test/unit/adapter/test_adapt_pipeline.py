@@ -132,7 +132,7 @@ def test_pipelines_adapt_properly(pipeline):
 
     opt_graph = adapter.adapt(pipeline)
 
-    assert all(type(node) is OptNode for node in opt_graph.nodes)  # checking strict type equality!
+    assert all(isinstance(node, OptNode) for node in opt_graph.nodes)  # checking strict type equality!
     assert _check_nodes_references_correct(opt_graph)
     assert verifier(opt_graph)
 

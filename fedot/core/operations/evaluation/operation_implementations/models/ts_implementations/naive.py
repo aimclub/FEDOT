@@ -120,7 +120,7 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         shape = features.shape[0]
 
         window = self._window(features)
-        mean_values = np.array([np.mean(features[-window-shape+i:i+1]) for i in range(shape)])
+        mean_values = np.array([np.mean(features[-window - shape + i:i + 1]) for i in range(shape)])
 
         forecast = np.repeat(mean_values.reshape((-1, 1)), forecast_length, axis=1)
 

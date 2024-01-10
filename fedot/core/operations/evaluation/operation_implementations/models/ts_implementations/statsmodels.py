@@ -261,7 +261,7 @@ class ExpSmoothingImplementation(ModelImplementation):
             error=self.params.get("error"),
             trend=self.params.get("trend"),
             seasonal=self.params.get("seasonal"),
-            damped_trend= self.params.get("damped_trend") if self.params.get("trend") else None,
+            damped_trend=self.params.get("damped_trend") if self.params.get("trend") else None,
             seasonal_periods=self.seasonal_periods
         )
         self.model = self.model.fit(disp=False)

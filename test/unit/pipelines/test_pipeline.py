@@ -375,7 +375,7 @@ def test_pipeline_fit_time_constraint():
     except Exception as ex:
         received_ex = ex
         computation_time_first = test_pipeline_first.computation_time
-        assert type(received_ex) is TimeoutError
+        assert isinstance(received_ex, TimeoutError)
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
 
     time_constraint = datetime.timedelta(seconds=3)
@@ -384,7 +384,7 @@ def test_pipeline_fit_time_constraint():
         test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
-        assert type(received_ex) is TimeoutError
+        assert isinstance(received_ex, TimeoutError)
     comp_time_proc_with_second_constraint = (time.time() - process_start_time)
 
     test_pipeline_second = pipeline_first()
