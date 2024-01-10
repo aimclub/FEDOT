@@ -257,7 +257,8 @@
         "ts"
       ],
       "tags": [
-        "non_applicable_for_ts"
+        "non_applicable_for_ts",
+        "feature_space_transformation"
       ]
     },
     "scaling": {

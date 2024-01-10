@@ -67,7 +67,7 @@ class OperationTypesRepository:
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
         'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced',
-        'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'
+        'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'feature_space_transformation',
     ]
 
     __repository_dict__ = {
