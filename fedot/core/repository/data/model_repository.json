@@ -472,14 +472,14 @@
       "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non-default", "non_linear"
+        "tree", "non_linear"
       ]
     },
     "xgboostreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non-default", "non_linear"
+        "tree", "non_multi", "non_linear"
       ]
     },
     "cnn": {
