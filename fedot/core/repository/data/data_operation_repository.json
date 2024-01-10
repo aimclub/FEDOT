@@ -35,7 +35,7 @@
     },
     "custom_ts_preprocessing": {
       "tasks": "[TaskTypesEnum.ts_forecasting]",
-      "input_type": "[DataTypesEnum.table]",
+      "input_type": "[DataTypesEnum.ts]",
       "output_type": "[DataTypesEnum.table]",
       "accepted_node_types": [
         "any"
@@ -45,10 +45,7 @@
         "fedot.core.operations.evaluation.common_preprocessing",
         "FedotPreprocessingStrategy"
       ],
-      "tags": [
-        "sklearn"
-      ],
-      "description": "Implementations of the preprocessing from scikit-learn framework"
+      "tags": []
     },
     "sklearn_categorical": {
       "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
