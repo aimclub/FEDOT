@@ -12,26 +12,26 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationReposEnum, OperationTypesRepository
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class AssumptionsBuilder:
 
-    def __init__(self, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
+    def __init__(self, data: Union[InputData, MultiModalData], repository_name: OperationReposEnum):
         self.logger = default_log(prefix='FEDOT logger')
         self.data = data
         self.repo = OperationTypesRepository(repository_name)
         self.assumptions_generator = TaskAssumptions.for_task(self.data.task, self.repo)
 
     @staticmethod
-    def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
-        if not repository_name:
-            if data.data_type == DataTypesEnum.multi_ts:
+    def get(data: Union[InputData, MultiModalData], repository_name: Optional[OperationReposEnum] = None):
+        if repository_name is None:
+            if data.data_type is DataTypesEnum.multi_ts:
                 # It is needed to use data operations also for multi_ts data
-                repository_name = 'all'
+                repository_name = OperationReposEnum.ALL
             else:
-                repository_name = 'model'
+                repository_name = OperationReposEnum.MODEL
 
         if isinstance(data, InputData):
             cls = UniModalAssumptionsBuilder
@@ -61,10 +61,13 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
                                           "available operations, default initial assumption will be used"
 
-    def __init__(self, data: Union[InputData, MultiModalData],
-                 data_type: DataTypesEnum = None, repository_name: str = "model"):
+    def __init__(self,
+                 data: Union[InputData, MultiModalData],
+                 repository_name: OperationReposEnum,
+                 data_type: DataTypesEnum = None):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
+        :param repository_name: type of operation repository
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
         super().__init__(data, repository_name)

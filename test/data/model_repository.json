@@ -54,7 +54,7 @@
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
 	  "strategies": ["fedot.core.operations.evaluation.text", "SkLearnTextVectorizeStrategy"],
-	  "tags": ["nlp", "non-default"],
+	  "tags": ["nlp", "non_default"],
 	  "description": "Text classification"
 	},
 	"ts_model": {
@@ -70,7 +70,7 @@
 		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
 		"output_type": "[DataTypesEnum.table]",
 		"strategies": ["fedot.core.operations.evaluation.custom","CustomModelStrategy"],
-		"tags": ["non-default"],
+		"tags": ["non_default"],
 		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}
   },
@@ -174,24 +174,24 @@
 	},
 	"multinb": {
 	  "meta": "sklearn_class",
-	  "tags": ["bayesian", "non-default"]
+	  "tags": ["bayesian", "non_default"]
 	},
     "custom": {
 		"meta": "custom_model",
-		"tags": ["non-default"]
+		"tags": ["non_default"]
 	},
 	"xgboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non-default"
+        "boosting", "tree", "non_default"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non-default"
+        "boosting", "tree", "non_multi", "non_default"
       ]
     }
   }

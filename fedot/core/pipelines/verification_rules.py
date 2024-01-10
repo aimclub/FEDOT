@@ -5,6 +5,8 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum, OtherTagsEnum
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
     atomized_model_type
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -36,7 +38,7 @@ def has_final_operation_as_model(pipeline: Pipeline):
 
 def has_no_conflicts_with_data_flow(pipeline: Pipeline):
     """ Check if the pipeline contains incorrect connections between nodes """
-    operation_repo = OperationTypesRepository(operation_type='data_operation')
+    operation_repo = OperationTypesRepository(operation_type=OperationReposEnum.DATA_OPERATION)
     forbidden_parents_combination = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
@@ -84,23 +86,24 @@ def has_correct_data_connections(pipeline: Pipeline):
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
+    # TODO prepare operations in module workspace, not while calling verification rule
     task = Task(TaskTypesEnum.ts_forecasting)
-    ts_models = get_operations_for_task(task=task, mode='model', tags=["non_lagged"])
-    non_ts_models = sorted(list(set(get_operations_for_task(task=task, mode='model')).difference(set(ts_models))))
+    ts_models = get_operations_for_task(task=task,
+                                        operation_repo=OperationReposEnum.MODEL,
+                                        tags=[OtherTagsEnum.non_lagged])
+    non_ts_models = get_operations_for_task(task=task,
+                                            operation_repo=OperationReposEnum.MODEL,
+                                            forbidden_tags=[OtherTagsEnum.non_lagged])
 
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
-                                                     mode='data_operation',
-                                                     tags=["non_applicable_for_ts"])
-    ts_data_operations = get_operations_for_task(task=task,
-                                                 mode='data_operation',
-                                                 tags=["non_lagged"])
-    # Remove lagged and sparse lagged transformation
-    ts_data_operations.remove('lagged')
-    ts_data_operations.remove('sparse_lagged')
-    ts_data_operations.remove('exog_ts')
-
+                                                     operation_repo=OperationReposEnum.DATA_OPERATION,
+                                                     tags=[OtherTagsEnum.non_applicable_for_ts])
     ts_to_table_operations = ['lagged', 'sparse_lagged', 'exog_ts']
+    ts_data_operations = get_operations_for_task(task=task,
+                                                 operation_repo=OperationReposEnum.DATA_OPERATION,
+                                                 tags=[OtherTagsEnum.non_lagged],
+                                                 forbidden_operations=ts_to_table_operations)
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     wrong_connections = get_wrong_links(ts_to_table_operations, ts_data_operations, non_ts_data_operations,

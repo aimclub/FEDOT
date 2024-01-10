@@ -9,8 +9,8 @@ from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.utilities.utilities import determine_n_jobs
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
+from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -44,7 +44,7 @@ class ApiParams(UserDict):
     def update_available_operations_by_preset(self, data: InputData):
         """ Updates available_operations by preset and data type"""
         preset = self.get('preset')
-        if preset != AUTO_PRESET_NAME:
+        if preset is not PresetsEnum.AUTO:
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
             self.data = preset_operations.composer_params_based_on_preset(self.data, data.data_type)
 

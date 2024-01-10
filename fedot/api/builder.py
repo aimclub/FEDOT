@@ -78,6 +78,7 @@ class FedotBuilder:
             with_tuning: bool = DEFAULT_VALUE,
             use_meta_rules: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:
+        # TODO update doc with new presets
         """ Sets general AutoML parameters.
 
         Args:

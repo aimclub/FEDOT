@@ -1,12 +1,32 @@
 from copy import copy
+from enum import Enum
 from typing import Optional
 
 from fedot.api.time import ApiTime
-from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
-    FAST_TRAIN_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags, PresetsTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
+
+
+class PresetsEnum(Enum):
+    # TODO add test to check that PresetsEnum is accordance with PresetsTagsEnum
+
+    # each enum contains name and priority
+    # therefore `auto` will convert to `best_quality` with `next`
+    #           `best_quality` to `fast_train` with `next`
+    # TODO add ability to reduce preset depends on remaining time
+    # TODO add some presets for models with different speed
+    AUTO = 'auto', 0
+    BEST_QUALITY = 'best_quality', 1
+    FAST_TRAIN = 'fast_train', 2
+    GPU = 'gpu', None
+
+    def next(self):
+        for num in PresetsEnum:
+            if num.value[1] == self.value[1] + 1:
+                return num
+        raise ValueError('There is no next value')
 
 
 class OperationsPreset:
@@ -14,23 +34,35 @@ class OperationsPreset:
     and models), which will be used during pipeline structure search
     """
 
-    def __init__(self, task: Task, preset_name: str):
+    def __init__(self, task: Task, preset_name: PresetsEnum):
         self.task = task
         self.preset_name = preset_name
 
         # Is there a modification in preset or not
         self.modification_using = False
+    
+    @property
+    def preset_name(self):
+        return self._preset_name
+    
+    @preset_name.setter
+    def preset_name(self, value):
+        if not isinstance(value, PresetsEnum):
+            raise ValueError(f"`preset_name` should be `PresetsEnum`, get {type(value)} instead")
+        
+        if value is PresetsEnum.AUTO:
+            value = value.next()
+
+        self._preset_name = value
 
     def composer_params_based_on_preset(self, api_params: dict, data_type: Optional[DataTypesEnum] = None) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
         updated_params = copy(api_params)
+        self.preset_name = updated_params.get('preset', self.preset_name)
 
-        if self.preset_name is None and 'preset' in updated_params:
-            self.preset_name = updated_params['preset']
-
-        if self.preset_name is not None and api_params.get('available_operations') is None:
+        if 'available_operations' not in updated_params:
             available_operations = self.filter_operations_by_preset(data_type)
             updated_params['available_operations'] = available_operations
 
@@ -41,55 +73,27 @@ class OperationsPreset:
         appropriate ones
         """
         preset_name = self.preset_name
-        if AUTO_PRESET_NAME in preset_name:
-            available_operations = get_operations_for_task(self.task, data_type, mode='all')
-            return available_operations
+        operation_repo = None
+        tags = list()
+        forbidden_tags = list()
 
-        # TODO remove workaround
-        # Use best_quality preset but exclude several operations
-        if 'stable' in self.preset_name:
-            # Use best_quality preset but exclude several operations
-            preset_name = BEST_QUALITY_PRESET_NAME
-        excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                    'lda', 'qda', 'lgbm', 'one_hot_encoding',
-                    'resample', 'stl_arima']
-        excluded_tree = ['xgboost', 'xgbreg']
+        if preset_name is PresetsEnum.GPU:
+            # TODO define how GPU preset should works
+            operation_repo = OperationTypesRepository.DEFAULT_GPU
+        
+        if preset_name is PresetsEnum.FAST_TRAIN:
+            forbidden_tags.extend([ComplexityTags.unstable, ComplexityTags.expensive])
 
-        if '*' in preset_name:
-            self.modification_using = True
-            # The modification has been added
-            preset_name, modification = preset_name.split('*')
-            modification = ''.join(('*', modification))
-
-            mod_operations = get_operations_for_task(self.task, data_type, mode='all', preset=modification)
+        # add tag with preset name
+        tags.append(_get_preset_tag(preset_name))
 
         # Get operations
-        available_operations = get_operations_for_task(self.task, data_type, mode='all', preset=preset_name)
-
-        if self.modification_using:
-            # Find subsample of operations
-            filtered_operations = set(available_operations).intersection(set(mod_operations))
-            available_operations = list(filtered_operations)
-
-        # Exclude "heavy" operations if necessary
-        if 'stable' in self.preset_name:
-            available_operations = self.new_operations_without_heavy(excluded, available_operations)
-
-        if 'gpu' in self.preset_name:
-            repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
-            available_operations = repository.suitable_operation(task_type=self.task.task_type, data_type=data_type)
-
-        filtered_operations = set(available_operations).difference(set(excluded_tree))
-        available_operations = list(filtered_operations)
-
+        available_operations = get_operations_for_task(task=self.task,
+                                                       data_type=data_type,
+                                                       operation_repo=operation_repo,
+                                                       tags=tags or None,
+                                                       forbidden_tags=forbidden_tags or None)
         return sorted(available_operations)
-
-    @staticmethod
-    def new_operations_without_heavy(excluded_operations, available_operations) -> list:
-        """ Create new list without heavy operations """
-        available_operations = [_ for _ in available_operations if _ not in excluded_operations]
-
-        return available_operations
 
 
 def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
@@ -97,12 +101,17 @@ def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
     If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
     """
     if timer.time_for_automl in [-1, None]:
-        return BEST_QUALITY_PRESET_NAME
+        return PresetsEnum.BEST_QUALITY
 
     # Change preset to appropriate one
 
     if timer.have_time_for_the_best_quality(n_jobs=n_jobs):
         # It is possible to train only few number of pipelines during optimization - use simplified preset
-        return BEST_QUALITY_PRESET_NAME
+        return PresetsEnum.BEST_QUALITY
     else:
-        return FAST_TRAIN_PRESET_NAME
+        return PresetsEnum.FAST_TRAIN
+    
+
+def _get_preset_tag(preset: PresetsEnum):
+    # never falls because there is the test that checks accordance between PresetsTagsEnum and PresetsEnum
+    return next(tag for tag in PresetsTagsEnum if tag.name == preset.value[0])

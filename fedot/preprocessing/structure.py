@@ -16,8 +16,8 @@ class PipelineStructureExplorer:
     by this class will detect it
     """
 
-    _invariant_tags = {'encoding': 'categorical-ignore',
-                       'imputation': 'nans-ignore'}
+    _invariant_tags = {'encoding': 'categorical_ignore',
+                       'imputation': 'nans_ignore'}
 
     @staticmethod
     def check_structure_by_tag(pipeline: 'Pipeline', tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):

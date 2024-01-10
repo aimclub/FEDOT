@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, OperationReposEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -57,7 +57,7 @@ class SupplementaryData:
         if not isinstance(self.previous_operations, list) or len(self.previous_operations) == 1:
             raise ValueError('Data was received from one node but at least two nodes are required')
 
-        data_operations = OperationTypesRepository('data_operation').suitable_operation(task_type=task)
+        data_operations = OperationTypesRepository(OperationReposEnum.DATA_OPERATION).suitable_operation(task_type=task)
 
         # Which data operations was in pipeline before decompose operation
         previous_data_operation = None

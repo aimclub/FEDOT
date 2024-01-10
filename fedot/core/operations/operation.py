@@ -201,5 +201,5 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
             raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
         current_task_type = comp_types_acceptable_for_operation[0]
 
-    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
+    strategy = operation_info.current_strategy(current_task_type)
     return strategy

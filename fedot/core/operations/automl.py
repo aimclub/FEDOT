@@ -1,5 +1,5 @@
 from fedot.core.operations.model import Model
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, OperationReposEnum
 
 
 class AutoML(Model):
@@ -11,4 +11,4 @@ class AutoML(Model):
 
     def __init__(self, operation_type: str):
         super().__init__(operation_type=operation_type)
-        self.operations_repo = OperationTypesRepository('automl')
+        self.operations_repo = OperationTypesRepository(OperationReposEnum.AUTOML)

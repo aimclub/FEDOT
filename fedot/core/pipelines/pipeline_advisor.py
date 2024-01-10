@@ -1,15 +1,17 @@
-from typing import List
+from typing import List, Optional
 
 from golem.core.optimisers.advisor import DefaultChangeAdvisor, RemoveType
 from golem.core.optimisers.graph import OptNode
 
 from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
+from fedot.core.repository.tasks import Task
 
 
 class PipelineChangeAdvisor(DefaultChangeAdvisor):
-    def __init__(self, task=None):
-        self.models: List[str] = get_operations_for_task(task, mode='model')
-        self.data_operations: List[str] = get_operations_for_task(task, mode='data_operation')
+    def __init__(self, task: Optional[Task] = None):
+        self.models: List[str] = get_operations_for_task(task=task, operation_repo=OperationReposEnum.MODEL)
+        self.data_operations: List[str] = get_operations_for_task(task=task, operation_repo=OperationReposEnum.DATA_OPERATION)
         super().__init__(task)
 
     def can_be_removed(self, node: OptNode) -> RemoveType:

@@ -332,7 +332,7 @@ def test_ts_forecasting_cut_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+    model_names = OperationTypesRepository().suitable_operation(tags=['smoothing'])
 
     for smoothing_operation in model_names:
         node_smoothing = PipelineNode(smoothing_operation)

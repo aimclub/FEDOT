@@ -11,7 +11,7 @@
 				"DataSourceStrategy"
 			],
 			"tags": [
-				"non-default", "data_source"
+				"non_default", "data_source"
 			],
 			"description": "Implementations of data sources in multi-modal pipelines"
 		},
@@ -100,7 +100,7 @@
 			],
 			"tags": [
 				"text",
-				"non-default"
+				"non_default"
 			],
 			"description": "Preprocessing operations for text classification"
 		},
@@ -116,7 +116,7 @@
 			"tags": [
 				"text",
 				"nlp",
-				"non-default"
+				"non_default"
 			],
 			"tasks": "[TaskTypesEnum.classification]"
 		},
@@ -134,7 +134,7 @@
 			"tags": [
 				"text",
 				"nlp",
-				"non-default"
+				"non_default"
 			],
 			"tasks": "[TaskTypesEnum.classification]"
 		}
@@ -144,23 +144,23 @@
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.image]",
 			"output_type": "[DataTypesEnum.image]",
-			"tags": ["data_source_img", "nans-ignore", "categorical-ignore", "non_applicable_for_ts"]
+			"tags": ["data_source_img", "nans_ignore", "categorical_ignore", "non_applicable_for_ts"]
 		},
 		"data_source_text": {
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.text]",
 			"output_type": "[DataTypesEnum.text]",
-			"tags": ["data_source_text", "nans-ignore", "categorical-ignore", "non_applicable_for_ts"]
+			"tags": ["data_source_text", "nans_ignore", "categorical_ignore", "non_applicable_for_ts"]
 		},
 		"data_source_table": {
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
-			"tags": ["data_source_table", "nans-ignore", "categorical-ignore", "non_applicable_for_ts"]
+			"tags": ["data_source_table", "nans_ignore", "categorical_ignore", "non_applicable_for_ts"]
 		},
 		"data_source_ts": {
 		  "meta": "data_sources",
-		  "tags": ["data_source_ts", "non_lagged", "non-default", "nans-ignore", "categorical-ignore"],
+		  "tags": ["data_source_ts", "non_lagged", "non_default", "nans_ignore", "categorical_ignore"],
 		  "input_type": "[DataTypesEnum.ts]",
 		  "output_type": "[DataTypesEnum.ts]"
 		},
@@ -177,7 +177,7 @@
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "*tree"],
-		  	"tags": ["simple", "imputation", "categorical-ignore", "non-default"]
+		  	"tags": ["simple", "imputation", "categorical_ignore", "non_default"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
@@ -193,7 +193,7 @@
 				"dimensionality_transforming",
 				"correct_params",
 				"non_applicable_for_ts",
-				"non-default",
+				"non_default",
 				"feature_reduction"
 			]
 		},
@@ -214,12 +214,12 @@
 		},
 		"one_hot_encoding": {
 			"meta": "sklearn_categorical",
-			"tags": ["encoding", "categorical", "dimensionality_transforming", "non_applicable_for_ts", "non-default"]
+			"tags": ["encoding", "categorical", "dimensionality_transforming", "non_applicable_for_ts", "non_default"]
 		},
 		"label_encoding": {
 			"meta": "sklearn_categorical",
 			"presets": ["fast_train", "*tree"],
-			"tags": ["encoding", "categorical", "non-default", "non_applicable_for_ts"]
+			"tags": ["encoding", "categorical", "non_default", "non_applicable_for_ts"]
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
@@ -242,19 +242,19 @@
 		},
 		"rfe_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non-default", "non_applicable_for_ts"]
+			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non_default", "non_applicable_for_ts"]
 		},
 		"rfe_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non-default", "non_applicable_for_ts"]
+			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non_default", "non_applicable_for_ts"]
 		},
 		"rfe_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["linear", "feature_selection", "non-default"]
+			"tags": ["linear", "feature_selection", "non_default"]
 		},
 		"rfe_non_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["non_linear", "feature_selection", "non-default"]
+			"tags": ["non_linear", "feature_selection", "non_default"]
 		},
 		"lagged": {
 			"meta": "custom_time_series_to_table_transformation",
@@ -320,7 +320,7 @@
 				"correct_params",
 				"non_lagged",
 				"ts_to_ts",
-				"non-default"
+				"non_default"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
@@ -338,25 +338,25 @@
 		},
 		"cntvect": {
 			"meta": "text_preprocessing_sklearn",
-			"tags": ["non-default"]
+			"tags": ["non_default"]
 		},
 		"tfidf": {
 			"meta": "text_preprocessing_sklearn",
-			"tags": ["non-default"]
+			"tags": ["non_default"]
 		},
 		"word2vec_pretrained": {
 			"meta": "text_classification_gensim",
-			"tags": ["non-default"]
+			"tags": ["non_default"]
 		},
 		"decompose": {
 		  "meta": "regression_preprocessing",
 		  "presets": ["fast_train", "ts", "*tree"],
-		  "tags": ["non-default", "decompose"]
+		  "tags": ["non_default", "decompose"]
 		},
 		"class_decompose": {
 		  "meta": "classification_preprocessing",
 		  "presets": ["fast_train", "*tree"],
-		  "tags": ["non-default", "decompose"]
+		  "tags": ["non_default", "decompose"]
         },
         "resample": {
           "meta": "classification_preprocessing",

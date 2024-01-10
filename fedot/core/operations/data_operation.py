@@ -1,6 +1,6 @@
 from fedot.core.data.data import OutputData
 from fedot.core.operations.operation import Operation
-from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository, OperationReposEnum
 
 
 class DataOperation(Operation):
@@ -11,7 +11,7 @@ class DataOperation(Operation):
     """
     def __init__(self, operation_type: str):
         super().__init__(operation_type)
-        self.operations_repo = OperationTypesRepository('data_operation')
+        self.operations_repo = OperationTypesRepository(OperationReposEnum.DATA_OPERATION)
 
     @property
     def metadata(self) -> OperationMetaInfo:
