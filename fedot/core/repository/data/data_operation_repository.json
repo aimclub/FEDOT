@@ -33,6 +33,23 @@
       ],
       "description": "Implementations of the preprocessing from scikit-learn framework"
     },
+    "custom_ts_preprocessing": {
+      "tasks": "[TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the preprocessing from scikit-learn framework"
+    },
     "sklearn_categorical": {
       "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
       "input_type": "[DataTypesEnum.table]",
@@ -235,7 +252,7 @@
       "output_type": "[DataTypesEnum.ts]"
     },
     "topological_features": {
-      "meta": "custom_preprocessing",
+      "meta": "custom_ts_preprocessing",
       "presets": [
         "ts"
       ],
