@@ -1,9 +1,7 @@
 from abc import ABC
-from multiprocessing.dummy import Pool as ThreadPool
 
 import numpy as np
 import pandas as pd
-# -*- coding: utf-8 -*-
 from gtda.diagrams import Scaler, Filtering, PersistenceEntropy, PersistenceLandscape, BettiCurve
 from gtda.homology import VietorisRipsPersistence
 
@@ -167,7 +165,7 @@ class PersistenceEntropyFeature(PersistenceDiagramFeatureExtractor):
         super(PersistenceEntropyFeature).__init__()
 
     def extract_feature_(self, persistence_diagram):
-        persistence_entropy = PersistenceEntropy(n_jobs=-1)
+        persistence_entropy = PersistenceEntropy(n_jobs=1)
         return persistence_entropy.fit_transform([persistence_diagram])[0]
 
 
@@ -222,7 +220,7 @@ class AveragePersistenceLandscapeFeature(PersistenceDiagramFeatureExtractor):
 
     def extract_feature_(self, persistence_diagram):
         # As practice shows, only 1st layer of 1st homology dimension plays role
-        persistence_landscape = PersistenceLandscape(n_jobs=-1).fit_transform([persistence_diagram])[0, 1, 0, :]
+        persistence_landscape = PersistenceLandscape(n_jobs=1).fit_transform([persistence_diagram])[0, 1, 0, :]
         return np.array([np.sum(persistence_landscape) / persistence_landscape.shape[0]])
 
 
@@ -231,7 +229,7 @@ class BettiNumbersSumFeature(PersistenceDiagramFeatureExtractor):
         super(BettiNumbersSumFeature).__init__()
 
     def extract_feature_(self, persistence_diagram):
-        betti_curve = BettiCurve(n_jobs=-1).fit_transform([persistence_diagram])[0]
+        betti_curve = BettiCurve(n_jobs=1).fit_transform([persistence_diagram])[0]
         return np.array([np.sum(betti_curve[i, :]) for i in range(int(np.max(persistence_diagram[:, 2])) + 1)])
 
 
@@ -240,7 +238,7 @@ class RadiusAtMaxBNFeature(PersistenceDiagramFeatureExtractor):
         super(RadiusAtMaxBNFeature).__init__()
 
     def extract_feature_(self, persistence_diagram, n_bins=100):
-        betti_curve = BettiCurve(n_jobs=-1, n_bins=n_bins).fit_transform([persistence_diagram])[0]
+        betti_curve = BettiCurve(n_jobs=1, n_bins=n_bins).fit_transform([persistence_diagram])[0]
         max_dim = int(np.max(persistence_diagram[:, 2])) + 1
         max_bettis = np.array([np.max(betti_curve[i, :]) for i in range(max_dim)])
         return np.array(
