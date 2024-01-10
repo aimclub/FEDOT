@@ -33,7 +33,8 @@ class PersistenceDiagramsExtractor:
 
     """
 
-    def __init__(self, takens_embedding_dim: int,
+    def __init__(self,
+                 takens_embedding_dim: int,
                  takens_embedding_delay: int,
                  homology_dimensions: tuple,
                  filtering: bool = False,
@@ -62,7 +63,7 @@ class TopologicalFeaturesExtractor:
     def transform(self, x):
 
         x_pers_diag = self.persistence_diagram_extractor_.transform(x)
-        n = self.persistence_diagram_features_.homology_dimensions_[-1] + 1
+        n = self.persistence_diagram_extractor_.homology_dimensions_[-1] + 1
         feature_list = []
         column_list = []
         for feature_name, feature_model in self.persistence_diagram_features_.items():
