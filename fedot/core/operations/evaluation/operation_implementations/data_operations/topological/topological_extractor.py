@@ -19,8 +19,6 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 from fedot.core.operations.operation_parameters import OperationParameters
 from golem.utilities.utilities import determine_n_jobs
 
-sys.setrecursionlimit(1000000000)
-
 PERSISTENCE_DIAGRAM_FEATURES = {'HolesNumberFeature': HolesNumberFeature(),
                                 'MaxHoleLifeTimeFeature': MaxHoleLifeTimeFeature(),
                                 'RelevantHolesNumber': RelevantHolesNumber(),
@@ -32,15 +30,18 @@ PERSISTENCE_DIAGRAM_FEATURES = {'HolesNumberFeature': HolesNumberFeature(),
                                 'BettiNumbersSumFeature': BettiNumbersSumFeature(),
                                 'RadiusAtMaxBNFeature': RadiusAtMaxBNFeature()}
 
-PERSISTENCE_DIAGRAM_EXTRACTOR = PersistenceDiagramsExtractor(takens_embedding_dim=1,
-                                                             takens_embedding_delay=2,
-                                                             homology_dimensions=(0, 1))
+PERSISTENCE_DIAGRAM_EXTRACTOR = PersistenceDiagramsExtractor(homology_dimensions=(0, 1))
 
 
 class TopologicalFeaturesImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.n_jobs = determine_n_jobs(params.get('n_jobs', 1))
+        self.window_size = params.get('window_size')
+        # TODO add stride
+        self.stride = params.get('stride')
+        self.points_count = params.get('points_count')
+
         self.feature_extractor = TopologicalFeaturesExtractor(
             persistence_diagram_extractor=PERSISTENCE_DIAGRAM_EXTRACTOR,
             persistence_diagram_features=PERSISTENCE_DIAGRAM_FEATURES)
@@ -49,8 +50,25 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         pass
 
     def transform(self, input_data: InputData) -> OutputData:
-        parallel = Parallel(n_jobs=self.n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        feature_matrix = parallel(delayed(self.generate_features_from_ts)(sample) for sample in input_data.features)
+        # with Parallel(n_jobs=self.n_jobs) as parallel:
+        #     parallel(delayed(self.generate_features_from_ts)(sample) for sample in input_data.features)
+
+        # define window
+        if self.window_size == 0:
+            # TODO add WindowSizeSelector
+            self.window_size = 10
+
+        # define points count
+        if self.points_count == 0:
+            self.points_count = int(self.window_size // 2)
+
+        time_series = input_data.features
+        all_points_cloud = np.array([time_series[i:self.window_size + i]
+                                     for i in range(time_series.shape[0] - self.window_size + 1)])
+
+        topological_features = self.feature_extractor.transform(all_points_cloud[:5, :])
+
+        feature_matrix = self.generate_features_from_ts(input_data.features)
         predict = self._clean_predict(np.array([ts for ts in feature_matrix]))
         return predict
 
@@ -62,11 +80,3 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         predict = np.where(np.isinf(predict), 0, predict)
         predict = predict.reshape(predict.shape[0], -1)
         return predict
-
-    def generate_features_from_ts(self, ts_data: np.array):
-        self.data_transformer = TopologicalTransformation(
-            window_length=0)
-
-        point_cloud = self.data_transformer.time_series_to_point_cloud(input_data=ts_data)
-        topological_features = self.feature_extractor.transform(point_cloud)
-        return topological_features
