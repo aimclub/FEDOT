@@ -37,39 +37,21 @@ class PersistenceDiagramsExtractor:
                  takens_embedding_delay: int,
                  homology_dimensions: tuple,
                  filtering: bool = False,
-                 filtering_dimensions: tuple = (1, 2),
-                 parallel: bool = False):
+                 filtering_dimensions: tuple = (1, 2)):
         self.takens_embedding_dim_ = takens_embedding_dim
         self.takens_embedding_delay_ = takens_embedding_delay
         self.homology_dimensions_ = homology_dimensions
         self.filtering_ = filtering
         self.filtering_dimensions_ = filtering_dimensions
-        self.parallel_ = parallel
-        self.n_job = None
 
-    def persistence_diagrams_(self, x_embeddings):
-        if self.parallel_:
-            pool = ThreadPool()
-            x_transformed = pool.map(self.parallel_embed_, x_embeddings)
-            pool.close()
-            pool.join()
-            return x_transformed
-        else:
-            return self.parallel_embed_(x_embeddings)
-
-    def parallel_embed_(self, embedding):
-        vr = VietorisRipsPersistence(metric='euclidean', homology_dimensions=self.homology_dimensions_,
-                                     n_jobs=self.n_job)
-        diagram_scaler = Scaler(n_jobs=self.n_job)
-        persistence_diagrams = diagram_scaler.fit_transform(vr.fit_transform([embedding]))
+    def transform(self, x_embeddings):
+        vr = VietorisRipsPersistence(metric='euclidean', homology_dimensions=self.homology_dimensions_, n_jobs=1)
+        diagram_scaler = Scaler(n_jobs=1)
+        persistence_diagrams = diagram_scaler.fit_transform(vr.fit_transform([x_embeddings]))
         if self.filtering_:
             diagram_filter = Filtering(epsilon=0.1, homology_dimensions=self.filtering_dimensions_)
             persistence_diagrams = diagram_filter.fit_transform(persistence_diagrams)
         return persistence_diagrams[0]
-
-    def transform(self, x_embeddings):
-        x_persistence_diagrams = self.persistence_diagrams_(x_embeddings)
-        return x_persistence_diagrams
 
 
 class TopologicalFeaturesExtractor:
@@ -80,6 +62,7 @@ class TopologicalFeaturesExtractor:
     def transform(self, x):
 
         x_pers_diag = self.persistence_diagram_extractor_.transform(x)
+        n = self.persistence_diagram_features_.homology_dimensions_[-1] + 1
         feature_list = []
         column_list = []
         for feature_name, feature_model in self.persistence_diagram_features_.items():
@@ -88,9 +71,9 @@ class TopologicalFeaturesExtractor:
                 feature_list.append(x_features)
                 for dim in range(len(x_features)):
                     column_list.append('{}_{}'.format(feature_name, dim))
-            except Exception:
-                feature_list.append(np.array([0 for i in range(len(x_features))]))
-                for dim in range(len(x_features)):
+            except:
+                feature_list.append(np.array([0 for i in range(n)]))
+                for dim in range(n):
                     column_list.append('{}_{}'.format(feature_name, dim))
                 continue
         x_transformed = pd.DataFrame(data=np.hstack(feature_list)).T
