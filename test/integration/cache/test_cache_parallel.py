@@ -32,7 +32,7 @@ def test_prev_cache_parallel_deletion():
     tasks = [
         delayed(run_regression_example)(**common_params, preset='fast_train'),
         delayed(run_classification_example)(**common_params),
-        delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
+        delayed(run_ts_forecasting_example)(**common_params, dataset='m4_yearly', horizon=10),
     ]
 
     cpus = cpu_count()
@@ -54,7 +54,7 @@ def test_parallel_cache_files():
     tasks = [
         delayed(run_regression_example)(**common_params, preset='fast_train'),
         delayed(run_classification_example)(**common_params),
-        delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
+        delayed(run_ts_forecasting_example)(**common_params, dataset='m4_yearly', horizon=10),
     ]
 
     cpus = cpu_count()
