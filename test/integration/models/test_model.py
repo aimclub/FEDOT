@@ -1,5 +1,4 @@
 import pickle
-
 from copy import deepcopy
 from time import perf_counter
 from typing import Tuple, Optional
@@ -15,7 +14,6 @@ from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.utils import fedot_project_root
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
@@ -31,6 +29,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
@@ -473,19 +472,15 @@ def test_models_does_not_fall_on_constant_data():
                                             length=100, features_count=2,
                                             random=False)
                 if data is not None:
-                    try:
-                        nodes_from = []
-                        if task_type is TaskTypesEnum.ts_forecasting:
-                            if 'non_lagged' not in operation.tags:
-                                nodes_from = [PipelineNode('lagged')]
-                        node = PipelineNode(operation.id, nodes_from=nodes_from)
-                        pipeline = Pipeline(node)
-                        pipeline.fit(data)
-                        assert pipeline.predict(data) is not None
-                    except NotImplementedError:
-                        pass
-                    except Exception:
-                        raise RuntimeError(f"{operation.id} falls on constant data")
+
+                    nodes_from = []
+                    if task_type is TaskTypesEnum.ts_forecasting:
+                        if 'non_lagged' not in operation.tags:
+                            nodes_from = [PipelineNode('lagged')]
+                    node = PipelineNode(operation.id, nodes_from=nodes_from)
+                    pipeline = Pipeline(node)
+                    pipeline.fit(data)
+                    assert pipeline.predict(data) is not None
 
 
 def test_operations_are_serializable():
