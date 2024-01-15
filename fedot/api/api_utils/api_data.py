@@ -176,4 +176,3 @@ class ApiDataProcessor:
         self.log.message(f'Data preprocessing runtime = {datetime.now() - start_time}')
 
         return test_data
-

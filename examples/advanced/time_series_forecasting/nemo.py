@@ -117,11 +117,11 @@ train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_fo
 
 pipeline = get_arima_pipeline()
 train_dataset = MultiModalData({
-        'arima': deepcopy(train_input),
-    })
+    'arima': deepcopy(train_input),
+})
 predict_dataset = MultiModalData({
-        'arima': deepcopy(predict_input),
-    })
+    'arima': deepcopy(predict_input),
+})
 pipeline.fit_from_scratch(train_dataset)
 predicted_values = pipeline.predict(predict_dataset)
 predicted_values = predicted_values.predict
@@ -140,13 +140,13 @@ print(f'ARIMA MAPE - {mape_before:.4f}\n')
 # arima with nemo ensemble
 pipeline = return_working_pipeline()
 train_dataset = MultiModalData({
-        'lagged/1': deepcopy(train_input),
-        'exog_ts': deepcopy(train_input_exog)
-    })
+    'lagged/1': deepcopy(train_input),
+    'exog_ts': deepcopy(train_input_exog)
+})
 predict_dataset = MultiModalData({
-        'lagged/1': deepcopy(predict_input),
-        'exog_ts': deepcopy(predict_input_exog)
-    })
+    'lagged/1': deepcopy(predict_input),
+    'exog_ts': deepcopy(predict_input_exog)
+})
 pipeline.fit_from_scratch(train_dataset)
 predicted_values = pipeline.predict(predict_dataset).predict
 
@@ -165,13 +165,13 @@ print(f'Lagged with nemo MAPE - {mape_before:.4f}\n')
 # arima with nemo ensemble
 pipeline = get_arima_nemo_pipeline()
 train_dataset = MultiModalData({
-        'arima': deepcopy(train_input),
-        'exog_ts': deepcopy(train_input_exog)
-    })
+    'arima': deepcopy(train_input),
+    'exog_ts': deepcopy(train_input_exog)
+})
 predict_dataset = MultiModalData({
-        'arima': deepcopy(predict_input),
-        'exog_ts': deepcopy(predict_input_exog)
-    })
+    'arima': deepcopy(predict_input),
+    'exog_ts': deepcopy(predict_input_exog)
+})
 pipeline.fit_from_scratch(train_dataset)
 predicted_values = pipeline.predict(predict_dataset).predict
 

@@ -157,5 +157,8 @@
   },
   "fast_ica": {
     "whiten": "unit-variance"
+  },
+  "topological_features": {
+    "n_jobs": -1
   }
 }

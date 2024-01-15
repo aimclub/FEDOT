@@ -184,7 +184,7 @@ def test_multi_objective_composer(data_fixture, request):
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
 
-    assert type(pipelines_evo_composed) is list
+    assert isinstance(pipelines_evo_composed, list)
     assert len(composer.optimizer.objective.metrics) > 1
     assert composer.optimizer.objective.is_multi_objective
 

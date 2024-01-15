@@ -61,7 +61,7 @@ def preprocess_keys(parameters: dict):
     for k, v in list(parameters.items()):
         if v is None:
             del parameters[k]
-        elif type(v) is not bool:
+        elif not isinstance(v, bool):
             try:
                 parameters[k] = float(v)
             except Exception:

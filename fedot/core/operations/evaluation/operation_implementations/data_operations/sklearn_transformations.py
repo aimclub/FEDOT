@@ -73,7 +73,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         parameter in PCA or not. And if not enough - fixes it
         """
         n_components = self.params.get('n_components')
-        if type(n_components) == int:
+        if isinstance(n_components, int):
             if n_components > self.number_of_features:
                 self.params.update(n_components=self.number_of_features)
         elif n_components == 'mle':

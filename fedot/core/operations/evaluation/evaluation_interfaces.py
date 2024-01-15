@@ -119,7 +119,7 @@ class EvaluationStrategy:
         Returns: prediction as :obj:`OutputData`
         """
 
-        if type(prediction) is not OutputData:
+        if not isinstance(prediction, OutputData):
             # Wrap prediction as OutputData
             converted = OutputData(idx=predict_data.idx,
                                    features=predict_data.features,

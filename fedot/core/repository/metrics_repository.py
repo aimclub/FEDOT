@@ -18,7 +18,8 @@ class MetricsEnum(ComparableEnum):
         return value in cls._value2member_map_
 
 
-class QualityMetricsEnum(MetricsEnum): pass
+class QualityMetricsEnum(MetricsEnum):
+    pass
 
 
 class ComplexityMetricsEnum(MetricsEnum):

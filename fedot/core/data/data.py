@@ -330,7 +330,7 @@ class Data:
         features = images
         target = labels
 
-        if type(images) is str:
+        if isinstance(images, str):
             # if upload from path
             if '*.jpeg' in images:
                 # upload from folder of images

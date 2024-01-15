@@ -1,17 +1,15 @@
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
+from tpot.export_utils import set_param_recursive
+from tpot.builtins import StackingEstimator
+from sklearn.pipeline import make_pipeline
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.ensemble import RandomForestClassifier
 import numpy
 
 numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.pipeline import make_pipeline
-from tpot.builtins import StackingEstimator
-from tpot.export_utils import set_param_recursive
-
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.data.data import InputData
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):

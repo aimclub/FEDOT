@@ -67,5 +67,5 @@ def test_solver_mutation_of_best_pipeline(params):
         elif x in [params_with_replacement, params_different]:
             prediction_length = len(res[0])
             for y in res:
-                assert type(y) == np.ndarray, f"{x['message']} Wrong output of a mutation."
+                assert isinstance(y, np.ndarray), f"{x['message']} Wrong output of a mutation."
                 assert len(y) == prediction_length, f"{x['message']} Wrong prediction length."

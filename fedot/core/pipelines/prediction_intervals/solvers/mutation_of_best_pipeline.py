@@ -75,7 +75,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
             # TODO: create new approach to mutation generation:
             #       mutate and fit in one try in get_mutations/get_different_mutations
             pipeline.fit(train_input)
-        except:
+        except BaseException:
             continue
         pred = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
         metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
