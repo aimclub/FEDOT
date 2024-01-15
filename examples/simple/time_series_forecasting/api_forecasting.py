@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 from fedot import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
@@ -66,13 +65,6 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                                visualization=False, validation_blocks=2, with_tuning=True):
     train_data, test_data, label = get_ts_data(dataset, horizon, validation_blocks=validation_blocks)
     # init model for the time series forecasting
-    pipeline = PipelineBuilder().add_node('lagged') \
-        .add_node('topological_features') \
-        .add_node('lagged', branch_idx=1) \
-        .join_branches('ridge').build()
-
-    pipeline.fit(train_data)
-    pred = np.ravel(pipeline.predict(test_data).predict)
 
     model = Fedot(problem='ts_forecasting',
                   task_params=Task(TaskTypesEnum.ts_forecasting,
@@ -89,7 +81,6 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
         model.current_pipeline.show()
         plt.plot(train_data.idx, train_data.features, label='features')
         plt.plot(test_data.idx, test_data.target, label='target')
-        plt.plot(test_data.idx, pred, label='(lagged->topological_extractor)->ridge')
         plt.plot(test_data.idx, pred_fedot, label='fedot')
         plt.grid()
         plt.legend()
