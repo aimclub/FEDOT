@@ -17,7 +17,7 @@ def test_pipeline_has_dummy_preprocessor_with_disabled_preprocessing():
     Tests pipeline with disabled input data preprocessing has dummy preprocessor
     """
     pipeline = Pipeline(PipelineNode('ridge'), use_input_preprocessing=False)
-    assert type(pipeline.preprocessor) is DummyPreprocessor
+    assert isinstance(pipeline.preprocessor, DummyPreprocessor)
 
 
 def _assert_equal_data(data1: InputData, data2: InputData):

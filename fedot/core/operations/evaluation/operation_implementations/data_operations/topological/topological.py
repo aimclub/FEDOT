@@ -70,7 +70,7 @@ class TopologicalFeaturesExtractor:
                 feature_list.append(x_features)
                 for dim in range(len(x_features)):
                     column_list.append('{}_{}'.format(feature_name, dim))
-            except:
+            except BaseException:
                 feature_list.append(np.array([0 for i in range(n)]))
                 for dim in range(n):
                     column_list.append('{}_{}'.format(feature_name, dim))

@@ -39,8 +39,8 @@ def check_uniqueness_mutations_structures(a: List[Individual]):
 
 def test_get_ts_mutation(params):
     for i in range(20):
-        assert type(get_ts_mutation(individual=params['individual'],
-                                    operations=params['operations'])) == Individual, f"mutation {i+1} failed."
+        assert isinstance(get_ts_mutation(individual=params['individual'],
+                                          operations=params['operations']), Individual), f"mutation {i+1} failed."
 
 
 def test_get_different_mutations(params):

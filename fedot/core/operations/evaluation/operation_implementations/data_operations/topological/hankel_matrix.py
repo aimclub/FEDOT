@@ -40,9 +40,9 @@ class HankelMatrix:
             self.__window_length = int(self.__ts_length / 3)
 
     def __convert_ts_to_array(self):
-        if type(self.__time_series) == pd.DataFrame:
+        if isinstance(self.__time_series, pd.DataFrame):
             self.__time_series = self.__time_series.values.reshape(-1, 1)
-        elif type(self.__time_series) == list:
+        elif isinstance(self.__time_series, list):
             self.__time_series = np.array(self.__time_series)
         else:
             self.__time_series = self.__time_series

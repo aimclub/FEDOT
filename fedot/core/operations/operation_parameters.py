@@ -17,6 +17,7 @@ class OperationParameters:
         parameters: dict with parameters
 
     """
+
     def __init__(self, **parameters):
         self._parameters = parameters
         self._changed_keys: list = []

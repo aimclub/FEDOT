@@ -35,10 +35,10 @@ def build_pred_ints(start=5000, end=7000, horizon=200):
                             task=task,
                             data_type=DataTypesEnum.ts)
     model = Fedot(problem='ts_forecasting',
-              task_params=task.task_params,
-              timeout=3,
-              preset='ts',
-              show_progress=False)
+                  task_params=task.task_params,
+                  timeout=3,
+                  preset='ts',
+                  show_progress=False)
 
     model.fit(train_input)
     model.forecast()

@@ -32,7 +32,7 @@ def test_cnn_custom_class():
     cnn_class = FedotCNNImplementation()
 
     assert cnn_class.params is not None
-    assert type(cnn_class) == FedotCNNImplementation
+    assert isinstance(cnn_class, FedotCNNImplementation)
 
 
 def test_image_classification_quality():
@@ -66,9 +66,9 @@ def test_cnn_methods():
     prediction = predict_cnn(trained_model=model,
                              predict_data=dataset_to_validate)
 
-    assert type(cnn_model) == tf.keras.Sequential
+    assert isinstance(cnn_model, tf.keras.Sequential)
     assert transform_flag is True
     assert cnn_model.input_shape[1:] == image_shape
     assert cnn_model.output_shape[1] == num_classes
-    assert type(prediction) == np.ndarray
+    assert isinstance(prediction, np.ndarray)
     assert check_predict_cnn_correct(model, dataset_to_validate)
