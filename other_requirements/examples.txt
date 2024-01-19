@@ -1,6 +1,6 @@
 # Other AutoMLs
 tpot == 0.12.0
-h2o == 3.42.0.1
+h2o == 3.44.0.3
 
 # Data
 openpyxl==3.0.7
