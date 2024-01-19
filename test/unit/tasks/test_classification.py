@@ -169,6 +169,7 @@ MULTICLASSIFICATION_DATA_SOURCES = [get_multiclassification_data_from_numpy,
                                     # 'from_json_files',
                                     ]
 
+
 @pytest.mark.parametrize('get_classification_data', BINARY_CLASSIFICATION_DATA_SOURCES)
 def test_binary_classification_pipeline_fit_correct(get_classification_data: Callable):
     data = get_classification_data()
