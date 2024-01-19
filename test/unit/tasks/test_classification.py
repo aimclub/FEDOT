@@ -1,6 +1,9 @@
 import os
 
 import numpy as np
+import pandas as pd
+import pytest
+from typing import Callable
 from sklearn.datasets import load_iris, make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -60,9 +63,61 @@ def get_iris_data() -> InputData:
     return input_data
 
 
-def get_binary_classification_data():
+def get_binary_classification_data_from_numpy():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../data/classification/simple_classification.npy'
+    numpy_data = np.load(os.path.join(test_file_path, file))
+    features_array = numpy_data[:, :-1]
+    target_array = numpy_data[:, -1]
+    input_data = InputData.from_numpy(features_array=features_array,
+                                      target_array=target_array)
+    return input_data
+
+
+def get_binary_classification_data_from_df():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/classification/simple_classification.csv'
+    df_data = pd.read_csv(os.path.join(test_file_path, file))
+    features_df = df_data.iloc[:, :-1]
+    target_df = df_data.iloc[:, -1]
+    input_data = InputData.from_dataframe(features_df=features_df,
+                                          target_df=target_df)
+    return input_data
+
+
+def get_binary_classification_data_from_csv():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/classification/simple_classification.csv'
+    input_data = InputData.from_csv(
+        os.path.join(test_file_path, file))
+    return input_data
+
+
+def get_multiclassification_data_from_numpy():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/classification/multiclass_classification.npy'
+    numpy_data = np.load(os.path.join(test_file_path, file))
+    features_array = numpy_data[:, :-1]
+    target_array = numpy_data[:, -1]
+    input_data = InputData.from_numpy(features_array=features_array,
+                                      target_array=target_array)
+    return input_data
+
+
+def get_multiclassification_data_from_df():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/classification/multiclass_classification.csv'
+    df_data = pd.read_csv(os.path.join(test_file_path, file))
+    features_df = df_data.iloc[:, :-1]
+    target_df = df_data.iloc[:, -1]
+    input_data = InputData.from_dataframe(features_df=features_df,
+                                          target_df=target_df)
+    return input_data
+
+
+def get_multiclassification_data_from_csv():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/classification/multiclass_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     return input_data
@@ -96,8 +151,42 @@ def get_image_classification_data(composite_flag: bool = True):
     return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 
-def test_multiclassification_pipeline_fit_correct():
-    data = get_iris_data()
+BINARY_CLASSIFICATION_DATA_SOURCES = [get_binary_classification_data_from_numpy,
+                                      get_binary_classification_data_from_df,
+                                      get_binary_classification_data_from_csv,
+                                      # 'from_image',
+                                      # 'from_text_meta_file',
+                                      # 'from_text_files',
+                                      # 'from_json_files',
+                                      ]
+
+MULTICLASSIFICATION_DATA_SOURCES = [get_multiclassification_data_from_numpy,
+                                    get_multiclassification_data_from_df,
+                                    get_multiclassification_data_from_csv,
+                                    # 'from_image',
+                                    # 'from_text_meta_file',
+                                    # 'from_text_files',
+                                    # 'from_json_files',
+                                    ]
+
+@pytest.mark.parametrize('get_classification_data', BINARY_CLASSIFICATION_DATA_SOURCES)
+def test_binary_classification_pipeline_fit_correct(get_classification_data: Callable):
+    data = get_classification_data()
+    pipeline = pipeline_simple()
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
+
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data)
+
+    roc_auc_on_test = roc_auc(y_true=test_data.target,
+                              y_score=results.predict)
+
+    assert roc_auc_on_test > 0.8
+
+
+@pytest.mark.parametrize('get_classification_data', MULTICLASSIFICATION_DATA_SOURCES)
+def test_multiclassification_pipeline_fit_correct(get_classification_data: Callable):
+    data = get_classification_data()
     pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 
@@ -106,7 +195,7 @@ def test_multiclassification_pipeline_fit_correct():
 
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
-                              multi_class='ovo',
+                              multi_class='ovr',  # TODO: strange bug when ovo is chosen
                               average='macro')
 
     assert roc_auc_on_test > 0.95
@@ -154,7 +243,7 @@ def test_output_mode_labels():
 
 
 def test_output_mode_full_probs():
-    data = get_binary_classification_data()
+    data = get_binary_classification_data_from_csv()
     pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 

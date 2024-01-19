@@ -31,7 +31,7 @@ def sample_pipeline():
 
 
 def get_classification_data():
-    file_path = fedot_project_root().joinpath('test/data/simple_classification.csv')
+    file_path = fedot_project_root().joinpath('test/data/classification/simple_classification.csv')
     input_data = InputData.from_csv(file_path, task=Task(TaskTypesEnum.classification))
     return input_data
 

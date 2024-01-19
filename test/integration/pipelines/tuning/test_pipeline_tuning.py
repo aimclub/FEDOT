@@ -40,7 +40,7 @@ def regression_dataset():
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/classification/simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
