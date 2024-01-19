@@ -1,26 +1,12 @@
-import math
-import sys
-from itertools import chain
-from multiprocessing import cpu_count
 from typing import Optional
 
 import numpy as np
-from scipy.stats import entropy
 from gph import ripser_parallel as ripser
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.point_cloud import \
-    TopologicalTransformation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.topological import \
-    HolesNumberFeature, MaxHoleLifeTimeFeature, RelevantHolesNumber, AverageHoleLifetimeFeature, \
-    SumHoleLifetimeFeature, PersistenceEntropyFeature, SimultaneousAliveHolesFeature, \
-    AveragePersistenceLandscapeFeature, BettiNumbersSumFeature, RadiusAtMaxBNFeature, PersistenceDiagramsExtractor, \
-    TopologicalFeaturesExtractor
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.window_size_selector import WindowSizeSelector, WindowSizeSelectorMethodsEnum
-from golem.utilities.utilities import determine_n_jobs
 
 
 class FastTopologicalFeaturesImplementation(DataOperationImplementation):

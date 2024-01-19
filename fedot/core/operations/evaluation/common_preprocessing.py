@@ -8,7 +8,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.fast_topological_extractor import \
+from fedot.core.operations.evaluation.operation_implementations.\
+    data_operations.topological.fast_topological_extractor import \
     FastTopologicalFeaturesImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.topological. \
     topological_extractor import TopologicalFeaturesImplementation
