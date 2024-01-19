@@ -1,24 +1,24 @@
 import logging
+from copy import deepcopy
 
 import numpy as np
 import pytest
-
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluate
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     _sparse_matrix,
     prepare_target,
     ts_to_table
 )
+from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -78,13 +78,15 @@ def get_timeseries(length=10, features_count=1,
     if random:
         features = np.random.rand(length, features_count) * 10
         features = features.ravel() if features_count == 1 else features
+        target = deepcopy(features)
     else:
         features = np.arange(0, length * features_count) * 10
+        target = np.arange(0, length * target_count) * 100
     if features_count > 1:
         features = np.reshape(features, (features_count, length)).T
         for i in range(features_count):
             features[:, i] += i
-    target = np.arange(0, length * target_count) * 100
+
     if target_count > 1:
         target = np.reshape(target, (target_count, length)).T
 
@@ -260,14 +262,14 @@ def test_lagged_node(length, features_count, target_count, window_size):
 
     assert np.all(fit_res.idx == train.idx[window_size:-forecast_length + 1])
     assert np.all(np.ravel(fit_res.features[0, :]) ==
-                  np.reshape(train.features[:window_size].T, (-1, )))
+                  np.reshape(train.features[:window_size].T, (-1,)))
     assert np.all(np.ravel(fit_res.features[-1, :]) ==
-                  np.reshape(train.features[:-forecast_length][-window_size:].T, (-1, )))
+                  np.reshape(train.features[:-forecast_length][-window_size:].T, (-1,)))
     assert np.all(fit_res.target[0, :] == train.target[window_size:window_size + forecast_length])
     assert np.all(fit_res.target[-1, :] == train.target[-forecast_length:])
 
     predict = node.predict(test)
-    assert np.all(predict.predict[-1, :] == np.reshape(test.features[-window_size:].T, (-1, )))
+    assert np.all(predict.predict[-1, :] == np.reshape(test.features[-window_size:].T, (-1,)))
 
 
 def test_lagged_window_size_selector_tune_window_by_default():
@@ -358,3 +360,28 @@ def test_tuner_correctly_work_with_window_size_selector():
     assert autotuned_window != tuner_tuned_window
     # check that WindowSizeSelector runs twice due to tuner graph copying in initialization
     assert sum(check_window_size_selector_logging(records)) == 2
+
+
+@pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
+                         [(40 + _FORECAST_LENGTH * 2, 1, 1, 10),
+                          (40 + _FORECAST_LENGTH * 2, 2, 1, 10),
+                          ])
+def test_topological_node(length, features_count, target_count, window_size):
+    data = get_timeseries(length=length, features_count=features_count, target_count=target_count, random=True)
+    train, test = train_test_data_setup(data, split_ratio=0.5)
+    forecast_length = data.task.task_params.forecast_length
+    lagged_node = PipelineNode('lagged')
+    lagged_node.parameters = {'window_size': window_size}
+    topo_input = lagged_node.fit(train)
+    topological_node = PipelineNode('topological_features')
+    fit_res = topological_node.fit(topo_input)
+    assert np.all(fit_res.idx == train.idx[window_size:-forecast_length + 1])
+    unique_rows, counts = np.unique(fit_res.predict, return_counts=True)
+    assert len(counts) != 1
+
+    topo_input = lagged_node.predict(test)
+    topo_input = InputData(idx=topo_input.idx, features=topo_input.predict, target=topo_input.target,
+                           data_type=topo_input.data_type, task=topo_input.task)
+    fit_res = topological_node.predict(topo_input)
+    unique_rows, counts = np.unique(fit_res.predict, return_counts=True)
+    assert len(counts) != 1

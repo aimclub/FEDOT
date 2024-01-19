@@ -53,8 +53,8 @@ def test_names_and_return_annotations_of_param_setters(fedot_builder_methods):
 def test_no_unexpected_method_names(fedot_builder_methods):
     methods = fedot_builder_methods
     unexpected_method_names = {func_name for func_name in methods.keys() if not (
-            func_name.startswith('setup_') or
-            func_name in ['build'])}  # add method names if needed.
+        func_name.startswith('setup_') or
+        func_name in ['build'])}  # add method names if needed.
     assert not unexpected_method_names
 
 

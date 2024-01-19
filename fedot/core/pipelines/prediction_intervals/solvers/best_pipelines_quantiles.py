@@ -10,11 +10,11 @@ from fedot.core.pipelines.prediction_intervals.utils import get_different_pipeli
 
 
 def solver_best_pipelines_quantiles(train_input: InputData,
-                           generation: List[Individual],
-                           logger: LoggerAdapter,
-                           horizon: int,
-                           number_models: Union[int, str],
-                           show_progress: bool):
+                                    generation: List[Individual],
+                                    logger: LoggerAdapter,
+                                    horizon: int,
+                                    number_models: Union[int, str],
+                                    show_progress: bool):
     """This function realizes 'best_pipelines_quantiles' method.
 
     Args:

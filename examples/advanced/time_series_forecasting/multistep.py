@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_border_line_info
+from examples.simple.time_series_forecasting.api_forecasting import TS_DATASETS
 from examples.simple.time_series_forecasting.ts_pipelines import ts_ar_pipeline
 from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
@@ -18,13 +19,6 @@ from fedot.core.utils import set_random_seed
 warnings.filterwarnings('ignore')
 
 _TS_EXAMPLES_DATA_PATH = fedot_project_root().joinpath('examples/data/ts')
-
-TS_DATASETS = {
-    'australia': _TS_EXAMPLES_DATA_PATH.joinpath('australia.csv'),
-    'beer': _TS_EXAMPLES_DATA_PATH.joinpath('beer.csv'),
-    'salaries': _TS_EXAMPLES_DATA_PATH.joinpath('salaries.csv'),
-    'stackoverflow': _TS_EXAMPLES_DATA_PATH.joinpath('stackoverflow.csv'),
-    'test_sea': fedot_project_root().joinpath('test', 'data', 'simple_sea_level.csv')}
 
 
 def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5,

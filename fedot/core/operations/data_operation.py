@@ -9,6 +9,7 @@ class DataOperation(Operation):
     Args:
         operation_type: name of the data operation
     """
+
     def __init__(self, operation_type: str):
         super().__init__(operation_type)
         self.operations_repo = OperationTypesRepository(OperationReposEnum.DATA_OPERATION)

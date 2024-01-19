@@ -55,5 +55,5 @@ def test_multi_operations_analyze_analyze(analyze_method):
                                       test_data=test_data, path_to_save=result_dir).analyze(sample_size=1)
 
     # then
-    assert type(result) is list
+    assert isinstance(result, list)
     assert analyze_method.called

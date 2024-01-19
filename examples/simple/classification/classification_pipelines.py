@@ -76,7 +76,7 @@ def classification_complex_pipeline():
     first = PipelineNode(operation_type='rf')
     second = PipelineNode(operation_type='knn')
     final = PipelineNode(operation_type='logit',
-                          nodes_from=[first, second])
+                         nodes_from=[first, second])
 
     pipeline = Pipeline(final)
 
@@ -128,8 +128,8 @@ def classification_svc_complex_pipeline():
 
     svc_node_with_custom_params = PipelineNode('svc')
     svc_node_with_custom_params.parameters = dict(kernel='rbf', C=10,
-                                                     gamma=1, cache_size=2000,
-                                                     probability=True)
+                                                  gamma=1, cache_size=2000,
+                                                  probability=True)
     logit_secondary_node_2 = PipelineNode('logit', nodes_from=[svc_node_with_custom_params])
 
     knn_primary_node = PipelineNode('knn')

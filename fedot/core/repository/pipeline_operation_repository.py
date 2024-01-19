@@ -21,6 +21,7 @@ class PipelineOperationRepository(GraphOperationRepository):
      Args:
         operations_by_keys: available operations already splitted by keys
      """
+
     def __init__(self, operations_by_keys: Optional[Dict[str, List[str]]] = None):
         super().__init__()
         self.operations_by_keys = operations_by_keys or dict()
