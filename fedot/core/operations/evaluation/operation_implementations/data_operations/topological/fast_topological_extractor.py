@@ -5,6 +5,7 @@ from multiprocessing import cpu_count
 from typing import Optional
 
 import numpy as np
+from scipy.stats import entropy
 from gph import ripser_parallel as ripser
 
 from fedot.core.data.data import InputData, OutputData
@@ -25,39 +26,21 @@ from golem.utilities.utilities import determine_n_jobs
 class FastTopologicalFeaturesImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.window_size = params.get('window_size')
         self.points_count = params.get('points_count')
         self.max_homology_dimension = 1
-        self.shapes = None
+        self.feature_funs = (lambda x: np.quantile(x, (0.1, 0.25, 0.5, 0.75, 0.9)), )
+        self.shape = None
 
     def fit(self, input_data: InputData):
         if self.points_count == 0:
             self.points_count = int(input_data.features.shape[1] * 0.33)
-
-        self.shapes = None
-
+        self.shape = sum(map(len, [fun(np.zeros((10, ))) for fun in self.feature_funs]))
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
         topological_features = [self._extract_features(self._slice_by_window(data, self.points_count))
                                 for data in input_data.features]
-
-        if self.shapes is None:
-            self.shapes = [max(x[dim].shape[0] for x in topological_features)
-                           for dim in range(self.max_homology_dimension + 1)]
-
-        features = list()
-        for dim in range(self.max_homology_dimension + 1):
-            _features = np.zeros((len(topological_features), self.shapes[dim]))
-            for topo_features_num, topo_features in enumerate(topological_features):
-                if len(topo_features[dim]) > 0:
-                    x = topo_features[dim][:, 1] - topo_features[dim][:, 0]
-                    _features[topo_features_num, :len(x)] = x
-            features.append(_features)
-        features = np.concatenate(features, axis=1)
-        features[np.isinf(features) | (features < 0)] = 0
-
-        return features
+        return np.array(topological_features)
 
     def _extract_features(self, x):
         x_processed = ripser(x,
@@ -66,7 +49,15 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
                              metric='euclidean',
                              n_threads=1,
                              collapse_edges=False)["dgms"]
-        return x_processed
+        result = list()
+        for xp in x_processed:
+            if xp.shape[0] > 0:
+                xp = xp[:, 1] - xp[:, 0]
+                for fun in self.feature_funs:
+                    result.append(fun(xp))
+            else:
+                result.append(np.zeros(self.shape))
+        return np.concatenate(result)
 
     def _slice_by_window(self, data, window):
         return [data[i:window + i] for i in range(data.shape[0] - window + 1)]
