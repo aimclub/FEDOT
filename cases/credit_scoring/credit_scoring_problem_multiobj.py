@@ -1,5 +1,6 @@
 import datetime
 
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
@@ -46,7 +47,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='model')
+    available_model_types = get_operations_for_task(task=task, operation_repo=OperationReposEnum.MODEL)
 
     # the choice of the metric for the pipeline quality assessment during composition
     quality_metric = ClassificationMetricsEnum.ROCAUC

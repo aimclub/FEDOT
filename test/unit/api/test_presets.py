@@ -53,7 +53,7 @@ def test_presets_regression():
 def test_presets_time_series():
     task = Task(TaskTypesEnum.ts_forecasting)
 
-    ts_operations = get_operations_for_task(task=task, mode='all')
+    ts_operations = get_operations_for_task(task=task, operation_repo=OperationReposEnum.ALL)
 
     preset_best_quality = OperationsPreset(task=task, preset_name=PresetsEnum.BEST_QUALITY)
     operations_for_best_quality = preset_best_quality.filter_operations_by_preset()

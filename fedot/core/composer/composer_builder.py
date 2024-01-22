@@ -3,6 +3,7 @@ from multiprocessing import set_start_method
 from pathlib import Path
 from typing import List, Optional, Sequence, Type, Union
 
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
@@ -105,7 +106,7 @@ class ComposerBuilder:
     @staticmethod
     def _get_default_composer_params(task: Task) -> PipelineComposerRequirements:
         # Get all available operations for task
-        operations = get_operations_for_task(task=task, mode='all')
+        operations = get_operations_for_task(task=task, operation_repo=OperationReposEnum.ALL)
         return PipelineComposerRequirements(primary=operations, secondary=operations)
 
     def _get_default_graph_generation_params(self) -> GraphGenerationParams:

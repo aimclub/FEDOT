@@ -274,7 +274,8 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
     Validation perform only for classification pipelines.
     """
 
-    classification_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification), mode='all')
+    classification_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification),
+                                                        operation_repo=OperationReposEnum.ALL)
     pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
     pipeline_operations = set(pipeline_operations)
 
@@ -303,7 +304,8 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
     if 'class_decompose' not in pipeline_operations:
         return True
 
-    regression_operations = get_operations_for_task(task=Task(TaskTypesEnum.regression), mode='all')
+    regression_operations = get_operations_for_task(task=Task(TaskTypesEnum.regression),
+                                                    operation_repo=OperationReposEnum.ALL)
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:

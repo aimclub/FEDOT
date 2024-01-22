@@ -1,6 +1,7 @@
 from os import makedirs
 from os.path import exists, join
 
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -21,7 +22,7 @@ from fedot.structural_analysis.nodes_sensitivity import NodesAnalysis
 
 def get_composed_pipeline(dataset_to_compose, task, metric_function):
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='model')
+    available_model_types = get_operations_for_task(task=task, operation_repo=OperationReposEnum.MODEL)
 
     # the choice and initialisation of the GP search
     composer_requirements = PipelineComposerRequirements(
