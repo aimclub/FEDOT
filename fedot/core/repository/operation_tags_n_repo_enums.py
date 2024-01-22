@@ -11,7 +11,8 @@ ModelTagsEnum = TagsEnum('ModelTagsEnum', ('linear', 'non_linear', 'custom_model
 DataOperationTagsEnum = TagsEnum('DataOperationTagsEnum', ('data_source', 'feature_scaling', 'imputation', 'feature_reduction',
                                                            'feature_engineering', 'encoding', 'filtering', 'feature_selection',
                                                            'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced',
-                                                           'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'))
+                                                           'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts',
+                                                           'feature_space_transformation'))
 ComplexityTags = TagsEnum('TimeTags', ('expensive', 'simple', 'unstable'))
 OtherTagsEnum = TagsEnum('OtherTagsEnum', ('sklearn', 'ml', 'no_prob', 'new_data_refit', 'neural', 'discriminant', 'quadratic',
                                            'time_series', 'correct_params', 'composition', 'custom',
