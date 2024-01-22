@@ -10,9 +10,10 @@ class OperationFactory:
 
     def __init__(self, operation_name: str):
         self.operation_name = operation_name
-        self.operation_type = (OperationTypesRepository(OperationReposEnum.ALL)
-                               .operation_info_by_id(self.operation_name)
-                               .operation_types_repository)
+        operation = OperationTypesRepository(OperationReposEnum.ALL).operation_info_by_id(self.operation_name)
+        if operation is None:
+            raise ValueError(f"Unknown operation {self.operation_name}")
+        self.operation_type = operation.operation_types_repository
 
     def get_operation(self) -> Operation:
         """ Factory method returns the desired object which depends on model_type variable """
