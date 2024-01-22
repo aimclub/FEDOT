@@ -20,7 +20,11 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
     def fit(self, input_data: InputData):
         if self.points_count == 0:
             self.points_count = int(input_data.features.shape[1] * 0.33)
-        self.shape = sum(map(len, [fun(np.zeros((10, ))) for fun in self.feature_funs]))
+
+        # define shape of features after transforming on the one data sample
+        sample = input_data.features[0, :].ravel()
+        features = np.concatenate([fun(sample) for fun in self.feature_funs])
+        self.shape = features.shape[0]
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
