@@ -11,7 +11,7 @@
 				"DataSourceStrategy"
 			],
 			"tags": [
-        "non-default",
+        "non_default",
         "data_source"
 			],
 			"description": "Implementations of data sources in multi-modal pipelines"
