@@ -29,7 +29,7 @@ class OperationTypesRepository:
         if operation_type is None:
             operation_type = OperationReposEnum.MODEL
         elif not isinstance(operation_type, OperationReposEnum):
-            raise ValueError('Unknown type of repository_type')
+            raise ValueError(f"Repository name should be OperationReposEnum, get {type(operation_type)} instead")
         
         self.log = default_log(self)
         self.operation_type = operation_type
