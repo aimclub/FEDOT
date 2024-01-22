@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
+
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.log import default_log
 from golem.core.optimisers.timer import Timer
@@ -359,7 +361,8 @@ class PipelineNode(LinkedGraphNode):
             # There are no tags for atomized operation
             return []
 
-        info = OperationTypesRepository(operation_type='all').operation_info_by_id(self.operation.operation_type)
+        info = (OperationTypesRepository(operation_type=OperationReposEnum.ALL)
+                .operation_info_by_id(self.operation.operation_type))
         if info is not None:
             return info.tags
 
