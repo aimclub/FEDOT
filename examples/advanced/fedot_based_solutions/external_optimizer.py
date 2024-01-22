@@ -1,5 +1,6 @@
 import logging
 
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.random.random_mutation_optimizer import RandomMutationSearchOptimizer
 
 from fedot import Fedot
@@ -14,7 +15,7 @@ def run_with_random_search_composer():
                        'optimizer': RandomMutationSearchOptimizer}
 
     automl = Fedot(problem='classification', timeout=1, logging_level=logging.FATAL,
-                   preset='fast_train', **composer_params)
+                   preset=PresetsEnum.FAST_TRAIN, **composer_params)
 
     automl.fit(train_data_path)
     automl.predict(test_data_path)

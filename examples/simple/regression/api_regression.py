@@ -1,6 +1,7 @@
 import logging
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -8,7 +9,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_regression_example(visualise: bool = False, with_tuning: bool = True,
-                           timeout: float = 2., preset: str = 'auto'):
+                           timeout: float = 2., preset: PresetsEnum = PresetsEnum.AUTO):
     data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,

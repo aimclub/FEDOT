@@ -1,4 +1,5 @@
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed
@@ -56,7 +57,7 @@ def run_automl(data: MultiModalData, features_to_use,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'preset': 'fast_train',
+                       'preset': PresetsEnum.FAST_TRAIN,
                        'metric': 'rmse',
                        'cv_folds': None}
 

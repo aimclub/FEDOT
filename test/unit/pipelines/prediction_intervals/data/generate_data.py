@@ -6,6 +6,7 @@ import pickle
 
 from numpy import genfromtxt
 
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.data.data import InputData
 from fedot import Fedot
@@ -29,8 +30,7 @@ train_input = InputData(idx=idx,
 
 model = Fedot(problem='ts_forecasting',
               task_params=task.task_params,
-              timeout=3,
-              preset='ts')
+              timeout=3)
 model.fit(train_input)
 model.forecast()
 

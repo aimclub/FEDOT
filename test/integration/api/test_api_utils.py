@@ -7,6 +7,7 @@ from examples.simple.classification.classification_pipelines import (classificat
                                                                      classification_pipeline_without_balancing)
 from fedot import Fedot
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -21,7 +22,7 @@ def test_compose_fedot_model_without_tuning():
     task_type = 'classification'
     train_input, _, _ = get_dataset(task_type=task_type)
 
-    model = Fedot(problem=task_type, timeout=0.1, preset='fast_train', with_tuning=True)
+    model = Fedot(problem=task_type, timeout=0.1, preset=PresetsEnum.FAST_TRAIN, with_tuning=True)
     model.fit(train_input)
 
     assert not model.api_composer.was_tuned

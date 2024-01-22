@@ -4,6 +4,7 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -28,7 +29,7 @@ def get_simple_composer_params() -> dict:
               'pop_size': 2,
               'num_of_generations': 2,
               'with_tuning': True,
-              'preset': 'fast_train',
+              'preset': PresetsEnum.FAST_TRAIN,
               'show_progress': False}
     return params
 

@@ -5,6 +5,8 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.dag.graph_utils import graph_structure
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import LabelEncoder
@@ -21,7 +23,7 @@ from test.unit.tasks.test_multi_ts_forecast import get_multi_ts_data
 
 TESTS_MAIN_API_DEFAULT_PARAMS = {
     'timeout': 0.5,
-    'preset': 'fast_train',
+    'preset': PresetsEnum.FAST_TRAIN,
     'max_depth': 1,
     'max_arity': 2,
 }
@@ -36,7 +38,7 @@ def test_api_predict_correct(task_type, metric_name):
     changed_api_params = {
         **TESTS_MAIN_API_DEFAULT_PARAMS,
         'timeout': 1,
-        'preset': 'fast_train'
+        'preset': PresetsEnum.FAST_TRAIN
     }
     model = Fedot(problem=task_type, metric=metric_name, **changed_api_params)
     fedot_model = model.fit(features=train_data)

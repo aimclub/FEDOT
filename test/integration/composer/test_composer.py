@@ -4,6 +4,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
@@ -311,7 +313,7 @@ def test_gp_composer_early_stopping():
                   early_stopping_iterations=1,
                   pop_size=2,
                   with_tuning=False,
-                  preset='fast_train')
+                  preset=PresetsEnum.FAST_TRAIN)
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start
 

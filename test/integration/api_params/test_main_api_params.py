@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Callable, Union
 
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
@@ -53,7 +55,7 @@ def test_timeout(case: TimeoutParams):
     }
 
     task_type = 'ts_forecasting'
-    fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
+    fedot_input = {'problem': task_type, 'seed': 42, 'preset': PresetsEnum.FAST_TRAIN,
                    'logging_level': logging.DEBUG,
                    'timeout': case.test_input['timeout'],
                    'task_params': TsForecastingParams(forecast_length=1),

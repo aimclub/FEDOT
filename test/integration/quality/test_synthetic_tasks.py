@@ -5,6 +5,7 @@ from functools import partial
 from sklearn.metrics import mean_squared_error
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -85,7 +86,7 @@ def test_synthetic_regression_automl():
                                              'pca',
                                              'ridge',
                                              'linear'],
-                       preset='best_quality',
+                       preset=PresetsEnum.BEST_QUALITY,
                        with_tuning=False)
     auto_model.fit(train_data)
 

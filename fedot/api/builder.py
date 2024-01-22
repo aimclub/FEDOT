@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence, Type, Union
 
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.api.main import Fedot
@@ -74,7 +75,7 @@ class FedotBuilder:
             timeout: Optional[float] = DEFAULT_VALUE,
             task_params: TaskParams = DEFAULT_VALUE,
             seed: int = DEFAULT_VALUE,
-            preset: str = DEFAULT_VALUE,
+            preset: PresetsEnum = DEFAULT_VALUE,
             with_tuning: bool = DEFAULT_VALUE,
             use_meta_rules: bool = DEFAULT_VALUE,
     ) -> FedotBuilder:

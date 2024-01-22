@@ -2,6 +2,8 @@ import logging
 from datetime import timedelta
 
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot import Fedot
@@ -82,7 +84,7 @@ def test_cv_api_correct():
                        'max_arity': 2,
                        'pop_size': 3,
                        'num_of_generations': 1,
-                       'preset': 'fast_train',
+                       'preset': PresetsEnum.FAST_TRAIN,
                        'cv_folds': 2,
                        'show_progress': False,
                        'timeout': 0.3}

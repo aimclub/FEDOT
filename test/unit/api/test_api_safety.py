@@ -3,6 +3,7 @@ import numpy as np
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -90,7 +91,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     Test if safe mode in API cut large data and use LabelEncoder for features with high cardinality
     """
     model = Fedot(problem='classification',
-                  preset='fast_train',
+                  preset=PresetsEnum.FAST_TRAIN,
                   safe_mode=True)
     model.data_analyser.max_cat_cardinality = 5
     model.data_analyser.max_size = 18

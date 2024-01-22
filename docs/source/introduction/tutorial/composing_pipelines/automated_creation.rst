@@ -18,7 +18,7 @@ Automated way
 
    # build model
    auto_model = Fedot(
-      problem='classification', timeout=timeout, preset='fast_train', 
+      problem='classification', timeout=timeout, preset=PresetsEnum.FAST_TRAIN,
       with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
       seed=42
    )

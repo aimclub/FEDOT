@@ -5,6 +5,8 @@ from functools import reduce
 from typing import Optional
 
 import pandas as pd
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from matplotlib import cm, colors, pyplot as plt
 
@@ -47,7 +49,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             start_time = timeit.default_timer()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout,
                                n_jobs=_n_jobs, logging_level=logging.FATAL,
-                               with_tuning=False, preset='fast_train')
+                               with_tuning=False, preset=PresetsEnum.FAST_TRAIN)
             auto_model.fit(features=train_data_tmp, target='target')
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
             c_pipelines = _count_pipelines(auto_model.history)

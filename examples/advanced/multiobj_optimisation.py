@@ -1,6 +1,7 @@
 import pandas as pd
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed
 
@@ -13,7 +14,7 @@ def run_classification_multiobj_example(visualization=False, timeout=1, with_tun
     problem = 'classification'
 
     metric_names = ['f1', 'node_number']
-    auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality',
+    auto_model = Fedot(problem=problem, timeout=timeout, preset=PresetsEnum.BEST_QUALITY,
                        metric=metric_names,
                        with_tuning=with_tuning)
     auto_model.fit(features=train_data, target='class')

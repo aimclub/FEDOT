@@ -1,4 +1,5 @@
 from fedot import FedotBuilder
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import fedot_project_root
 
 
@@ -6,7 +7,7 @@ if __name__ == '__main__':
     SEED = 42
 
     builder = (FedotBuilder('ts_forecasting')
-               .setup_composition(preset='fast_train', timeout=0.5, with_tuning=True, seed=SEED)
+               .setup_composition(preset=PresetsEnum.FAST_TRAIN, timeout=0.5, with_tuning=True, seed=SEED)
                .setup_evolution(num_of_generations=3)
                .setup_pipeline_evaluation(metric='mae'))
 

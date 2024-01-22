@@ -5,6 +5,7 @@ from sklearn.datasets import make_moons
 
 from examples.simple.classification.classification_pipelines import classification_svc_complex_pipeline
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -24,7 +25,7 @@ def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str
     problem = 'classification'
 
     if mode == 'gpu':
-        baseline_model = Fedot(problem=problem, preset='gpu')
+        baseline_model = Fedot(problem=problem, preset=PresetsEnum.GPU)
     else:
         baseline_model = Fedot(problem=problem)
     svc_node_with_custom_params = PipelineNode('svc')

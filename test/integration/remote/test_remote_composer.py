@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
@@ -47,7 +48,7 @@ def test_pseudo_remote_composer_classification():
         'pop_size': 3,
         'cv_folds': None,
         'with_tuning': False,
-        'preset': 'fast_train',
+        'preset': PresetsEnum.FAST_TRAIN,
         'show_progress': False
     }
 
@@ -95,7 +96,7 @@ def test_pseudo_remote_composer_ts_forecasting():
         'show_progress': False
     }
 
-    preset = 'best_quality'
+    preset = PresetsEnum.BEST_QUALITY
     automl = Fedot(problem='ts_forecasting', timeout=0.2, task_params=TsForecastingParams(forecast_length=1),
                    preset=preset, **composer_params)
 
