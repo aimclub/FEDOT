@@ -26,16 +26,16 @@ def get_pipelines():
         .add_sequence('logit', 'logit', 'logit') \
         .build()
     branching_structure = PipelineBuilder() \
-        .add_node('operation_a') \
-        .add_branch('operation_a', 'operation_f') \
-        .join_branches('operation_f') \
+        .add_node('logit') \
+        .add_branch('logit', 'logit') \
+        .join_branches('logit') \
         .build()
     branching_structure2 = PipelineBuilder() \
-        .add_node('operation_a') \
-        .add_branch('operation_b', 'operation_c') \
-        .grow_branches('operation_d', None) \
-        .join_branches('operation_f') \
-        .add_node('operation_a') \
+        .add_node('logit') \
+        .add_branch('logit', 'logit') \
+        .grow_branches('logit', None) \
+        .join_branches('logit') \
+        .add_node('logit') \
         .build()
     node_a = PipelineNode('logit')
     node_b = PipelineNode('logit', nodes_from=[node_a])
@@ -171,7 +171,7 @@ def test_changes_to_transformed_dont_affect_origin(pipeline):
     assert pipeline.descriptive_id == opt_graph.descriptive_id
 
     changed_node = choice(opt_graph.nodes)
-    changed_node.content['name'] = 'another_operation'
+    changed_node.content['name'] = 'linear'
     changed_node.content['params'].update({'new_hyperparam': 39})
 
     # assert that changes to the adapted pipeline don't affect original graph
@@ -185,7 +185,7 @@ def test_changes_to_transformed_dont_affect_origin(pipeline):
     assert opt_graph.descriptive_id == restored_pipeline.descriptive_id
 
     changed_node = choice(restored_pipeline.nodes)
-    changed_node.content['name'] = Operation('yet_another_operation')
+    changed_node.content['name'] = Operation('ridge')
     changed_node.content['params'].update({'new_hyperparam': 4242})
 
     # assert that changes to the restored graph don't affect original graph
