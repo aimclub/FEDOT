@@ -5,12 +5,13 @@ from typing import Tuple, Optional
 
 import numpy as np
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.log import default_log
 from sklearn.datasets import make_classification
 from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
 from sklearn.preprocessing import MinMaxScaler
 
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -530,7 +531,7 @@ def test_operations_are_fast():
             reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
 
     for operation in OperationTypesRepository('all')._repo:
-        if (operation.id not in to_skip and operation.presets and FAST_TRAIN_PRESET_NAME in operation.presets):
+        if (operation.id not in to_skip and operation.presets and PresetsEnum.FAST_TRAIN in operation.presets):
             for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
                 # if attempt is successful then stop

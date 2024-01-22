@@ -1,7 +1,6 @@
 from fedot import Fedot
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
+from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
@@ -99,7 +98,7 @@ def test_auto_preset_converted_correctly():
                         initial_assumption=simple_init_assumption, pop_size=large_pop_size, with_tuning=False)
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
-    assert fedot_model.params.get('preset') == FAST_TRAIN_PRESET_NAME
+    assert fedot_model.params.get('preset') == PresetsEnum.FAST_TRAIN
 
 
 def test_gpu_preset():
