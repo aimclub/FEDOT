@@ -162,7 +162,9 @@
     "n_jobs": -1
   },
   "fast_topological_features": {
-    "window_size": 0,
-    "points_count": 0
+    "n_jobs": 1,
+    "points_count": 0,
+    "max_homology_dimension": 1,
+    "metric": "euclidean"
   }
 }

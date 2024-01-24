@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 from gph import ripser_parallel as ripser
+from joblib import Parallel, delayed
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
@@ -13,9 +14,11 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.points_count = params.get('points_count')
-        self.max_homology_dimension = 1
+        self.max_homology_dimension = params.get('max_homology_dimension')
+        self.metric = params.get('metric')
+        self.n_jobs = params.get('n_jobs')
         self.feature_funs = (lambda x: np.quantile(x, (0.1, 0.25, 0.5, 0.75, 0.9)), )
-        self.shape = None
+        self._shape = None
 
     def fit(self, input_data: InputData):
         if self.points_count == 0:
@@ -24,19 +27,21 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
         # define shape of features after transforming on the one data sample
         sample = input_data.features[0, :].ravel()
         features = np.concatenate([fun(sample) for fun in self.feature_funs])
-        self.shape = features.shape[0]
+        self._shape = features.shape[0]
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
-        topological_features = [self._extract_features(self._slice_by_window(data, self.points_count))
-                                for data in input_data.features]
+        with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
+            topological_features = parallel(delayed(self._extract_features)(data)
+                                            for data in input_data.features)
         return np.array(topological_features)
 
     def _extract_features(self, x):
-        x_processed = ripser(x,
+        x_sliced = [x[i:self.points_count + i] for i in range(x.shape[0] - self.points_count + 1)]
+        x_processed = ripser(x_sliced,
                              maxdim=self.max_homology_dimension,
                              coeff=2,
-                             metric='euclidean',
+                             metric=self.metric,
                              n_threads=1,
                              collapse_edges=False)["dgms"]
         result = list()
@@ -46,8 +51,5 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
                 for fun in self.feature_funs:
                     result.append(fun(xp))
             else:
-                result.append(np.zeros(self.shape))
+                result.append(np.zeros(self._shape))
         return np.concatenate(result)
-
-    def _slice_by_window(self, data, window):
-        return [data[i:window + i] for i in range(data.shape[0] - window + 1)]
