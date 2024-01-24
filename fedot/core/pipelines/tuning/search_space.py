@@ -768,6 +768,22 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.9, 0.99],
                     'type': 'continuous'}
             },
+            'fast_topological_features': {
+                'window_size_as_share': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.1, 0.9],
+                    'type': 'continuous'
+                },
+                'max_homology_dimension': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 5],
+                    'type': 'discrete'
+                },
+                'metric': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['euclidean', 'manhattan', 'cosine']],
+                    'type': 'categorical'}
+            }
         }
 
         if self.custom_search_space is not None:

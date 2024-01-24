@@ -13,16 +13,19 @@ from fedot.core.operations.operation_parameters import OperationParameters
 class FastTopologicalFeaturesImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.points_count = params.get('points_count')
+        self.window_size_as_share = params.get('window_size_as_share')
         self.max_homology_dimension = params.get('max_homology_dimension')
         self.metric = params.get('metric')
         self.n_jobs = params.get('n_jobs')
         self.feature_funs = (lambda x: np.quantile(x, (0.1, 0.25, 0.5, 0.75, 0.9)), )
         self._shape = None
+        self._window_size = None
 
     def fit(self, input_data: InputData):
-        if self.points_count == 0:
-            self.points_count = int(input_data.features.shape[1] * 0.33)
+        if self._window_size is None:
+            self._window_size = int(input_data.features.shape[1] * self.window_size_as_share)
+            self._window_size = max(self._window_size, 2)
+            self._window_size = min(self._window_size, input_data.features.shape[1] - 2)
 
         # define shape of features after transforming on the one data sample
         sample = input_data.features[0, :].ravel()
@@ -37,7 +40,7 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
         return np.array(topological_features)
 
     def _extract_features(self, x):
-        x_sliced = [x[i:self.points_count + i] for i in range(x.shape[0] - self.points_count + 1)]
+        x_sliced = [x[i:self._window_size + i] for i in range(x.shape[0] - self._window_size + 1)]
         x_processed = ripser(x_sliced,
                              maxdim=self.max_homology_dimension,
                              coeff=2,
