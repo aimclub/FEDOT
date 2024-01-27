@@ -65,9 +65,9 @@ class TSForecastingAssumptions(TaskAssumptions):
             .add_branch('polyfit', 'lagged')
             .grow_branches(None, 'ridge')
             .join_branches('ridge'),
-            'topo_ica_ridge':
+            'topo_ridge':
                 PipelineBuilder()
-            .add_sequence('lagged', 'fast_topological_features', 'fast_ica', 'ridge'),
+            .add_sequence('lagged', 'fast_topological_features', 'ridge'),
             'smoothing_ar':
                 PipelineBuilder()
             .add_sequence('smoothing', 'ar'),
