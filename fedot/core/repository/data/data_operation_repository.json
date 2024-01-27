@@ -266,8 +266,7 @@
     "fast_topological_features": {
       "meta": "custom_ts_preprocessing",
       "presets": [
-        "ts",
-        "fast_train"
+        "ts"
       ],
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
