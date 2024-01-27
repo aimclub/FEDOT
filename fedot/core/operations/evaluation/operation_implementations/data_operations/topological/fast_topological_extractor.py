@@ -16,6 +16,7 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
         self.window_size_as_share = params.get('window_size_as_share')
         self.max_homology_dimension = params.get('max_homology_dimension')
         self.metric = params.get('metric')
+        self.stride = params.get('stride')
         self.n_jobs = params.get('n_jobs')
         self.quantiles = (0.1, 0.25, 0.5, 0.75, 0.9)
         self._shape = len(self.quantiles)
@@ -29,7 +30,7 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
 
     def transform(self, input_data: InputData) -> OutputData:
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
-            topological_features = parallel(delayed(self._extract_features)(data)
+            topological_features = parallel(delayed(self._extract_features)(data[::self.stride])
                                             for data in input_data.features)
         result = np.array(topological_features)
         np.nan_to_num(result, copy=False, nan=0, posinf=0, neginf=0)
