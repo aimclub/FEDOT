@@ -54,16 +54,16 @@ def get_data_for_testing(task_type, data_type, length=100, features_count=1,
         return None
 
     if task_type is TaskTypesEnum.ts_forecasting:
-        task = Task(task_type, TsForecastingParams(max(length // 10, 2)))
+        forecast_length = max(length // 10, 2)
+        task = Task(task_type, TsForecastingParams(forecast_length))
         if data_type is DataTypesEnum.ts:
             features = np.zeros(length) + value
         else:
             features = np.zeros((length, features_count)) + value
         if data_type is DataTypesEnum.table:
-            target = np.zeros(length) + value
+            target = np.zeros((length, forecast_length)) + value
         else:
             target = features
-
     else:
         task = Task(task_type)
         data_type = DataTypesEnum.table
@@ -156,11 +156,15 @@ def get_operation_perfomance(operation: OperationMetaInfo,
         return perf_counter() - start_time
 
     for task_type in operation.task_type:
-        for data_type in operation.input_types:
+        input_types = operation.input_types
+        if task_type is TaskTypesEnum.ts_forecasting:
+            if operation.input_types == [DataTypesEnum.table]:
+                input_types = [DataTypesEnum.ts]
+        for data_type in input_types:
             perfomance_values = []
             for length in data_lengths:
                 data = get_data_for_testing(task_type, data_type,
-                                            length=length, features_count=2,
+                                            length=length, features_count=10,
                                             random=True)
                 if data is not None:
                     min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
