@@ -107,7 +107,7 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `label_encoding`,`sklearn.preprocessing.LabelEncoder`,`fast_train` `*tree`
    `resample`,`FEDOT model using sklearn.utils.resample`,
    `topological_features`,FEDOT model,`ts`,
-   `fast_topological_features`,FEDOT model,`ts`
+   `fast_topological_features`,FEDOT model,`ts` `fast_train`
 
 
 Models used
