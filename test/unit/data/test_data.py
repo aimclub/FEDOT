@@ -189,7 +189,7 @@ def test_data_convert_dt_indexes_correct():
     old_train_pred_data_idx = copy(train_pred_data.idx)
     old_test_data_idx = copy(test_data.idx)
     # pipeline object need to save last_fit_idx
-    dummy_pipeline = Pipeline(PipelineNode("сut"))
+    dummy_pipeline = Pipeline(PipelineNode('cut'))
     train_data = train_data.convert_non_int_indexes_for_fit(dummy_pipeline)
     train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(dummy_pipeline)
     test_data = test_data.convert_non_int_indexes_for_predict(dummy_pipeline)
