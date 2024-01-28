@@ -31,7 +31,7 @@ train_input = InputData(idx=idx,
 model = Fedot(problem='ts_forecasting',
               task_params=task.task_params,
               with_tuning=False,
-              timeout=1)
+              timeout=3)
 model.fit(train_input)
 model.forecast()
 
