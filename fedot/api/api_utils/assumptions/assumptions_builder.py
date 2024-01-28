@@ -108,7 +108,9 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         super().__init__(data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
+            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(data=self.data,
+                                                                              repository_name=repository_name,
+                                                                              data_type=data_type)))
         self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(_subbuilders)
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
