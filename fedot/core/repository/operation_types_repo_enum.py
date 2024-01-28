@@ -63,8 +63,7 @@ class RepositoryFile:
 
     def __init__(self,
                  name: str,
-                 file: Optional[str] = None,
-                 tags: Optional[Enum] = None):
+                 file: Optional[str] = None):
         self.name = name
         self.file = Path(__file__).parent / 'data' / (file or f"{name}.json")
         self._repo = None
@@ -72,13 +71,15 @@ class RepositoryFile:
     def __str__(self) -> str:
         return self.name
     
-    def __deepcopy__(self, memo = None):
+    def __deepcopy__(self, memo=None):
         return self
+
+    def __hash__(self):
+        return (''.join(map(lambda x: x.id, self.repo))).__hash__()
 
     @property
     def tags(self) -> List[TagsEnum]:
         return list(set(chain(*[operation.tags for operation in self.repo])))
-
     
     @property
     def repo(self) -> List[OperationMetaInfo]:
@@ -88,19 +89,21 @@ class RepositoryFile:
 
 
 class _OperationRepoFilesEnum(Enum):
-    # order - priority for operation search
-    MODEL = RepositoryFile(name='model_repository', tags=ModelTagsEnum)
-    GPU = RepositoryFile(name='gpu_models_repository', tags=ModelTagsEnum)
-    DATA_OPERATION = RepositoryFile(name='data_operation_repository', tags=DataOperationTagsEnum)
-    AUTOML = RepositoryFile(name='automl_repository')
+    MODEL = 'model_repository'
+    GPU = 'gpu_models_repository'
+    DATA_OPERATION = 'data_operation_repository'
+    AUTOML = 'automl_repository'
     
     @property
     def tags(self):
-        return self.value.tags
+        return REPOSITORY_BASE[self.value].tags
     
     @property
     def repo(self):
-        return self.value.repo
+        return REPOSITORY_BASE[self.value].repo
+
+
+REPOSITORY_BASE = {repo.value: RepositoryFile(name=repo.value) for repo in _OperationRepoFilesEnum}
 
 
 class OperationReposEnum(Enum):
@@ -140,6 +143,10 @@ def _initialise_repo(file: Path, repo_name: str) -> None:
 
         operations_list = []
         enum_tags = {tag.name: tag for tag in chain(*ALL_TAGS)}  # map from str tag to enum tag
+
+        repo_map = {repo.value: next(crepo for crepo in OperationReposEnum
+                                     if len(crepo.value) == 1 and crepo.value[0].value == repo.value)
+                    for repo in _OperationRepoFilesEnum}
         for current_operation_key in operations_json:
             # Get information about operation
             # properties - information about operation by key, for example tags
@@ -176,15 +183,6 @@ def _initialise_repo(file: Path, repo_name: str) -> None:
             if forbidden_node_types:
                 allowed_positions = [pos for pos in allowed_positions if
                                      pos not in forbidden_node_types]
-            
-            # Repository
-            repo = [repo for repo in OperationReposEnum
-                    if len(repo.value) == 1
-                       and repo.name == repo.value[0].name
-                       and repo.value[0].value.name == repo_name]
-            if len(repo) != 1:
-                raise ValueError('Cant find repository')
-            repo = repo[0]
 
             operation = OperationMetaInfo(id=current_operation_key,
                                           input_types=input_type,
@@ -194,7 +192,7 @@ def _initialise_repo(file: Path, repo_name: str) -> None:
                                           allowed_positions=allowed_positions,
                                           tags=tags,
                                           presets=presets,
-                                          operation_types_repository=repo,
+                                          operation_types_repository=repo_map[repo_name],
                                           )
             operations_list.append(operation)
         return operations_list
