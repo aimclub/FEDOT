@@ -2,15 +2,14 @@ from fedot.core.operations.automl import AutoML
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
-from fedot.core.repository.operation_types_repository import OperationReposEnum, OperationTypesRepository, \
-    get_operation_type_from_id
+from fedot.core.repository.operation_types_repository import OperationReposEnum, OperationTypesRepository
 
 
 class OperationFactory:
     """ Base class for determining what type of operations should be defined in the node """
 
     def __init__(self, operation_name: str):
-        self.operation_name = get_operation_type_from_id(operation_name)
+        self.operation_name = operation_name
         operation = OperationTypesRepository(OperationReposEnum.ALL).operation_info_by_id(self.operation_name)
         if operation is None:
             raise ValueError(f"Unknown operation {self.operation_name}")
