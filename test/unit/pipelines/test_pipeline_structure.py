@@ -16,8 +16,10 @@ def test_correct_pipeline_encoder_imputer_validation():
     root = PipelineNode('linear', nodes_from=[fourth_imputer])
     pipeline = Pipeline(root)
 
-    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check=DataOperationTagsEnum.encoding)
-    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check=DataOperationTagsEnum.imputation)
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                          tag_to_check=DataOperationTagsEnum.encoding)
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                         tag_to_check=DataOperationTagsEnum.imputation)
 
     assert encoding_correct is True
     assert imputer_correct is True
@@ -40,8 +42,10 @@ def test_non_correct_pipeline_encoder_imputer_validation():
     root = PipelineNode('linear', nodes_from=[second_rfr, third_imputer, second_encoder])
     pipeline = Pipeline(root)
 
-    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                          tag_to_check=DataOperationTagsEnum.encoding)
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                         tag_to_check=DataOperationTagsEnum.imputation)
 
     assert encoding_correct is False
     assert imputer_correct is False
