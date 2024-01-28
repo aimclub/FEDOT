@@ -74,6 +74,11 @@ class RepositoryFile:
     
     def __deepcopy__(self, memo = None):
         return self
+
+    @property
+    def tags(self) -> List[TagsEnum]:
+        return list(set(chain(*[operation.tags for operation in self.repo])))
+
     
     @property
     def repo(self) -> List[OperationMetaInfo]:
