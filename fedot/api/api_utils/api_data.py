@@ -4,9 +4,6 @@ from typing import Dict, Union
 from typing import Optional
 
 import numpy as np
-
-from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.log import default_log
 
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
@@ -129,24 +126,9 @@ class ApiDataProcessor:
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
-            if 'label_encoded' in recommendations:
-                self.log.info("Change preset due to label encoding")
-                self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
-
-            # update api params with recommendations obtained using meta rules
-            for key in recommendations:
-                self.update({key: recommendations[key]})
-
-    def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
-        """ Change preset on tree like preset, if data had been label encoded """
-        if 'preset' in self:
-            preset_name = ''.join((self['preset'], '*tree'))
-        else:
-            preset_name = '*tree'
-        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
-
-        self.pop('available_operations', None)
-        self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
+            for name, rec in recommendations.items():
+                # Apply desired preprocessing function
+                self._recommendations[name](input_data, *rec.values())
 
     def fit_transform(self, train_data: InputData) -> InputData:
         start_time = datetime.now()
