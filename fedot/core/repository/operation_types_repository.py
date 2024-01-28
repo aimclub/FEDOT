@@ -162,7 +162,7 @@ def _is_operation_contains_tag(candidate_tags: List[str],
         bool: is there a match on the tags
     """
 
-    matches = (tag1 is tag2 for tag1 in candidate_tags for tag2 in operation_tags)
+    matches = (tag in operation_tags for tag in candidate_tags)
     if is_full_match:
         return all(matches)
     else:
