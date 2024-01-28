@@ -6,7 +6,8 @@ from golem.core.optimisers.genetic.operators.base_mutations import get_mutation_
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
-from fedot.core.repository.operation_types_repository import DataOperationTagsEnum, ModelTagsEnum, OperationReposEnum, OperationTypesRepository
+from fedot.core.repository.operation_types_repository import DataOperationTagsEnum, ModelTagsEnum, \
+    OperationReposEnum, OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -73,12 +74,9 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
     new_model = choose_new_model(boosting_model_candidates)
 
     if task_type == TaskTypesEnum.ts_forecasting:
-        non_lagged_ts_models = OperationTypesRepository(
-            OperationReposEnum.MODEL).suitable_operation(
-            tags=[
-                ModelTagsEnum.non_lagged])
-        is_non_lagged_ts_models_in_node = \
-            str(existing_pipeline.root_node) in non_lagged_ts_models
+        non_lagged_ts_models = (OperationTypesRepository(OperationReposEnum.MODEL)
+                                .suitable_operation(tags=[ModelTagsEnum.non_lagged]))
+        is_non_lagged_ts_models_in_node = str(existing_pipeline.root_node) in non_lagged_ts_models
 
         if is_non_lagged_ts_models_in_node:
             # if additional lagged node is required

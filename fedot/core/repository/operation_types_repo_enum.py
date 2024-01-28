@@ -6,11 +6,11 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-from fedot.core.repository.operation_tags_n_repo_enums import ALL_TAGS, DataOperationTagsEnum, ModelTagsEnum, TagsEnum
+from fedot.core.repository.operation_tags_n_repo_enums import ALL_TAGS, TagsEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 @dataclass

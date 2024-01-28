@@ -1,7 +1,8 @@
 from enum import Enum, IntEnum
+from typing import Type
 
 
-def get_max_tag_value(tags: Enum):
+def get_max_tag_value(tags: Type[Enum]):
     """ Get max value of Enum and round it to next 1000
         It is used to solve aliasing problem between tags
         when some tags in different enumeration have the same value """

@@ -1,23 +1,14 @@
-from enum import Enum, IntEnum
-from itertools import chain
-import json
-from collections import defaultdict
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Dict, List, Optional
 
 import numpy as np
-from fedot.core.repository.operation_tags_n_repo_enums import ALL_TAGS, DataOperationTagsEnum, ExcludedTagsEnum, ModelTagsEnum, TagsEnum
+from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum, ExcludedTagsEnum, \
+    ModelTagsEnum, TagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationMetaInfo, OperationReposEnum
 from golem.core.log import default_log
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-if TYPE_CHECKING:
-    from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
 
 class OperationTypesRepository:
@@ -101,8 +92,8 @@ class OperationTypesRepository:
             tags = list()
 
         if any(not isinstance(tag, TagsEnum) for tag in tags + forbidden_tags):
-            raise ValueError(
-                f"Tag should be `TagsEnum`, get `{'`, `'.join(set(map(type, tags + forbidden_tags)))}` instead")
+            raise ValueError(("Tag should be `TagsEnum`, get "
+                              f"`{'`, `'.join(set(map(type, tags + forbidden_tags)))}` instead"))
 
         no_task = task_type is None
         operations_info = []
