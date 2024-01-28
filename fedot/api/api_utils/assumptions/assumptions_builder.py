@@ -63,7 +63,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def __init__(self,
                  data: Union[InputData, MultiModalData],
-                 repository_name: OperationReposEnum,
+                 repository_name: OperationReposEnum = OperationReposEnum.MODEL,
                  data_type: DataTypesEnum = None):
         """ Construct builder from task and data.
         :param data: data that will be passed to the pipeline
