@@ -4,19 +4,21 @@ from typing import Any, Dict, Iterable, Optional
 
 import numpy as np
 import seaborn as sns
+
+from fedot.core.repository.operation_tags_n_repo_enums import ModelTagsEnum, DataOperationTagsEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.visualisation.graph_viz import GraphVisualizer
 from golem.visualisation.opt_history.utils import LabelsColorMapType
 from golem.visualisation.opt_viz import OptHistoryVisualizer
 
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_visualization_tags_map
+from fedot.core.repository.operation_types_repository import get_visualization_tags_map
 
 GraphType = Graph
 
 
 def get_palette_based_on_default_tags() -> LabelsColorMapType:
-    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+    default_tags = [*ModelTagsEnum, *DataOperationTagsEnum]
     p_1 = sns.color_palette('tab20')
     colour_period = 2  # diverge similar nearby colors
     p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
