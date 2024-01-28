@@ -5,6 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 
@@ -234,7 +235,7 @@ def test_correct_api_dataset_with_text_preprocessing():
 
         # Check if there is a text node in pipeline
         node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
-        assert any('text' in current_tags for current_tags in node_tags)
+        assert any(DataOperationTagsEnum.text in current_tags for current_tags in node_tags)
         assert len(predicted) > 0
 
 
