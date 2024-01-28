@@ -131,18 +131,17 @@ def get_visualization_tags_map() -> Dict[str, List[str]]:
     Returns map between repository tags and list of corresponding models for visualizations.
     """
     # Search for tags.
+    allowed_tags = set([*ModelTagsEnum, *DataOperationTagsEnum])
     operations_map = {}
     for repo_name in OperationReposEnum:
         # get only single repositories
         if len(repo_name.value) == 1:
             repo = OperationTypesRepository(repo_name)
-            repo_tags = repo.tags[::-1]
             for operation in repo.operations:
-                for tag in repo_tags:
-                    if tag in operation.tags:
-                        if tag not in operations_map:
-                            operations_map[tag] = list()
-                        operations_map[tag].append(operation.id)
+                for tag in set(operation.tags) & allowed_tags:
+                    if tag not in operations_map:
+                        operations_map[tag] = list()
+                    operations_map[tag].append(operation.id)
     return operations_map
 
 
