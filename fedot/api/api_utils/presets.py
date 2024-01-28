@@ -69,6 +69,7 @@ class OperationsPreset:
         forbidden_tags = list(ExcludedTagsEnum)
 
         if preset_name is PresetsEnum.GPU:
+            raise NotImplementedError('need to prepare and test operations for GPU preset')
             # TODO define how GPU preset should works
             operation_repo = OperationTypesRepository.DEFAULT_GPU
 
