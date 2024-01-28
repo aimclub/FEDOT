@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+
+from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags, DataOperationTagsEnum
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
@@ -105,7 +107,7 @@ def test_node_return_correct_operation_info():
     node = PipelineNode('simple_imputation')
     operation_tags = node.tags
 
-    correct_tags = ["simple", "imputation"]
+    correct_tags = [ComplexityTags.simple, DataOperationTagsEnum.imputation]
     assert all(correct_tag in operation_tags for correct_tag in correct_tags)
 
 
