@@ -27,7 +27,7 @@ DataOperationTagsEnum = TagsEnum('DataOperationTagsEnum',
                                   'data_source_ts', 'feature_space_transformation'),
                                  start=get_max_tag_value(ModelTagsEnum))
 
-ComplexityTags = TagsEnum('TimeTags',
+ComplexityTags = TagsEnum('ComplexityTags',
                           ('expensive', 'simple', 'unstable'),
                          start=get_max_tag_value(DataOperationTagsEnum))
 
