@@ -76,7 +76,8 @@ class OperationsPreset:
             forbidden_tags.extend([ComplexityTags.unstable, ComplexityTags.expensive])
 
         # add tag with preset name
-        tags.append(_get_preset_tag(preset_name))
+        if preset_name is not PresetsEnum.BEST_QUALITY:
+            tags.append(_get_preset_tag(preset_name))
 
         # Get operations
         available_operations = get_operations_for_task(task=self.task,
