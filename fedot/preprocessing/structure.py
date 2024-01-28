@@ -3,6 +3,8 @@ from typing import Tuple, List, Dict, Any
 import networkx as nx
 import numpy as np
 import pandas as pd
+
+from fedot.core.repository.operation_tags_n_repo_enums import TagsEnum, OtherTagsEnum, DataOperationTagsEnum
 from golem.core.dag.convert import graph_structure_as_nx_graph
 
 DEFAULT_SOURCE_NAME = 'default'
@@ -16,11 +18,11 @@ class PipelineStructureExplorer:
     by this class will detect it
     """
 
-    _invariant_tags = {'encoding': 'categorical_ignore',
-                       'imputation': 'nans_ignore'}
+    _invariant_tags = {DataOperationTagsEnum.encoding: OtherTagsEnum.categorical_ignore,
+                       DataOperationTagsEnum.imputation: OtherTagsEnum.nans_ignore}
 
     @staticmethod
-    def check_structure_by_tag(pipeline: 'Pipeline', tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
+    def check_structure_by_tag(pipeline: 'Pipeline', tag_to_check: TagsEnum, source_name: str = DEFAULT_SOURCE_NAME):
         """
         In the pipeline structure, a node with an operation with the appropriate tag is searched for.
         In this case the operations must have priority in the pipeline - in the primary Node or not far from it.

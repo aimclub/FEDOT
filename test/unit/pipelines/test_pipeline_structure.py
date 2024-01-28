@@ -1,5 +1,6 @@
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum
 from fedot.preprocessing.structure import PipelineStructureExplorer
 
 
@@ -15,8 +16,8 @@ def test_correct_pipeline_encoder_imputer_validation():
     root = PipelineNode('linear', nodes_from=[fourth_imputer])
     pipeline = Pipeline(root)
 
-    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check=DataOperationTagsEnum.encoding)
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check=DataOperationTagsEnum.imputation)
 
     assert encoding_correct is True
     assert imputer_correct is True
