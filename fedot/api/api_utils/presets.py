@@ -11,23 +11,13 @@ from fedot.core.repository.tasks import Task
 
 class PresetsEnum(Enum):
     # TODO add test to check that PresetsEnum is accordance with PresetsTagsEnum
-
-    # each enum contains name and priority
-    # therefore `auto` will convert to `best_quality` with `next`
-    #           `best_quality` to `fast_train` with `next`
     # TODO add ability to reduce preset depends on remaining time
     # TODO add some presets for models with different speed
     AUTO = 'auto', 0
     BEST_QUALITY = 'best_quality', 1
     FAST_TRAIN = 'fast_train', 2
-    TREE = 'tree', 3  # workaround for old tree preset
+    TREE = '*tree', 3  # workaround for old tree preset
     GPU = 'gpu', None
-
-    def next(self):
-        for num in PresetsEnum:
-            if num.value[1] == self.value[1] + 1:
-                return num
-        raise ValueError('There is no next value')
 
 
 class OperationsPreset:
@@ -52,7 +42,7 @@ class OperationsPreset:
             raise ValueError(f"`preset_name` should be `PresetsEnum`, get {type(value)} instead")
         
         if value is PresetsEnum.AUTO:
-            value = value.next()
+            value = PresetsEnum.FAST_TRAIN
 
         self._preset_name = value
 
@@ -78,12 +68,10 @@ class OperationsPreset:
         tags = list()
         forbidden_tags = list()
 
-        raise NotImplementedError('Add presets list processing')
-
         if preset_name is PresetsEnum.GPU:
             # TODO define how GPU preset should works
             operation_repo = OperationTypesRepository.DEFAULT_GPU
-        
+
         if preset_name is PresetsEnum.FAST_TRAIN:
             forbidden_tags.extend([ComplexityTags.unstable, ComplexityTags.expensive])
 

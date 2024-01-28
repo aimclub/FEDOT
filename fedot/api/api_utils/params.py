@@ -72,14 +72,13 @@ class ApiParams(UserDict):
 
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
+        available_operations = set()
         if 'preset' in self:
-            preset = [self['preset'], PresetsEnum.TREE]
-        else:
-            preset = PresetsEnum.TREE
-        preset_operations = OperationsPreset(task=task, preset_name=preset)
-
-        self.pop('available_operations', None)
-        self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
+            available_operations = set(OperationsPreset(task=task, preset_name=self['preset'])
+                                       .filter_operations_by_preset(data_type))
+        available_operations &= set(OperationsPreset(task=task, preset_name=PresetsEnum.TREE)
+                                    .filter_operations_by_preset(data_type))
+        self.update({'available_operations': available_operations})
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
         """ Creates Task from problem name and task_params"""
