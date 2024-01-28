@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 
 from fedot.api.time import ApiTime
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags, PresetsTagsEnum
+from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags, PresetsTagsEnum, ExcludedTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -25,7 +25,7 @@ class OperationsPreset:
     and models), which will be used during pipeline structure search
     """
 
-    def __init__(self, task: Task, preset_name: Union[List[PresetsEnum], PresetsEnum]):
+    def __init__(self, task: Task, preset_name: PresetsEnum):
         self.task = task
         self.preset_name = preset_name
 
@@ -66,7 +66,7 @@ class OperationsPreset:
         preset_name = self.preset_name
         operation_repo = None
         tags = list()
-        forbidden_tags = list()
+        forbidden_tags = list(ExcludedTagsEnum)
 
         if preset_name is PresetsEnum.GPU:
             # TODO define how GPU preset should works

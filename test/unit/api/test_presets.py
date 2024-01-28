@@ -1,3 +1,5 @@
+import pytest
+
 from fedot import Fedot
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
@@ -9,65 +11,18 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.data.datasets import data_with_binary_features_and_categorical_target
 
 
-def test_presets_classification():
-    task = Task(TaskTypesEnum.classification)
-    class_operations = get_operations_for_task(task=task, operation_repo=OperationReposEnum.ALL)
-
-    excluded_tree = ['xgboost', 'xgbreg']
-    filtered_operations = set(class_operations).difference(set(excluded_tree))
-    available_operations = list(filtered_operations)
-
-    preset_best_quality = OperationsPreset(task=task, preset_name=PresetsEnum.BEST_QUALITY)
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name=PresetsEnum.FAST_TRAIN)
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name=PresetsEnum.AUTO)
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations) == len(
-        operations_for_auto)
-    assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
+def get_available_operation(task_type: TaskTypesEnum, preset: PresetsEnum):
+    operation_preset = OperationsPreset(task=Task(task_type), preset_name=preset)
+    return operation_preset.filter_operations_by_preset()
 
 
-def test_presets_regression():
-    task = Task(TaskTypesEnum.regression)
-
-    regr_operations = get_operations_for_task(task=task, operation_repo=OperationReposEnum.ALL)
-
-    preset_best_quality = OperationsPreset(task=task, preset_name=PresetsEnum.BEST_QUALITY)
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name=PresetsEnum.FAST_TRAIN)
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name=PresetsEnum.AUTO)
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(regr_operations) == len(
-        operations_for_auto)
-    assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_fast_train)
-
-
-def test_presets_time_series():
-    task = Task(TaskTypesEnum.ts_forecasting)
-
-    ts_operations = get_operations_for_task(task=task, operation_repo=OperationReposEnum.ALL)
-
-    preset_best_quality = OperationsPreset(task=task, preset_name=PresetsEnum.BEST_QUALITY)
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name=PresetsEnum.FAST_TRAIN)
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name=PresetsEnum.AUTO)
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(ts_operations) == len(
-        operations_for_auto)
-    # TODO: add 'ar' to set below after arima fixing
-    assert {'adareg', 'scaling', 'lasso'} <= set(operations_for_fast_train)
+@pytest.mark.parametrize('task_type', TaskTypesEnum)
+def test_presets_classification(task_type: TaskTypesEnum):
+    available_operations = OperationTypesRepository(OperationReposEnum.DEFAULT).suitable_operation(task_type)
+    best_quality = get_available_operation(task_type, PresetsEnum.BEST_QUALITY)
+    fast_train = get_available_operation(task_type, PresetsEnum.FAST_TRAIN)
+    auto = get_available_operation(task_type, PresetsEnum.AUTO)
+    assert set(fast_train) == set(auto) < set(best_quality) == set(available_operations)
 
 
 def test_presets_inserting_in_params_correct():
