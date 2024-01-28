@@ -53,7 +53,7 @@ class OperationsPreset:
         updated_params = copy(api_params)
         self.preset_name = updated_params.get('preset', self.preset_name)
 
-        if 'available_operations' not in updated_params:
+        if updated_params.get('available_operations') is None:
             available_operations = self.filter_operations_by_preset(data_type)
             updated_params['available_operations'] = available_operations
 
