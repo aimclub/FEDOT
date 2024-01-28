@@ -174,7 +174,7 @@ def test_no_opt_or_graph_nodes_after_mutation():
     graph = get_simple_linear_graph()
     mutation = get_mutation_obj()
     for mut in mutation.parameters.mutation_types:
-        graph, _ = mutation._adapt_and_apply_mutation(new_graph=graph, mutation_type=mut)
+        graph = mutation._apply_mutations(new_graph=graph, mutation_type=mut)
     new_pipeline = adapter.restore(graph)
 
     assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
