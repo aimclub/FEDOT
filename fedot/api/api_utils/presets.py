@@ -31,16 +31,16 @@ class OperationsPreset:
 
         # Is there a modification in preset or not
         self.modification_using = False
-    
+
     @property
     def preset_name(self):
         return self._preset_name
-    
+
     @preset_name.setter
     def preset_name(self, value):
         if not isinstance(value, PresetsEnum):
             raise ValueError(f"`preset_name` should be `PresetsEnum`, get {type(value)} instead")
-        
+
         if value is PresetsEnum.AUTO:
             value = PresetsEnum.FAST_TRAIN
 
@@ -103,7 +103,7 @@ def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
         return PresetsEnum.BEST_QUALITY
     else:
         return PresetsEnum.FAST_TRAIN
-    
+
 
 def _get_preset_tag(preset: PresetsEnum):
     # never falls because there is the test that checks accordance between PresetsTagsEnum and PresetsEnum

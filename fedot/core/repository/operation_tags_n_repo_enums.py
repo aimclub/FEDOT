@@ -11,6 +11,7 @@ def get_max_tag_value(tags: Enum):
 class TagsEnum(IntEnum):
     pass
 
+
 # TODO test for checking accordance between tags in json and there
 # all tags have priority accordance to it value
 ExcludedTagsEnum = TagsEnum('ExcludedTagsEnum', ('non_default', ))
@@ -29,7 +30,7 @@ DataOperationTagsEnum = TagsEnum('DataOperationTagsEnum',
 
 ComplexityTags = TagsEnum('ComplexityTags',
                           ('expensive', 'simple', 'unstable'),
-                         start=get_max_tag_value(DataOperationTagsEnum))
+                          start=get_max_tag_value(DataOperationTagsEnum))
 
 OtherTagsEnum = TagsEnum('OtherTagsEnum',
                          ('sklearn', 'ml', 'no_prob', 'new_data_refit', 'neural', 'discriminant',

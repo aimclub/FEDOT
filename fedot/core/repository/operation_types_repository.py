@@ -30,18 +30,18 @@ class OperationTypesRepository:
             operation_type = OperationReposEnum.MODEL
         elif not isinstance(operation_type, OperationReposEnum):
             raise ValueError(f"Repository name should be OperationReposEnum, get {type(operation_type)} instead")
-        
+
         self.log = default_log(self)
         self.operation_type = operation_type
 
     @property
     def repo(self):
         return self.operation_type.repo
-    
+
     @property
     def operations(self):
         return self.repo
-    
+
     @property
     def tags(self):
         return self.operation_type.tags
@@ -99,9 +99,10 @@ class OperationTypesRepository:
         if not tags:
             forbidden_tags.extend(ExcludedTagsEnum)
             tags = list()
-        
+
         if any(not isinstance(tag, TagsEnum) for tag in tags + forbidden_tags):
-            raise ValueError(f"Tag should be `TagsEnum`, get `{'`, `'.join(set(map(type, tags + forbidden_tags)))}` instead")
+            raise ValueError(
+                f"Tag should be `TagsEnum`, get `{'`, `'.join(set(map(type, tags + forbidden_tags)))}` instead")
 
         no_task = task_type is None
         operations_info = []

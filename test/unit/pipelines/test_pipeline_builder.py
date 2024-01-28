@@ -159,7 +159,7 @@ def test_pipeline_builder_merge_one_to_one():
 def test_pipeline_builder_merge_one_to_many():
     builder_many_to_one = PipelineBuilder().add_branch('ridge', 'linear').join_branches('rf')
     builder_many_to_many = PipelineBuilder().add_branch('ridge', 'linear').grow_branches('rf',
-                                                                                                    'rfr')
+                                                                                         'rfr')
 
     # merge one final to many initial nodes
     assert builders_same(
@@ -186,7 +186,7 @@ def test_pipeline_builder_merge_many_to_one():
 def test_pipeline_builder_merge_many_to_many_undefined():
     builder_one_to_many = PipelineBuilder().add_node('linear').add_branch('scaling', 'logit')
     builder_many_to_many = PipelineBuilder().add_branch('ridge', 'linear').grow_branches('rf',
-                                                                                                    'rfr')
+                                                                                         'rfr')
     # many to many result undefined
     assert merge_pipeline_builders(builder_one_to_many, builder_many_to_many) is None
 

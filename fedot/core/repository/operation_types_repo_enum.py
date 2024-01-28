@@ -12,6 +12,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+
 @dataclass
 class OperationMetaInfo:
     id: str
@@ -67,10 +68,10 @@ class RepositoryFile:
         self.name = name
         self.file = Path(__file__).parent / 'data' / (file or f"{name}.json")
         self._repo = None
-    
+
     def __str__(self) -> str:
         return self.name
-    
+
     def __deepcopy__(self, memo=None):
         return self
 
@@ -80,7 +81,7 @@ class RepositoryFile:
     @property
     def tags(self) -> List[TagsEnum]:
         return list(set(chain(*[operation.tags for operation in self.repo])))
-    
+
     @property
     def repo(self) -> List[OperationMetaInfo]:
         if self._repo is None:
@@ -93,11 +94,11 @@ class _OperationRepoFilesEnum(Enum):
     GPU = 'gpu_models_repository'
     DATA_OPERATION = 'data_operation_repository'
     AUTOML = 'automl_repository'
-    
+
     @property
     def tags(self):
         return REPOSITORY_BASE[self.value].tags
-    
+
     @property
     def repo(self):
         return REPOSITORY_BASE[self.value].repo
@@ -110,7 +111,7 @@ class OperationReposEnum(Enum):
     DEFAULT = (_OperationRepoFilesEnum.MODEL, _OperationRepoFilesEnum.DATA_OPERATION)
     DEFAULT_GPU = (_OperationRepoFilesEnum.GPU, _OperationRepoFilesEnum.DATA_OPERATION)
     ALL = tuple(_OperationRepoFilesEnum)
-    
+
     MODEL = (_OperationRepoFilesEnum.MODEL, )
     DATA_OPERATION = (_OperationRepoFilesEnum.DATA_OPERATION, )
     AUTOML = (_OperationRepoFilesEnum.AUTOML, )
@@ -118,84 +119,84 @@ class OperationReposEnum(Enum):
 
     def __iter__(self):
         return self.value.__iter__()
-    
+
     def __str__(self):
         return ', '.join(map(str, self))
-    
+
     @property
     def tags(self):
         return list(chain(*(repo.tags for repo in self)))
-    
+
     @property
     def repo(self):
         return list(chain(*(repo.repo for repo in self)))
 
 
 def _initialise_repo(file: Path, repo_name: str) -> None:
-        """ Method parse ``JSON`` repository with operations descriptions and
-            wrapped information into :obj:`OperationMetaInfo`, then put it into the list in `self._repo`
-        """
-        
-        repository_json = _load_repository(file)
+    """ Method parse ``JSON`` repository with operations descriptions and
+        wrapped information into :obj:`OperationMetaInfo`, then put it into the list in `self._repo`
+    """
 
-        metadata_json = repository_json['metadata']
-        operations_json = repository_json['operations']
+    repository_json = _load_repository(file)
 
-        operations_list = []
-        enum_tags = {tag.name: tag for tag in chain(*ALL_TAGS)}  # map from str tag to enum tag
+    metadata_json = repository_json['metadata']
+    operations_json = repository_json['operations']
 
-        repo_map = {repo.value: next(crepo for crepo in OperationReposEnum
-                                     if len(crepo.value) == 1 and crepo.value[0].value == repo.value)
-                    for repo in _OperationRepoFilesEnum}
-        for current_operation_key in operations_json:
-            # Get information about operation
-            # properties - information about operation by key, for example tags
-            # metadata - information about meta of the operation
-            properties = operations_json.get(current_operation_key)
-            metadata = metadata_json[properties['meta']]
+    operations_list = []
+    enum_tags = {tag.name: tag for tag in chain(*ALL_TAGS)}  # map from str tag to enum tag
 
-            task_types = import_enums_from_str(metadata['tasks'])
-            input_type = import_enums_from_str(properties.get('input_type', metadata.get('input_type')))
-            output_type = import_enums_from_str(properties.get('output_type', metadata.get('output_type')))
+    repo_map = {repo.value: next(crepo for crepo in OperationReposEnum
+                                 if len(crepo.value) == 1 and crepo.value[0].value == repo.value)
+                for repo in _OperationRepoFilesEnum}
+    for current_operation_key in operations_json:
+        # Get information about operation
+        # properties - information about operation by key, for example tags
+        # metadata - information about meta of the operation
+        properties = operations_json.get(current_operation_key)
+        metadata = metadata_json[properties['meta']]
 
-            # Get available strategies for obtained metadata
-            strategies_json = metadata['strategies']
+        task_types = import_enums_from_str(metadata['tasks'])
+        input_type = import_enums_from_str(properties.get('input_type', metadata.get('input_type')))
+        output_type = import_enums_from_str(properties.get('output_type', metadata.get('output_type')))
 
-            accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
-            forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
+        # Get available strategies for obtained metadata
+        strategies_json = metadata['strategies']
 
-            # Get tags for meta and for operation
-            meta_tags = read_field(metadata, 'tags', [])
-            operation_tags = read_field(properties, 'tags', [])
-            presets = read_field(properties, 'presets', [])
+        accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
+        forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
 
-            tags = list()
-            for tag in set(meta_tags + operation_tags + presets):
-                if tag in enum_tags:
-                    tags.append(enum_tags[tag])
-                else:
-                    raise ValueError(f"Unknown tag {tag}")
+        # Get tags for meta and for operation
+        meta_tags = read_field(metadata, 'tags', [])
+        operation_tags = read_field(properties, 'tags', [])
+        presets = read_field(properties, 'presets', [])
 
-            # Node position
-            allowed_positions = ['primary', 'secondary', 'root']
-            if accepted_node_types and accepted_node_types != 'all':
-                allowed_positions = accepted_node_types
-            if forbidden_node_types:
-                allowed_positions = [pos for pos in allowed_positions if
-                                     pos not in forbidden_node_types]
+        tags = list()
+        for tag in set(meta_tags + operation_tags + presets):
+            if tag in enum_tags:
+                tags.append(enum_tags[tag])
+            else:
+                raise ValueError(f"Unknown tag {tag}")
 
-            operation = OperationMetaInfo(id=current_operation_key,
-                                          input_types=input_type,
-                                          output_types=output_type,
-                                          task_type=task_types,
-                                          strategies_json=strategies_json,
-                                          allowed_positions=allowed_positions,
-                                          tags=tags,
-                                          presets=presets,
-                                          operation_types_repository=repo_map[repo_name],
-                                          )
-            operations_list.append(operation)
-        return operations_list
+        # Node position
+        allowed_positions = ['primary', 'secondary', 'root']
+        if accepted_node_types and accepted_node_types != 'all':
+            allowed_positions = accepted_node_types
+        if forbidden_node_types:
+            allowed_positions = [pos for pos in allowed_positions if
+                                 pos not in forbidden_node_types]
+
+        operation = OperationMetaInfo(id=current_operation_key,
+                                      input_types=input_type,
+                                      output_types=output_type,
+                                      task_type=task_types,
+                                      strategies_json=strategies_json,
+                                      allowed_positions=allowed_positions,
+                                      tags=tags,
+                                      presets=presets,
+                                      operation_types_repository=repo_map[repo_name],
+                                      )
+        operations_list.append(operation)
+    return operations_list
 
 
 def _load_repository(repo_path: Path) -> dict:

@@ -73,7 +73,10 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
     new_model = choose_new_model(boosting_model_candidates)
 
     if task_type == TaskTypesEnum.ts_forecasting:
-        non_lagged_ts_models = OperationTypesRepository(OperationReposEnum.MODEL).suitable_operation(tags=[ModelTagsEnum.non_lagged])
+        non_lagged_ts_models = OperationTypesRepository(
+            OperationReposEnum.MODEL).suitable_operation(
+            tags=[
+                ModelTagsEnum.non_lagged])
         is_non_lagged_ts_models_in_node = \
             str(existing_pipeline.root_node) in non_lagged_ts_models
 

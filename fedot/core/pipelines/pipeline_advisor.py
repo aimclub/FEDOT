@@ -11,7 +11,8 @@ from fedot.core.repository.tasks import Task
 class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task: Optional[Task] = None):
         self.models: List[str] = get_operations_for_task(task=task, operation_repo=OperationReposEnum.MODEL)
-        self.data_operations: List[str] = get_operations_for_task(task=task, operation_repo=OperationReposEnum.DATA_OPERATION)
+        self.data_operations: List[str] = get_operations_for_task(
+            task=task, operation_repo=OperationReposEnum.DATA_OPERATION)
         super().__init__(task)
 
     def can_be_removed(self, node: OptNode) -> RemoveType:
