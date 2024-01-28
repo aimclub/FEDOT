@@ -104,7 +104,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
 
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
-    def __init__(self, data: MultiModalData, repository_name: str = "model"):
+    def __init__(self, data: MultiModalData, repository_name: OperationReposEnum = OperationReposEnum.MODEL):
         super().__init__(data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
