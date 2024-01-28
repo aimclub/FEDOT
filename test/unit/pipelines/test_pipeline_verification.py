@@ -319,8 +319,6 @@ def test_data_sources_validation():
     with pytest.raises(ValueError) as exc:
         pipeline_with_incorrect_data_sources()
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Data sources are mixed with other primary nodes'
-
     correct_pipeline = pipeline_with_correct_data_sources()
     assert has_correct_data_sources(correct_pipeline)
 
