@@ -1,6 +1,6 @@
 from copy import copy
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Union
 
 from fedot.api.time import ApiTime
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -20,6 +20,7 @@ class PresetsEnum(Enum):
     AUTO = 'auto', 0
     BEST_QUALITY = 'best_quality', 1
     FAST_TRAIN = 'fast_train', 2
+    TREE = 'tree', 3  # workaround for old tree preset
     GPU = 'gpu', None
 
     def next(self):
@@ -34,7 +35,7 @@ class OperationsPreset:
     and models), which will be used during pipeline structure search
     """
 
-    def __init__(self, task: Task, preset_name: PresetsEnum):
+    def __init__(self, task: Task, preset_name: Union[List[PresetsEnum], PresetsEnum]):
         self.task = task
         self.preset_name = preset_name
 
@@ -76,6 +77,8 @@ class OperationsPreset:
         operation_repo = None
         tags = list()
         forbidden_tags = list()
+
+        raise NotImplementedError('Add presets list processing')
 
         if preset_name is PresetsEnum.GPU:
             # TODO define how GPU preset should works

@@ -73,10 +73,10 @@ class ApiParams(UserDict):
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
         if 'preset' in self:
-            preset_name = ''.join((self['preset'], '*tree'))
+            preset = [self['preset'], PresetsEnum.TREE]
         else:
-            preset_name = '*tree'
-        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
+            preset = PresetsEnum.TREE
+        preset_operations = OperationsPreset(task=task, preset_name=preset)
 
         self.pop('available_operations', None)
         self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
