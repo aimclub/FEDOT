@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
+from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.log import default_log
@@ -211,7 +212,7 @@ class PipelineNode(LinkedGraphNode):
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
 
-        if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
+        if not_atomized_operation and OtherTagsEnum.correct_params in self.operation.metadata.tags:
             self.update_params()
         return operation_predict
 
