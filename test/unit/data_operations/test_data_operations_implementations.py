@@ -19,6 +19,8 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.data_types import TYPE_TO_ID
@@ -270,7 +272,7 @@ def data_with_binary_int_features_and_equal_categories():
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    operation_names = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository(OperationReposEnum.DATA_OPERATION).suitable_operation(
         task_type=TaskTypesEnum.regression)
 
     for data_operation in operation_names:
@@ -289,7 +291,7 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    operation_names = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository(OperationReposEnum.DATA_OPERATION).suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     for data_operation in operation_names:
@@ -332,7 +334,7 @@ def test_ts_forecasting_cut_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names = OperationTypesRepository().suitable_operation(tags=['smoothing'])
+    model_names = OperationTypesRepository().suitable_operation(tags=[DataOperationTagsEnum.smoothing])
 
     for smoothing_operation in model_names:
         node_smoothing = PipelineNode(smoothing_operation)
@@ -386,8 +388,8 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
 def test_feature_selection_of_single_features():
     for task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
-        model_names = OperationTypesRepository(operation_type='data_operation') \
-            .suitable_operation(tags=['feature_selection'], task_type=task_type)
+        model_names = OperationTypesRepository(operation_type=OperationReposEnum.DATA_OPERATION) \
+            .suitable_operation(tags=[DataOperationTagsEnum.feature_selection], task_type=task_type)
 
         task = Task(task_type)
 
