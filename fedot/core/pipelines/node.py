@@ -212,6 +212,8 @@ class PipelineNode(LinkedGraphNode):
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
 
+        # TODO refactor that approach
+        #      because nobody knows about correct_params tag
         if not_atomized_operation and OtherTagsEnum.correct_params in self.operation.metadata.tags:
             self.update_params()
         return operation_predict
