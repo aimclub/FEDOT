@@ -4,6 +4,7 @@ from functools import reduce
 from operator import and_, or_
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.core.data.data import InputData, OutputData
@@ -96,10 +97,11 @@ class AtomizedModel(Operation):
                                            input_types=input_types,
                                            output_types=output_types,
                                            task_type=root_node.operation.metadata.task_type,
-                                           supported_strategies=None,
                                            allowed_positions=['any'],
                                            tags=tags,
-                                           presets=presets)
+                                           presets=presets,
+                                           strategies_json=root_node.operation.metadata.strategies_json,
+                                           operation_types_repository=OperationReposEnum.MODEL)
         return operation_info
 
     def description(self, operation_params: Optional[dict] = None) -> str:
