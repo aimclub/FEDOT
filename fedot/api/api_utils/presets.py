@@ -53,7 +53,7 @@ class OperationsPreset:
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample', 'stl_arima']
-        excluded_tree = ['xgboost', 'xgbreg']
+        excluded_tree = []
 
         if '*' in preset_name:
             self.modification_using = True
