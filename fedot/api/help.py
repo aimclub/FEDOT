@@ -1,4 +1,5 @@
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -11,7 +12,7 @@ def print_models_info(task_name):
 
     task = _get_task_by_name(task_name)
 
-    repository = OperationTypesRepository(operation_type='model')
+    repository = OperationTypesRepository(operation_type=OperationReposEnum.MODEL)
 
     # Filter operations
     repository_operations_list = _filter_operations_by_type(repository, task)
@@ -37,7 +38,7 @@ def print_data_operations_info(task_name):
 
     task = _get_task_by_name(task_name)
 
-    repository = OperationTypesRepository(operation_type='data_operation')
+    repository = OperationTypesRepository(operation_type=OperationReposEnum.DATA_OPERATION)
     repository_operations_list = _filter_operations_by_type(repository, task)
     search_space = PipelineSearchSpace()
     for operation in repository_operations_list:
@@ -90,7 +91,7 @@ def operations_for_task(task_name: str):
 
     # Get models and data operations
     models_repo = OperationTypesRepository()
-    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
+    data_operations_repo = OperationTypesRepository(operation_type=OperationReposEnum.DATA_OPERATION)
 
     appropriate_models = models_repo.suitable_operation(task_type=task)
     appropriate_data_operations = data_operations_repo.suitable_operation(task_type=task)
