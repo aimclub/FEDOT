@@ -60,9 +60,7 @@ class Operation:
 
     @property
     def acceptable_task_types(self):
-        operation_info = self.operations_repo.operation_info_by_id(
-            self.operation_type)
-        return operation_info.task_type
+        return self.metadata.task_type
 
     @property
     def metadata(self) -> OperationMetaInfo:
