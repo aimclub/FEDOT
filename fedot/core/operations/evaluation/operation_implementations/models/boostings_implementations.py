@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from matplotlib import pyplot as plt
-from xgboost import XGBClassifier, XGBRegressor, DMatrix
+from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
