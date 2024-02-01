@@ -46,6 +46,7 @@ class OperationTypesRepository:
 
     def __exit__(self, type, value, traceback):
         # TODO add deleting repositories
+        return
         self.repo_path = None
         OperationTypesRepository.__repository_dict__[self.operation_type]['initialized_repo'] = None
         default_model_repo_file = OperationTypesRepository.__repository_dict__['model']['file']

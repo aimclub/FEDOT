@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from fedot.api.api_utils.presets import PresetsEnum
+from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
 from golem.core.log import default_log
 from sklearn.datasets import make_classification
 from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
@@ -240,7 +241,7 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.classification,
                                               data_type=data.data_type,
-                                              tags=['ml'])
+                                              tags=[OtherTagsEnum.ml])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
