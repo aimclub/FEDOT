@@ -8,6 +8,7 @@ import pytest
 
 from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.log import default_log
 from sklearn.datasets import make_classification
 from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
@@ -265,7 +266,7 @@ def test_regression_models_fit_predict_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
-                                              tags=['ml'])
+                                              tags=[OtherTagsEnum.ml])
 
     for model_name in model_names:
         logger.info(f"Test regression model: {model_name}.")
@@ -286,7 +287,7 @@ def test_ts_models_fit_predict_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                              tags=['non_lagged'])
+                                              tags=[OtherTagsEnum.non_Lagged])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -313,7 +314,7 @@ def test_ts_models_dt_idx_fit_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                              tags=['non_lagged'])
+                                              tags=[OtherTagsEnum.non_Lagged])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -465,7 +466,7 @@ def test_models_does_not_fall_on_constant_data():
     to_skip = ['custom', 'arima', 'catboost', 'catboostreg', 'cgru',
                'lda', 'fast_ica', 'decompose', 'class_decompose']
 
-    for operation in OperationTypesRepository('all')._repo:
+    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
         if operation.id in to_skip:
             continue
         for task_type in operation.task_type:
@@ -477,7 +478,7 @@ def test_models_does_not_fall_on_constant_data():
 
                     nodes_from = []
                     if task_type is TaskTypesEnum.ts_forecasting:
-                        if 'non_lagged' not in operation.tags:
+                        if OtherTagsEnum.non_lagged not in operation.tags:
                             nodes_from = [PipelineNode('lagged')]
                     node = PipelineNode(operation.id, nodes_from=nodes_from)
                     pipeline = Pipeline(node)
@@ -488,7 +489,7 @@ def test_models_does_not_fall_on_constant_data():
 def test_operations_are_serializable():
     to_skip = ['custom', 'decompose', 'class_decompose']
 
-    for operation in OperationTypesRepository('all')._repo:
+    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
         if operation.id in to_skip:
             continue
         for task_type in operation.task_type:
@@ -500,7 +501,7 @@ def test_operations_are_serializable():
                     try:
                         nodes_from = []
                         if task_type is TaskTypesEnum.ts_forecasting:
-                            if 'non_lagged' not in operation.tags:
+                            if OtherTagsEnum.non_lagged not in operation.tags:
                                 nodes_from = [PipelineNode('lagged')]
                         node = PipelineNode(operation.id, nodes_from=nodes_from)
                         pipeline = Pipeline(node)
@@ -526,12 +527,12 @@ def test_operations_are_fast():
     # tries for time measuring
     attempt = 2
 
-    for operation in OperationTypesRepository('all')._repo:
+    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
         if operation.id in reference_operations:
             perfomance_values = get_operation_perfomance(operation, data_lengths, attempt)
             reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
 
-    for operation in OperationTypesRepository('all')._repo:
+    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
         if (operation.id not in to_skip and operation.presets and PresetsEnum.FAST_TRAIN in operation.presets):
             for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
@@ -551,7 +552,7 @@ def test_all_operations_are_documented():
     with open(path_to_docs, 'r') as docs_:
         docs_lines = docs_.readlines()
     if docs_lines:
-        for operation in OperationTypesRepository('all')._repo:
+        for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
             if operation.id not in to_skip:
                 for line in docs_lines:
                     if operation.id in line and all(preset in line for preset in operation.presets):
