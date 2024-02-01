@@ -6,6 +6,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.repository.operation_tags_n_repo_enums import ModelTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -17,7 +18,7 @@ def test_composer_with_cv_optimization_correct():
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
 
     models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['linear'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=[ModelTagsEnum.linear])
 
     metric_function = [ClassificationMetricsEnum.ROCAUC_penalty,
                        ClassificationMetricsEnum.accuracy,
