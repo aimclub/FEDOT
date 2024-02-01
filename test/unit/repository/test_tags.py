@@ -34,3 +34,8 @@ def test_tags_contains_all_tags_from_repository():
         all_repo_tags.update(tags)
 
     assert all_tags > all_repo_tags
+
+
+def test_tags_values_do_not_intersect():
+    all_tag_values = [tag.value for tags in ALL_TAGS for tag in tags]
+    assert len(set(all_tag_values)) == len(all_tag_values)
