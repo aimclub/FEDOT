@@ -4,6 +4,8 @@ import os
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import import_enums_from_str, \
     import_strategy_from_str, read_field
+from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum, ModelTagsEnum, ComplexityTags
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
@@ -20,13 +22,13 @@ def test_lazy_load():
     with OperationTypesRepository() as repo:
         repo_second = OperationTypesRepository()
 
-        assert repo._repo == repo_second._repo
+        assert repo.repo == repo_second.repo
 
 
 def test_search_in_repository_by_tag_and_metainfo_correct():
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
-                                              tags=['ml'])
+                                              tags=[OtherTagsEnum.ml])
 
         assert 'linear' in model_names
         assert len(model_names) == 14
@@ -34,16 +36,13 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
 
 def test_search_in_repository_by_tag_correct():
     with OperationTypesRepository() as repo:
-        model_names = repo.suitable_operation(tags=['simple', 'linear'], is_full_match=True)
+        model_names = repo.suitable_operation(tags=[ComplexityTags.simple, ModelTagsEnum.linear], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
         assert len(model_names) > 0
 
-        model_names = repo.suitable_operation(tags=['simple', 'linear'])
+        model_names = repo.suitable_operation(tags=[ComplexityTags.simple, ModelTagsEnum.linear])
         assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge', 'polyfit'}.issubset(model_names)
         assert len(model_names) > 0
-
-        model_names = repo.suitable_operation(tags=['non_real_tag'])
-        assert len(model_names) == 0
 
 
 def test_eval_field_str():
@@ -98,7 +97,8 @@ def test_operation_types_repository_repr():
 
 def test_repositories_tags_consistency():
     errors_found = []
-    for repository in (OperationTypesRepository('model'), OperationTypesRepository('data_operation')):
+    for repository in (OperationTypesRepository(OperationReposEnum.MODEL),
+                       OperationTypesRepository(OperationReposEnum.DATA_OPERATION)):
         for operation in repository.operations:
             if repository.get_first_suitable_operation_tag(operation.id) is None:
                 errors_found.append(f'{operation.id} in {repository} has no proper default tags!')
