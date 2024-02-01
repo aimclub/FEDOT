@@ -17,7 +17,7 @@ def get_available_operation(task_type: TaskTypesEnum, preset: PresetsEnum):
 
 
 @pytest.mark.parametrize('task_type', TaskTypesEnum)
-def test_presets_classification(task_type: TaskTypesEnum):
+def test_presets(task_type: TaskTypesEnum):
     available_operations = OperationTypesRepository(OperationReposEnum.DEFAULT).suitable_operation(task_type)
     best_quality = get_available_operation(task_type, PresetsEnum.BEST_QUALITY)
     fast_train = get_available_operation(task_type, PresetsEnum.FAST_TRAIN)
@@ -58,6 +58,7 @@ def test_auto_preset_converted_correctly():
 
 
 def test_gpu_preset():
+    # TODO fix GPU preset
     # GPU preset is not prepared yet
     return
     task = Task(TaskTypesEnum.classification)
