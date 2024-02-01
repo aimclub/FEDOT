@@ -2,6 +2,8 @@ import datetime
 import os
 
 import pandas as pd
+
+from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags
 from golem.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -62,7 +64,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a pipeline for the selected task
     models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=[ComplexityTags.simple])
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 
