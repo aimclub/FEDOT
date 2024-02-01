@@ -8,6 +8,7 @@ from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_tags_n_repo_enums import ModelTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
@@ -43,7 +44,7 @@ def test_boosting_classification_operation():
     train_data, test_data = get_classification_data()
 
     model_names = OperationTypesRepository().suitable_operation(
-        task_type=TaskTypesEnum.classification, tags=['boosting']
+        task_type=TaskTypesEnum.classification, tags=[ModelTagsEnum.boosting]
     )
 
     for model_name in model_names:
@@ -63,7 +64,7 @@ def test_boosting_regression_operation():
     train_data, test_data = train_test_data_setup(data)
 
     model_names = OperationTypesRepository().suitable_operation(
-        task_type=TaskTypesEnum.regression, tags=['boosting']
+        task_type=TaskTypesEnum.regression, tags=[ModelTagsEnum.boosting]
     )
 
     for model_name in model_names:
