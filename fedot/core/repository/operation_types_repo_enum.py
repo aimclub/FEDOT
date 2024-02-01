@@ -13,6 +13,9 @@ from fedot.core.repository.json_evaluation import import_enums_from_str, import_
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+REPOSITORY_FOLDER = Path(__file__).absolute().parent / 'data'
+
+
 @dataclass
 class OperationMetaInfo:
     id: str
@@ -66,7 +69,7 @@ class RepositoryFile:
                  name: str,
                  file: Optional[str] = None):
         self.name = name
-        self.file = Path(__file__).parent / 'data' / (file or f"{name}.json")
+        self.file = REPOSITORY_FOLDER / (file or f"{name}.json")
         self._repo = None
 
     def __str__(self) -> str:
