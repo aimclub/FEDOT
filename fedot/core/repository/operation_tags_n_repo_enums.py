@@ -29,9 +29,9 @@ DataOperationTagsEnum = TagsEnum('DataOperationTagsEnum',
                                   'data_source_ts', 'feature_space_transformation'),
                                  start=get_max_tag_value(ModelTagsEnum))
 
-ComplexityTags = TagsEnum('ComplexityTags',
-                          ('expensive', 'simple', 'unstable'),
-                          start=get_max_tag_value(DataOperationTagsEnum))
+ComplexityTagsEnum = TagsEnum('ComplexityTagsEnum',
+                              ('expensive', 'simple', 'unstable'),
+                              start=get_max_tag_value(DataOperationTagsEnum))
 
 OtherTagsEnum = TagsEnum('OtherTagsEnum',
                          ('sklearn', 'ml', 'no_prob', 'new_data_refit', 'neural', 'discriminant',
@@ -39,10 +39,10 @@ OtherTagsEnum = TagsEnum('OtherTagsEnum',
                           'non_lagged', 'bayesian', 'non_multi', 'interpretable', 'nlp', 'nans_ignore',
                           'categorical', 'differential', 'dimensionality_transforming', 'cutting',
                           'non_applicable_for_ts', 'affects_target', 'categorical_ignore', 'automl', 'rapids', 'cuML'),
-                         start=get_max_tag_value(ComplexityTags))
+                         start=get_max_tag_value(ComplexityTagsEnum))
 
 PresetsTagsEnum = TagsEnum('PresetsTagsEnum',
                            ('auto', 'best_quality', 'fast_train', 'gpu', 'tree', 'automl'),
                            start=get_max_tag_value(OtherTagsEnum))
 
-ALL_TAGS = (ExcludedTagsEnum, ModelTagsEnum, DataOperationTagsEnum, ComplexityTags, OtherTagsEnum, PresetsTagsEnum)
+ALL_TAGS = (ExcludedTagsEnum, ModelTagsEnum, DataOperationTagsEnum, ComplexityTagsEnum, OtherTagsEnum, PresetsTagsEnum)

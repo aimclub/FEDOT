@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 
 from fedot.api.time import ApiTime
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTags, PresetsTagsEnum, ExcludedTagsEnum
+from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTagsEnum, PresetsTagsEnum, ExcludedTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -74,7 +74,7 @@ class OperationsPreset:
             operation_repo = OperationTypesRepository.DEFAULT_GPU
 
         if preset_name is PresetsEnum.FAST_TRAIN:
-            forbidden_tags.extend([ComplexityTags.unstable, ComplexityTags.expensive])
+            forbidden_tags.extend([ComplexityTagsEnum.unstable, ComplexityTagsEnum.expensive])
 
         # add tag with preset name
         if preset_name is not PresetsEnum.BEST_QUALITY:

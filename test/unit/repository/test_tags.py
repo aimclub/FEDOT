@@ -2,7 +2,6 @@ import json
 from itertools import chain
 from typing import List, Any, Hashable
 
-
 from fedot.core.repository.operation_tags_n_repo_enums import PresetsTagsEnum, ALL_TAGS
 from fedot.core.repository.operation_types_repo_enum import REPOSITORY_FOLDER
 from fedot.api.api_utils.presets import PresetsEnum

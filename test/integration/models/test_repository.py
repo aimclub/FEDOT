@@ -4,7 +4,7 @@ import os
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import import_enums_from_str, \
     import_strategy_from_str, read_field
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum, ModelTagsEnum, ComplexityTags
+from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum, ModelTagsEnum, ComplexityTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
@@ -36,11 +36,11 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
 
 def test_search_in_repository_by_tag_correct():
     with OperationTypesRepository() as repo:
-        model_names = repo.suitable_operation(tags=[ComplexityTags.simple, ModelTagsEnum.linear], is_full_match=True)
+        model_names = repo.suitable_operation(tags=[ComplexityTagsEnum.simple, ModelTagsEnum.linear], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
         assert len(model_names) > 0
 
-        model_names = repo.suitable_operation(tags=[ComplexityTags.simple, ModelTagsEnum.linear])
+        model_names = repo.suitable_operation(tags=[ComplexityTagsEnum.simple, ModelTagsEnum.linear])
         assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge', 'polyfit'}.issubset(model_names)
         assert len(model_names) > 0
 
