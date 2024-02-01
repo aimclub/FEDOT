@@ -16,7 +16,7 @@ class PresetsEnum(Enum):
     AUTO = 'auto', 0
     BEST_QUALITY = 'best_quality', 1
     FAST_TRAIN = 'fast_train', 2
-    TREE = '*tree', 3  # workaround for old tree preset
+    TREE = 'tree', 3  # workaround for old tree preset
     GPU = 'gpu', None
 
 
