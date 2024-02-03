@@ -42,7 +42,7 @@ OtherTagsEnum = TagsEnum('OtherTagsEnum',
                          start=get_max_tag_value(ComplexityTagsEnum))
 
 PresetsTagsEnum = TagsEnum('PresetsTagsEnum',
-                           ('auto', 'best_quality', 'fast_train', 'gpu', 'tree', 'automl'),
+                           ('auto', 'best_quality', 'fast_train', 'gpu', '*tree', '*automl', 'ts'),
                            start=get_max_tag_value(OtherTagsEnum))
 
 ALL_TAGS = (ExcludedTagsEnum, ModelTagsEnum, DataOperationTagsEnum, ComplexityTagsEnum, OtherTagsEnum, PresetsTagsEnum)
