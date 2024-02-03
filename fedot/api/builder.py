@@ -329,6 +329,8 @@ class FedotBuilder:
                     - ``diff_filter`` -> Derivative Filter Transformation
                     - ``cut`` -> Cut Transformation
                     - ``exog_ts`` -> Exogeneus Transformation
+                    - ``topological_features`` -> Topological features
+                    - ``fast_topological_features`` -> Fast implementation of topological features
 
             max_depth: max depth of a pipeline. Defaults to ``6``.
 

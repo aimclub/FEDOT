@@ -69,6 +69,8 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `one_hot_encoding`,One-Hot Encoder, Feature encoding
    `label_encoding`,Label Encoder, Feature encoding
    `resample`,Imbalanced binary class transformation in classification, Data transformation
+   `topological_features`,Calculation of topological features,Time series transformation
+   `fast_topological_features`,Fast calculation of part of topological features,Time series transformation
 
 
 .. csv-table:: Feature transformation operations implementations
@@ -104,6 +106,8 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `one_hot_encoding`,`sklearn.preprocessing.OneHotEncoder`,
    `label_encoding`,`sklearn.preprocessing.LabelEncoder`,`fast_train` `*tree`
    `resample`,`FEDOT model using sklearn.utils.resample`,
+   `topological_features`,FEDOT model,`ts`,
+   `fast_topological_features`,FEDOT model,`ts`
 
 
 Models used

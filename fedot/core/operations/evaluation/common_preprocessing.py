@@ -8,6 +8,11 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
+from fedot.core.operations.evaluation.operation_implementations.\
+    data_operations.topological.fast_topological_extractor import \
+    FastTopologicalFeaturesImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.topological. \
+    topological_extractor import TopologicalFeaturesImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -44,7 +49,9 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'poly_features': PolyFeaturesImplementation,
         'one_hot_encoding': OneHotEncodingImplementation,
         'label_encoding': LabelEncodingImplementation,
-        'fast_ica': FastICAImplementation
+        'fast_ica': FastICAImplementation,
+        'topological_features': TopologicalFeaturesImplementation,
+        'fast_topological_features': FastTopologicalFeaturesImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

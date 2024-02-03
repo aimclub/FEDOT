@@ -1,5 +1,4 @@
 import pickle
-
 from copy import deepcopy
 from time import perf_counter
 from typing import Tuple, Optional
@@ -15,7 +14,6 @@ from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.utils import fedot_project_root
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
@@ -31,6 +29,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
@@ -55,16 +54,16 @@ def get_data_for_testing(task_type, data_type, length=100, features_count=1,
         return None
 
     if task_type is TaskTypesEnum.ts_forecasting:
-        task = Task(task_type, TsForecastingParams(max(length // 10, 2)))
+        forecast_length = max(length // 10, 2)
+        task = Task(task_type, TsForecastingParams(forecast_length))
         if data_type is DataTypesEnum.ts:
             features = np.zeros(length) + value
         else:
             features = np.zeros((length, features_count)) + value
         if data_type is DataTypesEnum.table:
-            target = np.zeros(length) + value
+            target = np.zeros((length, forecast_length)) + value
         else:
             target = features
-
     else:
         task = Task(task_type)
         data_type = DataTypesEnum.table
@@ -157,11 +156,15 @@ def get_operation_perfomance(operation: OperationMetaInfo,
         return perf_counter() - start_time
 
     for task_type in operation.task_type:
-        for data_type in operation.input_types:
+        input_types = operation.input_types
+        if task_type is TaskTypesEnum.ts_forecasting:
+            if operation.input_types == [DataTypesEnum.table]:
+                input_types = [DataTypesEnum.ts]
+        for data_type in input_types:
             perfomance_values = []
             for length in data_lengths:
                 data = get_data_for_testing(task_type, data_type,
-                                            length=length, features_count=2,
+                                            length=length, features_count=10,
                                             random=True)
                 if data is not None:
                     min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
@@ -473,19 +476,15 @@ def test_models_does_not_fall_on_constant_data():
                                             length=100, features_count=2,
                                             random=False)
                 if data is not None:
-                    try:
-                        nodes_from = []
-                        if task_type is TaskTypesEnum.ts_forecasting:
-                            if 'non_lagged' not in operation.tags:
-                                nodes_from = [PipelineNode('lagged')]
-                        node = PipelineNode(operation.id, nodes_from=nodes_from)
-                        pipeline = Pipeline(node)
-                        pipeline.fit(data)
-                        assert pipeline.predict(data) is not None
-                    except NotImplementedError:
-                        pass
-                    except Exception:
-                        raise RuntimeError(f"{operation.id} falls on constant data")
+
+                    nodes_from = []
+                    if task_type is TaskTypesEnum.ts_forecasting:
+                        if 'non_lagged' not in operation.tags:
+                            nodes_from = [PipelineNode('lagged')]
+                    node = PipelineNode(operation.id, nodes_from=nodes_from)
+                    pipeline = Pipeline(node)
+                    pipeline.fit(data)
+                    assert pipeline.predict(data) is not None
 
 
 def test_operations_are_serializable():

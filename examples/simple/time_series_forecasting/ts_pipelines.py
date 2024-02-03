@@ -217,7 +217,7 @@ def ts_locf_ridge_pipeline():
     """
     pip_builder = PipelineBuilder() \
         .add_sequence('locf', branch_idx=0) \
-        .add_sequence('lagged', branch_idx=1) \
+        .add_sequence('ar', branch_idx=1) \
         .join_branches('ridge')
 
     pipeline = pip_builder.build()
