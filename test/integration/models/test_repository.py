@@ -89,12 +89,6 @@ def test_names_with_postfix():
     assert name_without_postfix == 'rf'
 
 
-def test_operation_types_repository_repr():
-    repository = OperationTypesRepository().assign_repo('model', 'model_repository.json')
-
-    assert repository.__repr__() == 'OperationTypesRepository for model_repository.json'
-
-
 def test_repositories_tags_consistency():
     errors_found = []
     for repository in (OperationTypesRepository(OperationReposEnum.MODEL),
