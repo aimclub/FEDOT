@@ -16,6 +16,8 @@ class OperationTypesRepository:
         its descriptions and metadata
     """
 
+    # TODO add way to combining repos: sum or special method
+
     def __init__(self, operation_type: Optional[OperationReposEnum] = None):
         if operation_type is None:
             operation_type = OperationReposEnum.MODEL

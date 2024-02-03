@@ -467,7 +467,7 @@ def test_models_does_not_fall_on_constant_data():
                'lda', 'fast_ica', 'decompose', 'class_decompose']
     to_skip += ['sgd', 'elasticnet', 'minibatchsgd', 'mbsgdcregr', 'cd']  # TODO enable after gpu preset correct tuning
 
-    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
+    for operation in OperationTypesRepository(OperationReposEnum.DEFAULT).repo:
         if operation.id in to_skip:
             continue
         for task_type in operation.task_type:
@@ -491,7 +491,7 @@ def test_operations_are_serializable():
     to_skip = ['custom', 'decompose', 'class_decompose']
     to_skip += ['sgd', 'elasticnet', 'minibatchsgd', 'mbsgdcregr', 'cd']  # TODO enable after gpu preset correct tuning
 
-    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
+    for operation in OperationTypesRepository(OperationReposEnum.DEFAULT).repo:
         if operation.id in to_skip:
             continue
         for task_type in operation.task_type:
@@ -530,12 +530,12 @@ def test_operations_are_fast():
     # tries for time measuring
     attempt = 2
 
-    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
+    for operation in OperationTypesRepository(OperationReposEnum.DEFAULT).repo:
         if operation.id in reference_operations:
             perfomance_values = get_operation_perfomance(operation, data_lengths, attempt)
             reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
 
-    for operation in OperationTypesRepository(OperationReposEnum.ALL).repo:
+    for operation in OperationTypesRepository(OperationReposEnum.DEFAULT).repo:
         if (operation.id not in to_skip and operation.presets and PresetsEnum.FAST_TRAIN in operation.presets):
             for _ in range(attempt):
                 perfomance_values = get_operation_perfomance(operation, data_lengths)
@@ -555,7 +555,6 @@ def test_all_operations_are_documented():
     with open(path_to_docs, 'r') as docs_:
         docs_lines = docs_.readlines()
     if docs_lines:
-        # TODO change DEFAULT to ALL after gpu repo fixing
         for operation in OperationTypesRepository(OperationReposEnum.DEFAULT).repo:
             if operation.id not in to_skip:
                 for line in docs_lines:
