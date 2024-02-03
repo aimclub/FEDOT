@@ -235,7 +235,8 @@ def test_ts_pipeline_with_incorrect_data_flow():
     with pytest.raises(Exception) as exc:
         assert has_no_data_flow_conflicts_in_ts_pipeline(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination'
 
 
 def test_only_non_lagged_operations_are_primary():
@@ -252,7 +253,8 @@ def test_only_non_lagged_operations_are_primary():
     with pytest.raises(Exception) as exc:
         assert only_non_lagged_operations_are_primary(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes'
+    assert str(
+        exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes'
 
 
 def test_has_two_parents_for_decompose_operations():
