@@ -197,7 +197,7 @@ Apart from that there are other options whose names speak for themselves: ``Pres
    `knn`,`sklearn.neighbors.KNeighborsClassifier`,`fast_train`
    `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`,`fast_train`
    `lgbm`,`lightgbm.sklearn.LGBMClassifier`,
-   `logit`,`sklearn.linear_model.LogisticRegression`,`fast_train` `gpu`
+   `logit`,`sklearn.linear_model.LogisticRegression`,`fast_train`
    `mlp`,`sklearn.neural_network.MLPClassifier`,
    `multinb`,`sklearn.naive_bayes.MultinomialNB`,`fast_train`
    `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`,`fast_train`
