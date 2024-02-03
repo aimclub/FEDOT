@@ -1,4 +1,4 @@
-import numpy # NOQA
+import numpy  # NOQA
 
 numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281 # NOQA
 
@@ -9,9 +9,9 @@ from sklearn.pipeline import make_pipeline
 from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 
-from fedot.core.pipelines.pipeline import Pipeline # NOQA
-from fedot.core.pipelines.node import PipelineNode # NOQA
-from fedot.core.data.data import InputData # NOQA
+from fedot.core.pipelines.pipeline import Pipeline  # NOQA
+from fedot.core.pipelines.node import PipelineNode  # NOQA
+from fedot.core.data.data import InputData  # NOQA
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
