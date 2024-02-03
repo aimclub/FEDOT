@@ -181,7 +181,7 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     if operation_info is None:
         raise ValueError(f'{operation_type} is not implemented '
-                         f'in {operations_repo.repository_name}')
+                         f'in {operations_repo.operation_type}')
 
     acceptable_task_types = operation_info.task_type
 
