@@ -94,7 +94,7 @@ def test_repositories_tags_consistency():
     for repository in (OperationTypesRepository(OperationReposEnum.MODEL),
                        OperationTypesRepository(OperationReposEnum.DATA_OPERATION)):
         for operation in repository.operations:
-            if repository.get_first_suitable_operation_tag(operation.id) is None:
+            if len(repository.operation_info_by_id(operation.id).tags) == 0:
                 errors_found.append(f'{operation.id} in {repository} has no proper default tags!')
 
     assert not errors_found, '\n'.join(errors_found)
