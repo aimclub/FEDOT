@@ -19,8 +19,8 @@ def _extract_keys_recursively(data: dict, key: Hashable) -> List[Any]:
 
 
 def test_preset_tags_contains_all_presets():
-    preset_tags_str = set(tag.name for tag in PresetsTagsEnum)
-    preset_str = set(preset.name.lower() for preset in PresetsEnum)
+    preset_tags_str = set(tag.name.lower() for tag in PresetsTagsEnum)
+    preset_str = set(preset.value[0].lower() for preset in PresetsEnum)
     assert preset_tags_str > preset_str
 
 
