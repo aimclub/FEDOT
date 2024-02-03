@@ -1,3 +1,7 @@
+import numpy # NOQA
+
+numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281 # NOQA
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.naive_bayes import BernoulliNB
@@ -8,8 +12,6 @@ from tpot.export_utils import set_param_recursive
 from fedot.core.pipelines.pipeline import Pipeline # NOQA
 from fedot.core.pipelines.node import PipelineNode # NOQA
 from fedot.core.data.data import InputData # NOQA
-
-numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
