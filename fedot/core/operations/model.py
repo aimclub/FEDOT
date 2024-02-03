@@ -16,6 +16,9 @@ class Model(Operation):
     """
 
     def __init__(self, operation_type: str):
+        # TODO now model is used for models from gpu repo
+        #      it is problem because we need to correctly define repo while constructing
+        #      this object
         super().__init__(operation_type=operation_type)
         self.operations_repo = OperationTypesRepository(OperationReposEnum.MODEL)
 
