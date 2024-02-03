@@ -2,12 +2,12 @@ import numpy  # NOQA
 
 numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281 # NOQA
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.pipeline import make_pipeline
-from tpot.builtins import StackingEstimator
-from tpot.export_utils import set_param_recursive
+from sklearn.ensemble import RandomForestClassifier # NOQA
+from sklearn.metrics import roc_auc_score as roc_auc # NOQA
+from sklearn.naive_bayes import BernoulliNB # NOQA
+from sklearn.pipeline import make_pipeline # NOQA
+from tpot.builtins import StackingEstimator # NOQA
+from tpot.export_utils import set_param_recursive # NOQA
 
 from fedot.core.pipelines.pipeline import Pipeline  # NOQA
 from fedot.core.pipelines.node import PipelineNode  # NOQA
