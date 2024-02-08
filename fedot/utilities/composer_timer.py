@@ -2,7 +2,7 @@ import datetime
 from contextlib import contextmanager
 
 
-class FedotIndustrialTimer:
+class ComposerTimer:
     def __init__(self):
         self.data_definition_fit_spend_time = None
         self.data_definition_predict_spend_time = None
@@ -26,7 +26,6 @@ class FedotIndustrialTimer:
         self.predicting_spend_time = datetime.timedelta(minutes=0)
         self.tuning_composing_spend_time = datetime.timedelta(minutes=0)
         self.tuning_post_spend_time = datetime.timedelta(minutes=0)
-
 
     @contextmanager
     def launch_data_definition(self, stage: str):
@@ -85,7 +84,6 @@ class FedotIndustrialTimer:
         elif stage == 'post':
             self.tuning_post_spend_time += ending_time - starting_time
 
-
     @property
     def report(self):
         output = {
@@ -103,4 +101,4 @@ class FedotIndustrialTimer:
         return output
 
 
-fedot_ind_timer = FedotIndustrialTimer()
+fedot_composer_timer = ComposerTimer()

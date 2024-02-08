@@ -35,7 +35,7 @@ from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
-from fedot.utilities.industrial_timer import fedot_ind_timer
+from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -119,7 +119,7 @@ class Fedot:
         self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
 
-        fedot_ind_timer.reset_timer()
+        fedot_composer_timer.reset_timer()
 
     def fit(self,
             features: FeaturesType,
@@ -143,12 +143,12 @@ class Fedot:
 
         self.target = target
 
-        with fedot_ind_timer.launch_data_definition('fit'):
+        with fedot_composer_timer.launch_data_definition('fit'):
             self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
         self.params.update_available_operations_by_preset(self.train_data)
 
-        with fedot_ind_timer.launch_applying_recommendations('fit'):
+        with fedot_composer_timer.launch_applying_recommendations('fit'):
             if self.params.get('use_input_preprocessing'):
                 # Launch data analyser - it gives recommendations for data preprocessing
                 recommendations_for_data, recommendations_for_params = \
@@ -164,10 +164,10 @@ class Fedot:
         self._init_remote_if_necessary()
 
         if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
-            with fedot_ind_timer.launch_preprocessing():
+            with fedot_composer_timer.launch_preprocessing():
                 self.train_data = self.data_processor.fit_transform(self.train_data)
 
-        with fedot_ind_timer.launch_fitting():
+        with fedot_composer_timer.launch_fitting():
             if predefined_model is not None:
                 # Fit predefined model and return it without composing
                 self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
@@ -225,7 +225,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        with fedot_ind_timer.launch_tuning('post'):
+        with fedot_composer_timer.launch_tuning('post'):
             input_data = input_data or self.train_data
             cv_folds = cv_folds or self.params.get('cv_folds')
             n_jobs = n_jobs or self.params.n_jobs
@@ -272,15 +272,15 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        with fedot_ind_timer.launch_data_definition('predict'):
+        with fedot_composer_timer.launch_data_definition('predict'):
             self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
 
         if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
-            with fedot_ind_timer.launch_preprocessing():
+            with fedot_composer_timer.launch_preprocessing():
                 self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
 
-        with fedot_ind_timer.launch_predicting():
+        with fedot_composer_timer.launch_predicting():
             self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
                                                                      test_data=self.test_data,
                                                                      in_sample=self._is_in_sample_prediction,
@@ -309,7 +309,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        with fedot_ind_timer.launch_predicting():
+        with fedot_composer_timer.launch_predicting():
             if self.params.task.task_type == TaskTypesEnum.classification:
                 self.test_data = self.data_processor.define_data(target=self.target,
                                                                  features=features, is_predict=True)
@@ -512,7 +512,7 @@ class Fedot:
         return explainer
 
     def return_report(self) -> pd.DataFrame:
-        report = fedot_ind_timer.report
+        report = fedot_composer_timer.report
 
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
