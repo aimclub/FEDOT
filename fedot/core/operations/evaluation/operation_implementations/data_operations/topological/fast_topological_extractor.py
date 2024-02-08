@@ -33,7 +33,7 @@ class FastTopologicalFeaturesImplementation(DataOperationImplementation):
         features = input_data.features
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
             topological_features = parallel(delayed(self._extract_features)
-                                            (np.mean(features[i:i+2, ::self.stride], axis=0))
+                                            (np.mean(features[i:i + 2, ::self.stride], axis=0))
                                             for i in range(0, features.shape[0], 2))
         if len(topological_features) * 2 < features.shape[0]:
             topological_features.append(topological_features[-1])

@@ -38,13 +38,10 @@ def test_change_node(nodes, node_factory):
     assert new_primary_node is not None
     assert new_secondary_node is not None
     assert new_intermediate_node is not None
-    assert new_primary_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=True)
-    assert new_intermediate_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=False) and \
-        new_intermediate_node.content['name'] != intermediate_node.content['name']
-    assert new_secondary_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=False)
+    assert new_primary_node.content['name'] in node_factory.graph_model_repository.get_operations(is_primary=True)
+    assert new_intermediate_node.content['name'] in node_factory.graph_model_repository.get_operations(
+        is_primary=False) and new_intermediate_node.content['name'] != intermediate_node.content['name']
+    assert new_secondary_node.content['name'] in node_factory.graph_model_repository.get_operations(is_primary=False)
 
 
 def test_get_intermediate_parent_node(nodes, node_factory):
@@ -52,11 +49,11 @@ def test_get_intermediate_parent_node(nodes, node_factory):
     new_intermediate_parent_node = node_factory.get_parent_node(secondary_node, is_primary=False)
 
     assert new_intermediate_parent_node is not None
-    assert new_intermediate_parent_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=False)
+    assert new_intermediate_parent_node.content['name'] in node_factory.graph_model_repository.get_operations(
+        is_primary=False)
     assert new_intermediate_parent_node.content['name'] != secondary_node.content['name']
-    assert new_intermediate_parent_node.content['name'] \
-        not in [str(n.content['name']) for n in secondary_node.nodes_from]
+    assert new_intermediate_parent_node.content['name'] not in [
+        str(n.content['name']) for n in secondary_node.nodes_from]
 
 
 def test_get_separate_parent_node(nodes, node_factory):
@@ -64,8 +61,8 @@ def test_get_separate_parent_node(nodes, node_factory):
     new_separate_parent_node = node_factory.get_parent_node(secondary_node, is_primary=True)
 
     assert new_separate_parent_node is not None
-    assert new_separate_parent_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=True)
+    assert new_separate_parent_node.content['name'] in node_factory.graph_model_repository.get_operations(
+        is_primary=True)
     assert new_separate_parent_node.content['name'] != secondary_node.content['name']
 
 
@@ -73,13 +70,11 @@ def test_get_child_node(node_factory):
     new_child_node = node_factory.get_node(is_primary=False)
 
     assert new_child_node is not None
-    assert new_child_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=False)
+    assert new_child_node.content['name'] in node_factory.graph_model_repository.get_operations(is_primary=False)
 
 
 def test_get_primary_node(node_factory):
     new_primary_node = node_factory.get_node(is_primary=True)
 
     assert new_primary_node is not None
-    assert new_primary_node.content['name'] \
-        in node_factory.graph_model_repository.get_operations(is_primary=True)
+    assert new_primary_node.content['name'] in node_factory.graph_model_repository.get_operations(is_primary=True)
