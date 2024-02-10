@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from fedot.api.api_utils.presets import PresetsEnum
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.log import default_log
 from sklearn.datasets import make_classification

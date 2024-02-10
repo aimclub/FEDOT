@@ -1,6 +1,6 @@
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum
+from fedot.core.repository.operation_tags import DataOperationTagsEnum
 from fedot.preprocessing.structure import PipelineStructureExplorer
 
 

@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_tags_n_repo_enums import ModelTagsEnum
+from fedot.core.repository.operation_tags import ModelTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data

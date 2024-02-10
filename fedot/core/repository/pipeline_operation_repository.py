@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 
 from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
 from fedot.core.repository.graph_operation_repository import GraphOperationRepository
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum

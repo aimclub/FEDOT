@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTagsEnum
+from fedot.core.repository.operation_tags import ComplexityTagsEnum
 from golem.utilities.requirements_notificator import warn_requirement
 
 try:

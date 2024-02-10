@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
 import numpy as np
-from fedot.core.repository.operation_tags_n_repo_enums import DataOperationTagsEnum, ExcludedTagsEnum, \
+from fedot.core.repository.operation_tags import DataOperationTagsEnum, ExcludedTagsEnum, \
     ModelTagsEnum, TagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationMetaInfo, OperationReposEnum
 from golem.core.log import default_log

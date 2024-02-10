@@ -5,7 +5,7 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
     atomized_model_type

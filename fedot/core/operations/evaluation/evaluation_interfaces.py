@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Optional
 
 import numpy as np
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum
 from golem.core.log import default_log
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans

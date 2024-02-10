@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTagsEnum, DataOperationTagsEnum
+from fedot.core.repository.operation_tags import ComplexityTagsEnum, DataOperationTagsEnum
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression

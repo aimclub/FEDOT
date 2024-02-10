@@ -4,7 +4,7 @@ import os
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import import_enums_from_str, \
     import_strategy_from_str, read_field
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum, ModelTagsEnum, ComplexityTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum, ModelTagsEnum, ComplexityTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)

@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
-from fedot.core.repository.operation_tags_n_repo_enums import OtherTagsEnum
+from fedot.core.repository.operation_tags import OtherTagsEnum
 from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.dag.linked_graph_node import LinkedGraphNode
 from golem.core.log import default_log

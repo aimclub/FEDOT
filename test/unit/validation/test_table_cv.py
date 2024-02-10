@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 
 from fedot.api.api_utils.presets import PresetsEnum
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTagsEnum
+from fedot.core.repository.operation_tags import ComplexityTagsEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot import Fedot

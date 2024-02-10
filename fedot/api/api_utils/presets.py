@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 
 from fedot.api.time import ApiTime
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_tags_n_repo_enums import ComplexityTagsEnum, PresetsTagsEnum, ExcludedTagsEnum
+from fedot.core.repository.operation_tags import ComplexityTagsEnum, PresetsTagsEnum, ExcludedTagsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 

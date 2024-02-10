@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Optional
 import numpy as np
 import seaborn as sns
 
-from fedot.core.repository.operation_tags_n_repo_enums import ModelTagsEnum, DataOperationTagsEnum
+from fedot.core.repository.operation_tags import ModelTagsEnum, DataOperationTagsEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.visualisation.graph_viz import GraphVisualizer
