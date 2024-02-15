@@ -47,7 +47,7 @@ class Fedot:
     where all the optional AutoML parameters are documented and separated by meaning.
 
     Args:
-        problem: name of the modelling problem to solve.
+        task_name: name of the modelling problem to solve.
             .. details:: Possible options:
 
                 - ``classification`` -> for classification task
@@ -80,7 +80,7 @@ class Fedot:
     """
 
     def __init__(self,
-                 problem: str,
+                 task_name: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
                  seed: Optional[int] = None,
@@ -94,7 +94,7 @@ class Fedot:
         self.log = self._init_logger(logging_level)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
+        self.params = ApiParams(composer_tuner_params, task_name, task_params, n_jobs, timeout)
 
         default_metrics = MetricByTask.get_default_quality_metrics(self.params.task.task_type)
         passed_metrics = self.params.get('metric')
