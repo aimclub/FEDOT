@@ -134,10 +134,10 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'}
             },
-            'xgbreg': {
+            'xgboostreg': {
                 'max_depth': {
                     'hyperopt-dist': hp.uniformint,
-                    'sampling-scope': [1, 11],
+                    'sampling-scope': [1, 7],
                     'type': 'discrete'},
                 'learning_rate': {
                     'hyperopt-dist': hp.loguniform,
@@ -145,12 +145,32 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'continuous'},
                 'subsample': {
                     'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [0.05, 1.0],
+                    'sampling-scope': [0.05, 0.99],
                     'type': 'continuous'},
                 'min_child_weight': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 21],
                     'type': 'discrete'},
+                'booster': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['gbtree', 'dart', 'gblinear']],
+                    'type': 'categorical'},
+                'lambda': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [0, 1000],
+                    'type': 'discrete'},
+                'alpha': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [0, 1000],
+                    'type': 'discrete'},
+                'colsample_bytree': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [1e-4, 1],
+                    'type': 'continuous'},
+                'scale_pos_weight': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 20],
+                    'type': 'continuous'},
             },
             'xgboost': {
                 'max_depth': {
@@ -168,7 +188,27 @@ class PipelineSearchSpace(SearchSpace):
                 'min_child_weight': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [1, 21],
-                    'type': 'discrete'}
+                    'type': 'discrete'},
+                'booster': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['gbtree', 'dart', 'gblinear']],
+                    'type': 'categorical'},
+                'lambda': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [0, 1000],
+                    'type': 'discrete'},
+                'alpha': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [0, 1000],
+                    'type': 'discrete'},
+                'colsample_bytree': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [1e-4, 1],
+                    'type': 'continuous'},
+                'scale_pos_weight': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 20],
+                    'type': 'continuous'},
             },
             'svr': {
                 'C': {
@@ -791,6 +831,7 @@ class PipelineSearchSpace(SearchSpace):
                 parameters_per_operation.update(self.custom_search_space)
             else:
                 for operation_name, operation_dct in self.custom_search_space.items():
-                    parameters_per_operation[operation_name].update(operation_dct)
+                    parameters_per_operation[operation_name].update(
+                        operation_dct)
 
         return parameters_per_operation
