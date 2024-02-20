@@ -356,25 +356,6 @@ class Data:
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=DataTypesEnum.image)
 
-    @staticmethod
-    def from_text_meta_file(meta_file_path: str = None,
-                            label: str = 'label',
-                            task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
-
-        if os.path.isdir(meta_file_path):
-            raise ValueError("""CSV file expected but got directory""")
-
-        df_text = pd.read_csv(meta_file_path)
-        df_text = df_text.sample(frac=1).reset_index(drop=True)
-        messages = df_text['text'].astype('U').tolist()
-
-        features = np.array(messages)
-        target = np.array(df_text[label]).reshape(-1, 1)
-        idx = [index for index in range(len(target))]
-
-        return InputData(idx=idx, features=features,
-                         target=target, task=task, data_type=data_type)
 
     @staticmethod
     def from_text_files(files_path: str,

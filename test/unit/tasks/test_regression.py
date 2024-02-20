@@ -93,7 +93,6 @@ def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputDa
 REGRESSION_DATA_SOURCES = ['numpy',
                            'dataframe',
                            'csv',
-                           # 'from_image',
                            # 'from_text_meta_file',
                            # 'from_text_files',
                            # 'from_json_files',
