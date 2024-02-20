@@ -77,7 +77,7 @@ def get_classification_data(source: str, problem: str) -> InputData:
         features_array = numpy_data[:, :-1]
         target_array = numpy_data[:, -1]
         return InputData.from_numpy(features_array=features_array,
-                                          target_array=target_array)
+                                    target_array=target_array)
     elif source == 'dataframe':
         file = f'../../data/classification/{problem}_classification.csv'
         df_data = pd.read_csv(os.path.join(test_file_path, file))

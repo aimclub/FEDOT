@@ -64,8 +64,8 @@ def get_regression_data(source: str) -> InputData:
         features_array = numpy_data[:, :-1]
         target_array = numpy_data[:, -1]
         return InputData.from_numpy(features_array=features_array,
-                                          target_array=target_array,
-                                          task='regression')
+                                    target_array=target_array,
+                                    task='regression')
     elif source == 'dataframe':
         file = '../../data/regression/simple_regression.csv'
         df_data = pd.read_csv(os.path.join(test_file_path, file))

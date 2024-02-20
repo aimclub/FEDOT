@@ -356,7 +356,6 @@ class Data:
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=DataTypesEnum.image)
 
-
     @staticmethod
     def from_text_files(files_path: str,
                         label: str = 'label',
