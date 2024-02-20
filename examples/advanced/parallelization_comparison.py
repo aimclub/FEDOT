@@ -14,7 +14,7 @@ from fedot.core.utils import fedot_project_root
 
 def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
     if opt_history is not None:
-        return reduce(operator.add, map(len, opt_history.individuals), 0)
+        return reduce(operator.add, map(len, opt_history.generations), 0)
     return 0
 
 

@@ -6,6 +6,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 from golem.core.log import default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
+from golem.core.tuning.tuner_interface import BaseTuner
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
@@ -73,11 +74,8 @@ class ApiComposer:
             fitted_assumption
         )
         if with_tuning:
-            best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
-        if gp_composer.history:
-            adapter = self.params.graph_generation_params.adapter
-            gp_composer.history.tuning_result = adapter.adapt(best_pipeline)
-        # enforce memory cleaning
+            best_pipeline = self.tune_final_pipeline(train_data, best_pipeline, gp_composer.history)
+
         gc.collect()
 
         self.log.message('Model generation finished')
@@ -143,7 +141,8 @@ class ApiComposer:
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
+    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline,
+                            history: Optional[OptHistory]) -> Tuple[BaseTuner, Pipeline]:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
@@ -153,6 +152,7 @@ class ApiComposer:
                  .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_requirements(self.params.composer_requirements)
+                 .with_history(history)
                  .build(train_data))
 
         if self.timer.have_time_for_tuning():

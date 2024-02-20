@@ -20,15 +20,15 @@ class TimeoutParams:
 TIMEOUT_CASES = [
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1 + 2  # num of gens + initial and final gens
+        test_answer=lambda hist: len(hist.generations) == 1 + 2  # num of gens + initial and final gens
     ),
     TimeoutParams(
         test_input={'timeout': None, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1 + 2
+        test_answer=lambda hist: len(hist.generations) == 1 + 2
     ),
     TimeoutParams(
         test_input={'timeout': 0.1, 'num_of_generations': 15},
-        test_answer=lambda hist: len(hist.individuals) < 15 + 2
+        test_answer=lambda hist: len(hist.generations) < 15 + 2
     ),
     TimeoutParams(
         test_input={'timeout': -2, 'num_of_generations': 15},
@@ -36,7 +36,7 @@ TIMEOUT_CASES = [
     ),
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 3},
-        test_answer=lambda hist: len(hist.individuals) == 3 + 2
+        test_answer=lambda hist: len(hist.generations) == 3 + 2
     )
 ]
 
