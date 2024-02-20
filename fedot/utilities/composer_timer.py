@@ -91,7 +91,7 @@ class ComposerTimer:
             'Applying Recommendation (fit)': self.applying_recs_fit_spend_time,
             'Data Preprocessing': self.preprocessing_spend_time,
             'Fitting': self.fitting_spend_time,
-            'Tuning (composing)': self.tuning_composing_spend_time,
+            'Tuning (fit)': self.tuning_composing_spend_time,
             'Tuning (post)': self.tuning_post_spend_time,
             'Data Definition (predict)': self.data_definition_predict_spend_time,
             'Applying Recommendation (predict)': self.applying_recs_predict_spend_time,
