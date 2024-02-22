@@ -148,18 +148,17 @@ class Fedot:
 
         self.params.update_available_operations_by_preset(self.train_data)
 
-        with fedot_composer_timer.launch_applying_recommendations('fit'):
-            if self.params.get('use_input_preprocessing'):
-                # Launch data analyser - it gives recommendations for data preprocessing
-                recommendations_for_data, recommendations_for_params = \
-                    self.data_analyser.give_recommendations(input_data=self.train_data,
-                                                            input_params=self.params)
-                self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                     recommendations=recommendations_for_data)
-                self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                             recommendations=recommendations_for_params)
-            else:
-                recommendations_for_data = None
+        if self.params.get('use_input_preprocessing'):
+            # Launch data analyser - it gives recommendations for data preprocessing
+            recommendations_for_data, recommendations_for_params = \
+                self.data_analyser.give_recommendations(input_data=self.train_data,
+                                                        input_params=self.params)
+            self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                 recommendations=recommendations_for_data)
+            self.params.accept_and_apply_recommendations(input_data=self.train_data,
+                                                         recommendations=recommendations_for_params)
+        else:
+            recommendations_for_data = None
 
         self._init_remote_if_necessary()
 
@@ -181,11 +180,13 @@ class Fedot:
 
                 full_train_not_preprocessed = deepcopy(self.train_data)
                 # Final fit for obtained pipeline on full dataset
-                if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                    self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
-                    self.log.message('Final pipeline was fitted')
-                else:
-                    self.log.message('Already fitted initial pipeline is used')
+
+                with fedot_composer_timer.launch_train_inference():
+                    if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
+                        self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
+                        self.log.message('Final pipeline was fitted')
+                    else:
+                        self.log.message('Already fitted initial pipeline is used')
 
         # Merge API & pipelines encoders if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
@@ -512,6 +513,19 @@ class Fedot:
         return explainer
 
     def return_report(self) -> pd.DataFrame:
+        """ Functions returns report of time-consuming.
+
+        The following steps are presented in this report:
+            - 'Data Definition (fit)': Time spent on data definition in fit().
+            - 'Data Preprocessing': Total time spent on preprocessing data, includes fitting and predicting stages.
+            - 'Fitting (summary)': Total time spent for Composing, Tuning and Training Inference.
+            - 'Composing': Time spent on searching best pipeline.
+            - 'Train Inference': Time spent on training the found pipeline during composing.
+            - 'Tuning (composing)': Time spent on hyperparameters tuning in whole fitting, if `with_tune` is True.
+            - 'Tuning (after)': Time spent on .tune() (hyperparameters tuning) after composing.
+            - 'Data Definition (predict)'. Time spent on data definition in predict().
+            - 'Predicting'. Time spent for predicting (inference).
+        """
         report = fedot_composer_timer.report
 
         if self.current_pipeline is None:
