@@ -513,18 +513,18 @@ class Fedot:
         return explainer
 
     def return_report(self) -> pd.DataFrame:
-        """ Functions returns report of time-consuming.
+        """ Function returns a report on time consumption.
 
-        The following steps are presented in this report:
+            The following steps are presented in this report:
             - 'Data Definition (fit)': Time spent on data definition in fit().
             - 'Data Preprocessing': Total time spent on preprocessing data, includes fitting and predicting stages.
-            - 'Fitting (summary)': Total time spent for Composing, Tuning and Training Inference.
-            - 'Composing': Time spent on searching best pipeline.
-            - 'Train Inference': Time spent on training the found pipeline during composing.
-            - 'Tuning (composing)': Time spent on hyperparameters tuning in whole fitting, if `with_tune` is True.
+            - 'Fitting (summary)': Total time spent on Composing, Tuning and Training Inference.
+            - 'Composing': Time spent on searching for the best pipeline.
+            - 'Train Inference': Time spent on training the pipeline found during composing.
+            - 'Tuning (composing)': Time spent on hyperparameters tuning in the whole fitting, if with_tune is True.
             - 'Tuning (after)': Time spent on .tune() (hyperparameters tuning) after composing.
-            - 'Data Definition (predict)'. Time spent on data definition in predict().
-            - 'Predicting'. Time spent for predicting (inference).
+            - 'Data Definition (predict)': Time spent on data definition in predict().
+            - 'Predicting': Time spent on predicting (inference).
         """
         report = fedot_composer_timer.report
 
