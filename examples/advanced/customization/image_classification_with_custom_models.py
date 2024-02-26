@@ -35,7 +35,7 @@ custom_search_space = {'filter_1': {
             'hyperopt-dist': hp.uniformint,
             'sampling-scope': [-254, 254],
             'type': 'discrete'},
-    }
+}
 }
 
 
