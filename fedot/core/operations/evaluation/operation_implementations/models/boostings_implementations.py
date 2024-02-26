@@ -56,7 +56,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         early_stopping_rounds = self.params.get('early_stopping_rounds')
         use_eval_set = self.params.get('use_eval_set')
 
-        if use_best_model or early_stopping_rounds and not use_eval_set:
+        if (use_best_model or isinstance(early_stopping_rounds, int)) and not use_eval_set:
             self.params.update(use_best_model=False, early_stopping_rounds=False)
 
     @staticmethod
