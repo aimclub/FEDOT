@@ -87,7 +87,7 @@ def run_image_classification_automl(train_dataset: tuple,
                                                labels=y_test,
                                                task=task)
 
-    dataset_to_train = dataset_to_train.subset_range(0, 100)
+    dataset_to_train = dataset_to_train.subset_range(0, min(100, dataset_to_train.features.shape[0]))
 
     initial_pipeline = cnn_composite_pipeline()
     initial_pipeline.show()
@@ -106,7 +106,7 @@ def run_image_classification_automl(train_dataset: tuple,
     composer_requirements = PipelineComposerRequirements(
         primary=get_operations_for_task(task=task, mode='all'),
         timeout=datetime.timedelta(minutes=3),
-        num_of_generations=20, n_jobs=1
+        num_of_generations=20, n_jobs=1, cv_folds=None
     )
 
     pop_size = 5

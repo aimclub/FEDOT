@@ -2,15 +2,15 @@ import warnings
 from typing import Optional
 
 from examples.advanced.customization.implementations.cnn_impls import MyCNNImplementation
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.data.data import InputData
+from fedot.core.operations.evaluation.classification import FedotClassificationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class ImageClassificationStrategy(EvaluationStrategy):
+class ImageClassificationStrategy(FedotClassificationStrategy):
     _operations_by_types = {
         'cnn_1': MyCNNImplementation
     }
@@ -33,27 +33,3 @@ class ImageClassificationStrategy(EvaluationStrategy):
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
         return operation_implementation
-
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for classification task for predict stage
-
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return: prediction target
-        """
-        n_classes = len(trained_operation.classes_)
-        if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data)
-        elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data)
-            if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
-            elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:
-                prediction = prediction[:, 1]
-        else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
-
-        # Convert prediction to output (if it is required)
-        converted = self._convert_to_output(prediction, predict_data)
-        return converted
