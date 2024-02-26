@@ -9,17 +9,20 @@ from fedot.core.utils import NESTED_PARAMS_LABEL
 
 class PipelineSearchSpace(SearchSpace):
     """
-    Class for extracting searching space
+    Class for extracting searching space for hyperparameters of pipeline
 
     :param custom_search_space: dictionary of dictionaries of tuples (hyperopt expression (e.g. hp.choice), *params)
      for applying custom hyperparameters search space
     :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
     """
 
+    pre_defined_custom_search_space = None  # workaround to modify search space globally
+
     def __init__(self,
                  custom_search_space: Optional[OperationParametersMapping] = None,
                  replace_default_search_space: bool = False):
-        self.custom_search_space = custom_search_space
+        self.custom_search_space = custom_search_space if PipelineSearchSpace.pre_defined_custom_search_space is None \
+            else PipelineSearchSpace.pre_defined_custom_search_space
         self.replace_default_search_space = replace_default_search_space
         parameters_per_operation = self.get_parameters_dict()
         super().__init__(parameters_per_operation)

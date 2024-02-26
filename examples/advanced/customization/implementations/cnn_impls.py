@@ -135,9 +135,9 @@ class MyCNNImplementation(ModelImplementation):
         self.model = cnn_model_dict[self.params.get('architecture_type')](input_shape=train_data.features.shape[1:4],
                                                                           num_classes=len(self.classes))
 
-        # self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params.get('epochs'),
-        #                      batch_size=self.params.get('batch_size'),
-        #                      optimizer_params=self.params.get('optimizer_parameters'), logger=self.params.get('log'))
+        self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params.get('epochs'),
+                             batch_size=self.params.get('batch_size'),
+                             optimizer_params=self.params.get('optimizer_parameters'), logger=self.params.get('log'))
         return self.model
 
     def predict(self, input_data):

@@ -17,7 +17,6 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
@@ -113,7 +112,7 @@ def run_image_classification_automl(train_dataset: tuple,
     pop_size = 5
 
     # search space for hyper-parametric mutation
-    ParametersChanger.custom_search_space = custom_search_space
+    PipelineSearchSpace.pre_defined_custom_search_space = custom_search_space
 
     params = GPAlgorithmParameters(
         selection_types=[SelectionTypesEnum.spea2],

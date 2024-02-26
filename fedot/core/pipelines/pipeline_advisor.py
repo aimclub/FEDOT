@@ -45,7 +45,7 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
             candidates = set.intersection({'lagged', 'sparse_lagged'}, set(possible_operations))
 
         if 'cnn' in operation_id:
-            candidates = [c for c in candidates if 'cnn' in candidates]
+            candidates = [cand for cand in candidates if 'cnn' in cand]
 
         if operation_id in candidates:
             # the change to the same node is not meaningful

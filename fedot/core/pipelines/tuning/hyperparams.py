@@ -11,12 +11,9 @@ from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 class ParametersChanger:
     """
     Class for the hyperparameters changing in the operation
-
     :param operation_name: name of operation to get hyperparameters for
     :param current_params: current parameters value
     """
-
-    custom_search_space = None
 
     def __init__(self, operation_name, current_params):
         self.operation_name = operation_name
@@ -28,7 +25,7 @@ class ParametersChanger:
 
         # Get available parameters for operation
         params_list = \
-            PipelineSearchSpace(ParametersChanger.custom_search_space).get_parameters_for_operation(self.operation_name)
+            PipelineSearchSpace().get_parameters_for_operation(self.operation_name)
 
         if not params_list:
             params_dict = None
