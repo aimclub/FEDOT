@@ -14,7 +14,6 @@ from sklearn.model_selection import train_test_split
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
 
-
 def fedot_project_root() -> Path:
     """Returns FEDOT project root folder."""
     return Path(__file__).parent.parent.parent

@@ -159,9 +159,6 @@
     "whiten": "unit-variance"
   },
   "topological_features": {
-    "n_jobs": -1
-  },
-  "fast_topological_features": {
     "n_jobs": 1,
     "window_size_as_share": 0.66,
     "max_homology_dimension": 1,
