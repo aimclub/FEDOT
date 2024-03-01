@@ -17,6 +17,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 EXTRA_TS_INSTALLED = True
 try:
     from gph import ripser_parallel as ripser
+    dummy_var = ripser  # for pep8
 except ModuleNotFoundError:
     EXTRA_TS_INSTALLED = False
 
