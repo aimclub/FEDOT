@@ -6,6 +6,7 @@ import numpy as np
 
 try:
     from gph import ripser_parallel as ripser
+    dummy_var = ripser  # for pep8
 except ModuleNotFoundError:
     logging.log(100,
                 "Topological features operation requires extra dependencies for time series forecasting, which are not"
