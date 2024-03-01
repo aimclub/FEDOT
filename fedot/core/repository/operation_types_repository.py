@@ -442,7 +442,8 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         if not forbidden_tags:
             forbidden_tags = []
         logging.log(100,
-                    "Extra dependencies for time series forecasting are not installed. It can infuence the performance. Please install it by 'pip install fedot[extra]'")
+                    "Extra dependencies for time series forecasting are not installed. It can infuence the "
+                    "performance. Please install it by 'pip install fedot[extra]'")
         forbidden_tags.append('ts-extra')
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
