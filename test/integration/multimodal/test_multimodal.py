@@ -11,7 +11,6 @@ from fedot.core.utils import fedot_project_root
 from test.integration.models.test_model import get_data_for_testing
 
 
-@pytest.mark.skip(reason="too much memory")
 def generate_multi_modal_pipeline(data: MultiModalData):
     # image
     images_size = data['data_source_img'].features.shape[1:4]
