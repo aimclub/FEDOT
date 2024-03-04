@@ -11,6 +11,7 @@ from fedot.core.utils import fedot_project_root
 from test.integration.models.test_model import get_data_for_testing
 
 
+@pytest.mark.skip(reason="too much memory")
 def generate_multi_modal_pipeline(data: MultiModalData):
     # image
     images_size = data['data_source_img'].features.shape[1:4]
@@ -63,10 +64,10 @@ def test_multi_modal_pipeline():
                          [(TaskTypesEnum.ts_forecasting,
                            DataTypesEnum.multi_ts,
                            (PipelineBuilder().add_branch('data_source_ts/0', 'data_source_ts/1')
-                                             .grow_branches('lagged', 'lagged')
-                                             .join_branches('ridge')
-                                             .build()
-                            )
+                           .grow_branches('lagged', 'lagged')
+                           .join_branches('ridge')
+                           .build()
+                           )
                            ),
                           ]
                          )
