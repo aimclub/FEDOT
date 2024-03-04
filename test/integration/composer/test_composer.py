@@ -23,8 +23,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, set_random_seed
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
@@ -64,12 +64,14 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.classification)
+    task = Task(task_type=TaskTypesEnum.classification)
+
+    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     req = PipelineComposerRequirements(num_of_generations=3,
                                        primary=available_model_types,
                                        secondary=available_model_types)
     objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
-    pipeline_generation_params = get_pipeline_generation_params(requirements=req)
+    pipeline_generation_params = get_pipeline_generation_params(requirements=req, task=task)
 
     optimiser = RandomSearchOptimizer(objective, requirements=req, graph_generation_params=pipeline_generation_params)
     random_composer = RandomSearchComposer(optimiser)
