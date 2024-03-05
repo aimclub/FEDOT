@@ -439,7 +439,7 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
             preset = None
 
-    if task.task_type is TaskTypesEnum.ts_forecasting and not EXTRA_TS_INSTALLED:
+    if task is not None and task.task_type is TaskTypesEnum.ts_forecasting and not EXTRA_TS_INSTALLED:
         if not forbidden_tags:
             forbidden_tags = []
         logging.log(100,

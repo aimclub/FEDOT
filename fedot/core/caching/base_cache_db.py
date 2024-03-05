@@ -53,7 +53,7 @@ class BaseCacheDB:
         """
         return self._effectiveness_keys
 
-    def reset(self):
+    def reset(self, full_clean=False):
         """
         Drops all scores from working table and resets efficiency table values to zero.
         """
@@ -63,6 +63,9 @@ class BaseCacheDB:
                 if self.use_stats:
                     self._reset_eff(cur)
                 self._reset_main(cur)
+
+        if full_clean:
+            self._del_prev_temps()
 
     def _init_eff(self):
         """
