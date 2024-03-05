@@ -10,7 +10,7 @@ def establish_seed():
     set_random_seed(42)
 
 
-@pytest.fixture(scope='function', autouse=True)
+# @pytest.fixture(scope='function', autouse=True) #TODO resolve data consumption issue
 def run_around_tests():
     OperationsCache().reset(full_clean=True)
     PreprocessingCache().reset(full_clean=True)
