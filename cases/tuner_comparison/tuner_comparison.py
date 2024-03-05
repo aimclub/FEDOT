@@ -24,7 +24,6 @@ from fedot.core.optimisers.objective import MetricsObjective, PipelineObjectiveE
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.repository.quality_metrics_repository import MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import set_random_seed
 
@@ -39,7 +38,7 @@ def get_data_for_experiment(data_path, task, forecast_length, validation_blocks)
     return train_data, test_data
 
 
-def get_objective_evaluate(metric: MetricType, data: InputData, validation_blocks: int, n_jobs: int = -1):
+def get_objective_evaluate(metric, data: InputData, validation_blocks: int, n_jobs: int = -1):
     objective = MetricsObjective(metric)
     data_split = DataSourceSplitter(cv_folds=3, validation_blocks=validation_blocks).build(data)
     objective_eval = PipelineObjectiveEvaluate(objective,
@@ -77,7 +76,7 @@ def run_experiment(task: str,
                    launch_num: int,
                    with_timeout: bool = False,
                    forecast_length: int = 10,
-                   validation_blocks: int = 2):
+                   validation_blocks: int = None):
     n_jobs = -1
     pipelines = get_pipelines_for_task(task)
     train_data, test_data = get_data_for_experiment(data_path, task, forecast_length, validation_blocks)
@@ -140,13 +139,13 @@ def run_experiment(task: str,
                                          columns=column_names)
             df = pd.concat([df, launch_result], ignore_index=True, axis=0)
 
-        df.to_csv(path_to_save)
+            df.to_csv(path_to_save)
 
     return df
 
 
 if __name__ == '__main__':
-    task = 'forecasting'
+    task = 'regression'
     datasets = os.listdir(f'{task}_data')
     tuners = [IOptTuner, SimultaneousTuner, OptunaTuner]
     iters_num = [20, 100]
