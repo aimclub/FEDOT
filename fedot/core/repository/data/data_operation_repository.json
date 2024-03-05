@@ -259,18 +259,7 @@
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "tags": [
-        "non_applicable_for_ts",
-        "feature_space_transformation"
-      ]
-    },
-    "fast_topological_features": {
-      "meta": "custom_ts_preprocessing",
-      "presets": [
-        "ts"
-      ],
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "tags": [
+        "ts-extra",
         "non_applicable_for_ts",
         "feature_space_transformation"
       ]

@@ -768,7 +768,7 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.9, 0.99],
                     'type': 'continuous'}
             },
-            'fast_topological_features': {
+            'topological_features': {
                 'window_size_as_share': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.1, 0.9],

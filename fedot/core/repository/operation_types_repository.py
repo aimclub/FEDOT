@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
@@ -12,6 +13,13 @@ from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+EXTRA_TS_INSTALLED = True
+try:
+    from gph import ripser_parallel as ripser
+    dummy_var = ripser  # for pep8
+except ModuleNotFoundError:
+    EXTRA_TS_INSTALLED = False
 
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -431,6 +439,13 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
             preset = None
 
+    if task is not None and task.task_type is TaskTypesEnum.ts_forecasting and not EXTRA_TS_INSTALLED:
+        if not forbidden_tags:
+            forbidden_tags = []
+        logging.log(100,
+                    "Extra dependencies for time series forecasting are not installed. It can infuence the "
+                    "performance. Please install it by 'pip install fedot[extra]'")
+        forbidden_tags.append('ts-extra')
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
