@@ -63,10 +63,10 @@ def test_multi_modal_pipeline():
                          [(TaskTypesEnum.ts_forecasting,
                            DataTypesEnum.multi_ts,
                            (PipelineBuilder().add_branch('data_source_ts/0', 'data_source_ts/1')
-                           .grow_branches('lagged', 'lagged')
-                           .join_branches('ridge')
-                           .build()
-                           )
+                            .grow_branches('lagged', 'lagged')
+                            .join_branches('ridge')
+                            .build()
+                            )
                            ),
                           ]
                          )
