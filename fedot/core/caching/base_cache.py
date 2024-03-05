@@ -32,11 +32,11 @@ class BaseCache(metaclass=SingletonMeta):
                 eff_dct[key] = round(hit / total, 3) if total else 0.
             return eff_dct
 
-    def reset(self):
+    def reset(self, full_clean):
         """
         Drops all scores from working table and resets efficiency table values to zero.
         """
-        self._db.reset()
+        self._db.reset(full_clean)
 
     def __len__(self):
         return len(self._db)
