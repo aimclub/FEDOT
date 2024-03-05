@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+from lightgbm import LGBMClassifier, LGBMRegressor
 from matplotlib import pyplot as plt
 from xgboost import XGBClassifier, XGBRegressor
 
@@ -133,6 +134,92 @@ class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
         super().__init__(params)
         self.classes_ = None
         self.model = XGBRegressor(**self.model_params)
+
+
+class FedotLightGBMImplementation(ModelImplementation):
+    __operation_params = ['n_jobs', 'use_eval_set']
+
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+
+        self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        self.model = None
+
+    def fit(self, input_data: InputData):
+        input_data = input_data.get_not_encoded_data()
+
+        if self.params.get('use_eval_set'):
+            train_input, eval_input = train_test_data_setup(input_data)
+
+            train_input = self.convert_to_dataframe(train_input)
+            eval_input = self.convert_to_dataframe(eval_input)
+
+            train_x, train_y = train_input.drop(columns=['target']), train_input['target']
+            eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
+
+            if self.classes_ is None:
+                eval_metric = 'rmse'
+            elif len(self.classes_) < 3:
+                eval_metric = 'auc'
+            else:
+                eval_metric = 'multi_logloss'
+
+            self.model.fit(X=train_x, y=train_y,
+                           eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
+
+        else:
+
+            train_data = self.convert_to_dataframe(input_data)
+            train_x, train_y = train_data.drop(columns=['target']), train_data['target']
+            self.model.fit(X=train_x, y=train_y)
+
+        return self.model
+
+    def predict(self, input_data: InputData):
+        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        train_x = input_data.drop(columns=['target'])
+        prediction = self.model.predict(train_x)
+
+        return prediction
+
+    @staticmethod
+    def convert_to_dataframe(data: Optional[InputData]):
+        dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
+        dataframe['target'] = data.target
+
+        if data.categorical_idx is not None:
+            for col in dataframe.columns[data.categorical_idx]:
+                dataframe[col] = dataframe[col].astype('category')
+
+        if data.numerical_idx is not None:
+            for col in dataframe.columns[data.numerical_idx]:
+                dataframe[col] = dataframe[col].astype('float')
+
+        return dataframe
+
+
+class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        self.classes_ = None
+        self.model = LGBMClassifier(**self.model_params)
+
+    def fit(self, input_data: InputData):
+        self.classes_ = np.unique(np.array(input_data.target))
+        return super().fit(input_data=input_data)
+
+    def predict_proba(self, input_data: InputData):
+        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        train_x = input_data.drop(columns=['target'])
+        prediction = self.model.predict_proba(train_x)
+        return prediction
+
+
+class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        self.classes_ = None
+        self.model = LGBMRegressor(**self.model_params)
 
 
 class FedotCatBoostImplementation(ModelImplementation):

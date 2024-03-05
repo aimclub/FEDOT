@@ -4,7 +4,8 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
     FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation, \
-    FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation
+    FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
+    FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
@@ -16,6 +17,8 @@ class BoostingStrategy(EvaluationStrategy):
         'catboostreg': FedotCatBoostRegressionImplementation,
         'xgboost': FedotXGBoostClassificationImplementation,
         'xgboostreg': FedotXGBoostRegressionImplementation
+        'lgbm': FedotLightGBMClassificationImplementation,
+        'lgbmreg': FedotLightGBMRegressionImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
