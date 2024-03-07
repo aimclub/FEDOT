@@ -18,9 +18,9 @@ class OperationsCacheDB(BaseCacheDB):
     :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None):
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         super().__init__('operations', cache_dir, False, [
-            'pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'])
+            'pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'], custom_pid)
         self._init_db()
 
     @staticmethod

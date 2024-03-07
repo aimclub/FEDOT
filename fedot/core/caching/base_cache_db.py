@@ -21,7 +21,8 @@ class BaseCacheDB:
     """
 
     def __init__(self, main_table: str = 'default', cache_dir: Optional[str] = None, use_stats: bool = False,
-                 stats_keys: Sequence = ('default_hit', 'default_total')):
+                 stats_keys: Sequence = ('default_hit', 'default_total'),
+                 custom_pid=None):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
         if cache_dir is None or Path(cache_dir).samefile(default_fedot_data_dir()):
@@ -29,7 +30,9 @@ class BaseCacheDB:
             self._del_prev_temps()
         else:
             self.db_path = Path(cache_dir)
-        self.db_path = self.db_path.joinpath(f'cache_{os.getpid()}').with_suffix(self._db_suffix)
+
+        pid = custom_pid if custom_pid is not None else os.getpid()
+        self.db_path = self.db_path.joinpath(f'cache_{pid}').with_suffix(self._db_suffix)
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats
@@ -89,7 +92,7 @@ class BaseCacheDB:
         """
         Deletes previously generated unused DB files.
         """
-        for file in self.db_path.parent.glob(f'cache_*{self._db_suffix}'):
+        for file in self.db_path.glob(f'cache_*{self._db_suffix}'):
             try:
                 pid = int(file.stem.split('_')[-1])
             except ValueError:

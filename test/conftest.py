@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 from fedot.core.caching.pipelines_cache import OperationsCache
@@ -12,8 +14,16 @@ def establish_seed():
 
 @pytest.fixture(scope='function', autouse=True)
 def run_around_tests():
-    OperationsCache()
-    PreprocessingCache()
+    # remove singleton from previous run #TODO refactor
+    if OperationsCache in OperationsCache._instances:
+        del OperationsCache._instances[OperationsCache]
+    if PreprocessingCache in PreprocessingCache._instances:
+        del PreprocessingCache._instances[PreprocessingCache]
+
+    unique_id_for_dbs = str(uuid4()).replace('-', '')
+
+    OperationsCache(custom_pid=unique_id_for_dbs)
+    PreprocessingCache(custom_pid=unique_id_for_dbs)
     yield
-    OperationsCache().reset(full_clean=True)
-    PreprocessingCache().reset(full_clean=True)
+    # OperationsCache().reset(full_clean=True)
+    # PreprocessingCache().reset(full_clean=True)
