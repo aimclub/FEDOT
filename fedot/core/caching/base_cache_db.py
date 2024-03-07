@@ -89,7 +89,7 @@ class BaseCacheDB:
         """
         Deletes previously generated unused DB files.
         """
-        for file in self.db_path.glob(f'cache_*{self._db_suffix}'):
+        for file in self.db_path.parent.glob(f'cache_*{self._db_suffix}'):
             try:
                 pid = int(file.stem.split('_')[-1])
             except ValueError:
