@@ -65,7 +65,7 @@ class BaseCacheDB:
                 self._reset_main(cur)
 
         if full_clean:
-            self._del_prev_temps()
+            self._del_prev_temps(dell_all=full_clean)
 
     def _init_eff(self):
         """
@@ -85,7 +85,7 @@ class BaseCacheDB:
                     ))
                     cur.execute(f'INSERT OR IGNORE INTO {self._eff_table} DEFAULT VALUES;')
 
-    def _del_prev_temps(self):
+    def _del_prev_temps(self, dell_all=False):
         """
         Deletes previously generated unused DB files.
         """
@@ -94,7 +94,7 @@ class BaseCacheDB:
                 pid = int(file.stem.split('_')[-1])
             except ValueError:
                 pid = -1  # old format cache name, remove this line somewhere in the future
-            if pid not in psutil.pids():
+            if pid not in psutil.pids() or dell_all:
                 try:
                     file.unlink()
                 except FileNotFoundError:
