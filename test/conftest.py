@@ -12,8 +12,8 @@ def establish_seed():
 
 @pytest.fixture(scope='function', autouse=True)
 def run_around_tests():
-    OperationsCache().reset(full_clean=True)
-    PreprocessingCache().reset(full_clean=True)
+    OperationsCache()
+    PreprocessingCache()
     yield
     OperationsCache().reset(full_clean=True)
     PreprocessingCache().reset(full_clean=True)
