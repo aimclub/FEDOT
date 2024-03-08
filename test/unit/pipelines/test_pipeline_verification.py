@@ -172,8 +172,8 @@ def correct_decompose_pipeline():
 
 
 def pipeline_with_correct_data_sources():
-    node_first = PipelineNode('data_source/1')
-    node_second = PipelineNode('data_source/2')
+    node_first = PipelineNode('data_source_table/1')
+    node_second = PipelineNode('data_source_table/2')
     pipeline = Pipeline(PipelineNode('linear', [node_first, node_second]))
     return pipeline
 
@@ -326,12 +326,8 @@ def test_incorrect_node_after_decompose_operation():
 
 
 def test_data_sources_validation():
-    incorrect_pipeline = pipeline_with_incorrect_data_sources()
-
-    with pytest.raises(ValueError) as exc:
-        has_correct_data_sources(incorrect_pipeline)
-
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Data sources are mixed with other primary nodes'
+    with pytest.raises(ValueError):
+        pipeline_with_incorrect_data_sources()
 
     correct_pipeline = pipeline_with_correct_data_sources()
     assert has_correct_data_sources(correct_pipeline)

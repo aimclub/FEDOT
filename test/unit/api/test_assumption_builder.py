@@ -11,6 +11,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
@@ -40,7 +41,9 @@ def pipeline_contains_any(pipeline: Pipeline, *operation_name: str) -> bool:
     return any(map(contains_one, operation_name))
 
 
-def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
+def get_suitable_operations_for_task(task_type: TaskTypesEnum,
+                                     data_type: DataTypesEnum,
+                                     repo: OperationReposEnum = OperationReposEnum.MODEL):
     operations = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
     return operations
 

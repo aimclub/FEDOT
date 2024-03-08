@@ -9,8 +9,8 @@ from golem.core.optimisers.optimizer import GraphGenerationParams
 from golem.utilities.utilities import determine_n_jobs
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
+from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -44,7 +44,7 @@ class ApiParams(UserDict):
     def update_available_operations_by_preset(self, data: InputData):
         """ Updates available_operations by preset and data type"""
         preset = self.get('preset')
-        if preset != AUTO_PRESET_NAME:
+        if preset is not PresetsEnum.AUTO:
             preset_operations = OperationsPreset(task=self.task, preset_name=preset)
             self.data = preset_operations.composer_params_based_on_preset(self.data, data.data_type)
 
@@ -62,24 +62,9 @@ class ApiParams(UserDict):
                 self.accept_and_apply_recommendations(input_data[data_source_name],
                                                       recommendations[data_source_name])
         else:
-            if 'label_encoded' in recommendations:
-                self.log.info("Change preset due to label encoding")
-                self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
-
             # update api params with recommendations obtained using meta rules
             for key in recommendations:
                 self.update({key: recommendations[key]})
-
-    def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
-        """ Change preset on tree like preset, if data had been label encoded """
-        if 'preset' in self:
-            preset_name = ''.join((self['preset'], '*tree'))
-        else:
-            preset_name = '*tree'
-        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
-
-        self.pop('available_operations', None)
-        self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
         """ Creates Task from problem name and task_params"""

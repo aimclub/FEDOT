@@ -1,3 +1,4 @@
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.log import LoggerAdapter
 from typing import Dict, Optional
 
@@ -27,16 +28,16 @@ def get_recommended_preset(input_data: InputData, input_params: ApiParams, log: 
         # since there is enough time for optimization on such amount of data heavy models can be used
         if input_params.timeout >= 60 and \
                 input_data.features.shape[0] * input_data.features.shape[1] < 300000:
-            preset = 'best_quality'
+            preset = PresetsEnum.BEST_QUALITY
 
         # to avoid stagnation due to too long evaluation of one population
         if input_params.timeout < 10 \
                 and input_data.features.shape[0] * input_data.features.shape[1] > 300000:
-            preset = 'fast_train'
+            preset = PresetsEnum.FAST_TRAIN
 
     # to avoid overfitting for small datasets
     if input_data.features.shape[0] < 5000:
-        preset = 'fast_train'
+        preset = PresetsEnum.FAST_TRAIN
 
     if preset:
         log.info(f'preset was set to {preset}')

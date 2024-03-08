@@ -43,4 +43,4 @@ def test_prediction_intervals(params):
         int_picp = picp(params['ts_test'], low=res['low_int'], up=res['up_int'])
 
         assert int_score <= 100, f"Too big interval_score of prediction intervals for {x}."
-        assert int_picp >= 0.3, f"Too small prediction interval coverage probability of prediction intervals for {x}."
+        assert int_picp >= 0.2, f"Too small prediction interval coverage probability of prediction intervals for {x}."

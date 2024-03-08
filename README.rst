@@ -97,7 +97,7 @@ FEDOT предоставляет высокоуровневый API, котор�
 
 .. code-block:: python
 
-    model = Fedot(problem='classification', timeout=5, preset='best_quality', n_jobs=-1)
+    model = Fedot(problem='classification', timeout=5, preset=PresetsEnum.BEST_QUALITY, n_jobs=-1)
     model.fit(features=x_train, target=y_train)
     prediction = model.predict(features=x_test)
     metrics = model.get_metrics(target=y_test)

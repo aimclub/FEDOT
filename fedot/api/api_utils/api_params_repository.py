@@ -1,11 +1,11 @@
 import datetime
 from typing import Sequence
+from fedot.api.api_utils.presets import PresetsEnum
 
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
-from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
 
@@ -58,7 +58,7 @@ class ApiParamsRepository:
             collect_intermediate_metric=False,
             max_pipeline_fit_time=None,
             initial_assumption=None,
-            preset=AUTO_PRESET_NAME,
+            preset=PresetsEnum.AUTO,
             use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,

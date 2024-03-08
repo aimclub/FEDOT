@@ -3,6 +3,7 @@ import logging
 
 from hyperopt import hp
 
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.log import default_log
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.tuning.simultaneous import SimultaneousTuner
@@ -131,7 +132,7 @@ def test_api_cv_correct():
     timeout = 0.05
     composer_params = {'max_depth': 2,
                        'max_arity': 2,
-                       'preset': 'fast_train',
+                       'preset': PresetsEnum.FAST_TRAIN,
                        'cv_folds': folds,
                        'num_of_generations': 1,
                        'show_progress': False}

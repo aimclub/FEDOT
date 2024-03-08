@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import fedot_project_root
 from fedot.utilities.project_import_export import DEFAULT_PROJECTS_PATH, export_project_to_zip, import_project_from_zip
 from test.integration.models.test_atomized_model import create_pipeline
@@ -82,7 +83,7 @@ def test_export_import_api_correctly():
     train_data = test_data = get_classification_data()
 
     api = Fedot(problem='classification', timeout=-1,
-                preset='fast_train',
+                preset=PresetsEnum.FAST_TRAIN,
                 with_tuning=False,
                 num_of_generations=1,
                 pop_size=3,

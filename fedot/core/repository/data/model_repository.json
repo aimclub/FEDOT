@@ -151,7 +151,7 @@
         "CustomModelStrategy"
       ],
       "tags": [
-        "non-default"
+        "non_default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
     }
@@ -187,7 +187,7 @@
         "non_lagged",
         "linear",
         "new_data_refit",
-        "non-default"
+        "non_default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -196,7 +196,7 @@
       "presets": ["ts"],
       "tags": [
         "non_linear",
-        "non-default"
+        "non_default"
       ]
     },
     "bernb": {
@@ -249,7 +249,7 @@
         "boosting",
         "non_multi",
         "non_linear",
-        "non-default"
+        "non_default"
       ]
     },
     "kmeans": {
@@ -288,7 +288,7 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant", "linear", "correct_params", "non-default"
+        "discriminant", "linear", "correct_params", "non_default"
       ]
     },
     "lgbm": {
@@ -332,7 +332,7 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "non-default",
+        "non_default",
         "bayesian",
         "non_multi",
         "linear"
@@ -394,7 +394,7 @@
         "non_lagged",
         "linear",
         "new_data_refit",
-        "non-default"
+        "non_default"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -464,27 +464,27 @@
       "tags": [
         "tree",
         "non_linear",
-        "non-default"
+        "non_default"
       ]
     },
     "xgboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non-default", "non_linear"
+        "tree", "non_default", "non_linear"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non-default", "non_linear"
+        "tree", "non_multi", "non_default", "non_linear"
       ]
     },
     "cnn": {
       "meta": "custom_class",
       "tags": [
-        "deep", "non-default", "non_linear"
+        "deep", "non_default", "non_linear"
       ],
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"
@@ -493,7 +493,7 @@
 		"meta": "custom_model",
 		"tags": [
           "custom_model",
-          "non-default"
+          "non_default"
         ]
 	}
   }

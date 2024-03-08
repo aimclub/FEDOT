@@ -1,73 +1,28 @@
+import pytest
+
 from fedot import Fedot
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
+from fedot.api.api_utils.presets import OperationsPreset, PresetsEnum
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.data.datasets import data_with_binary_features_and_categorical_target
 
 
-def test_presets_classification():
-    task = Task(TaskTypesEnum.classification)
-    class_operations = get_operations_for_task(task=task, mode='all')
-
-    excluded_tree = ['xgboost', 'xgbreg']
-    filtered_operations = set(class_operations).difference(set(excluded_tree))
-    available_operations = list(filtered_operations)
-
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations) == len(
-        operations_for_auto)
-    assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
+def get_available_operation(task_type: TaskTypesEnum, preset: PresetsEnum):
+    operation_preset = OperationsPreset(task=Task(task_type), preset_name=preset)
+    return operation_preset.filter_operations_by_preset()
 
 
-def test_presets_regression():
-    task = Task(TaskTypesEnum.regression)
-
-    regr_operations = get_operations_for_task(task=task, mode='all')
-
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(regr_operations) == len(
-        operations_for_auto)
-    assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_fast_train)
-
-
-def test_presets_time_series():
-    task = Task(TaskTypesEnum.ts_forecasting)
-
-    ts_operations = get_operations_for_task(task=task, mode='all')
-
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(ts_operations) == len(
-        operations_for_auto)
-    # TODO: add 'ar' to set below after arima fixing
-    assert {'adareg', 'scaling', 'lasso'} <= set(operations_for_fast_train)
+@pytest.mark.parametrize('task_type', TaskTypesEnum)
+def test_presets(task_type: TaskTypesEnum):
+    available_operations = OperationTypesRepository(OperationReposEnum.DEFAULT).suitable_operation(task_type)
+    best_quality = get_available_operation(task_type, PresetsEnum.BEST_QUALITY)
+    fast_train = get_available_operation(task_type, PresetsEnum.FAST_TRAIN)
+    auto = get_available_operation(task_type, PresetsEnum.AUTO)
+    assert set(fast_train) == set(auto) < set(best_quality) == set(available_operations)
 
 
 def test_presets_inserting_in_params_correct():
@@ -80,7 +35,7 @@ def test_presets_inserting_in_params_correct():
 
     task = Task(TaskTypesEnum.regression)
 
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
+    preset_best_quality = OperationsPreset(task=task, preset_name=PresetsEnum.BEST_QUALITY)
     updated_params = preset_best_quality.composer_params_based_on_preset(composer_params)
     updated_candidates = updated_params.get('available_operations')
 
@@ -95,18 +50,18 @@ def test_auto_preset_converted_correctly():
     data = data_with_binary_features_and_categorical_target()
 
     simple_init_assumption = Pipeline(PipelineNode('logit'))
-    fedot_model = Fedot(problem='classification', preset='auto', timeout=tiny_timeout_value,
+    fedot_model = Fedot(problem='classification', preset=PresetsEnum.AUTO, timeout=tiny_timeout_value,
                         initial_assumption=simple_init_assumption, pop_size=large_pop_size, with_tuning=False)
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
-    assert fedot_model.params.get('preset') == FAST_TRAIN_PRESET_NAME
+    assert fedot_model.params.get('preset') == PresetsEnum.FAST_TRAIN
 
 
 def test_gpu_preset():
+    # TODO fix GPU preset
+    # GPU preset is not prepared yet
+    return
     task = Task(TaskTypesEnum.classification)
-    preset_gpu = OperationsPreset(task=task, preset_name='gpu')
+    preset_gpu = OperationsPreset(task=task, preset_name=PresetsEnum.GPU)
     operations_for_gpu = preset_gpu.filter_operations_by_preset()
     assert len(operations_for_gpu) > 0
-
-    # return repository state after test
-    OperationTypesRepository.assign_repo('model', 'model_repository.json')

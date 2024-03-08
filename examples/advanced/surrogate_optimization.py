@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Any
 
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.meta.surrogate_model import SurrogateModel
 from golem.core.optimisers.meta.surrogate_optimizer import SurrogateEachNgenOptimizer
 
@@ -28,7 +29,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
                   n_jobs=-1,
                   with_tuning=with_tuning,
                   cv_folds=2,
-                  preset='fast_train',
+                  preset=PresetsEnum.FAST_TRAIN,
                   optimizer=partial(SurrogateEachNgenOptimizer, surrogate_model=GraphLenSurrogateModel()))
 
     # run AutoML model design in the same way

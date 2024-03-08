@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from golem.core.log import default_log
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
-from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
+from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, PresetsEnum
 from fedot.api.time import ApiTime
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
@@ -102,7 +102,7 @@ class AssumptionsHandler:
         :param n_jobs: n_jobs parameter
 
         """
-        if not preset or preset == 'auto':
+        if not preset or preset == PresetsEnum.AUTO:
             preset = change_preset_based_on_initial_fit(timer, n_jobs)
             self.log.message(f"Preset was changed to {preset} due to fit time estimation for initial model.")
         return preset

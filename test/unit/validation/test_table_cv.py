@@ -2,6 +2,9 @@ import logging
 from datetime import timedelta
 
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
+from fedot.core.repository.operation_tags import ComplexityTagsEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot import Fedot
@@ -54,7 +57,7 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
 def test_cv_min_kfolds_raise():
     task = Task(task_type=TaskTypesEnum.classification)
     models_repo = OperationTypesRepository()
-    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=[ComplexityTagsEnum.simple])
 
     with pytest.raises(ValueError):
         PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
@@ -82,7 +85,7 @@ def test_cv_api_correct():
                        'max_arity': 2,
                        'pop_size': 3,
                        'num_of_generations': 1,
-                       'preset': 'fast_train',
+                       'preset': PresetsEnum.FAST_TRAIN,
                        'cv_folds': 2,
                        'show_progress': False,
                        'timeout': 0.3}

@@ -1,5 +1,4 @@
 {
-  "base_repository": "model_repository.json",
   "metadata": {
     "tpot_class": {
       "accepted_node_types": [

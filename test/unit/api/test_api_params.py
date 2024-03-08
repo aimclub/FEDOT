@@ -3,12 +3,12 @@ from typing import Optional
 
 import pytest
 
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum
@@ -31,7 +31,7 @@ fedot_params_full = dict(parallelization_mode='populational',
                          collect_intermediate_metric=False,
                          max_pipeline_fit_time=7,
                          initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                         preset=AUTO_PRESET_NAME,
+                         preset=PresetsEnum.AUTO,
                          use_pipelines_cache=True,
                          use_preprocessing_cache=True,
                          use_input_preprocessing=True,
@@ -47,7 +47,7 @@ params_with_missings = dict(parallelization_mode='populational',
                             metric=RegressionMetricsEnum.SMAPE,
                             cv_folds=None,
                             initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
-                            preset=AUTO_PRESET_NAME,
+                            preset=PresetsEnum.AUTO,
                             use_pipelines_cache=True,
                             use_preprocessing_cache=True,
                             history_dir='history',

@@ -4,6 +4,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
+from fedot.core.repository.operation_types_repo_enum import OperationReposEnum
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
@@ -23,8 +26,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, set_random_seed
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
@@ -277,7 +280,7 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
     """ Test checks random_graph valid generation without freezing in loop of creation. """
     task = Task(TaskTypesEnum.regression)
 
-    operations = get_operations_for_task(task, mode='model')
+    operations = get_operations_for_task(task, operation_repo=OperationReposEnum.MODEL)
     primary_operations = operations[:len(operations) // 2]
     secondary_operations = operations[len(operations) // 2:]
     requirements = PipelineComposerRequirements(
@@ -313,7 +316,7 @@ def test_gp_composer_early_stopping():
                   early_stopping_iterations=1,
                   pop_size=2,
                   with_tuning=False,
-                  preset='fast_train')
+                  preset=PresetsEnum.FAST_TRAIN)
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start
 

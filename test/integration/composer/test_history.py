@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.fitness import SingleObjFitness
 from golem.core.optimisers.genetic.evaluation import MultiprocessingDispatcher
@@ -74,7 +76,7 @@ def test_newly_generated_history(n_jobs: int):
     auto_model = Fedot(problem='classification', seed=42,
                        timeout=None,
                        num_of_generations=num_of_gens, pop_size=3,
-                       preset='fast_train',
+                       preset=PresetsEnum.FAST_TRAIN,
                        n_jobs=n_jobs,
                        with_tuning=False)
     auto_model.fit(features=file_path_train, target='Y')

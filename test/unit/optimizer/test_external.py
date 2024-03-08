@@ -3,6 +3,8 @@ from functools import partial
 from typing import Optional, Union, Sequence
 
 import pytest
+
+from fedot.api.api_utils.presets import PresetsEnum
 from golem.core.dag.graph import Graph
 from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.objective.objective import Objective, ObjectiveFunction
@@ -46,7 +48,7 @@ def test_external_static_optimizer(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     automl = Fedot(problem='classification', timeout=0.2, logging_level=logging.DEBUG,
-                   preset='fast_train',
+                   preset=PresetsEnum.FAST_TRAIN,
                    with_tuning=False,
                    optimizer=partial(StaticOptimizer, node_name='logit'),
                    pop_size=2)

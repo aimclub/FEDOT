@@ -1,4 +1,5 @@
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import fedot_project_root, set_random_seed
 
 
@@ -13,7 +14,7 @@ def run_classification_example(timeout: float = None, visualization=False, with_
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    auto_model = Fedot(problem=problem, timeout=timeout, n_jobs=-1, preset='best_quality',
+    auto_model = Fedot(problem=problem, timeout=timeout, n_jobs=-1, preset=PresetsEnum.BEST_QUALITY,
                        max_pipeline_fit_time=5, metric=['roc_auc', 'precision'], with_tuning=with_tuning)
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)

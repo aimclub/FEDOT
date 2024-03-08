@@ -3,7 +3,7 @@ import numpy as np
 from fedot.core.data.data import OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, OperationReposEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 
@@ -16,8 +16,11 @@ class Model(Operation):
     """
 
     def __init__(self, operation_type: str):
+        # TODO now model is used for models from gpu repo
+        #      it is problem because we need to correctly define repo while constructing
+        #      this object
         super().__init__(operation_type=operation_type)
-        self.operations_repo = OperationTypesRepository('model')
+        self.operations_repo = OperationTypesRepository(OperationReposEnum.MODEL)
 
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:

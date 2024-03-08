@@ -5,6 +5,7 @@ from typing import Sequence
 import numpy as np
 
 from fedot import Fedot
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings("ignore")
@@ -34,7 +35,7 @@ def test_classification_quality_improvement():
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
-    auto_model = Fedot(timeout=2, num_of_generations=20, preset='best_quality',
+    auto_model = Fedot(timeout=2, num_of_generations=20, preset=PresetsEnum.BEST_QUALITY,
                        **common_params)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
@@ -59,7 +60,7 @@ def test_multiobjective_improvement():
     composer_params = dict(num_of_generations=10,
                            pop_size=10,
                            with_tuning=False,
-                           preset='fast_train',
+                           preset=PresetsEnum.FAST_TRAIN,
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,

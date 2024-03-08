@@ -60,9 +60,7 @@ class Operation:
 
     @property
     def acceptable_task_types(self):
-        operation_info = self.operations_repo.operation_info_by_id(
-            self.operation_type)
-        return operation_info.task_type
+        return self.metadata.task_type
 
     @property
     def metadata(self) -> OperationMetaInfo:
@@ -183,7 +181,7 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     if operation_info is None:
         raise ValueError(f'{operation_type} is not implemented '
-                         f'in {operations_repo.repository_name}')
+                         f'in {operations_repo.operation_type}')
 
     acceptable_task_types = operation_info.task_type
 
@@ -201,5 +199,5 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
             raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
         current_task_type = comp_types_acceptable_for_operation[0]
 
-    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
+    strategy = operation_info.current_strategy(current_task_type)
     return strategy

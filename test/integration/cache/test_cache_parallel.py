@@ -7,6 +7,7 @@ from joblib import Parallel, cpu_count, delayed
 from examples.simple.classification.api_classification import run_classification_example
 from examples.simple.regression.api_regression import run_regression_example
 from examples.simple.time_series_forecasting.api_forecasting import run_ts_forecasting_example
+from fedot.api.api_utils.presets import PresetsEnum
 from fedot.core.utils import default_fedot_data_dir
 
 
@@ -30,7 +31,7 @@ def test_prev_cache_parallel_deletion():
     common_params = dict(timeout=0.1, with_tuning=False)
 
     tasks = [
-        delayed(run_regression_example)(**common_params, preset='fast_train'),
+        delayed(run_regression_example)(**common_params, preset=PresetsEnum.FAST_TRAIN),
         delayed(run_classification_example)(**common_params),
         delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
     ]
@@ -52,7 +53,7 @@ def test_parallel_cache_files():
     common_params = dict(timeout=0.1, with_tuning=False)
 
     tasks = [
-        delayed(run_regression_example)(**common_params, preset='fast_train'),
+        delayed(run_regression_example)(**common_params, preset=PresetsEnum.FAST_TRAIN),
         delayed(run_classification_example)(**common_params),
         delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
     ]
