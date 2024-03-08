@@ -13,11 +13,11 @@ class PresetsEnum(Enum):
     # TODO add test to check that PresetsEnum is accordance with PresetsTagsEnum
     # TODO add ability to reduce preset depends on remaining time
     # TODO add some presets for models with different speed
-    AUTO = 'auto', 0
-    BEST_QUALITY = 'best_quality', 1
-    FAST_TRAIN = 'fast_train', 2
+    AUTO = 'auto', 0  # automatically determine which preset should be used
+    BEST_QUALITY = 'best_quality', 1  # use models that are available for this data type and task
+    FAST_TRAIN = 'fast_train', 2  # use models that learn quickly
     TREE = '*tree', 3  # workaround for old tree preset
-    GPU = 'gpu', None
+    GPU = 'gpu', None  # use models that use GPU resources for computation
 
 
 class OperationsPreset:
