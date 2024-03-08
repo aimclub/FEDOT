@@ -187,7 +187,10 @@
       "presets": [
         "ts"
       ],
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
       "tags": [
+        "ts-extra",
         "non_applicable_for_ts",
         "feature_space_transformation"
       ]

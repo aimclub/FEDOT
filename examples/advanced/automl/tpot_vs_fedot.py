@@ -1,15 +1,17 @@
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PipelineNode
-from fedot.core.pipelines.pipeline import Pipeline
-from tpot.export_utils import set_param_recursive
-from tpot.builtins import StackingEstimator
-from sklearn.pipeline import make_pipeline
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.ensemble import RandomForestClassifier
-import numpy
+import numpy  # NOQA
 
-numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281
+numpy.float = numpy.float64  # tmp patch before TPOT could fix this: https://github.com/EpistasisLab/tpot/issues/1281 # NOQA
+
+from sklearn.ensemble import RandomForestClassifier  # NOQA
+from sklearn.metrics import roc_auc_score as roc_auc  # NOQA
+from sklearn.naive_bayes import BernoulliNB  # NOQA
+from sklearn.pipeline import make_pipeline  # NOQA
+from tpot.builtins import StackingEstimator  # NOQA
+from tpot.export_utils import set_param_recursive  # NOQA
+
+from fedot.core.pipelines.pipeline import Pipeline  # NOQA
+from fedot.core.pipelines.node import PipelineNode  # NOQA
+from fedot.core.data.data import InputData  # NOQA
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
