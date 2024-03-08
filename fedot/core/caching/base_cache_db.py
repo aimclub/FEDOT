@@ -123,7 +123,7 @@ class BaseCacheDB:
         """
         try:
             cur.execute(f'DELETE FROM {self._eff_table};')
-        except:
+        except BaseException:
             pass
         cur.execute(f'INSERT INTO {self._eff_table} DEFAULT VALUES;')
 
@@ -135,7 +135,7 @@ class BaseCacheDB:
         """
         try:
             cur.execute(f'DELETE FROM {self._main_table};')
-        except:
+        except BaseException:
             pass
 
     def __len__(self):
