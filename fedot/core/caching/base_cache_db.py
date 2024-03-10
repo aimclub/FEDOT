@@ -68,7 +68,7 @@ class BaseCacheDB:
                 self._reset_main(cur)
 
         if full_clean:
-            self._del_prev_temps(dell_all=full_clean)
+            self._del_prev_temps()
 
     def _init_eff(self):
         """
@@ -88,7 +88,7 @@ class BaseCacheDB:
                     ))
                     cur.execute(f'INSERT OR IGNORE INTO {self._eff_table} DEFAULT VALUES;')
 
-    def _del_prev_temps(self, dell_all=False):
+    def _del_prev_temps(self):
         """
         Deletes previously generated unused DB files.
         """
@@ -97,7 +97,7 @@ class BaseCacheDB:
                 pid = int(file.stem.split('_')[-1])
             except ValueError:
                 pid = -1  # old format cache name, remove this line somewhere in the future
-            if pid not in psutil.pids() or dell_all:
+            if pid not in psutil.pids():
                 try:
                     file.unlink()
                 except FileNotFoundError:
@@ -121,10 +121,7 @@ class BaseCacheDB:
 
         :param cur: cursor with already installed DB connection
         """
-        try:
-            cur.execute(f'DELETE FROM {self._eff_table};')
-        except BaseException:
-            pass
+        cur.execute(f'DELETE FROM {self._eff_table};')
         cur.execute(f'INSERT INTO {self._eff_table} DEFAULT VALUES;')
 
     def _reset_main(self, cur: sqlite3.Cursor):
@@ -133,10 +130,7 @@ class BaseCacheDB:
 
         :param cur: cursor with already installed DB connection
         """
-        try:
-            cur.execute(f'DELETE FROM {self._main_table};')
-        except BaseException:
-            pass
+        cur.execute(f'DELETE FROM {self._main_table};')
 
     def __len__(self):
         with closing(sqlite3.connect(self.db_path)) as conn:

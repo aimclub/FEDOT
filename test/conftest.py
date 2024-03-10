@@ -25,5 +25,3 @@ def run_around_tests():
     OperationsCache(custom_pid=unique_id_for_dbs)
     PreprocessingCache(custom_pid=unique_id_for_dbs)
     yield
-    # OperationsCache().reset(full_clean=True)
-    # PreprocessingCache().reset(full_clean=True)
