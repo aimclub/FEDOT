@@ -29,6 +29,7 @@ TESTS_MAIN_API_DEFAULT_PARAMS = {
 
 @pytest.mark.parametrize('task_type, metric_name', [
     ('classification', 'f1'),
+    ('classification', 'neg_log_loss'),
     ('regression', 'rmse')
 ])
 def test_api_predict_correct(task_type, metric_name):
