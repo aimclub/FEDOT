@@ -13,6 +13,7 @@ from fedot.core.data.data_preprocessing import convert_into_column, data_has_cat
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
@@ -23,6 +24,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         params: OpearationParameters with the arguments
     """
 
+    MIN_THRESHOLD_TS = 7
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = None
@@ -42,7 +44,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
 
         if self.number_of_features > 1:
-            self.check_and_correct_params()
+            self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
             self.pca.fit(input_data.features)
 
         return self.pca
@@ -68,7 +70,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.update_column_types(output_data)
         return output_data
 
-    def check_and_correct_params(self):
+    def check_and_correct_params(self, is_ts_data: bool = False):
         """Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
@@ -80,6 +82,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
                 self.params.update(n_components=0.5)
+        if is_ts_data and (n_components * self.number_of_features) < self.MIN_THRESHOLD_TS:
+            self.params.update(n_components=self.MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
 
