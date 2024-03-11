@@ -1,4 +1,4 @@
-:Eng:`Eng <docker/README.rst>`
+`Eng <README.rst>`
    
 FEDOT и Docker
 ============
