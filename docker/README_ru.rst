@@ -1,11 +1,4 @@
-.. |eng| image:: https://img.shields.io/badge/lang-en-red.svg
-   :target: /README_en.rst
-
-.. |rus| image:: https://img.shields.io/badge/lang-ru-yellow.svg
-   :target: /README.rst
-
-.. image:: docs/fedot_logo.png
-   :alt: Logo of FEDOT framework
+:Eng:`Eng <docker/README.rst>`
    
 FEDOT и Docker
 ============
