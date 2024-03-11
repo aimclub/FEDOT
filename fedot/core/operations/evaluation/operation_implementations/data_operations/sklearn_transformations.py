@@ -25,6 +25,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
     """
 
     MIN_THRESHOLD_TS = 7
+
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = None

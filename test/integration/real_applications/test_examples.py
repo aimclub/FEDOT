@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import numpy as np
-import pytest
 from sklearn.metrics import mean_squared_error
 
 from examples.advanced.multimodal_text_num_example import run_multi_modal_example
@@ -84,7 +83,6 @@ def test_api_classification_example():
     assert prediction is not None
 
 
-@pytest.mark.skip(reason="topo features fail")  # TODO resolve
 def test_api_ts_forecasting_example():
     forecast = run_ts_forecasting_example(dataset='salaries', timeout=2, with_tuning=False)
     assert forecast is not None
