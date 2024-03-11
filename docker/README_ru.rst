@@ -1,5 +1,3 @@
-`Eng <README.rst>`
-   
 FEDOT и Docker
 ============
 

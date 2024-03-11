@@ -1,5 +1,3 @@
-`Рус <README_ru.rst>`
-   
 Running FEDOT in Docker
 ============
 
