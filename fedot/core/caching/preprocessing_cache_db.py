@@ -21,8 +21,8 @@ class PreprocessingCacheDB(BaseCacheDB):
     :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None):
-        super().__init__('preprocessors', cache_dir, False, ['preprocessors_hit', 'preprocessors_total'])
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
+        super().__init__('preprocessors', cache_dir, False, ['preprocessors_hit', 'preprocessors_total'], custom_pid)
         self._init_db()
 
     def get_preprocessor(self, uid: str) -> Optional[Tuple[
