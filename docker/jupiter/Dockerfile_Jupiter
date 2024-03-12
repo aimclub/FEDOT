@@ -1,0 +1,16 @@
+FROM jupyter/minimal-notebook:python-3.10.10
+
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        ffmpeg \
+        libsm6 \
+        libxext6 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    fedot \
+    fedot[extra]
