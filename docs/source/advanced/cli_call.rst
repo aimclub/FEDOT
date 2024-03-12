@@ -13,7 +13,7 @@ FEDOT package with all dependencies.
 *Pay attention that your FEDOT working project can differ from the package version installed in the environment!*
 *For setting master version as a package in environment download it through pip from GitHub with command:*
 
-``pip install git+https://github.com/nccr-itmo/FEDOT.git``
+``pip install git+https://github.com/aimclub/FEDOT.git``
 
 Start using
 -----------

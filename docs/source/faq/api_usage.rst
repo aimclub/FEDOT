@@ -12,10 +12,10 @@ Why *feature_name* is not supported?
 
 .. List of links:
 
-.. _pull request: https://github.com/nccr-itmo/FEDOT/pulls
+.. _pull request: https://github.com/aimclub/FEDOT/pulls
 .. `pull request` replace:: *pull request*
 
-.. _issue: https://github.com/nccr-itmo/FEDOT/issues
+.. _issue: https://github.com/aimclub/FEDOT/issues
 .. `issue` replace:: *issue*
 
 Can I change path to cacher's database files?

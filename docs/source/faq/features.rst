@@ -15,7 +15,7 @@ Which algorithms are available as building block for optimiser?
 
     The names and metadata of available ML models can be obtained from
     `JSON <https://github.com/aimclub/FEDOT/blob/master/fedot/core/repository/data/model_repository.json>`__ file,
-    as well as `data operations <https://github.com/nccr-itmo/FEDOT/blob/master/fedot/core/repository/data/data_operation_repository.json>`__ file.
+    as well as `data operations <https://github.com/aimclub/FEDOT/blob/master/fedot/core/repository/data/data_operation_repository.json>`__ file.
 
 What hyperparameter options were available to each algorithm?
 -------------------------------------------------------------

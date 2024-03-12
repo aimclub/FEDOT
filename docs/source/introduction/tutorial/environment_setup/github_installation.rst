@@ -13,7 +13,7 @@ The GitHub way
 
       .. code-block::
       
-         $ git clone https://github.com/nccr-itmo/FEDOT.git
+         $ git clone https://github.com/aimclub/FEDOT.git
          $ cd FEDOT
 
 -  **Step 2**. *Creating VirtualEnv*.

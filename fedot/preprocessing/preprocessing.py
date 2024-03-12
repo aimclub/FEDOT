@@ -57,7 +57,7 @@ class DataPreprocessor(BasePreprocessor):
     def __setstate__(self, state):
         # Implemented for backward compatibility for unpickling
         #  Pipelines with older preprocessor that had DiGraph with Nodes inside.
-        #  see https://github.com/nccr-itmo/FEDOT/pull/802
+        #  see https://github.com/aimclub/FEDOT/pull/802
         unrelevant_fields = ['structure_analysis']
         for field in unrelevant_fields:
             if field in state:
