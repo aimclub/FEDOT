@@ -1,11 +1,11 @@
 Running FEDOT in Docker
-============
+=======================
 
 Here are some dockerfiles to run FEDOT
 
 
 Versions
-=========
+========
 
 - **Dockerfile** Full version of FEDOT (fedot + fedot[extra]) for python 3.8
 - **Dockerfile_light** Light version of FEDOT (fedot only) for python 3.8
@@ -14,7 +14,7 @@ Versions
 
 
 Jupiter
-=========
+=======
 
 - **check docker (docker-compose)** docker (docker-compose) should be installed
 - `git clone https://github.com/aimclub/FEDOT.git` clone this repo

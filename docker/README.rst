@@ -1,11 +1,11 @@
 FEDOT и Docker
-============
+==============
 
 Здесь представлены Docker файлы для запуска FEDOT
 
 
 Версии
-=========
+======
 
 - **Dockerfile** Полная версия FEDOT (fedot + fedot[extra]) для python 3.8
 - **Dockerfile_light** Лёгкая версия FEDOT для python 3.8
@@ -14,7 +14,7 @@ FEDOT и Docker
 
 
 Jupiter
-=========
+=======
 
 - **Проверте наличе docker (docker-compose)** docker (docker-compose) должен быть установлен
 - `git clone https://github.com/aimclub/FEDOT.git` получаем файлы из git
