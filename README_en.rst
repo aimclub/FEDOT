@@ -63,7 +63,7 @@ FEDOT concepts
 Installation
 ============
 
-1. Package installer for Python **pip**
+- Package installer for Python **pip**
 
 The simplest way to install FEDOT is using ``pip``:
 
@@ -77,7 +77,7 @@ Installation with optional dependencies for image and text processing, and for D
 
   $ pip install fedot[extra]
 
-2. **Docker** container
+- **Docker** container
 
 Available docker images can be found here `here <https://github.com/aimclub/FEDOT/tree/master/docker/README_en.rst>`_.
 
