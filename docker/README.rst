@@ -1,23 +1,24 @@
-Running FEDOT in Docker
+FEDOT и Docker
 ============
 
-Here are some dockerfiles to run FEDOT
+Здесь представлены Docker файлы для запуска FEDOT
 
 
-Versions
+Версии
 =========
 
-- **Dockerfile** Full version of FEDOT (fedot + fedot[extra]) for python 3.8
-- **Dockerfile_light** Light version of FEDOT (fedot only) for python 3.8
-- **GPU** A GPU version of FEDOT for python 3.8
-- **Dockerfile_Jupiter** A Jupiter notebook version for python 3.10. Below you can find an instruction on how to run it under Linux.
+- **Dockerfile** Полная версия FEDOT (fedot + fedot[extra]) для python 3.8
+- **Dockerfile_light** Лёгкая версия FEDOT для python 3.8
+- **GPU** Версия с поддержкой GPU для python 3.8
+- **Dockerfile_Jupiter** Версия с Jupiter notebook для python 3.10. Ниже есть описание запуска для Linux.
 
 
 Jupiter
 =========
-- **git clone** clone this repo
-- **cd FEDOT** navigate to the root folder
-- **cd docker** navigat to the docker folder
-- **docker build -t jupyter-fedot-tst -f Dockerfile_Jupiter .** buid an image and give it a tag "jupyter-fedot"
-- **docker run -p 8888:8888 -v $(pwd):/home/jovyan/work jupyter-with-fedot** run a container, it will be available under http://[YOUR_IP]:8888, here we use current dirrectory to store all files
-- **copy the URL with a token and open in a browser** - if everything runs nornally you will see a link like ..  http://127.0.0.1:8888/lab?token=db8ce02fbed23c3ecd896408a494de176a70d73cf51e203f
+- **Проверте наличе docker** Docker должен быть установлен
+- **git clone** получаем файлы из git
+- **cd FEDOT** переходим в папку проекта
+- **cd docker** переходим в папку с Docker файлами
+- **docker build -t jupyter-fedot-tst -f Dockerfile_Jupiter .** строим образ и называем его "jupyter-fedot"
+- **docker run -p 8888:8888 -v $(pwd):/home/jovyan/work jupyter-with-fedot** запускаем, будет доступен по URL http://[YOUR_IP]:8888, храним все файлы в текущей папке
+- **копируем ссылку с ключем и открываем** - если запуск прошел как ожидается будет отображена ссылка следующего вида ..  http://127.0.0.1:8888/lab?token=db8ce02fbed23c3ecd896408a494de176a70d73cf51e203f
