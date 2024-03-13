@@ -1,6 +1,7 @@
 import os
 import shutil
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,7 @@ from fedot import Fedot
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TsForecastingParams
+from fedot.core.utils import fedot_project_root
 from test.data.datasets import get_dataset, get_multimodal_ts_data, load_categorical_unimodal, \
     load_categorical_multidata
 from test.unit.common_tests import is_predict_ignores_target
@@ -25,6 +27,10 @@ TESTS_MAIN_API_DEFAULT_PARAMS = {
     'max_depth': 1,
     'max_arity': 2,
 }
+
+resample_pipeline = Pipeline(PipelineNode('catboost',
+                                          nodes_from=[
+                                              PipelineNode('resample', nodes_from=[PipelineNode('scaling')])]))
 
 
 @pytest.mark.parametrize('task_type, metric_name', [
@@ -324,3 +330,26 @@ def test_forecast_with_not_ts_problem():
     model.fit(train_data, predefined_model='auto')
     with pytest.raises(ValueError):
         model.forecast(pre_history=test_data)
+
+
+@pytest.mark.parametrize('initial_assumption, timeout',
+                         [(resample_pipeline, 0.001),
+                          (None, 5.0)
+                          ])
+def test_api_for_amlb(initial_assumption, timeout):
+    amlb_data = Path(fedot_project_root(), 'test', 'data', 'amlb')
+    x_train = np.load(str(Path(amlb_data, 'train_australian_fold7.npy')))
+    y_train = np.load(str(Path(amlb_data, 'target_y.npy')), allow_pickle=True)  # real target from ALMB
+    x_test = np.load(str(Path(amlb_data, 'test_australian_fold7.npy')))
+    # TODO resample add
+    training_params = {"preset": "best_quality", "n_jobs": -1}
+
+    fedot = Fedot(problem='classification', timeout=timeout, metric='roc_auc', seed=0,
+                  max_pipeline_fit_time=1, **training_params, initial_assumption=initial_assumption)
+
+    fedot.fit(features=x_train, target=y_train)
+
+    predictions = fedot.predict(features=x_test)
+    probabilities = fedot.predict_proba(features=x_test, probs_for_all_classes=True)
+    assert predictions is not None
+    assert probabilities is not None
