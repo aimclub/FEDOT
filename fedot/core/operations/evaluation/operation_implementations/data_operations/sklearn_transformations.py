@@ -7,6 +7,7 @@ from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
+from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
     divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
@@ -23,8 +24,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
     Args:
         params: OpearationParameters with the arguments
     """
-
-    MIN_THRESHOLD_TS = 7
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
@@ -83,8 +82,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
                 self.params.update(n_components=0.5)
-        if is_ts_data and (n_components * self.number_of_features) < self.MIN_THRESHOLD_TS:
-            self.params.update(n_components=self.MIN_THRESHOLD_TS / self.number_of_features)
+        if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
+            self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
 

@@ -20,3 +20,5 @@ default_data_split_ratio_by_task = {
     TaskTypesEnum.regression: 0.8,
     TaskTypesEnum.ts_forecasting: 0.5
 }
+
+PCA_MIN_THRESHOLD_TS = 7
