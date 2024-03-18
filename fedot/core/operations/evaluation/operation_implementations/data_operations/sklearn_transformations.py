@@ -7,20 +7,23 @@ from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
+from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
     divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
-    """ Class for applying PCA and kernel PCA models from sklearn
+    """
+    Class for applying PCA and kernel PCA models from sklearn
 
     Args:
-        params: OpearationParameters with the arguments
+        params: OperationParameters with the arguments
     """
 
     def __init__(self, params: Optional[OperationParameters]):
@@ -29,8 +32,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_features = None
         self.number_of_samples = None
 
-    def fit(self, input_data: InputData):
-        """The method trains the PCA model
+    def fit(self, input_data: InputData) -> PCA:
+        """
+        The method trains the PCA model
 
         Args:
             input_data: data with features, target and ids for PCA training
@@ -42,13 +46,14 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
 
         if self.number_of_features > 1:
-            self.check_and_correct_params()
+            self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
             self.pca.fit(input_data.features)
 
         return self.pca
 
     def transform(self, input_data: InputData) -> OutputData:
-        """Method for transformation tabular data using PCA
+        """
+        Method for transformation tabular data using PCA
 
         Args:
             input_data: data with features, target and ids for PCA applying
@@ -63,13 +68,13 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             transformed_features = input_data.features
 
         # Update features
-        output_data = self._convert_to_output(input_data,
-                                              transformed_features)
+        output_data = self._convert_to_output(input_data, transformed_features)
         self.update_column_types(output_data)
         return output_data
 
-    def check_and_correct_params(self):
-        """Method check if number of features in data enough for ``n_components``
+    def check_and_correct_params(self, is_ts_data: bool = False):
+        """
+        Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
         n_components = self.params.get('n_components')
@@ -80,12 +85,15 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
                 self.params.update(n_components=0.5)
+        if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
+            self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
-        """Update column types after applying PCA operations
+        """
+        Update column types after applying PCA operations
         """
 
         _, n_cols = output_data.predict.shape
@@ -94,7 +102,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
 
 class PCAImplementation(ComponentAnalysisImplementation):
-    """Class for applying PCA from sklearn
+    """
+    Class for applying PCA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -111,7 +120,8 @@ class PCAImplementation(ComponentAnalysisImplementation):
 
 
 class KernelPCAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying kernel PCA from sklearn
+    """
+    Class for applying kernel PCA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -123,7 +133,8 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying FastICA from sklearn
+    """
+    Class for applying FastICA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -135,7 +146,8 @@ class FastICAImplementation(ComponentAnalysisImplementation):
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
-    """ Class for application of :obj:`PolynomialFeatures` operation on data,
+    """
+    Class for application of :obj:`PolynomialFeatures` operation on data,
     where only not encoded features (were not converted from categorical using
     ``OneHot encoding``) are used
 
@@ -158,7 +170,9 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         self.columns_to_take = None
 
     def fit(self, input_data: InputData):
-        """ Method for fit Poly features operation """
+        """
+        Method for fit Poly features operation
+        """
         # Check the number of columns in source dataset
         n_rows, n_cols = input_data.features.shape
         if n_cols > self.th_columns:
@@ -170,7 +184,8 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         return super().fit(input_data)
 
     def transform(self, input_data: InputData) -> OutputData:
-        """Firstly perform filtration of columns
+        """
+        Firstly perform filtration of columns
         """
 
         clipped_input_data = input_data
