@@ -26,7 +26,7 @@ def test_cli_with_parameters():
         f'--cv_folds 2 --target sea_height --train {ts_train_path} '
         f'--test {ts_train_path} --for_len 10'
     ).split()
-    class_train_path = project_root_path.joinpath('test/data/simple_classification.csv')
+    class_train_path = project_root_path.joinpath('test/data/classification/simple_classification.csv')
     class_call = (
         f'--problem classification --train {class_train_path} --test {class_train_path} --target Y '
         '--preset fast_train --timeout 0.1 --depth 3 --arity 3 '
