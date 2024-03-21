@@ -1,0 +1,99 @@
+{
+  "rf": {
+    "n_jobs": 1
+  },
+  "rfr": {
+    "n_jobs": 1
+  },
+  "xgboost": {
+    "eval_metric": "mlogloss",
+    "nthread": 1,
+    "n_jobs": 1,
+    "verbose": 0
+  },
+  "catboost": {
+    "allow_writing_files": false,
+    "verbose": false,
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": null,
+    "n_jobs": 1
+  },
+  "catboostreg": {
+    "allow_writing_files": false,
+    "verbose": false,
+    "iterations": 1000,
+    "use_eval_set": false,
+    "use_best_model": false,
+    "early_stopping_rounds": null,
+    "n_jobs": 1
+  },
+  "lgbm": {
+    "num_leaves": 32,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 100,
+    "n_jobs": 1,
+    "verbose": -1
+  },
+  "lgbmreg": {
+    "num_leaves": 32,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 100,
+    "n_jobs": 1,
+    "verbose": -1
+  },
+  "ransac_lin_reg": {
+    "min_samples": 0.4,
+    "residual_threshold": 10,
+    "max_trials": 100,
+    "max_skips": 1000
+  },
+  "ransac_non_lin_reg": {
+    "min_samples": 0.4,
+    "residual_threshold": 10,
+    "max_trials": 100,
+    "max_skips": 1000
+  },
+  "h2o_regr": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "h2o_class": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "tpot_class": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
+  },
+  "tpot_regr": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
+  },
+  "resample": {
+    "balance": "expand_minority",
+    "replace": false,
+    "balance_ratio": 1
+  },
+  "pca": {
+    "svd_solver": "full",
+    "n_components": 0.7
+  },
+  "fast_ica": {
+    "whiten": "unit-variance"
+  },
+  "filter_1": {
+    "a": "42"
+  }
+}

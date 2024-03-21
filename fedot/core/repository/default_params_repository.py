@@ -7,7 +7,11 @@ class DefaultOperationParamsRepository:
         repo_folder_path = str(os.path.dirname(__file__))
         file = os.path.join('data', repository_name)
         self._repo_path = os.path.join(repo_folder_path, file)
-        self._repo = self._initialise_repo()
+        try:
+            self._repo = self._initialise_repo()
+        except FileNotFoundError:
+            self._repo_path = repository_name
+            self._repo = self._initialise_repo()
 
     def __enter__(self):
         return self
