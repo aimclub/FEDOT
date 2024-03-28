@@ -81,7 +81,9 @@ def test_correctly_sets_default_params(input_params):
                                                 ('gp_algo', correct_gp_algorithm_attributes)])
 def test_filter_params_correctly(input_params, case, correct_keys):
     params_repository = get_api_params_repository()
-    input_params['seed'] = 0
+    if case == 'gp_algo':
+        input_params['seed'] = 0
+        correct_keys.add('seed')
     input_params = params_repository.check_and_set_default_params(input_params)
     if case == 'composer':
         output_params = params_repository.get_params_for_composer_requirements(input_params)
