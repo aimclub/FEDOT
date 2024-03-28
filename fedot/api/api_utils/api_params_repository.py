@@ -67,7 +67,8 @@ class ApiParamsRepository:
             cache_dir=default_fedot_data_dir(),
             keep_history=True,
             history_dir=default_fedot_data_dir(),
-            with_tuning=True
+            with_tuning=True,
+            seed=None
         )
         return default_param_values_dict
 
