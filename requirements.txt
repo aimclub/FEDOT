@@ -1,5 +1,5 @@
 # Base framework
-golem @ git+https://github.com/aimclub/GOLEM@repro
+thegolem @ git+https://github.com/aimclub/GOLEM@repro
 
 # Data
 numpy>=1.16.0, !=1.24.0
