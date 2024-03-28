@@ -26,7 +26,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TaskParams, TsForec
 class ApiParams(UserDict):
 
     def __init__(self, input_params: Dict[str, Any], problem: str, task_params: Optional[TaskParams] = None,
-                 n_jobs: int = -1, timeout: float = 5):
+                 n_jobs: int = -1, timeout: float = 5, seed=None):
         self.log: LoggerAdapter = default_log(self)
         self.task: Task = self._get_task_with_params(problem, task_params)
         self.n_jobs: int = determine_n_jobs(n_jobs)
@@ -34,6 +34,7 @@ class ApiParams(UserDict):
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
         parameters: dict = self._params_repository.check_and_set_default_params(input_params)
+        parameters['seed'] = seed
         super().__init__(parameters)
         self._check_timeout_vs_generations()
 
@@ -139,9 +140,14 @@ class ApiParams(UserDict):
         """Method to initialize ``GPAlgorithmParameters``"""
         gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self.data)
 
+        # workaround for "{TypeError}__init__() got an unexpected keyword argument 'seed'"
+        seed = gp_algorithm_parameters['seed']
+        del gp_algorithm_parameters['seed']
+
         self.optimizer_params = GPAlgorithmParameters(
             multi_objective=multi_objective, **gp_algorithm_parameters
         )
+        self.optimizer_params.seed = seed
         return self.optimizer_params
 
     def init_graph_generation_params(self, requirements: PipelineComposerRequirements) -> GraphGenerationParams:
