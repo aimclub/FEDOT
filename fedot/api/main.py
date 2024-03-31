@@ -443,7 +443,7 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
         else:
-            if not self.test_data.target:
+            if not len(self.test_data.target):
                 self.test_data = self.data_processor.define_data(
                     target=self.train_data.target, features=self.test_data.features, is_predict=True
                 )
