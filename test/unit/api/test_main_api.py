@@ -122,6 +122,25 @@ def test_baseline_with_api():
     assert baseline_metrics['f1'] > 0
 
 
+def test_specific_baseline_with_api():
+    """
+    Check that ``get_metrics`` works correctly if ``target`` is defined as a string and ``test_data`` doesn't contain it
+    """
+    train_data, test_data, threshold = get_dataset("classification")
+
+    baseline_model = Fedot(problem="classification")
+
+    baseline_model.fit(features=train_data, target="target", predefined_model="xgboost")
+
+    prediction = baseline_model.predict_proba(features=test_data.drop("target", axis=1))
+
+    assert len(prediction) == len(test_data.target)
+
+    baseline_metrics = baseline_model.get_metrics(metric_names="f1")
+
+    assert baseline_metrics["f1"] > 0
+
+
 def test_forecast_with_multivariate_ts():
     forecast_length = 2
 
