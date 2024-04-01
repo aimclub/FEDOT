@@ -126,18 +126,18 @@ def test_specific_baseline_with_api():
     """
     Check that ``get_metrics`` works correctly if ``target`` is defined as a string and ``test_data`` doesn't contain it
     """
-    train_data, test_data, _ = get_dataset("classification")
+    df = pd.read_csv(fedot_project_root().joinpath("test/data/simple_classification.csv"))
+    train_data, test_data = np.array_split(df, 2)
+    test_data.drop("Y", axis=1)
 
     baseline_model = Fedot(problem="classification", metric=["f1"])
 
-    baseline_model.fit(features=train_data.features, target="target")
+    baseline_model.fit(features=train_data, target="Y", predefined_model="xgboost")
 
-    prediction = baseline_model.predict(features=test_data.features)
-
-    # assert len(prediction) == len(test_data.target)
+    prediction = baseline_model.predict_proba(features=test_data)
+    assert len(prediction) == len(test_data)
 
     baseline_metrics = baseline_model.get_metrics()
-
     assert baseline_metrics["f1"] > 0
 
 
