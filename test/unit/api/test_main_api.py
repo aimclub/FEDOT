@@ -130,7 +130,7 @@ def test_specific_baseline_with_api():
 
     baseline_model = Fedot(problem="classification")
 
-    baseline_model.fit(features=train_data, target="target", predefined_model="xgboost")
+    baseline_model.fit(features=train_data.features, target="target", predefined_model="xgboost")
 
     prediction = baseline_model.predict(features=test_data.features)
 
