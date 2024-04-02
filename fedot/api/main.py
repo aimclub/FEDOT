@@ -445,7 +445,9 @@ class Fedot:
         else:
             if not len(self.test_data.target):
                 self.test_data = self.data_processor.define_data(
-                    target=self.train_data.target, features=self.test_data.features, is_predict=True
+                    target=self.train_data.target[: len(self.test_data.features)],
+                    features=self.test_data.features,
+                    is_predict=True,
                 )
 
         metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
