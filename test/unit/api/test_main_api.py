@@ -128,13 +128,13 @@ def test_specific_baseline_with_api():
     """
     df = pd.read_csv(fedot_project_root().joinpath("test/data/simple_classification.csv"))
     train_data, test_data = np.array_split(df, 2)
-    test_data.drop("Y", axis=1)
+    test_data.drop("Y", axis=1, inplace=True)
 
     baseline_model = Fedot(problem="classification", metric=["f1"])
 
-    baseline_model.fit(features=train_data, target="Y", predefined_model="xgboost")
+    baseline_model.fit(features=train_data, target="Y", predefined_model="auto")
 
-    prediction = baseline_model.predict_proba(features=test_data)
+    prediction = baseline_model.predict(features=test_data)
     assert len(prediction) == len(test_data)
 
     baseline_metrics = baseline_model.get_metrics()
