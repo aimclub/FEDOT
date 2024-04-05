@@ -259,8 +259,8 @@ class ExpSmoothingImplementation(ModelImplementation):
         endog = input_data.features.astype('float64')
 
         # check ets params according to statsmodels restrictions
-        self._check_and_correct_params(endog)
-        self.log.info(f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
+        if self._check_and_correct_params(endog):
+            self.log.info(f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
 
         self.model = ETSModel(
             endog=endog,
@@ -319,15 +319,20 @@ class ExpSmoothingImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def _check_and_correct_params(self, endog: np.ndarray) -> None:
+    def _check_and_correct_params(self, endog: np.ndarray) -> bool:
         ets_components = ['error', 'trend', 'seasonal']
+        params_changed = False
         if any(self.params.get(component) == 'mul' for component in ets_components):
             if np.any(endog <= 0):
                 for component in ets_components:
                     if self.params.get(component) == 'mul':
                         self.params.update(**{f'{component}': 'add'})
+                params_changed = True
 
         if self.params.get('trend') == 'mul' \
                 and self.params.get('damped_trend') \
                 and not self.params.get('seasonal'):
             self.params.update(trend='add')
+            params_changed = True
+
+        return params_changed
