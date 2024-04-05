@@ -250,18 +250,24 @@ class ExpSmoothingImplementation(ModelImplementation):
     def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.model = None
-        if self.params.get("seasonal"):
-            self.seasonal_periods = int(self.params.get("seasonal_periods"))
+        if self.params.get('seasonal'):
+            self.seasonal_periods = int(self.params.get('seasonal_periods'))
         else:
             self.seasonal_periods = None
 
     def fit(self, input_data):
+        endog = input_data.features.astype('float64')
+
+        # check ets params according to statsmodels restrictions
+        if self._check_and_correct_params(endog):
+            self.log.info(f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
+
         self.model = ETSModel(
-            input_data.features.astype("float64"),
-            error=self.params.get("error"),
-            trend=self.params.get("trend"),
-            seasonal=self.params.get("seasonal"),
-            damped_trend=self.params.get("damped_trend") if self.params.get("trend") else None,
+            endog=endog,
+            error=self.params.get('error'),
+            trend=self.params.get('trend'),
+            seasonal=self.params.get('seasonal'),
+            damped_trend=self.params.get('damped_trend') if self.params.get('trend') else None,
             seasonal_periods=self.seasonal_periods
         )
         self.model = self.model.fit(disp=False)
@@ -312,3 +318,21 @@ class ExpSmoothingImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
+
+    def _check_and_correct_params(self, endog: np.ndarray) -> bool:
+        ets_components = ['error', 'trend', 'seasonal']
+        params_changed = False
+        if any(self.params.get(component) == 'mul' for component in ets_components):
+            if np.any(endog <= 0):
+                for component in ets_components:
+                    if self.params.get(component) == 'mul':
+                        self.params.update(**{f'{component}': 'add'})
+                params_changed = True
+
+        if self.params.get('trend') == 'mul' \
+                and self.params.get('damped_trend') \
+                and not self.params.get('seasonal'):
+            self.params.update(trend='add')
+            params_changed = True
+
+        return params_changed

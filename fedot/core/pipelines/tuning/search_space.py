@@ -323,7 +323,7 @@ class PipelineSearchSpace(SearchSpace):
                     'type': 'categorical'},
                 'seasonal_periods': {
                     'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [1, 100],
+                    'sampling-scope': [2, 100],
                     'type': 'continuous'}
             },
             'glm': {
