@@ -103,7 +103,7 @@ class DataPreprocessor(BasePreprocessor):
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_fit)
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
-        # TODO add advanced gapfilling for time series and advanced gap-filling
+        # TODO add advanced gapfilling.rst for time series and advanced gap-filling
         self._init_supplementary_preprocessors(data)
 
         if isinstance(data, InputData):
