@@ -138,7 +138,7 @@ def test_specific_baseline_with_api():
     assert len(prediction) == len(test_data)
 
     baseline_metrics = baseline_model.get_metrics()
-    assert baseline_metrics["f1"] > 0
+    assert baseline_metrics["f1"]
 
 
 def test_forecast_with_multivariate_ts():

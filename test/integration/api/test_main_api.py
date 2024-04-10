@@ -339,7 +339,7 @@ def test_forecast_with_not_ts_problem():
 def test_api_for_amlb(initial_assumption, timeout):
     amlb_data = Path(fedot_project_root(), 'test', 'data', 'amlb')
     x_train = np.load(str(Path(amlb_data, 'train_australian_fold7.npy')))
-    y_train = np.load(str(Path(amlb_data, 'target_y.npy')), allow_pickle=True)  # real target from ALMB
+    y_train = np.load(str(Path(amlb_data, 'target_y.npy')), allow_pickle=True)  # real target from AMLB
     x_test = np.load(str(Path(amlb_data, 'test_australian_fold7.npy')))
     # TODO resample add
     training_params = {"preset": "best_quality", "n_jobs": -1}
