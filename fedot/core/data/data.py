@@ -97,7 +97,7 @@ class Data:
                         """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        if not target_array:
+        if target_array is not None:
             target_array = features_array
         return array_to_input_data(features_array, target_array, idx, task, data_type)
 
