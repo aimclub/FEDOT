@@ -35,6 +35,7 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         self._window_size = int(input_data.features.shape[1] * self.window_size_as_share)
         self._window_size = max(self._window_size, 2)
         self._window_size = min(self._window_size, input_data.features.shape[1] - 2)
+        self._window_size = max(self._window_size, 1)
         return self
 
     def transform(self, input_data: InputData) -> OutputData:
