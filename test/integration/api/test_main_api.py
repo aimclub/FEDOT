@@ -328,12 +328,14 @@ def test_forecast_with_not_ts_problem():
         model.forecast(pre_history=test_data)
 
 
-@pytest.mark.parametrize('initial_assumption, timeout',
-                         [(Pipeline(PipelineNode('catboost',
-                                          nodes_from=[
-                                              PipelineNode('resample', nodes_from=[PipelineNode('scaling')])])), 0.001),
-                          (None, 5.0)
-                          ])
+@pytest.mark.parametrize(
+    'initial_assumption, timeout', [
+        (Pipeline(
+            PipelineNode(
+                'catboost', nodes_from=[
+                    PipelineNode(
+                        'resample', nodes_from=[
+                            PipelineNode('scaling')])])), 0.001), (None, 5.0)])
 def test_api_for_amlb(initial_assumption, timeout):
     amlb_data = Path(fedot_project_root(), 'test', 'data', 'amlb')
     x_train = np.load(str(Path(amlb_data, 'train_australian_fold7.npy')))
