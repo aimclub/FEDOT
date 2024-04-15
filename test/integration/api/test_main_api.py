@@ -28,10 +28,6 @@ TESTS_MAIN_API_DEFAULT_PARAMS = {
     'max_arity': 2,
 }
 
-resample_pipeline = Pipeline(PipelineNode('catboost',
-                                          nodes_from=[
-                                              PipelineNode('resample', nodes_from=[PipelineNode('scaling')])]))
-
 
 @pytest.mark.parametrize('task_type, metric_name', [
     ('classification', 'f1'),
@@ -333,7 +329,9 @@ def test_forecast_with_not_ts_problem():
 
 
 @pytest.mark.parametrize('initial_assumption, timeout',
-                         [(resample_pipeline, 0.001),
+                         [(Pipeline(PipelineNode('catboost',
+                                          nodes_from=[
+                                              PipelineNode('resample', nodes_from=[PipelineNode('scaling')])])), 0.001),
                           (None, 5.0)
                           ])
 def test_api_for_amlb(initial_assumption, timeout):
