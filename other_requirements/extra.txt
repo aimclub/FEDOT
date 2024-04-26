@@ -7,7 +7,7 @@ opencv-python >= 4.5.5.64
 Pillow >= 8.2.0
 
 # Texts
-gensim @ git+https://github.com/piskvorky/gensim.git@ad68ee3
+gensim==4.3.2
 nltk >= 3.5
 
 # Misc
