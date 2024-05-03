@@ -1,3 +1,5 @@
+scipy<1.13.0
+
 # Base framework
 thegolem==0.4.0
 
