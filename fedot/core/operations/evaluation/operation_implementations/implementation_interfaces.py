@@ -19,6 +19,7 @@ class DataOperationImplementation(ABC):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         self.params = params or OperationParameters()
+        self.log = default_log(self)
 
     @abstractmethod
     def fit(self, input_data: InputData):
