@@ -47,7 +47,12 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         if self.number_of_features > 1:
             self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
-            self.pca.fit(input_data.features)
+            try:
+                self.pca.fit(input_data.features)
+            except Exception as e:
+                self.log.info(f'Switched from {type(self.pca).__name__} to default PCA on fit stage due to {e}')
+                self.pca = PCA()
+                self.pca.fit(input_data.features)
 
         return self.pca
 
