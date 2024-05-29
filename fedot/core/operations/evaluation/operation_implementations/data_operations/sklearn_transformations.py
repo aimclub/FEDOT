@@ -47,6 +47,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         if self.number_of_features > 1:
             self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
+            # TODO: remove a workaround by refactoring other operations in troubled pipelines (e.g. topo)
+            # workaround for NaN-containing arrays during pca fitting, especially for fast_ica
+            # fast_ica cannot fit with features represented by a rather sparse matrix
             try:
                 self.pca.fit(input_data.features)
             except Exception as e:
