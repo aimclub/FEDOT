@@ -14,7 +14,7 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-    ts_glm_pipeline
+    ts_glm_pipeline, ts_glm_ridge_pipeline, ts_polyfit_pipeline, ts_polyfit_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -128,7 +128,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_glm_pipeline(), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
@@ -141,7 +141,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['dt']
+    return ['rf']
 
 
 def get_regr_losses():
@@ -547,7 +547,7 @@ def test_complex_search_space_tuning_correct(tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [OptunaTuner])
+@pytest.mark.parametrize('tuner', [OptunaTuner, IOptTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test multi objective tuning is correct """
     data = request.getfixturevalue(data_fixture)
