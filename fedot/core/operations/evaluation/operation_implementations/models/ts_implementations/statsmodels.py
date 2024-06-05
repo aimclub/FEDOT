@@ -288,17 +288,14 @@ class ExpSmoothingImplementation(ModelImplementation):
 
     def predict(self, input_data):
         input_data = copy(input_data)
-        idx = input_data.idx
+        forecast_length = input_data.task.task_params.forecast_length
 
-        start_id = idx[0]
-        end_id = idx[-1]
-        predictions = self.model.predict(start=start_id,
-                                         end=end_id)
-        predict = predictions
-        predict = np.array(predict).reshape(1, -1)
-        new_idx = np.arange(start_id, end_id + 1)
+        start_id = input_data.idx[0]
+        end_id = start_id + forecast_length - 1
+        predictions = self.model.forecast(steps=forecast_length)
+        predict = np.array(predictions).reshape(1, -1)
 
-        input_data.idx = new_idx
+        input_data.idx = np.arange(start_id, end_id)
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
