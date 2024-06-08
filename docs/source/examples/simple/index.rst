@@ -15,7 +15,6 @@ This section provides basic examples of FEDOT usage:
    cgru
    classification_with_api_builder
    classification_with_tuning
-   cli_call_example
    fitted_values
    image_classification_problem
    multiclass_prediction
