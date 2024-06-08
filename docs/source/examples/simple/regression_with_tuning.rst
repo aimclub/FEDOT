@@ -1,5 +1,5 @@
 
-.. _regression_example:
+.. _regression_with_tuning:
 
 ====================================================================
 Regression Example with Tuning
