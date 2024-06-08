@@ -8,11 +8,8 @@ This section provides basic examples of FEDOT usage:
    :maxdepth: 1
 
    api_classification
-
-   classification_with_api_builder
    classification_with_tuning
    image_classification_problem
    multiclass_prediction
    resample_example
-   ts_pipelines
 
