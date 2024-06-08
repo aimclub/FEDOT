@@ -17,6 +17,7 @@ This section provides basic examples of FEDOT usage:
    fitted_values
    image_classification_problem
    multiclass_prediction
+   cli_call_example
    multiple_ts_forecasting_tasks
    pipeline_and_history_visualization
    pipeline_explain

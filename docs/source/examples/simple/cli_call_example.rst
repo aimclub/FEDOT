@@ -1,6 +1,6 @@
-
+===========================
 Fedot CLI Execution Example
-==========================
+===========================
 
 This example demonstrates how to execute Fedot tasks (time series forecasting, classification, and regression) from the command line interface (CLI) using .bat files. The code provided manipulates the Python environment path in the .bat files to ensure correct execution and saves the predictions to a CSV file.
 
