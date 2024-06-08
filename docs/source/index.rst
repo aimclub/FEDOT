@@ -29,7 +29,6 @@ Content
    contribution
    about
    faq/index
-   ai-generated/index
 
 
 Indices and tables
