@@ -5,29 +5,17 @@ This section provides basic examples of FEDOT usage:
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
 
-   api_classification
-   api_explain
-   api_forecasting
-   api_regression
-   cgru
-   classification_with_api_builder
-   classification_with_tuning
-   fitted_values
-   image_classification_problem
-   multiclass_prediction
-   cli_call_example
-   multiple_ts_forecasting_tasks
+   api_builder/index
+   classification/index
+   cli_application/index
+   interpretable/index
+   regression/index
    pipeline_and_history_visualization
-   pipeline_explain
    pipeline_import_export
    pipeline_log
    pipeline_tune
    pipeline_tuning_with_iopt
    pipeline_visualization
-   regression_with_tuning
-   resample_example
-   ts_pipelines
-   tuning_pipelines
 
