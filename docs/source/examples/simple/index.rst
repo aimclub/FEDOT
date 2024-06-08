@@ -6,7 +6,6 @@ This section provides basic examples of FEDOT usage:
 .. toctree::
    :glob:
    :maxdepth: 2
-   :caption: Contents
 
    api_classification
    api_explain

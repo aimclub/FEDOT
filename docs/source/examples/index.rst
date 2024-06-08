@@ -6,8 +6,7 @@ In this section you can find notebooks and useful pipeline structures for variou
 
 .. toctree::
    :glob:
-   :maxdepth: 2
-   :caption: Contents
+   :maxdepth: 1
 
    classification_example
    regression_example
