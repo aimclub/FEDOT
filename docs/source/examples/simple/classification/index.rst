@@ -1,4 +1,4 @@
-Simple example
+Classification
 ======================
 
 This section provides basic examples of FEDOT usage:

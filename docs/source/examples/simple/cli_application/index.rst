@@ -1,4 +1,4 @@
-Simple example
+Cli application
 ======================
 
 This section provides basic examples of FEDOT usage:

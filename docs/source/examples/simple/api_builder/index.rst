@@ -1,4 +1,4 @@
-Simple example
+Api builder
 ======================
 
 This section provides basic examples of FEDOT usage:

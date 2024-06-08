@@ -1,5 +1,5 @@
-Simple example
-======================
+Time series forecasting
+=========================
 
 This section provides basic examples of FEDOT usage:
 

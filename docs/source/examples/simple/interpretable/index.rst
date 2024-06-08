@@ -1,4 +1,4 @@
-Simple example
+Interpretability
 ======================
 
 This section provides basic examples of FEDOT usage:

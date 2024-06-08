@@ -1,4 +1,4 @@
-Simple example
+Regression
 ======================
 
 This section provides basic examples of FEDOT usage:
