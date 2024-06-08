@@ -11,6 +11,7 @@ This section provides basic examples of FEDOT usage:
    classification/index
    cli_application/index
    interpretable/index
+   time_series_forecasting/index
    regression/index
    pipeline_and_history_visualization
    pipeline_import_export
