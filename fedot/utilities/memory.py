@@ -22,8 +22,7 @@ class MemoryAnalytics:
         """
         Finish memory monitoring session
         """
-        cls.log(additional_info='finish',
-                logging_level=45)  # message logging level
+        cls.log(additional_info='finish')
         tracemalloc.stop()
         cls.is_active = False
 
