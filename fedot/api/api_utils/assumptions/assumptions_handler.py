@@ -78,9 +78,7 @@ class AssumptionsHandler:
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
 
-            MemoryAnalytics.log(self.log,
-                                additional_info='fitting of the initial pipeline',
-                                logging_level=45)  # message logging level
+            MemoryAnalytics.log(self.log, additional_info='fitting of the initial pipeline')
 
         except Exception as ex:
             self._raise_evaluating_exception(ex)
