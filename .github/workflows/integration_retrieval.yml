@@ -1,11 +1,13 @@
 name: Retrieval Integration
 
 on:
-  workflow_dispatch:
+  issue_comment:
+    types: [created]
 
 jobs:
   scheduled:
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/retrieve_troubled_pipelines')
     timeout-minutes: 95
     strategy:
       matrix:
