@@ -13,6 +13,7 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.utils import fedot_project_root
 from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
@@ -80,6 +81,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
+                prepared_pipeline.save(path=str(fedot_project_root().joinpath('invalid_fitness_after_evaluation')),
+                       is_datetime_in_path=True)
                 self._log.warning(f'Invalid fitness after objective evaluation. '
                                   f'Skipping the graph: {graph_id}', raise_if_test=True)
             if self._do_unfit:
