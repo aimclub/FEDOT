@@ -295,7 +295,7 @@ class ExpSmoothingImplementation(ModelImplementation):
         predictions = self.model.forecast(steps=forecast_length)
         predict = np.array(predictions).reshape(1, -1)
 
-        input_data.idx = np.arange(start_id, end_id)
+        input_data.idx = np.arange(start_id, end_id + 1)
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
