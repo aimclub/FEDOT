@@ -295,7 +295,7 @@ class ExpSmoothingImplementation(ModelImplementation):
         predictions = self.model.forecast(steps=forecast_length)
         predict = np.array(predictions).reshape(1, -1)
 
-        input_data.idx = np.arange(start_id, end_id)
+        input_data.idx = np.arange(start_id, end_id + 1)
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -343,6 +343,12 @@ class ExpSmoothingImplementation(ModelImplementation):
                 and self.params.get('damped_trend') \
                 and not self.params.get('seasonal'):
             self.params.update(**{'trend': 'add'})
+            params_changed = True
+
+        if self.params.get('seasonal'):
+            self.seasonal_periods = min(int(0.5 * (len(endog) - 1)), self.seasonal_periods)
+            self.seasonal_periods = max(self.seasonal_periods, 1)
+            self.params.update(**{'seasonal_periods': self.seasonal_periods})
             params_changed = True
 
         return params_changed
