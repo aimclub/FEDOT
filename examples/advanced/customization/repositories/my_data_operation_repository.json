@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "data_sources": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "accepted_node_types": [
+        "PrimaryNode"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.data_source",
+        "DataSourceStrategy"
+      ],
+      "tags": [
+        "non-default",
+        "data_source"
+      ],
+      "description": "Implementations of data sources in multi-modal pipelines"
+    },
+    "custom_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the preprocessing from scikit-learn framework"
+    },
+    "image_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.image]",
+      "output_type": "[DataTypesEnum.image]",
+      "accepted_node_types": [
+        "PrimaryNode"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "examples.advanced.customization.strategies.image_preproc",
+        "ImagePreprocessingStrategy"
+      ],
+      "tags": [
+        "custom"
+      ],
+      "description": "Implementations of the preprocessing from scikit-learn framework"
+    },
+    "sklearn_categorical": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "primary"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"
+    },
+    "dimension_transformation": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.common_preprocessing",
+        "FedotPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"
+    },
+    "regression_preprocessing": {
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.regression",
+        "FedotRegressionPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"
+    },
+    "classification_preprocessing": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.classification",
+        "FedotClassificationPreprocessingStrategy"
+      ],
+      "tags": [
+        "sklearn"
+      ],
+      "description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"
+    }
+  },
+  "operations": {
+    "data_source_img": {
+      "meta": "data_sources",
+      "input_type": "[DataTypesEnum.image]",
+      "output_type": "[DataTypesEnum.image]",
+      "tags": [
+        "data_source_img",
+        "nans-ignore",
+        "categorical-ignore"
+      ]
+    },
+    "filter_1": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
+    },
+    "filter_2": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
+    },
+    "filter_3": {
+      "meta": "image_preprocessing",
+      "tags": [
+        "filtering"
+      ]
+    }
+  }
+}
