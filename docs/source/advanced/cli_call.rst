@@ -69,4 +69,4 @@ problems decision are presented.
 
 The string below helps to run classification problem decision from the console:
 
-``python --problem classification --train ../../test/data/simple_classification.csv --test ../../test/data/simple_classification.csv  --target Y --timeout 0.1``
+``python --problem classification --train ../../test/data/classification/simple_classification.csv --test ../../test/data/classification/simple_classification.csv  --target Y --timeout 0.1``

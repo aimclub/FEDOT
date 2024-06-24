@@ -33,7 +33,7 @@ def get_requirements_and_params_for_task(task: TaskTypesEnum):
 
 
 def file_data():
-    test_file_path = Path(__file__).parents[3].joinpath('data', 'simple_classification.csv')
+    test_file_path = Path(__file__).parents[3].joinpath('data', 'classification', 'simple_classification.csv')
     input_data = InputData.from_csv(test_file_path)
     input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
     return input_data

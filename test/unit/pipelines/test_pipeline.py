@@ -47,7 +47,7 @@ def classification_dataset():
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../data/classification/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
