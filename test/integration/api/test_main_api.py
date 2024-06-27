@@ -74,7 +74,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
     pred_before = model.predict(features=test_data)
 
-    tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout))
+    tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout, n_jobs=1))
     pred_after = model.predict(features=test_data)
 
     assert isinstance(tuned_pipeline, Pipeline)
