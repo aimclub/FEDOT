@@ -242,7 +242,7 @@ class Fedot:
                               .with_timeout(timeout)
                               .build(input_data))
 
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress)
+            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             # Tuner returns a not fitted pipeline, and it is required to fit on train dataset
