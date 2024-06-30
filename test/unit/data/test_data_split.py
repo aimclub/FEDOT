@@ -149,8 +149,10 @@ def test_multitarget_train_test_split():
     """ Checks multitarget stratification for dataset with unbalanced distribution of classes """
     target_columns = ["Pastry", "Z_Scratch", "K_Scatch", "Stains", "Dirtiness", "Bumps", "Other_Faults"]
     data = InputData.from_csv(
-        "test/data/multitarget_classification.csv", task="classification", target_columns=target_columns, columns_to_drop=["id"]
-    )
+        "test/data/multitarget_classification.csv",
+        task="classification",
+        target_columns=target_columns,
+        columns_to_drop=["id"])
     train, test = train_test_data_setup(data)
 
 
