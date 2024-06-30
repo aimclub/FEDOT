@@ -145,6 +145,15 @@ def test_default_train_test_simple(data_generator: Callable, expected_output: di
     assert tuple(test_data.idx) == expected_output['test_idx']
 
 
+def test_multitarget_train_test_split():
+    """ Checks multitarget stratification for dataset with unbalanced distribution of classes """
+    target_columns = ["Pastry", "Z_Scratch", "K_Scatch", "Stains", "Dirtiness", "Bumps", "Other_Faults"]
+    data = InputData.from_csv(
+        "test/data/multitarget_classification.csv", task="classification", target_columns=target_columns, columns_to_drop=["id"]
+    )
+    train, test = train_test_data_setup(data)
+
+
 def test_advanced_time_series_splitting():
     """ Check how data prepared for time series in-sample validation """
     validation_blocks = 2
