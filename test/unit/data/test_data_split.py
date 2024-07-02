@@ -1,3 +1,4 @@
+import os
 from functools import partial
 from typing import Callable
 
@@ -11,7 +12,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import split_data
+from fedot.core.utils import fedot_project_root, split_data
 from fedot.core.data.cv_folds import cv_generator
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -143,6 +144,16 @@ def test_default_train_test_simple(data_generator: Callable, expected_output: di
     assert train_data.features.shape == expected_output['train_features_size']
     assert test_data.features.shape == expected_output['test_features_size']
     assert tuple(test_data.idx) == expected_output['test_idx']
+
+
+def test_multitarget_train_test_split():
+    """ Checks multitarget stratification for dataset with unbalanced distribution of classes """
+    target_columns = ["Pastry", "Z_Scratch", "K_Scatch", "Stains", "Dirtiness", "Bumps", "Other_Faults"]
+    full_test_data_path = os.path.join(str(fedot_project_root()), 'test', 'data', 'multitarget_classification.csv')
+    data = InputData.from_csv(
+        file_path=full_test_data_path, task="classification", target_columns=target_columns, columns_to_drop=["id"]
+    )
+    train, test = train_test_data_setup(data)
 
 
 def test_advanced_time_series_splitting():
