@@ -145,7 +145,7 @@ def _are_stratification_allowed(data: Union[InputData, MultiModalData], split_ra
     labels_count = len(classes[0])
     if test_size < labels_count:
         return False
-    
+
     # check that multitarget classes can be stratified
     if data.target.ndim == 2:
         y = np.array([" ".join(row.astype("str")) for row in data.target])
