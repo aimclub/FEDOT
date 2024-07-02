@@ -75,7 +75,9 @@ class ApiTime:
         starting_time_for_assumption_fit = datetime.datetime.now()
         yield
         self.assumption_fit_spend_time_single_fold = \
-            (datetime.datetime.now() - starting_time_for_assumption_fit) * n_folds
+            (datetime.datetime.now() - starting_time_for_assumption_fit)
+        if n_folds is None:
+            n_folds = 1
         self.assumption_fit_spend_time = self.assumption_fit_spend_time_single_fold * n_folds
 
     def determine_resources_for_tuning(self):
