@@ -39,9 +39,9 @@ class ApiTime:
     def have_time_for_composing(self, pop_size: int, n_jobs: int) -> bool:
         timeout_not_set = self.timedelta_composing is None
         return (
-            timeout_not_set
-            or self.assumption_fit_spend_time
-            < self.timedelta_composing * n_jobs / (pop_size * MIN_NUMBER_OF_GENERATIONS)
+                timeout_not_set
+                or self.assumption_fit_spend_time
+                < self.timedelta_composing * n_jobs / (pop_size * MIN_NUMBER_OF_GENERATIONS)
         )
 
     def have_time_for_the_best_quality(self, n_jobs: int):
@@ -69,11 +69,11 @@ class ApiTime:
         self.tuning_spend_time = datetime.datetime.now() - starting_time_for_tuning
 
     @contextmanager
-    def launch_assumption_fit(self):
+    def launch_assumption_fit(self, n_folds: int):
         """ Wrap assumption fit process with timer """
         starting_time_for_assumption_fit = datetime.datetime.now()
         yield
-        self.assumption_fit_spend_time = datetime.datetime.now() - starting_time_for_assumption_fit
+        self.assumption_fit_spend_time = (datetime.datetime.now() - starting_time_for_assumption_fit) * n_folds
 
     def determine_resources_for_tuning(self):
         """
