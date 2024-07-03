@@ -51,8 +51,8 @@ def test_predefined_initial_assumption():
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
-    model = Fedot(problem='classification', timeout=.1,
-                  logging_level=logging.DEBUG, available_operations=available_operations,
+    model = Fedot(problem='classification', timeout=1.0,
+                  logging_level=logging.ERROR, available_operations=available_operations,
                   initial_assumption=initial_pipelines)
     old_params = deepcopy(model.params)
     model.fit(train_input)
