@@ -24,6 +24,7 @@ class ApiTime:
         self.tuning_spend_time = datetime.timedelta(minutes=0)
 
         self.assumption_fit_spend_time = datetime.timedelta(minutes=0)
+        self.assumption_fit_spend_time_single_fold = datetime.timedelta(minutes=0)
 
     def __define_timeouts_for_stages(self):
         """ Determine timeouts for tuning and composing """
@@ -69,11 +70,15 @@ class ApiTime:
         self.tuning_spend_time = datetime.datetime.now() - starting_time_for_tuning
 
     @contextmanager
-    def launch_assumption_fit(self):
+    def launch_assumption_fit(self, n_folds: int):
         """ Wrap assumption fit process with timer """
         starting_time_for_assumption_fit = datetime.datetime.now()
         yield
-        self.assumption_fit_spend_time = datetime.datetime.now() - starting_time_for_assumption_fit
+        self.assumption_fit_spend_time_single_fold = \
+            (datetime.datetime.now() - starting_time_for_assumption_fit)
+        if n_folds is None:
+            n_folds = 1
+        self.assumption_fit_spend_time = self.assumption_fit_spend_time_single_fold * n_folds
 
     def determine_resources_for_tuning(self):
         """
@@ -81,7 +86,7 @@ class ApiTime:
         how much time and how many iterations are needed for tuning
 
         """
-        all_spend_time = self.composing_spend_time + self.assumption_fit_spend_time
+        all_spend_time = self.composing_spend_time + self.assumption_fit_spend_time_single_fold
 
         if self.time_for_automl is not None:
             all_timeout = float(self.time_for_automl)

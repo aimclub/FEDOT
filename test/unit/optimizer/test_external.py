@@ -45,11 +45,11 @@ def test_external_static_optimizer(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    automl = Fedot(problem='classification', timeout=0.2, logging_level=logging.DEBUG,
+    automl = Fedot(problem='classification', timeout=0.1, logging_level=logging.DEBUG,
                    preset='fast_train',
                    with_tuning=False,
                    optimizer=partial(StaticOptimizer, node_name='logit'),
-                   pop_size=2)
+                   pop_size=2, cv_folds=None)
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 

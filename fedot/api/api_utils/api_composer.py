@@ -102,7 +102,7 @@ class ApiComposer:
                                                                     use_input_preprocessing=self.params.get(
                                                                         'use_input_preprocessing'))
 
-        with self.timer.launch_assumption_fit():
+        with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
             fitted_assumption = \
                 assumption_handler.fit_assumption_and_check_correctness(deepcopy(initial_assumption[0]),
                                                                         pipelines_cache=self.pipelines_cache,
