@@ -3,6 +3,7 @@ from time import time
 
 import pytest
 
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
@@ -14,7 +15,7 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-    ts_glm_pipeline
+    ts_glm_pipeline, ts_glm_ridge_pipeline, ts_polyfit_pipeline, ts_polyfit_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -128,7 +129,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_glm_pipeline(), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
@@ -141,7 +142,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['dt']
+    return ['rf']
 
 
 def get_regr_losses():
@@ -169,7 +170,7 @@ def get_not_default_search_space():
         'lgbmreg': {
             'learning_rate': {
                 'hyperopt-dist': hp.loguniform,
-                'sampling-scope': [0.05, 0.1],
+                'sampling-scope': [0.03, 0.1],
                 'type': 'continuous'},
             'colsample_bytree': {
                 'hyperopt-dist': hp.uniform,
@@ -216,9 +217,8 @@ def run_pipeline_tuner(train_data,
                        tuner=SimultaneousTuner,
                        search_space=PipelineSearchSpace(),
                        cv=None,
-                       iterations=3,
+                       iterations=5,
                        early_stopping_rounds=None, **kwargs):
-
     # if data is time series then lagged window should be tuned correctly
     # because lagged window raises error if windows size is uncorrect
     # and tuner will fall
@@ -241,11 +241,12 @@ def run_pipeline_tuner(train_data,
         .with_metric(loss_function) \
         .with_cv_folds(cv) \
         .with_iterations(iterations) \
+        .with_n_jobs(1) \
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_search_space(search_space) \
         .with_additional_params(**kwargs) \
         .build(train_data)
-    tuned_pipeline = pipeline_tuner.tune(pipeline)
+    tuned_pipeline = pipeline_tuner.tune(pipeline, show_progress=False)
     return pipeline_tuner, tuned_pipeline
 
 
@@ -299,6 +300,7 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
+                print(pipeline)
                 pipeline_tuner, tuned_pipeline = run_pipeline_tuner(tuner=tuner,
                                                                     train_data=data,
                                                                     pipeline=pipeline,
@@ -423,7 +425,7 @@ def test_ts_pipeline_with_stats_model(n_steps, tuner):
             .with_metric(RegressionMetricsEnum.MSE) \
             .with_iterations(3) \
             .with_search_space(search_space).build(train_data)
-        tuned_pipeline = tuner_ar.tune(ar_pipeline)
+        tuned_pipeline = tuner_ar.tune(ar_pipeline, show_progress=False)
         assert tuned_pipeline is not None
         assert tuner_ar.obtained_metric is not None
 
@@ -472,15 +474,15 @@ def test_search_space_correctness_after_customization():
     custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                            replace_default_search_space=True)
 
-    default_params = get_node_parameters_for_hyperopt(default_search_space,
-                                                      node_id=0,
-                                                      operation_name='gbr')
-    custom_without_replace_params = get_node_parameters_for_hyperopt(custom_search_space_without_replace,
+    default_params, _ = get_node_parameters_for_hyperopt(default_search_space,
+                                                         node_id=0,
+                                                         node=PipelineNode('gbr'))
+    custom_without_replace_params, _ = get_node_parameters_for_hyperopt(custom_search_space_without_replace,
+                                                                        node_id=0,
+                                                                        node=PipelineNode('gbr'))
+    custom_with_replace_params, _ = get_node_parameters_for_hyperopt(custom_search_space_with_replace,
                                                                      node_id=0,
-                                                                     operation_name='gbr')
-    custom_with_replace_params = get_node_parameters_for_hyperopt(custom_search_space_with_replace,
-                                                                  node_id=0,
-                                                                  operation_name='gbr')
+                                                                     node=PipelineNode('gbr'))
 
     assert default_params.keys() == custom_without_replace_params.keys()
     assert default_params.keys() != custom_with_replace_params.keys()
@@ -520,12 +522,14 @@ def test_complex_search_space():
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
+# TODO: (YamLyubov) add IOptTuner when it will support nested parameters.
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_complex_search_space_tuning_correct(tuner):
-    """ Tests SimultaneousTuner for time series forecasting task with GLM model that has a complex glm search space"""
+    """ Tests Tuners for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
 
-    glm_pipeline = Pipeline(PipelineNode('glm'))
+    # ridge added because IOpt requires at least one continuous parameter
+    glm_pipeline = PipelineBuilder().add_sequence('glm', 'ridge', branch_idx=0).build()
     initial_parameters = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \
@@ -534,11 +538,7 @@ def test_complex_search_space_tuning_correct(tuner):
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     found_parameters = tuned_glm_pipeline.nodes[0].parameters
-    if tuner.init_metric == tuner.obtained_metric:
-        # TODO: (YamLyubov) Remove the check when IOptTuner will be able to tune categorical parameters.
-        assert initial_parameters == found_parameters
-    else:
-        assert initial_parameters != found_parameters
+    assert initial_parameters != found_parameters
 
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
@@ -547,7 +547,7 @@ def test_complex_search_space_tuning_correct(tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [OptunaTuner])
+@pytest.mark.parametrize('tuner', [OptunaTuner, IOptTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test multi objective tuning is correct """
     data = request.getfixturevalue(data_fixture)
@@ -559,8 +559,7 @@ def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner
                                                                  train_data=data,
                                                                  pipeline=pipeline,
                                                                  loss_function=loss_functions,
-                                                                 cv=cv,
-                                                                 iterations=10)
+                                                                 cv=cv)
             assert tuned_pipelines is not None
             assert all([tuned_pipeline is not None for tuned_pipeline in ensure_wrapped_in_sequence(tuned_pipelines)])
             for metrics in pipeline_tuner.obtained_metric:

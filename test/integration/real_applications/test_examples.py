@@ -84,8 +84,9 @@ def test_api_classification_example():
 
 
 def test_api_ts_forecasting_example():
-    forecast = run_ts_forecasting_example(dataset='salaries', timeout=2, with_tuning=False)
-    assert forecast is not None
+    for _ in range(100):
+        forecast = run_ts_forecasting_example(dataset='salaries', timeout=2, with_tuning=False)
+        assert forecast is not None
 
 
 def test_api_classification_multiobj_example():
