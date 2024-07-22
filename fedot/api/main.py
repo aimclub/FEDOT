@@ -13,7 +13,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.data_definition import FeaturesType, TargetType
+from fedot.api.api_utils.data_definition import FeaturesType, TargetType, data_strategy_selector
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
@@ -202,7 +202,7 @@ class Fedot:
         return self.current_pipeline
 
     def tune(self,
-             input_data: Optional[InputData] = None,
+             input_data: Optional[FeaturesType] = None,
              metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
@@ -212,7 +212,7 @@ class Fedot:
         """Method for hyperparameters tuning of current pipeline
 
         Args:
-            input_data: data for tuning pipeline.
+            input_data: data for tuning pipeline in one of the supported formats.
             metric_name: name of metric for quality tuning.
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
@@ -227,7 +227,10 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         with fedot_composer_timer.launch_tuning('post'):
-            input_data = input_data or self.train_data
+            if input_data is None:
+                input_data = self.train_data
+            else:
+                input_data = self.data_processor.define_data(features=input_data, target=self.target, is_predict=False)
             cv_folds = cv_folds or self.params.get('cv_folds')
             n_jobs = n_jobs or self.params.n_jobs
 
