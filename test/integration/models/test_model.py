@@ -465,8 +465,7 @@ def test_locf_forecast_correctly():
 def test_models_does_not_fall_on_constant_data(operation):
     """ Run models on constant data """
     # models that raise exception
-    to_skip = ['custom', 'arima', 'catboost', 'catboostreg', 'cgru',
-               'lda', 'fast_ica', 'decompose', 'class_decompose']
+    to_skip = {'custom', 'arima', 'catboost', 'catboostreg', 'cgru', 'lda', 'decompose', 'class_decompose'}
     if operation.id in to_skip:
         return
 
