@@ -174,9 +174,8 @@ def test_default_train_test_simple(data_generator: Callable, expected_output: di
     assert train_data.features.shape == expected_output['train_features_size']
     assert test_data.features.shape == expected_output['test_features_size']
     assert tuple(test_data.idx) == expected_output['test_idx']
-    if 'train_category_size' in expected_output:
+    if 'train_category_size' in expected_output and 'test_category_size' in expected_output:
         assert train_data.categorical_features.shape == expected_output['train_category_size']
-    if 'train_category_size' in expected_output:
         assert test_data.categorical_features.shape == expected_output['test_category_size']
 
 
