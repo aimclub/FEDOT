@@ -35,6 +35,7 @@ class FedotXGBoostImplementation(ModelImplementation):
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
+            # TODO: Get metric for evaluating on validation
             if self.classes_ is None:
                 eval_metric = 'rmse'
             elif len(self.classes_) < 3:
@@ -42,11 +43,9 @@ class FedotXGBoostImplementation(ModelImplementation):
             else:
                 eval_metric = 'mlogloss'
 
-            self.model.fit(X=train_x, y=train_y,
-                           eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
+            self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
 
         else:
-
             train_data = self.convert_to_dataframe(input_data)
             train_x, train_y = train_data.drop(columns=['target']), train_data['target']
             self.model.fit(X=train_x, y=train_y)
