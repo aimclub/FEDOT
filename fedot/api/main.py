@@ -203,6 +203,7 @@ class Fedot:
 
     def tune(self,
              input_data: Optional[FeaturesType] = None,
+             target: TargetType = 'target',
              metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
@@ -213,6 +214,7 @@ class Fedot:
 
         Args:
             input_data: data for tuning pipeline in one of the supported formats.
+            target: data target values in one of the supported target formats.
             metric_name: name of metric for quality tuning.
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
@@ -230,7 +232,7 @@ class Fedot:
             if input_data is None:
                 input_data = self.train_data
             else:
-                input_data = self.data_processor.define_data(features=input_data, target=self.target, is_predict=False)
+                input_data = self.data_processor.define_data(features=input_data, target=target, is_predict=False)
             cv_folds = cv_folds or self.params.get('cv_folds')
             n_jobs = n_jobs or self.params.n_jobs
 
