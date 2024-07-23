@@ -5,26 +5,15 @@ from examples.simple.time_series_forecasting.ts_pipelines import cgru_pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
-@pytest.mark.skip(reason="Fails due to the https://github.com/aimclub/FEDOT/issues/1240")
-def test_cgru_forecasting():
+@pytest.mark.parametrize('pipeline', (
+    PipelineBuilder().add_node('lagged', params={'window_size': 200}).add_node('cgru').build(),
+    cgru_pipeline(),
+), ids=str)
+def test_cgru_forecasting(pipeline):
     horizon = 5
-    window_size = 200
-    train_data, test_data = get_ts_data('salaries', horizon)
-
-    pipeline = PipelineBuilder().add_node('lagged', params={'window_size': window_size}).add_node('cgru').build()
+    train_data, test_data, _ = get_ts_data('salaries', horizon)
     pipeline.fit(train_data)
-    predicted = pipeline.predict(test_data).predict[0]
+    predicted = pipeline.predict(test_data).predict
 
-    assert len(predicted) == horizon
-
-
-@pytest.mark.skip(reason="Fails due to the https://github.com/aimclub/FEDOT/issues/1240")
-def test_cgru_in_pipeline():
-    horizon = 5
-    train_data, test_data = train_data, test_data = get_ts_data('salaries', horizon)
-
-    pipeline = cgru_pipeline()
-    pipeline.fit(train_data)
-    predicted = pipeline.predict(test_data).predict[0]
-
+    assert predicted is not None
     assert len(predicted) == horizon
