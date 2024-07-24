@@ -22,10 +22,12 @@ class FedotXGBoostImplementation(ModelImplementation):
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
+        self.features_names = None
 
     def fit(self, input_data: InputData):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
+            self.features_names = input_data.features_names
 
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
@@ -41,6 +43,7 @@ class FedotXGBoostImplementation(ModelImplementation):
             self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], verbose=self.model_params['verbosity'])
         else:
             train_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+            self.features_names = input_data.features_names
             train_x, train_y = train_data.drop(columns=['target']), train_data['target']
 
             self.model.fit(X=train_x, y=train_y, verbose=self.model_params['verbosity'])
@@ -73,10 +76,10 @@ class FedotXGBoostImplementation(ModelImplementation):
     def get_feature_importance(self) -> list:
         return self.model.features_importances_
 
-    def plot_feature_importance(self):
-        plot_feature_importance(
-            self.model.feature_names_, self.model.get_boosters().features_importances_
-        )
+    def plot_feature_importance(self, importance_type='weight'):
+        model_output = self.model.get_booster().get_score()
+        features_names = self.features_names
+        plot_feature_importance(features_names, model_output.values())
 
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
