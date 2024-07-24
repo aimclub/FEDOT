@@ -24,37 +24,34 @@ class FedotXGBoostImplementation(ModelImplementation):
         self.model = None
 
     def fit(self, input_data: InputData):
-        input_data = input_data.get_not_encoded_data()
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
 
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            train_input = self.convert_to_dataframe(train_input)
-            eval_input = self.convert_to_dataframe(eval_input)
+            train_input = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
+            eval_input = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
 
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
-            if self.classes_ is None:
-                eval_metric = 'rmse'
-            elif len(self.classes_) < 3:
-                eval_metric = 'auc'
-            else:
-                eval_metric = 'mlogloss'
-
-            self.model.eval_metric = eval_metric
+            self.model.eval_metric = self.set_eval_metric(self.n_classes)
 
             self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], verbose=self.model_params['verbosity'])
-
         else:
-            train_data = self.convert_to_dataframe(input_data)
+            train_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
             train_x, train_y = train_data.drop(columns=['target']), train_data['target']
+
             self.model.fit(X=train_x, y=train_y, verbose=self.model_params['verbosity'])
 
         return self.model
 
     def predict(self, input_data: InputData):
-        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+
+        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         train_x, _ = input_data.drop(columns=['target']), input_data['target']
         prediction = self.model.predict(train_x)
 
@@ -65,17 +62,28 @@ class FedotXGBoostImplementation(ModelImplementation):
         use_eval_set = self.params.get('use_eval_set')
 
         if isinstance(early_stopping_rounds, int) and not use_eval_set:
-            self.params.update(use_best_model=False, early_stopping_rounds=False)
+            self.params.update(early_stopping_rounds=False)
+
+        booster = self.params.get('booster')
+        enable_categorical = self.params.get('enable_categorical')
+
+        if booster == 'gblinear' and enable_categorical:
+            self.params.update(enable_categorical=False)
 
     def get_feature_importance(self) -> list:
         return self.model.features_importances_
 
+    def plot_feature_importance(self):
+        plot_feature_importance(
+            self.model.feature_names_, self.model.get_boosters().features_importances_
+        )
+
     @staticmethod
-    def convert_to_dataframe(data: Optional[InputData]):
-        dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
+    def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
+        dataframe = pd.DataFrame(data=data.features)
         dataframe['target'] = data.target
 
-        if data.categorical_idx is not None:
+        if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
                 dataframe[col] = dataframe[col].astype('category')
 
@@ -85,10 +93,16 @@ class FedotXGBoostImplementation(ModelImplementation):
 
         return dataframe
 
-    def plot_feature_importance(self):
-        plot_feature_importance(
-            self.model.feature_names_, self.model.get_boosters().features_importances_
-        )
+    @staticmethod
+    def set_eval_metric(n_classes):
+        if n_classes is None:  # if n_classes is None -> regression
+            eval_metric = 'rmse'
+        elif len(n_classes) < 3:  # if n_classes < 3 -> bin class
+            eval_metric = 'auc'
+        else:  # else multiclass
+            eval_metric = 'mlogloss'
+
+        return eval_metric
 
 
 class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
@@ -102,7 +116,10 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
         return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
-        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+
+        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         train_x, _ = input_data.drop(columns=['target']), input_data['target']
         prediction = self.model.predict_proba(train_x)
         return prediction
