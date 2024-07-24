@@ -35,7 +35,6 @@ class FedotXGBoostImplementation(ModelImplementation):
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
-            # TODO: Get metric for evaluating on validation
             if self.classes_ is None:
                 eval_metric = 'rmse'
             elif len(self.classes_) < 3:
@@ -43,12 +42,14 @@ class FedotXGBoostImplementation(ModelImplementation):
             else:
                 eval_metric = 'mlogloss'
 
-            self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
+            self.model.eval_metric = eval_metric
+
+            self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], verbose=self.model_params['verbosity'])
 
         else:
             train_data = self.convert_to_dataframe(input_data)
             train_x, train_y = train_data.drop(columns=['target']), train_data['target']
-            self.model.fit(X=train_x, y=train_y)
+            self.model.fit(X=train_x, y=train_y, verbose=self.model_params['verbosity'])
 
         return self.model
 
@@ -58,6 +59,13 @@ class FedotXGBoostImplementation(ModelImplementation):
         prediction = self.model.predict(train_x)
 
         return prediction
+
+    def check_and_update_params(self):
+        early_stopping_rounds = self.params.get('early_stopping_rounds')
+        use_eval_set = self.params.get('use_eval_set')
+
+        if isinstance(early_stopping_rounds, int) and not use_eval_set:
+            self.params.update(use_best_model=False, early_stopping_rounds=False)
 
     def get_feature_importance(self) -> list:
         return self.model.features_importances_

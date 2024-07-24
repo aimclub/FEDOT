@@ -11,7 +11,8 @@
     "booster": "gbtree",
     "tree_method": "auto",
     "enable_categorical": true,
-    "use_eval_set": true
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
   },
   "xgboostreg": {
     "n_jobs": 1,
@@ -19,7 +20,8 @@
     "booster": "gbtree",
     "tree_method": "auto",
     "enable_categorical": true,
-    "use_eval_set": true
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
   },
   "catboost": {
     "allow_writing_files": false,
