@@ -104,7 +104,7 @@ def test_assumptions_builder_unsuitable_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['linear', 'lagged']  # 'xgboost'
+    available_operations = ['linear', 'lagged', 'xgboostreg']
 
     default_builder = UniModalAssumptionsBuilder(train_input)
     checked_builder = UniModalAssumptionsBuilder(train_input) \
