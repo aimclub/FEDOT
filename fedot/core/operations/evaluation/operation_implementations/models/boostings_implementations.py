@@ -203,7 +203,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         return self.model.get_feature_importance(prettified=True)
 
     def plot_feature_importance(self):
-        plot_feature_importance(self.model.feature_names_, self.model.features_importances_)
+        plot_feature_importance(self.model.feature_names_, self.model.feature_importances_)
 
 
 class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
