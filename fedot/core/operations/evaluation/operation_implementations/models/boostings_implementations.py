@@ -36,7 +36,7 @@ class FedotXGBoostImplementation(ModelImplementation):
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
-            self.model.eval_metric = self.set_eval_metric(self.n_classes)
+            self.model.eval_metric = self.set_eval_metric(self.classes_)
 
             self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], verbose=self.model_params['verbosity'])
         else:
