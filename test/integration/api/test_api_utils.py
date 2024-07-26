@@ -97,7 +97,7 @@ def test_init_assumption_with_inappropriate_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['linear', 'xgboost', 'lagged']
+    available_operations = ['linear', 'xgboostreg', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \
         .get(train_input) \
