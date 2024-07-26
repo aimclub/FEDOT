@@ -16,7 +16,7 @@ class BoostingStrategy(EvaluationStrategy):
         'catboost': FedotCatBoostClassificationImplementation,
         'catboostreg': FedotCatBoostRegressionImplementation,
         'xgboost': FedotXGBoostClassificationImplementation,
-        'xgboostreg': FedotXGBoostRegressionImplementation
+        'xgboostreg': FedotXGBoostRegressionImplementation,
         'lgbm': FedotLightGBMClassificationImplementation,
         'lgbmreg': FedotLightGBMRegressionImplementation
     }
