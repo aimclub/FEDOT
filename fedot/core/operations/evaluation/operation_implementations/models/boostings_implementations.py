@@ -17,7 +17,7 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotXGBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set']
+    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -141,7 +141,7 @@ class FedotXGBoostRegressionImplementation(FedotXGBoostImplementation):
 
 
 class FedotLightGBMImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set']
+    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -272,7 +272,7 @@ class FedotLightGBMRegressionImplementation(FedotLightGBMImplementation):
 
 
 class FedotCatBoostImplementation(ModelImplementation):
-    __operation_params = ['use_eval_set', 'n_jobs']
+    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
