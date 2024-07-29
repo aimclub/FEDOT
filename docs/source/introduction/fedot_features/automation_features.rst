@@ -190,7 +190,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `sgdr`,`sklearn.linear_model.SGDRegressor`,`fast_train` `ts`
    `svr`,`sklearn.svm.LinearSVR`,
    `treg`,`sklearn.ensemble.ExtraTreesRegressor`,`*tree`
-   `xgboostreg`,`FEDOT model`,`*tree`
+   `xgboostreg`,`xgboost.XGBRegressor`,`*tree`
    `bernb`,`sklearn.naive_bayes.BernoulliNB`,`fast_train`
    `catboost`,`catboost.CatBoostClassifier`,`*tree`
    `cnn`,`FEDOT model`,
@@ -204,7 +204,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `qda`,`sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis`,`fast_train`
    `rf`,`sklearn.ensemble.RandomForestClassifier`,`fast_train` `*tree`
    `svc`,`sklearn.svm.SVC`,
-   `xgboost`,`FEDOT model`,`*tree`
+   `xgboost`,`xgboost.XGBClassifier`,`*tree`
    `kmeans`,`sklearn.cluster.Kmeans`,`fast_train`
    `ar`,`statsmodels.tsa.ar_model.AutoReg`,`fast_train` `ts`
    `arima`,`statsmodels.tsa.arima.model.ARIMA`,`ts`
