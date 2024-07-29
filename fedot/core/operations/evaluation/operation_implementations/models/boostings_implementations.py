@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from lightgbm import LGBMClassifier, LGBMRegressor
+from lightgbm import early_stopping as lgbm_early_stopping
 from matplotlib import pyplot as plt
 from xgboost import XGBClassifier, XGBRegressor
 
@@ -20,6 +21,8 @@ class FedotXGBoostImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+
+        self.check_and_update_params()
 
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
@@ -124,7 +127,7 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
             input_data = input_data.get_not_encoded_data()
 
         input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
-        train_x, _ = input_data.drop(columns=['target']), input_data['target']
+        train_x = input_data.drop(columns=['target'])
         prediction = self.model.predict_proba(train_x)
         return prediction
 
@@ -142,52 +145,90 @@ class FedotLightGBMImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
+        self.check_and_update_params()
+
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
+        self.features_names = None
 
     def fit(self, input_data: InputData):
-        input_data = input_data.get_not_encoded_data()
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+            self.features_names = input_data.features_names
 
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            train_input = self.convert_to_dataframe(train_input)
-            eval_input = self.convert_to_dataframe(eval_input)
+            train_input = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
+            eval_input = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
 
             train_x, train_y = train_input.drop(columns=['target']), train_input['target']
             eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
 
-            if self.classes_ is None:
-                eval_metric = 'rmse'
-            elif len(self.classes_) < 3:
-                eval_metric = 'auc'
-            else:
-                eval_metric = 'multi_logloss'
+            eval_metric = self.set_eval_metric(self.classes_)
+            callbacks = self.update_callbacks()
 
-            self.model.fit(X=train_x, y=train_y,
-                           eval_set=[(eval_x, eval_y)], eval_metric=eval_metric)
+            self.model.fit(
+                X=train_x, y=train_y,
+                eval_set=[(eval_x, eval_y)], eval_metric=eval_metric,
+                callbacks=callbacks
+            )
 
         else:
-
-            train_data = self.convert_to_dataframe(input_data)
+            train_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
             train_x, train_y = train_data.drop(columns=['target']), train_data['target']
-            self.model.fit(X=train_x, y=train_y)
+
+            self.model.fit(
+                X=train_x, y=train_y,
+            )
 
         return self.model
 
     def predict(self, input_data: InputData):
-        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+
+        input_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
         train_x = input_data.drop(columns=['target'])
         prediction = self.model.predict(train_x)
 
         return prediction
 
+    def check_and_update_params(self):
+        early_stopping_rounds = self.params.get('early_stopping_rounds')
+        use_eval_set = self.params.get('use_eval_set')
+
+        if isinstance(early_stopping_rounds, int) and not use_eval_set:
+            self.params.update(early_stopping_rounds=False)
+
+    def update_callbacks(self) -> list:
+        callback = []
+
+        esr = self.params.get('early_stopping_rounds')
+        if isinstance(esr, int):
+            lgbm_early_stopping(esr, verbose=self.params.get('verbose'))
+
+        return callback
+
     @staticmethod
-    def convert_to_dataframe(data: Optional[InputData]):
+    def set_eval_metric(n_classes):
+        if n_classes is None:  # if n_classes is None -> regression
+            eval_metric = ''
+
+        elif len(n_classes) < 3:  # if n_classes < 3 -> bin class
+            eval_metric = 'binary_logloss'
+
+        else:  # else multiclass
+            eval_metric = 'multi_logloss'
+
+        return eval_metric
+
+    @staticmethod
+    def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
         dataframe['target'] = data.target
 
-        if data.categorical_idx is not None:
+        if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
                 dataframe[col] = dataframe[col].astype('category')
 
@@ -209,7 +250,10 @@ class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
         return super().fit(input_data=input_data)
 
     def predict_proba(self, input_data: InputData):
-        input_data = self.convert_to_dataframe(input_data.get_not_encoded_data())
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+
+        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         train_x = input_data.drop(columns=['target'])
         prediction = self.model.predict_proba(train_x)
         return prediction

@@ -620,10 +620,30 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [2, 256],
                     'type': 'discrete'},
+                'min_data_in_leaf': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [5, 100],
+                    'type': 'discrete'},
+                'bagging_fraction': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'},
+                'extra_trees': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
                 'learning_rate': {
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [0.01, 0.2],
                     'type': 'continuous'},
+                'force_col_wise': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
+                'force_row_wise ': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
                 'colsample_bytree': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.4, 1],
@@ -639,17 +659,45 @@ class PipelineSearchSpace(SearchSpace):
                 'reg_lambda': {
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1e-8, 10],
-                    'type': 'continuous'}
+                    'type': 'continuous'},
+                'early_stopping_rounds': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [5, 50],
+                    'type': 'discrete'},
             },
             'lgbmreg': {
+                'boosting_type': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['gbdt', 'dart', 'goss']],
+                    'type': 'categorical'},
                 'num_leaves': {
                     'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [2, 256],
                     'type': 'discrete'},
+                'min_data_in_leaf': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [5, 100],
+                    'type': 'discrete'},
+                'bagging_fraction': {
+                    'hyperopt-dist': hp.loguniform,
+                    'sampling-scope': [0.01, 1.0],
+                    'type': 'continuous'},
+                'extra_trees': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
                 'learning_rate': {
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [0.01, 0.2],
                     'type': 'continuous'},
+                'force_col_wise': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
+                'force_row_wise ': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'},
                 'colsample_bytree': {
                     'hyperopt-dist': hp.uniform,
                     'sampling-scope': [0.4, 1],
@@ -665,7 +713,18 @@ class PipelineSearchSpace(SearchSpace):
                 'reg_lambda': {
                     'hyperopt-dist': hp.loguniform,
                     'sampling-scope': [1e-8, 10],
-                    'type': 'continuous'}
+                    'type': 'continuous'},
+                'objective': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [
+                        ['regression', 'regression_l1', 'huber', 'fair',
+                         'poisson', 'quantile', 'mape', 'tweedie', 'gamma']
+                    ],
+                    'type': 'categorical'},
+                'early_stopping_rounds': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [5, 50],
+                    'type': 'discrete'},
             },
             'catboost': {
                 'iterations': {
