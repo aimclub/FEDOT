@@ -17,7 +17,7 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotXGBoostImplementation(ModelImplementation):
-    __operation_params = ['n_jobs', 'use_eval_set', 'enable_categorical']
+    __operation_params = ['n_jobs', 'use_eval_set']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
