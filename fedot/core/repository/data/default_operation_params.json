@@ -27,8 +27,9 @@
     "allow_writing_files": false,
     "verbose": false,
     "iterations": 1000,
-    "use_eval_set": false,
-    "use_best_model": false,
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "use_best_model": true,
     "early_stopping_rounds": null,
     "n_jobs": 1
   },
@@ -36,8 +37,9 @@
     "allow_writing_files": false,
     "verbose": false,
     "iterations": 1000,
-    "use_eval_set": false,
-    "use_best_model": false,
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "use_best_model": true,
     "early_stopping_rounds": null,
     "n_jobs": 1
   },
