@@ -147,7 +147,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `sgdr`,Stochastic Gradient Descent regressor,Regression
    `svr`,Linear Support Vector regressor,Regression
    `treg`,Extra Trees regressor,Regression
-   `xgbreg`,Extreme Gradient Boosting regressor,Regression
+   `xgboostreg`,Extreme Gradient Boosting regressor,Regression
    `bernb`,Naive Bayes classifier (multivariate Bernoulli),Classification
    `catboost`,Catboost classifier,Classification
    `cnn`,Convolutional Neural Network,Classification
@@ -190,7 +190,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `sgdr`,`sklearn.linear_model.SGDRegressor`,`fast_train` `ts`
    `svr`,`sklearn.svm.LinearSVR`,
    `treg`,`sklearn.ensemble.ExtraTreesRegressor`,`*tree`
-   `xgbreg`,`xgboost.XGBRegressor`,`*tree`
+   `xgboostreg`,`xgboost.XGBRegressor`,`*tree`
    `bernb`,`sklearn.naive_bayes.BernoulliNB`,`fast_train`
    `catboost`,`catboost.CatBoostClassifier`,`*tree`
    `cnn`,`FEDOT model`,
