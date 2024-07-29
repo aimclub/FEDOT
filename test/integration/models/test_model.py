@@ -497,18 +497,15 @@ def test_operations_are_serializable(operation):
                                         length=100, features_count=2,
                                         random=True)
             if data is not None:
-                try:
-                    nodes_from = []
-                    if task_type is TaskTypesEnum.ts_forecasting:
-                        if 'non_lagged' not in operation.tags:
-                            nodes_from = [PipelineNode('lagged')]
-                    node = PipelineNode(operation.id, nodes_from=nodes_from)
-                    pipeline = Pipeline(node)
-                    pipeline.fit(data)
-                    serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
-                    assert isinstance(serialized, bytes)
-                except NotImplementedError:
-                    pass
+                nodes_from = []
+                if task_type is TaskTypesEnum.ts_forecasting:
+                    if 'non_lagged' not in operation.tags:
+                        nodes_from = [PipelineNode('lagged')]
+                node = PipelineNode(operation.id, nodes_from=nodes_from)
+                pipeline = Pipeline(node)
+                pipeline.fit(data)
+                serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
+                assert isinstance(serialized, bytes)
 
 
 def test_operations_are_fast():
