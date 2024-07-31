@@ -37,21 +37,24 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            train_input = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
-            eval_input = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
 
-            train_x, train_y = train_input.drop(columns=['target']), train_input['target']
-            eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
+            X_eval, y_eval = self.convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
 
             self.model.eval_metric = self.set_eval_metric(self.classes_)
 
-            self.model.fit(X=train_x, y=train_y, eval_set=[(eval_x, eval_y)], verbose=self.model_params['verbosity'])
+            self.model.fit(X=X_train, y=y_train, eval_set=[(X_eval, y_eval)], verbose=self.model_params['verbosity'])
         else:
-            train_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                input_data, identify_cats=self.params.get('enable_categorical')
+            )
             self.features_names = input_data.features_names
-            train_x, train_y = train_data.drop(columns=['target']), train_data['target']
 
-            self.model.fit(X=train_x, y=train_y, verbose=self.model_params['verbosity'])
+            self.model.fit(X=X_train, y=y_train, verbose=self.model_params['verbosity'])
 
         return self.model
 
@@ -59,9 +62,8 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
-        train_x, _ = input_data.drop(columns=['target']), input_data['target']
-        prediction = self.model.predict(train_x)
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        prediction = self.model.predict(X)
 
         return prediction
 
@@ -89,7 +91,7 @@ class FedotXGBoostImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features)
-        dataframe['target'] = data.target
+        dataframe['target'] = np.ravel(data.target)
 
         if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
@@ -99,7 +101,7 @@ class FedotXGBoostImplementation(ModelImplementation):
             for col in dataframe.columns[data.numerical_idx]:
                 dataframe[col] = dataframe[col].astype('float')
 
-        return dataframe
+        return dataframe.drop(columns=['target']), dataframe['target']
 
     @staticmethod
     def set_eval_metric(n_classes):
@@ -127,9 +129,8 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
-        train_x = input_data.drop(columns=['target'])
-        prediction = self.model.predict_proba(train_x)
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        prediction = self.model.predict_proba(X)
         return prediction
 
 
@@ -161,27 +162,30 @@ class FedotLightGBMImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            train_input = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
-            eval_input = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
 
-            train_x, train_y = train_input.drop(columns=['target']), train_input['target']
-            eval_x, eval_y = eval_input.drop(columns=['target']), eval_input['target']
+            X_eval, y_eval = self.convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
 
             eval_metric = self.set_eval_metric(self.classes_)
             callbacks = self.update_callbacks()
 
             self.model.fit(
-                X=train_x, y=train_y,
-                eval_set=[(eval_x, eval_y)], eval_metric=eval_metric,
+                X=X_train, y=y_train,
+                eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
                 callbacks=callbacks
             )
 
         else:
-            train_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
-            train_x, train_y = train_data.drop(columns=['target']), train_data['target']
+            X_train, y_train = self.convert_to_dataframe(
+                input_data, identify_cats=self.params.get('enable_categorical')
+            )
 
             self.model.fit(
-                X=train_x, y=train_y,
+                X=X_train, y=y_train,
             )
 
         return self.model
@@ -190,9 +194,8 @@ class FedotLightGBMImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        input_data = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
-        train_x = input_data.drop(columns=['target'])
-        prediction = self.model.predict(train_x)
+        X, _ = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+        prediction = self.model.predict(X)
 
         return prediction
 
@@ -228,7 +231,7 @@ class FedotLightGBMImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
-        dataframe['target'] = data.target
+        dataframe['target'] = np.ravel(data.target)
 
         if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
@@ -238,7 +241,7 @@ class FedotLightGBMImplementation(ModelImplementation):
             for col in dataframe.columns[data.numerical_idx]:
                 dataframe[col] = dataframe[col].astype('float')
 
-        return dataframe
+        return dataframe.drop(columns=['target']), dataframe['target']
 
     def plot_feature_importance(self):
         plot_feature_importance(self.features_names, self.model.feature_importances_)
@@ -258,9 +261,8 @@ class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        input_data = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
-        train_x = input_data.drop(columns=['target'])
-        prediction = self.model.predict_proba(train_x)
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        prediction = self.model.predict_proba(X)
         return prediction
 
 

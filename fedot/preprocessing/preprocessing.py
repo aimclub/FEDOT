@@ -207,6 +207,7 @@ class DataPreprocessor(BasePreprocessor):
         if is_fit_stage:
             self._find_features_lacking_nans(data, source_name)
         self._take_only_correct_features(data, source_name)
+
         if is_fit_stage:
             data = self._drop_rows_with_nan_in_target(data)
 
