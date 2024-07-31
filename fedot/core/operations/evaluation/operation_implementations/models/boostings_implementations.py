@@ -37,14 +37,21 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            X_train, y_train = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
-            X_eval, y_eval = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
+
+            X_eval, y_eval = self.convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
 
             self.model.eval_metric = self.set_eval_metric(self.classes_)
 
             self.model.fit(X=X_train, y=y_train, eval_set=[(X_eval, y_eval)], verbose=self.model_params['verbosity'])
         else:
-            X_train, y_train = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                input_data, identify_cats=self.params.get('enable_categorical')
+            )
             self.features_names = input_data.features_names
 
             self.model.fit(X=X_train, y=y_train, verbose=self.model_params['verbosity'])
@@ -155,8 +162,13 @@ class FedotLightGBMImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            X_train, y_train = self.convert_to_dataframe(train_input, identify_cats=self.params.get('enable_categorical'))
-            X_eval, y_eval = self.convert_to_dataframe(eval_input, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
+
+            X_eval, y_eval = self.convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
 
             eval_metric = self.set_eval_metric(self.classes_)
             callbacks = self.update_callbacks()
@@ -168,7 +180,9 @@ class FedotLightGBMImplementation(ModelImplementation):
             )
 
         else:
-            X_train, y_train = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+            X_train, y_train = self.convert_to_dataframe(
+                input_data, identify_cats=self.params.get('enable_categorical')
+            )
 
             self.model.fit(
                 X=X_train, y=y_train,
