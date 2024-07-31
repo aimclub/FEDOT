@@ -221,7 +221,6 @@ class DataPreprocessor(BasePreprocessor):
             data.target = self._apply_target_encoding(data, source_name)
         else:
             self.types_correctors[source_name].convert_data_for_predict(data)
-            data.target = self._apply_target_encoding(data, source_name)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
