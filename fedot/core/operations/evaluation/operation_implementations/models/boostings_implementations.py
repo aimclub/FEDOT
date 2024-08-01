@@ -91,7 +91,12 @@ class FedotXGBoostImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features)
-        dataframe['target'] = np.ravel(data.target)
+        if data.target is not None:
+            dataframe['target'] = np.ravel(data.target)
+        else:
+            # TODO: temp workaround in case data.target is set to None intentionally
+            #  for test.integration.models.test_model.check_predict_correct
+            dataframe['target'] = np.zeros(len(data.features))
 
         if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
@@ -231,7 +236,12 @@ class FedotLightGBMImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
-        dataframe['target'] = np.ravel(data.target)
+        if data.target is not None:
+            dataframe['target'] = np.ravel(data.target)
+        else:
+            # TODO: temp workaround in case data.target is set to None intentionally
+            #  for test.integration.models.test_model.check_predict_correct
+            dataframe['target'] = np.zeros(len(data.features))
 
         if identify_cats and data.categorical_idx is not None:
             for col in dataframe.columns[data.categorical_idx]:
