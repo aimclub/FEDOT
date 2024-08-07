@@ -105,6 +105,7 @@ class Data:
     def from_dataframe(cls,
                        features_df: Union[pd.DataFrame, pd.Series],
                        target_df: Union[pd.DataFrame, pd.Series],
+                       categorical_idx: np.ndarray = None,
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
         """Import data from pandas DataFrame.
@@ -131,9 +132,11 @@ class Data:
         features_names = features_df.columns.to_numpy()
         df = pd.concat([features_df, target_df], axis=1)
         features, target = process_target_and_features(df, target_columns)
+        categorical_features = features_df.loc[:, categorical_idx].to_numpy()
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
-                         features_names=features_names)
+                         features_names=features_names, categorical_features=categorical_features,
+                         categorical_idx=categorical_idx)
 
     @classmethod
     def from_csv(cls,
