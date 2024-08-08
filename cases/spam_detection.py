@@ -7,6 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def execute_pipeline_for_text_problem(train_data, test_data):
@@ -26,7 +27,8 @@ def execute_pipeline_for_text_problem(train_data, test_data):
 def run_text_problem_from_meta_file():
     data_file_abspath = os.path.abspath(os.path.join('data', 'spam', 'spamham.csv'))
 
-    data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
+    data = InputData.from_csv(file_path=data_file_abspath,
+                              data_type=DataTypesEnum.text)
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
 
@@ -52,7 +54,8 @@ def run_text_problem_from_files():
 
 
 def run_text_problem_from_saved_meta_file(path):
-    data = InputData.from_text_meta_file(meta_file_path=path)
+    data = InputData.from_csv(file_path=path,
+                              data_type=DataTypesEnum.text)
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
 
