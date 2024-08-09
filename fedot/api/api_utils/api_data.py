@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 from typing import Dict, Union
 from typing import Optional
@@ -133,7 +132,7 @@ class ApiDataProcessor:
     def fit_transform(self, train_data: InputData) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
+        memory_usage = convert_memory_size(train_data.features.nbytes)
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -144,7 +143,7 @@ class ApiDataProcessor:
         train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
+        memory_usage = convert_memory_size(train_data.features.nbytes)
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -156,7 +155,7 @@ class ApiDataProcessor:
     def transform(self, test_data: InputData, current_pipeline) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        memory_usage = convert_memory_size(test_data.features.nbytes)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
@@ -168,7 +167,7 @@ class ApiDataProcessor:
         test_data = self.preprocessor.update_indices_for_time_series(test_data)
         test_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        memory_usage = convert_memory_size(test_data.features.nbytes)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
