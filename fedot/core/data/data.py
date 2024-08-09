@@ -132,7 +132,10 @@ class Data:
         features_names = features_df.columns.to_numpy()
         df = pd.concat([features_df, target_df], axis=1)
         features, target = process_target_and_features(df, target_columns)
-        categorical_features = features_df.loc[:, categorical_idx].to_numpy()
+
+        categorical_features = None
+        if categorical_idx is not None:
+            categorical_features = features_df.loc[:, categorical_idx].to_numpy()
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
                          features_names=features_names, categorical_features=categorical_features,
