@@ -227,7 +227,7 @@ class DataPreprocessor(BasePreprocessor):
             # TODO andreygetmanov to new class text preprocessing?
             replace_nans_with_empty_strings(data)
         elif data_type_is_table(data):
-            data = self._clean_extra_spaces(data)
+            # data = self._clean_extra_spaces(data)
             # Process binary categorical features
             if is_fit_stage:
                 data = self.binary_categorical_processors[source_name].fit_transform(data)
