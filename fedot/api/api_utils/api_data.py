@@ -6,7 +6,7 @@ import numpy as np
 from golem.core.log import default_log
 
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
-from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.data import InputData, OutputData, data_type_is_table, OptimisedFeature
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -138,12 +138,26 @@ class ApiDataProcessor:
         self.log.message(
             f'Train Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
 
+        self.log.message('- Obligatory preprocessing started')
         train_data = self.preprocessor.obligatory_prepare_for_fit(data=train_data)
+
+        self.log.message('- Optional preprocessing started')
         train_data = self.preprocessor.optional_prepare_for_fit(pipeline=Pipeline(), data=train_data)
+
+        self.log.message('- Converting indexes for fitting started')
         train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
+
+        self.log.message('- Reducing memory started')
+        train_data = self.preprocessor.reduce_memory_size(data=train_data)
+
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(train_data.features.nbytes)
+        if isinstance(train_data.features, OptimisedFeature):
+            memory_usage = convert_memory_size(train_data.features.memory_usage)
+
+        else:
+            memory_usage = convert_memory_size(train_data.features.nbytes)
+
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -167,7 +181,14 @@ class ApiDataProcessor:
         test_data = self.preprocessor.update_indices_for_time_series(test_data)
         test_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(test_data.features.nbytes)
+        test_data = self.preprocessor.reduce_memory_size(data=test_data)
+
+        if isinstance(test_data.features, OptimisedFeature):
+            memory_usage = convert_memory_size(test_data.features.memory_usage)
+
+        else:
+            memory_usage = convert_memory_size(test_data.features.nbytes)
+
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(

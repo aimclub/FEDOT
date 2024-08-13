@@ -7,7 +7,7 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, np_datetime_to_numeric
+from fedot.core.data.data import InputData, np_datetime_to_numeric, OptimisedFeature
 from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
@@ -29,7 +29,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
-from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
+from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector, _convertable_types
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 
 # The allowed percent of empty samples in features.
@@ -192,6 +192,7 @@ class DataPreprocessor(BasePreprocessor):
             return data
 
         # Convert datetime data to numerical
+        self.log.message('-- Converting datetime data to numerical')
         data.features = np_datetime_to_numeric(data.features)
         if data.target is not None:
             data.target = np_datetime_to_numeric(data.target)
@@ -200,36 +201,49 @@ class DataPreprocessor(BasePreprocessor):
         data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
+        self.log.message('-- Fixing table / time series shapes')
         data = self._correct_shapes(data)
         replace_inf_with_nans(data)
 
         # Find incorrect features which must be removed
         if is_fit_stage:
+            self.log.message('-- Finding incorrect features')
             self._find_features_lacking_nans(data, source_name)
+
+        self.log.message('-- Removing incorrect features')
         self._take_only_correct_features(data, source_name)
 
         if is_fit_stage:
+            self.log.message('-- Dropping rows with nan\'s in target')
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
+            self.log.message('-- Features types processing')
             self.types_correctors[source_name].convert_data_for_fit(data)
+
             if self.types_correctors[source_name].target_converting_has_errors:
+                self.log.message('-- Dropping rows with nan\'s in target')
                 data = self._drop_rows_with_nan_in_target(data)
+
             # Train Label Encoder for categorical target if necessary and apply it
+            self.log.message('-- Applying the Label Encoder to Target due to the presence of categories')
             if source_name not in self.target_encoders:
                 self._train_target_encoder(data, source_name)
+
             data.target = self._apply_target_encoding(data, source_name)
+
         else:
+            self.log.message('-- Converting data for predict')
             self.types_correctors[source_name].convert_data_for_predict(data)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
             # TODO andreygetmanov to new class text preprocessing?
             replace_nans_with_empty_strings(data)
+
         elif data_type_is_table(data):
-            # data = self._clean_extra_spaces(data)
-            # Process binary categorical features
             if is_fit_stage:
+                self.log.message('-- Searching binary categorical features to encode them')
                 data = self.binary_categorical_processors[source_name].fit_transform(data)
             else:
                 data = self.binary_categorical_processors[source_name].transform(data)
@@ -252,10 +266,13 @@ class DataPreprocessor(BasePreprocessor):
             (data_has_missing_values, 'imputation', self._apply_imputation_unidata),
             (data_has_categorical_features, 'encoding', self._apply_categorical_encoding)
         ]:
+            self.log.message(f'-- Deciding to apply {tag_to_check} for data')
             if has_problems(data):
+                self.log.message(f'-- Finding {tag_to_check} is required and trying to apply')
                 # Data contains missing values
                 has_tag = PipelineStructureExplorer.check_structure_by_tag(
                     pipeline, tag_to_check=tag_to_check, source_name=source_name)
+
                 if not has_tag:
                     data = action_if_no_tag(data, source_name)
 
@@ -271,7 +288,7 @@ class DataPreprocessor(BasePreprocessor):
         axes_except_cols = (0,) + tuple(range(2, features.ndim))
         are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
         self.log.message(
-            f'The number of features with an acceptable nan\'s percent value was taken '
+            f'--- The number of features with an acceptable nan\'s percent value was taken '
             f'{len(are_allowed)} / {data.features.shape[1]}'
         )
         self.ids_relevant_features[source_name] = np.flatnonzero(are_allowed)
@@ -303,37 +320,10 @@ class DataPreprocessor(BasePreprocessor):
         data.idx = np.array(data.idx)[non_nan_row_ids]
 
         self.log.message(
-            f'The number of rows with an nan\'s in target is '
+            f'--- The number of rows with an nan\'s in target is '
             f'{sum(number_nans_per_rows)} / {data.features.shape[0]}'
         )
 
-        return data
-
-    @staticmethod
-    def _clean_extra_spaces(data: InputData) -> InputData:
-        """
-        Removes extra spaces from data.
-            Transforms cells in columns from ' x ' to 'x'
-
-        Args:
-            data: to be stripped
-
-        Returns:
-            cleaned ``data``
-        """
-
-        def strip_all_strs(item: Union[object, str]):
-            try:
-                return item.strip()
-            except AttributeError:
-                # not a str object
-                return item
-
-        features_df = pd.DataFrame(data.features)
-        mixed_or_str = features_df.select_dtypes(object)
-        features_df[mixed_or_str.columns] = mixed_or_str.applymap(strip_all_strs)
-
-        data.features = features_df.to_numpy()
         return data
 
     @copy_doc(BasePreprocessor.label_encoding_for_fit)
@@ -369,20 +359,26 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             imputed ``data``
         """
+        self.log.message('--- Initialising imputer')
         imputer = self.features_imputers.get(source_name)
+
         if not imputer:
             imputer = ImputationImplementation()
+            self.log.message('--- Fitting and transforming imputer for missings')
             output_data = imputer.fit_transform(data)
             self.features_imputers[source_name] = imputer
+
         else:
+            self.log.message('--- Transforming imputer for missings')
             output_data = imputer.transform(data)
+
         data.features = output_data.predict
         return data
 
     def _apply_categorical_encoding(self, data: InputData, source_name: str) -> InputData:
         """
         Transforms the data inplace. Uses the same transformations as for the training data if trained already.
-        Otherwise fits appropriate encoder and converts data's categorical features with it.
+        Otherwise, fits appropriate encoder and converts data's categorical features with it.
 
         Args:
             data: data to be transformed
@@ -391,11 +387,16 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             encoded ``data``
         """
+        self.log.message('--- Initialising categorical encoder')
         encoder = self.features_encoders.get(source_name)
+
         if encoder is None:
             encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
+
+        self.log.message(f'--- {encoder.__class__.__name__} was choose')
+        self.log.message(f'--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
@@ -550,3 +551,49 @@ class DataPreprocessor(BasePreprocessor):
                 last_id = len(input_data.idx)
                 input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
+
+    def reduce_memory_size(self, data: InputData) -> InputData:
+        def reduce_mem_usage_np(arr, initial_types):
+            reduced_columns = OptimisedFeature()
+
+
+            for i in range(arr.shape[1]):
+                col = arr[:, i]
+                init_type = _convertable_types[initial_types[i]]
+                col = col.astype(init_type)
+                col_type = col.dtype.name
+
+                if col_type not in ['object']:
+                    c_min = col.max()
+                    c_max = col.max()
+
+                    if np.issubdtype(col.dtype, np.integer):
+                        if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                            reduced_columns.add_column(col.astype(np.int8))
+                        elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                            reduced_columns.add_column(col.astype(np.int16))
+                        elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                            reduced_columns.add_column(col.astype(np.int32))
+                        elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                            reduced_columns.add_column(col.astype(np.int64))
+
+                    elif np.issubdtype(col.dtype, np.floating):
+                        if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
+                            reduced_columns.add_column(col.astype(np.float16))
+                        elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                            reduced_columns.add_column(col.astype(np.float32))
+                        else:
+                            reduced_columns.add_column(col.astype(np.float64))
+                else:
+                    reduced_columns.add_column(col)
+
+            return reduced_columns
+
+        if isinstance(data, InputData):
+            self.log.message('-- Reduce memory in features')
+            data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
+
+            self.log.message('-- Reduce memory in target')
+            data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
+
+        return data

@@ -88,7 +88,7 @@ class TableTypesCorrector:
         column_types_info = self.prepare_column_types_info(predictors=data.features, target=data.target, task=data.task)
         data.supplementary_data.col_type_ids = column_types_info
         col_types_info_message = prepare_log_message_with_cols_types(column_types_info, data.features_names)
-        self.log.message(f'The information about types of each feature are {col_types_info_message}')
+        self.log.message(f'--- The information about types of each feature are {col_types_info_message}')
         self._into_numeric_features_transformation_for_fit(data)
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
@@ -292,13 +292,14 @@ class TableTypesCorrector:
             cat_col_ids = data.categorical_idx
         else:
             cat_col_ids = num_df.columns
+            data.categorical_idx = cat_col_ids
 
         if np.size(cat_col_ids) > 0:
             cat_features_names = data.features_names[cat_col_ids]
         else:
             cat_features_names = []
 
-        self.log.message(f'Preprocessing define next cols {cat_features_names} as categorical')
+        self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
 
         if np.size(cat_col_ids) > 0:
             # Convert into string

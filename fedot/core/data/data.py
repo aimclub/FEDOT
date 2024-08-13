@@ -42,7 +42,7 @@ class Data:
     idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: np.ndarray
+    features: Optional[np.ndarray, OptimisedFeature]
     categorical_features: Optional[np.ndarray] = None
     categorical_idx: Optional[np.ndarray] = None
     numerical_idx: Optional[np.ndarray] = None
@@ -670,6 +670,62 @@ class OutputData(Data):
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
+
+@dataclass
+class OptimisedFeature:
+    _columns: list = field(default_factory=list, init=False)
+    _shape: tuple = field(default=(0, 0), init=False)
+    _memory_usage: int = 0
+    ndim: int = 2
+
+    def add_column(self, data: np.ndarray):
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Data should be a NumPy array.")
+
+        if self._shape == (0, 0):
+            self._shape = (data.shape[0], 1)
+        else:
+            if data.shape[0] != self._shape[0]:
+                raise ValueError("All columns must have the same number of rows.")
+
+            self._shape = (self._shape[0], self._shape[1] + 1)
+
+        self._columns.append(data)
+        self._memory_usage += data.nbytes
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple):
+            row_idx, col_idx = key
+            if isinstance(col_idx, int):
+                return self._columns[col_idx][row_idx]
+            else:
+                selected_columns = [self._columns[i] for i in col_idx]
+                return np.column_stack(selected_columns)[row_idx]
+        else:
+            result = np.column_stack(self._columns)[key]
+            return result if result.ndim > 1 else result.ravel()
+
+    def __setitem__(self, key, value):
+        if isinstance(key, tuple):
+            row_idx, col_idx = key
+            if isinstance(col_idx, int):
+                self._columns[col_idx][row_idx] = value
+            else:
+                for i, col in zip(col_idx, value):
+                    self._columns[i][row_idx] = col
+        else:
+            raise NotImplementedError("Setting values by index without specifying a column is not supported.")
+
+    def __len__(self):
+        return self._shape[0] if self._columns else 0
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def memory_usage(self):
+        return self._memory_usage
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

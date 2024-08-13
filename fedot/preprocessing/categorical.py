@@ -24,31 +24,39 @@ class BinaryCategoricalPreprocessor:
         Find indices of columns which are contains categorical values. Binary features and at the same time
         has str objects. If there are such features - convert it into int
         """
-        feature_type_ids = input_data.supplementary_data.col_type_ids['features']
-        categorical_ids, _ = find_categorical_columns(input_data.features,
-                                                      feature_type_ids)
+        if np.size(input_data.categorical_idx) != 0:
+            categorical_columns = input_data.features[:, input_data.categorical_idx].T
+            nan_matrix = np.isnan(categorical_columns.astype(float, copy=False))
+            nuniques = np.array([len(np.unique(col[~is_nan])) for col, is_nan in zip(categorical_columns, nan_matrix)])
 
-        binary_ids_to_convert = []
-        for column_id, column in zip(categorical_ids, input_data.features[:, categorical_ids].T):
-            pd_column = pd.Series(column, name=column_id, copy=True)
-            is_nan = pd_column.isna()
-            column_nuniques = pd_column.nunique(dropna=False)
-            if is_nan.sum():
-                # This categorical column has nans
-                pd_column[is_nan] = FEDOT_STR_NAN
+            binary_ids_to_convert = []
 
-                if column_nuniques <= 3:
-                    # There is column with binary categories and gaps
-                    self.binary_features_with_nans.append(column_id)
+            for i, (column_id, column_nuniques, is_nan) in enumerate(
+                    zip(input_data.categorical_idx, nuniques, nan_matrix)
+            ):
+                if is_nan.any():
+                    # This categorical column has nans
+                    categorical_columns[i, is_nan] = FEDOT_STR_NAN
+                    column_nuniques = len(set(categorical_columns[i]))
+
+                    if column_nuniques <= 3:
+                        # There is column with binary categories and gaps
+                        self.binary_features_with_nans.append(column_id)
+                        binary_ids_to_convert.append(column_id)
+                        self._train_encoder(pd.Series(categorical_columns[i], name=column_id))
+
+                elif column_nuniques <= 2:
+                    # Column contains binary string feature
                     binary_ids_to_convert.append(column_id)
-                    self._train_encoder(pd_column)
-            elif column_nuniques <= 2:
-                # Column contains binary string feature
-                binary_ids_to_convert.append(column_id)
-                # Train encoder for current column
-                self._train_encoder(pd_column)
+                    # Train encoder for current column
+                    self._train_encoder(pd.Series(categorical_columns[i], name=column_id))
 
-        self.binary_ids_to_convert = binary_ids_to_convert
+            # Remove binary columns from categorical_idx
+            input_data.categorical_idx = [idx for idx in input_data.categorical_idx if idx not in binary_ids_to_convert]
+            self.binary_ids_to_convert = binary_ids_to_convert
+            
+            # TODO: Add log.message with binary ids
+
         return self
 
     def transform(self, input_data: InputData) -> InputData:
