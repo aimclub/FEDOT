@@ -279,37 +279,37 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        feature_type_ids = data.supplementary_data.col_type_ids['features']
-        is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
-        numeric_type_ids = np.flatnonzero(is_numeric_type)
-        num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
-        nuniques = num_df.nunique(dropna=True)
+        if data.categorical_idx is None:
+            feature_type_ids = data.supplementary_data.col_type_ids['features']
+            is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+            numeric_type_ids = np.flatnonzero(is_numeric_type)
+            num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
+            nuniques = num_df.nunique(dropna=True)
 
-        # reduce dataframe to include only categorical features
-        num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
+            # reduce dataframe to include only categorical features
+            num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
+            cat_col_from_heuristic_rule_ids = num_df.columns
 
-        if data.categorical_idx is not None:
-            cat_col_ids = data.categorical_idx
-        else:
-            cat_col_ids = num_df.columns
-            data.categorical_idx = cat_col_ids
-
-        if np.size(cat_col_ids) > 0:
-            if data.features_names is not None:
-                cat_features_names = data.features_names[cat_col_ids]
-                self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
-            else:
-                self.log.message(f'--- Preprocessing define next cols {cat_col_ids} as categorical')
-        else:
-            self.log.message(f'--- Preprocessing was unable to define the categorical columns')
-
-        if np.size(cat_col_ids) > 0:
             # Convert into string
-            data.features[:, cat_col_ids] = num_df.apply(convert_num_column_into_string_array).to_numpy()
+            data.features[:, cat_col_from_heuristic_rule_ids] = num_df.apply(
+                convert_num_column_into_string_array).to_numpy()
             # Columns need to be transformed into categorical (string) ones
-            self.numerical_into_str.extend(cat_col_ids.difference(self.numerical_into_str))
+            self.numerical_into_str.extend(cat_col_from_heuristic_rule_ids.difference(self.numerical_into_str))
             # Update information about column types (in-place)
-            feature_type_ids[cat_col_ids] = TYPE_TO_ID[str]
+            feature_type_ids[cat_col_from_heuristic_rule_ids] = TYPE_TO_ID[str]
+
+            is_cat_type = np.isin(feature_type_ids, [TYPE_TO_ID[str]])
+            all_cat_col_ids = np.flatnonzero(is_cat_type)
+            data.categorical_idx = all_cat_col_ids
+
+            if np.size(all_cat_col_ids) > 0:
+                if data.features_names is not None:
+                    cat_features_names = data.features_names[all_cat_col_ids]
+                    self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
+                else:
+                    self.log.message(f'--- Preprocessing define next cols {all_cat_col_ids} as categorical')
+            else:
+                self.log.message(f'--- Preprocessing was unable to define the categorical columns')
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
