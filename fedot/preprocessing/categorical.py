@@ -26,8 +26,10 @@ class BinaryCategoricalPreprocessor:
         """
         if np.size(input_data.categorical_idx) != 0:
             categorical_columns = input_data.features[:, input_data.categorical_idx].T
-            nan_matrix = np.isnan(categorical_columns.astype(float, copy=False))
-            nuniques = np.array([len(np.unique(col[~is_nan])) for col, is_nan in zip(categorical_columns, nan_matrix)])
+            nan_matrix = pd.DataFrame(categorical_columns.T, columns=input_data.categorical_idx).isna().values
+            nuniques = np.array([
+                len(np.unique(col[~is_nan])) for col, is_nan in zip(categorical_columns, nan_matrix.T)
+            ])
 
             binary_ids_to_convert = []
 
