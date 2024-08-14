@@ -675,7 +675,7 @@ class OutputData(Data):
 class OptimisedFeature:
     _columns: list = field(default_factory=list, init=False)
     _shape: tuple = field(default=(0, 0), init=False)
-    nbytes: int = 0
+    _nbytes: int = 0
     ndim: int = 2
 
     def add_column(self, data: np.ndarray):
@@ -691,7 +691,7 @@ class OptimisedFeature:
             self._shape = (self._shape[0], self._shape[1] + 1)
 
         self._columns.append(data)
-        self.nbytes += data.nbytes
+        self._nbytes += data.nbytes
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
@@ -725,7 +725,7 @@ class OptimisedFeature:
 
     @property
     def nbytes(self):
-        return self.nbytes
+        return self._nbytes
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
