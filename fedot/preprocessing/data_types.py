@@ -295,11 +295,13 @@ class TableTypesCorrector:
             data.categorical_idx = cat_col_ids
 
         if np.size(cat_col_ids) > 0:
-            cat_features_names = data.features_names[cat_col_ids]
+            if data.features_names is not None:
+                cat_features_names = data.features_names[cat_col_ids]
+                self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
+            else:
+                self.log.message(f'--- Preprocessing define next cols {cat_col_ids} as categorical')
         else:
-            cat_features_names = []
-
-        self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
+            self.log.message(f'--- Preprocessing was unable to define the categorical columns')
 
         if np.size(cat_col_ids) > 0:
             # Convert into string
