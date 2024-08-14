@@ -101,8 +101,8 @@ def data_has_categorical_features(data: InputData) -> bool:
     feature_type_ids = data.supplementary_data.col_type_ids['features']
     cat_ids, non_cat_ids = find_categorical_columns(data.features, feature_type_ids)
 
-    data.numerical_idx = non_cat_ids
-    data.categorical_idx = cat_ids
+    data.numerical_idx = np.array(non_cat_ids)
+    data.categorical_idx = np.array(cat_ids)
 
     if len(cat_ids) > 0:
         data.categorical_features = data.subset_features(cat_ids).features
