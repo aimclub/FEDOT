@@ -42,7 +42,7 @@ class Data:
     idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: Optional[np.ndarray, OptimisedFeature]
+    features: Union[np.ndarray, OptimisedFeature]
     categorical_features: Optional[np.ndarray] = None
     categorical_idx: Optional[np.ndarray] = None
     numerical_idx: Optional[np.ndarray] = None
@@ -675,7 +675,7 @@ class OutputData(Data):
 class OptimisedFeature:
     _columns: list = field(default_factory=list, init=False)
     _shape: tuple = field(default=(0, 0), init=False)
-    _memory_usage: int = 0
+    nbytes: int = 0
     ndim: int = 2
 
     def add_column(self, data: np.ndarray):
@@ -691,7 +691,7 @@ class OptimisedFeature:
             self._shape = (self._shape[0], self._shape[1] + 1)
 
         self._columns.append(data)
-        self._memory_usage += data.nbytes
+        self.nbytes += data.nbytes
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
@@ -724,8 +724,8 @@ class OptimisedFeature:
         return self._shape
 
     @property
-    def memory_usage(self):
-        return self._memory_usage
+    def nbytes(self):
+        return self.nbytes
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

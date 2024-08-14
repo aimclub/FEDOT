@@ -521,8 +521,8 @@ def prepare_log_message_with_cols_types(col_types_info, features_names):
         count_types = np.count_nonzero(col_types_info['features'] == type_id)
         features_idx = np.where(col_types_info['features'] == type_id)[0]
         names_or_indexes = features_names[features_idx] if features_names is not None else features_idx
-        message = message + f'TYPE {type_name} - count {count_types} - features {names_or_indexes} \n' \
+        message += f'TYPE {type_name} - count {count_types} - features {names_or_indexes} \n' \
 
-    message = message + f'Target: TYPE {_convertable_types[col_types_info["target"][0]]}'
+    message += f'Target: TYPE {_convertable_types[col_types_info["target"][0]]}'
 
     return message

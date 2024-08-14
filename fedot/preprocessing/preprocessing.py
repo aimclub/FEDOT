@@ -214,7 +214,7 @@ class DataPreprocessor(BasePreprocessor):
         self._take_only_correct_features(data, source_name)
 
         if is_fit_stage:
-            self.log.message('-- Dropping rows with nan\'s in target')
+            self.log.message('-- Dropping rows with NaN-values in target')
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
@@ -222,7 +222,7 @@ class DataPreprocessor(BasePreprocessor):
             self.types_correctors[source_name].convert_data_for_fit(data)
 
             if self.types_correctors[source_name].target_converting_has_errors:
-                self.log.message('-- Dropping rows with nan\'s in target')
+                self.log.message('-- Dropping rows with NaN-values in target')
                 data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
@@ -395,7 +395,7 @@ class DataPreprocessor(BasePreprocessor):
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
 
-        self.log.message(f'--- {encoder.__class__.__name__} was choose')
+        self.log.message(f'--- {encoder.__class__.__name__} was chosen')
         self.log.message(f'--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)

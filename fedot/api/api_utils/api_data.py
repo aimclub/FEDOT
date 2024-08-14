@@ -183,12 +183,7 @@ class ApiDataProcessor:
 
         test_data = self.preprocessor.reduce_memory_size(data=test_data)
 
-        if isinstance(test_data.features, OptimisedFeature):
-            memory_usage = convert_memory_size(test_data.features.memory_usage)
-
-        else:
-            memory_usage = convert_memory_size(test_data.features.nbytes)
-
+        memory_usage = convert_memory_size(test_data.features.nbytes)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
