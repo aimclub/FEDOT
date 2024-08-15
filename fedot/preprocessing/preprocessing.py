@@ -603,8 +603,9 @@ class DataPreprocessor(BasePreprocessor):
                 self.log.message('-- Reduce memory in features')
                 data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
 
-                self.log.message('-- Reduce memory in target')
-                data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
+                if data.target is not None:
+                    self.log.message('-- Reduce memory in target')
+                    data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
 
         return data
 
