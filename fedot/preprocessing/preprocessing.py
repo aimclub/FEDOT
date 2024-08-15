@@ -237,8 +237,7 @@ class DataPreprocessor(BasePreprocessor):
             self.types_correctors[source_name].convert_data_for_predict(data)
 
         feature_type_ids = data.supplementary_data.col_type_ids['features']
-        data.numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]]))
-        data.categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
+        data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
@@ -251,6 +250,9 @@ class DataPreprocessor(BasePreprocessor):
                 data = self.binary_categorical_processors[source_name].fit_transform(data)
             else:
                 data = self.binary_categorical_processors[source_name].transform(data)
+
+            feature_type_ids = data.supplementary_data.col_type_ids['features']
+            data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
 
         return data
 
@@ -560,7 +562,6 @@ class DataPreprocessor(BasePreprocessor):
         def reduce_mem_usage_np(arr, initial_types):
             reduced_columns = OptimisedFeature()
 
-
             for i in range(arr.shape[1]):
                 col = arr[:, i]
                 init_type = _convertable_types[initial_types[i]]
@@ -601,3 +602,9 @@ class DataPreprocessor(BasePreprocessor):
             data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
 
         return data
+
+    def _update_num_and_cats_ids(self, feature_type_ids):
+        numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]]))
+        categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
+
+        return numerical_idx, categorical_idx

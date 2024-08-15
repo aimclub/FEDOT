@@ -55,6 +55,7 @@ class BinaryCategoricalPreprocessor:
 
             # Remove binary columns from categorical_idx
             input_data.categorical_idx = [idx for idx in input_data.categorical_idx if idx not in binary_ids_to_convert]
+            input_data.categorical_idx = np.array(input_data.categorical_idx)
             self.binary_ids_to_convert = binary_ids_to_convert
             
             # TODO: Add log.message with binary ids

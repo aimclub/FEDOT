@@ -282,10 +282,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_type_is_table(input_data):
             categorical_idx = input_data.categorical_idx.tolist()
-            numerical_idx = np.setdiff1d(
-                np.concatenate((input_data.numerical_idx, input_data.encoded_idx)),
-                categorical_idx
-            ).tolist()
+            numerical_idx = np.setdiff1d(input_data.numerical_idx, categorical_idx).tolist()
             # Tabular data contains categorical features
             numerical, categorical = divide_data_categorical_numerical(input_data, categorical_idx, numerical_idx)
 
@@ -317,10 +314,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_type_is_table(input_data) and input_data.categorical_idx is not None:
             self.categorical_ids = input_data.categorical_idx.tolist()
-            self.non_categorical_ids = np.setdiff1d(
-                np.concatenate((input_data.numerical_idx, input_data.encoded_idx)),
-                self.categorical_ids
-            ).tolist()
+            self.non_categorical_ids = np.setdiff1d(input_data.numerical_idx, self.categorical_ids).tolist()
 
             numerical, categorical = divide_data_categorical_numerical(
                 input_data, self.categorical_ids, self.non_categorical_ids
