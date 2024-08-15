@@ -298,9 +298,15 @@ class TableTypesCorrector:
             # Update information about column types (in-place)
             feature_type_ids[cat_col_from_heuristic_rule_ids] = TYPE_TO_ID[str]
 
+            # Update cat cols idx in data
             is_cat_type = np.isin(feature_type_ids, [TYPE_TO_ID[str]])
             all_cat_col_ids = np.flatnonzero(is_cat_type)
             data.categorical_idx = all_cat_col_ids
+
+            # Update num cols idx in data
+            is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+            all_numeric_type_ids = np.flatnonzero(is_numeric_type)
+            data.numerical_idx = all_numeric_type_ids
 
             if np.size(all_cat_col_ids) > 0:
                 if data.features_names is not None:
@@ -359,6 +365,7 @@ class TableTypesCorrector:
             (self.acceptable_failed_rate_bottom <= failed_ratio) &
             (failed_ratio < self.acceptable_failed_rate_top))
         self.string_columns_transformation_failed.update(dict.fromkeys(is_of_mistakes[is_of_mistakes].index))
+        data.numerical_idx = is_numeric_ids
 
     def _into_numeric_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into float string column for every signed column """

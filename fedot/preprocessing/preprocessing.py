@@ -236,6 +236,10 @@ class DataPreprocessor(BasePreprocessor):
             self.log.message('-- Converting data for predict')
             self.types_correctors[source_name].convert_data_for_predict(data)
 
+        feature_type_ids = data.supplementary_data.col_type_ids['features']
+        data.numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]]))
+        data.categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
+
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
             # TODO andreygetmanov to new class text preprocessing?
