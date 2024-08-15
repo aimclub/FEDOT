@@ -719,6 +719,9 @@ class OptimisedFeature:
     def __len__(self):
         return self._shape[0] if self._columns else 0
 
+    def copy(self):
+        return self._columns.copy()
+
     @property
     def shape(self):
         return self._shape
