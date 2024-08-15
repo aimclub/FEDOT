@@ -613,7 +613,7 @@ class InputData(Data):
         num_features_names, cat_features_names = None, None
 
         # Checking numerical data exists
-        if self.numerical_idx:
+        if self.numerical_idx.any():
             num_features = self.features[:, self.numerical_idx]
 
             if self.features_names is not None and np.size(self.features_names):
@@ -622,7 +622,7 @@ class InputData(Data):
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
 
         # Checking categorical data exists
-        if self.categorical_idx:
+        if self.categorical_idx.any():
             cat_features = self.categorical_features
 
             if self.features_names is not None and np.size(self.features_names):

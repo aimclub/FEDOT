@@ -595,11 +595,16 @@ class DataPreprocessor(BasePreprocessor):
             return reduced_columns
 
         if isinstance(data, InputData):
-            self.log.message('-- Reduce memory in features')
-            data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
+            if data.task.task_type == TaskTypesEnum.ts_forecasting:
+                # TODO: TS data has col_type_ids['features'] = None.
+                #  It required to add this to reduce memory for them
+                pass
+            else:
+                self.log.message('-- Reduce memory in features')
+                data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
 
-            self.log.message('-- Reduce memory in target')
-            data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
+                self.log.message('-- Reduce memory in target')
+                data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
 
         return data
 
