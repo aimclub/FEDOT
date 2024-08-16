@@ -1,3 +1,4 @@
+import re
 from copy import copy
 from typing import Optional, Union
 
@@ -568,7 +569,7 @@ class DataPreprocessor(BasePreprocessor):
                 col = col.astype(init_type)
                 col_type = col.dtype.name
 
-                if col_type not in ['object', 'str32', 'str96', 'str128', 'str160', 'str384']:
+                if col_type not in ['object'] and not bool(re.match(r'str\d*$', col_type)):
                     c_min = col.max()
                     c_max = col.max()
 
