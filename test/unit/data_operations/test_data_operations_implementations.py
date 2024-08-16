@@ -130,15 +130,21 @@ def get_multivariate_time_series(mutli_ts=False):
 
 def get_nan_inf_data():
     supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[float]] * 4)})
-    train_input = InputData(idx=[0, 1, 2, 3],
-                            features=np.array([[1, 2, 3, 4],
-                                               [2, np.nan, 4, 5],
-                                               [3, 4, 5, np.inf],
-                                               [-np.inf, 5, 6, 7]]),
-                            target=np.array([1, 2, 3, 4]),
-                            task=Task(TaskTypesEnum.regression),
-                            data_type=DataTypesEnum.table,
-                            supplementary_data=supp_data)
+    train_input = InputData(
+        idx=np.array([0, 1, 2, 3]),
+        features=np.array([
+            [1, 2, 3, 4],
+            [2, np.nan, 4, 5],
+            [3, 4, 5, np.inf],
+            [-np.inf, 5, 6, 7]
+        ]),
+        target=np.array([1, 2, 3, 4]),
+        numerical_idx=np.array([0, 1, 2, 4]),
+        categorical_idx=np.array([]),
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
 
     return train_input
 
