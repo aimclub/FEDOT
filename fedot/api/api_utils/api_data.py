@@ -152,11 +152,7 @@ class ApiDataProcessor:
 
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        if isinstance(train_data.features, OptimisedFeature):
-            memory_usage = convert_memory_size(train_data.features.memory_usage)
-
-        else:
-            memory_usage = convert_memory_size(train_data.features.nbytes)
+        memory_usage = convert_memory_size(train_data.features.nbytes)
 
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
