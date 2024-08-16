@@ -35,7 +35,7 @@ def pipeline_second_test():
 
 
 def pipeline_third_test():
-    pipeline = PipelineBuilder().add_node('xgboost').build()
+    pipeline = PipelineBuilder().add_node('catboost').build()
     return pipeline
 
 
