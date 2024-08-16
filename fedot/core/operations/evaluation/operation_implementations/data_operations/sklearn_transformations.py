@@ -281,10 +281,10 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data):
-            categorical_idx = input_data.categorical_idx.tolist()
-            numerical_idx = np.setdiff1d(input_data.numerical_idx, categorical_idx).tolist()
+            encoded_idx = input_data.encoded_idx.tolist()
+            numerical_idx = np.setdiff1d(input_data.numerical_idx, encoded_idx).tolist()
             # Tabular data contains categorical features
-            numerical, categorical = divide_data_categorical_numerical(input_data, categorical_idx, numerical_idx)
+            numerical, categorical = divide_data_categorical_numerical(input_data, encoded_idx, numerical_idx)
 
             if categorical is not None and categorical.features.size > 0:
                 categorical.features = convert_into_column(categorical.features)
@@ -312,8 +312,8 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data) and input_data.categorical_idx is not None:
-            self.categorical_ids = input_data.categorical_idx.tolist()
+        if data_type_is_table(input_data) and input_data.encoded_idx is not None:
+            self.categorical_ids = input_data.encoded_idx.tolist()
             self.non_categorical_ids = np.setdiff1d(input_data.numerical_idx, self.categorical_ids).tolist()
 
             numerical, categorical = divide_data_categorical_numerical(

@@ -236,6 +236,11 @@ def _convert_to_output_function(input_data: InputData, transformed_features: np.
                            task=input_data.task,
                            target=input_data.target,
                            data_type=data_type,
+                           numerical_idx=input_data.numerical_idx,
+                           categorical_idx=input_data.categorical_idx,
+                           encoded_idx=input_data.encoded_idx,
+                           categorical_features=input_data.categorical_features,
+                           features_names=input_data.features_names,
                            supplementary_data=input_data.supplementary_data)
 
     return converted

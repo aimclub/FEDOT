@@ -545,7 +545,12 @@ class InputData(Data):
         subsample_input = InputData(features=subsample_features,
                                     data_type=self.data_type,
                                     target=self.target, task=self.task,
+                                    categorical_features=self.categorical_features,
                                     idx=self.idx,
+                                    numerical_idx=self.numerical_idx,
+                                    categorical_idx=self.categorical_idx,
+                                    encoded_idx=self.encoded_idx,
+                                    features_names=self.features_names,
                                     supplementary_data=self.supplementary_data)
 
         return subsample_input
