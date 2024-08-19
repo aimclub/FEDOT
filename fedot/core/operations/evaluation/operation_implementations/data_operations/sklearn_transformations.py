@@ -186,7 +186,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         if n_cols > self.th_columns:
             # Randomly choose subsample of features columns - 10 features
             column_indices = np.arange(n_cols)
-            self.columns_to_take = random.sample(list(column_indices), self.th_columns)
+            self.columns_to_take = np.array(random.sample(list(column_indices), self.th_columns))
             input_data = input_data.subset_features(self.columns_to_take)
 
         return super().fit(input_data)

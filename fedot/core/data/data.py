@@ -541,7 +541,7 @@ class InputData(Data):
         """
         Return new :obj:`InputData` with subset of features based on non-empty ``features_ids`` list or `None` otherwise
         """
-        if feature_ids.size == 0:
+        if feature_ids is None or feature_ids.size == 0:
             return None
 
         subsample_features = self.features[:, feature_ids]
