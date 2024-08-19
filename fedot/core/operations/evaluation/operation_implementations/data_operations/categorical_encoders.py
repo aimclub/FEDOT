@@ -4,7 +4,7 @@ from typing import List, Optional
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, OptimisedFeature
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
@@ -35,10 +35,10 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
         features = input_data.features
         feature_type_ids = input_data.supplementary_data.col_type_ids['features']
-        self.categorical_ids, self.non_categorical_ids = find_categorical_columns(features, feature_type_ids)
+        self.categorical_ids, self.non_categorical_ids = input_data.categorical_idx, input_data.numerical_idx
 
         # If there are categorical features - process it
-        if self.categorical_ids:
+        if self.categorical_ids.size > 0:
             updated_cat_features = features[:, self.categorical_ids].astype(str)
             self.encoder.fit(updated_cat_features)
 
@@ -55,7 +55,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         copied_data = deepcopy(input_data)
 
         transformed_features = copied_data.features
-        if self.categorical_ids:
+        if self.categorical_ids.size > 0:
             # If categorical features exist
             transformed_features = self._apply_one_hot_encoding(transformed_features)
 
@@ -67,7 +67,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
     def _update_column_types(self, output_data: OutputData):
         """ Update column types after encoding. Categorical columns becomes integer with extension """
-        if self.categorical_ids:
+        if self.categorical_ids.size > 0:
             # There are categorical features in the table
             feature_type_ids = output_data.supplementary_data.col_type_ids['features']
             numerical_columns = feature_type_ids[feature_type_ids != TYPE_TO_ID[str]]
@@ -108,9 +108,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids: List[int] = []
 
     def fit(self, input_data: InputData):
-        feature_type_ids = input_data.supplementary_data.col_type_ids['features']
-        self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
-                                                                                  feature_type_ids)
+        self.categorical_ids, self.non_categorical_ids = input_data.categorical_idx, input_data.numerical_idx
 
         # For every existing categorical feature - perform encoding
         self._fit_label_encoders(input_data.features)
@@ -161,7 +159,12 @@ class LabelEncodingImplementation(DataOperationImplementation):
                 # Store np.nan values
                 transformed_column = transformed_column.astype(object)
                 transformed_column[nan_idxs] = np.nan
-            data[:, column_id] = transformed_column
+
+            if isinstance(data, np.ndarray):
+                data[:, column_id] = transformed_column
+
+            elif isinstance(data, OptimisedFeature):
+                data._columns[column_id] = transformed_column
 
     def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """
