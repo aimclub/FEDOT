@@ -481,9 +481,12 @@ class InputData(Data):
     def __post_init__(self):
         if self.numerical_idx is None:
             if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
-                self.numerical_idx = list(range(self.features.shape[1]))
+                if self.categorical_idx is None:
+                    self.numerical_idx = np.arange(0, self.features.shape[1])
+                else:
+                    self.numerical_idx = np.setdiff1d(np.arange(0, self.features.shape[1]), self.categorical_idx)
             else:
-                self.numerical_idx = [0]
+                self.numerical_idx = np.array([0])
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -534,24 +537,26 @@ class InputData(Data):
                          target=self.target[row_nums],
                          task=self.task, data_type=self.data_type)
 
-    def subset_features(self, feature_ids: list) -> Optional[InputData]:
+    def subset_features(self, feature_ids: np.array) -> Optional[InputData]:
         """
         Return new :obj:`InputData` with subset of features based on non-empty ``features_ids`` list or `None` otherwise
         """
-        if not feature_ids:
+        if feature_ids.size == 0:
             return None
 
         subsample_features = self.features[:, feature_ids]
-        subsample_input = InputData(features=subsample_features,
-                                    data_type=self.data_type,
-                                    target=self.target, task=self.task,
-                                    categorical_features=self.categorical_features,
-                                    idx=self.idx,
-                                    numerical_idx=self.numerical_idx,
-                                    categorical_idx=self.categorical_idx,
-                                    encoded_idx=self.encoded_idx,
-                                    features_names=self.features_names,
-                                    supplementary_data=self.supplementary_data)
+        subsample_input = InputData(
+            features=subsample_features,
+            data_type=self.data_type,
+            target=self.target, task=self.task,
+            idx=self.idx,
+            categorical_idx=np.setdiff1d(self.categorical_idx, feature_ids),
+            numerical_idx=np.setdiff1d(self.numerical_idx, feature_ids),
+            encoded_idx=np.setdiff1d(self.encoded_idx, feature_ids),
+            categorical_features=self.categorical_features,
+            features_names=self.features_names,
+            supplementary_data=self.supplementary_data
+        )
 
         return subsample_input
 
