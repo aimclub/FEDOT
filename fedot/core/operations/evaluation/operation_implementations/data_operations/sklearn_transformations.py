@@ -264,7 +264,7 @@ class ImputationImplementation(DataOperationImplementation):
         default_params_categorical = {'strategy': 'most_frequent'}
         self.params_cat = {**self.params.to_dict(), **default_params_categorical}
         self.params_num = self.params.to_dict()
-        self.categorical_ids = None
+        self.categorical_or_encoded_ids = None
         self.non_categorical_ids = None
         self.ids_binary_integer_features = {}
 
@@ -281,10 +281,20 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data):
-            encoded_idx = input_data.encoded_idx.tolist()
-            numerical_idx = np.setdiff1d(input_data.numerical_idx, encoded_idx).tolist()
+            self.non_categorical_ids = input_data.numerical_idx
+
+            # The data may have arrived here before categorical data encoding was called.
+            if input_data.categorical_idx is not None and input_data.encoded_idx is None:
+                self.categorical_or_encoded_ids = input_data.categorical_idx
+
+            # Otherwise, it may have arrived here after categorical data encoding
+            elif input_data.encoded_idx is not None:
+                self.categorical_or_encoded_ids = input_data.encoded_idx
+
             # Tabular data contains categorical features
-            numerical, categorical = divide_data_categorical_numerical(input_data, encoded_idx, numerical_idx)
+            numerical, categorical = divide_data_categorical_numerical(
+                input_data, self.categorical_or_encoded_ids, self.non_categorical_ids
+            )
 
             if categorical is not None and categorical.features.size > 0:
                 categorical.features = convert_into_column(categorical.features)
@@ -312,12 +322,11 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data) and input_data.encoded_idx is not None:
-            self.categorical_ids = input_data.encoded_idx.tolist()
-            self.non_categorical_ids = np.setdiff1d(input_data.numerical_idx, self.categorical_ids).tolist()
+        categorical_features, numerical_features = None, None
 
+        if data_type_is_table(input_data):
             numerical, categorical = divide_data_categorical_numerical(
-                input_data, self.categorical_ids, self.non_categorical_ids
+                input_data, self.categorical_or_encoded_ids, self.non_categorical_ids
             )
 
             if categorical is not None:
@@ -332,13 +341,14 @@ class ImputationImplementation(DataOperationImplementation):
                 numerical_features = self.imputer_num.transform(numerical_features)
                 numerical_features = self._correct_binary_ids_features(numerical_features)
 
-            if categorical is not None and numerical is not None:
+            if categorical_features is not None and numerical_features is not None:
                 # Stack both categorical and numerical features
                 transformed_features = self._categorical_numerical_union(categorical_features,
                                                                          numerical_features)
-            elif categorical is not None and numerical is None:
+            elif categorical_features is not None and numerical_features is None:
                 # Dataset contain only categorical features
                 transformed_features = categorical_features
+
             elif categorical is None and numerical is not None:
                 # Dataset contain only numerical features
                 transformed_features = numerical_features
@@ -368,7 +378,7 @@ class ImputationImplementation(DataOperationImplementation):
         """Merge numerical and categorical features in right order (as it was in source table)
         """
 
-        categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_ids)
+        categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_or_encoded_ids)
         numerical_df = pd.DataFrame(numerical_features, columns=self.non_categorical_ids)
         all_features_df = pd.concat([numerical_df, categorical_df], axis=1)
 
