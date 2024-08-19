@@ -224,8 +224,14 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
 
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     for i in range(prediction.features.shape[1]):
-        assert all(list(map(lambda x: isinstance(x, (int, float)), prediction.features[:, i])))
+        assert all(list(map(lambda x: isinstance(x, types_encountered), prediction.features[:, i])))
 
 
 def test_fill_nan_without_categorical():
