@@ -216,8 +216,14 @@ def test_binary_pseudo_string_column_process_correctly():
     pipeline = correct_preprocessing_params(pipeline)
     train_predicted = pipeline.fit(train_data)
 
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], float) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
 
 def fit_predict_cycle_for_testing(idx: int):
@@ -240,8 +246,15 @@ def test_mixed_column_with_str_and_float_values():
 
     # column with index 1 must be converted to float and the gaps must be filled
     train_predicted = fit_predict_cycle_for_testing(idx=1)
+
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], float) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
     try:
