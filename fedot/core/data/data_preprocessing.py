@@ -33,8 +33,8 @@ def convert_into_column(array: np.ndarray) -> np.ndarray:
     return array
 
 
-def divide_data_categorical_numerical(input_data: InputData, categorical_ids: list,
-                                      non_categorical_ids: list) -> Tuple[Optional[InputData], Optional[InputData]]:
+def divide_data_categorical_numerical(input_data: InputData, categorical_ids: np.ndarray,
+                                      non_categorical_ids: np.ndarray) -> Tuple[Optional[InputData], Optional[InputData]]:
     """
     Split tabular InputData into two parts: with numerical and categorical features
     using list with ids of categorical and numerical features.
@@ -98,16 +98,12 @@ def data_has_categorical_features(data: InputData) -> bool:
     if data.data_type is not DataTypesEnum.table:
         return False
 
-    feature_type_ids = data.supplementary_data.col_type_ids['features']
-    cat_ids, non_cat_ids = find_categorical_columns(data.features, feature_type_ids)
-
-    data.numerical_idx = np.array(non_cat_ids)
-    data.categorical_idx = np.array(cat_ids)
+    cat_ids, non_cat_ids = data.categorical_idx, data.numerical_idx
 
     if len(cat_ids) > 0:
-        data.categorical_features = data.subset_features(cat_ids).features
+        data.categorical_features = data.features[:, cat_ids]
 
-    return bool(cat_ids)
+    return bool(cat_ids.tolist())
 
 
 def data_has_text_features(data: InputData) -> bool:
