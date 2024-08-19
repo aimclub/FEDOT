@@ -611,7 +611,7 @@ class DataPreprocessor(BasePreprocessor):
         return data
 
     def _update_num_and_cats_ids(self, feature_type_ids):
-        numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]]))
+        numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float], TYPE_TO_ID[bool]]))
         categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
 
         return numerical_idx, categorical_idx
