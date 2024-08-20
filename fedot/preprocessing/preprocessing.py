@@ -558,6 +558,7 @@ class DataPreprocessor(BasePreprocessor):
                 last_id = len(input_data.idx)
                 input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
+
     @copy_doc(BasePreprocessor.reduce_memory_size)
     def reduce_memory_size(self, data: InputData) -> InputData:
         def reduce_mem_usage_np(arr, initial_types):
