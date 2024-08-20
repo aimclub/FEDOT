@@ -4,7 +4,7 @@ from typing import List, Optional
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from fedot.core.data.data import InputData, OutputData, OptimisedFeature
+from fedot.core.data.data import InputData, OutputData, OptimisedFeatures
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -161,7 +161,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
             if isinstance(data, np.ndarray):
                 data[:, column_id] = transformed_column
 
-            elif isinstance(data, OptimisedFeature):
+            elif isinstance(data, OptimisedFeatures):
                 data._columns[column_id] = transformed_column
 
     def get_params(self) -> OperationParameters:

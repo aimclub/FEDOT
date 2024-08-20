@@ -8,7 +8,7 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, np_datetime_to_numeric, OptimisedFeature
+from fedot.core.data.data import InputData, np_datetime_to_numeric, OptimisedFeatures
 from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
@@ -558,10 +558,10 @@ class DataPreprocessor(BasePreprocessor):
                 last_id = len(input_data.idx)
                 input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
-
+    @copy_doc(BasePreprocessor.reduce_memory_size)
     def reduce_memory_size(self, data: InputData) -> InputData:
         def reduce_mem_usage_np(arr, initial_types):
-            reduced_columns = OptimisedFeature()
+            reduced_columns = OptimisedFeatures()
 
             for i in range(arr.shape[1]):
                 col = arr[:, i]

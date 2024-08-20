@@ -42,7 +42,7 @@ class Data:
     idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: Union[np.ndarray, OptimisedFeature]
+    features: Union[np.ndarray, OptimisedFeatures]
     categorical_features: Optional[np.ndarray] = None
     categorical_idx: Optional[np.ndarray] = None
     numerical_idx: Optional[np.ndarray] = None
@@ -683,7 +683,10 @@ class OutputData(Data):
 
 
 @dataclass
-class OptimisedFeature:
+class OptimisedFeatures:
+    """``Data`` type for optimised storage data.
+    It based on numpy ndarray, but the features storages in list of np.ndarray with own optimal dtype
+    """
     _columns: list = field(default_factory=list, init=False)
     _shape: tuple = field(default=(0, 0), init=False)
     _nbytes: int = 0
