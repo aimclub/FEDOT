@@ -34,7 +34,8 @@ def convert_into_column(array: np.ndarray) -> np.ndarray:
 
 
 def divide_data_categorical_numerical(input_data: InputData, categorical_ids: np.ndarray,
-                                      non_categorical_ids: np.ndarray) -> Tuple[Optional[InputData], Optional[InputData]]:
+                                      non_categorical_ids: np.ndarray) -> \
+        Tuple[Optional[InputData], Optional[InputData]]:
     """
     Split tabular InputData into two parts: with numerical and categorical features
     using list with ids of categorical and numerical features.
@@ -98,7 +99,7 @@ def data_has_categorical_features(data: InputData) -> bool:
     if data.data_type is not DataTypesEnum.table:
         return False
 
-    cat_ids, non_cat_ids = data.categorical_idx, data.numerical_idx
+    cat_ids, _ = data.categorical_idx, data.numerical_idx
 
     if len(cat_ids) > 0:
         data.categorical_features = data.features[:, cat_ids]

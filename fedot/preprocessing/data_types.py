@@ -315,7 +315,7 @@ class TableTypesCorrector:
                 else:
                     self.log.message(f'--- Preprocessing define next cols {all_cat_col_ids} as categorical')
             else:
-                self.log.message(f'--- Preprocessing was unable to define the categorical columns')
+                self.log.message('--- Preprocessing was unable to define the categorical columns')
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """

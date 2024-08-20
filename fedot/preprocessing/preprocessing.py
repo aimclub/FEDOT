@@ -403,7 +403,7 @@ class DataPreprocessor(BasePreprocessor):
             self.features_encoders[source_name] = encoder
 
         self.log.message(f'--- {encoder.__class__.__name__} was chosen')
-        self.log.message(f'--- Fitting and transforming data')
+        self.log.message('--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
@@ -611,7 +611,9 @@ class DataPreprocessor(BasePreprocessor):
         return data
 
     def _update_num_and_cats_ids(self, feature_type_ids):
-        numerical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float], TYPE_TO_ID[bool]]))
+        numerical_idx = np.flatnonzero(
+            np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float], TYPE_TO_ID[bool]])
+        )
         categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
 
         return numerical_idx, categorical_idx

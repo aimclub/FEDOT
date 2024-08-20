@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from fedot.core.data.data import InputData, OutputData, OptimisedFeature
-from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -34,7 +33,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        feature_type_ids = input_data.supplementary_data.col_type_ids['features']
         self.categorical_ids, self.non_categorical_ids = input_data.categorical_idx, input_data.numerical_idx
 
         # If there are categorical features - process it

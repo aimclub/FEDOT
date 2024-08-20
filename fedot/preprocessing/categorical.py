@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.preprocessing.data_types import FEDOT_STR_NAN, TYPE_TO_ID
 
 
@@ -24,6 +23,7 @@ class BinaryCategoricalPreprocessor:
         Find indices of columns which are contains categorical values. Binary features and at the same time
         has str objects. If there are such features - convert it into int
         """
+        # TODO: Add log.message with binary ids
         if np.size(input_data.categorical_idx) != 0:
             categorical_columns = input_data.features[:, input_data.categorical_idx].T
             nan_matrix = pd.DataFrame(categorical_columns.T, columns=input_data.categorical_idx).isna().values.T
@@ -57,8 +57,6 @@ class BinaryCategoricalPreprocessor:
             input_data.categorical_idx = [idx for idx in input_data.categorical_idx if idx not in binary_ids_to_convert]
             input_data.categorical_idx = np.array(input_data.categorical_idx)
             self.binary_ids_to_convert = binary_ids_to_convert
-            
-            # TODO: Add log.message with binary ids
 
         return self
 

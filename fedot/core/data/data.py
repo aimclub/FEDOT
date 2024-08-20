@@ -681,6 +681,7 @@ class OutputData(Data):
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
 
+
 @dataclass
 class OptimisedFeature:
     _columns: list = field(default_factory=list, init=False)

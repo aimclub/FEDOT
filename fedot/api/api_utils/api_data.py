@@ -6,7 +6,7 @@ import numpy as np
 from golem.core.log import default_log
 
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, OptimisedFeature
+from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline

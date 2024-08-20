@@ -9,8 +9,8 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScal
 
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
-    divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
+from fedot.core.data.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
+    replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
