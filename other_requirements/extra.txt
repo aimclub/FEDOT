@@ -8,7 +8,7 @@ Pillow >= 8.2.0
 
 # Texts
 gensim==4.3.2
-nltk==3.8.1
+nltk==3.9
 
 # Misc
 protobuf~=3.19.0
