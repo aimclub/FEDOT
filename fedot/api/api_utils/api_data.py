@@ -33,14 +33,19 @@ class ApiDataProcessor:
         self.task = task
 
         self._recommendations = {}
-        self.preprocessor = DummyPreprocessor()
+
         if use_input_preprocessing:
             self.preprocessor = DataPreprocessor()
 
             # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'
             # to encode features using label encoder). Parameters for transformation provided also
-            self._recommendations = {'cut': self.preprocessor.cut_dataset,
-                                     'label_encoded': self.preprocessor.label_encoding_for_fit}
+            self._recommendations = {
+                'cut': self.preprocessor.cut_dataset,
+                'label_encoded': self.preprocessor.label_encoding_for_fit
+            }
+
+        else:
+            self.preprocessor = DummyPreprocessor()
 
         self.log = default_log(self)
 

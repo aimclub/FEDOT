@@ -169,9 +169,11 @@ class Fedot:
         with fedot_composer_timer.launch_fitting():
             if predefined_model is not None:
                 # Fit predefined model and return it without composing
-                self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
-                                                        use_input_preprocessing=self.params.get(
-                                                            'use_input_preprocessing')).fit()
+                self.current_pipeline = PredefinedModel(
+                    predefined_model, self.train_data, self.log,
+                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                    api_preprocessor=self.data_processor.preprocessor,
+                ).fit()
             else:
                 self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)
 
