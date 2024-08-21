@@ -4,7 +4,7 @@ from typing import Tuple, Optional, Union
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OptimisedFeatures
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -30,8 +30,13 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
         return data
     elif isinstance(origin_input_data, InputData):
         idx = np.take(origin_input_data.idx, index, 0)
-        target = np.take(origin_input_data.target, index, 0)
-        features = np.take(origin_input_data.features, index, 0)
+        if isinstance(origin_input_data.features, OptimisedFeatures):
+            features = origin_input_data.features.take(index)
+            target = origin_input_data.target.take(index)
+
+        else:
+            features = np.take(origin_input_data.features, index, 0)
+            target = np.take(origin_input_data.target, index, 0)
 
         if origin_input_data.categorical_features is not None:
             categorical_features = np.take(origin_input_data.categorical_features, index, 0)
