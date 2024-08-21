@@ -19,7 +19,8 @@ class PredefinedModel:
         self.log = log
         self.pipeline = self._get_pipeline(use_input_preprocessing, api_preprocessor)
 
-    def _get_pipeline(self, use_input_preprocessing: bool = True, api_preprocessor: BasePreprocessor = None) -> Pipeline:
+    def _get_pipeline(self, use_input_preprocessing: bool = True,
+                      api_preprocessor: BasePreprocessor = None) -> Pipeline:
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
