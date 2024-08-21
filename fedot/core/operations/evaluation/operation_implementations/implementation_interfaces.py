@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, OptimisedFeatures
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
@@ -160,7 +160,10 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         non_bool_ids = []
 
         # For every column in table make check
-        for column_id, column in enumerate(features._columns):
+        if isinstance(features, OptimisedFeatures):
+            features = features._columns
+
+        for column_id, column in enumerate(features):
             # column = features[:, column_id] if columns_amount > 1 else features.copy()
             if len(set(column)) > 2:
                 non_bool_ids.append(column_id)
