@@ -733,8 +733,27 @@ class OptimisedFeatures:
     def __len__(self):
         return self._shape[0] if self._columns else 0
 
+    def take(self, indices, axis=0):
+        output = OptimisedFeatures()
+
+        if axis == 0:
+            # Takes rows
+            for col in self._columns:
+                output.add_column(np.take(col, indices, axis))
+        elif axis == 1:
+            # Takes columns
+            for i in indices:
+                output.add_column(self._columns[i])
+        else:
+            raise ValueError("Axis must be 0 (rows) or 1 (columns)")
+
+        return output
+
     def copy(self):
         return self._columns.copy()
+
+    def to_numpy(self):
+        return np.transpose(np.array(self._columns))
 
     @property
     def shape(self):
