@@ -189,6 +189,7 @@ class Fedot:
                         self.log.message('Final pipeline was fitted')
                     else:
                         self.log.message('Already fitted initial pipeline is used')
+        # temp
 
         # Merge API & pipelines encoders if it is required
         self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
