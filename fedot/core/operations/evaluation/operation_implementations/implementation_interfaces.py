@@ -107,6 +107,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         else:
             transformed_features = features
 
+        transformed_features = np.nan_to_num(transformed_features, copy=False, nan=0, posinf=0, neginf=0)
+
         # Update features and column types
         output_data = self._convert_to_output(input_data, transformed_features)
         self._update_column_types(source_features_shape, output_data)
