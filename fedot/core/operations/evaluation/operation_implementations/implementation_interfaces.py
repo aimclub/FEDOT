@@ -164,6 +164,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         # For every column in table make check
         if isinstance(features, OptimisedFeatures):
             features = features._columns
+        elif isinstance(features, np.ndarray):
+            features = features.T
 
         for column_id, column in enumerate(features):
             # column = features[:, column_id] if columns_amount > 1 else features.copy()
