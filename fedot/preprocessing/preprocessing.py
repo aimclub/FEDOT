@@ -608,6 +608,7 @@ class DataPreprocessor(BasePreprocessor):
                 if data.target is not None:
                     self.log.message('-- Reduce memory in target')
                     data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
+                    data.target = data.target.to_numpy()
 
         return data
 
