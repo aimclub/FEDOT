@@ -207,13 +207,15 @@ class Data:
 
         categorical_features = None
         if categorical_idx is not None:
-            if isinstance(categorical_idx[0], str):
-                raise
-            else:
-                categorical_idx = [i for i, column in enumerate(features_names) if column in set(categorical_idx)]
-
             if isinstance(categorical_idx, list):
                 categorical_idx = np.array(categorical_idx)
+
+            if isinstance(categorical_idx[0], str) and features_names is None:
+                raise ValueError(
+                    'Impossible to specify categorical features by name when the features_names are not specified'
+                )
+            else:
+                categorical_idx = [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
 
             categorical_features = features[:, categorical_idx].to_numpy()
 
