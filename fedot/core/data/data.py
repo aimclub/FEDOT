@@ -57,24 +57,29 @@ class Data:
     def from_numpy(cls,
                    features_array: np.ndarray,
                    target_array: np.ndarray,
+                   features_names: np.ndarray[str] = None,
+                   categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                    idx: Optional[np.ndarray] = None,
                    task: Union[Task, str] = 'classification',
                    data_type: Optional[DataTypesEnum] = DataTypesEnum.table) -> InputData:
         """Import data from numpy array.
 
-                        Args:
-                            features_array: numpy array with features.
-                            target_array: numpy array with target.
-                            idx: indices of arrays.
-                            task: the :obj:`Task` to solve with the data.
-                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_array: numpy array with features.
+            target_array: numpy array with target.
+            features_names: numpy array with names of features
+            categorical_idx: a list or numpy array with indexes or names of features (if provided feature_names)
+                that indicate that the feature is categorical.
+            idx: indices of arrays.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                        Returns:
-                            data
-                        """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        return array_to_input_data(features_array, target_array, idx, task, data_type)
+        return array_to_input_data(features_array, target_array, features_names, categorical_idx, idx, task, data_type)
 
     @classmethod
     def from_numpy_time_series(cls,
@@ -85,16 +90,16 @@ class Data:
                                data_type: Optional[DataTypesEnum] = DataTypesEnum.ts) -> InputData:
         """Import time series from numpy array.
 
-                        Args:
-                            features_array: numpy array with features time series.
-                            target_array: numpy array with target time series (if None same as features).
-                            idx: indices of arrays.
-                            task: the :obj:`Task` to solve with the data.
-                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_array: numpy array with features time series.
+            target_array: numpy array with target time series (if None same as features).
+            idx: indices of arrays.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                        Returns:
-                            data
-                        """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
         if target_array is None:
@@ -105,20 +110,22 @@ class Data:
     def from_dataframe(cls,
                        features_df: Union[pd.DataFrame, pd.Series],
                        target_df: Union[pd.DataFrame, pd.Series],
-                       categorical_idx: np.ndarray = None,
+                       categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
         """Import data from pandas DataFrame.
 
-                Args:
-                    features_df: loaded pandas DataFrame or Series with features.
-                    target_df: loaded pandas DataFrame or Series with target.
-                    task: the :obj:`Task` to solve with the data.
-                    data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_df: loaded pandas DataFrame or Series with features.
+            target_df: loaded pandas DataFrame or Series with target.
+            categorical_idx: a list or numpy array with indexes or names of features that indicate that
+                the feature is categorical.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                Returns:
-                    data
-                """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
 
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
@@ -135,11 +142,34 @@ class Data:
 
         categorical_features = None
         if categorical_idx is not None:
-            categorical_features = features_df.loc[:, categorical_idx].to_numpy()
+            if isinstance(categorical_idx, list):
+                categorical_idx = np.array(categorical_idx)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
-                         features_names=features_names, categorical_features=categorical_features,
-                         categorical_idx=categorical_idx)
+            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+                raise ValueError(
+                    'Impossible to specify categorical features by name when the features_names are not specified'
+                )
+
+            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+                categorical_idx = np.array(
+                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                )
+
+            if categorical_idx.size != 0:
+                categorical_features = features[:, categorical_idx]
+
+        data = InputData(
+            idx=idx,
+            features=features,
+            target=target,
+            task=task,
+            data_type=data_type,
+            features_names=features_names,
+            categorical_idx=categorical_idx,
+            categorical_features=categorical_features
+        )
+
+        return data
 
     @classmethod
     def from_csv(cls,
@@ -149,6 +179,7 @@ class Data:
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List[Union[str, int]]] = None,
                  target_columns: Union[str, List[Union[str, int]]] = '',
+                 categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                  index_col: Optional[Union[str, int]] = None,
                  possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """Import data from ``csv``.
@@ -160,6 +191,8 @@ class Data:
             task: the :obj:`Task` to solve with the data.
             data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
             target_columns: name of the target column (the last column if empty and no target if ``None``).
+            categorical_idx: a list or numpy array with indexes or names of features that indicate that
+                the feature is categorical.
             index_col: name or index of the column to use as the :obj:`Data.idx`.\n
                 If ``None``, then check the first column's name and use it as index if succeeded
                 (see the param ``possible_idx_keywords``).\n
@@ -184,8 +217,36 @@ class Data:
 
         features, target = process_target_and_features(df, target_columns)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
-                         features_names=features_names)
+        categorical_features = None
+        if categorical_idx is not None:
+            if isinstance(categorical_idx, list):
+                categorical_idx = np.array(categorical_idx)
+
+            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+                raise ValueError(
+                    'Impossible to specify categorical features by name when the features_names are not specified'
+                )
+
+            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+                categorical_idx = np.array(
+                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                )
+
+            if categorical_idx.size != 0:
+                categorical_features = features[:, categorical_idx]
+
+        data = InputData(
+            idx=idx,
+            features=features,
+            target=target,
+            task=task,
+            data_type=data_type,
+            features_names=features_names,
+            categorical_idx=categorical_idx,
+            categorical_features=categorical_features
+        )
+
+        return data
 
     @classmethod
     def from_csv_time_series(cls,
@@ -852,6 +913,8 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
 
 def array_to_input_data(features_array: np.ndarray,
                         target_array: np.ndarray,
+                        features_names: np.ndarray[str] = None,
+                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                         idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: Optional[DataTypesEnum] = None) -> InputData:
@@ -859,7 +922,37 @@ def array_to_input_data(features_array: np.ndarray,
         idx = np.arange(len(features_array))
     if data_type is None:
         data_type = autodetect_data_type(task)
-    return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
+
+    categorical_features = None
+    if categorical_idx is not None:
+        if isinstance(categorical_idx, list):
+            categorical_idx = np.array(categorical_idx)
+
+        if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+            raise ValueError(
+                'Impossible to specify categorical features by name when the features_names are not specified'
+            )
+
+        if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+            categorical_idx = np.array(
+                [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+            )
+
+        if categorical_idx.size != 0:
+            categorical_features = features_array[:, categorical_idx]
+
+    data = InputData(
+        idx=idx,
+        features=features_array,
+        target=target_array,
+        features_names=features_names,
+        categorical_idx=categorical_idx,
+        categorical_features=categorical_features,
+        task=task,
+        data_type=data_type
+    )
+
+    return data
 
 
 def autodetect_data_type(task: Task) -> DataTypesEnum:

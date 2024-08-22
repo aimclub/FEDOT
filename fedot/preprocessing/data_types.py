@@ -286,17 +286,26 @@ class TableTypesCorrector:
             num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
             nuniques = num_df.nunique(dropna=True)
 
+            # TODO: Improve the naive approach (with categorical_max_uniques_th) of identifying categorical data
+            #  to a smarter approach (eg. numeric, features naming with llm)
             # reduce dataframe to include only categorical features
             num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
-            cat_col_from_heuristic_rule_ids = num_df.columns
 
-            # Convert into string
-            data.features[:, cat_col_from_heuristic_rule_ids] = num_df.apply(
-                convert_num_column_into_string_array).to_numpy()
-            # Columns need to be transformed into categorical (string) ones
-            self.numerical_into_str.extend(cat_col_from_heuristic_rule_ids.difference(self.numerical_into_str))
-            # Update information about column types (in-place)
-            feature_type_ids[cat_col_from_heuristic_rule_ids] = TYPE_TO_ID[str]
+            if data.categorical_idx is not None:
+                # If cats features were defined take it
+                cat_col_ids = data.categorical_idx
+            else:
+                # Else cats features are selected by heuristic rule
+                cat_col_ids = num_df.columns
+
+            if np.size(cat_col_ids) > 0:
+                # Convert into string
+                data.features[:, cat_col_ids] = num_df.apply(
+                    convert_num_column_into_string_array).to_numpy()
+                # Columns need to be transformed into categorical (string) ones
+                self.numerical_into_str.extend(cat_col_ids.difference(self.numerical_into_str))
+                # Update information about column types (in-place)
+                feature_type_ids[cat_col_ids] = TYPE_TO_ID[str]
 
             # Update cat cols idx in data
             is_cat_type = np.isin(feature_type_ids, [TYPE_TO_ID[str]])
