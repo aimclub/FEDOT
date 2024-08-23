@@ -145,12 +145,12 @@ class Data:
             if isinstance(categorical_idx, list):
                 categorical_idx = np.array(categorical_idx)
 
-            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
                 raise ValueError(
                     'Impossible to specify categorical features by name when the features_names are not specified'
                 )
 
-            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
                 categorical_idx = np.array(
                     [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
                 )
@@ -222,12 +222,12 @@ class Data:
             if isinstance(categorical_idx, list):
                 categorical_idx = np.array(categorical_idx)
 
-            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
                 raise ValueError(
                     'Impossible to specify categorical features by name when the features_names are not specified'
                 )
 
-            if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
                 categorical_idx = np.array(
                     [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
                 )
@@ -928,12 +928,12 @@ def array_to_input_data(features_array: np.ndarray,
         if isinstance(categorical_idx, list):
             categorical_idx = np.array(categorical_idx)
 
-        if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str) and features_names is None:
+        if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
             raise ValueError(
                 'Impossible to specify categorical features by name when the features_names are not specified'
             )
 
-        if categorical_idx != np.array([]) and isinstance(categorical_idx[0], str):
+        if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
             categorical_idx = np.array(
                 [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
             )
