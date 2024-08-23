@@ -88,7 +88,7 @@ class TableTypesCorrector:
         column_types_info = self.prepare_column_types_info(predictors=data.features, target=data.target, task=data.task)
         data.supplementary_data.col_type_ids = column_types_info
         col_types_info_message = prepare_log_message_with_cols_types(column_types_info, data.features_names)
-        self.log.message(f'--- The information about types of each feature are {col_types_info_message}')
+        self.log.message(f'The detected types of data are as follows: {col_types_info_message}')
         self._into_numeric_features_transformation_for_fit(data)
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
@@ -320,11 +320,15 @@ class TableTypesCorrector:
             if np.size(all_cat_col_ids) > 0:
                 if data.features_names is not None:
                     cat_features_names = data.features_names[all_cat_col_ids]
-                    self.log.message(f'--- Preprocessing define next cols {cat_features_names} as categorical')
+                    self.log.message(
+                        f'Preprocessing defines the following columns as categorical: {cat_features_names}'
+                    )
                 else:
-                    self.log.message(f'--- Preprocessing define next cols {all_cat_col_ids} as categorical')
+                    self.log.message(
+                        f'Preprocessing defines the following columns as categorical: {all_cat_col_ids}'
+                    )
             else:
-                self.log.message('--- Preprocessing was unable to define the categorical columns')
+                self.log.message('Preprocessing was unable to define the categorical columns')
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
@@ -534,13 +538,14 @@ def _process_predict_column_values_one_by_one(value, current_type: type):
 
 
 def prepare_log_message_with_cols_types(col_types_info, features_names):
-    message = '\n'
+    message = '\n' + 'Features\n'
     for type_name, type_id in TYPE_TO_ID.items():
         count_types = np.count_nonzero(col_types_info['features'] == type_id)
         features_idx = np.where(col_types_info['features'] == type_id)[0]
         names_or_indexes = features_names[features_idx] if features_names is not None else features_idx
-        message += f'TYPE {type_name} - count {count_types} - features {names_or_indexes} \n' \
+        message += f'\tTYPE {type_name} - count {count_types} - features {names_or_indexes} \n' \
 
+    message += '-' * 10 + '\n'
     message += f'Target: TYPE {_convertable_types[col_types_info["target"][0]]}'
 
     return message

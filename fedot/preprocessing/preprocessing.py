@@ -193,7 +193,7 @@ class DataPreprocessor(BasePreprocessor):
             return data
 
         # Convert datetime data to numerical
-        self.log.message('-- Converting datetime data to numerical')
+        self.log.debug('-- Converting datetime data to numerical')
         data.features = np_datetime_to_numeric(data.features)
         if data.target is not None:
             data.target = np_datetime_to_numeric(data.target)
@@ -202,39 +202,39 @@ class DataPreprocessor(BasePreprocessor):
         data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
-        self.log.message('-- Fixing table / time series shapes')
+        self.log.debug('-- Fixing table / time series shapes')
         data = self._correct_shapes(data)
         replace_inf_with_nans(data)
 
         # Find incorrect features which must be removed
         if is_fit_stage:
-            self.log.message('-- Finding incorrect features')
+            self.log.debug('-- Finding incorrect features')
             self._find_features_lacking_nans(data, source_name)
 
-        self.log.message('-- Removing incorrect features')
+        self.log.debug('-- Removing incorrect features')
         self._take_only_correct_features(data, source_name)
 
         if is_fit_stage:
-            self.log.message('-- Dropping rows with NaN-values in target')
+            self.log.debug('-- Dropping rows with NaN-values in target')
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
-            self.log.message('-- Features types processing')
+            self.log.debug('-- Features types processing')
             self.types_correctors[source_name].convert_data_for_fit(data)
 
             if self.types_correctors[source_name].target_converting_has_errors:
-                self.log.message('-- Dropping rows with NaN-values in target')
+                self.log.debug('-- Dropping rows with NaN-values in target')
                 data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
-            self.log.message('-- Applying the Label Encoder to Target due to the presence of categories')
+            self.log.debug('-- Applying the Label Encoder to Target due to the presence of categories')
             if source_name not in self.target_encoders:
                 self._train_target_encoder(data, source_name)
 
             data.target = self._apply_target_encoding(data, source_name)
 
         else:
-            self.log.message('-- Converting data for predict')
+            self.log.debug('-- Converting data for predict')
             self.types_correctors[source_name].convert_data_for_predict(data)
 
         feature_type_ids = data.supplementary_data.col_type_ids['features']
@@ -247,7 +247,7 @@ class DataPreprocessor(BasePreprocessor):
 
         elif data_type_is_table(data):
             if is_fit_stage:
-                self.log.message('-- Searching binary categorical features to encode them')
+                self.log.debug('-- Searching binary categorical features to encode them')
                 data = self.binary_categorical_processors[source_name].fit_transform(data)
             else:
                 data = self.binary_categorical_processors[source_name].transform(data)
@@ -273,9 +273,9 @@ class DataPreprocessor(BasePreprocessor):
             (data_has_missing_values, 'imputation', self._apply_imputation_unidata),
             (data_has_categorical_features, 'encoding', self._apply_categorical_encoding)
         ]:
-            self.log.message(f'-- Deciding to apply {tag_to_check} for data')
+            self.log.debug(f'Deciding to apply {tag_to_check} for data')
             if has_problems(data):
-                self.log.message(f'-- Finding {tag_to_check} is required and trying to apply')
+                self.log.debug(f'Finding {tag_to_check} is required and trying to apply')
                 # Data contains missing values
                 has_tag = PipelineStructureExplorer.check_structure_by_tag(
                     pipeline, tag_to_check=tag_to_check, source_name=source_name)
@@ -366,17 +366,17 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             imputed ``data``
         """
-        self.log.message('--- Initialising imputer')
+        self.log.debug('--- Initialising imputer')
         imputer = self.features_imputers.get(source_name)
 
         if not imputer:
             imputer = ImputationImplementation()
-            self.log.message('--- Fitting and transforming imputer for missings')
+            self.log.debug('--- Fitting and transforming imputer for missings')
             output_data = imputer.fit_transform(data)
             self.features_imputers[source_name] = imputer
 
         else:
-            self.log.message('--- Transforming imputer for missings')
+            self.log.debug('--- Transforming imputer for missings')
             output_data = imputer.transform(data)
 
         data.features = output_data.predict
@@ -394,7 +394,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             encoded ``data``
         """
-        self.log.message('--- Initialising categorical encoder')
+        self.log.debug('--- Initialising categorical encoder')
         encoder = self.features_encoders.get(source_name)
 
         if encoder is None:
@@ -402,8 +402,8 @@ class DataPreprocessor(BasePreprocessor):
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
 
-        self.log.message(f'--- {encoder.__class__.__name__} was chosen')
-        self.log.message('--- Fitting and transforming data')
+        self.log.debug(f'--- {encoder.__class__.__name__} was chosen as categorical encoder')
+        self.log.debug('--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
@@ -602,11 +602,11 @@ class DataPreprocessor(BasePreprocessor):
                 #  It required to add this to reduce memory for them
                 pass
             else:
-                self.log.message('-- Reduce memory in features')
+                self.log.debug('-- Reduce memory in features')
                 data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
 
                 if data.target is not None:
-                    self.log.message('-- Reduce memory in target')
+                    self.log.debug('-- Reduce memory in target')
                     data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
                     data.target = data.target.to_numpy()
 

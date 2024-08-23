@@ -143,16 +143,16 @@ class ApiDataProcessor:
         self.log.message(
             f'Train Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
 
-        self.log.message('- Obligatory preprocessing started')
+        self.log.debug('- Obligatory preprocessing started')
         train_data = self.preprocessor.obligatory_prepare_for_fit(data=train_data)
 
-        self.log.message('- Optional preprocessing started')
+        self.log.debug('- Optional preprocessing started')
         train_data = self.preprocessor.optional_prepare_for_fit(pipeline=Pipeline(), data=train_data)
 
-        self.log.message('- Converting indexes for fitting started')
+        self.log.debug('- Converting indexes for fitting started')
         train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
 
-        self.log.message('- Reducing memory started')
+        self.log.debug('- Reducing memory started')
         train_data = self.preprocessor.reduce_memory_size(data=train_data)
 
         train_data.supplementary_data.is_auto_preprocessed = True

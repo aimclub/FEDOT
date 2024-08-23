@@ -178,7 +178,7 @@ class Data:
                  task: Union[Task, str] = 'classification',
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List[Union[str, int]]] = None,
-                 target_columns: Union[str, List[Union[str, int]]] = '',
+                 target_columns: Union[str, List[Union[str, int]], None] = '',
                  categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                  index_col: Optional[Union[str, int]] = None,
                  possible_idx_keywords: Optional[List[str]] = None) -> InputData:
@@ -210,10 +210,11 @@ class Data:
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
-        if not target_columns:
-            features_names = df.columns.to_numpy()[:-1]
-        else:
+        if target_columns:
             features_names = df.drop(target_columns, axis=1).columns.to_numpy()
+
+        else:
+            features_names = df.columns.to_numpy()
 
         features, target = process_target_and_features(df, target_columns)
 
