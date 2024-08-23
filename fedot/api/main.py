@@ -168,7 +168,7 @@ class Fedot:
 
         # ISSUE #1317 Quick Fix: Do not launch composition for Atomized Model
         if init_asm := self.params.data.get('initial_assumption'):
-            if predefined_model is None and "atomized" in init_asm.descriptive_id: 
+            if predefined_model is None and "atomized" in init_asm.descriptive_id:
                 predefined_model = init_asm
 
         with fedot_composer_timer.launch_fitting():
