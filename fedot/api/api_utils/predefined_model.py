@@ -31,8 +31,7 @@ class PredefinedModel:
         else:
             raise ValueError(f'{type(self.predefined_model)} is not supported as Fedot model')
 
-        # ISSUE #1317 Quick Fix: Skip pipeline verification for Atomized Model
-        if "atomized" not in pipelines.descriptive_id:
+        if not "atomized" in pipelines.descriptive_id:
             verify_pipeline(pipelines, task_type=self.data.task.task_type, raise_on_failure=True)
 
         return pipelines
