@@ -585,9 +585,7 @@ class DataPreprocessor(BasePreprocessor):
                             reduced_columns.add_column(col.astype(np.int64))
 
                     elif np.issubdtype(col.dtype, np.floating):
-                        if c_min > np.finfo(np.float16).min and c_max < np.finfo(np.float16).max:
-                            reduced_columns.add_column(col.astype(np.float16))
-                        elif c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                        if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
                             reduced_columns.add_column(col.astype(np.float32))
                         else:
                             reduced_columns.add_column(col.astype(np.float64))

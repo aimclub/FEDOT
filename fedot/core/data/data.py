@@ -792,6 +792,15 @@ class OptimisedFeatures:
         else:
             raise NotImplementedError("Setting values by index without specifying a column is not supported.")
 
+    def __get__(self):
+        output = np.empty(self._shape, dtype=np.object_)
+
+        for i in range(self._shape[0]):
+            for j, col in enumerate(self._columns):
+                output[i, j] = col[i]
+
+        return output
+
     def __len__(self):
         return self._shape[0] if self._columns else 0
 
