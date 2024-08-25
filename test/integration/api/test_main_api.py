@@ -11,8 +11,10 @@ from sklearn.preprocessing import LabelEncoder
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot import Fedot
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.tasks import TsForecastingParams
 from test.data.datasets import get_dataset, get_multimodal_ts_data, load_categorical_unimodal, \
     load_categorical_multidata
@@ -82,6 +84,42 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     assert model.api_composer.was_tuned
     assert not model.api_composer.was_optimised
     assert len(test_data.target) == len(pred_before) == len(pred_after)
+
+
+@pytest.mark.parametrize(
+    "task_type, metric_name, pred_model",
+    [
+        ("classification", "f1", "dt"),
+        ("regression", "rmse", "dtreg"),
+    ],
+)
+def test_api_fit_atomized_model(task_type, metric_name, pred_model):
+    train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=5, iris_dataset=False)
+
+    auto_model = Fedot(
+        problem=task_type,
+        metric=metric_name,
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
+        initial_assumption=PipelineBuilder().add_node("scaling").add_node(pred_model).build()
+    )
+
+    auto_model.fit(features=train_data)
+    pred_auto_model = auto_model.predict(features=test_data)
+
+    prev_model = auto_model.current_pipeline
+    prev_model.unfit()
+
+    atomized_model = Pipeline(
+        PipelineNode(operation_type=AtomizedModel(prev_model), nodes_from=[PipelineNode("normalization")])
+    )
+
+    auto_model_from_atomized = Fedot(
+        problem=task_type, metric=metric_name, **TESTS_MAIN_API_DEFAULT_PARAMS, initial_assumption=atomized_model
+    )
+    auto_model_from_atomized.fit(features=train_data)
+    pred_auto_model_from_atomized = auto_model_from_atomized.predict(features=test_data)
+
+    assert len(test_data.target) == len(pred_auto_model) == len(pred_auto_model_from_atomized)
 
 
 def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
