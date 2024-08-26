@@ -167,8 +167,9 @@ class Fedot:
                 self.train_data = self.data_processor.fit_transform(self.train_data)
 
         init_asm = self.params.data.get('initial_assumption')
-        if (predefined_model is None) and init_asm and ("atomized" in init_asm.descriptive_id):
-            predefined_model = init_asm
+        if (predefined_model is None):
+            if isinstance(init_asm, Pipeline) and ("atomized" in init_asm.descriptive_id):
+                predefined_model = init_asm
 
         with fedot_composer_timer.launch_fitting():
             if predefined_model is not None:
