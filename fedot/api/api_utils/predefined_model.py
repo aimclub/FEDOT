@@ -31,7 +31,10 @@ class PredefinedModel:
         else:
             raise ValueError(f'{type(self.predefined_model)} is not supported as Fedot model')
 
-        if "atomized" not in pipelines.descriptive_id:
+        # TODO: Workaround for AtomizedModel
+        if "atomized" in pipelines.descriptive_id:
+            self.log.message("Pipeline verification for AtomizedModel currently unavailable")
+        else:
             verify_pipeline(pipelines, task_type=self.data.task.task_type, raise_on_failure=True)
 
         return pipelines
