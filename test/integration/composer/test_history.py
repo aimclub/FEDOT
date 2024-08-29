@@ -68,7 +68,7 @@ def _test_individuals_in_history(history: OptHistory):
 
 @pytest.mark.parametrize('n_jobs', [1, 2])
 def test_newly_generated_history(n_jobs: int):
-    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
+    file_path_train = fedot_project_root().joinpath('test/data/classification/simple_classification.csv')
 
     num_of_gens = 2
     auto_model = Fedot(problem='classification', seed=42,

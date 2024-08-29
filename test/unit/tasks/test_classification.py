@@ -1,8 +1,10 @@
 import os
 
 import numpy as np
+import pandas as pd
+import pytest
 from sklearn.datasets import load_iris, make_classification
-from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import roc_auc_score as roc_auc, f1_score as f1
 
 from examples.simple.classification.image_classification_problem import run_image_classification_problem
 from fedot.core.data.data import InputData
@@ -37,6 +39,13 @@ def pipeline_with_pca() -> Pipeline:
     return pipeline
 
 
+def simple_text_pipeline() -> Pipeline:
+    node_tfidf = PipelineNode('tfidf')
+    model_node = PipelineNode('logit', nodes_from=[node_tfidf])
+    pipeline = Pipeline(model_node)
+    return pipeline
+
+
 def get_synthetic_classification_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
     synthetic_data = make_classification(n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
@@ -60,12 +69,26 @@ def get_iris_data() -> InputData:
     return input_data
 
 
-def get_binary_classification_data():
+def get_classification_data(source: str, problem: str) -> InputData:
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
-    return input_data
+    if source == 'numpy':
+        file = f'../../data/classification/{problem}_classification.npy'
+        numpy_data = np.load(os.path.join(test_file_path, file))
+        features_array = numpy_data[:, :-1]
+        target_array = numpy_data[:, -1]
+        return InputData.from_numpy(features_array=features_array,
+                                    target_array=target_array)
+    elif source == 'dataframe':
+        file = f'../../data/classification/{problem}_classification.csv'
+        df_data = pd.read_csv(os.path.join(test_file_path, file))
+        features_df = df_data.iloc[:, :-1]
+        target_df = df_data.iloc[:, -1]
+        return InputData.from_dataframe(features_df=features_df,
+                                        target_df=target_df)
+    elif source == 'csv':
+        file = f'../../data/classification/{problem}_classification.csv'
+        return InputData.from_csv(
+            os.path.join(test_file_path, file))
 
 
 def get_image_classification_data(composite_flag: bool = True):
@@ -96,8 +119,32 @@ def get_image_classification_data(composite_flag: bool = True):
     return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 
-def test_multiclassification_pipeline_fit_correct():
-    data = get_iris_data()
+CLASSIFICATION_DATA_SOURCES = ['numpy',
+                               'dataframe',
+                               'csv',
+                               # 'from_text_files',
+                               # 'from_json_files',
+                               ]
+
+
+@pytest.mark.parametrize('source', CLASSIFICATION_DATA_SOURCES)
+def test_binary_classification_pipeline_fit_correct(source: str):
+    data = get_classification_data(source, 'simple')
+    pipeline = pipeline_simple()
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
+
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data)
+
+    roc_auc_on_test = roc_auc(y_true=test_data.target,
+                              y_score=results.predict)
+
+    assert roc_auc_on_test > 0.8
+
+
+@pytest.mark.parametrize('source', CLASSIFICATION_DATA_SOURCES)
+def test_multiclassification_pipeline_fit_correct(source: str):
+    data = get_classification_data(source, 'multiclass')
     pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 
@@ -106,7 +153,7 @@ def test_multiclassification_pipeline_fit_correct():
 
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
-                              multi_class='ovo',
+                              multi_class='ovr',  # TODO: strange bug when ovo is chosen
                               average='macro')
 
     assert roc_auc_on_test > 0.95
@@ -154,7 +201,7 @@ def test_output_mode_labels():
 
 
 def test_output_mode_full_probs():
-    data = get_binary_classification_data()
+    data = get_classification_data('csv', 'simple')
     pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 
@@ -167,3 +214,27 @@ def test_output_mode_full_probs():
     assert np.array_equal(results_probs.predict, results_default.predict)
     assert results.predict.shape == (len(test_data.target), 2)
     assert results_probs.predict.shape == (len(test_data.target), 1)
+
+
+def test_image_pipeline_fit_correct():
+    roc_auc_on_valid, _, _ = get_image_classification_data()
+
+    assert roc_auc_on_valid >= 0.5
+
+
+def test_text_classification_pipeline_fit_correct():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/simple_multimodal_classification_text.csv'
+    data = InputData.from_csv(file_path=os.path.join(test_file_path, file),
+                              data_type=DataTypesEnum.text)
+    pipeline = simple_text_pipeline()
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
+
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data, output_mode='labels')
+
+    f1_on_test = f1(y_true=test_data.target,
+                    y_pred=results.predict,
+                    average='micro')
+
+    assert f1_on_test >= 0.5

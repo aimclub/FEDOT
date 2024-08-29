@@ -1,5 +1,9 @@
+import os
+
 import numpy as np
+import pandas as pd
 import pytest
+from typing import Callable
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
@@ -52,6 +56,31 @@ def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=No
     return input_data
 
 
+def get_regression_data(source: str) -> InputData:
+    test_file_path = str(os.path.dirname(__file__))
+    if source == 'numpy':
+        file = '../../data/regression/simple_regression.npy'
+        numpy_data = np.load(os.path.join(test_file_path, file))
+        features_array = numpy_data[:, :-1]
+        target_array = numpy_data[:, -1]
+        return InputData.from_numpy(features_array=features_array,
+                                    target_array=target_array,
+                                    task='regression')
+    elif source == 'dataframe':
+        file = '../../data/regression/simple_regression.csv'
+        df_data = pd.read_csv(os.path.join(test_file_path, file))
+        features_df = df_data.iloc[:, :-1]
+        target_df = df_data.iloc[:, -1]
+        return InputData.from_dataframe(features_df=features_df,
+                                        target_df=target_df,
+                                        task='regression')
+    elif source == 'csv':
+        file = '../../data/regression/simple_regression.csv'
+        return InputData.from_csv(
+            os.path.join(test_file_path, file),
+            task='regression')
+
+
 def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
     train_pred = pipeline.predict(input_data=train_data)
     test_pred = pipeline.predict(input_data=test_data)
@@ -61,7 +90,32 @@ def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputDa
     return rmse_value_train, rmse_value_test
 
 
-def test_regression_pipeline_fit_predict_correct():
+REGRESSION_DATA_SOURCES = ['numpy',
+                           'dataframe',
+                           'csv',
+                           # 'from_text_meta_file',
+                           # 'from_text_files',
+                           # 'from_json_files',
+                           ]
+
+
+@pytest.mark.parametrize('source', REGRESSION_DATA_SOURCES)
+def test_regression_pipeline_fit_predict_correct(source: str):
+    data = get_regression_data(source)
+    pipeline = generate_pipeline()
+    train_data, test_data = train_test_data_setup(data, shuffle=True)
+
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data)
+
+    rmse_on_test = mse(y_true=test_data.target,
+                       y_pred=results.predict,
+                       squared=False)
+
+    assert rmse_on_test < 0.8
+
+
+def test_synthetic_regression_pipeline_fit_predict_correct():
     data = get_synthetic_regression_data()
 
     pipeline = generate_pipeline()

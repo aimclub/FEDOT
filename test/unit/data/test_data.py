@@ -48,7 +48,7 @@ def test_data_subset_incorrect(data_setup):
 
 def test_data_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../data/classification/simple_classification.csv'
     task = Task(TaskTypesEnum.classification)
     df = pd.read_csv(os.path.join(test_file_path, file))
     data_array = np.array(df).T
@@ -71,7 +71,7 @@ def test_data_from_csv():
 
 def test_with_custom_target():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../data/classification/simple_classification.csv'
     file_custom = '../../data/simple_classification_with_custom_target.csv'
 
     file_data = InputData.from_csv(
@@ -140,7 +140,7 @@ def test_target_data_from_csv_correct():
 
 def test_table_data_shuffle():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../data/classification/simple_classification.csv'
 
     data = InputData.from_csv(os.path.join(test_file_path, file))
     shuffled_data = deepcopy(data)

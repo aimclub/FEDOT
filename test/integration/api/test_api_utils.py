@@ -14,7 +14,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.data.datasets import get_cholesterol_dataset
 from test.integration.api.test_main_api import get_dataset
-from test.unit.tasks.test_classification import get_binary_classification_data
+from test.unit.tasks.test_classification import get_binary_classification_data_from_csv
 
 
 def test_compose_fedot_model_without_tuning():
@@ -32,7 +32,7 @@ def test_output_binary_classification_correct():
 
     task_type = 'classification'
 
-    data = get_binary_classification_data()
+    data = get_binary_classification_data_from_csv()
 
     train_data, test_data = train_test_data_setup(data, shuffle=True)
 

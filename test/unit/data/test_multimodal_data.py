@@ -106,7 +106,7 @@ def test_text_data_only(data_type):
         data_source_name = 'data_source_text/description'
     elif data_type is DataTypesEnum.table:
         # Case when there is no text data in csv, but MultiModalData.from_csv() is used
-        file_path = 'test/data/simple_classification.csv'
+        file_path = 'test/data/classification/simple_classification.csv'
         data_source_name = 'data_source_table'
 
     path = Path(fedot_project_root(), file_path)
