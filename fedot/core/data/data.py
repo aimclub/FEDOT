@@ -665,6 +665,17 @@ class OutputData(Data):
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
 
+    def save_predict(self, path_to_save: PathType) -> PathType:
+        prediction = self.predict.tolist() if len(self.predict.shape) >= 2 else self.predict
+        prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
+        try:
+            prediction_df.to_csv(path_to_save, index=False)
+        except Exception as _:
+            path_to_save = './prediction.csv'
+            prediction_df.to_csv(path_to_save, index=False)
+
+        return path_to_save
+
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
     """Function resizes and rewrites the input image

@@ -18,7 +18,7 @@ from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, PathType
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
@@ -264,9 +264,9 @@ class Fedot:
 
     def predict(self,
                 features: FeaturesType,
-                save_predictions: bool = False,
                 in_sample: bool = True,
-                validation_blocks: Optional[int] = None) -> np.ndarray:
+                validation_blocks: Optional[int] = None,
+                path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Predicts new target using already fitted model.
 
         For time-series performs forecast with depth ``forecast_length`` if ``in_sample=False``.
@@ -274,10 +274,10 @@ class Fedot:
 
         Args:
             features: an array with features of test data.
-            save_predictions: if ``True`` - save predictions as csv-file in working directory.
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -299,21 +299,21 @@ class Fedot:
                                                                      in_sample=self._is_in_sample_prediction,
                                                                      validation_blocks=validation_blocks)
 
-        if save_predictions:
-            self.save_predict(self.prediction)
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
 
         return self.prediction.predict
 
     def predict_proba(self,
                       features: FeaturesType,
-                      save_predictions: bool = False,
-                      probs_for_all_classes: bool = False) -> np.ndarray:
+                      probs_for_all_classes: bool = False,
+                      path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Predicts the probability of new target using already fitted classification model
 
         Args:
             features: an array with features of test data.
-            save_predictions: if ``True`` - save predictions as ``.csv`` file in working directory.
             probs_for_all_classes: if ``True`` - return probability for each class even for binary classification.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -331,8 +331,8 @@ class Fedot:
 
                 self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
 
-                if save_predictions:
-                    self.save_predict(self.prediction)
+                if path_to_save is not None:
+                    self.save_predict(self.prediction, path_to_save)
             else:
                 raise ValueError('Probabilities of predictions are available only for classification')
 
@@ -341,14 +341,14 @@ class Fedot:
     def forecast(self,
                  pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
                  horizon: Optional[int] = None,
-                 save_predictions: bool = False) -> np.ndarray:
+                 path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
         out-of-sample forecast is applied (not supported for multi-modal data).
 
         Args:
             pre_history: an array with features for pre-history of the forecast.
             horizon: amount of steps to forecast.
-            save_predictions: if ``True`` save predictions as csv-file in working directory.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -366,8 +366,8 @@ class Fedot:
         predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
-        if save_predictions:
-            self.save_predict(self.prediction)
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
         return self.prediction.predict
 
     def _check_forecast_applicable(self):
@@ -476,16 +476,10 @@ class Fedot:
 
         return metrics
 
-    def save_predict(self, predicted_data: OutputData):
-        # TODO unify with OutputData.save_to_csv()
+    def save_predict(self, predicted_data: OutputData, path_to_save: PathType):
         """ Saves pipeline forecasts in csv file """
-        if len(predicted_data.predict.shape) >= 2:
-            prediction = predicted_data.predict.tolist()
-        else:
-            prediction = predicted_data.predict
-        pd.DataFrame({'Index': predicted_data.idx,
-                      'Prediction': prediction}).to_csv('./predictions.csv', index=False)
-        self.log.message('Predictions was saved in current directory.')
+        saved_to_path = predicted_data.save_predict(path_to_save)
+        self.log.message(f'Predictions saved to {saved_to_path}')
 
     def export_as_project(self, project_path='fedot_project.zip'):
         export_project_to_zip(zip_name=project_path, opt_history=self.history,
