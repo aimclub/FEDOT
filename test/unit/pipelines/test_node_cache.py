@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode

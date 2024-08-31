@@ -8,7 +8,7 @@ from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model

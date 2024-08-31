@@ -10,7 +10,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.time import ApiTime
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer

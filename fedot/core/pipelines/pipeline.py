@@ -15,7 +15,7 @@ from golem.core.paths import copy_doc
 from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData

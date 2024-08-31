@@ -11,7 +11,7 @@ from golem.core.optimisers.random.random_search import RandomSearchOptimizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot import Fedot
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData

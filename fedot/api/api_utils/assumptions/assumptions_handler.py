@@ -6,7 +6,7 @@ from golem.core.log import default_log
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup

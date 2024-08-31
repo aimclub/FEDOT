@@ -10,7 +10,7 @@ from golem.core.optimisers.initial_graphs_generator import GenerationFunction, I
 from golem.core.optimisers.optimizer import AlgorithmParameters, GraphGenerationParams, GraphOptimizer
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
