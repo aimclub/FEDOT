@@ -186,7 +186,8 @@ Current R&D and future plans
 Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
 The major ongoing tasks and plans:
 
-* Implementation of meta-learning based at GNN and RL (see `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__)
+* Implementation of large language model for AutoML tasks in `FEDOT.LLM <https://github.com/ITMO-NSS-team/FEDOT.LLM>`__ repository.
+* Implementation of meta-learning based at GNN and RL (see `GAMLET <https://github.com/ITMO-NSS-team/GAMLET>`__)
 * Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
 * Support for more complicated pipeline design patters, especially for time series forecasting.
 
@@ -211,14 +212,15 @@ Side Projects
 =============
 - The optimisation core implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__ repository.
 - The prototype of the web-GUI for FEDOT is available in the `FEDOT.WEB <https://github.com/aimclub/FEDOT.Web>`__ repository.
-- The prototype of FEDOT-based meta-AutoML in the `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__ repository.
+- The prototype of FEDOT-based meta-AutoML in the `GAMLET <https://github.com/ITMO-NSS-team/GAMLET>`__ repository.
+- The prototype of FEDOT-based LLM for nexgen AutoML in the `FEDOT.LLM <https://github.com/ITMO-NSS-team/FEDOT.LLM>`__ repository.
 
 Contacts
 ========
 - `Telegram channel for solving problems and answering questions about FEDOT <https://t.me/FEDOT_helpdesk>`_
 - `Natural System Simulation Team <https://itmo-nss-team.github.io/>`_
 - `Anna Kalyuzhnaya <https://scholar.google.com/citations?user=bjiILqcAAAAJ&hl=ru>`_, Team leader (anna.kalyuzhnaya@itmo.ru)
-- `Newsfeed <https://t.me/NSS_group>`_
+- `Telegram newsfeed channel <https://t.me/NSS_group>`_
 - `Youtube channel <https://www.youtube.com/channel/UC4K9QWaEUpT_p3R4FeDp5jA>`_
 
 Supported by
@@ -244,9 +246,6 @@ Citation
   year={2021},
   pages={926-933},
   doi={10.1109/CEC45853.2021.9504773}}
-
-
-Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutionary-multi-modal-AutoML-with-FEDOT-framework>`_.
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
    :target: https://fedot.readthedocs.io/en/latest/
