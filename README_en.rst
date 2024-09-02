@@ -191,6 +191,8 @@ The major ongoing tasks and plans:
 * Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
 * Support for more complicated pipeline design patters, especially for time series forecasting.
 
+In addition, we are working on a number of research tasks related to benchmarking of time series forecasting using AutoML and multimodal modelling.
+
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
 Documentation
