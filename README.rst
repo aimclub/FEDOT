@@ -250,9 +250,6 @@ Jupyter ноутбуки с примерами находятся в репоз�
   pages={926-933},
   doi={10.1109/CEC45853.2021.9504773}}
 
-
-Другие статьи доступны на `ResearchGate <https://www.researchgate.net/project/Evolutionary-multi-modal-AutoML-with-FEDOT-framework>`_.
-
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
    :target: https://fedot.readthedocs.io/en/latest/
    :alt: Documentation Status
