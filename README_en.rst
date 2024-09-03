@@ -213,7 +213,7 @@ We acknowledge the contributors for their important impact and the participants 
 Side Projects
 =============
 - The optimisation core implemented in the GOLEM.
-- The prototype of the web-GUI for FEDOT is available in the FEDOT.WEB.
+- The prototype of the web-GUI for FEDOT is available in the `FEDOT.WEB <https://github.com/aimclub/FEDOT.Web>`__ repository.
 - The prototype of FEDOT-based meta-AutoML in the GAMLET.
 - The prototype of FEDOT-based LLM for nexgen AutoML in the FEDOT.LLM.
 
