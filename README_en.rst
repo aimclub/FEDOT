@@ -186,8 +186,8 @@ Current R&D and future plans
 Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
 The major ongoing tasks and plans:
 
-* Implementation of large language model for AutoML tasks in `FEDOT.LLM <https://github.com/ITMO-NSS-team/FEDOT.LLM>`__ repository.
-* Implementation of meta-learning based at GNN and RL (see `GAMLET <https://github.com/ITMO-NSS-team/GAMLET>`__)
+* Implementation of large language model for AutoML tasks in `FEDOT.LLM <https://github.com/ITMO-NSS-team/FEDOT.LLM>`__.
+* Implementation of meta-learning based at GNN and RL (see `GAMLET <https://github.com/ITMO-NSS-team/GAMLET>`__).
 * Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
 * Support for more complicated pipeline design patters, especially for time series forecasting.
 
