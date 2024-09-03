@@ -528,6 +528,17 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
+    @property
+    def features(self):
+        if isinstance(self._features, OptimisedFeatures):
+            return self._features.items
+
+        return self._features
+
+    @features.setter
+    def features(self, value):
+        self._features = value
+
     def to_csv(self, path_to_save):
         dataframe = pd.DataFrame(data=self.features, index=self.idx)
         if self.target is not None:
@@ -539,6 +550,9 @@ class Data:
 class InputData(Data):
     """Data class for input data for the nodes
     """
+    def __init__(self, features, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._features = features
 
     def __post_init__(self):
         if self.numerical_idx is None:
@@ -749,90 +763,74 @@ class OptimisedFeatures:
     """``Data`` type for optimised storage data.
     It based on numpy ndarray, but the features storages in list of np.ndarray with own optimal dtype
     """
-    _columns: list = field(default_factory=list, init=False)
-    _shape: tuple = field(default=(0, 0), init=False)
-    _nbytes: int = 0
+    _columns: pd.DataFrame = field(default_factory=pd.DataFrame, init=False)
+    _cols_names: list = field(default_factory=list, init=False)
     ndim: int = 2
 
-    def add_column(self, data: np.ndarray):
-        if not isinstance(data, np.ndarray):
-            raise ValueError("Data should be a NumPy array.")
+    def set_data(self, data: pd.DataFrame):
+        if isinstance(data, pd.DataFrame):
+            self._columns = data.copy(deep=True)
+            self._cols_names = list(range(0, len(self._columns.columns)))
 
-        if self._shape == (0, 0):
-            self._shape = (data.shape[0], 1)
         else:
-            if data.shape[0] != self._shape[0]:
-                raise ValueError("All columns must have the same number of rows.")
+            raise ValueError("data in set_data should be a pandas DataFrame.")
 
-            self._shape = (self._shape[0], self._shape[1] + 1)
+    def add_column(self, arr: np.ndarray):
+        if isinstance(arr, np.ndarray):
+            if self._columns.empty:
+                self._cols_names = [0]
+                self._columns = pd.DataFrame(arr, columns=self._cols_names)
 
-        self._columns.append(data)
-        self._nbytes += data.nbytes
+            else:
+                self._cols_names.append(self._cols_names[-1] + 1)
+                self._columns.insert(self._cols_names[-1], self._cols_names[-1], arr)
+        else:
+            raise ValueError("arr in add_column should be a NumPy array.")
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[tuple[int, int], int]) -> Union[pd.DataFrame, pd.Series]:
         if isinstance(key, tuple):
             row_idx, col_idx = key
-            if isinstance(col_idx, int):
-                return self._columns[col_idx][row_idx]
-            else:
-                selected_columns = [self._columns[i] for i in col_idx]
-                return np.column_stack(selected_columns)[row_idx]
+            return self._columns.iloc[row_idx, col_idx]
+
         else:
-            result = np.column_stack(self._columns)[key]
-            return result if result.ndim > 1 else result.ravel()
+            return self._columns.iloc[key]
 
-    def __setitem__(self, key, value):
-        if isinstance(key, tuple):
-            row_idx, col_idx = key
-            if isinstance(col_idx, int):
-                self._columns[col_idx][row_idx] = value
-            else:
-                for i, col in zip(col_idx, value):
-                    self._columns[i][row_idx] = col
-        else:
-            raise NotImplementedError("Setting values by index without specifying a column is not supported.")
+    def __len__(self) -> int:
+        return self._columns.shape[0] if self._columns else 0
 
-    def __get__(self):
-        output = np.empty(self._shape, dtype=np.object_)
-
-        for i in range(self._shape[0]):
-            for j, col in enumerate(self._columns):
-                output[i, j] = col[i]
-
-        return output
-
-    def __len__(self):
-        return self._shape[0] if self._columns else 0
-
-    def take(self, indices, axis=0):
+    def take(self, indices: np.ndarray[int], axis: int = 0) -> OptimisedFeatures:
         output = OptimisedFeatures()
 
+        # Takes rows
         if axis == 0:
-            # Takes rows
-            for col in self._columns:
-                output.add_column(np.take(col, indices, axis))
+            output.set_data(self._columns.iloc[indices, :])
+
+        # Takes columns
         elif axis == 1:
-            # Takes columns
-            for i in indices:
-                output.add_column(self._columns[i])
+            output.set_data(self._columns.iloc[:, indices])
+
         else:
             raise ValueError("Axis must be 0 (rows) or 1 (columns)")
 
         return output
 
-    def copy(self):
-        return self._columns.copy()
+    def copy(self) -> pd.DataFrame:
+        return self._columns.copy(deep=True)
 
-    def to_numpy(self):
-        return np.transpose(np.array(self._columns))
-
-    @property
-    def shape(self):
-        return self._shape
+    def to_numpy(self) -> np.ndarray:
+        return self._columns.to_numpy()
 
     @property
-    def nbytes(self):
-        return self._nbytes
+    def items(self):
+        return self._columns
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        return self._columns.shape
+
+    @property
+    def nbytes(self) -> int:
+        return self._columns.memory_usage(index=True, deep=True).sum()
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
