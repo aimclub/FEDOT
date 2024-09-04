@@ -3,11 +3,9 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from golem.core.tuning.simultaneous import SimultaneousTuner
-
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
+from golem.core.tuning.simultaneous import SimultaneousTuner
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData

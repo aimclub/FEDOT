@@ -1,10 +1,8 @@
-from copy import deepcopy
-
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.data.data_utils import get_scoring_case_data_paths
+from examples.real_cases.data.data_utils import get_scoring_case_data_paths
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline

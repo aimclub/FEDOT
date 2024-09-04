@@ -3,7 +3,7 @@ from typing import Union
 
 from sklearn.metrics import f1_score as f1
 
-from cases.dataset_preparation import unpack_archived_data
+from examples.real_cases.dataset_preparation import unpack_archived_data
 from fedot import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup

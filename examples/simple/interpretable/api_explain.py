@@ -5,7 +5,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_api_explain_example(visualization=False, timeout=None, with_tuning=True):
-    train_data = pd.read_csv(f'{fedot_project_root()}/cases/data/cancer/cancer_train.csv', index_col=0)
+    train_data = pd.read_csv(f'{fedot_project_root()}/examples/real_cases/data/cancer/cancer_train.csv', index_col=0)
     figure_path = 'api_explain_example.png'
 
     # Feature and class names for visualization

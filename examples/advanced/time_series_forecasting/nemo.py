@@ -1,17 +1,17 @@
 import warnings
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PipelineNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-
+from fedot.core.pipelines.node import PipelineNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from copy import deepcopy
+
 warnings.filterwarnings('ignore')
 
 
@@ -86,14 +86,13 @@ def return_working_pipeline():
 
 len_forecast = 40
 ts_name = 'sea_level'
-path_to_file = '../../cases/data/nemo/sea_surface_height.csv'
-path_to_exog_file = '../../cases/data/nemo/sea_surface_height_nemo.csv'
+path_to_file = '../../examples/real_cases/data/nemo/sea_surface_height.csv'
+path_to_exog_file = '../../examples/real_cases/data/nemo/sea_surface_height_nemo.csv'
 
 df = pd.read_csv(path_to_file)
 time_series = np.array(df[ts_name])
 df = pd.read_csv(path_to_exog_file)
 exog_variable = np.array(df[ts_name])
-
 
 # Let's divide our data on train and test samples
 train_data = time_series[:-len_forecast]

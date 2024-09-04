@@ -9,7 +9,7 @@ from fedot.core.utils import fedot_project_root
 
 def run_regression_example(visualise: bool = False, with_tuning: bool = True,
                            timeout: float = 2., preset: str = 'auto'):
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,
                               task=Task(TaskTypesEnum.regression))
