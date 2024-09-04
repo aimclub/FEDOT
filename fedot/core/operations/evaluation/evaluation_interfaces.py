@@ -27,7 +27,7 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, OptimisedFeatures
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
@@ -228,7 +228,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                          train_data)
             else:
-                operation_implementation.fit(train_data.features, train_data.target)
+                if isinstance(train_data.features, OptimisedFeatures):
+                    operation_implementation.fit(train_data.features.items, train_data.target)
+
+                else:
+                    operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
     @abstractmethod

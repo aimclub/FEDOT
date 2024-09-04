@@ -781,7 +781,7 @@ class OptimisedFeatures:
             return self._columns.iloc[key]
 
     def __len__(self) -> int:
-        return self._columns.shape[0] if self._columns else 0
+        return self._columns.shape[0] if self._columns.size > 0 else 0
 
     def take(self, indices: np.ndarray[int], axis: int = 0) -> OptimisedFeatures:
         output = OptimisedFeatures()

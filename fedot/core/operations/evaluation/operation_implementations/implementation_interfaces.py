@@ -163,16 +163,20 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         # For every column in table make check
         if isinstance(features, OptimisedFeatures):
-            features = features._columns
+            features = features.items
+
+            bool_ids = features.select_dtypes('bool').columns.values.tolist()
+            non_bool_ids = [col_idx for col_idx in features.columns.values.tolist() if col_idx not in bool_ids]
+
         elif isinstance(features, np.ndarray):
             features = features.T
 
-        for column_id, column in enumerate(features):
-            # column = features[:, column_id] if columns_amount > 1 else features.copy()
-            if len(set(column)) > 2:
-                non_bool_ids.append(column_id)
-            else:
-                bool_ids.append(column_id)
+            for column_id, column in enumerate(features):
+                # column = features[:, column_id] if columns_amount > 1 else features.copy()
+                if len(set(column)) > 2:
+                    non_bool_ids.append(column_id)
+                else:
+                    bool_ids.append(column_id)
 
         return bool_ids, non_bool_ids
 
