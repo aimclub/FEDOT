@@ -528,17 +528,6 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
-    @property
-    def features(self):
-        if isinstance(self._features, OptimisedFeatures):
-            return self._features.items
-
-        return self._features
-
-    @features.setter
-    def features(self, value):
-        self._features = value
-
     def to_csv(self, path_to_save):
         dataframe = pd.DataFrame(data=self.features, index=self.idx)
         if self.target is not None:
@@ -550,10 +539,6 @@ class Data:
 class InputData(Data):
     """Data class for input data for the nodes
     """
-    def __init__(self, features, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._features = features
-
     def __post_init__(self):
         if self.numerical_idx is None:
             if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
