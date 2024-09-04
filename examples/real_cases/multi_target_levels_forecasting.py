@@ -100,5 +100,5 @@ def run_multi_output_case(path, vis=False):
 
 
 if __name__ == '__main__':
-    path_file = fedot_project_root() / 'cases/data/lena_levels/multi_sample.csv'
+    path_file = fedot_project_root() / 'examples/real_cases/data/lena_levels/multi_sample.csv'
     run_multi_output_case(path_file, vis=True)

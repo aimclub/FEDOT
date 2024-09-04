@@ -130,9 +130,9 @@ Jupyter ноутбуки с примерами находятся в репоз�
 
 Расширенные примеры:
 
-- Задача с кредитным скорингом `binary classification task <https://github.com/aimclub/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`__
-- Прогнозирование временных рядов `random process regression <https://github.com/aimclub/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
-- Обнаружение спама `natural language preprocessing <https://github.com/aimclub/FEDOT/blob/master/cases/spam_detection.py>`__
+- Задача с кредитным скорингом `binary classification task <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/credit_scoring/credit_scoring_problem.py>`__
+- Прогнозирование временных рядов `random process regression <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/metocean_forecasting_problem.py>`__
+- Обнаружение спама `natural language preprocessing <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/spam_detection.py>`__
 - Предсказание сорта вина `multi-modal data <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/multimodal_text_num_example.py>`__
 
 

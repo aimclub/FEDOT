@@ -721,8 +721,8 @@ Another examples can be found here:
 * `Tuning pipelines with sparse_lagged / lagged node  <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
 * `Topaz multi time series forecasting <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
 * `Custom model tuning <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
-* `Case: river level forecasting with composer <https://github.com/aimclub/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
-* `Case: river level forecasting (manual) <https://github.com/aimclub/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
+* `Case: river level forecasting with composer <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_composer.py>`_
+* `Case: river level forecasting (manual) <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_manual.py>`_
 
 **Multitask**
 

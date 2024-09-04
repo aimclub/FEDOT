@@ -130,5 +130,5 @@ def run_river_experiment(file_path, with_tuning=False):
 
 
 if __name__ == '__main__':
-    run_river_experiment(file_path=f'{fedot_project_root()}/cases/data/river_levels/station_levels.csv',
+    run_river_experiment(file_path=f'{fedot_project_root()}/examples/real_cases/data/river_levels/station_levels.csv',
                          with_tuning=True)

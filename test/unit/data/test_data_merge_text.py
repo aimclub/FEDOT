@@ -10,7 +10,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def load_sample_text(file_path=None, label_col='label'):
-    file_path = file_path or fedot_project_root().joinpath('cases', 'data', 'spam', 'spamham.csv')
+    file_path = file_path or fedot_project_root().joinpath('examples', 'real_cases', 'data', 'spam', 'spamham.csv')
     df_text = pd.read_csv(file_path)
     df_text = df_text.sample(frac=1).reset_index(drop=True)
 

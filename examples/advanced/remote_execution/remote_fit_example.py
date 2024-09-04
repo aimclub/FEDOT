@@ -16,7 +16,7 @@ def run_experiment():
     # WARNING - THIS SCRIPT CAN BE EVALUATED ONLY WITH THE ACCESS TO DATAMALL SYSTEM
 
     # LOCAL RUN
-    folder = fedot_project_root().joinpath('cases', 'data', 'scoring')
+    folder = fedot_project_root().joinpath('examples', 'real_cases', 'data', 'scoring')
     path = folder.joinpath('scoring_train.csv')
 
     start = datetime.now()
