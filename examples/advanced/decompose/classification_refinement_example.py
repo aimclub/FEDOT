@@ -1,6 +1,6 @@
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
+from examples.real_cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

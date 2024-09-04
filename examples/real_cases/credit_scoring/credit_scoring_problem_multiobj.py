@@ -1,6 +1,5 @@
 import datetime
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
@@ -8,6 +7,7 @@ from golem.core.tuning.sequential import SequentialTuner
 from golem.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from examples.real_cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode

@@ -1,8 +1,8 @@
 import numpy as np
-from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_squared_error
 
+from examples.real_cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from examples.real_cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from examples.real_cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from examples.real_cases.spam_detection import run_text_problem_from_saved_meta_file
