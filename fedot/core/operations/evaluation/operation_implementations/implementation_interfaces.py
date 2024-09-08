@@ -165,7 +165,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         features = features.T
 
         for column_id, column in enumerate(features):
-            # column = features[:, column_id] if columns_amount > 1 else features.copy()
+            if isinstance(features, np.ndarray):
+                column = features[:, column_id] if columns_amount > 1 else features.copy()
+            else:
+                column = features.iloc[:, column_id] if columns_amount > 1 else features.copy()
+
             if len(set(column)) > 2:
                 non_bool_ids.append(column_id)
             else:
