@@ -89,7 +89,10 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
         if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+            if isinstance(features, np.ndarray):
+                features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+            else:
+                features_to_process = np.array(features.iloc[:, ids_to_process]) if features.ndim > 1 else features
             self.operation.fit(features_to_process)
         return self.operation
 
