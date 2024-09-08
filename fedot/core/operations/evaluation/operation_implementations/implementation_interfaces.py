@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
@@ -92,7 +93,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
             if isinstance(features, np.ndarray):
                 features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
             else:
-                features_to_process = np.array(features.iloc[:, ids_to_process]) if features.ndim > 1 else features
+                features_to_process = np.array(features[ids_to_process]) if features.ndim > 1 else features
             self.operation.fit(features_to_process)
         return self.operation
 
@@ -125,7 +126,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
-        features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+        if isinstance(features, np.ndarray):
+            features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+        else:
+            features_to_process = np.array(features[self.ids_to_process]) if features.ndim > 1 else features.copy()
+
         transformed_part = self.operation.transform(features_to_process)
 
         # If there are no binary features in the dataset
@@ -133,7 +138,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
             transformed_features = transformed_part
         else:
             # Stack transformed features and bool features
-            bool_features = np.array(features[:, self.bool_ids])
+            if isinstance(features, np.ndarray):
+                bool_features = np.array(features[:, self.bool_ids])
+            else:
+                bool_features = np.array(features[self.bool_ids])
+
             frames = (bool_features, transformed_part)
             transformed_features = np.hstack(frames)
 
@@ -165,7 +174,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         non_bool_ids = []
 
         # For every column in table make check
-        features = features.T
+        if isinstance(features, np.ndarray):
+            features = features.T
 
         for column_id, column in enumerate(features):
             if isinstance(features, np.ndarray):
