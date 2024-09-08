@@ -3,7 +3,6 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
