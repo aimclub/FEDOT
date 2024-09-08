@@ -692,7 +692,10 @@ class InputData(Data):
 
         # Checking numerical data exists
         if self.numerical_idx is not None and self.numerical_idx.size != 0:
-            num_features = self.features[:, self.numerical_idx]
+            if isinstance(self.features, np.ndarray):
+                num_features = self.features[:, self.numerical_idx]
+            else:
+                num_features = self.features.iloc[:, self.numerical_idx]
 
             if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
@@ -709,7 +712,11 @@ class InputData(Data):
                 cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
 
         if num_features is not None and cat_features is not None:
-            new_features = np.hstack((num_features, cat_features))
+            if isinstance(self.features, np.ndarray):
+                new_features = np.hstack((num_features, cat_features))
+            else:
+                new_features = pd.concat([num_features, cat_features])
+
             new_features_names = np.hstack((num_features_names, cat_features_names))
             new_features_idx = np.array(range(new_features.shape[1]))
             new_num_idx = new_features_idx[:num_features.shape[1]]
@@ -726,6 +733,9 @@ class InputData(Data):
             new_num_idx = np.array(range(new_features.shape[1]))
         else:
             raise ValueError('There is no features')
+
+        if isinstance(new_features, pd.DataFrame):
+            new_features.columns = new_features_names
 
         return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
                          numerical_idx=new_num_idx, categorical_idx=new_cat_idx,

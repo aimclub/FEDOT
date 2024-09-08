@@ -137,7 +137,7 @@ class ApiDataProcessor:
     def fit_transform(self, train_data: InputData) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(train_data.features.memory_usage)
+        memory_usage = convert_memory_size(train_data.memory_usage)
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -157,7 +157,7 @@ class ApiDataProcessor:
 
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(train_data.features.memory_usage)
+        memory_usage = convert_memory_size(train_data.memory_usage)
 
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
@@ -170,7 +170,7 @@ class ApiDataProcessor:
     def transform(self, test_data: InputData, current_pipeline) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(test_data.features.memory_usage)
+        memory_usage = convert_memory_size(test_data.memory_usage)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
@@ -184,7 +184,7 @@ class ApiDataProcessor:
 
         test_data = self.preprocessor.reduce_memory_size(data=test_data)
 
-        memory_usage = convert_memory_size(test_data.features.memory_usages)
+        memory_usage = convert_memory_size(test_data.memory_usages)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
