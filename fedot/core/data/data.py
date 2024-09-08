@@ -537,7 +537,7 @@ class Data:
     @property
     def memory_usage(self):
         if isinstance(self.features, np.ndarray):
-            return self.features.nbytes
+            return sum([feature.nbytes for feature in self.features.T])
         else:
             return self.features.memory_usage().sum()
 

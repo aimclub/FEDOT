@@ -184,7 +184,7 @@ class ApiDataProcessor:
 
         test_data = self.preprocessor.reduce_memory_size(data=test_data)
 
-        memory_usage = convert_memory_size(test_data.memory_usages)
+        memory_usage = convert_memory_size(test_data.memory_usage)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
