@@ -4,7 +4,7 @@ from typing import List, Optional
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from fedot.core.data.data import InputData, OutputData, OptimisedFeatures
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -21,16 +21,16 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             'handle_unknown': 'ignore'
         }
         self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
-        self.categorical_ids: List[int] = []
-        self.non_categorical_ids: List[int] = []
-        self.encoded_ids: List[int] = []
-        self.new_numerical_idx: List[int] = []
+        self.categorical_ids: np.ndarray = np.array([])
+        self.non_categorical_ids: np.ndarray = np.array([])
+        self.encoded_ids: np.ndarray = np.array([])
+        self.new_numerical_idx: np.ndarray = np.array([])
 
     def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical features
 
-        :param input_data: data with features, target and ids for encoder training
-        :return encoder: trained encoder (optional output)
+        :param input_data: data with features, target and ids for encoder fitting
+        :return encoder: encoder (optional output)
         """
         features = input_data.features
         self.categorical_ids, self.non_categorical_ids = input_data.categorical_idx, input_data.numerical_idx
@@ -152,17 +152,13 @@ class LabelEncodingImplementation(DataOperationImplementation):
             column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
 
             transformed_column = column_encoder.transform(column)
-            nan_idxs = np.flatnonzero(column == 'nan')
-            if len(nan_idxs):
+            nan_indices = np.flatnonzero(column == 'nan')
+            if len(nan_indices):
                 # Store np.nan values
                 transformed_column = transformed_column.astype(object)
-                transformed_column[nan_idxs] = np.nan
+                transformed_column[nan_indices] = np.nan
 
-            if isinstance(data, np.ndarray):
-                data[:, column_id] = transformed_column
-
-            elif isinstance(data, OptimisedFeatures):
-                data._columns[column_id] = transformed_column
+            data[:, column_id] = transformed_column
 
     def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """

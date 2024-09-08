@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData, OptimisedFeatures
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
@@ -35,17 +35,11 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :return: prediction target
         """
 
-        if isinstance(predict_data.features, OptimisedFeatures):
-            prediction = self._sklearn_compatible_prediction(
-                trained_operation=trained_operation,
-                features=predict_data.features.items
-            )
 
-        else:
-            prediction = self._sklearn_compatible_prediction(
-                trained_operation=trained_operation,
-                features=predict_data.features
-            )
+        prediction = self._sklearn_compatible_prediction(
+            trained_operation=trained_operation,
+            features=predict_data.features
+        )
 
         converted = self._convert_to_output(prediction, predict_data)
         return converted

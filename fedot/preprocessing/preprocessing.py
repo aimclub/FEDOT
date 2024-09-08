@@ -8,7 +8,7 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, np_datetime_to_numeric, OptimisedFeatures
+from fedot.core.data.data import InputData, np_datetime_to_numeric
 from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
@@ -30,7 +30,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
-from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector, _convertable_types
+from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector, _convertable_types, ID_TO_TYPE
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 
 # The allowed percent of empty samples in features.
@@ -561,38 +561,33 @@ class DataPreprocessor(BasePreprocessor):
 
     @copy_doc(BasePreprocessor.reduce_memory_size)
     def reduce_memory_size(self, data: InputData) -> InputData:
-        def reduce_mem_usage_np(arr, initial_types):
-            reduced_columns = OptimisedFeatures()
+        def reduce_mem_usage(features, initial_types):
+            df = pd.DataFrame(features)
+            types_array = [ID_TO_TYPE[_type] for _type in initial_types]
 
-            for i in range(arr.shape[1]):
-                col = arr[:, i]
-                init_type = _convertable_types[initial_types[i]]
-                col = col.astype(init_type)
-                col_type = col.dtype.name
+            for index, col in enumerate(df.columns):
+                df[col] = df[col].astype(types_array[index])
+                col_type = df[col].dtype.name
 
-                if col_type not in ['object'] and not bool(re.match(r'str\d*$', col_type)):
-                    c_min = col.max()
-                    c_max = col.max()
-
-                    if np.issubdtype(col.dtype, np.integer):
+                if col_type not in ['object', 'category', 'datetime64[ns, UTC]']:
+                    c_min = df[col].min()
+                    c_max = df[col].max()
+                    if str(col_type)[:3] == 'int':
                         if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-                            reduced_columns.add_column(col.astype(np.int8))
+                            df[col] = df[col].astype(np.int8)
                         elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-                            reduced_columns.add_column(col.astype(np.int16))
+                            df[col] = df[col].astype(np.int16)
                         elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-                            reduced_columns.add_column(col.astype(np.int32))
+                            df[col] = df[col].astype(np.int32)
                         elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-                            reduced_columns.add_column(col.astype(np.int64))
-
-                    elif np.issubdtype(col.dtype, np.floating):
+                            df[col] = df[col].astype(np.int64)
+                    else:
                         if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                            reduced_columns.add_column(col.astype(np.float32))
+                            df[col] = df[col].astype(np.float32)
                         else:
-                            reduced_columns.add_column(col.astype(np.float64))
-                else:
-                    reduced_columns.add_column(col)
+                            df[col] = df[col].astype(np.float64)
 
-            return reduced_columns
+            return df
 
         if isinstance(data, InputData):
             if data.task.task_type == TaskTypesEnum.ts_forecasting:
@@ -601,11 +596,11 @@ class DataPreprocessor(BasePreprocessor):
                 pass
             else:
                 self.log.debug('-- Reduce memory in features')
-                data.features = reduce_mem_usage_np(data.features, data.supplementary_data.col_type_ids['features'])
+                data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
 
                 if data.target is not None:
                     self.log.debug('-- Reduce memory in target')
-                    data.target = reduce_mem_usage_np(data.target, data.supplementary_data.col_type_ids['target'])
+                    data.target = reduce_mem_usage(data.target, data.supplementary_data.col_type_ids['target'])
                     data.target = data.target.to_numpy()
 
         return data

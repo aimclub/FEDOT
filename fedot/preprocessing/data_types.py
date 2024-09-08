@@ -16,6 +16,7 @@ _convertable_types = (bool, float, int, str, type(None))  # preserve lexicograph
 _type_ids = range(len(_convertable_types))
 
 TYPE_TO_ID = dict(zip(_convertable_types, _type_ids))
+ID_TO_TYPE = dict(zip(_type_ids, _convertable_types))
 
 _TYPES = 'types'
 _FLOAT_NUMBER = 'float_number'

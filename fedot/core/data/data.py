@@ -42,7 +42,7 @@ class Data:
     idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: Union[np.ndarray, OptimisedFeatures]
+    features: Union[np.ndarray, pd.DataFrame]
     categorical_features: Optional[np.ndarray] = None
     categorical_idx: Optional[np.ndarray] = None
     numerical_idx: Optional[np.ndarray] = None
@@ -439,7 +439,7 @@ class Data:
 
         features = np.array(messages)
         target = np.array(df_text[label]).reshape(-1, 1)
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -457,7 +457,7 @@ class Data:
 
         features = np.array(df_text['text'])
         target = np.array(df_text[label]).reshape(-1, 1)
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -523,7 +523,7 @@ class Data:
         else:
             target = np.array(df_data[label])
 
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -533,6 +533,13 @@ class Data:
         if self.target is not None:
             dataframe['target'] = self.target
         dataframe.to_csv(path_to_save)
+
+    @property
+    def memory_usage(self):
+        if isinstance(self.features, np.ndarray):
+            return self.features.nbytes
+        else:
+            return self.features.memory_usage().sum()
 
 
 @dataclass
@@ -642,7 +649,7 @@ class InputData(Data):
         copied_data = deepcopy(self)
         is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
-        # if fit stage- just creating range of integers
+        # if fit stage-just creating range of integers
         if is_timestamp or is_numpy_datetime:
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
             copied_data.idx = np.array(range(len(copied_data.idx)))
@@ -684,7 +691,7 @@ class InputData(Data):
         num_features_names, cat_features_names = None, None
 
         # Checking numerical data exists
-        if self.numerical_idx.size != 0:
+        if self.numerical_idx is not None and self.numerical_idx.size != 0:
             num_features = self.features[:, self.numerical_idx]
 
             if self.features_names is not None and np.size(self.features_names):
@@ -693,7 +700,7 @@ class InputData(Data):
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
 
         # Checking categorical data exists
-        if self.categorical_idx.size != 0:
+        if self.categorical_idx is not None and self.categorical_idx.size != 0:
             cat_features = self.categorical_features
 
             if self.features_names is not None and np.size(self.features_names):
@@ -741,81 +748,6 @@ class OutputData(Data):
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
-
-
-@dataclass
-class OptimisedFeatures:
-    """``Data`` type for optimised storage data.
-    It based on numpy ndarray, but the features storages in list of np.ndarray with own optimal dtype
-    """
-    _columns: pd.DataFrame = field(default_factory=pd.DataFrame, init=False)
-    _cols_names: list = field(default_factory=list, init=False)
-    ndim: int = 2
-
-    def set_data(self, data: pd.DataFrame):
-        if isinstance(data, pd.DataFrame):
-            self._columns = data.copy(deep=True)
-            self._cols_names = list(range(0, len(self._columns.columns)))
-
-        else:
-            raise ValueError("data in set_data should be a pandas DataFrame.")
-
-    def add_column(self, arr: np.ndarray):
-        if isinstance(arr, np.ndarray):
-            if self._columns.empty:
-                self._cols_names = [0]
-                self._columns = pd.DataFrame(arr, columns=self._cols_names)
-
-            else:
-                self._cols_names.append(self._cols_names[-1] + 1)
-                self._columns.insert(self._cols_names[-1], self._cols_names[-1], arr)
-        else:
-            raise ValueError("arr in add_column should be a NumPy array.")
-
-    def __getitem__(self, key: Union[tuple[int, int], int]) -> Union[pd.DataFrame, pd.Series]:
-        if isinstance(key, tuple):
-            row_idx, col_idx = key
-            return self._columns.iloc[row_idx, col_idx]
-
-        else:
-            return self._columns.iloc[key]
-
-    def __len__(self) -> int:
-        return self._columns.shape[0] if self._columns.size > 0 else 0
-
-    def take(self, indices: np.ndarray[int], axis: int = 0) -> OptimisedFeatures:
-        output = OptimisedFeatures()
-
-        # Takes rows
-        if axis == 0:
-            output.set_data(self._columns.iloc[indices, :])
-
-        # Takes columns
-        elif axis == 1:
-            output.set_data(self._columns.iloc[:, indices])
-
-        else:
-            raise ValueError("Axis must be 0 (rows) or 1 (columns)")
-
-        return output
-
-    def copy(self) -> pd.DataFrame:
-        return self._columns.copy(deep=True)
-
-    def to_numpy(self) -> np.ndarray:
-        return self._columns.to_numpy()
-
-    @property
-    def items(self):
-        return self._columns
-
-    @property
-    def shape(self) -> tuple[int, int]:
-        return self._columns.shape
-
-    @property
-    def nbytes(self) -> int:
-        return self._columns.memory_usage(index=True, deep=True).sum()
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

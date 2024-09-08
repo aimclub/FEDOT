@@ -80,6 +80,9 @@ class FedotXGBoostImplementation(ModelImplementation):
         if booster == 'gblinear' and enable_categorical:
             self.params.update(enable_categorical=False)
 
+        if booster == 'gbtree' and enable_categorical:
+            self.params.update(enable_categorical=False)
+
     def get_feature_importance(self) -> list:
         return self.model.features_importances_
 
@@ -91,7 +94,7 @@ class FedotXGBoostImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features)
-        if data.target is not None:
+        if data.target is not None and data.target.size > 0:
             dataframe['target'] = np.ravel(data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
@@ -236,7 +239,7 @@ class FedotLightGBMImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
-        if data.target is not None:
+        if data.target is not None and data.target.size > 0:
             dataframe['target'] = np.ravel(data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
