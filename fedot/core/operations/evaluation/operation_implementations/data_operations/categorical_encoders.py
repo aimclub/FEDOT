@@ -148,34 +148,62 @@ class LabelEncodingImplementation(DataOperationImplementation):
         feature_type_ids = output_data.supplementary_data.col_type_ids['features']
         feature_type_ids[self.categorical_ids] = TYPE_TO_ID[int]
 
-    def _fit_label_encoders(self, data: np.ndarray):
+    def _fit_label_encoders(self, data: Union[np.ndarray, pd.DataFrame]):
         """ Fit LabelEncoder for every categorical column in the dataset """
-        categorical_columns = data[:, self.categorical_ids].astype(str)
-        for column_id, column in zip(self.categorical_ids, categorical_columns.T):
-            le = LabelEncoder()
-            le.fit(column)
-            self.encoders[column_id] = le
+        if isinstance(data, np.ndarray):
+            categorical_columns = data[:, self.categorical_ids].astype(str)
 
-    def _apply_label_encoder(self, data: np.ndarray):
+            for column_id, column in zip(self.categorical_ids, categorical_columns.T):
+                le = LabelEncoder()
+                le.fit(column)
+                self.encoders[column_id] = le
+
+        else:
+            categorical_columns = data.iloc[:, self.categorical_ids].astype(str)
+
+            for column_id in self.categorical_ids:
+                le = LabelEncoder()
+                le.fit(categorical_columns.iloc[:, column_id])
+                self.encoders[column_id] = le
+
+    def _apply_label_encoder(self, data: Union[np.ndarray, pd.DataFrame]):
         """
         Applies fitted LabelEncoder for all categorical features inplace
 
         Args:
             data: numpy array with all features
         """
-        categorical_columns = data[:, self.categorical_ids].astype(str)
-        for column_id, column in zip(self.categorical_ids, categorical_columns.T):
-            column_encoder = self.encoders[column_id]
-            column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
+        if isinstance(data, np.ndarray):
+            categorical_columns = data[:, self.categorical_ids].astype(str)
 
-            transformed_column = column_encoder.transform(column)
-            nan_indices = np.flatnonzero(column == 'nan')
-            if len(nan_indices):
-                # Store np.nan values
-                transformed_column = transformed_column.astype(object)
-                transformed_column[nan_indices] = np.nan
+            for column_id, column in zip(self.categorical_ids, categorical_columns.T):
+                column_encoder = self.encoders[column_id]
+                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
 
-            data[:, column_id] = transformed_column
+                transformed_column = column_encoder.transform(column)
+                nan_indices = np.flatnonzero(column == 'nan')
+                if len(nan_indices):
+                    # Store np.nan values
+                    transformed_column = transformed_column.astype(object)
+                    transformed_column[nan_indices] = np.nan
+
+                data[:, column_id] = transformed_column
+        else:
+            categorical_columns = data.iloc[:, self.categorical_ids].astype(str)
+
+            for column_id in self.categorical_ids:
+                column_encoder = self.encoders[column_id]
+                column = categorical_columns[column_id]
+                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
+
+                transformed_column = column_encoder.transform(column)
+                nan_indices = np.flatnonzero(column == 'nan')
+                if len(nan_indices):
+                    # Store np.nan values
+                    transformed_column = transformed_column.astype(object)
+                    transformed_column[nan_indices] = np.nan
+
+                data.iloc[:, column_id] = transformed_column
 
     def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """

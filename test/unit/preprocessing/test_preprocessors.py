@@ -242,7 +242,8 @@ def test_mixed_column_with_str_and_float_values():
     # column with index 0 must be converted to string and encoded with OHE
     train_predicted = fit_predict_cycle_for_testing(idx=0)
     assert train_predicted.features.shape[1] == 5
-    assert all(isinstance(el, np.ndarray) for el in train_predicted.features)
+    assert isinstance(train_predicted.features, pd.DataFrame) or \
+           all(isinstance(el, np.ndarray) for el in train_predicted.features)
 
     # column with index 1 must be converted to float and the gaps must be filled
     train_predicted = fit_predict_cycle_for_testing(idx=1)
@@ -254,7 +255,8 @@ def test_mixed_column_with_str_and_float_values():
     )
 
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+           all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
     try:

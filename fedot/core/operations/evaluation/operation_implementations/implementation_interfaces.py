@@ -99,7 +99,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
                 features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
             else:
-                features_to_process = np.array(features[ids_to_process]) if features.ndim > 1 else features
+                features_to_process = np.array(features.iloc[:, ids_to_process]) if features.ndim > 1 else features
             self.operation.fit(features_to_process)
         return self.operation
 
@@ -135,7 +135,9 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         if isinstance(features, np.ndarray):
             features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
         else:
-            features_to_process = np.array(features[self.ids_to_process]) if features.ndim > 1 else features.copy()
+            features_to_process = np.array(
+                features.iloc[:, self.ids_to_process]
+            ) if features.ndim > 1 else features.copy()
 
         transformed_part = self.operation.transform(features_to_process)
 
@@ -186,7 +188,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
             else:
                 column = features.iloc[:, column_id] if columns_amount > 1 else features.copy()
 
-            if (isinstance(column, pd.DataFrame) and len(set(column)) > 2) or \
+            if (isinstance(column, pd.Series) and len(set(column)) > 2) or \
                (isinstance(column, np.ndarray) and len(np.unique(column)) > 2):
                 non_bool_ids.append(column_id)
             else:

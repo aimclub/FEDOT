@@ -611,8 +611,11 @@ class InputData(Data):
         """
         if feature_ids is None or feature_ids.size == 0:
             return None
+        if isinstance(self.features, np.ndarray):
+            subsample_features = self.features[:, feature_ids]
+        else:
+            subsample_features = self.features.iloc[:, feature_ids]
 
-        subsample_features = self.features[:, feature_ids]
         subsample_input = InputData(
             features=subsample_features,
             data_type=self.data_type,
