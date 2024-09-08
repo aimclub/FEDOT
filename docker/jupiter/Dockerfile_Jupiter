@@ -2,15 +2,19 @@ FROM jupyter/minimal-notebook:python-3.10.10
 
 USER root
 
+# Installing required dependencies, including pkg-config and HDF5
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         cmake \
         ffmpeg \
         libsm6 \
-        libxext6 && \
+        libxext6 \
+        pkg-config \
+        libhdf5-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Installing pip packages, including fedot and additional dependencies
 RUN pip install --no-cache-dir \
     fedot \
     fedot[extra]
