@@ -223,7 +223,8 @@ def test_binary_pseudo_string_column_process_correctly():
     )
 
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+           all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
 
 def fit_predict_cycle_for_testing(idx: int):

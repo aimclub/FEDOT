@@ -757,7 +757,7 @@ class OutputData(Data):
     """``Data`` type for data prediction in the node
     """
 
-    features: Optional[np.ndarray] = None
+    features: Optional[np.ndarray, pd.DataFrame] = None
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
