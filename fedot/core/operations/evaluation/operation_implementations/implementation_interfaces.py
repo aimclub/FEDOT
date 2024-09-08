@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
@@ -82,7 +83,10 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :return operation: trained transformer (optional output)
         """
 
-        features = input_data.features
+        if input_data.task.task_type.name == 'ts_forecasting' and input_data.features.ndim == 2:
+            features = input_data.features.ravel()
+        else:
+            features = input_data.features
 
         # Find boolean columns in features table
         bool_ids, ids_to_process = self._reasonability_check(features)
@@ -90,6 +94,9 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         self.bool_ids = bool_ids
         if len(ids_to_process) > 0:
             if isinstance(features, np.ndarray):
+                if input_data.task.task_type.name == 'ts_forecasting' and input_data.features.ndim == 2:
+                    features = features.reshape(-1, 1)
+
                 features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
             else:
                 features_to_process = np.array(features[ids_to_process]) if features.ndim > 1 else features
@@ -173,16 +180,14 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         non_bool_ids = []
 
         # For every column in table make check
-        if isinstance(features, np.ndarray):
-            features = features.T
-
-        for column_id, column in enumerate(features):
+        for column_id in range(columns_amount):
             if isinstance(features, np.ndarray):
                 column = features[:, column_id] if columns_amount > 1 else features.copy()
             else:
                 column = features.iloc[:, column_id] if columns_amount > 1 else features.copy()
 
-            if len(set(column)) > 2:
+            if (isinstance(column, pd.DataFrame) and len(set(column)) > 2) or \
+               (isinstance(column, np.ndarray) and len(np.unique(column)) > 2):
                 non_bool_ids.append(column_id)
             else:
                 bool_ids.append(column_id)

@@ -31,6 +31,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
 from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector, ID_TO_TYPE
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
+from fedot.utilities.memory import reduce_mem_usage
 
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
@@ -560,34 +561,6 @@ class DataPreprocessor(BasePreprocessor):
 
     @copy_doc(BasePreprocessor.reduce_memory_size)
     def reduce_memory_size(self, data: InputData) -> InputData:
-        def reduce_mem_usage(features, initial_types):
-            df = pd.DataFrame(features)
-            types_array = [ID_TO_TYPE[_type] for _type in initial_types]
-
-            for index, col in enumerate(df.columns):
-                df[col] = df[col].astype(types_array[index])
-                col_type = df[col].dtype.name
-
-                if col_type not in ['object', 'category', 'datetime64[ns, UTC]']:
-                    c_min = df[col].min()
-                    c_max = df[col].max()
-                    if str(col_type)[:3] == 'int':
-                        if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
-                            df[col] = df[col].astype(np.int8)
-                        elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
-                            df[col] = df[col].astype(np.int16)
-                        elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
-                            df[col] = df[col].astype(np.int32)
-                        elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
-                            df[col] = df[col].astype(np.int64)
-                    else:
-                        if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
-                            df[col] = df[col].astype(np.float32)
-                        else:
-                            df[col] = df[col].astype(np.float64)
-
-            return df
-
         if isinstance(data, InputData):
             if data.task.task_type == TaskTypesEnum.ts_forecasting:
                 # TODO: TS data has col_type_ids['features'] = None.

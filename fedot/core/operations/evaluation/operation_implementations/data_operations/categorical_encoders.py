@@ -1,7 +1,8 @@
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from fedot.core.data.data import InputData, OutputData
@@ -10,6 +11,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.preprocessing.data_types import TYPE_TO_ID
+from fedot.utilities.memory import reduce_mem_usage
 
 
 class OneHotEncodingImplementation(DataOperationImplementation):
@@ -37,7 +39,11 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         # If there are categorical features - process it
         if self.categorical_ids.size > 0:
-            updated_cat_features = features[:, self.categorical_ids].astype(str)
+            if isinstance(features, np.ndarray):
+                updated_cat_features = features[:, self.categorical_ids].astype(str)
+            else:
+                updated_cat_features = features.iloc[:, self.categorical_ids].astype(str)
+
             self.encoder.fit(updated_cat_features)
 
         return self.encoder
@@ -58,9 +64,15 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_features = self._apply_one_hot_encoding(transformed_features)
 
         # Update features
-        output_data = self._convert_to_output(copied_data,
-                                              transformed_features)
+        output_data = self._convert_to_output(copied_data, transformed_features)
         self._update_column_types(output_data)
+
+        if isinstance(output_data.features, pd.DataFrame):
+            output_data.predict = reduce_mem_usage(
+                transformed_features,
+                output_data.supplementary_data.col_type_ids['features']
+            )
+
         return output_data
 
     def _update_column_types(self, output_data: OutputData):
@@ -77,17 +89,22 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             output_data.encoded_idx = self.encoded_ids
             output_data.supplementary_data.col_type_ids['features'] = numerical_columns
 
-    def _apply_one_hot_encoding(self, features: np.ndarray) -> np.ndarray:
+    def _apply_one_hot_encoding(self, features: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
         """
         The method creates a table based on categorical and real features after One Hot Encoding transformation
 
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
-        transformed_categorical = self.encoder.transform(features[:, self.categorical_ids]).toarray()
+        if isinstance(features, np.ndarray):
+            transformed_categorical = self.encoder.transform(features[:, self.categorical_ids]).toarray()
+            # Stack transformed categorical and non-categorical data, ignore if none
+            non_categorical_features = features[:, self.non_categorical_ids]
 
-        # Stack transformed categorical and non-categorical data, ignore if none
-        non_categorical_features = features[:, self.non_categorical_ids]
+        else:
+            transformed_categorical = self.encoder.transform(features.iloc[:, self.categorical_ids]).toarray()
+            non_categorical_features = features.iloc[:, self.non_categorical_ids].to_numpy()
+
         frames = (non_categorical_features, transformed_categorical)
         transformed_features = np.hstack(frames)
         self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
