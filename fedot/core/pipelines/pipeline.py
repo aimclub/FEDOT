@@ -252,6 +252,7 @@ class Pipeline(GraphDelegate, Serializable):
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
+        # TODO: data_cache
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """Runs the predict process in all of the pipeline nodes starting with root
@@ -269,6 +270,8 @@ class Pipeline(GraphDelegate, Serializable):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
+
+        # TODO: data_cache
 
         if not self.is_fitted:
             ex = 'Pipeline is not fitted yet'
