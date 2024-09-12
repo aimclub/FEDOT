@@ -74,10 +74,9 @@ def run_fedot(parameters, main_params, fit_params, path_to_save='./predictions.c
     print("\nFitting start...")
     model.fit(**fit_params)
     print("\nPrediction start...")
-    prediction = model.predict(features=getattr(parameters, 'test'), in_sample=False, path_to_save=path_to_save)
-    if path_to_save is not None:
-        print(f"\nPrediction saved at {Path.cwd().joinpath(path_to_save).resolve()}")
-    return prediction
+    return model.predict(features=getattr(parameters, 'test'),
+                         in_sample=False,
+                         path_to_save=path_to_save)
 
 
 # parameters to init Fedot class
