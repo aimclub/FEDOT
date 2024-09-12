@@ -4,6 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -670,11 +671,11 @@ class OutputData(Data):
         prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
         try:
             prediction_df.to_csv(path_to_save, index=False)
-        except Exception as _:
-            path_to_save = './prediction.csv'
+        except (FileNotFoundError, PermissionError, OSError):
+            path_to_save = './predictions.csv'
             prediction_df.to_csv(path_to_save, index=False)
 
-        return path_to_save
+        return Path(path_to_save).resolve()
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
