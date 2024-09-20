@@ -56,13 +56,16 @@ The visualization of FEDOT (v.0.7.3) results against H2O (3.46.0.4), AutoGluon (
 obtained using built-in visualizations of critial difference plot from AutoMLBenchmark are provided below:
 
 All datasets (ROC AUC and negative log loss):
-.. image:: img_benchmarks/cd-all-1h8c-constantpredictor.png
+
+.. image:: ./img_benchmarks/cd-all-1h8c-constantpredictor.png
 
 Binary classification (ROC AUC):
-.. image:: img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
+
+.. image:: ./img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
 
 Multiclass classification (negative logloss):
-.. image:: img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
+
+.. image:: ./img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
 We can claim that results are statistically better that TPOT and and indistinguishable from H2O and AutoGluon.
 
