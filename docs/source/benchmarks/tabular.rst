@@ -6,7 +6,7 @@ using self-runned tasks form OpenML test suite (10 folds run):
 
 
 .. csv-table::
-   :header: Dataset,FEDOT,AutoGluon,H2O
+   :header: Dataset,FEDOT,AutoGluon,H2O,TPOT
 
     adult,0.874,0.874,0.875,0.874
     airlines,0.669,0.669,0.675,0.617
