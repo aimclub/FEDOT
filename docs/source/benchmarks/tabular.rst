@@ -2,7 +2,7 @@ Tabular data
 ------------
 
 Here are overall classification problem results across state-of-the-art AutoML frameworks
-using self-runned tasks form OpenML test suite (10 folds run):
+using self-runned tasks form OpenML test suite (10 folds run) using F1:
 
 
 .. csv-table::
@@ -55,13 +55,13 @@ Also, we tested FEDOT on the results of `AMLB <https://github.com/openml/automlb
 The visualization of FEDOT (v.0.7.3) results against H2O (3.46.0.4), AutoGluon (v.1.1.0), TPOT (v.0.12.1) and LightAutoML (v.0.3.7.3)
 obtained using built-in visualizations of critial difference plot from AutoMLBenchmark are provided below:
 
-All datasets:
+All datasets (ROC AUC and negative log loss):
 .. image:: img_benchmarks/cd-all-1h8c-constantpredictor.png
 
-Binary classification:
+Binary classification (ROC AUC):
 .. image:: img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
 
-Multiclass classification:
+Multiclass classification (negative logloss):
 .. image:: img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
 We can claim that results are statistically better that TPOT and and indistinguishable from H2O and AutoGluon.
