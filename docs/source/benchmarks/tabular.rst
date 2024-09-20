@@ -51,12 +51,17 @@ using self-runned tasks form OpenML test suite (10 folds run):
     Mean F1,0.838,0.837,0.833,0.812
 
 
-Also, we tested FEDOT on the results of `AMLB <https://github.com/openml/automlbenchmark>` benchmark.
+Also, we tested FEDOT on the results of `AMLB <https://github.com/openml/automlbenchmark>`_ benchmark.
 The visualization of FEDOT (v.0.7.3) results against H2O (3.46.0.4), AutoGluon (v.1.1.0), TPOT (v.0.12.1) and LightAutoML (v.0.3.7.3)
 obtained using built-in visualizations of critial difference plot from AutoMLBenchmark are provided below:
 
+All datasets:
 .. image:: img_benchmarks/cd-all-1h8c-constantpredictor.png
+
+Binary classification:
 .. image:: img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
+
+Multiclass classification:
 .. image:: img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
 We can claim that results are statistically better that TPOT and and indistinguishable from H2O and AutoGluon.
