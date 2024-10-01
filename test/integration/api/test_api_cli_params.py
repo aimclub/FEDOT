@@ -12,7 +12,7 @@ def call_cli_with_parameters(call_string: List[str]):
     main_params, fit_params = separate_argparse_to_fedot(parameters)
     preprocess_keys(main_params)
     preprocess_keys(fit_params)
-    predictions = run_fedot(parameters, main_params, fit_params, save_predictions=False)
+    predictions = run_fedot(parameters, main_params, fit_params, path_to_save=None)
     return predictions
 
 
