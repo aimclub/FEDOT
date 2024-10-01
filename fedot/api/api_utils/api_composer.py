@@ -10,7 +10,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.time import ApiTime
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
@@ -50,6 +50,7 @@ class ApiComposer:
             self.preprocessing_cache = PreprocessingCache(cache_dir)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
+        # TODO: data_cache
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -125,7 +126,7 @@ class ApiComposer:
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
-                                   .with_cache(self.pipelines_cache, self.preprocessing_cache)
+                                   .with_cache(self.pipelines_cache, self.preprocessing_cache) # TODO: data_cache
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 

@@ -195,6 +195,8 @@ class PipelineNode(LinkedGraphNode):
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
+        # TODO: try load from cache
+
         if self.fitted_operation is None:
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
@@ -233,6 +235,9 @@ class PipelineNode(LinkedGraphNode):
                                                        data=input_data,
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
+
+        # TODO: save predict to cache
+
         return operation_predict
 
     def get_data_from_node(self) -> dict:

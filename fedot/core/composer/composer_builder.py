@@ -10,7 +10,7 @@ from golem.core.optimisers.initial_graphs_generator import GenerationFunction, I
 from golem.core.optimisers.optimizer import AlgorithmParameters, GraphGenerationParams, GraphOptimizer
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
@@ -55,6 +55,7 @@ class ComposerBuilder:
 
         self.pipelines_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
+        # TODO: self.data_cache: Optional[DataCache] = None
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -100,6 +101,7 @@ class ComposerBuilder:
                    preprocessing_cache: Optional[PreprocessingCache] = None):
         self.pipelines_cache = pipelines_cache
         self.preprocessing_cache = preprocessing_cache
+        # TODO: self.data_cache = data_cache
         return self
 
     @staticmethod
