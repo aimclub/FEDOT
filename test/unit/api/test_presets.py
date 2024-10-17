@@ -1,3 +1,5 @@
+import pytest
+
 from fedot import Fedot
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.presets import OperationsPreset
@@ -9,65 +11,25 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.data.datasets import data_with_binary_features_and_categorical_target
 
 
-def test_presets_classification():
-    task = Task(TaskTypesEnum.classification)
-    class_operations = get_operations_for_task(task=task, mode='all')
-
-    excluded_tree = []
-    filtered_operations = set(class_operations).difference(set(excluded_tree))
-    available_operations = list(filtered_operations)
-
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations) == len(
-        operations_for_auto)
-    assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
+minimal_sets_for_fast_train_by_task = {
+    'classification': {'dt', 'logit', 'knn'},
+    'regression': {'dtreg', 'lasso', 'ridge', 'linear'},
+    'ts_forecasting': {'ar', 'adareg', 'scaling', 'lasso'},
+    'clustering': {'kmeans'}
+}
 
 
-def test_presets_regression():
-    task = Task(TaskTypesEnum.regression)
+@pytest.mark.parametrize('task_type', TaskTypesEnum._member_names_)
+def test_presets_by_task(task_type):
+    task = Task(TaskTypesEnum(task_type))
+    ops_available = get_operations_for_task(task=task, mode='all')
 
-    regr_operations = get_operations_for_task(task=task, mode='all')
+    ops_for_best_quality = OperationsPreset(task=task, preset_name='best_quality').filter_operations_by_preset()
+    ops_for_fast_train = OperationsPreset(task=task, preset_name='fast_train').filter_operations_by_preset()
+    ops_for_auto = OperationsPreset(task=task, preset_name='auto').filter_operations_by_preset()
 
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(regr_operations) == len(
-        operations_for_auto)
-    assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_fast_train)
-
-
-def test_presets_time_series():
-    task = Task(TaskTypesEnum.ts_forecasting)
-
-    ts_operations = get_operations_for_task(task=task, mode='all')
-
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
-
-    preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
-
-    preset_auto = OperationsPreset(task=task, preset_name='auto')
-    operations_for_auto = preset_auto.filter_operations_by_preset()
-
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(ts_operations) == len(
-        operations_for_auto)
-    # TODO: add 'ar' to set below after arima fixing
-    assert {'adareg', 'scaling', 'lasso'} <= set(operations_for_fast_train)
+    assert len(ops_for_fast_train) < len(ops_for_best_quality) == len(ops_available) == len(ops_for_auto)
+    assert minimal_sets_for_fast_train_by_task[task_type] <= set(ops_for_fast_train)
 
 
 def test_presets_inserting_in_params_correct():
