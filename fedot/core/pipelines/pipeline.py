@@ -356,7 +356,7 @@ class Pipeline(GraphDelegate, Serializable):
         return self.operator.nodes
 
     @nodes.setter
-    def nodes(self,  new_nodes: List[PipelineNode]) -> None:
+    def nodes(self, new_nodes: List[PipelineNode]) -> None:
         self.operator.nodes = new_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
