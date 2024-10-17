@@ -36,5 +36,5 @@ This approach doesn’t has an entry point for the container so it allows
 you make contributions and check the changes in place.
 
 
-.. _Dockerfile: https://github.com/aimclub/FEDOT/blob/master/gpu/Dockerfile
+.. _Dockerfile: https://github.com/aimclub/FEDOT/blob/master/docker/gpu/Dockerfile
 .. _RAPIDS official page: https://rapids.ai/start.html
