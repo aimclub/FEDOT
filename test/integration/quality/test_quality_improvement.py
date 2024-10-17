@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 
 def test_classification_quality_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
 
     seed = 50
     problem = 'classification'
@@ -45,8 +45,8 @@ def test_classification_quality_improvement():
 
 def test_multiobjective_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
     problem = 'classification'
     seed = 50
 

@@ -19,7 +19,7 @@ def prepare_data(forecast_length, is_multi_ts):
     target_column = '61_91'
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
-    file_path = os.path.join(str(fedot_project_root()), 'cases/data/arctic/topaz_multi_ts.csv')
+    file_path = os.path.join(str(fedot_project_root()), 'examples/real_cases/data/arctic/topaz_multi_ts.csv')
     if is_multi_ts:
         data = InputData.from_csv_multi_time_series(
             file_path=file_path,

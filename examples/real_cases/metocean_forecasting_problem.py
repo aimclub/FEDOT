@@ -63,10 +63,10 @@ if __name__ == '__main__':
     # the dataset was obtained from NEMO model simulation for sea surface height
 
     # a dataset that will be used as a train and test set during composition
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    file_path_train = 'examples/real_cases/data/metocean/metocean_data_train.csv'
 
     # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    file_path_test = 'examples/real_cases/data/metocean/metocean_data_test.csv'
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
                                      forecast_length=6, timeout=5,

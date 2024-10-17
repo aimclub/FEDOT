@@ -129,7 +129,7 @@ def run_gapfilling_case(file_path):
 # Example of using the algorithm to fill in gaps in a time series
 # The data is daily air temperature values from the weather station
 if __name__ == '__main__':
-    dataframe = run_gapfilling_case('cases/data/gapfilling/ts_temperature_gapfilling.csv')
+    dataframe = run_gapfilling_case('examples/real_cases/data/gapfilling/ts_temperature_gapfilling.csv')
 
     # Display metrics
     print_metrics(dataframe)

@@ -129,7 +129,7 @@ def visualize(tuned, no_tuned, time, method_name):
 
 
 def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True):
-    file_path = os.path.join(str(fedot_project_root()), 'cases/data/time_series/temperature.csv')
+    file_path = os.path.join(str(fedot_project_root()), 'examples/real_cases/data/time_series/temperature.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
 

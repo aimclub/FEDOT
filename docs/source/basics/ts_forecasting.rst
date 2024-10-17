@@ -624,5 +624,5 @@ Examples
 
 **Cases**
 
-* `Case: river level forecasting with composer <https://github.com/aimclub/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
-* `Case: river level forecasting (manual) <https://github.com/aimclub/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
+* `Case: river level forecasting with composer <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_composer.py>`_
+* `Case: river level forecasting (manual) <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_manual.py>`_

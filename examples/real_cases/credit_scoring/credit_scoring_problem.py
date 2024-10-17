@@ -48,11 +48,11 @@ def get_scoring_data():
 
     # a dataset that will be used as a train and test set during composition
 
-    file_path_train = 'cases/data/scoring/scoring_train.csv'
+    file_path_train = 'examples/real_cases/data/scoring/scoring_train.csv'
     full_path_train = fedot_project_root().joinpath(file_path_train)
 
     # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/scoring/scoring_test.csv'
+    file_path_test = 'examples/real_cases/data/scoring/scoring_test.csv'
     full_path_test = fedot_project_root().joinpath(file_path_test)
 
     return full_path_train, full_path_test

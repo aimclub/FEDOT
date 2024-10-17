@@ -10,7 +10,7 @@ from fedot.explainability.explainers import explain_pipeline
 
 def run_pipeline_explain():
     # Specifying paths
-    train_data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'cancer', 'cancer_train.csv')
+    train_data_path = os.path.join(fedot_project_root(), 'examples', 'real_cases', 'data', 'cancer', 'cancer_train.csv')
     figure_path = 'pipeline_explain_example.png'
 
     # Feature and class names for visualization
