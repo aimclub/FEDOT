@@ -16,10 +16,15 @@ def data_with_only_categorical_features():
     features = np.array([["'a'", "0", "1"],
                          ["'b'", "1", "0"],
                          ["'c'", "1", "0"]], dtype=object)
-    input_data = InputData(idx=np.array([0, 1, 2]), features=features,
-                           target=np.array([0, 1, 2]),
-                           task=task, data_type=DataTypesEnum.table,
-                           supplementary_data=supp_data)
+    input_data = InputData(
+        idx=np.array([0, 1, 2]),
+        features=features,
+        target=np.array([0, 1, 2]),
+        categorical_idx=np.array([0, 1, 2]),
+        numerical_idx=np.array([]),
+        task=task, data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
 
     return input_data
 

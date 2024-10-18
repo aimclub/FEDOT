@@ -192,6 +192,20 @@ class BasePreprocessor(ABC):
         """
         raise AbstractMethodNotImplementError
 
+    @abstractmethod
+    def reduce_memory_size(self, data: InputData) -> InputData:
+        """
+        Method allows to reduce the memory consumption of InputData.
+
+        This works in this way:
+        - Getting the defined type of feature from preprocessing (e.g. int);
+        - Finding the minimum and maximum values in this feature;
+        - Finding a suitable type and change it
+         (e.g.: Feature has unique values 0 and 1, the suitable type would be np.bool.
+         Feature has all values between 0 and 100, the suitable type would be np.int8);
+        """
+        raise AbstractMethodNotImplementError
+
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData], *, is_obligatory: bool = True):
         """

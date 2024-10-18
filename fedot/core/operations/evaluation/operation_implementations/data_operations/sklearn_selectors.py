@@ -97,7 +97,11 @@ class FeatureSelectionImplementation(DataOperationImplementation):
 
         # Bool vector - mask for columns
         self.remain_features_mask = self.operation.support_
-        transformed_features = features[:, self.remain_features_mask]
+        if isinstance(features, np.ndarray):
+            transformed_features = features[:, self.remain_features_mask]
+        else:
+            transformed_features = features.iloc[:, self.remain_features_mask]
+
         return transformed_features
 
     @staticmethod
