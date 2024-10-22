@@ -245,8 +245,8 @@ def test_fill_nan_without_categorical():
     prediction = pipeline.predict(test_data)
     prediction_train = pipeline.predict(train_data)
 
-    assert pd.isna(prediction.features).sum() == 0
-    assert pd.isna(prediction_train.features).sum() == 0
+    assert pd.isna(prediction.features).all().sum() == 0
+    assert pd.isna(prediction_train.features).all().sum() == 0
 
 
 def test_dict_multimodal_input_for_api():
