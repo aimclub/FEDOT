@@ -567,13 +567,14 @@ class DataPreprocessor(BasePreprocessor):
                 #  It required to add this to reduce memory for them
                 pass
             else:
-                self.log.debug('-- Reduce memory in features')
-                data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
+                if data.data_type == DataTypesEnum.table:
+                    self.log.debug('-- Reduce memory in features')
+                    data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
 
-                if data.target is not None:
-                    self.log.debug('-- Reduce memory in target')
-                    data.target = reduce_mem_usage(data.target, data.supplementary_data.col_type_ids['target'])
-                    data.target = data.target.to_numpy()
+                    if data.target is not None:
+                        self.log.debug('-- Reduce memory in target')
+                        data.target = reduce_mem_usage(data.target, data.supplementary_data.col_type_ids['target'])
+                        data.target = data.target.to_numpy()
 
         return data
 
