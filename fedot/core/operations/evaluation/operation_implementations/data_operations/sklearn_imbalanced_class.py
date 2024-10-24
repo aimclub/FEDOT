@@ -1,7 +1,8 @@
 from copy import copy
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
+import pandas as pd
 from golem.core.log import default_log
 from sklearn.utils import resample
 
@@ -10,6 +11,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 )
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.memory import reduce_mem_usage
 
 GLOBAL_PREFIX = 'sklearn_imbalanced_class:'
 
@@ -93,6 +95,12 @@ class ResampleImplementation(DataOperationImplementation):
             # If number of elements of each class are equal that transformation is not required
             return self._convert_to_output(input_data, input_data.features)
 
+        if isinstance(copied_data.features, pd.DataFrame):
+            copied_data.features = copied_data.features.to_numpy()
+
+        if isinstance(copied_data.target, pd.DataFrame):
+            copied_data.target = copied_data.target.to_numpy()
+
         min_data, maj_data = self._get_data_by_target(copied_data.features, copied_data.target,
                                                       unique_class, number_of_elements)
 
@@ -116,18 +124,35 @@ class ResampleImplementation(DataOperationImplementation):
 
         transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
+        if isinstance(input_data.features, pd.DataFrame):
+            predict = reduce_mem_usage(
+                transformed_data[:-1].transpose(),
+                input_data.supplementary_data.col_type_ids['features']
+            )
+
+            target = reduce_mem_usage(
+                transformed_data[-1],
+                input_data.supplementary_data.col_type_ids['target']
+            )
+
+        else:
+            predict = transformed_data[:-1].transpose()
+            target = transformed_data[-1]
+
         output_data = OutputData(
             idx=np.arange(transformed_data.shape[1]),
             features=input_data.features,
-            predict=transformed_data[:-1].transpose(),
+            predict=predict,
             task=input_data.task,
-            target=transformed_data[-1],
+            target=target,
             data_type=input_data.data_type,
             supplementary_data=input_data.supplementary_data)
+
         return output_data
 
     @staticmethod
-    def _get_data_by_target(features: np.array, target: np.array, unique: np.array,
+    def _get_data_by_target(features: Union[np.array, pd.DataFrame], target: Union[np.array, pd.DataFrame],
+                            unique: np.array,
                             number_of_elements: np.array) -> np.array:
         """Unify features and target in one array and split into classes
         """

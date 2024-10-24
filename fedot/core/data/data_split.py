@@ -30,8 +30,9 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
         return data
     elif isinstance(origin_input_data, InputData):
         idx = np.take(origin_input_data.idx, index, 0)
-        target = np.take(origin_input_data.target, index, 0)
+
         features = np.take(origin_input_data.features, index, 0)
+        target = np.take(origin_input_data.target, index, 0)
 
         if origin_input_data.categorical_features is not None:
             categorical_features = np.take(origin_input_data.categorical_features, index, 0)

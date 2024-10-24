@@ -130,15 +130,21 @@ def get_multivariate_time_series(mutli_ts=False):
 
 def get_nan_inf_data():
     supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[float]] * 4)})
-    train_input = InputData(idx=[0, 1, 2, 3],
-                            features=np.array([[1, 2, 3, 4],
-                                               [2, np.nan, 4, 5],
-                                               [3, 4, 5, np.inf],
-                                               [-np.inf, 5, 6, 7]]),
-                            target=np.array([1, 2, 3, 4]),
-                            task=Task(TaskTypesEnum.regression),
-                            data_type=DataTypesEnum.table,
-                            supplementary_data=supp_data)
+    train_input = InputData(
+        idx=np.array([0, 1, 2, 3]),
+        features=np.array([
+            [1, 2, 3, 4],
+            [2, np.nan, 4, 5],
+            [3, 4, 5, np.inf],
+            [-np.inf, 5, 6, 7]
+        ]),
+        target=np.array([1, 2, 3, 4]),
+        numerical_idx=np.array([0, 1, 2, 3]),
+        categorical_idx=np.array([]),
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
 
     return train_input
 
@@ -210,10 +216,14 @@ def get_nan_binary_data(task=None):
                          [1, '1', 1],
                          [5, '1', 1]], dtype=object)
 
-    input_data = InputData(idx=[0, 1, 2, 3], features=features,
-                           target=np.array([[0], [0], [1], [1]]),
-                           task=task, data_type=DataTypesEnum.table,
-                           supplementary_data=supp_data)
+    input_data = InputData(
+        idx=np.array([0, 1, 2, 3]),
+        features=features,
+        target=np.array([[0], [0], [1], [1]]),
+        categorical_idx=np.array([1]),
+        task=task, data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
 
     return input_data
 
@@ -260,9 +270,19 @@ def data_with_binary_int_features_and_equal_categories():
                          [np.nan, np.nan],
                          [0, 0]])
     target = np.array([['not-nan'], ['nan'], ['nan'], ['not-nan']])
-    train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
-                            task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=supp_data)
+    train_input = InputData(
+        idx=np.array([0, 1, 2, 3]),
+        features=features,
+        target=target,
+        numerical_idx=np.array([0, 1]),
+        categorical_idx=np.array([]),
+        encoded_idx=np.array([]),
+        categorical_features=None,
+        features_names=None,
+        task=task,
+        data_type=DataTypesEnum.table,
+        supplementary_data=supp_data
+    )
 
     return train_input
 

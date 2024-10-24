@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 from typing import Dict, Union
 from typing import Optional
@@ -34,14 +33,19 @@ class ApiDataProcessor:
         self.task = task
 
         self._recommendations = {}
-        self.preprocessor = DummyPreprocessor()
+
         if use_input_preprocessing:
             self.preprocessor = DataPreprocessor()
 
             # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encoded'
             # to encode features using label encoder). Parameters for transformation provided also
-            self._recommendations = {'cut': self.preprocessor.cut_dataset,
-                                     'label_encoded': self.preprocessor.label_encoding_for_fit}
+            self._recommendations = {
+                'cut': self.preprocessor.cut_dataset,
+                'label_encoded': self.preprocessor.label_encoding_for_fit
+            }
+
+        else:
+            self.preprocessor = DummyPreprocessor()
 
         self.log = default_log(self)
 
@@ -133,18 +137,28 @@ class ApiDataProcessor:
     def fit_transform(self, train_data: InputData) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
+        memory_usage = convert_memory_size(train_data.memory_usage)
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
             f'Train Data (Original) Memory Usage: {memory_usage} Data Shapes: {features_shape, target_shape}')
 
+        self.log.debug('- Obligatory preprocessing started')
         train_data = self.preprocessor.obligatory_prepare_for_fit(data=train_data)
+
+        self.log.debug('- Optional preprocessing started')
         train_data = self.preprocessor.optional_prepare_for_fit(pipeline=Pipeline(), data=train_data)
+
+        self.log.debug('- Converting indexes for fitting started')
         train_data = self.preprocessor.convert_indexes_for_fit(pipeline=Pipeline(), data=train_data)
+
+        self.log.debug('- Reducing memory started')
+        train_data = self.preprocessor.reduce_memory_size(data=train_data)
+
         train_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(sys.getsizeof(train_data.features))
+        memory_usage = convert_memory_size(train_data.memory_usage)
+
         features_shape = train_data.features.shape
         target_shape = train_data.target.shape
         self.log.message(
@@ -156,7 +170,7 @@ class ApiDataProcessor:
     def transform(self, test_data: InputData, current_pipeline) -> InputData:
         start_time = datetime.now()
         self.log.message('Preprocessing data')
-        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        memory_usage = convert_memory_size(test_data.memory_usage)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(
@@ -168,7 +182,9 @@ class ApiDataProcessor:
         test_data = self.preprocessor.update_indices_for_time_series(test_data)
         test_data.supplementary_data.is_auto_preprocessed = True
 
-        memory_usage = convert_memory_size(sys.getsizeof(test_data))
+        test_data = self.preprocessor.reduce_memory_size(data=test_data)
+
+        memory_usage = convert_memory_size(test_data.memory_usage)
         features_shape = test_data.features.shape
         target_shape = test_data.target.shape
         self.log.message(

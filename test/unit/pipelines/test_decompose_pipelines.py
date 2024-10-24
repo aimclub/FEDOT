@@ -145,14 +145,14 @@ def test_order_by_data_flow_len_correct():
     counters can allow for decompose implementation to determine how the nodes
     in the graph are located
     """
-    input_data = get_iris_data()
-    input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
-
     data_operations = ['scaling', 'normalization', 'pca', 'poly_features']
     model_operations = ['lda', 'knn', 'logit']
     list_with_operations = list(product(data_operations, model_operations))
 
     for data_operation, model_operation in list_with_operations:
+        input_data = get_iris_data()
+        input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
+
         # Generate pipeline with different operations in the nodes with decomposition
         pipeline = generate_pipeline_with_decomposition(data_operation,
                                                         model_operation)
