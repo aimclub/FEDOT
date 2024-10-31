@@ -54,7 +54,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         res = []
         for model in trained_operation.get_estimators():
-            frame = H2OFrame(predict_data.features)
+            frame = self._data_transform(predict_data)
             prediction = model.predict(frame)
             prediction = prediction.as_data_frame().to_numpy()
             res.append(np.ravel(prediction))
@@ -64,7 +64,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
 
     def _data_transform(self, data: InputData) -> H2OFrame:
         if len(data.target.shape) == 1:
-            concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
+            concat_data = np.concatenate((data.features, data.target.reshape(1, -1)), 1)
         else:
             concat_data = np.concatenate((data.features, data.target.reshape(-1, data.target.shape[1])), 1)
         frame = H2OFrame(python_obj=concat_data)
