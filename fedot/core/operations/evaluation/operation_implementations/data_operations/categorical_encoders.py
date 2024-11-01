@@ -119,8 +119,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
         super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}
-        self.categorical_ids: List[int] = []
-        self.non_categorical_ids: List[int] = []
+        self.categorical_ids: np.ndarray = np.array([])
+        self.non_categorical_ids: np.ndarray = np.array([])
 
     def fit(self, input_data: InputData):
         self.categorical_ids, self.non_categorical_ids = input_data.categorical_idx, input_data.numerical_idx
