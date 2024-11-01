@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from cases.metocean_forecasting_problem import prepare_input_data
+from examples.real_cases.metocean_forecasting_problem import prepare_input_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -37,7 +37,7 @@ def get_split_data():
 
 
 def get_cholesterol_dataset():
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
     data = InputData.from_csv(data_path, task=Task(TaskTypesEnum.regression))
     train, test = train_test_data_setup(data)
     return train, test
@@ -69,11 +69,11 @@ def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_sampl
 
 
 def get_multimodal_ts_data(size=500):
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    file_path_train = 'examples/real_cases/data/metocean/metocean_data_train.csv'
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    file_path_test = 'examples/real_cases/data/metocean/metocean_data_test.csv'
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     target_history, add_history, _ = prepare_input_data(full_path_train, full_path_test,

@@ -20,7 +20,7 @@ def run_automl(data: MultiModalData, features_to_use,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
 
-    metocean_folder = fedot_project_root().joinpath('cases', 'data', 'metocean')
+    metocean_folder = fedot_project_root().joinpath('examples', 'real_cases', 'data', 'metocean')
 
     connect_params = {}
     exec_params = {
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     features_to_use = ['wind_speed', 'sea_height']
 
     data = MultiModalData.from_csv_time_series(
-        file_path=fedot_project_root().joinpath('cases/data/metocean/metocean_data_train.csv'),
+        file_path=fedot_project_root().joinpath('examples/real_cases/data/metocean/metocean_data_train.csv'),
         columns_to_use=features_to_use,
         target_column='sea_height',
         index_col='datetime')

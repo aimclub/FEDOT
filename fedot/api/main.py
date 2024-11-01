@@ -166,6 +166,13 @@ class Fedot:
             with fedot_composer_timer.launch_preprocessing():
                 self.train_data = self.data_processor.fit_transform(self.train_data)
 
+        # TODO: Workaround for AtomizedModel
+        init_asm = self.params.data.get('initial_assumption')
+        if predefined_model is None:
+            if isinstance(init_asm, Pipeline) and ("atomized" in init_asm.descriptive_id):
+                self.log.message('Composition for AtomizedModel currently unavailable')
+                predefined_model = init_asm
+
         with fedot_composer_timer.launch_fitting():
             if predefined_model is not None:
                 # Fit predefined model and return it without composing

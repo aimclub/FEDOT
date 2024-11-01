@@ -8,7 +8,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def get_kc2_data():
-    file_path = 'cases/data/kc2/kc2.csv'
+    file_path = 'examples/real_cases/data/kc2/kc2.csv'
     full_path = join(str(fedot_project_root()), file_path)
     task = Task(TaskTypesEnum.classification)
     data = InputData.from_csv(full_path, task=task, target_columns='problems')

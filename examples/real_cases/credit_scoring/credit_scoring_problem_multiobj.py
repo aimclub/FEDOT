@@ -7,15 +7,15 @@ from golem.core.tuning.sequential import SequentialTuner
 from golem.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
+from examples.real_cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 

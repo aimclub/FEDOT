@@ -3,8 +3,8 @@ from fedot.core.utils import fedot_project_root
 
 
 if __name__ == '__main__':
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_test.csv'
 
     fedot = (FedotBuilder(problem='classification')
              .setup_composition(timeout=10, with_tuning=True, preset='best_quality')

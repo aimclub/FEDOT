@@ -7,8 +7,8 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_with_random_search_composer():
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_test.csv'
 
     composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt'],
                        'optimizer': RandomMutationSearchOptimizer}

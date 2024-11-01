@@ -19,7 +19,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             .. code-block:: python
 
                 problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
                 baseline_model = Fedot(problem=problem, timeout=1, seed=42)
                 baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
@@ -62,7 +62,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             .. code-block:: python
 
                 problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
                 baseline_model = Fedot(problem=problem, timeout=1, seed=42)
                 baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
@@ -99,7 +99,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             .. code-block:: python
 
                 problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
                 baseline_model = Fedot(problem=problem, timeout=1, seed=42)
                 baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
@@ -137,7 +137,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             .. code-block:: python
 
                 problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
                 baseline_model = Fedot(problem=problem, timeout=1, seed=42)
                 baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
@@ -175,7 +175,7 @@ FEDOT provides methods for saving and loading pipelines in the ``Pipeline`` clas
             .. code-block:: python
 
                 problem = 'classification'
-                train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+                train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
                 baseline_model = Fedot(problem=problem, timeout=1, seed=42)
                 baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')

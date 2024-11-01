@@ -69,8 +69,8 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
 
 
 def get_scoring_data() -> Tuple[InputData, InputData]:
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_test.csv'
 
     train_data = InputData.from_csv(train_data_path)
     test_data = InputData.from_csv(test_data_path)
