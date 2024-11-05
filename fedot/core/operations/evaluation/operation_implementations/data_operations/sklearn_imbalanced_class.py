@@ -34,7 +34,7 @@ class ResampleImplementation(DataOperationImplementation):
                 In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will be the same.
                 If balance_ratio < 1.0 means that the data of one class will get closer to the shape of the opposite class.
                 If none, the number of samples will be equal to the shape of the opposite selected transformed class.
-    """ # noqa
+    """  # noqa
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
