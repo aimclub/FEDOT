@@ -89,7 +89,7 @@ class TableTypesCorrector:
         column_types_info = self.prepare_column_types_info(predictors=data.features, target=data.target, task=data.task)
         data.supplementary_data.col_type_ids = column_types_info
         col_types_info_message = prepare_log_message_with_cols_types(column_types_info, data.features_names)
-        self.log.message(f'The detected types of data are as follows: {col_types_info_message}')
+        self.log.debug(f'--- The detected types of data are as follows: {col_types_info_message}')
         self._into_numeric_features_transformation_for_fit(data)
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
@@ -321,15 +321,15 @@ class TableTypesCorrector:
             if np.size(all_cat_col_ids) > 0:
                 if data.features_names is not None:
                     cat_features_names = data.features_names[all_cat_col_ids]
-                    self.log.message(
+                    self.log.info(
                         f'Preprocessing defines the following columns as categorical: {cat_features_names}'
                     )
                 else:
-                    self.log.message(
+                    self.log.info(
                         f'Preprocessing defines the following columns as categorical: {all_cat_col_ids}'
                     )
             else:
-                self.log.message('Preprocessing was unable to define the categorical columns')
+                self.log.info('Preprocessing was unable to define the categorical columns')
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """

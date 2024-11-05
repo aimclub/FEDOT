@@ -294,7 +294,7 @@ class DataPreprocessor(BasePreprocessor):
         features = data.features
         axes_except_cols = (0,) + tuple(range(2, features.ndim))
         are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
-        self.log.message(
+        self.log.debug(
             f'--- The number of features with an acceptable nan\'s percent value was taken '
             f'{len(are_allowed)} / {data.features.shape[1]}'
         )
@@ -326,7 +326,7 @@ class DataPreprocessor(BasePreprocessor):
         data.target = target[non_nan_row_ids, :]
         data.idx = np.array(data.idx)[non_nan_row_ids]
 
-        self.log.message(
+        self.log.debug(
             f'--- The number of rows with an nan\'s in target is '
             f'{sum(number_nans_per_rows)} / {data.features.shape[0]}'
         )
