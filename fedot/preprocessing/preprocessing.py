@@ -29,7 +29,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
-from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector, ID_TO_TYPE
+from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 from fedot.utilities.memory import reduce_mem_usage
 
