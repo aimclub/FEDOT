@@ -699,7 +699,7 @@ class InputData(Data):
             if isinstance(self.features, np.ndarray):
                 num_features = self.features[:, self.numerical_idx]
             else:
-                num_features = self.features.iloc[:, self.numerical_idx]
+                num_features = self.features.iloc[:, self.numerical_idx].to_numpy()
 
             if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
