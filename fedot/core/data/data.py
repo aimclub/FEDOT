@@ -546,6 +546,7 @@ class Data:
 class InputData(Data):
     """Data class for input data for the nodes
     """
+
     def __post_init__(self):
         if self.numerical_idx is None:
             if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
@@ -757,7 +758,7 @@ class OutputData(Data):
     """``Data`` type for data prediction in the node
     """
 
-    features: Optional[Union[np.ndarray,pd.DataFrame]] = None
+    features: Optional[Union[np.ndarray, pd.DataFrame]] = None
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
