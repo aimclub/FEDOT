@@ -90,29 +90,60 @@ class RegressionAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            # Composite assumptions
-            'composite_gbm': self.build_composite_gbm(),
-            'composite_linear_gbm': self.build_composite_linear_gbm(),
+        # All assumptions
+        assumptions = {}
 
-            # Single-node assumptions
-            'catboostreg': PipelineBuilder().add_node('catboostreg'),
-            'xgbreg': PipelineBuilder().add_node('xgbreg'),
-            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
-            'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge')
+        # Constants
+        CATBOOSTREG = 'catboostreg'
+        XGBOOSTREG = 'xgboostreg'
+        LGBMREG = 'lgbmreg'
+        RFR = 'rfr'
+        
+        # Parameters of models
+        models_params = {
+            CATBOOSTREG: {
+                "early_stopping_rounds": 30,
+                "use_eval_set": True,
+                "use_best_model": True
+            },
+            XGBOOSTREG: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "max_depth": 6,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            LGBMREG: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "num_leaves": 31,
+                "max_depth": -1,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            RFR: {
+                "n_estimators": 100,
+                "max_depth": None,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1,
+                "n_jobs": -1,
+            }
         }
-    
-    def build_composite_gbm(self):
-        return PipelineBuilder() \
-            .add_branch('lgbmreg', 'catboostreg', 'xgbreg') \
-            .join_branches('catboostreg')
 
-    def build_composite_linear_gbm(self):
-        return PipelineBuilder() \
-            .add_node('ridge') \
-            .add_branch('lgbmreg', 'catboostreg') \
-            .join_branches('catboostreg')
+        # TODO: add more composite assumptions
+        # Get composite assumptions
+        assumptions['scaling_xgboostreg'] = PipelineBuilder()\
+        .add_node('scaling').add_node(XGBOOSTREG, params=models_params[XGBOOSTREG])
+
+        # Get single-node assumptions
+        single_models = [XGBOOSTREG, LGBMREG, CATBOOSTREG, RFR]
+
+        for model in single_models:
+            assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
+
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -130,27 +161,60 @@ class ClassificationAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        # All pipelines
-        pipelines = {}
+        # All assumptions
+        assumptions = {}
+
+        # Constants
+        CATBOOST = 'catboost'
+        XGBOOST = 'xgboost'
+        LGBM = 'lgbm'
+        RF = 'rf'
         
         # Parameters of models
         models_params = {
-            'catboost': {},
-            'xgboost': {"early_stopping_rounds": 30},
-            'lgbm': {"early_stopping_rounds": 30},
-            'rf': {"n_jobs": 1},
-            'logit': {}
+            CATBOOST: {
+                "early_stopping_rounds": 30,
+                "use_eval_set": True,
+                "use_best_model": True
+            },
+            XGBOOST: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "max_depth": 6,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            LGBM: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "num_leaves": 31,
+                "max_depth": -1,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            RF: {
+                "n_estimators": 100,
+                "max_depth": None,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1,
+                "n_jobs": -1,
+            }
         }
 
-        # Get single-node pipelines
-        single_models = ['catboost', 'xgboost', 'lgbm', 'rf', 'logit']
+        # TODO: add more composite assumptions
+        # Get composite assumptions
+        assumptions['scaling_xgboost'] = PipelineBuilder()\
+        .add_node('scaling').add_node(XGBOOST, params=models_params[XGBOOST])
+
+        # Get single-node assumptions
+        single_models = [XGBOOST, LGBM, CATBOOST, RF]
 
         for model in single_models:
-            pipelines[model] = PipelineBuilder().add_node(model, params=models_params[model])
+            assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
 
-        # Get composite pipelines
-
-        return pipelines
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rf'
