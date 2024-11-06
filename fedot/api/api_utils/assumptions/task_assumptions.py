@@ -91,18 +91,28 @@ class RegressionAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'gbm_linear': PipelineBuilder().
-            add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
-            'xgb_lgbm_linear': PipelineBuilder().
-            add_branch('xgboostreg', 'lgbmreg').join_branches('ridge'),
-            'gbm_rf_linear': PipelineBuilder().
-            add_branch('catboostreg', 'xgboostreg', 'lgbmreg', 'rfr').join_branches('ridge'),
+            # Composite assumptions
+            'composite_gbm': self.build_composite_gbm(),
+            'composite_linear_gbm': self.build_composite_linear_gbm(),
+
+            # Single-node assumptions
             'catboostreg': PipelineBuilder().add_node('catboostreg'),
-            'xgboostreg': PipelineBuilder().add_node('xgboostreg'),
+            'xgbreg': PipelineBuilder().add_node('xgbreg'),
             'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
             'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge'),
+            'ridge': PipelineBuilder().add_node('ridge')
         }
+    
+    def build_composite_gbm(self):
+        return PipelineBuilder() \
+            .add_branch('lgbmreg', 'catboostreg', 'xgbreg') \
+            .join_branches('catboostreg')
+
+    def build_composite_linear_gbm(self):
+        return PipelineBuilder() \
+            .add_node('ridge') \
+            .add_branch('lgbmreg', 'catboostreg') \
+            .join_branches('catboostreg')
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -120,19 +130,27 @@ class ClassificationAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            'gbm_linear': PipelineBuilder().
-            add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
-            'xgb_lgbm_linear': PipelineBuilder().
-            add_branch('xgboost', 'lgbm').join_branches('logit'),
-            'gbm_rf_linear': PipelineBuilder().
-            add_branch('catboost', 'xgboost', 'lgbm', 'rf').join_branches('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
-            'xgboost': PipelineBuilder().add_node('xgboost'),
-            'lgbm': PipelineBuilder().add_node('lgbm'),
-            'rf': PipelineBuilder().add_node('rf'),
-            'logit': PipelineBuilder().add_node('logit'),
+        # All pipelines
+        pipelines = {}
+        
+        # Parameters of models
+        models_params = {
+            'catboost': {},
+            'xgboost': {"early_stopping_rounds": 30},
+            'lgbm': {"early_stopping_rounds": 30},
+            'rf': {"n_jobs": 1},
+            'logit': {}
         }
+
+        # Get single-node pipelines
+        single_models = ['catboost', 'xgboost', 'lgbm', 'rf', 'logit']
+
+        for model in single_models:
+            pipelines[model] = PipelineBuilder().add_node(model, params=models_params[model])
+
+        # Get composite pipelines
+
+        return pipelines
 
     def ensemble_operation(self) -> str:
         return 'rf'
