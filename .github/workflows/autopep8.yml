@@ -30,6 +30,9 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             Code in this pull request contains PEP8 errors, please write the `/fix-pep8` command in the comments below to create commit with automatic fixes.
+      - name: Retrieve current Date & Time in Moscow TimeZone
+        shell: bash
+        run: echo "TIMESTAMP=$(TZ=":Europe/Moscow" date -R|sed 's/.....$//')" >> $GITHUB_ENV
       - name: Update comment if NOT fixed
         if: ${{ steps.fc.outputs.comment-id != '' && steps.autopep8.outputs.exit-code == 2}}
         uses: peter-evans/create-or-update-comment@v3
@@ -39,7 +42,7 @@ jobs:
           body: |
             Code in this pull request **still** contains PEP8 errors, please write the `/fix-pep8` command in the comments below to create commit with automatic fixes.
 
-            ##### Comment last updated at ${{ github.event.head_commit.timestamp }}
+            ##### Comment last updated at ${{ env.TIMESTAMP }}
       - name: Update comment if fixed
         if: ${{ steps.fc.outputs.comment-id != '' && steps.autopep8.outputs.exit-code != 2}}
         uses: peter-evans/create-or-update-comment@v3
@@ -49,7 +52,7 @@ jobs:
           body: |
             All PEP8 errors has been fixed, thanks :heart:
 
-            ##### Comment last updated at ${{ github.event.head_commit.timestamp }}
+            ##### Comment last updated at ${{ env.TIMESTAMP }}
       - name: Fail if autopep8 made changes
         if: steps.autopep8.outputs.exit-code == 2
         run: exit 1
