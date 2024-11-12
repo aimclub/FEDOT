@@ -136,7 +136,8 @@ class RegressionAssumptions(TaskAssumptions):
         # Get composite assumptions
         assumptions['gbm'] = PipelineBuilder()\
         .add_node(SCALING).add_node(XGBOOSTREG, params=models_params[XGBOOSTREG]) \
-        .add_node(LGBMREG, params=models_params[LGBMREG]).add_node(CATBOOSTREG, params=models_params[CATBOOSTREG])
+        .add_node(LGBMREG, params=models_params[LGBMREG]) \
+        .add_node(CATBOOSTREG, params=models_params[CATBOOSTREG])
 
         assumptions['scaling_xgboostreg'] = PipelineBuilder()\
         .add_node(SCALING).add_node(XGBOOSTREG, params=models_params[XGBOOSTREG])
@@ -211,7 +212,8 @@ class ClassificationAssumptions(TaskAssumptions):
         # Get composite assumptions
         assumptions['gbm'] = PipelineBuilder()\
         .add_node(SCALING).add_node(XGBOOST, params=models_params[XGBOOST]) \
-        .add_node(LGBM, params=models_params[LGBM]).add_node(CATBOOST, params=models_params[CATBOOST])
+        .add_node(LGBM, params=models_params[LGBM]) \
+        .add_node(CATBOOST, params=models_params[CATBOOST])
 
         assumptions['scaling_xgboost'] = PipelineBuilder()\
         .add_node(SCALING).add_node(XGBOOST, params=models_params[XGBOOST])
