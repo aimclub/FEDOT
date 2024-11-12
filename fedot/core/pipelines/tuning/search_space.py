@@ -433,6 +433,48 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [['mae', 'mse']],
                     'type': 'categorical'},
             },
+            'clstm': {
+                'hidden_size': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [20, 200],
+                    'type': 'continuous'},
+                'learning_rate': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.0005, 0.005],
+                    'type': 'continuous'},
+                'cnn1_kernel_size': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [3, 8],
+                    'type': 'discrete'},
+                'cnn1_output_size': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[8, 16, 32, 64]],
+                    'type': 'categorical'},
+                'cnn2_kernel_size': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [3, 8],
+                    'type': 'discrete'},
+                'cnn2_output_size': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[8, 16, 32, 64]],
+                    'type': 'categorical'},
+                'batch_size': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[64, 128]],
+                    'type': 'categorical'},
+                'num_epochs': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[10, 20, 50, 100]],
+                    'type': 'categorical'},
+                'optimizer': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['adamw', 'sgd']],
+                    'type': 'categorical'},
+                'loss': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['mae', 'mse']],
+                    'type': 'categorical'},
+            },
             'pca': {
                 'n_components': {
                     'hyperopt-dist': hp.uniform,
