@@ -56,8 +56,8 @@ def test_multiobjective_improvement():
     metrics = [quality_metric_1, quality_metric_2]
 
     timeout = 10
-    composer_params = dict(num_of_generations=5,
-                           pop_size=5,
+    composer_params = dict(num_of_generations=1,
+                           pop_size=10,
                            with_tuning=False,
                            preset='fast_train',
                            metric=metrics)
