@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, TypeVar
 import numpy as np
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
+from fedot.core.data.data import OutputData
 
 
 class DataCacheDB(BaseCacheDB):
@@ -20,55 +21,36 @@ class DataCacheDB(BaseCacheDB):
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         super().__init__("prediction", cache_dir)
         self._init_db()
+        # TODO: probably initialize pickler only once
 
-    def add_prediction(self, uid_val_lst: List[Tuple[str, np.ndarray]]):
+    def add_prediction(self, uid: str, outputData: OutputData):
         """
-        Adds operation score to DB table via its uid
-
-        :param uid_val_lst: list of pairs (uid -> prediction) to be saved
         """
         try:
             with closing(sqlite3.connect(self.db_path)) as conn:
                 with conn:
                     cur = conn.cursor()
-                    pickled = [
-                        (
-                            uid,
-                            sqlite3.Binary(pickle.dumps(val, pickle.HIGHEST_PROTOCOL)),
-                        )
-                        for uid, val in uid_val_lst
-                    ]
-                    cur.executemany(
-                        f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);",
-                        pickled,
-                    )
+                    pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
+                    cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
         except sqlite3.Error as e:
             print(f"SQLite error: {e}")
 
-    def get_prediction(self, uids: List[str]) -> List[Optional[np.ndarray]]:
+    def get_prediction(self, uid: str) -> Optional[OutputData]:
         """
-        Maps given uids to operations from DB and puts None if is not present.
-
-        :param uids: list of operations uids to be mapped
-
-        :return retrieved: list of operations taken from DB table with None where it wasn't present
         """
         try:
             with closing(sqlite3.connect(self.db_path)) as conn:
                 with conn:
                     cur = conn.cursor()
-                    placeholders = ",".join("?" for _ in uids)
-                    query = (
-                        f"SELECT id, prediction FROM {self._main_table} "
-                        f"WHERE id IN ({placeholders})"
-                    )
-                    cur.execute(query, uids)
-                    results = {row[0]: pickle.loads(row[1]) for row in cur.fetchall()}
-                    retrieved = [results.get(uid) for uid in uids]
-            return retrieved
+                    query = f"SELECT id, prediction FROM {self._main_table} WHERE id = ?"
+                    cur.execute(query, uid)
+                    result = cur.fetchone()
+                    if result:
+                        result = pickle.loads(result[0])
+            return result
         except sqlite3.Error as e:
             print(f"SQLite error: {e}")
-            return [None] * len(uids)
+            return None
 
     def _init_db(self):
         """
