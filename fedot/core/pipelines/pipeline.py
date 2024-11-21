@@ -17,6 +17,7 @@ from golem.visualisation.graph_viz import NodeColorType
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.data_operation import DataOperation
@@ -252,7 +253,8 @@ class Pipeline(GraphDelegate, Serializable):
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
-        # TODO: data_cache
+        if data_cache is not None:
+            data_cache.load_predicted(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """Runs the predict process in all of the pipeline nodes starting with root
