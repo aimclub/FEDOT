@@ -12,6 +12,7 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -55,7 +56,7 @@ class ComposerBuilder:
 
         self.pipelines_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
-        # TODO: self.data_cache: Optional[DataCache] = None
+        self.data_cache: Optional[DataCache] = None
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -97,11 +98,14 @@ class ComposerBuilder:
         self.initial_population_generation_function = generation_function
         return self
 
-    def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
-                   preprocessing_cache: Optional[PreprocessingCache] = None):
+    def with_cache(self,
+                   pipelines_cache: Optional[OperationsCache] = None,
+                   preprocessing_cache: Optional[PreprocessingCache] = None,
+                   data_cache: Optional[DataCache] = None
+                   ):
         self.pipelines_cache = pipelines_cache
         self.preprocessing_cache = preprocessing_cache
-        # TODO: self.data_cache = data_cache
+        self.data_cache = data_cache
         return self
 
     @staticmethod
@@ -156,6 +160,7 @@ class ComposerBuilder:
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
                                      self.pipelines_cache,
-                                     self.preprocessing_cache)
+                                     self.preprocessing_cache,
+                                     self.data_cache)
 
         return composer

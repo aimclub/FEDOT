@@ -235,7 +235,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = type(self.preprocessor)()
 
     def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
-                            fold_id: Optional[int] = None):
+                            data_cache: Optional[DataCache], fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 

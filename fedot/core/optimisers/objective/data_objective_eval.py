@@ -10,6 +10,7 @@ from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
@@ -41,6 +42,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
+                 data_cache: Optional[DataCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
@@ -49,7 +51,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._validation_blocks = validation_blocks
         self._pipelines_cache = pipelines_cache
         self._preprocessing_cache = preprocessing_cache
-        # TODO: self._data_cache = data_cache
+        self._data_cache = data_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
 
@@ -111,7 +113,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # load preprocessing
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache, fold_id)
         predicted_train = graph.fit(
             train_data,
             n_jobs=n_jobs,
@@ -122,9 +124,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             self._pipelines_cache.save_pipeline(graph, fold_id)
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
-        # TODO: 
-        # if self._data_cache is not None:
-            # self._data_cache.save_data(graph, predicted_train, fold_id)
+        if self._data_cache is not None:
+            self._data_cache.save_data(graph, predicted_train, fold_id)
 
         return graph
 

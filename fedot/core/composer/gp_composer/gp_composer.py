@@ -5,6 +5,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -27,11 +28,13 @@ class GPComposer(Composer):
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
+                 preprocessing_cache: Optional[PreprocessingCache] = None,
+                 data_cache: Optional[DataCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
+        self.data_cache: Optional[DataCache] = data_cache
 
         self.best_models: Collection[Pipeline] = ()
 
@@ -55,6 +58,7 @@ class GPComposer(Composer):
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
                                                         pipelines_cache=self.pipelines_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
+                                                        data_cache=self.data_cache,
                                                         validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
