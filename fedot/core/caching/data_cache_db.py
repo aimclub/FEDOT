@@ -33,7 +33,7 @@ class DataCacheDB(BaseCacheDB):
                     pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
                     cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
         except sqlite3.Error as e:
-            print(f"SQLite error: {e}")
+            print(f"SQLite add error: {e}")
 
     def get_prediction(self, uid: str) -> Optional[OutputData]:
         """
@@ -43,13 +43,13 @@ class DataCacheDB(BaseCacheDB):
                 with conn:
                     cur = conn.cursor()
                     query = f"SELECT id, prediction FROM {self._main_table} WHERE id = ?"
-                    cur.execute(query, uid)
+                    cur.execute(query, (uid,))
                     result = cur.fetchone()
                     if result:
                         result = pickle.loads(result[0])
             return result
         except sqlite3.Error as e:
-            print(f"SQLite error: {e}")
+            print(f"SQLite get Error: {e}")
             return None
 
     def _init_db(self):
@@ -69,4 +69,4 @@ class DataCacheDB(BaseCacheDB):
                         )
                     )
         except sqlite3.Error as e:
-            print(f"SQLite error: {e}")
+            print(f"SQLite init error: {e}")
