@@ -58,7 +58,7 @@ class QualityMetric(Metric):
         raise AbstractMethodNotImplementError
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData, results: Optional[OutputData] = None,
                   validation_blocks: Optional[int] = None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
@@ -69,12 +69,13 @@ class QualityMetric(Metric):
         """
         metric = cls.default_value
         try:
-            if validation_blocks is None:
-                # Time series or regression classical hold-out validation
-                reference_data, results = cls._simple_prediction(pipeline, reference_data)
-            else:
-                # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+            if results is None:
+                if validation_blocks is None:
+                    # Time series or regression classical hold-out validation
+                    reference_data, results = cls._simple_prediction(pipeline, reference_data)
+                else:
+                    # Perform time series in-sample validation
+                    reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():

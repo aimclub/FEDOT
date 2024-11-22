@@ -77,8 +77,14 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                         raise ex
                 break  # if even one fold fails, the evaluation stops
 
+            # TODO: get prediction from cache and pass as a result
+            predicted_train = None
+            if self._data_cache:
+                results = self._data_cache.load_predicted(graph, fold_id)
+
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
+                                                results=predicted_train,
                                                 validation_blocks=self._validation_blocks)
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
@@ -125,7 +131,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
         if self._data_cache is not None:
-            self._data_cache.save_data(graph, predicted_train, fold_id)
+            self._data_cache.save_predicted(graph, predicted_train, fold_id)
 
         return graph
 
@@ -138,7 +144,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache,  fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
