@@ -46,7 +46,7 @@ class DataCacheDB(BaseCacheDB):
                     cur.execute(query, (uid,))
                     result = cur.fetchone()
                     if result:
-                        result = pickle.loads(result[0])
+                        result = pickle.loads(result[1])
             return result
         except sqlite3.Error as e:
             print(f"SQLite get Error: {e}")
