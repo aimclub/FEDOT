@@ -2,7 +2,11 @@ import logging
 import tracemalloc
 from typing import Optional
 
+import numpy as np
+import pandas as pd
 from golem.core.log import default_log
+
+from fedot.preprocessing.data_types import ID_TO_TYPE
 
 
 class MemoryAnalytics:
@@ -55,3 +59,32 @@ class MemoryAnalytics:
                 logger = default_log(prefix=cls.__name__)
             logger.log(logging_level, message)
         return message
+
+
+def reduce_mem_usage(features, initial_types):
+    df = pd.DataFrame(features)
+    types_array = [ID_TO_TYPE[_type] for _type in initial_types]
+
+    for index, col in enumerate(df.columns):
+        df[col] = df[col].astype(types_array[index])
+        col_type = df[col].dtype.name
+
+        if col_type not in ['object', 'category', 'datetime64[ns, UTC]']:
+            c_min = df[col].min()
+            c_max = df[col].max()
+            if str(col_type)[:3] == 'int':
+                if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
+                    df[col] = df[col].astype(np.int8)
+                elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    df[col] = df[col].astype(np.int16)
+                elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+                elif c_min > np.iinfo(np.int64).min and c_max < np.iinfo(np.int64).max:
+                    df[col] = df[col].astype(np.int64)
+            else:
+                if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    df[col] = df[col].astype(np.float32)
+                else:
+                    df[col] = df[col].astype(np.float64)
+
+    return df

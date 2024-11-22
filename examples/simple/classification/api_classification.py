@@ -4,8 +4,8 @@ from fedot.core.utils import fedot_project_root, set_random_seed
 
 def run_classification_example(timeout: float = None, visualization=False, with_tuning=True):
     problem = 'classification'
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_test.csv'
 
     baseline_model = Fedot(problem=problem, timeout=timeout)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')

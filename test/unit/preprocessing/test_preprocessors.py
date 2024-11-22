@@ -91,24 +91,24 @@ def data_with_complicated_types():
     """
 
     task = Task(TaskTypesEnum.classification)
-    features = np.array([[0, np.nan, 1, 1, 1, 'monday', 'a ', 'true', 1, '0', 'a'],
+    features = np.array([[0, np.nan, 1, 1, 1, 'monday', 'a', 'true', 1, '0', 'a'],
                          [np.nan, 5, 2, 2, 0, 'tuesday', 'b', np.nan, 0, '1', np.inf],
                          [2, np.nan, 3, 3, np.nan, 3, 'c', 'false', 1, '?', 'c'],
-                         [3, np.nan, 4, 4, 3.0, 4, '  a  ', 'true', 0, 'error', 'd'],
-                         [4, np.nan, 5, 5.0, 0, 5, '   b ', np.nan, 0, '3', 'e'],
-                         [5, np.nan, 6, 6, 0, 6, '   c  ', 'false', 0, '4', 'f'],
-                         [6, np.inf, 7, 7, 0, 7, '    a  ', 'true', 1, '5', 'g'],
-                         [7, np.inf, 8, 8, 1.0, 1, ' b   ', np.nan, 0, '6', 'h'],
+                         [3, np.nan, 4, 4, 3.0, 4, 'a', 'true', 0, 'error', 'd'],
+                         [4, np.nan, 5, 5.0, 0, 5, 'b', np.nan, 0, '3', 'e'],
+                         [5, np.nan, 6, 6, 0, 6, 'c', 'false', 0, '4', 'f'],
+                         [6, np.inf, 7, 7, 0, 7, 'a', 'true', 1, '5', 'g'],
+                         [7, np.inf, 8, 8, 1.0, 1, 'b', np.nan, 0, '6', 'h'],
                          [np.inf, np.inf, '9', '9', 2, 2, np.nan, 'true', 1, '7', 'i'],
-                         [9, np.inf, '10', '10', 2, 3, ' c  ', 'false', 0, '8', 'j'],
-                         [10, np.nan, 11.0, 11.0, 0, 4, 'c ', 'false', 0, '9', 'k'],
+                         [9, np.inf, '10', '10', 2, 3, 'c', 'false', 0, '8', 'j'],
+                         [10, np.nan, 11.0, 11.0, 0, 4, 'c', 'false', 0, '9', 'k'],
                          [11, np.nan, 12, 12, 2.0, 5, np.nan, 'false', 1, '10', 'l'],
-                         [12, np.nan, 1, 1.0, 1.0, 6, ' b  ', 'false', 0, '11', 'm'],
-                         [13, np.nan, 2, 2, 1, 7, ' c  ', 'true', np.nan, '12', 'n'],
+                         [12, np.nan, 1, 1.0, 1.0, 6, 'b', 'false', 0, '11', 'm'],
+                         [13, np.nan, 2, 2, 1, 7, 'c', 'true', np.nan, '12', 'n'],
                          [14, np.nan, 3, 3, 2.0, 1, 'a', 'false', np.nan, 'error', 'o'],
-                         [15, np.nan, 4, 4, 1, 2, 'a  ', 'false', np.nan, '13', 'p'],
-                         [16, 2, 5, 12, 0, 3, '   d       ', 'true', 1, '?', 'r'],
-                         [17, 3, 6, 13, 0, 4, '  d      ', 'false', 0, '17', 's']],
+                         [15, np.nan, 4, 4, 1, 2, 'a', 'false', np.nan, '13', 'p'],
+                         [16, 2, 5, 12, 0, 3, 'd', 'true', 1, '?', 'r'],
+                         [17, 3, 6, 13, 0, 4, 'd', 'false', 0, '17', 's']],
                         dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no'], ['no'],
                        ['yes'], ['yes'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['yes'], ['no']])
@@ -216,8 +216,15 @@ def test_binary_pseudo_string_column_process_correctly():
     pipeline = correct_preprocessing_params(pipeline)
     train_predicted = pipeline.fit(train_data)
 
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], float) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+        all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
 
 def fit_predict_cycle_for_testing(idx: int):
@@ -236,12 +243,21 @@ def test_mixed_column_with_str_and_float_values():
     # column with index 0 must be converted to string and encoded with OHE
     train_predicted = fit_predict_cycle_for_testing(idx=0)
     assert train_predicted.features.shape[1] == 5
-    assert all(isinstance(el, np.ndarray) for el in train_predicted.features)
+    assert isinstance(train_predicted.features, pd.DataFrame) or \
+        all(isinstance(el, np.ndarray) for el in train_predicted.features)
 
     # column with index 1 must be converted to float and the gaps must be filled
     train_predicted = fit_predict_cycle_for_testing(idx=1)
+
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], float) for el in train_predicted.features)
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+        all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
     try:

@@ -1,7 +1,8 @@
 from copy import copy
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
+import pandas as pd
 from golem.core.log import default_log
 from sklearn.utils import resample
 
@@ -10,6 +11,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 )
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.memory import reduce_mem_usage
 
 GLOBAL_PREFIX = 'sklearn_imbalanced_class:'
 
@@ -23,16 +25,16 @@ class ResampleImplementation(DataOperationImplementation):
 
     Args:
         params: OperationParameters with the hyperparameters:
-            balance: Data transformation strategy. Balance strategy can be 'expand_minority' or 'reduce_majority'.
-                In case of expand_minority elements of minor class are expanding to n_samples.
-                In otherwise with reduce_majority elements of major class are reducing to n_samples.
+            balance: Data transformation strategy. The balance strategy can be 'expand_minority' or 'reduce_majority'.
+                In case of expand_minority, elements of minor class are expanded to n_samples.
+                Otherwise, with reduce_majority, elements of the major class are reduced to n_samples.
             replace: Implements resampling with replacement. If False, this will implement (sliced) random permutations.
             balance_ratio: Transformation ratio can take values in the range [0, 1].
-                With balance_ratio = 0 nothing happens and data will remain the same.
-                In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will become
-                equal. If balance_ratio < 1.0 means that the data of one class is getting closer to the shape of opposite
-                class. If None numbers of samples will be equal to the shape of opposite selected transformed class.
-    """
+                With balance_ratio = 0 nothing happens and the data remains the same.
+                In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will be the same.
+                If balance_ratio < 1.0 means that the data of one class will get closer to the shape of the opposite class.
+                If none, the number of samples will be equal to the shape of the opposite selected transformed class.
+    """  # noqa
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
@@ -93,6 +95,12 @@ class ResampleImplementation(DataOperationImplementation):
             # If number of elements of each class are equal that transformation is not required
             return self._convert_to_output(input_data, input_data.features)
 
+        if isinstance(copied_data.features, pd.DataFrame):
+            copied_data.features = copied_data.features.to_numpy()
+
+        if isinstance(copied_data.target, pd.DataFrame):
+            copied_data.target = copied_data.target.to_numpy()
+
         min_data, maj_data = self._get_data_by_target(copied_data.features, copied_data.target,
                                                       unique_class, number_of_elements)
 
@@ -116,18 +124,35 @@ class ResampleImplementation(DataOperationImplementation):
 
         transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
+        if isinstance(input_data.features, pd.DataFrame):
+            predict = reduce_mem_usage(
+                transformed_data[:-1].transpose(),
+                input_data.supplementary_data.col_type_ids['features']
+            )
+
+            target = reduce_mem_usage(
+                transformed_data[-1],
+                input_data.supplementary_data.col_type_ids['target']
+            )
+
+        else:
+            predict = transformed_data[:-1].transpose()
+            target = transformed_data[-1]
+
         output_data = OutputData(
             idx=np.arange(transformed_data.shape[1]),
             features=input_data.features,
-            predict=transformed_data[:-1].transpose(),
+            predict=predict,
             task=input_data.task,
-            target=transformed_data[-1],
+            target=target,
             data_type=input_data.data_type,
             supplementary_data=input_data.supplementary_data)
+
         return output_data
 
     @staticmethod
-    def _get_data_by_target(features: np.array, target: np.array, unique: np.array,
+    def _get_data_by_target(features: Union[np.array, pd.DataFrame], target: Union[np.array, pd.DataFrame],
+                            unique: np.array,
                             number_of_elements: np.array) -> np.array:
         """Unify features and target in one array and split into classes
         """

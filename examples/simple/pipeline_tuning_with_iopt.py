@@ -54,7 +54,7 @@ if __name__ == '__main__':
                 .add_node('knnreg', 1)
                 .join_branches('rfr')
                 .build())
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,
                               task=Task(TaskTypesEnum.regression))

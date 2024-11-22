@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 from typing import Optional
 
@@ -80,6 +81,9 @@ class FedotXGBoostImplementation(ModelImplementation):
         if booster == 'gblinear' and enable_categorical:
             self.params.update(enable_categorical=False)
 
+        if booster == 'gbtree' and enable_categorical:
+            self.params.update(enable_categorical=False)
+
     def get_feature_importance(self) -> list:
         return self.model.features_importances_
 
@@ -89,21 +93,23 @@ class FedotXGBoostImplementation(ModelImplementation):
         plot_feature_importance(features_names, model_output.values())
 
     @staticmethod
-    def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-        dataframe = pd.DataFrame(data=data.features)
-        if data.target is not None:
-            dataframe['target'] = np.ravel(data.target)
+    def convert_to_dataframe(input_data: Optional[InputData], identify_cats: bool):
+        copied_input_data = deepcopy(input_data)
+
+        dataframe = pd.DataFrame(data=copied_input_data.features)
+        if copied_input_data.target is not None and copied_input_data.target.size > 0:
+            dataframe['target'] = np.ravel(copied_input_data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
             #  for test.integration.models.test_model.check_predict_correct
-            dataframe['target'] = np.zeros(len(data.features))
+            dataframe['target'] = np.zeros(len(copied_input_data.features))
 
-        if identify_cats and data.categorical_idx is not None:
-            for col in dataframe.columns[data.categorical_idx]:
+        if identify_cats and copied_input_data.categorical_idx is not None:
+            for col in dataframe.columns[copied_input_data.categorical_idx]:
                 dataframe[col] = dataframe[col].astype('category')
 
-        if data.numerical_idx is not None:
-            for col in dataframe.columns[data.numerical_idx]:
+        if copied_input_data.numerical_idx is not None:
+            for col in dataframe.columns[copied_input_data.numerical_idx]:
                 dataframe[col] = dataframe[col].astype('float')
 
         return dataframe.drop(columns=['target']), dataframe['target']
@@ -236,7 +242,7 @@ class FedotLightGBMImplementation(ModelImplementation):
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
-        if data.target is not None:
+        if data.target is not None and data.target.size > 0:
             dataframe['target'] = np.ravel(data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally

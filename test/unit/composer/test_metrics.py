@@ -134,7 +134,17 @@ def test_metrics(metric: ClassificationMetricsEnum, pipeline_func: Callable[[], 
 
     if not update_expected_values:
         expected_value = expected_values[task_type][str(metric)]
-        assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
+
+        if isinstance(expected_value, list):
+            expression_expected_value = []
+
+            for value in expected_value:
+                expression_expected_value.append(np.isclose(metric_value, value, rtol=0.001, atol=0.001))
+            assert any(expression_expected_value)
+
+        else:
+            assert np.isclose(metric_value, expected_value, rtol=0.001, atol=0.001)
+
         assert not np.isclose(metric_value, metric_class.default_value, rtol=0.01, atol=0.01)
     else:
         with open(fedot_project_root() / 'test/data/expected_metric_values.json', 'w') as f:

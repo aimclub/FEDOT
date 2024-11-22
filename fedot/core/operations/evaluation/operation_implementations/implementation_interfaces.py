@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
@@ -82,14 +83,23 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :return operation: trained transformer (optional output)
         """
 
-        features = input_data.features
+        if input_data.task.task_type.name == 'ts_forecasting' and input_data.features.ndim == 2:
+            features = input_data.features.ravel()
+        else:
+            features = input_data.features
 
         # Find boolean columns in features table
         bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
         if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+            if isinstance(features, np.ndarray):
+                if input_data.task.task_type.name == 'ts_forecasting' and input_data.features.ndim == 2:
+                    features = features.reshape(-1, 1)
+
+                features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+            else:
+                features_to_process = np.array(features.iloc[:, ids_to_process]) if features.ndim > 1 else features
             self.operation.fit(features_to_process)
         return self.operation
 
@@ -107,6 +117,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         else:
             transformed_features = features
 
+        transformed_features = np.nan_to_num(transformed_features, copy=False, nan=0, posinf=0, neginf=0)
+
         # Update features and column types
         output_data = self._convert_to_output(input_data, transformed_features)
         self._update_column_types(source_features_shape, output_data)
@@ -120,7 +132,13 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :param features: tabular data for processing
         :return transformed_features: transformed features table
         """
-        features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+        if isinstance(features, np.ndarray):
+            features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+        else:
+            features_to_process = np.array(
+                features.iloc[:, self.ids_to_process]
+            ) if features.ndim > 1 else features.copy()
+
         transformed_part = self.operation.transform(features_to_process)
 
         # If there are no binary features in the dataset
@@ -128,7 +146,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
             transformed_features = transformed_part
         else:
             # Stack transformed features and bool features
-            bool_features = np.array(features[:, self.bool_ids])
+            if isinstance(features, np.ndarray):
+                bool_features = np.array(features[:, self.bool_ids])
+            else:
+                bool_features = np.array(features[self.bool_ids])
+
             frames = (bool_features, transformed_part)
             transformed_features = np.hstack(frames)
 
@@ -160,9 +182,14 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         non_bool_ids = []
 
         # For every column in table make check
-        for column_id in range(0, columns_amount):
-            column = features[:, column_id] if columns_amount > 1 else features.copy()
-            if len(np.unique(column)) > 2:
+        for column_id in range(columns_amount):
+            if isinstance(features, np.ndarray):
+                column = features[:, column_id] if columns_amount > 1 else features.copy()
+            else:
+                column = features.iloc[:, column_id] if columns_amount > 1 else features.copy()
+
+            if (isinstance(column, pd.Series) and len(set(column)) > 2) or \
+               (isinstance(column, np.ndarray) and len(np.unique(column)) > 2):
                 non_bool_ids.append(column_id)
             else:
                 bool_ids.append(column_id)
@@ -236,6 +263,11 @@ def _convert_to_output_function(input_data: InputData, transformed_features: np.
                            task=input_data.task,
                            target=input_data.target,
                            data_type=data_type,
+                           numerical_idx=input_data.numerical_idx,
+                           categorical_idx=input_data.categorical_idx,
+                           encoded_idx=input_data.encoded_idx,
+                           categorical_features=input_data.categorical_features,
+                           features_names=input_data.features_names,
                            supplementary_data=input_data.supplementary_data)
 
     return converted

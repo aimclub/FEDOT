@@ -138,18 +138,17 @@ class Pipeline(GraphDelegate, Serializable):
         if is_fit_stage:
             copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
             # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                           data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                          data=copied_input_data)
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.reduce_memory_size(data=copied_input_data)
         else:
             copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
             # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
-                                                                               data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
-                                                                              data=copied_input_data)
+            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self, data=copied_input_data)
             copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+            copied_input_data = self.preprocessor.reduce_memory_size(data=copied_input_data)
+
         return copied_input_data
 
     def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,

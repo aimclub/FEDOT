@@ -1,12 +1,12 @@
 from datetime import timedelta
 
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.data.data_utils import get_scoring_case_data_paths
+from examples.real_cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 # TODO not working now - add switch to other repository.json

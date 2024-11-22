@@ -63,3 +63,6 @@ class DummyPreprocessor(BasePreprocessor):
     def update_indices_for_time_series(self, test_data: Union[InputData, MultiModalData]
                                        ) -> Union[InputData, MultiModalData]:
         return test_data
+
+    def reduce_memory_size(self, data: InputData) -> InputData:
+        return data

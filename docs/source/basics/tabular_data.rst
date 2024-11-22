@@ -113,4 +113,4 @@ More details you can find in the follow links:
 
 **Cases**
 
-* `Case: Credit scoring problem <https://github.com/aimclub/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`_
+* `Case: Credit scoring problem <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/credit_scoring/credit_scoring_problem.py>`_

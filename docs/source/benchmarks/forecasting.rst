@@ -128,6 +128,36 @@ Here, as per usual, the best value is indicated in bold for each row (for each s
     | repeat_last | 2.008   | 5.365   | 7.796   | 7.379     | 9.066   | 5.158   |
     +-------------+---------+---------+---------+-----------+---------+---------+
 
+The custom visualizations of the critical difference plot using the Wilcoxon-Holm method for detecting pairwise significance for different levels of seasonality are shown below:
+
+
+Daily M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-daily-m4-forecasting.svg
+
+Weekly M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-weekly-m4-forecasting.svg
+
+Monthly M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-monthly-m4-forecasting.svg
+
+Quarterly M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-quarterly-m4-forecasting.svg
+
+Yearly M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-yearly-m4-forecasting.svg
+
+All seasons M4 (SMAPE):
+
+.. image:: ./img_benchmarks/cd-overall-m4-forecasting.svg
+
+
+We can claim that results are statistically better than TimeGPT and LAGLLAMA and and indistinguishable from NBEATS and AutoGluon.
+
 
 The statistical analysis on SMAPE metrics was conducted using the Friedman t-test.
 The results confirm that FEDOT's time series forecasting ability is statistically indistinguishable from

@@ -16,6 +16,7 @@ _convertable_types = (bool, float, int, str, type(None))  # preserve lexicograph
 _type_ids = range(len(_convertable_types))
 
 TYPE_TO_ID = dict(zip(_convertable_types, _type_ids))
+ID_TO_TYPE = dict(zip(_type_ids, _convertable_types))
 
 _TYPES = 'types'
 _FLOAT_NUMBER = 'float_number'
@@ -85,10 +86,10 @@ class TableTypesCorrector:
 
         # And in target(s)
         data.target = self.target_types_converting(target=data.target, task=data.task)
-        data.supplementary_data.col_type_ids = self.prepare_column_types_info(predictors=data.features,
-                                                                              target=data.target,
-                                                                              task=data.task)
-
+        column_types_info = self.prepare_column_types_info(predictors=data.features, target=data.target, task=data.task)
+        data.supplementary_data.col_type_ids = column_types_info
+        col_types_info_message = prepare_log_message_with_cols_types(column_types_info, data.features_names)
+        self.log.debug(f'--- The detected types of data are as follows: {col_types_info_message}')
         self._into_numeric_features_transformation_for_fit(data)
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
@@ -155,7 +156,7 @@ class TableTypesCorrector:
 
     def prepare_column_types_info(self, predictors: np.ndarray, target: np.ndarray = None,
                                   task: Task = None) -> dict:
-        """ Prepare information about columns in a form of dictionary
+        """ Prepare information about columns in a form of dictionary.
         Dictionary has two keys: 'target' and 'features'
         """
         if self.features_columns_info.empty:
@@ -181,7 +182,7 @@ class TableTypesCorrector:
         Such columns have no conflicts with types converting.
         """
         if self.string_columns_transformation_failed:
-            self.log.warning(f'Columns with indices {self.string_columns_transformation_failed} were '
+            self.log.message(f'Columns with indices {self.string_columns_transformation_failed} were '
                              f'removed during mixed types column converting due to conflicts.')
 
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
@@ -279,21 +280,56 @@ class TableTypesCorrector:
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
         """
-        feature_type_ids = data.supplementary_data.col_type_ids['features']
-        is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
-        numeric_type_ids = np.flatnonzero(is_numeric_type)
-        num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
-        nuniques = num_df.nunique(dropna=True)
+        if data.categorical_idx is None:
+            feature_type_ids = data.supplementary_data.col_type_ids['features']
+            is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+            numeric_type_ids = np.flatnonzero(is_numeric_type)
+            num_df = pd.DataFrame(data.features[:, numeric_type_ids], columns=numeric_type_ids)
+            nuniques = num_df.nunique(dropna=True)
 
-        # reduce dataframe to include only categorical features
-        num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
-        cat_col_ids = num_df.columns
-        # Convert into string
-        data.features[:, cat_col_ids] = num_df.apply(convert_num_column_into_string_array).to_numpy()
-        # Columns need to be transformed into categorical (string) ones
-        self.numerical_into_str.extend(cat_col_ids.difference(self.numerical_into_str))
-        # Update information about column types (in-place)
-        feature_type_ids[cat_col_ids] = TYPE_TO_ID[str]
+            # TODO: Improve the naive approach (with categorical_max_uniques_th) of identifying categorical data
+            #  to a smarter approach (eg. numeric, features naming with llm)
+            # reduce dataframe to include only categorical features
+            num_df = num_df.loc[:, (2 < nuniques) & (nuniques < self.categorical_max_uniques_th)]
+
+            if data.categorical_idx is not None:
+                # If cats features were defined take it
+                cat_col_ids = data.categorical_idx
+            else:
+                # Else cats features are selected by heuristic rule
+                cat_col_ids = num_df.columns
+
+            if np.size(cat_col_ids) > 0:
+                # Convert into string
+                data.features[:, cat_col_ids] = num_df.apply(
+                    convert_num_column_into_string_array).to_numpy()
+                # Columns need to be transformed into categorical (string) ones
+                self.numerical_into_str.extend(cat_col_ids.difference(self.numerical_into_str))
+                # Update information about column types (in-place)
+                feature_type_ids[cat_col_ids] = TYPE_TO_ID[str]
+
+            # Update cat cols idx in data
+            is_cat_type = np.isin(feature_type_ids, [TYPE_TO_ID[str]])
+            all_cat_col_ids = np.flatnonzero(is_cat_type)
+            data.categorical_idx = all_cat_col_ids
+
+            # Update num cols idx in data
+            is_numeric_type = np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float]])
+            all_numeric_type_ids = np.flatnonzero(is_numeric_type)
+            data.numerical_idx = all_numeric_type_ids
+
+            if np.size(all_cat_col_ids) > 0:
+                if data.features_names is not None:
+                    cat_features_names = data.features_names[all_cat_col_ids]
+                    self.log.info(
+                        f'Preprocessing defines the following columns as categorical: {cat_features_names}'
+                    )
+                else:
+                    self.log.info(
+                        f'Preprocessing defines the following columns as categorical: {all_cat_col_ids}'
+                    )
+            else:
+                self.log.info('Preprocessing was unable to define the categorical columns')
 
     def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
@@ -343,6 +379,7 @@ class TableTypesCorrector:
             (self.acceptable_failed_rate_bottom <= failed_ratio) &
             (failed_ratio < self.acceptable_failed_rate_top))
         self.string_columns_transformation_failed.update(dict.fromkeys(is_of_mistakes[is_of_mistakes].index))
+        data.numerical_idx = is_numeric_ids
 
     def _into_numeric_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into float string column for every signed column """
@@ -499,3 +536,17 @@ def _process_predict_column_values_one_by_one(value, current_type: type):
             except ValueError:
                 pass
     return new_value
+
+
+def prepare_log_message_with_cols_types(col_types_info, features_names):
+    message = '\n' + 'Features\n'
+    for type_name, type_id in TYPE_TO_ID.items():
+        count_types = np.count_nonzero(col_types_info['features'] == type_id)
+        features_idx = np.where(col_types_info['features'] == type_id)[0]
+        names_or_indexes = features_names[features_idx] if features_names is not None else features_idx
+        message += f'\tTYPE {type_name} - count {count_types} - features {names_or_indexes} \n' \
+
+    message += '-' * 10 + '\n'
+    message += f'Target: TYPE {_convertable_types[col_types_info["target"][0]]}'
+
+    return message

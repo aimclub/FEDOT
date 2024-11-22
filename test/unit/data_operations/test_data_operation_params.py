@@ -69,7 +69,7 @@ def test_ransac_with_invalid_params_fit_correctly():
     than the number of objects
     """
 
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path)
     train, test = train_test_data_setup(data)

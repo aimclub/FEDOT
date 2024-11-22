@@ -28,7 +28,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     :param n_jobs: how many processors you want to use in a multiprocessing mode
 
     """
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+    train_data_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
     problem = 'classification'
 

@@ -18,7 +18,7 @@ def show_fitted_time_series(len_forecast=24):
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 
-    ts_input = InputData.from_csv_time_series(file_path='../../../cases/data/time_series/metocean.csv',
+    ts_input = InputData.from_csv_time_series(file_path='../../real_examples/real_cases/data/time_series/metocean.csv',
                                               task=task, target_column='value')
 
     pipeline = get_simple_short_lagged_pipeline()

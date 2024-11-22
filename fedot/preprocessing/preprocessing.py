@@ -31,6 +31,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
 from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
+from fedot.utilities.memory import reduce_mem_usage
 
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
@@ -192,6 +193,7 @@ class DataPreprocessor(BasePreprocessor):
             return data
 
         # Convert datetime data to numerical
+        self.log.debug('-- Converting datetime data to numerical')
         data.features = np_datetime_to_numeric(data.features)
         if data.target is not None:
             data.target = np_datetime_to_numeric(data.target)
@@ -200,39 +202,58 @@ class DataPreprocessor(BasePreprocessor):
         data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
+        self.log.debug('-- Fixing table / time series shapes')
         data = self._correct_shapes(data)
         replace_inf_with_nans(data)
 
         # Find incorrect features which must be removed
         if is_fit_stage:
+            self.log.debug('-- Finding incorrect features')
             self._find_features_lacking_nans(data, source_name)
+
+        self.log.debug('-- Removing incorrect features')
         self._take_only_correct_features(data, source_name)
 
         if is_fit_stage:
+            self.log.debug('-- Dropping rows with NaN-values in target')
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
+            self.log.debug('-- Features types processing')
             self.types_correctors[source_name].convert_data_for_fit(data)
+
             if self.types_correctors[source_name].target_converting_has_errors:
+                self.log.debug('-- Dropping rows with NaN-values in target')
                 data = self._drop_rows_with_nan_in_target(data)
+
             # Train Label Encoder for categorical target if necessary and apply it
+            self.log.debug('-- Applying the Label Encoder to Target due to the presence of categories')
             if source_name not in self.target_encoders:
                 self._train_target_encoder(data, source_name)
+
             data.target = self._apply_target_encoding(data, source_name)
+
         else:
+            self.log.debug('-- Converting data for predict')
             self.types_correctors[source_name].convert_data_for_predict(data)
+
+        feature_type_ids = data.supplementary_data.col_type_ids['features']
+        data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
             # TODO andreygetmanov to new class text preprocessing?
             replace_nans_with_empty_strings(data)
+
         elif data_type_is_table(data):
-            data = self._clean_extra_spaces(data)
-            # Process binary categorical features
             if is_fit_stage:
+                self.log.debug('-- Searching binary categorical features to encode them')
                 data = self.binary_categorical_processors[source_name].fit_transform(data)
             else:
                 data = self.binary_categorical_processors[source_name].transform(data)
+
+            feature_type_ids = data.supplementary_data.col_type_ids['features']
+            data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
 
         return data
 
@@ -252,10 +273,13 @@ class DataPreprocessor(BasePreprocessor):
             (data_has_missing_values, 'imputation', self._apply_imputation_unidata),
             (data_has_categorical_features, 'encoding', self._apply_categorical_encoding)
         ]:
+            self.log.debug(f'Deciding to apply {tag_to_check} for data')
             if has_problems(data):
+                self.log.debug(f'Finding {tag_to_check} is required and trying to apply')
                 # Data contains missing values
                 has_tag = PipelineStructureExplorer.check_structure_by_tag(
                     pipeline, tag_to_check=tag_to_check, source_name=source_name)
+
                 if not has_tag:
                     data = action_if_no_tag(data, source_name)
 
@@ -270,10 +294,13 @@ class DataPreprocessor(BasePreprocessor):
         features = data.features
         axes_except_cols = (0,) + tuple(range(2, features.ndim))
         are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
+        self.log.debug(
+            f'--- The number of features with an acceptable nan\'s percent value was taken '
+            f'{len(are_allowed)} / {data.features.shape[1]}'
+        )
         self.ids_relevant_features[source_name] = np.flatnonzero(are_allowed)
 
-    @staticmethod
-    def _drop_rows_with_nan_in_target(data: InputData) -> InputData:
+    def _drop_rows_with_nan_in_target(self, data: InputData) -> InputData:
         """
         Drops rows with nans in target column
 
@@ -299,33 +326,11 @@ class DataPreprocessor(BasePreprocessor):
         data.target = target[non_nan_row_ids, :]
         data.idx = np.array(data.idx)[non_nan_row_ids]
 
-        return data
+        self.log.debug(
+            f'--- The number of rows with an nan\'s in target is '
+            f'{sum(number_nans_per_rows)} / {data.features.shape[0]}'
+        )
 
-    @staticmethod
-    def _clean_extra_spaces(data: InputData) -> InputData:
-        """
-        Removes extra spaces from data.
-            Transforms cells in columns from ' x ' to 'x'
-
-        Args:
-            data: to be stripped
-
-        Returns:
-            cleaned ``data``
-        """
-
-        def strip_all_strs(item: Union[object, str]):
-            try:
-                return item.strip()
-            except AttributeError:
-                # not a str object
-                return item
-
-        features_df = pd.DataFrame(data.features)
-        mixed_or_str = features_df.select_dtypes(object)
-        features_df[mixed_or_str.columns] = mixed_or_str.applymap(strip_all_strs)
-
-        data.features = features_df.to_numpy()
         return data
 
     @copy_doc(BasePreprocessor.label_encoding_for_fit)
@@ -361,20 +366,26 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             imputed ``data``
         """
+        self.log.debug('--- Initialising imputer')
         imputer = self.features_imputers.get(source_name)
+
         if not imputer:
             imputer = ImputationImplementation()
+            self.log.debug('--- Fitting and transforming imputer for missings')
             output_data = imputer.fit_transform(data)
             self.features_imputers[source_name] = imputer
+
         else:
+            self.log.debug('--- Transforming imputer for missings')
             output_data = imputer.transform(data)
+
         data.features = output_data.predict
         return data
 
     def _apply_categorical_encoding(self, data: InputData, source_name: str) -> InputData:
         """
         Transforms the data inplace. Uses the same transformations as for the training data if trained already.
-        Otherwise fits appropriate encoder and converts data's categorical features with it.
+        Otherwise, fits appropriate encoder and converts data's categorical features with it.
 
         Args:
             data: data to be transformed
@@ -383,11 +394,16 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             encoded ``data``
         """
+        self.log.debug('--- Initialising categorical encoder')
         encoder = self.features_encoders.get(source_name)
+
         if encoder is None:
             encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
+
+        self.log.debug(f'--- {encoder.__class__.__name__} was chosen as categorical encoder')
+        self.log.debug('--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
@@ -542,3 +558,30 @@ class DataPreprocessor(BasePreprocessor):
                 last_id = len(input_data.idx)
                 input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
+
+    @copy_doc(BasePreprocessor.reduce_memory_size)
+    def reduce_memory_size(self, data: InputData) -> InputData:
+        if isinstance(data, InputData):
+            if data.task.task_type == TaskTypesEnum.ts_forecasting:
+                # TODO: TS data has col_type_ids['features'] = None.
+                #  It required to add this to reduce memory for them
+                pass
+            else:
+                if data.data_type == DataTypesEnum.table:
+                    self.log.debug('-- Reduce memory in features')
+                    data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
+
+                    if data.target is not None:
+                        self.log.debug('-- Reduce memory in target')
+                        data.target = reduce_mem_usage(data.target, data.supplementary_data.col_type_ids['target'])
+                        data.target = data.target.to_numpy()
+
+        return data
+
+    def _update_num_and_cats_ids(self, feature_type_ids):
+        numerical_idx = np.flatnonzero(
+            np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float], TYPE_TO_ID[bool]])
+        )
+        categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
+
+        return numerical_idx, categorical_idx

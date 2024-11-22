@@ -5,7 +5,7 @@ import pytest
 from golem.utilities.profiler.memory_profiler import MemoryProfiler
 from golem.utilities.profiler.time_profiler import TimeProfiler
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data, run_credit_scoring_problem
+from examples.real_cases.credit_scoring.credit_scoring_problem import get_scoring_data, run_credit_scoring_problem
 
 
 @pytest.fixture(scope='session', autouse=True)
