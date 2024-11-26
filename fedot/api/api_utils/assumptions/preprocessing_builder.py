@@ -39,13 +39,18 @@ class PreprocessingBuilder:
             preprocessing_builder = preprocessing_builder.with_text_vectorizer()
         return preprocessing_builder.to_builder()
 
+    def with_scaling(self):
+        if self.task_type is not TaskTypesEnum.ts_forecasting and self.data_type is not DataTypesEnum.image:
+            self._builder.add_node('scaling')
+        return self
+
     def with_text_vectorizer(self):
         self._builder.add_node('tfidf')
         return self
 
     def to_builder(self) -> PipelineBuilder:
         """ Return result as PipelineBuilder. Scaling is applied final by default. """
-        return self._builder
+        return self.with_scaling()._builder
 
     def to_pipeline(self) -> Optional[Pipeline]:
         """
