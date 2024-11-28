@@ -54,7 +54,7 @@ class DataCache(BaseCache):
 
     def _create_uid(
         self,
-        pipeline: "Pipeline",
+        pipeline: "Pipeline",  # TODO: pipeline or node
         fold_id: Optional[int] = None,
     ) -> str:
         """
@@ -65,8 +65,13 @@ class DataCache(BaseCache):
         :return str: The unique identifier generated for the pipeline.
         """
         base_uid = ""
-        for node in pipeline.nodes:
-            base_uid += f"{node.descriptive_id}_"
+        # TODO: pipeline or node
+        from fedot.core.pipelines.pipeline import Pipeline
+        if isinstance(pipeline, Pipeline):
+            for node in pipeline.nodes:
+                base_uid += f"{node.descriptive_id}_"
+        else:
+            base_uid += f"{pipeline.descriptive_id}_"
         if fold_id is not None:
             base_uid += f"{fold_id}"
         return base_uid

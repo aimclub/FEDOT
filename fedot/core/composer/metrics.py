@@ -59,7 +59,8 @@ class QualityMetric(Metric):
 
     @classmethod
     def get_value(cls, pipeline: Pipeline, reference_data: InputData,
-                  #   results: Optional[OutputData] = None,
+                  data_cache=None,
+                  fold_id=None,
                   validation_blocks: Optional[int] = None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
@@ -74,7 +75,7 @@ class QualityMetric(Metric):
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
                 # TODO: train cache
-                reference_data, results = cls._simple_prediction(pipeline, reference_data)
+                reference_data, results = cls._simple_prediction(pipeline, reference_data, data_cache, fold_id)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
@@ -98,9 +99,12 @@ class QualityMetric(Metric):
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData) -> Tuple[InputData, OutputData]:
+    def _simple_prediction(
+            cls, pipeline: Pipeline, reference_data: InputData, data_cache=None, fold_id=None) -> Tuple[
+            InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
-        return reference_data, pipeline.predict(reference_data, output_mode=cls.output_mode)
+        return reference_data, pipeline.predict(
+            reference_data, output_mode=cls.output_mode, data_cache=data_cache, fold_id=None)
 
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,

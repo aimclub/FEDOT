@@ -87,8 +87,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             else:
                 evaluated_fitness = self._objective(prepared_pipeline,
                                                     reference_data=test_data,
-                                                    # results=predicted_train,
-                                                    validation_blocks=self._validation_blocks)
+                                                    validation_blocks=self._validation_blocks,
+                                                    data_cache=self._data_cache,
+                                                    fold_id=fold_id)
                 if self._data_cache is not None:
                     self._log.message("--- save evaluate metrics cache")
                     self._data_cache.save_predicted(graph, evaluated_fitness, fold_id)
@@ -130,7 +131,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         predicted_train = graph.fit(
             train_data,
             n_jobs=n_jobs,
-            time_constraint=self._time_constraint
+            time_constraint=self._time_constraint,
+            data_cache=self._data_cache,
+            fold_id=fold_id
         )
 
         if self._pipelines_cache is not None:
