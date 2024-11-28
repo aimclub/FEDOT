@@ -82,12 +82,15 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if self._data_cache is not None:
                 evaluated_fitness = self._data_cache.load_predicted(graph, fold_id)
 
-            if evaluated_fitness is None:
+            if evaluated_fitness is not None:
+                self._log.message("--- load evaluate metrics cache")
+            else:
                 evaluated_fitness = self._objective(prepared_pipeline,
                                                     reference_data=test_data,
                                                     # results=predicted_train,
                                                     validation_blocks=self._validation_blocks)
                 if self._data_cache is not None:
+                    self._log.message("--- save evaluate metrics cache")
                     self._data_cache.save_predicted(graph, evaluated_fitness, fold_id)
 
             if evaluated_fitness.valid:
@@ -153,14 +156,28 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
-            intermediate_graph.fit(
-                train_data,
-                time_constraint=self._time_constraint,
-                n_jobs=self._eval_n_jobs,
-            )
-            intermediate_fitness = self._objective(intermediate_graph,
-                                                   reference_data=test_data,
-                                                   validation_blocks=self._validation_blocks)
+
+            # TODO: try load metrics
+            intermediate_fitness = None
+            if self._data_cache is not None:
+                intermediate_fitness = self._data_cache.load_predicted(intermediate_graph)
+
+            if intermediate_fitness is not None:
+                self._log.message("--- load intermediate metrics cache")
+            else:
+                intermediate_graph.fit(
+                    train_data,
+                    time_constraint=self._time_constraint,
+                    n_jobs=self._eval_n_jobs,
+                )
+                intermediate_fitness = self._objective(intermediate_graph,
+                                                       reference_data=test_data,
+                                                       validation_blocks=self._validation_blocks)
+                # TODO: try save metrics
+                if self._data_cache is not None:
+                    self._log.message("--- save intermediate metrics cache")
+                    self._data_cache.save_predicted(intermediate_graph, intermediate_fitness)
+
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
 
