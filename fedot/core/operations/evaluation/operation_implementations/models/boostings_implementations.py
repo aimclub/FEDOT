@@ -97,7 +97,7 @@ class FedotXGBoostImplementation(ModelImplementation):
         copied_input_data = deepcopy(input_data)
 
         dataframe = pd.DataFrame(data=copied_input_data.features)
-        
+
         if copied_input_data.target is not None and copied_input_data.target.size > 0:
             target = copied_input_data.target[:dataframe.shape[0]]
             dataframe['target'] = np.ravel(target)
@@ -246,7 +246,7 @@ class FedotLightGBMImplementation(ModelImplementation):
         copied_input_data = deepcopy(data)
 
         dataframe = pd.DataFrame(data=copied_input_data.features)
-        
+
         if copied_input_data.target is not None and copied_input_data.target.size > 0:
             target = copied_input_data.target[:dataframe.shape[0]]
             dataframe['target'] = np.ravel(target)
