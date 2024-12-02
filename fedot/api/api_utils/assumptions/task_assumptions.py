@@ -128,8 +128,7 @@ class RegressionAssumptions(TaskAssumptions):
                 "n_estimators": 100,
                 "max_depth": None,
                 "min_samples_split": 2,
-                "min_samples_leaf": 1,
-                "n_jobs": -1,
+                "min_samples_leaf": 1
             },
             RIDGE: {}
         }
@@ -201,8 +200,7 @@ class ClassificationAssumptions(TaskAssumptions):
                 "n_estimators": 100,
                 "max_depth": None,
                 "min_samples_split": 2,
-                "min_samples_leaf": 1,
-                "n_jobs": -1,
+                "min_samples_leaf": 1
             },
             LOGIT: {}
         }
