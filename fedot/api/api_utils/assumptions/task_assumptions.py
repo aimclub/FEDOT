@@ -135,8 +135,10 @@ class RegressionAssumptions(TaskAssumptions):
 
         # Get composite assumptions
         assumptions['gbm'] = PipelineBuilder() \
-        .add_branch(CATBOOSTREG, XGBOOSTREG, LGBMREG) \
-        .join_branches(CATBOOSTREG)
+        .add_branch((CATBOOSTREG, models_params[CATBOOSTREG]), 
+                    (XGBOOSTREG, models_params[XGBOOSTREG]), 
+                    (LGBMREG, models_params[LGBMREG])) \
+        .join_branches(CATBOOSTREG, models_params[CATBOOSTREG])
 
         # Get single-node assumptions
         single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
@@ -175,7 +177,7 @@ class ClassificationAssumptions(TaskAssumptions):
         # Parameters of models
         models_params = {
             CATBOOST: {
-                "early_stopping_rounds": 30,
+                "early_stopping_rounds": 31,
                 "use_eval_set": True,
                 "use_best_model": True
             },
@@ -207,8 +209,10 @@ class ClassificationAssumptions(TaskAssumptions):
 
         # Get composite assumptions
         assumptions['gbm'] = PipelineBuilder() \
-        .add_branch(CATBOOST, XGBOOST, LGBM) \
-        .join_branches(CATBOOST)
+        .add_branch((CATBOOST, models_params[CATBOOST]), 
+                    (XGBOOST, models_params[XGBOOST]), 
+                    (LGBM, models_params[LGBM])) \
+        .join_branches(CATBOOST, models_params[CATBOOST])
 
         # Get single-node assumptions
         single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
