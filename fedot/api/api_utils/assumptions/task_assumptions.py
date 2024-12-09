@@ -134,18 +134,14 @@ class RegressionAssumptions(TaskAssumptions):
         }
 
         # Get composite assumptions
-        # assumptions['gbm'] = PipelineBuilder() \
-        #     .add_branch((CATBOOSTREG, models_params[CATBOOSTREG]),
-        #                 (XGBOOSTREG, models_params[XGBOOSTREG]),
-        #                 (LGBMREG, models_params[LGBMREG])) \
-        #     .join_branches(CATBOOSTREG, models_params[CATBOOSTREG])
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch((CATBOOSTREG, models_params[CATBOOSTREG]),
+                        (XGBOOSTREG, models_params[XGBOOSTREG]),
+                        (LGBMREG, models_params[LGBMREG])) \
+            .join_branches(RIDGE, models_params[RIDGE])
 
         # Get single-node assumptions
-        single_models = [CATBOOSTREG,
-                         # XGBOOSTREG,
-                         # LGBMREG,
-                         RFR,
-                         RIDGE]
+        single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
 
         for model in single_models:
             assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
@@ -212,18 +208,14 @@ class ClassificationAssumptions(TaskAssumptions):
         }
 
         # Get composite assumptions
-        # assumptions['gbm'] = PipelineBuilder() \
-        #     .add_branch((CATBOOST, models_params[CATBOOST]),
-        #                 (XGBOOST, models_params[XGBOOST]),
-        #                 (LGBM, models_params[LGBM])) \
-        #     .join_branches(CATBOOST, models_params[CATBOOST])
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch((CATBOOST, models_params[CATBOOST]),
+                        (XGBOOST, models_params[XGBOOST]),
+                        (LGBM, models_params[LGBM])) \
+            .join_branches(LOGIT, models_params[LOGIT])
 
         # Get single-node assumptions
-        single_models = [CATBOOST,
-                         # XGBOOST,
-                         # LGBM,
-                         RF,
-                         LOGIT]
+        single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
 
         for model in single_models:
             assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
