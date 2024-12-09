@@ -35,8 +35,11 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :return: prediction target
         """
 
-        prediction = self._sklearn_compatible_prediction(trained_operation=trained_operation,
-                                                         features=predict_data.features)
+        prediction = self._sklearn_compatible_prediction(
+            trained_operation=trained_operation,
+            features=predict_data.features
+        )
+
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

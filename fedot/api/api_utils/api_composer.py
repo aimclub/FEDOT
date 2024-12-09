@@ -110,7 +110,12 @@ class ApiComposer:
                                                                         eval_n_jobs=self.params.n_jobs)
 
         self.log.message(
-            f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
+            f'Initial pipeline was fitted in '
+            f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.')
+
+        self.log.message(
+            f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
+            f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 

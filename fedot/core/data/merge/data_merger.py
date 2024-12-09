@@ -78,6 +78,11 @@ class DataMerger:
 
         return InputData(idx=common_idx, features=merged_features, target=filtered_main_target,
                          task=self.main_output.task, data_type=self.data_type,
+                         numerical_idx=self.main_output.numerical_idx,
+                         categorical_idx=self.main_output.categorical_idx,
+                         encoded_idx=self.main_output.encoded_idx,
+                         categorical_features=self.main_output.categorical_features,
+                         features_names=self.main_output.features_names,
                          supplementary_data=updated_metadata)
 
     def merge_targets(self) -> np.array:
