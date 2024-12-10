@@ -27,17 +27,14 @@ auto_model = Fedot(
     metric=["rmse"],
     preset="best_quality",
     with_tuning=False,
-    timeout=30,
+    timeout=3,
     cv_folds=5,
     seed=42,
     n_jobs=1,
     initial_assumption=PipelineBuilder()
-    .add_node(
-        "scaling",
-    )
-    .add_node(
-        "linear",
-    )
+    .add_node("scaling")
+    .add_node("scaling")
+    .add_node("linear")
     .build(),
     # logging_level=10,
     use_pipelines_cache=False,
@@ -45,23 +42,8 @@ auto_model = Fedot(
 )
 
 auto_model.fit(features=train_data)
-# cProfile.run('auto_model.fit(features=df, target="a")', "restats")
-
-# p = pstats.Stats("restats")
-# p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(".*cache.*")
-
+auto_model.current_pipeline.show()
 prediction = auto_model.predict(features=test_data, save_predictions=False)
-
-# fail {'depth': 4, 'length': 5, 'nodes': [linear, ridge, scaling, isolation_forest_reg, scaling]}
-# fail {'depth': 3, 'length': 3, 'nodes': [ridge, resample, scaling]}
-# success "resample", "scaling", "normalization", "ransac_lin_reg", "svr"
-# fail ((/n_scaling;)/n_isolation_forest_reg;;/n_scaling;)/n_ridge
-# fail ((/n_normalization;)/n_scaling;;/n_normalization;)/n_ridge
-# success {'depth': 2, 'length': 2, 'nodes': [linear, isolation_forest_reg]}
-# success "scaling", "linear"
-# fail ((/n_normalization;)/n_scaling;;/n_normalization;)/n_ridge
-# fail {'depth': 3, 'length': 3, 'nodes': [ridge, normalization, scaling]}
-
 
 auto_model.current_pipeline.save(path="C:/Users/nnikitin-user/Desktop/FEDOT/saved_pipelines", create_subdir=True, is_datetime_in_path=True)
 
