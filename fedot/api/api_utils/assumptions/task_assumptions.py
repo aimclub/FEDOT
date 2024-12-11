@@ -135,15 +135,15 @@ class ClassificationAssumptions(TaskAssumptions):
         XGBOOST = 'xgboost'
         LGBM = 'lgbm'
         RF = 'rf'
-        RIDGE = 'ridge'
+        LOGIT = 'logit'
 
         # Get composite assumptions
         assumptions['gbm'] = PipelineBuilder() \
             .add_branch(CATBOOST, XGBOOST, LGBM) \
-            .join_branches(RIDGE)
+            .join_branches(LOGIT)
 
         # Get single-node assumptions
-        single_models = [CATBOOST, XGBOOST, LGBM, RF, RIDGE]
+        single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
 
         for model in single_models:
             assumptions[model] = PipelineBuilder().add_node(model)
