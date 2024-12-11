@@ -90,10 +90,27 @@ class RegressionAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge'),
-        }
+        assumptions = {}
+
+        # Constants
+        CATBOOSTREG = 'catboostreg'
+        XGBOOSTREG = 'xgboostreg'
+        LGBMREG = 'lgbmreg'
+        RFR = 'rfr'
+        RIDGE = 'ridge'
+
+        # Get composite assumptions
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch(CATBOOSTREG, XGBOOSTREG, LGBMREG) \
+            .join_branches(RIDGE)
+
+        # Get single-node assumptions
+        single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
+
+        for model in single_models:
+            assumptions[model] = PipelineBuilder().add_node(model)
+
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -111,11 +128,27 @@ class ClassificationAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            'rf': PipelineBuilder().add_node('rf'),
-            'logit': PipelineBuilder().add_node('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
-        }
+        assumptions = {}
+
+        # Constants
+        CATBOOST = 'catboost'
+        XGBOOST = 'xgboost'
+        LGBM = 'lgbm'
+        RF = 'rf'
+        RIDGE = 'ridge'
+
+        # Get composite assumptions
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch(CATBOOST, XGBOOST, LGBM) \
+            .join_branches(RIDGE)
+
+        # Get single-node assumptions
+        single_models = [CATBOOST, XGBOOST, LGBM, RF, RIDGE]
+
+        for model in single_models:
+            assumptions[model] = PipelineBuilder().add_node(model)
+
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rf'
