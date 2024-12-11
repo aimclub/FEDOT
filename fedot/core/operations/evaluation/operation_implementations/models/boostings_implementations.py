@@ -97,11 +97,8 @@ class FedotXGBoostImplementation(ModelImplementation):
         copied_input_data = deepcopy(input_data)
 
         dataframe = pd.DataFrame(data=copied_input_data.features)
-
         if copied_input_data.target is not None and copied_input_data.target.size > 0:
-            rows_len = dataframe.shape[0]
-            target = copied_input_data.target[:rows_len]
-            dataframe['target'] = np.ravel(target)
+            dataframe['target'] = np.ravel(copied_input_data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
             #  for test.integration.models.test_model.check_predict_correct
@@ -244,14 +241,9 @@ class FedotLightGBMImplementation(ModelImplementation):
 
     @staticmethod
     def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-        copied_input_data = deepcopy(data)
-
-        dataframe = pd.DataFrame(data=copied_input_data.features)
-
-        if copied_input_data.target is not None and copied_input_data.target.size > 0:
-            rows_len = dataframe.shape[0]
-            target = copied_input_data.target[:rows_len]
-            dataframe['target'] = np.ravel(target)
+        dataframe = pd.DataFrame(data=data.features, columns=data.features_names)
+        if data.target is not None and data.target.size > 0:
+            dataframe['target'] = np.ravel(data.target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
             #  for test.integration.models.test_model.check_predict_correct
