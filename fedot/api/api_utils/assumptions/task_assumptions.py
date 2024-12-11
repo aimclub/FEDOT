@@ -90,10 +90,63 @@ class RegressionAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge'),
+        # All assumptions
+        assumptions = {}
+
+        # Constants
+        CATBOOSTREG = 'catboostreg'
+        XGBOOSTREG = 'xgboostreg'
+        LGBMREG = 'lgbmreg'
+        RFR = 'rfr'
+        RIDGE = 'ridge'
+
+        # Parameters of models
+        models_params = {
+            CATBOOSTREG: {
+                "early_stopping_rounds": 30,
+                "use_eval_set": True,
+                "use_best_model": True
+            },
+            XGBOOSTREG: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "max_depth": 6,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            LGBMREG: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "num_leaves": 31,
+                "max_depth": -1,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            RFR: {
+                "n_estimators": 100,
+                "max_depth": None,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1
+            },
+            RIDGE: {}
         }
+
+        # Get composite assumptions
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch((CATBOOSTREG, models_params[CATBOOSTREG]),
+                        (XGBOOSTREG, models_params[XGBOOSTREG]),
+                        (LGBMREG, models_params[LGBMREG])) \
+            .join_branches(RIDGE, models_params[RIDGE])
+
+        # Get single-node assumptions
+        single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
+
+        for model in single_models:
+            assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
+
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -111,11 +164,63 @@ class ClassificationAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        return {
-            'rf': PipelineBuilder().add_node('rf'),
-            'logit': PipelineBuilder().add_node('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
+        # All assumptions
+        assumptions = {}
+
+        # Constants
+        CATBOOST = 'catboost'
+        XGBOOST = 'xgboost'
+        LGBM = 'lgbm'
+        RF = 'rf'
+        LOGIT = 'logit'
+
+        # Parameters of models
+        models_params = {
+            CATBOOST: {
+                "early_stopping_rounds": 31,
+                "use_eval_set": True,
+                "use_best_model": True
+            },
+            XGBOOST: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "max_depth": 6,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            LGBM: {
+                "n_estimators": 1000,
+                "learning_rate": 0.05,
+                "num_leaves": 31,
+                "max_depth": -1,
+                "subsample": 0.8,
+                "colsample_bytree": 0.8,
+                "early_stopping_rounds": 30,
+            },
+            RF: {
+                "n_estimators": 100,
+                "max_depth": None,
+                "min_samples_split": 2,
+                "min_samples_leaf": 1
+            },
+            LOGIT: {}
         }
+
+        # Get composite assumptions
+        assumptions['gbm'] = PipelineBuilder() \
+            .add_branch((CATBOOST, models_params[CATBOOST]),
+                        (XGBOOST, models_params[XGBOOST]),
+                        (LGBM, models_params[LGBM])) \
+            .join_branches(LOGIT, models_params[LOGIT])
+
+        # Get single-node assumptions
+        single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
+
+        for model in single_models:
+            assumptions[model] = PipelineBuilder().add_node(model, params=models_params[model])
+
+        return assumptions
 
     def ensemble_operation(self) -> str:
         return 'rf'
