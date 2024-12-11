@@ -90,27 +90,14 @@ class RegressionAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        assumptions = {}
-
-        # Constants
-        CATBOOSTREG = 'catboostreg'
-        XGBOOSTREG = 'xgboostreg'
-        LGBMREG = 'lgbmreg'
-        RFR = 'rfr'
-        RIDGE = 'ridge'
-
-        # # Get composite assumptions
-        # assumptions['gbm'] = PipelineBuilder() \
-        #     .add_branch(CATBOOSTREG, XGBOOSTREG, LGBMREG) \
-        #     .join_branches(RIDGE)
-
-        # Get single-node assumptions
-        single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
-
-        for model in single_models:
-            assumptions[model] = PipelineBuilder().add_node(model)
-
-        return assumptions
+        return {
+            'gbm_linear': PipelineBuilder().add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
+            'catboostreg': PipelineBuilder().add_node('catboostreg'),
+            'xgboostreg': PipelineBuilder().add_node('xgboostreg'),
+            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
+            'rfr': PipelineBuilder().add_node('rfr'),
+            'ridge': PipelineBuilder().add_node('ridge'),
+        }
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -128,27 +115,14 @@ class ClassificationAssumptions(TaskAssumptions):
 
     @property
     def builders(self):
-        assumptions = {}
-
-        # Constants
-        CATBOOST = 'catboost'
-        XGBOOST = 'xgboost'
-        LGBM = 'lgbm'
-        RF = 'rf'
-        LOGIT = 'logit'
-
-        # # Get composite assumptions
-        # assumptions['gbm'] = PipelineBuilder() \
-        #     .add_branch(CATBOOST, XGBOOST, LGBM) \
-        #     .join_branches(LOGIT)
-
-        # Get single-node assumptions
-        single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
-
-        for model in single_models:
-            assumptions[model] = PipelineBuilder().add_node(model)
-
-        return assumptions
+        return {
+            'gbm_linear': PipelineBuilder().add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            'catboost': PipelineBuilder().add_node('catboost'),
+            'xgboost': PipelineBuilder().add_node('xgboost'),
+            'lgbm': PipelineBuilder().add_node('lgbm'),
+            'rf': PipelineBuilder().add_node('rf'),
+            'logit': PipelineBuilder().add_node('logit'),
+        }
 
     def ensemble_operation(self) -> str:
         return 'rf'
