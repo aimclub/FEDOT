@@ -99,10 +99,10 @@ class RegressionAssumptions(TaskAssumptions):
         RFR = 'rfr'
         RIDGE = 'ridge'
 
-        # Get composite assumptions
-        assumptions['gbm'] = PipelineBuilder() \
-            .add_branch(CATBOOSTREG, XGBOOSTREG, LGBMREG) \
-            .join_branches(RIDGE)
+        # # Get composite assumptions
+        # assumptions['gbm'] = PipelineBuilder() \
+        #     .add_branch(CATBOOSTREG, XGBOOSTREG, LGBMREG) \
+        #     .join_branches(RIDGE)
 
         # Get single-node assumptions
         single_models = [CATBOOSTREG, XGBOOSTREG, LGBMREG, RFR, RIDGE]
@@ -137,10 +137,10 @@ class ClassificationAssumptions(TaskAssumptions):
         RF = 'rf'
         LOGIT = 'logit'
 
-        # Get composite assumptions
-        assumptions['gbm'] = PipelineBuilder() \
-            .add_branch(CATBOOST, XGBOOST, LGBM) \
-            .join_branches(LOGIT)
+        # # Get composite assumptions
+        # assumptions['gbm'] = PipelineBuilder() \
+        #     .add_branch(CATBOOST, XGBOOST, LGBM) \
+        #     .join_branches(LOGIT)
 
         # Get single-node assumptions
         single_models = [CATBOOST, XGBOOST, LGBM, RF, LOGIT]
