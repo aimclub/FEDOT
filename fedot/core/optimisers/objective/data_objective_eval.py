@@ -108,6 +108,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
 
         # prepared_pipeline.
+        if self._data_cache is not None:
+            self._log.message("Data cache effectiveness ratio:", self._data_cache.effectiveness_ratio)
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 

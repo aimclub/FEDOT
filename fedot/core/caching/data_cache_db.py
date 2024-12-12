@@ -19,7 +19,7 @@ class DataCacheDB(BaseCacheDB):
     """
 
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__("prediction", cache_dir)
+        super().__init__("prediction", cache_dir, use_stats=True)
         self._init_db()
         # TODO: probably initialize pickler only once
 
@@ -47,6 +47,10 @@ class DataCacheDB(BaseCacheDB):
                     result = cur.fetchone()
                     if result:
                         result = pickle.loads(result[1])
+                    if self.use_stats:
+                        if result:
+                            self._inc_eff(cur, 'default_hit')
+                        self._inc_eff(cur, 'default_total')
             return result
         except sqlite3.Error as e:
             print(f"SQLite get Error: {e}")
