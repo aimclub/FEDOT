@@ -72,6 +72,22 @@ class GPComposer(Composer):
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
+
+        # TODO: refactor or remove
+        if self.data_cache is not None:
+            import os
+            import csv
+            from datetime import datetime
+
+            directory = "./saved_cache_effectiveness/"
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            file_path = os.path.join(directory, f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            with open(file_path, "w", newline="") as f:
+                w = csv.DictWriter(f, self.data_cache.effectiveness_ratio.keys())
+                w.writeheader()
+                w.writerow(self.data_cache.effectiveness_ratio)
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
