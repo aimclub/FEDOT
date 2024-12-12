@@ -1,7 +1,7 @@
 scipy<1.13.0
 
 # Base framework
-thegolem @ git+https://github.com/aimclub/GOLEM.git@repro#egg=thegolem
+thegolem @ git+https://github.com/aimclub/GOLEM.git@45215bf#egg=thegolem
 
 # Data
 numpy>=1.16.0, !=1.24.0
