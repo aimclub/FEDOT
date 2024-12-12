@@ -272,4 +272,3 @@ class CLSTMImplementation(ConvolutionalNetworkImplementation):
             cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
             cnn2_output_size=int(params.get("cnn2_output_size"))
         )
-

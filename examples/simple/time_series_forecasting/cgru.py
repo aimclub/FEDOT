@@ -20,7 +20,6 @@ def cgru_forecasting():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data).predict
 
-
     plot_info = [
         {'idx': np.concatenate([train_data.idx, test_data.idx]),
          'series': np.concatenate([test_data.features, test_data.target]),
