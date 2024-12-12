@@ -481,6 +481,12 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.1, 0.99],
                     'type': 'continuous'}
             },
+            'dask_pca': {
+                'n_components': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 20],
+                    'type': 'discrete'},
+            },
             'kernel_pca': {
                 'n_components': {
                     'hyperopt-dist': hp.uniformint,

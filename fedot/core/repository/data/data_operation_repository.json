@@ -318,6 +318,21 @@
         "feature_reduction"
       ]
     },
+    "dask_pca": {
+      "meta": "dimension_transformation",
+      "presets": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ],
+      "tags": [
+        "linear",
+        "dimensionality_transforming",
+        "correct_params",
+        "non_applicable_for_ts",
+        "feature_reduction"
+      ]
+    },
     "kernel_pca": {
       "meta": "dimension_transformation",
       "presets": [

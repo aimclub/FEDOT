@@ -170,6 +170,10 @@
     "svd_solver": "full",
     "n_components": 0.7
   },
+  "dask_pca": {
+    "svd_solver": "full",
+    "n_components": 2
+  },
   "ts_naive_average": {
     "part_for_averaging": 1.0
   },
