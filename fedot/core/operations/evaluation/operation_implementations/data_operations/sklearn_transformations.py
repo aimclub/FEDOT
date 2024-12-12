@@ -1,11 +1,15 @@
 import random
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+import dask.array as da
+from dask_ml.decomposition import PCA as DaskPCA
+from dask_ml.utils import check_array
 from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
+
 
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
@@ -50,12 +54,14 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             # TODO: remove a workaround by refactoring other operations in troubled pipelines (e.g. topo)
             # workaround for NaN-containing arrays during pca fitting, especially for fast_ica
             # fast_ica cannot fit with features represented by a rather sparse matrix
+            features = self.preprocess_input(input_data)
+            self.log.info(self.pca)
             try:
-                self.pca.fit(input_data.features)
+                self.pca.fit(features)
             except Exception as e:
                 self.log.info(f'Switched from {type(self.pca).__name__} to default PCA on fit stage due to {e}')
                 self.pca = PCA()
-                self.pca.fit(input_data.features)
+                self.pca.fit(features)
 
         return self.pca
 
@@ -69,16 +75,26 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         Returns:
             data with transformed features attribute
         """
+        features = self.preprocess_input(input_data)
 
         if self.number_of_features > 1:
-            transformed_features = self.pca.transform(input_data.features)
+            transformed_features = self.pca.transform(features)
         else:
-            transformed_features = input_data.features
+            transformed_features = features
 
         # Update features
+        transformed_features = self.postprocess_input(transformed_features)
         output_data = self._convert_to_output(input_data, transformed_features)
         self.update_column_types(output_data)
         return output_data
+
+    @staticmethod
+    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
+        return input_data.features
+
+    @staticmethod
+    def postprocess_input(transformed_features: Union[np.ndarray, pd.DataFrame]) -> Union[np.ndarray, pd.DataFrame]:
+        return transformed_features
 
     def check_and_correct_params(self, is_ts_data: bool = False):
         """
@@ -92,7 +108,10 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         elif n_components == 'mle':
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                self.params.update(n_components=0.5)
+                if not isinstance(self.pca, DaskPCA):
+                    self.params.update(n_components=0.5)
+                else:
+                    self.params.update(n_components=self.number_of_samples)
         if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
             self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
@@ -125,6 +144,38 @@ class PCAImplementation(ComponentAnalysisImplementation):
             self.params.update(**default_params)
         self.pca = PCA(**self.params.to_dict())
         self.number_of_features = None
+
+
+class DaskPCAImplementation(ComponentAnalysisImplementation):
+    """
+    Class for applying PCA from sklearn
+
+    Args:
+        params: OperationParameters with the hyperparameters
+    """
+
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        if not self.params:
+            # Default parameters
+            default_params = {'svd_solver': 'full', 'n_components': 'mle'}
+            self.params.update(**default_params)
+        self.pca = DaskPCA(**self.params.to_dict())
+        self.number_of_features = None
+
+    @staticmethod
+    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
+        features = input_data.features
+        if isinstance(input_data.features, pd.DataFrame):
+            features = features.values
+        features = check_array(features, accept_sparse=True, dtype=None)
+        if not isinstance(features, da.Array):
+            features = da.array(features)
+        return features
+
+    @staticmethod
+    def postprocess_input(transformed_features):
+        return transformed_features.compute()
 
 
 class KernelPCAImplementation(ComponentAnalysisImplementation):
