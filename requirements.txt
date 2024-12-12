@@ -41,5 +41,5 @@ pytest>=6.2.0
 testfixtures>=6.18.0
 
 # Dask
-dask~=2024.12.0
-dask-ml~=2024.4.4
+dask~=2024.12.0; python_version >= '3.10'
+dask==2023.5.0; python_version < '3.10'
