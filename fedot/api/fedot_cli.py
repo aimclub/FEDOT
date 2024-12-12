@@ -1,6 +1,5 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from pathlib import Path
 
 from fedot import Fedot
 from fedot.core.repository.tasks import TsForecastingParams

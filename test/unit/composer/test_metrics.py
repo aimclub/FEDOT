@@ -1,5 +1,4 @@
 import json
-import sys
 from itertools import product
 from typing import Callable, Dict, Tuple, Union
 
