@@ -360,7 +360,7 @@ def test_tuner_correctly_work_with_window_size_selector():
     assert autotuned_window != tuner_tuned_window
     # check that WindowSizeSelector runs twice due to tuner graph copying in initialization
     sum_records = sum(check_window_size_selector_logging(records))
-    assert sum_records == 2 or sum_records == 3
+    assert sum_records == 1
 
 
 @pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
