@@ -1,5 +1,6 @@
 import sqlite3
 from typing import TYPE_CHECKING, List, Optional, Union
+from multiprocessing import Manager
 
 import numpy as np
 
@@ -20,6 +21,32 @@ class DataCache(BaseCache):
 
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         super().__init__(DataCacheDB(cache_dir, custom_pid))
+        self.manager = Manager()
+        self.metrics_cache = self.manager.dict()
+        if self._db.use_stats:
+            self.metrics_cache["metrics_hit"] = 0
+            self.metrics_cache["metrics_total"] = 0
+
+    def save_metric(self, pipeline, metric, fold_id=None):
+        uid = self._create_uid(pipeline, fold_id)
+        self.metrics_cache[uid] = metric
+
+    def load_metric(self, pipeline, fold_id=None):
+        uid = self._create_uid(pipeline, fold_id)
+        result = self.metrics_cache.get(uid, None)
+        if self._db.use_stats:
+            if result:
+                self.metrics_cache["metrics_hit"] += 1
+            self.metrics_cache["metrics_total"] += 1
+        return result
+
+    @property
+    def get_effectiveness_metrics_ratio(self):
+        if self._db.use_stats:
+            eff_dct = {}
+            hit, total = self.metrics_cache["metrics_hit"], self.metrics_cache["metrics_total"]
+            eff_dct["metrics"] = round(hit / total, 3) if total else 0
+            return eff_dct
 
     def save_predicted(self, pipeline: "Pipeline", outputData: OutputData, fold_id: Optional[int] = None):
         """

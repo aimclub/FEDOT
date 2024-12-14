@@ -80,7 +80,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             # TODO: get prediction from cache and pass as a result
             evaluated_fitness = None
             if self._data_cache is not None:
-                evaluated_fitness = self._data_cache.load_predicted(graph, fold_id)
+                evaluated_fitness = self._data_cache.load_metric(graph, fold_id)
 
             if evaluated_fitness is not None:
                 self._log.message("--- load evaluate metrics cache")
@@ -92,7 +92,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                                                     fold_id=fold_id)
                 if self._data_cache is not None:
                     self._log.message("--- save evaluate metrics cache")
-                    self._data_cache.save_predicted(graph, evaluated_fitness, fold_id)
+                    self._data_cache.save_metric(graph, evaluated_fitness, fold_id)
 
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
@@ -109,7 +109,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         # prepared_pipeline.
         if self._data_cache is not None:
-            self._log.message("Data cache effectiveness ratio:", self._data_cache.effectiveness_ratio)
+            self._log.message(f"Metrics cache effectiveness ratio: {self._data_cache.get_effectiveness_metrics_ratio}")
+            self._log.message(f"Predictions cache effectiveness ratio: {self._data_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
