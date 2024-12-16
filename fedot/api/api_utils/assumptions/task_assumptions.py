@@ -91,12 +91,12 @@ class RegressionAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            # 'gbm_linear': PipelineBuilder().add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
+            'gbm_linear': PipelineBuilder().add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
             'catboostreg': PipelineBuilder().add_node('catboostreg'),
-            # 'xgboostreg': PipelineBuilder().add_node('xgboostreg'),
-            # 'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
-            # 'rfr': PipelineBuilder().add_node('rfr'),
-            # 'ridge': PipelineBuilder().add_node('ridge'),
+            'xgboostreg': PipelineBuilder().add_node('xgboostreg'),
+            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
+            'rfr': PipelineBuilder().add_node('rfr'),
+            'ridge': PipelineBuilder().add_node('ridge'),
         }
 
     def ensemble_operation(self) -> str:
@@ -116,12 +116,12 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            # 'gbm_linear': PipelineBuilder().add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
-            # 'xgboost': PipelineBuilder().add_node('xgboost'),
-            # 'lgbm': PipelineBuilder().add_node('lgbm'),
-            # 'rf': PipelineBuilder().add_node('rf'),
-            # 'logit': PipelineBuilder().add_node('logit'),
+            'gbm_linear': PipelineBuilder().add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            'catboost': PipelineBuilder().add_node('catboost', params={'loss_function': 'MultiLogloss'}),
+            'xgboost': PipelineBuilder().add_node('xgboost'),
+            'lgbm': PipelineBuilder().add_node('lgbm'),
+            'rf': PipelineBuilder().add_node('rf'),
+            'logit': PipelineBuilder().add_node('logit'),
         }
 
     def ensemble_operation(self) -> str:
