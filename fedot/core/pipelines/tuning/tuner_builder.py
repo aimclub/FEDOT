@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Iterable, Sequence, Type, Union
 
+from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner
@@ -95,10 +96,10 @@ class TunerBuilder:
 
     def build(self, data: InputData) -> BaseTuner:
         if len(self.metric) > 1:
-            if self.tuner_class is OptunaTuner:
+            if self.tuner_class in [OptunaTuner, IOptTuner]:
                 self.additional_params.update({'objectives_number': len(self.metric)})
             else:
-                raise ValueError('Multi objective tuning applicable only for OptunaTuner.')
+                raise ValueError('Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
         objective = MetricsObjective(self.metric, is_multi_objective=len(self.metric) > 1)
         data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
         data_producer = data_splitter.build(data)
