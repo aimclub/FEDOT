@@ -65,18 +65,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-            except Exception as ex:
-                self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
-                                  f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                if is_test_session() and not isinstance(ex, TimeoutError):
-                    stack_trace = traceback.format_exc()
-                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
-                        raise ex
-                break  # if even one fold fails, the evaluation stops
-
             # TODO: get prediction from cache and pass as a result
             evaluated_fitness = None
             if self._data_cache is not None:
@@ -85,6 +73,18 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness is not None:
                 self._log.message("--- load evaluate metrics cache")
             else:
+                try:
+                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                except Exception as ex:
+                    self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
+                                      f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
+                    if is_test_session() and not isinstance(ex, TimeoutError):
+                        stack_trace = traceback.format_exc()
+                        save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                        if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
+                            raise ex
+                    break  # if even one fold fails, the evaluation stops
+
                 evaluated_fitness = self._objective(prepared_pipeline,
                                                     reference_data=test_data,
                                                     validation_blocks=self._validation_blocks,
