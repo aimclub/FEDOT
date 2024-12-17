@@ -117,7 +117,7 @@ class ClassificationAssumptions(TaskAssumptions):
     def builders(self):
         return {
             'gbm_linear': PipelineBuilder().add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
-            'catboost': PipelineBuilder().add_node('catboost', params={'loss_function': 'MultiLogloss'}),
+            'catboost': PipelineBuilder().add_node('catboost'),
             'xgboost': PipelineBuilder().add_node('xgboost'),
             'lgbm': PipelineBuilder().add_node('lgbm'),
             'rf': PipelineBuilder().add_node('rf'),
