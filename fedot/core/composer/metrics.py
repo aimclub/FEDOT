@@ -104,7 +104,7 @@ class QualityMetric(Metric):
             InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
         return reference_data, pipeline.predict(
-            reference_data, output_mode=cls.output_mode, data_cache=data_cache, fold_id=None)
+            reference_data, output_mode=cls.output_mode, data_cache=data_cache, fold_id=fold_id)
 
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
