@@ -8,8 +8,9 @@ from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
@@ -41,6 +42,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
+                 data_cache: Optional[DataCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
@@ -49,6 +51,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._validation_blocks = validation_blocks
         self._pipelines_cache = pipelines_cache
         self._preprocessing_cache = preprocessing_cache
+        self._data_cache = data_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
 
@@ -62,21 +65,35 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-            except Exception as ex:
-                self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
-                                  f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                if is_test_session() and not isinstance(ex, TimeoutError):
-                    stack_trace = traceback.format_exc()
-                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
-                    if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
-                        raise ex
-                break  # if even one fold fails, the evaluation stops
+            # TODO: get prediction from cache and pass as a result
+            evaluated_fitness = None
+            if self._data_cache is not None:
+                evaluated_fitness = self._data_cache.load_metric(graph, fold_id)
 
-            evaluated_fitness = self._objective(prepared_pipeline,
-                                                reference_data=test_data,
-                                                validation_blocks=self._validation_blocks)
+            if evaluated_fitness is not None:
+                self._log.message("--- load evaluate metrics cache")
+            else:
+                try:
+                    prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                except Exception as ex:
+                    self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
+                                      f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
+                    if is_test_session() and not isinstance(ex, TimeoutError):
+                        stack_trace = traceback.format_exc()
+                        save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                        if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
+                            raise ex
+                    break  # if even one fold fails, the evaluation stops
+
+                evaluated_fitness = self._objective(prepared_pipeline,
+                                                    reference_data=test_data,
+                                                    validation_blocks=self._validation_blocks,
+                                                    data_cache=self._data_cache,
+                                                    fold_id=fold_id)
+                if self._data_cache is not None:
+                    self._log.message("--- save evaluate metrics cache")
+                    self._data_cache.save_metric(graph, evaluated_fitness, fold_id)
+
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
@@ -91,6 +108,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
 
         # prepared_pipeline.
+        if self._data_cache is not None:
+            self._log.message(f"Metrics cache effectiveness ratio: {self._data_cache.get_effectiveness_metrics_ratio}")
+            self._log.message(f"Predictions cache effectiveness ratio: {self._data_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
@@ -110,17 +130,21 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # load preprocessing
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
-        graph.fit(
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache, fold_id)
+        predicted_train = graph.fit(
             train_data,
             n_jobs=n_jobs,
-            time_constraint=self._time_constraint
+            time_constraint=self._time_constraint,
+            data_cache=self._data_cache,
+            fold_id=fold_id
         )
 
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
+        # if self._data_cache is not None:
+        #     self._data_cache.save_predicted(graph, predicted_train, "fit" + str(fold_id))
 
         return graph
 
@@ -133,19 +157,33 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache,  fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
-            intermediate_graph.fit(
-                train_data,
-                time_constraint=self._time_constraint,
-                n_jobs=self._eval_n_jobs,
-            )
-            intermediate_fitness = self._objective(intermediate_graph,
-                                                   reference_data=test_data,
-                                                   validation_blocks=self._validation_blocks)
+
+            # TODO: try load metrics
+            intermediate_fitness = None
+            if self._data_cache is not None:
+                intermediate_fitness = self._data_cache.load_predicted(intermediate_graph)
+
+            if intermediate_fitness is not None:
+                self._log.message("--- load intermediate metrics cache")
+            else:
+                intermediate_graph.fit(
+                    train_data,
+                    time_constraint=self._time_constraint,
+                    n_jobs=self._eval_n_jobs,
+                )
+                intermediate_fitness = self._objective(intermediate_graph,
+                                                       reference_data=test_data,
+                                                       validation_blocks=self._validation_blocks)
+                # TODO: try save metrics
+                if self._data_cache is not None:
+                    self._log.message("--- save intermediate metrics cache")
+                    self._data_cache.save_predicted(intermediate_graph, intermediate_fitness)
+
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
 

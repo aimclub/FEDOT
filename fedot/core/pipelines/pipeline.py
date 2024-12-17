@@ -15,8 +15,9 @@ from golem.core.paths import copy_doc
 from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.data_operation import DataOperation
@@ -62,7 +63,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.fit(input_data)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData],
-                             time: timedelta) -> OutputData:
+                             time: timedelta, data_cache=None, fold_id=None) -> OutputData:
         """Runs training process in all the pipeline nodes starting with root with time limit.
 
         Todo:
@@ -82,7 +83,7 @@ class Pipeline(GraphDelegate, Serializable):
         try:
             func_timeout.func_timeout(
                 time, self._fit,
-                args=(input_data, process_state_dict, fitted_operations)
+                args=(input_data, process_state_dict, fitted_operations, data_cache, fold_id)
             )
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
@@ -92,8 +93,9 @@ class Pipeline(GraphDelegate, Serializable):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: Optional[InputData] = None,
-             process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
+    def _fit(
+            self, input_data: Optional[InputData] = None, process_state_dict: dict = None, fitted_operations: list = None,
+            data_cache=None, fold_id=None) -> Optional[OutputData]:
         """Runs training process in all of the pipeline nodes starting with root
 
         Args:
@@ -109,7 +111,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         with Timer() as t:
             computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
-            train_predicted = self.root_node.fit(input_data=input_data)
+            train_predicted = self.root_node.fit(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 
@@ -170,7 +172,9 @@ class Pipeline(GraphDelegate, Serializable):
         return result
 
     def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
+            time_constraint: Optional[timedelta] = None, n_jobs: int = 1,
+            data_cache=None,
+            fold_id=None) -> OutputData:
         """
         Runs training process in all the pipeline nodes starting with root
 
@@ -193,9 +197,10 @@ class Pipeline(GraphDelegate, Serializable):
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data)
+            train_predicted = self._fit(input_data=copied_input_data, data_cache=data_cache, fold_id=fold_id)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
+            train_predicted = self._fit_with_time_limit(
+                input_data=copied_input_data, time=time_constraint, data_cache=data_cache, fold_id=fold_id)
 
         return train_predicted
 
@@ -234,7 +239,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = type(self.preprocessor)()
 
     def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
-                            fold_id: Optional[int] = None):
+                            data_cache: Optional[DataCache], fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 
@@ -251,8 +256,12 @@ class Pipeline(GraphDelegate, Serializable):
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
+        # TODO: remove
+        # if data_cache is not None:
+        #     data_cache.load_predicted(self, fold_id)
 
-    def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
+    def predict(self, input_data: Union[InputData, MultiModalData],
+                output_mode: str = 'default', data_cache=None, fold_id=None) -> OutputData:
         """Runs the predict process in all of the pipeline nodes starting with root
 
         input_data: data for prediction
@@ -269,6 +278,8 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
+        # TODO: data_cache
+
         if not self.is_fitted:
             ex = 'Pipeline is not fitted yet'
             self.log.error(ex)
@@ -281,7 +292,8 @@ class Pipeline(GraphDelegate, Serializable):
             copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-        result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
+        result = self.root_node.predict(input_data=copied_input_data,
+                                        output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             result.predict = result.predict.ravel()

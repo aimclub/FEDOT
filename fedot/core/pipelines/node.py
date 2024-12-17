@@ -182,7 +182,7 @@ class PipelineNode(LinkedGraphNode):
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, data_cache=None, fold_id=None) -> OutputData:
         """Runs training process in the node
 
         Args:
@@ -192,6 +192,14 @@ class PipelineNode(LinkedGraphNode):
             OutputData: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
+
+        # TODO: load predicted
+        # operation_predict = None
+        # if data_cache is not None and fold_id is not None:
+        #     operation_predict = data_cache.load_predicted(self, f"{fold_id}_fit")
+        # if operation_predict is not None:
+        #     self.log.message("-- load fit node data_cache")
+        #     return operation_predict
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
@@ -206,6 +214,11 @@ class PipelineNode(LinkedGraphNode):
                                                                data=input_data,
                                                                params=self._parameters)
 
+        # TODO: save node's predictions to cache
+        # if data_cache is not None and fold_id is not None:
+        #     data_cache.save_predicted(self, operation_predict, f"{fold_id}_fit")
+        #     self.log.message("-- save fit node data_cache")
+
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
 
@@ -213,7 +226,7 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
-    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default', data_cache=None, fold_id=None) -> OutputData:
         """Runs prediction process in the node
 
         Args:
@@ -225,6 +238,15 @@ class PipelineNode(LinkedGraphNode):
         """
         self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
 
+        # TODO: load predict to cache
+        # return loaded prediction for node
+        operation_predict = None
+        if data_cache is not None and fold_id is not None:
+            operation_predict = data_cache.load_predicted(self, f"{fold_id}_predict")
+        if operation_predict is not None:
+            self.log.message("-- load predict node data_cache")
+            return operation_predict
+
         input_data = self._get_input_data(input_data=input_data, parent_operation='predict')
 
         with Timer() as t:
@@ -233,6 +255,12 @@ class PipelineNode(LinkedGraphNode):
                                                        data=input_data,
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
+
+        # TODO: save predict to cache
+        if data_cache is not None and fold_id is not None:
+            data_cache.save_predicted(self, operation_predict, f"{fold_id}_predict")
+            self.log.message("-- save predict node data_cache")
+
         return operation_predict
 
     def get_data_from_node(self) -> dict:

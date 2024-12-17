@@ -3,8 +3,9 @@ from typing import Collection, Optional, Sequence, Tuple, Union
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.data_cache import DataCache
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -27,11 +28,13 @@ class GPComposer(Composer):
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
+                 preprocessing_cache: Optional[PreprocessingCache] = None,
+                 data_cache: Optional[DataCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
+        self.data_cache: Optional[DataCache] = data_cache
 
         self.best_models: Collection[Pipeline] = ()
 
@@ -55,6 +58,7 @@ class GPComposer(Composer):
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
                                                         pipelines_cache=self.pipelines_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
+                                                        data_cache=self.data_cache,
                                                         validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
@@ -68,6 +72,25 @@ class GPComposer(Composer):
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
+
+        # TODO: refactor or remove
+        if self.data_cache is not None:
+            import os
+            import csv
+            from datetime import datetime
+
+            directory = "./saved_cache_effectiveness/"
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            file_path = os.path.join(directory, f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            with open(file_path, "w", newline="") as f:
+                w = csv.DictWriter(f, self.data_cache.effectiveness_ratio.keys())
+                w.writeheader()
+                w.writerow(self.data_cache.effectiveness_ratio)
+                w = csv.DictWriter(f, self.data_cache.get_effectiveness_metrics_ratio.keys())
+                w.writeheader()
+                w.writerow(self.data_cache.get_effectiveness_metrics_ratio)
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
