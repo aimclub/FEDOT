@@ -194,12 +194,12 @@ class PipelineNode(LinkedGraphNode):
         self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
 
         # TODO: load predicted
-        operation_predict = None
-        if data_cache is not None and fold_id is not None:
-            operation_predict = data_cache.load_predicted(self, f"{fold_id}_fit")
-        if operation_predict is not None:
-            self.log.message("-- load fit node data_cache")
-            return operation_predict
+        # operation_predict = None
+        # if data_cache is not None and fold_id is not None:
+        #     operation_predict = data_cache.load_predicted(self, f"{fold_id}_fit")
+        # if operation_predict is not None:
+        #     self.log.message("-- load fit node data_cache")
+        #     return operation_predict
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
@@ -215,9 +215,9 @@ class PipelineNode(LinkedGraphNode):
                                                                params=self._parameters)
 
         # TODO: save node's predictions to cache
-        if data_cache is not None and fold_id is not None:
-            data_cache.save_predicted(self, operation_predict, f"{fold_id}_fit")
-            self.log.message("-- save fit node data_cache")
+        # if data_cache is not None and fold_id is not None:
+        #     data_cache.save_predicted(self, operation_predict, f"{fold_id}_fit")
+        #     self.log.message("-- save fit node data_cache")
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
