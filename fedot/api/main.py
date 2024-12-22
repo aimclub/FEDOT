@@ -33,9 +33,9 @@ from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
-from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -95,7 +95,7 @@ class Fedot:
         self.log = self._init_logger(logging_level)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
+        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
 
         default_metrics = MetricByTask.get_default_quality_metrics(self.params.task.task_type)
         passed_metrics = self.params.get('metric')
@@ -256,7 +256,7 @@ class Fedot:
                               .with_timeout(timeout)
                               .build(input_data))
 
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress)
+            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             # Tuner returns a not fitted pipeline, and it is required to fit on train dataset

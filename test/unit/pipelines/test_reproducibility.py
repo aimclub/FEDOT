@@ -4,7 +4,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from test.integration.quality.test_synthetic_tasks import get_regression_pipeline, get_regression_data
 
 
-def test_reproducubility():
+def test_reproducibility():
     """
     Test validates that two sequential evaluation (fit/predict) of pipelines leads with exactly same result
     if random seed is fixed via session-scoped pytest fixture
