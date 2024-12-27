@@ -88,9 +88,14 @@ class GPComposer(Composer):
                 w = csv.DictWriter(f, self.data_cache.effectiveness_ratio.keys())
                 w.writeheader()
                 w.writerow(self.data_cache.effectiveness_ratio)
+
+                w = csv.writer(f)
+                [w.writerow(info) for info in self.data_cache._db.retrieve_stats()]
+
                 w = csv.DictWriter(f, self.data_cache.get_effectiveness_metrics_ratio.keys())
                 w.writeheader()
                 w.writerow(self.data_cache.get_effectiveness_metrics_ratio)
+
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
