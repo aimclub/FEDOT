@@ -71,7 +71,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                 evaluated_fitness = self._data_cache.load_metric(graph, fold_id)
 
             if evaluated_fitness is not None:
-                self._log.message("--- load evaluate metrics cache")
+                self._log.debug("--- load evaluate metrics cache")
             else:
                 try:
                     prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
@@ -91,7 +91,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                                                     data_cache=self._data_cache,
                                                     fold_id=fold_id)
                 if self._data_cache is not None:
-                    self._log.message("--- save evaluate metrics cache")
+                    self._log.debug("--- save evaluate metrics cache")
                     self._data_cache.save_metric(graph, evaluated_fitness, fold_id)
 
             if evaluated_fitness.valid:
