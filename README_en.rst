@@ -210,6 +210,14 @@ Acknowledgments
 
 We acknowledge the contributors for their important impact and the participants of numerous scientific conferences and workshops for their valuable advice and suggestions.
 
+Funding
+=======
+
+This research is financially supported by the Foundation for
+National Technology Initiative's Projects Support as a part of the roadmap
+implementation for the development of the high-tech field of
+Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
+
 Side Projects
 =============
 - The optimisation core implemented in the GOLEM.
