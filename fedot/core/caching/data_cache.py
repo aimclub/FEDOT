@@ -26,10 +26,13 @@ class DataCache(BaseCache):
         if self._db.use_stats:
             self.metrics_cache["metrics_hit"] = 0
             self.metrics_cache["metrics_total"] = 0
+            self.metrics_stats = {}
 
     def save_metric(self, pipeline, metric, fold_id=None):
         uid = self._create_uid(pipeline, fold_id)
         self.metrics_cache[uid] = metric
+        if self._db.use_stats:
+            self.metrics_stats[uid] = 0
 
     def load_metric(self, pipeline, fold_id=None):
         uid = self._create_uid(pipeline, fold_id)
@@ -37,6 +40,7 @@ class DataCache(BaseCache):
         if self._db.use_stats:
             if result:
                 self.metrics_cache["metrics_hit"] += 1
+                self.metrics_stats[uid] += 1
             self.metrics_cache["metrics_total"] += 1
         return result
 
