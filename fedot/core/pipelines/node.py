@@ -242,7 +242,7 @@ class PipelineNode(LinkedGraphNode):
         # return loaded prediction for node
         operation_predict = None
         if data_cache is not None and fold_id is not None:
-            operation_predict = data_cache.load_predicted(self, f"{fold_id}_predict")
+            operation_predict = data_cache.load_predicted(self, f"{fold_id}")
         if operation_predict is not None:
             self.log.message("-- load predict node data_cache")
             return operation_predict
@@ -258,8 +258,8 @@ class PipelineNode(LinkedGraphNode):
 
         # TODO: save predict to cache
         if data_cache is not None and fold_id is not None:
-            data_cache.save_predicted(self, operation_predict, f"{fold_id}_predict")
-            self.log.message("-- save predict node data_cache")
+            data_cache.save_predicted(self, operation_predict, f"{fold_id}")
+            self.log.debug("-- save predict node data_cache")
 
         return operation_predict
 
