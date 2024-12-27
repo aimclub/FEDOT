@@ -111,7 +111,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
                 if not isinstance(self.pca, DaskPCA):
                     self.params.update(n_components=0.5)
                 else:
-                    self.params.update(n_components=self.number_of_samples)
+                    self.params.update(n_components=None)
         if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
             self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
