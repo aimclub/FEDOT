@@ -169,7 +169,7 @@ def get_not_default_search_space():
         'lgbmreg': {
             'learning_rate': {
                 'hyperopt-dist': hp.loguniform,
-                'sampling-scope': [0.03, 0.1],
+                'sampling-scope': [0.05, 0.1],
                 'type': 'continuous'},
             'colsample_bytree': {
                 'hyperopt-dist': hp.uniform,
