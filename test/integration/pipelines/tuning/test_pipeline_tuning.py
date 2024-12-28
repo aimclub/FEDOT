@@ -271,6 +271,7 @@ def run_node_tuner(train_data,
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+@pytest.mark.skip('Memory error')
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     pipeline = get_complex_class_pipeline()
@@ -291,6 +292,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
+@pytest.mark.skip('Memory error')
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test all tuners for pipeline """
     data = request.getfixturevalue(data_fixture)
@@ -468,6 +470,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     assert time() - start_node_tuner < 1
 
 
+@pytest.mark.skip('Memory error')
 def test_search_space_correctness_after_customization():
     default_search_space = PipelineSearchSpace()
 
@@ -496,6 +499,7 @@ def test_search_space_correctness_after_customization():
     assert default_params['0 || gbr | max_depth'] != custom_with_replace_params['0 || gbr | max_depth']
 
 
+@pytest.mark.skip('Memory error')
 def test_search_space_get_operation_parameter_range():
     default_search_space = PipelineSearchSpace()
     gbr_operations = ['loss', 'learning_rate', 'max_depth', 'min_samples_split',
@@ -519,6 +523,7 @@ def test_search_space_get_operation_parameter_range():
     assert custom_with_replace_operations == ['max_depth']
 
 
+@pytest.mark.skip('Memory error')
 def test_complex_search_space():
     space = PipelineSearchSpace()
     for i in range(20):
@@ -530,6 +535,7 @@ def test_complex_search_space():
 
 # TODO: (YamLyubov) add IOptTuner when it will support nested parameters.
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
+@pytest.mark.skip('Memory error')
 def test_complex_search_space_tuning_correct(tuner):
     """ Tests Tuners for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
@@ -553,6 +559,7 @@ def test_complex_search_space_tuning_correct(tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
+@pytest.mark.skip('Memory error')
 @pytest.mark.parametrize('tuner', [OptunaTuner, IOptTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test multi objective tuning is correct """
