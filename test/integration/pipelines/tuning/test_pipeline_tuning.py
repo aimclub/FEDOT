@@ -2,9 +2,6 @@ import os
 from time import time
 
 import pytest
-
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.optuna_tuner import OptunaTuner
@@ -15,15 +12,17 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-     ts_polyfit_ridge_pipeline
+    ts_ets_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
@@ -129,7 +128,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_ets_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
