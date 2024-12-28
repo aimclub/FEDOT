@@ -128,7 +128,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_ets_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_ets_pipeline(), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
