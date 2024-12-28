@@ -9,12 +9,15 @@ from lightgbm import LGBMClassifier, LGBMRegressor
 from lightgbm import early_stopping as lgbm_early_stopping
 from matplotlib import pyplot as plt
 from xgboost import XGBClassifier, XGBRegressor
+from sklearn.multioutput import MultiOutputRegressor, MultiOutputClassifier
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utils import default_fedot_data_dir
+from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class FedotXGBoostImplementation(ModelImplementation):
@@ -187,6 +190,19 @@ class FedotLightGBMImplementation(ModelImplementation):
             eval_metric = self.set_eval_metric(self.classes_)
             callbacks = self.update_callbacks()
 
+            if is_multi_output_task(input_data):
+                if input_data.task.task_type == TaskTypesEnum.classification:
+                    multiout_func = MultiOutputClassifier
+                elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+                    multiout_func = MultiOutputRegressor
+                else:
+                    raise ValueError(
+                        f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
+
+                self.model = multiout_func(self.model)
+                self.model.fit(X_train.values, y_train.values)
+                return self.model
+
             self.model.fit(
                 X=X_train, y=y_train,
                 eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
@@ -251,7 +267,11 @@ class FedotLightGBMImplementation(ModelImplementation):
         if copied_input_data.target is not None and copied_input_data.target.size > 0:
             rows_len = dataframe.shape[0]
             target = copied_input_data.target[:rows_len]
-            dataframe['target'] = np.ravel(target)
+
+            if is_multi_output_task(copied_input_data):
+                return dataframe, pd.DataFrame(target)
+            else:
+                dataframe['target'] = np.ravel(target)
         else:
             # TODO: temp workaround in case data.target is set to None intentionally
             #  for test.integration.models.test_model.check_predict_correct
