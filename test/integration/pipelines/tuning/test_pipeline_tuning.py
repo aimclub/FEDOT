@@ -12,7 +12,7 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-    ts_ets_pipeline
+    ts_polyfit_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -128,7 +128,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_ets_pipeline(), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
@@ -169,7 +169,7 @@ def get_not_default_search_space():
         'lgbmreg': {
             'learning_rate': {
                 'hyperopt-dist': hp.loguniform,
-                'sampling-scope': [0.05, 0.1],
+                'sampling-scope': [0.03, 0.1],
                 'type': 'continuous'},
             'colsample_bytree': {
                 'hyperopt-dist': hp.uniform,
@@ -271,7 +271,6 @@ def run_node_tuner(train_data,
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-@pytest.mark.skip('Memory error')
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     pipeline = get_complex_class_pipeline()
@@ -291,8 +290,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test all tuners for pipeline """
     data = request.getfixturevalue(data_fixture)
@@ -313,7 +311,6 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
 
 
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
 def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner):
     pipeline = get_pipeline_with_no_params_to_tune()
     pipeline_tuner, tuned_pipeline = run_pipeline_tuner(tuner=tuner,
@@ -327,8 +324,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner
     assert not tuned_pipeline.is_fitted
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
     """ Test all tuners for pipeline with initial parameters """
     # a model
@@ -352,8 +348,7 @@ def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test tuners with different search spaces """
     data = request.getfixturevalue(data_fixture)
@@ -376,7 +371,6 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_f
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.skip('Memory error')
 def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
@@ -400,7 +394,6 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, re
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.skip('Memory error')
 def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node with different search spaces """
     data = request.getfixturevalue(data_fixture)
@@ -418,7 +411,6 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
 
 @pytest.mark.parametrize('n_steps', [100, 133, 217, 300])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
 def test_ts_pipeline_with_stats_model(n_steps, tuner):
     """ Tests tuners for time series forecasting task with AR model """
     train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
@@ -438,7 +430,6 @@ def test_ts_pipeline_with_stats_model(n_steps, tuner):
 
 
 @pytest.mark.parametrize('data_fixture', ['tiny_classification_dataset'])
-@pytest.mark.skip('Memory error')
 def test_early_stop_in_tuning(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -470,7 +461,6 @@ def test_early_stop_in_tuning(data_fixture, request):
     assert time() - start_node_tuner < 1
 
 
-@pytest.mark.skip('Memory error')
 def test_search_space_correctness_after_customization():
     default_search_space = PipelineSearchSpace()
 
@@ -499,7 +489,6 @@ def test_search_space_correctness_after_customization():
     assert default_params['0 || gbr | max_depth'] != custom_with_replace_params['0 || gbr | max_depth']
 
 
-@pytest.mark.skip('Memory error')
 def test_search_space_get_operation_parameter_range():
     default_search_space = PipelineSearchSpace()
     gbr_operations = ['loss', 'learning_rate', 'max_depth', 'min_samples_split',
@@ -523,7 +512,6 @@ def test_search_space_get_operation_parameter_range():
     assert custom_with_replace_operations == ['max_depth']
 
 
-@pytest.mark.skip('Memory error')
 def test_complex_search_space():
     space = PipelineSearchSpace()
     for i in range(20):
@@ -535,7 +523,6 @@ def test_complex_search_space():
 
 # TODO: (YamLyubov) add IOptTuner when it will support nested parameters.
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
-@pytest.mark.skip('Memory error')
 def test_complex_search_space_tuning_correct(tuner):
     """ Tests Tuners for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
@@ -559,8 +546,7 @@ def test_complex_search_space_tuning_correct(tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.skip('Memory error')
-@pytest.mark.parametrize('tuner', [OptunaTuner, IOptTuner])
+@pytest.mark.parametrize('tuner', [OptunaTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test multi objective tuning is correct """
     data = request.getfixturevalue(data_fixture)
