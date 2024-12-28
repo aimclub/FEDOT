@@ -5,7 +5,6 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 from catboost import CatBoostClassifier, CatBoostRegressor, Pool
-import lightgbm as lgb
 from lightgbm import LGBMClassifier, LGBMRegressor
 from lightgbm import early_stopping as lgbm_early_stopping
 from matplotlib import pyplot as plt
@@ -42,11 +41,11 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('use_eval_set'):
             train_input, eval_input = train_test_data_setup(input_data)
 
-            X_train, y_train = convert_to_dataframe(
+            X_train, y_train = self.convert_to_dataframe(
                 train_input, identify_cats=self.params.get('enable_categorical')
             )
 
-            X_eval, y_eval = convert_to_dataframe(
+            X_eval, y_eval = self.convert_to_dataframe(
                 eval_input, identify_cats=self.params.get('enable_categorical')
             )
 
@@ -54,7 +53,7 @@ class FedotXGBoostImplementation(ModelImplementation):
 
             self.model.fit(X=X_train, y=y_train, eval_set=[(X_eval, y_eval)], verbose=self.model_params['verbosity'])
         else:
-            X_train, y_train = convert_to_dataframe(
+            X_train, y_train = self.convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
             self.features_names = input_data.features_names
@@ -67,7 +66,7 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict(X)
 
         return prediction
@@ -97,6 +96,31 @@ class FedotXGBoostImplementation(ModelImplementation):
         plot_feature_importance(features_names, model_output.values())
 
     @staticmethod
+    def convert_to_dataframe(input_data: Optional[InputData], identify_cats: bool):
+        copied_input_data = deepcopy(input_data)
+
+        dataframe = pd.DataFrame(data=copied_input_data.features)
+
+        if copied_input_data.target is not None and copied_input_data.target.size > 0:
+            rows_len = dataframe.shape[0]
+            target = copied_input_data.target[:rows_len]
+            dataframe['target'] = np.ravel(target)
+        else:
+            # TODO: temp workaround in case data.target is set to None intentionally
+            #  for test.integration.models.test_model.check_predict_correct
+            dataframe['target'] = np.zeros(len(copied_input_data.features))
+
+        if identify_cats and copied_input_data.categorical_idx is not None:
+            for col in dataframe.columns[copied_input_data.categorical_idx]:
+                dataframe[col] = dataframe[col].astype('category')
+
+        if copied_input_data.numerical_idx is not None:
+            for col in dataframe.columns[copied_input_data.numerical_idx]:
+                dataframe[col] = dataframe[col].astype('float')
+
+        return dataframe.drop(columns=['target']), dataframe['target']
+
+    @staticmethod
     def set_eval_metric(n_classes):
         if n_classes is None:  # if n_classes is None -> regression
             eval_metric = 'rmse'
@@ -122,7 +146,7 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict_proba(X)
         return prediction
 
@@ -153,40 +177,46 @@ class FedotLightGBMImplementation(ModelImplementation):
             input_data = input_data.get_not_encoded_data()
 
         if self.params.get('use_eval_set'):
+            train_input, eval_input = train_test_data_setup(input_data)
+
+            X_train, y_train = self.convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
+
+            X_eval, y_eval = self.convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
+
+            eval_metric = self.set_eval_metric(self.classes_)
+            callbacks = self.update_callbacks()
+
             if is_multi_output_task(input_data):
-                X_train, y_train = convert_to_dataframe(
-                    input_data, identify_cats=self.params.get('enable_categorical')
-                )
-                self._convert_to_multi_output_model(input_data)
-                self.model.fit(X=X_train, y=y_train)
-            else:
-                train_input, eval_input = train_test_data_setup(input_data)
+                if input_data.task.task_type == TaskTypesEnum.classification:
+                    multiout_func = MultiOutputClassifier
+                elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+                    multiout_func = MultiOutputRegressor
+                else:
+                    raise ValueError(
+                        f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
 
-                X_train, y_train = convert_to_dataframe(
-                    train_input, identify_cats=self.params.get('enable_categorical')
-                )
+                self.model = multiout_func(self.model)
+                self.model.fit(X_train.values, y_train.values)
+                return self.model
 
-                X_eval, y_eval = convert_to_dataframe(
-                    eval_input, identify_cats=self.params.get('enable_categorical')
-                )
+            self.model.fit(
+                X=X_train, y=y_train,
+                eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
+                callbacks=callbacks
+            )
 
-                eval_metric = self.set_eval_metric(self.classes_)
-                callbacks = self.update_callbacks()
-
-                self.model.fit(
-                    X=X_train, y=y_train,
-                    eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
-                    callbacks=callbacks
-                )
         else:
-            X_train, y_train = convert_to_dataframe(
+            X_train, y_train = self.convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            if is_multi_output_task(input_data):
-                self._convert_to_multi_output_model(input_data)
-                self.model.fit(X=X_train, y=y_train)
-            else:
-                self.model.fit(X=X_train, y=y_train)
+
+            self.model.fit(
+                X=X_train, y=y_train,
+            )
 
         return self.model
 
@@ -194,7 +224,7 @@ class FedotLightGBMImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+        X, _ = self.convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
         prediction = self.model.predict(X)
 
         return prediction
@@ -228,22 +258,37 @@ class FedotLightGBMImplementation(ModelImplementation):
 
         return eval_metric
 
+    @staticmethod
+    def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
+        copied_input_data = deepcopy(data)
+
+        dataframe = pd.DataFrame(data=copied_input_data.features)
+
+        if copied_input_data.target is not None and copied_input_data.target.size > 0:
+            rows_len = dataframe.shape[0]
+            target = copied_input_data.target[:rows_len]
+
+            if is_multi_output_task(copied_input_data):
+                return dataframe, pd.DataFrame(target)
+            else:
+                dataframe['target'] = np.ravel(target)
+        else:
+            # TODO: temp workaround in case data.target is set to None intentionally
+            #  for test.integration.models.test_model.check_predict_correct
+            dataframe['target'] = np.zeros(len(data.features))
+
+        if identify_cats and data.categorical_idx is not None:
+            for col in dataframe.columns[data.categorical_idx]:
+                dataframe[col] = dataframe[col].astype('category')
+
+        if data.numerical_idx is not None:
+            for col in dataframe.columns[data.numerical_idx]:
+                dataframe[col] = dataframe[col].astype('float')
+
+        return dataframe.drop(columns=['target']), dataframe['target']
+
     def plot_feature_importance(self):
         plot_feature_importance(self.features_names, self.model.feature_importances_)
-
-    def _convert_to_multi_output_model(self, input_data: InputData):
-        if input_data.task.task_type == TaskTypesEnum.classification:
-            multiout_func = MultiOutputClassifier
-            lgb_model = lgb.LGBMClassifier()
-        elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-            multiout_func = MultiOutputRegressor
-            lgb_model = lgb.LGBMRegressor()
-        else:
-            raise ValueError(f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
-
-        self.model = multiout_func(lgb_model)
-
-        return self.model
 
 
 class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
@@ -260,7 +305,7 @@ class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = self.convert_to_dataframe(input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict_proba(X)
         return prediction
 
@@ -382,38 +427,3 @@ def plot_feature_importance(feature_names, feature_importance):
         kind='barh', figsize=(16, 9), title='Feature Importance')
 
     plt.show()
-
-
-def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-    copied_input_data = deepcopy(data)
-
-    dataframe = pd.DataFrame(data=copied_input_data.features)
-
-    if copied_input_data.target is not None and copied_input_data.target.size > 0:
-        target = copied_input_data.target[:dataframe.shape[0]]
-
-        # Multi-target case, when we got >2 columns in `target`
-        if is_multi_output_task(copied_input_data):
-            target = pd.DataFrame(target)
-            dataframe = dataframe.join(target, lsuffix='_caller', rsuffix='_other')
-        else:
-            dataframe['target'] = np.ravel(target)
-    else:
-        # TODO: temp workaround in case data.target is set to None intentionally
-        #  for test.integration.models.test_model.check_predict_correct
-        dataframe['target'] = np.zeros(len(data.features))
-
-    if identify_cats and data.categorical_idx is not None:
-        for col in dataframe.columns[data.categorical_idx]:
-            dataframe[col] = dataframe[col].astype('category')
-
-    if data.numerical_idx is not None:
-        for col in dataframe.columns[data.numerical_idx]:
-            dataframe[col] = dataframe[col].astype('float')
-
-    if is_multi_output_task(copied_input_data):
-        X_without_target = dataframe.iloc[:,0:-2]
-        y_target = dataframe.iloc[:,-2:]
-        return X_without_target, y_target
-
-    return dataframe.drop(columns=['target']), dataframe['target']
