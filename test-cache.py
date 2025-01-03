@@ -26,13 +26,14 @@ auto_model = Fedot(
     metric=["rmse"],
     preset="best_quality",
     with_tuning=False,
-    timeout=3,
+    timeout=2.5,
     cv_folds=5,
     seed=42,
     n_jobs=1,
     # logging_level=10,
     use_pipelines_cache=False,
     use_auto_preprocessing=False,
+    # history_dir="./saved_history"
 )
 
 auto_model.fit(features=train_data)
@@ -43,5 +44,7 @@ auto_model.fit(features=train_data)
 
 prediction = auto_model.predict(features=test_data, save_predictions=False)
 
+# auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
+auto_model.history.save("saved_history.json")
 print(auto_model.get_metrics())
 print(auto_model.return_report().head(10))

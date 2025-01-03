@@ -79,12 +79,12 @@ class GPComposer(Composer):
             import csv
             from datetime import datetime
 
-            directory = "./saved_cache_effectiveness/"
+            directory = f"./saved_cache_effectiveness/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
-            file_path = os.path.join(directory, f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-            with open(file_path, "w", newline="") as f:
+            predictions_file_path = os.path.join(directory, "predictions.csv")
+            with open(predictions_file_path, "w", newline="") as f:
                 # prediciton effectiveness
                 w = csv.DictWriter(f, self.data_cache.effectiveness_ratio.keys())
                 w.writeheader()
@@ -92,17 +92,16 @@ class GPComposer(Composer):
                 # prediction usage stats
                 w = csv.writer(f)
                 [w.writerow(info) for info in self.data_cache._db.retrieve_stats()]
+
+            metrics_file_path = os.path.join(directory, "metrics.csv")
+            with open(metrics_file_path, "w", newline="") as f:
                 # metrics effectiveness
                 w = csv.DictWriter(f, self.data_cache.get_effectiveness_metrics_ratio.keys())
                 w.writeheader()
                 w.writerow(self.data_cache.get_effectiveness_metrics_ratio)
                 # metrics usage stats
                 w = csv.writer(f)
-                filtered_sorted_items = sorted(
-                    [(k, v) for k, v in self.data_cache.metrics_stats.items() if v > 0],
-                    key=lambda kv: kv[1],
-                    reverse=True)
-                [w.writerow([k, v]) for k, v in filtered_sorted_items]
+                [w.writerow([k, v]) for k, v in self.data_cache.metrics_stats.items()]
 
         return best_model
 

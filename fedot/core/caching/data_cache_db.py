@@ -37,6 +37,9 @@ class DataCacheDB(BaseCacheDB):
                     cur = conn.cursor()
                     pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
                     cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
+                    if self.use_stats:
+                        stats_query = "INSERT INTO stats (id, retrieve_count) VALUES (?, 0)"
+                        cur.execute(stats_query, (uid,))
         except sqlite3.Error as e:
             print(f"SQLite add error: {e}")
 
