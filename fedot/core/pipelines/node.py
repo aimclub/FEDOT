@@ -241,13 +241,14 @@ class PipelineNode(LinkedGraphNode):
         # TODO: load predict to cache
         # return loaded prediction for node
         operation_predict = None
-        if data_cache is not None and fold_id is not None:
-            operation_predict = data_cache.load_predicted(self, f"{fold_id}")
+        if data_cache is not None:
+            operation_predict = data_cache.load_predicted(self, fold_id)
         if operation_predict is not None:
-            self.log.message("-- load predict node data_cache")
+            self.log.debug("-- load predict node data_cache")
             return operation_predict
 
-        input_data = self._get_input_data(input_data=input_data, parent_operation='predict')
+        input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
+                                          data_cache=data_cache, fold_id=fold_id)
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
@@ -257,7 +258,7 @@ class PipelineNode(LinkedGraphNode):
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
 
         # TODO: save predict to cache
-        if data_cache is not None and fold_id is not None:
+        if data_cache is not None:
             data_cache.save_predicted(self, operation_predict, f"{fold_id}")
             self.log.debug("-- save predict node data_cache")
 
@@ -296,9 +297,10 @@ class PipelineNode(LinkedGraphNode):
         else:
             self._node_data = value
 
-    def _get_input_data(self, input_data: InputData, parent_operation: str):
+    def _get_input_data(self, input_data: InputData, parent_operation: str, data_cache=None, fold_id=None):
         if self.nodes_from:
-            input_data = self._input_from_parents(input_data=input_data, parent_operation=parent_operation)
+            input_data = self._input_from_parents(
+                input_data=input_data, parent_operation=parent_operation, data_cache=data_cache, fold_id=fold_id)
         else:
             if self.direct_set:
                 input_data = self.node_data
@@ -306,7 +308,8 @@ class PipelineNode(LinkedGraphNode):
                 self.node_data = input_data
         return input_data
 
-    def _input_from_parents(self, input_data: InputData, parent_operation: str) -> InputData:
+    def _input_from_parents(
+            self, input_data: InputData, parent_operation: str, data_cache=None, fold_id=None) -> InputData:
         """Processes all the parent nodes via the current operation using ``input_data``
 
         Args:
@@ -325,7 +328,7 @@ class PipelineNode(LinkedGraphNode):
         parent_nodes = self._nodes_from_with_fixed_order()
 
         parent_results, _ = _combine_parents(parent_nodes, input_data,
-                                             parent_operation)
+                                             parent_operation, data_cache=data_cache, fold_id=fold_id)
         secondary_input = DataMerger.get(parent_results).merge()
         # Update info about visited nodes
         parent_operations = [node.operation.operation_type for node in parent_nodes]
@@ -393,7 +396,9 @@ class PipelineNode(LinkedGraphNode):
 
 
 def _combine_parents(parent_nodes: List[PipelineNode],
-                     input_data: Optional[InputData], parent_operation: str) -> Tuple[List[OutputData], np.array]:
+                     input_data: Optional[InputData], parent_operation: str,
+                     data_cache=None,
+                     fold_id=None) -> Tuple[List[OutputData], np.array]:
     """ Combines predictions from the ``parent_nodes``
 
     Args:
@@ -412,7 +417,7 @@ def _combine_parents(parent_nodes: List[PipelineNode],
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            prediction = parent.predict(input_data=input_data)
+            prediction = parent.predict(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
             prediction = parent.fit(input_data=input_data)

@@ -102,7 +102,7 @@ class DataCache(BaseCache):
             for node in pipeline.nodes:
                 base_uid += f"{node.descriptive_id}_"
         else:
-            base_uid += f"{pipeline.descriptive_id}_"
+            base_uid += f"{pipeline.description()}_"
         if fold_id is not None:
             base_uid += f"{fold_id}"
         return base_uid
