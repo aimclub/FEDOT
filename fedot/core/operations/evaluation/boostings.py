@@ -7,7 +7,6 @@ from fedot.core.operations.evaluation.operation_implementations.models.boostings
     FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
     FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -34,12 +33,6 @@ class BoostingStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain Boosting Strategy for {operation_type}')
 
     def fit(self, train_data: InputData):
-        if is_multi_output_task(train_data):
-            if self.operation_type == 'catboost':
-                self.params_for_fit.update(loss_function='MultiLogloss')
-            elif self.operation_type == 'catboostreg':
-                self.params_for_fit.update(loss_function='MultiRMSE')
-
         operation_implementation = self.operation_impl(self.params_for_fit)
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
