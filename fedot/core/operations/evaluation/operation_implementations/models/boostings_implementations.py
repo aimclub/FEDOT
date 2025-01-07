@@ -170,27 +170,8 @@ class FedotLightGBMImplementation(ModelImplementation):
                     eval_input, identify_cats=self.params.get('enable_categorical')
                 )
 
-            eval_metric = self.set_eval_metric(self.classes_)
-            callbacks = self.update_callbacks()
-
-            if is_multi_output_task(input_data):
-                if input_data.task.task_type == TaskTypesEnum.classification:
-                    multiout_func = MultiOutputClassifier
-                elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-                    multiout_func = MultiOutputRegressor
-                else:
-                    raise ValueError(
-                        f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
-
-                self.model = multiout_func(self.model)
-                self.model.fit(X_train.values, y_train.values)
-                return self.model
-
-            self.model.fit(
-                X=X_train, y=y_train,
-                eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
-                callbacks=callbacks
-            )
+                eval_metric = self.set_eval_metric(self.classes_)
+                callbacks = self.update_callbacks()
 
                 self.model.fit(
                     X=X_train, y=y_train,
@@ -246,35 +227,6 @@ class FedotLightGBMImplementation(ModelImplementation):
             eval_metric = 'multi_logloss'
 
         return eval_metric
-
-    @staticmethod
-    def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-        copied_input_data = deepcopy(data)
-
-        dataframe = pd.DataFrame(data=copied_input_data.features)
-
-        if copied_input_data.target is not None and copied_input_data.target.size > 0:
-            rows_len = dataframe.shape[0]
-            target = copied_input_data.target[:rows_len]
-
-            if is_multi_output_task(copied_input_data):
-                return dataframe, pd.DataFrame(target)
-            else:
-                dataframe['target'] = np.ravel(target)
-        else:
-            # TODO: temp workaround in case data.target is set to None intentionally
-            #  for test.integration.models.test_model.check_predict_correct
-            dataframe['target'] = np.zeros(len(data.features))
-
-        if identify_cats and data.categorical_idx is not None:
-            for col in dataframe.columns[data.categorical_idx]:
-                dataframe[col] = dataframe[col].astype('category')
-
-        if data.numerical_idx is not None:
-            for col in dataframe.columns[data.numerical_idx]:
-                dataframe[col] = dataframe[col].astype('float')
-
-        return dataframe.drop(columns=['target']), dataframe['target']
 
     def plot_feature_importance(self):
         plot_feature_importance(self.features_names, self.model.feature_importances_)
