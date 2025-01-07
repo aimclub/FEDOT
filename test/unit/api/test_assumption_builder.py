@@ -95,8 +95,7 @@ def test_assumptions_builder_for_multimodal_data():
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: node.is_primary, mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    # TODO: do we need this assert?
-    # assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 1  # minus final ensemble
+    assert mm_pipeline.length > len(mm_data)
 
 
 def test_assumptions_builder_unsuitable_available_operations():
