@@ -15,7 +15,7 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-     ts_polyfit_ridge_pipeline
+    ts_polyfit_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \

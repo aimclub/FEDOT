@@ -412,8 +412,8 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
             dataframe[col] = dataframe[col].astype('float')
 
     if is_multi_output_task(copied_input_data):
-        X_without_target = dataframe.iloc[:,0:-2]
-        y_target = dataframe.iloc[:,-2:]
+        X_without_target = dataframe.iloc[:, 0:-2]
+        y_target = dataframe.iloc[:, -2:]
         return X_without_target, y_target
 
     return dataframe.drop(columns=['target']), dataframe['target']
