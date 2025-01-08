@@ -159,8 +159,7 @@ def data_with_pseudo_text_features():
                          np.nan,
                          '4.2',
                          '3',
-                         '1e-3',
-                         np.nan],
+                         '1e-3'],
                         dtype=object)
 
     target = np.array([[0], [1], [0], [1], [0]])
