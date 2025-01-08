@@ -120,15 +120,15 @@ def data_with_categorical_target(with_nan: bool = False):
     :param with_nan: is there a need to generate target column with np.nan
     """
     task = Task(TaskTypesEnum.classification)
-    features = np.array([[0, 0], [0, 1], [8, 8], [8, 9],
-                         [0, 0], [0, 1], [8, 8], [8, 9]])
+    features = np.array([[0, 0],
+                         [0, 1],
+                         [8, 8],
+                         [8, 9]])
     if with_nan:
-        target = np.array(['blue', np.nan, np.nan, 'di',
-                           'blue', np.nan, np.nan, 'di'], dtype=object)
+        target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
     else:
-        target = np.array(['blue', 'da', 'ba', 'di',
-                           'blue', 'da', 'ba', 'di'], dtype=str)
-    train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5, 6, 7]), features=features,
+        target = np.array(['blue', 'da', 'ba', 'di'], dtype=str)
+    train_input = InputData(idx=np.array([0, 1, 2, 3]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
 
