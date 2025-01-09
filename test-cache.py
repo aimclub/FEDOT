@@ -1,32 +1,66 @@
 from test.data.datasets import get_dataset
 from fedot.api.main import Fedot
-import numpy as np
-import pandas as pd
-import string
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
-import cProfile
-import pstats
-from pstats import SortKey
+# metric = ["rmse"]
+# task_type = "regression"
+# X, y = make_regression(n_samples=100, n_features=1, noise=1)
 
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split
+metric = ["f1"]
+task_type = "classification"
+# X, y = make_classification(n_samples=100, n_features=1)
 
-df = pd.DataFrame(np.random.randint(0, 100, size=(10, 10)), columns=list(string.ascii_lowercase[0:10:1]))
-
-X, y = make_regression(n_samples=100, n_features=1, noise=1)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.33, random_state=42)
-
-task_type = "regression"
+# X_train, X_test, y_train, y_test = train_test_split(
+#     X, y, test_size=0.33, random_state=42)
 
 train_data, test_data, _ = get_dataset(task_type)
 
+"""Regression"""
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node('resample',
+#               params={'balance': 'expand_minority',
+#                       'replace': False, 'balance_ratio': 1})
+#     .add_node('pca',
+#               params={'svd_solver': 'full',
+#                       'n_components': 0.47911835000292824})
+#     .add_node('scaling')
+#     .add_node('ridge',
+#               params={'alpha': 7.359303296600219})
+#     .build()
+# )
+
+"""Classification"""
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node("isolation_forest_class")
+#     .add_node("bernb")
+#     .add_node("knn",
+#               params={'n_neighbors': 36, 'weights': 'uniform', 'p': 2})
+#     .build()
+# )
+
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node("scaling")
+#     .add_node("dt")
+#     .add_node("rf", params={"n_jobs": 1})
+#     .build()
+# )
+
+bug_pipeline = (
+    PipelineBuilder()
+    .add_node("scaling")
+    .add_node("dt")
+    .build()
+)
+
 auto_model = Fedot(
     problem=task_type,
-    metric=["rmse"],
+    metric=metric,
     preset="best_quality",
     with_tuning=False,
-    timeout=2.5,
+    timeout=5,
     cv_folds=5,
     seed=42,
     n_jobs=1,
@@ -34,17 +68,15 @@ auto_model = Fedot(
     use_pipelines_cache=False,
     use_auto_preprocessing=False,
     # history_dir="./saved_history"
+    initial_assumption=bug_pipeline
 )
 
 auto_model.fit(features=train_data)
-# cProfile.run('auto_model.fit(features=df, target="a")', "restats")
-
-# p = pstats.Stats("restats")
-# p.strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(".*cache.*")
+# auto_model.fit(features=train_data, predefined_model=bug_pipeline)
 
 prediction = auto_model.predict(features=test_data, save_predictions=False)
 
 # auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
-auto_model.history.save("saved_history.json")
+# auto_model.history.save("saved_history.json")
 print(auto_model.get_metrics())
 print(auto_model.return_report().head(10))
