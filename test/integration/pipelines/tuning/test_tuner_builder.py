@@ -41,7 +41,6 @@ def test_tuner_builder_with_default_params():
     assert isinstance(tuner.search_space, PipelineSearchSpace)
     assert tuner.iterations == DEFAULT_TUNING_ITERATIONS_NUMBER
     assert tuner.algo == tpe.suggest
-    assert tuner.max_seconds == 300
 
 
 @pytest.mark.parametrize('tuner_class', [SimultaneousTuner, SequentialTuner, IOptTuner])

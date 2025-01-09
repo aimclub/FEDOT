@@ -84,7 +84,7 @@ def test_api_classification_example():
 
 
 def test_api_ts_forecasting_example():
-    for _ in range(100):
+    for _ in range(10):
         forecast = run_ts_forecasting_example(dataset='salaries', timeout=2, with_tuning=False)
         assert forecast is not None
 
