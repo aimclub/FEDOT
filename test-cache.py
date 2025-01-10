@@ -48,10 +48,18 @@ train_data, test_data, _ = get_dataset(task_type)
 #     .build()
 # )
 
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node("scaling")
+#     .add_node("dt")
+#     .build()
+# )
+
 bug_pipeline = (
     PipelineBuilder()
-    .add_node("scaling")
-    .add_node("dt")
+    .add_node("resample", params={'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1})
+    .add_node("qda")
+    .add_node("qda")
     .build()
 )
 
@@ -60,7 +68,7 @@ auto_model = Fedot(
     metric=metric,
     preset="best_quality",
     with_tuning=False,
-    timeout=5,
+    timeout=2.5,
     cv_folds=5,
     seed=42,
     n_jobs=1,
