@@ -2,6 +2,9 @@ import os
 from time import time
 
 import pytest
+
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.optuna_tuner import OptunaTuner
@@ -19,10 +22,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     GLMImplementation
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
@@ -290,7 +291,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test all tuners for pipeline """
     data = request.getfixturevalue(data_fixture)
@@ -324,7 +325,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner
     assert not tuned_pipeline.is_fitted
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
     """ Test all tuners for pipeline with initial parameters """
     # a model
@@ -348,7 +349,7 @@ def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test tuners with different search spaces """
     data = request.getfixturevalue(data_fixture)
@@ -441,7 +442,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_pipeline_tuner < 1.1
+    assert time() - start_pipeline_tuner < 1
 
     start_sequential_tuner = time()
     _ = run_pipeline_tuner(tuner=SequentialTuner,
@@ -450,7 +451,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_sequential_tuner < 1.1
+    assert time() - start_sequential_tuner < 1
 
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
@@ -458,7 +459,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                        loss_function=ClassificationMetricsEnum.ROCAUC,
                        iterations=1000,
                        early_stopping_rounds=1)
-    assert time() - start_node_tuner < 1.1
+    assert time() - start_node_tuner < 1
 
 
 def test_search_space_correctness_after_customization():
@@ -546,7 +547,7 @@ def test_complex_search_space_tuning_correct(tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [OptunaTuner])
+@pytest.mark.parametrize('tuner', [OptunaTuner, IOptTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test multi objective tuning is correct """
     data = request.getfixturevalue(data_fixture)
