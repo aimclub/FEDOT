@@ -44,6 +44,7 @@ class BoostingStrategy(EvaluationStrategy):
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data)
+
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
