@@ -57,9 +57,11 @@ train_data, test_data, _ = get_dataset(task_type)
 
 bug_pipeline = (
     PipelineBuilder()
-    .add_node("resample", params={'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1})
+    # .add_node("resample", params={'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1})
+    .add_node("mlp")
     .add_node("qda")
     .add_node("qda")
+    # .add_node("mlp")
     .build()
 )
 
@@ -68,7 +70,7 @@ auto_model = Fedot(
     metric=metric,
     preset="best_quality",
     with_tuning=False,
-    timeout=2.5,
+    timeout=0.1,
     cv_folds=5,
     seed=42,
     n_jobs=1,
@@ -83,6 +85,9 @@ auto_model.fit(features=train_data)
 # auto_model.fit(features=train_data, predefined_model=bug_pipeline)
 
 prediction = auto_model.predict(features=test_data, save_predictions=False)
+
+auto_model.current_pipeline.show()
+print(auto_model.current_pipeline.descriptive_id)
 
 # auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
 # auto_model.history.save("saved_history.json")

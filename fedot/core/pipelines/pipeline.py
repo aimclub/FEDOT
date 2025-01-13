@@ -278,8 +278,6 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        # TODO: data_cache
-
         if not self.is_fitted:
             ex = 'Pipeline is not fitted yet'
             self.log.error(ex)
@@ -292,6 +290,10 @@ class Pipeline(GraphDelegate, Serializable):
             copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
+
+        if data_cache is not None:
+            data_cache.current_pipeline = ""
+
         result = self.root_node.predict(input_data=copied_input_data,
                                         output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
 

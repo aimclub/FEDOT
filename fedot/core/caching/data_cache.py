@@ -23,10 +23,17 @@ class DataCache(BaseCache):
         super().__init__(DataCacheDB(cache_dir, custom_pid))
         self.manager = Manager()
         self.metrics_cache = self.manager.dict()
+        self.current_pipeline = ""
         if self._db.use_stats:
             self.metrics_cache["metrics_hit"] = 0
             self.metrics_cache["metrics_total"] = 0
             self.metrics_stats = {}
+
+    def add_node(self, node):
+        if self.current_pipeline == "":
+            self.current_pipeline += f"/{node.description()}"
+        else:
+            self.current_pipeline = f"({self.current_pipeline};)/{node.description()}"
 
     def save_metric(self, pipeline, metric, fold_id=None):
         uid = self._create_uid(pipeline, fold_id)
@@ -79,6 +86,7 @@ class DataCache(BaseCache):
         :param uid (str): The unique identifier of the prediction data.
         :return np.ndarray: The loaded prediction data.
         """
+        self.log.message(pipeline.descriptive_id)
         uid = self._create_uid(pipeline, fold_id)
         outputData = self._db.get_prediction(uid)
         return outputData
@@ -102,7 +110,7 @@ class DataCache(BaseCache):
             for node in pipeline.nodes:
                 base_uid += f"{node.descriptive_id}_"
         else:
-            base_uid += f"{pipeline.descriptive_id}_"
+            base_uid += f"{self.current_pipeline}_"
         if fold_id is not None:
             base_uid += f"{fold_id}"
         return base_uid
