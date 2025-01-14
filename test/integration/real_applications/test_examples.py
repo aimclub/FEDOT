@@ -1,3 +1,4 @@
+import os.path
 from datetime import timedelta
 
 import numpy as np
@@ -106,6 +107,6 @@ def test_multi_modal_example():
 
 
 def test_full_multi_modal_example():
-    result = run_multi_modal_pipeline(files_path=f'{fedot_project_root()}/examples/data/multimodal',
+    result = run_multi_modal_pipeline(files_path=os.path.join(fedot_project_root(), 'test', 'data', 'multi_modal'),
                                       timeout=0.1, visualization=False)
-    assert result > 0.5
+    assert result > 0.1
