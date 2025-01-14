@@ -106,5 +106,6 @@ def test_multi_modal_example():
 
 
 def test_full_multi_modal_example():
-    run_multi_modal_pipeline(files_path=f'{fedot_project_root}/examples/data/multimodal',
-                             timeout=1, visualization=False)
+    result = run_multi_modal_pipeline(files_path=f'{fedot_project_root()}/examples/data/multimodal',
+                                      timeout=0.1, visualization=False)
+    assert result > 0.5

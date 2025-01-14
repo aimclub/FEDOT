@@ -41,6 +41,10 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     """
 
     path = os.path.join(str(fedot_project_root()), files_path)
+
+    if not os.path.exists(path):
+        raise FileNotFoundError(path)
+
     # unpacking of data archive
     unpack_archived_data(path)
     # import of table data
