@@ -68,7 +68,7 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
+def run_multi_modal_pipeline(files_path: str, timeout=15, visualization=False) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
@@ -76,7 +76,7 @@ def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
 
     fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.6)
 
-    automl_model = Fedot(problem='classification', timeout=15)
+    automl_model = Fedot(problem='classification', timeout=timeout)
     pipeline = automl_model.fit(features=fit_data,
                                 target=fit_data.target)
 
