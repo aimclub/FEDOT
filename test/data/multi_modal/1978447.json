@@ -1,0 +1,573 @@
+{
+  "rating": 6.2,
+  "sound crew": [
+    {
+      "canonical name": "Aldema, Aviv",
+      "name": "Aviv Aldema",
+      "long imdb name": "Aviv Aldema",
+      "long imdb canonical name": "Aldema, Aviv"
+    },
+    {
+      "canonical name": "Aldema, Aviv",
+      "name": "Aviv Aldema",
+      "long imdb name": "Aviv Aldema",
+      "long imdb canonical name": "Aldema, Aviv"
+    },
+    {
+      "canonical name": "Aldema, Aviv",
+      "name": "Aviv Aldema",
+      "long imdb name": "Aviv Aldema",
+      "long imdb canonical name": "Aldema, Aviv"
+    },
+    {
+      "canonical name": "David, Israel",
+      "name": "Israel David",
+      "long imdb name": "Israel David",
+      "long imdb canonical name": "David, Israel"
+    },
+    {
+      "canonical name": "Gibbs, Neal",
+      "name": "Neal Gibbs",
+      "long imdb name": "Neal Gibbs",
+      "long imdb canonical name": "Gibbs, Neal"
+    },
+    {
+      "canonical name": "Goorevich, Michael",
+      "name": "Michael Goorevich",
+      "long imdb name": "Michael Goorevich",
+      "long imdb canonical name": "Goorevich, Michael"
+    },
+    {
+      "canonical name": "Hazan, Nin",
+      "name": "Nin Hazan",
+      "long imdb name": "Nin Hazan",
+      "long imdb canonical name": "Hazan, Nin"
+    },
+    {
+      "canonical name": "Segal, Gil",
+      "name": "Gil Segal",
+      "long imdb name": "Gil Segal",
+      "long imdb canonical name": "Segal, Gil"
+    },
+    {
+      "canonical name": "Segal, Gil",
+      "name": "Gil Segal",
+      "long imdb name": "Gil Segal",
+      "long imdb canonical name": "Segal, Gil"
+    },
+    {
+      "canonical name": "Shelly, Bar On",
+      "name": "Bar On Shelly",
+      "long imdb name": "Bar On Shelly",
+      "long imdb canonical name": "Shelly, Bar On"
+    }
+  ],
+  "camera and electrical department": [
+    {
+      "canonical name": "Hajaj, Avi",
+      "name": "Avi Hajaj",
+      "long imdb name": "Avi Hajaj",
+      "long imdb canonical name": "Hajaj, Avi"
+    },
+    {
+      "canonical name": "Harari, Nir",
+      "name": "Nir Harari",
+      "long imdb name": "Nir Harari",
+      "long imdb canonical name": "Harari, Nir"
+    },
+    {
+      "canonical name": "Landau, Na'ama",
+      "name": "Na'ama Landau",
+      "long imdb name": "Na'ama Landau",
+      "long imdb canonical name": "Landau, Na'ama"
+    },
+    {
+      "canonical name": "Lester, Yuval",
+      "name": "Yuval Lester",
+      "long imdb name": "Yuval Lester",
+      "long imdb canonical name": "Lester, Yuval"
+    },
+    {
+      "canonical name": "Oz, Yaron",
+      "name": "Yaron Oz",
+      "long imdb name": "Yaron Oz",
+      "long imdb canonical name": "Oz, Yaron"
+    },
+    {
+      "canonical name": "Reshef, Gali",
+      "name": "Gali Reshef",
+      "long imdb name": "Gali Reshef",
+      "long imdb canonical name": "Reshef, Gali"
+    },
+    {
+      "canonical name": "Shavit, Alon",
+      "name": "Alon Shavit",
+      "long imdb name": "Alon Shavit",
+      "long imdb canonical name": "Shavit, Alon"
+    },
+    {
+      "canonical name": "Siman-Tov, Rami",
+      "name": "Rami Siman-Tov",
+      "long imdb name": "Rami Siman-Tov",
+      "long imdb canonical name": "Siman-Tov, Rami"
+    },
+    {
+      "canonical name": "Solomonik, Felix",
+      "name": "Felix Solomonik",
+      "long imdb name": "Felix Solomonik",
+      "long imdb canonical name": "Solomonik, Felix"
+    },
+    {
+      "canonical name": "Tzizling, Ram",
+      "name": "Ram Tzizling",
+      "long imdb name": "Ram Tzizling",
+      "long imdb canonical name": "Tzizling, Ram"
+    },
+    {
+      "canonical name": "Yahalomi, Ronen",
+      "name": "Ronen Yahalomi",
+      "long imdb name": "Ronen Yahalomi",
+      "long imdb canonical name": "Yahalomi, Ronen"
+    }
+  ],
+  "distributors": [
+    {
+      "name": "Aquelarre Servicios Cinematograficos",
+      "long imdb name": "Aquelarre Servicios Cinematograficos"
+    },
+    {
+      "name": "Bodega Films",
+      "long imdb name": "Bodega Films"
+    },
+    {
+      "name": "Cin\u00e9math\u00e8que Suisse",
+      "long imdb name": "Cin\u00e9math\u00e8que Suisse"
+    },
+    {
+      "name": "Corinth Films",
+      "long imdb name": "Corinth Films"
+    },
+    {
+      "name": "GMfilms",
+      "long imdb name": "GMfilms"
+    },
+    {
+      "name": "Zeta Films",
+      "long imdb name": "Zeta Films"
+    },
+    {
+      "name": "Leopardo Filmes",
+      "long imdb name": "Leopardo Filmes"
+    },
+    {
+      "name": "Pinnacle Films",
+      "long imdb name": "Pinnacle Films"
+    }
+  ],
+  "runtimes": [
+    "105"
+  ],
+  "costume designer": [
+    {
+      "canonical name": "Berlowitz, Amit",
+      "name": "Amit Berlowitz",
+      "long imdb name": "Amit Berlowitz",
+      "long imdb canonical name": "Berlowitz, Amit"
+    }
+  ],
+  "make up": [
+    {
+      "canonical name": "Hirschmann, Nirit",
+      "name": "Nirit Hirschmann",
+      "long imdb name": "Nirit Hirschmann",
+      "long imdb canonical name": "Hirschmann, Nirit"
+    },
+    {
+      "canonical name": "Shimoni, Ayelet",
+      "name": "Ayelet Shimoni",
+      "long imdb name": "Ayelet Shimoni",
+      "long imdb canonical name": "Shimoni, Ayelet"
+    }
+  ],
+  "year": 2011,
+  "miscellaneous crew": [
+    {
+      "canonical name": "Ginton, Noga",
+      "name": "Noga Ginton",
+      "long imdb name": "Noga Ginton",
+      "long imdb canonical name": "Ginton, Noga"
+    }
+  ],
+  "long imdb canonical title": "shoter, Ha- (2011)",
+  "production companies": [
+    {
+      "name": "HOT",
+      "long imdb name": "HOT"
+    },
+    {
+      "name": "La\u00efla Films",
+      "long imdb name": "La\u00efla Films"
+    },
+    {
+      "name": "Rabinovich Film Fund Cinema Project",
+      "long imdb name": "Rabinovich Film Fund Cinema Project"
+    }
+  ],
+  "color info": [],
+  "plot": [
+    "A member of an Israeli anti-terrorist unit clashes with a group of young radicals."
+  ],
+  "votes": 604,
+  "producer": [
+    {
+      "canonical name": "Tamir, Itai",
+      "name": "Itai Tamir",
+      "long imdb name": "Itai Tamir",
+      "long imdb canonical name": "Tamir, Itai"
+    }
+  ],
+  "title": "Ha-shoter",
+  "assistant director": [
+    {
+      "canonical name": "Banitt, Assaf",
+      "name": "Assaf Banitt",
+      "long imdb name": "Assaf Banitt",
+      "long imdb canonical name": "Banitt, Assaf"
+    },
+    {
+      "canonical name": "Lipkind, Orna",
+      "name": "Orna Lipkind",
+      "long imdb name": "Orna Lipkind",
+      "long imdb canonical name": "Lipkind, Orna"
+    }
+  ],
+  "writer": [
+    {
+      "canonical name": "Lapid, Nadav",
+      "name": "Nadav Lapid",
+      "long imdb name": "Nadav Lapid",
+      "long imdb canonical name": "Lapid, Nadav"
+    }
+  ],
+  "casting director": [
+    {
+      "canonical name": "Berlowitz, Amit",
+      "name": "Amit Berlowitz",
+      "long imdb name": "Amit Berlowitz",
+      "long imdb canonical name": "Berlowitz, Amit"
+    }
+  ],
+  "languages": [
+    "Hebrew",
+    "English"
+  ],
+  "production manager": [
+    {
+      "canonical name": "Copti, Tony",
+      "name": "Tony Copti",
+      "long imdb name": "Tony Copti",
+      "long imdb canonical name": "Copti, Tony"
+    }
+  ],
+  "editor": [
+    {
+      "canonical name": "Lapid, Era",
+      "name": "Era Lapid",
+      "long imdb name": "Era Lapid",
+      "long imdb canonical name": "Lapid, Era"
+    }
+  ],
+  "certificates": [
+    "Argentina:16",
+    "Australia:MA15+::(2013)",
+    "Portugal:M/12",
+    "USA:Unrated"
+  ],
+  "costume department": [
+    {
+      "canonical name": "Hagag, Liz",
+      "name": "Liz Hagag",
+      "long imdb name": "Liz Hagag",
+      "long imdb canonical name": "Hagag, Liz"
+    },
+    {
+      "canonical name": "Ronat, Sivan",
+      "name": "Sivan Ronat",
+      "long imdb name": "Sivan Ronat",
+      "long imdb canonical name": "Ronat, Sivan"
+    },
+    {
+      "canonical name": "Sandersson, Carmela",
+      "name": "Carmela Sandersson",
+      "long imdb name": "Carmela Sandersson",
+      "long imdb canonical name": "Sandersson, Carmela"
+    }
+  ],
+  "long imdb title": "Ha-shoter (2011)",
+  "country codes": [
+    "il",
+    "fr"
+  ],
+  "language codes": [
+    "he",
+    "en"
+  ],
+  "cover url": "http://ia.media-imdb.com/images/M/MV5BOTcwNTU3MjEzNF5BMl5BanBnXkFtZTcwNjc5MjQxOA@@._V1._SX97_SY140_.jpg",
+  "sound mix": [
+    "Dolby Digital"
+  ],
+  "genres": [
+    "Drama"
+  ],
+  "director": [
+    {
+      "canonical name": "Lapid, Nadav",
+      "name": "Nadav Lapid",
+      "long imdb name": "Nadav Lapid",
+      "long imdb canonical name": "Lapid, Nadav"
+    }
+  ],
+  "cinematographer": [
+    {
+      "canonical name": "Goldman, Shai",
+      "name": "Shai Goldman",
+      "long imdb name": "Shai Goldman",
+      "long imdb canonical name": "Goldman, Shai"
+    }
+  ],
+  "art direction": [
+    {
+      "canonical name": "Fahima, Avi",
+      "name": "Avi Fahima",
+      "long imdb name": "Avi Fahima",
+      "long imdb canonical name": "Fahima, Avi"
+    }
+  ],
+  "akas": [
+    "Policeman::International (English title) (imdb display title), USA (new title)",
+    "HaShoter::Israel (Hebrew title) (imdb display title)",
+    "Le policier::France (imdb display title)",
+    "A rend \u0151re::Hungary",
+    "O Pol\u00edcia::Portugal (imdb display title)",
+    "Polic\u00eda en Israel::Spain (imdb display title)",
+    "Policeman::Argentina (imdb display title)",
+    "Policeman::Germany (imdb display title)",
+    "Policeman::Sweden (imdb display title)",
+    "Policjant::Poland (imdb display title)"
+  ],
+  "aspect ratio": "1.66 : 1",
+  "location management": [
+    {
+      "canonical name": "Artzi, Yosi",
+      "name": "Yosi Artzi",
+      "long imdb name": "Yosi Artzi",
+      "long imdb canonical name": "Artzi, Yosi"
+    }
+  ],
+  "kind": "movie",
+  "art department": [
+    {
+      "canonical name": "Afar, Ben Leon",
+      "name": "Ben Leon Afar",
+      "long imdb name": "Ben Leon Afar",
+      "long imdb canonical name": "Afar, Ben Leon"
+    },
+    {
+      "canonical name": "Ostrovsky, Anton 'Klin'",
+      "name": "Anton 'Klin' Ostrovsky",
+      "long imdb name": "Anton 'Klin' Ostrovsky",
+      "long imdb canonical name": "Ostrovsky, Anton 'Klin'"
+    }
+  ],
+  "countries": [
+    "Israel",
+    "France"
+  ],
+  "plot outline": "A member of an Israeli anti-terrorist unit clashes with a group of young radicals.",
+  "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BOTcwNTU3MjEzNF5BMl5BanBnXkFtZTcwNjc5MjQxOA@@.jpg",
+  "canonical title": "shoter, Ha-",
+  "cast": [
+    {
+      "canonical name": "Klein, Yiftach",
+      "name": "Yiftach Klein",
+      "long imdb name": "Yiftach Klein",
+      "long imdb canonical name": "Klein, Yiftach"
+    },
+    {
+      "canonical name": "Pelzig, Yaara",
+      "name": "Yaara Pelzig",
+      "long imdb name": "Yaara Pelzig",
+      "long imdb canonical name": "Pelzig, Yaara"
+    },
+    {
+      "canonical name": "Moshonov, Michael",
+      "name": "Michael Moshonov",
+      "long imdb name": "Michael Moshonov",
+      "long imdb canonical name": "Moshonov, Michael"
+    },
+    {
+      "canonical name": "Noy, Menashe",
+      "name": "Menashe Noy",
+      "long imdb name": "Menashe Noy",
+      "long imdb canonical name": "Noy, Menashe"
+    },
+    {
+      "canonical name": "Aloni, Michael",
+      "name": "Michael Aloni",
+      "long imdb name": "Michael Aloni",
+      "long imdb canonical name": "Aloni, Michael"
+    },
+    {
+      "canonical name": "Hoyberger, Gal",
+      "name": "Gal Hoyberger",
+      "long imdb name": "Gal Hoyberger",
+      "long imdb canonical name": "Hoyberger, Gal"
+    },
+    {
+      "canonical name": "Barda, Meital",
+      "name": "Meital Barda",
+      "long imdb name": "Meital Barda",
+      "long imdb canonical name": "Barda, Meital"
+    },
+    {
+      "canonical name": "Mizrahi, Shaul",
+      "name": "Shaul Mizrahi",
+      "long imdb name": "Shaul Mizrahi",
+      "long imdb canonical name": "Mizrahi, Shaul"
+    },
+    {
+      "canonical name": "Shim'on, Rona-Lee",
+      "name": "Rona-Lee Shim'on",
+      "long imdb name": "Rona-Lee Shim'on",
+      "long imdb canonical name": "Shim'on, Rona-Lee"
+    },
+    {
+      "canonical name": "Adam, Ben",
+      "name": "Ben Adam",
+      "long imdb name": "Ben Adam",
+      "long imdb canonical name": "Adam, Ben"
+    },
+    {
+      "canonical name": "Abramovich, Tracy",
+      "name": "Tracy Abramovich",
+      "long imdb name": "Tracy Abramovich",
+      "long imdb canonical name": "Abramovich, Tracy"
+    },
+    {
+      "canonical name": "Arad, Roy",
+      "name": "Roy Arad",
+      "long imdb name": "Roy Arad",
+      "long imdb canonical name": "Arad, Roy"
+    },
+    {
+      "canonical name": "Barone, Ariel",
+      "name": "Ariel Barone",
+      "long imdb name": "Ariel Barone",
+      "long imdb canonical name": "Barone, Ariel"
+    },
+    {
+      "canonical name": "Boker, Noam",
+      "name": "Noam Boker",
+      "long imdb name": "Noam Boker",
+      "long imdb canonical name": "Boker, Noam"
+    },
+    {
+      "canonical name": "Cohen, Moris",
+      "name": "Moris Cohen",
+      "long imdb name": "Moris Cohen",
+      "long imdb canonical name": "Cohen, Moris"
+    },
+    {
+      "canonical name": "Dector, David",
+      "name": "David Dector",
+      "long imdb name": "David Dector",
+      "long imdb canonical name": "Dector, David"
+    },
+    {
+      "canonical name": "Fabian, Miri",
+      "name": "Miri Fabian",
+      "long imdb name": "Miri Fabian",
+      "long imdb canonical name": "Fabian, Miri"
+    },
+    {
+      "canonical name": "Hayun, Shlomi",
+      "name": "Shlomi Hayun",
+      "long imdb name": "Shlomi Hayun",
+      "long imdb canonical name": "Hayun, Shlomi"
+    },
+    {
+      "canonical name": "Kreindl, Jenny-Joy",
+      "name": "Jenny-Joy Kreindl",
+      "long imdb name": "Jenny-Joy Kreindl",
+      "long imdb canonical name": "Kreindl, Jenny-Joy"
+    },
+    {
+      "canonical name": "Malol, Itamar",
+      "name": "Itamar Malol",
+      "long imdb name": "Itamar Malol",
+      "long imdb canonical name": "Malol, Itamar"
+    },
+    {
+      "canonical name": "Mizrahi, Betzalel",
+      "name": "Betzalel Mizrahi",
+      "long imdb name": "Betzalel Mizrahi",
+      "long imdb canonical name": "Mizrahi, Betzalel"
+    },
+    {
+      "canonical name": "Muszkatblit, Dana",
+      "name": "Dana Muszkatblit",
+      "long imdb name": "Dana Muszkatblit",
+      "long imdb canonical name": "Muszkatblit, Dana"
+    },
+    {
+      "canonical name": "Narkiss, Orly",
+      "name": "Orly Narkiss",
+      "long imdb name": "Orly Narkiss",
+      "long imdb canonical name": "Narkiss, Orly"
+    },
+    {
+      "canonical name": "Nemichenizer, Danny",
+      "name": "Danny Nemichenizer",
+      "long imdb name": "Danny Nemichenizer",
+      "long imdb canonical name": "Nemichenizer, Danny"
+    },
+    {
+      "canonical name": "Ofek, Jonathan",
+      "name": "Jonathan Ofek",
+      "long imdb name": "Jonathan Ofek",
+      "long imdb canonical name": "Ofek, Jonathan"
+    },
+    {
+      "canonical name": "Raz, Lior",
+      "name": "Lior Raz",
+      "long imdb name": "Lior Raz",
+      "long imdb canonical name": "Raz, Lior"
+    },
+    {
+      "canonical name": "Shmuel, Moisi",
+      "name": "Moisi Shmuel",
+      "long imdb name": "Moisi Shmuel",
+      "long imdb canonical name": "Shmuel, Moisi"
+    },
+    {
+      "canonical name": "Tepler, Narkis",
+      "name": "Narkis Tepler",
+      "long imdb name": "Narkis Tepler",
+      "long imdb canonical name": "Tepler, Narkis"
+    },
+    {
+      "canonical name": "Yael, Noa",
+      "name": "Noa Yael",
+      "long imdb name": "Noa Yael",
+      "long imdb canonical name": "Yael, Noa"
+    },
+    {
+      "canonical name": "Zitner, Lavi",
+      "name": "Lavi Zitner",
+      "long imdb name": "Lavi Zitner",
+      "long imdb canonical name": "Zitner, Lavi"
+    }
+  ],
+  "smart long imdb canonical title": "shoter, Ha- (2011)",
+  "smart canonical title": "shoter, Ha-"
+}

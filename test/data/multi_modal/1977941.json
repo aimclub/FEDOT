@@ -1,0 +1,722 @@
+{
+  "music department": [
+    {
+      "canonical name": "Edwards, Timothy Andrew",
+      "name": "Timothy Andrew Edwards",
+      "long imdb name": "Timothy Andrew Edwards",
+      "long imdb canonical name": "Edwards, Timothy Andrew"
+    }
+  ],
+  "camera and electrical department": [
+    {
+      "canonical name": "Alexander, Jack",
+      "name": "Jack Alexander",
+      "long imdb name": "Jack Alexander",
+      "long imdb canonical name": "Alexander, Jack"
+    },
+    {
+      "canonical name": "Castle, Eric",
+      "name": "Eric Castle",
+      "long imdb name": "Eric Castle",
+      "long imdb canonical name": "Castle, Eric"
+    },
+    {
+      "canonical name": "Dropkin, Scott",
+      "name": "Scott Dropkin",
+      "long imdb name": "Scott Dropkin",
+      "long imdb canonical name": "Dropkin, Scott"
+    },
+    {
+      "canonical name": "Elvira, Ryan",
+      "name": "Ryan Elvira",
+      "long imdb name": "Ryan Elvira",
+      "long imdb canonical name": "Elvira, Ryan"
+    },
+    {
+      "canonical name": "Gunter, Cory",
+      "name": "Cory Gunter",
+      "long imdb name": "Cory Gunter",
+      "long imdb canonical name": "Gunter, Cory"
+    },
+    {
+      "canonical name": "Hunt, Tom",
+      "name": "Tom Hunt",
+      "long imdb name": "Tom Hunt",
+      "long imdb canonical name": "Hunt, Tom"
+    },
+    {
+      "canonical name": "Kimbriel, Kyle",
+      "name": "Kyle Kimbriel",
+      "long imdb name": "Kyle Kimbriel",
+      "long imdb canonical name": "Kimbriel, Kyle"
+    },
+    {
+      "canonical name": "Negrila, Emanuel",
+      "name": "Emanuel Negrila",
+      "long imdb name": "Emanuel Negrila",
+      "long imdb canonical name": "Negrila, Emanuel"
+    },
+    {
+      "canonical name": "Semble, Mason",
+      "name": "Mason Semble",
+      "long imdb name": "Mason Semble",
+      "long imdb canonical name": "Semble, Mason"
+    }
+  ],
+  "distributors": [
+    {
+      "name": "Breakthrough Entertainment",
+      "long imdb name": "Breakthrough Entertainment"
+    },
+    {
+      "name": "CDC United Network",
+      "long imdb name": "CDC United Network"
+    },
+    {
+      "name": "E1 Entertainment",
+      "long imdb name": "E1 Entertainment"
+    },
+    {
+      "name": "Eagle Films",
+      "long imdb name": "Eagle Films"
+    },
+    {
+      "name": "Joker Films",
+      "long imdb name": "Joker Films"
+    },
+    {
+      "name": "Ultra Group",
+      "long imdb name": "Ultra Group"
+    },
+    {
+      "name": "eOne Entertainment",
+      "long imdb name": "eOne Entertainment"
+    }
+  ],
+  "rating": 4.8,
+  "runtimes": [
+    "88"
+  ],
+  "costume designer": [
+    {
+      "canonical name": "McQuown, Lynn",
+      "name": "Lynn McQuown",
+      "long imdb name": "Lynn McQuown",
+      "long imdb canonical name": "McQuown, Lynn"
+    }
+  ],
+  "make up": [
+    {
+      "canonical name": "Areford, Megan",
+      "name": "Megan Areford",
+      "long imdb name": "Megan Areford",
+      "long imdb canonical name": "Areford, Megan"
+    },
+    {
+      "canonical name": "Cruz, Evelyn",
+      "name": "Evelyn Cruz",
+      "long imdb name": "Evelyn Cruz",
+      "long imdb canonical name": "Cruz, Evelyn"
+    },
+    {
+      "canonical name": "Cueva, Melissa N.",
+      "name": "Melissa N. Cueva",
+      "long imdb name": "Melissa N. Cueva",
+      "long imdb canonical name": "Cueva, Melissa N."
+    },
+    {
+      "canonical name": "Hubbard, Gage",
+      "name": "Gage Hubbard",
+      "long imdb name": "Gage Hubbard",
+      "long imdb canonical name": "Hubbard, Gage"
+    },
+    {
+      "canonical name": "Staats, Lexx",
+      "name": "Lexx Staats",
+      "long imdb name": "Lexx Staats",
+      "long imdb canonical name": "Staats, Lexx"
+    }
+  ],
+  "year": 2012,
+  "production design": [
+    {
+      "canonical name": "Turlure, Laurent",
+      "name": "Laurent Turlure",
+      "long imdb name": "Laurent Turlure",
+      "long imdb canonical name": "Turlure, Laurent"
+    }
+  ],
+  "miscellaneous crew": [
+    {
+      "canonical name": "Aitkenhead, Melanie",
+      "name": "Melanie Aitkenhead",
+      "long imdb name": "Melanie Aitkenhead",
+      "long imdb canonical name": "Aitkenhead, Melanie"
+    },
+    {
+      "canonical name": "Bosnjakovic, Denis",
+      "name": "Denis Bosnjakovic",
+      "long imdb name": "Denis Bosnjakovic",
+      "long imdb canonical name": "Bosnjakovic, Denis"
+    },
+    {
+      "canonical name": "Clemente, Candy",
+      "name": "Candy Clemente",
+      "long imdb name": "Candy Clemente",
+      "long imdb canonical name": "Clemente, Candy"
+    },
+    {
+      "canonical name": "Miller, Kevin J.",
+      "name": "Kevin J. Miller",
+      "long imdb name": "Kevin J. Miller",
+      "long imdb canonical name": "Miller, Kevin J."
+    },
+    {
+      "canonical name": "Ramo, Elsa",
+      "name": "Elsa Ramo",
+      "long imdb name": "Elsa Ramo",
+      "long imdb canonical name": "Ramo, Elsa"
+    },
+    {
+      "canonical name": "Schoenberg, Samantha",
+      "name": "Samantha Schoenberg",
+      "long imdb name": "Samantha Schoenberg",
+      "long imdb canonical name": "Schoenberg, Samantha"
+    },
+    {
+      "canonical name": "Teller, Courtney",
+      "name": "Courtney Teller",
+      "long imdb name": "Courtney Teller",
+      "long imdb canonical name": "Teller, Courtney"
+    }
+  ],
+  "color info": [],
+  "plot": [
+    "When Chloe (Kristen Dalton) and Michael Carpenter rent out the cottage behind their house to charming romance novelist, Robert Mars (David Arquette) their American dream soon turns into a suburban nightmare."
+  ],
+  "votes": 864,
+  "producer": [
+    {
+      "canonical name": "Antosca, Nick",
+      "name": "Nick Antosca",
+      "long imdb name": "Nick Antosca",
+      "long imdb canonical name": "Antosca, Nick"
+    },
+    {
+      "canonical name": "Barrielle, Barbara Jean",
+      "name": "Barbara Jean Barrielle",
+      "long imdb name": "Barbara Jean Barrielle",
+      "long imdb canonical name": "Barrielle, Barbara Jean"
+    },
+    {
+      "canonical name": "Brown, Tim",
+      "name": "Tim Brown",
+      "long imdb name": "Tim Brown",
+      "long imdb canonical name": "Brown, Tim"
+    },
+    {
+      "canonical name": "Brown, Timothy J.",
+      "name": "Timothy J. Brown",
+      "long imdb name": "Timothy J. Brown",
+      "long imdb canonical name": "Brown, Timothy J."
+    },
+    {
+      "canonical name": "Dalton, Kristen",
+      "name": "Kristen Dalton",
+      "long imdb name": "Kristen Dalton",
+      "long imdb canonical name": "Dalton, Kristen"
+    },
+    {
+      "canonical name": "Johnson, Lesley Wright",
+      "name": "Lesley Wright Johnson",
+      "long imdb name": "Lesley Wright Johnson",
+      "long imdb canonical name": "Johnson, Lesley Wright"
+    },
+    {
+      "canonical name": "Lesser, Richard A.",
+      "name": "Richard A. Lesser",
+      "long imdb name": "Richard A. Lesser",
+      "long imdb canonical name": "Lesser, Richard A."
+    },
+    {
+      "canonical name": "MacIver, Eric",
+      "name": "Eric MacIver",
+      "long imdb name": "Eric MacIver",
+      "long imdb canonical name": "MacIver, Eric"
+    },
+    {
+      "canonical name": "Martin, Jodi",
+      "name": "Jodi Martin",
+      "long imdb name": "Jodi Martin",
+      "long imdb canonical name": "Martin, Jodi"
+    },
+    {
+      "canonical name": "Nabors, Douglas",
+      "name": "Douglas Nabors",
+      "long imdb name": "Douglas Nabors",
+      "long imdb canonical name": "Nabors, Douglas"
+    },
+    {
+      "canonical name": "Nabors, Douglas",
+      "name": "Douglas Nabors",
+      "long imdb name": "Douglas Nabors",
+      "long imdb canonical name": "Nabors, Douglas"
+    },
+    {
+      "canonical name": "O'Mara, Bettina Tendler",
+      "name": "Bettina Tendler O'Mara",
+      "long imdb name": "Bettina Tendler O'Mara",
+      "long imdb canonical name": "O'Mara, Bettina Tendler"
+    },
+    {
+      "canonical name": "Pielak, Nolan",
+      "name": "Nolan Pielak",
+      "long imdb name": "Nolan Pielak",
+      "long imdb canonical name": "Pielak, Nolan"
+    },
+    {
+      "canonical name": "Steindorff, Jessica",
+      "name": "Jessica Steindorff",
+      "long imdb name": "Jessica Steindorff",
+      "long imdb canonical name": "Steindorff, Jessica"
+    },
+    {
+      "canonical name": "Young, Bellamy",
+      "name": "Bellamy Young",
+      "long imdb name": "Bellamy Young",
+      "long imdb canonical name": "Young, Bellamy"
+    }
+  ],
+  "title": "The Cottage",
+  "assistant director": [
+    {
+      "canonical name": "Galvan, Stephenie",
+      "name": "Stephenie Galvan",
+      "long imdb name": "Stephenie Galvan",
+      "long imdb canonical name": "Galvan, Stephenie"
+    },
+    {
+      "canonical name": "Miller, Patrick",
+      "name": "Patrick Miller",
+      "long imdb name": "Patrick Miller",
+      "long imdb canonical name": "Miller, Patrick"
+    },
+    {
+      "canonical name": "Terblanche, Jacques",
+      "name": "Jacques Terblanche",
+      "long imdb name": "Jacques Terblanche",
+      "long imdb canonical name": "Terblanche, Jacques"
+    }
+  ],
+  "writer": [
+    {
+      "canonical name": "Antosca, Nick",
+      "name": "Nick Antosca",
+      "long imdb name": "Nick Antosca",
+      "long imdb canonical name": "Antosca, Nick"
+    }
+  ],
+  "long imdb canonical title": "Cottage, The (2012)",
+  "languages": [
+    "English"
+  ],
+  "set decoration": [
+    {
+      "canonical name": "Turlure, Laurent",
+      "name": "Laurent Turlure",
+      "long imdb name": "Laurent Turlure",
+      "long imdb canonical name": "Turlure, Laurent"
+    }
+  ],
+  "editor": [
+    {
+      "canonical name": "Carter, Owen",
+      "name": "Owen Carter",
+      "long imdb name": "Owen Carter",
+      "long imdb canonical name": "Carter, Owen"
+    },
+    {
+      "canonical name": "Jaymes, Chris",
+      "name": "Chris Jaymes",
+      "long imdb name": "Chris Jaymes",
+      "long imdb canonical name": "Jaymes, Chris"
+    }
+  ],
+  "certificates": [
+    "UK:15"
+  ],
+  "sound crew": [
+    {
+      "canonical name": "Borrero, Felipe",
+      "name": "Felipe Borrero",
+      "long imdb name": "Felipe Borrero",
+      "long imdb canonical name": "Borrero, Felipe"
+    },
+    {
+      "canonical name": "Jaramillo, A. Daniel",
+      "name": "A. Daniel Jaramillo",
+      "long imdb name": "A. Daniel Jaramillo",
+      "long imdb canonical name": "Jaramillo, A. Daniel"
+    },
+    {
+      "canonical name": "Jaramillo, A. Daniel",
+      "name": "A. Daniel Jaramillo",
+      "long imdb name": "A. Daniel Jaramillo",
+      "long imdb canonical name": "Jaramillo, A. Daniel"
+    },
+    {
+      "canonical name": "Jaramillo, A. Daniel",
+      "name": "A. Daniel Jaramillo",
+      "long imdb name": "A. Daniel Jaramillo",
+      "long imdb canonical name": "Jaramillo, A. Daniel"
+    },
+    {
+      "canonical name": "Jaramillo, A. Daniel",
+      "name": "A. Daniel Jaramillo",
+      "long imdb name": "A. Daniel Jaramillo",
+      "long imdb canonical name": "Jaramillo, A. Daniel"
+    },
+    {
+      "canonical name": "Jayaraja, Jaya",
+      "name": "Jaya Jayaraja",
+      "long imdb name": "Jaya Jayaraja",
+      "long imdb canonical name": "Jayaraja, Jaya"
+    },
+    {
+      "canonical name": "Jolley, Erick",
+      "name": "Erick Jolley",
+      "long imdb name": "Erick Jolley",
+      "long imdb canonical name": "Jolley, Erick"
+    },
+    {
+      "canonical name": "Jolley, Erick",
+      "name": "Erick Jolley",
+      "long imdb name": "Erick Jolley",
+      "long imdb canonical name": "Jolley, Erick"
+    },
+    {
+      "canonical name": "Jolley, Erick",
+      "name": "Erick Jolley",
+      "long imdb name": "Erick Jolley",
+      "long imdb canonical name": "Jolley, Erick"
+    },
+    {
+      "canonical name": "Jolley, Erick",
+      "name": "Erick Jolley",
+      "long imdb name": "Erick Jolley",
+      "long imdb canonical name": "Jolley, Erick"
+    },
+    {
+      "canonical name": "Jolley, Erick",
+      "name": "Erick Jolley",
+      "long imdb name": "Erick Jolley",
+      "long imdb canonical name": "Jolley, Erick"
+    },
+    {
+      "canonical name": "Klein, Eric M.",
+      "name": "Eric M. Klein",
+      "long imdb name": "Eric M. Klein",
+      "long imdb canonical name": "Klein, Eric M."
+    },
+    {
+      "canonical name": "Qui\u00f1ones, Martin",
+      "name": "Martin Qui\u00f1ones",
+      "long imdb name": "Martin Qui\u00f1ones",
+      "long imdb canonical name": "Qui\u00f1ones, Martin"
+    },
+    {
+      "canonical name": "Qui\u00f1ones, Martin",
+      "name": "Martin Qui\u00f1ones",
+      "long imdb name": "Martin Qui\u00f1ones",
+      "long imdb canonical name": "Qui\u00f1ones, Martin"
+    }
+  ],
+  "long imdb title": "The Cottage (2012)",
+  "country codes": [
+    "us"
+  ],
+  "language codes": [
+    "en"
+  ],
+  "cover url": "http://ia.media-imdb.com/images/M/MV5BODE5NzMwODU3OV5BMl5BanBnXkFtZTcwNDM3NzM0OA@@._V1._SX100_SY136_.jpg",
+  "editorial department": [
+    {
+      "canonical name": "Adrianson, Stephen",
+      "name": "Stephen Adrianson",
+      "long imdb name": "Stephen Adrianson",
+      "long imdb canonical name": "Adrianson, Stephen"
+    },
+    {
+      "canonical name": "Bosnjakovic, Denis",
+      "name": "Denis Bosnjakovic",
+      "long imdb name": "Denis Bosnjakovic",
+      "long imdb canonical name": "Bosnjakovic, Denis"
+    },
+    {
+      "canonical name": "Jacobs, Laurence",
+      "name": "Laurence Jacobs",
+      "long imdb name": "Laurence Jacobs",
+      "long imdb canonical name": "Jacobs, Laurence"
+    },
+    {
+      "canonical name": "Klein, Eric M.",
+      "name": "Eric M. Klein",
+      "long imdb name": "Eric M. Klein",
+      "long imdb canonical name": "Klein, Eric M."
+    },
+    {
+      "canonical name": "Martisius, Toby",
+      "name": "Toby Martisius",
+      "long imdb name": "Toby Martisius",
+      "long imdb canonical name": "Martisius, Toby"
+    },
+    {
+      "canonical name": "Martisius, Toby",
+      "name": "Toby Martisius",
+      "long imdb name": "Toby Martisius",
+      "long imdb canonical name": "Martisius, Toby"
+    }
+  ],
+  "genres": [
+    "Thriller"
+  ],
+  "production companies": [
+    {
+      "name": "Velvet Spoon Productions",
+      "long imdb name": "Velvet Spoon Productions"
+    },
+    {
+      "name": "Visualeyes Productions",
+      "long imdb name": "Visualeyes Productions"
+    }
+  ],
+  "stunt performer": [
+    {
+      "canonical name": "Crowder, Shawn",
+      "name": "Shawn Crowder",
+      "long imdb name": "Shawn Crowder",
+      "long imdb canonical name": "Crowder, Shawn"
+    }
+  ],
+  "miscellaneous companies": [
+    {
+      "name": "Digital Post Services",
+      "long imdb name": "Digital Post Services"
+    },
+    {
+      "name": "Digital Post Services",
+      "long imdb name": "Digital Post Services"
+    },
+    {
+      "name": "Digital Post Services",
+      "long imdb name": "Digital Post Services"
+    },
+    {
+      "name": "Digital Post Services",
+      "long imdb name": "Digital Post Services"
+    },
+    {
+      "name": "Digital Post Services",
+      "long imdb name": "Digital Post Services"
+    },
+    {
+      "name": "Division Camera",
+      "long imdb name": "Division Camera"
+    },
+    {
+      "name": "NPI Entertainment Payroll",
+      "long imdb name": "NPI Entertainment Payroll"
+    },
+    {
+      "name": "Ramo Law",
+      "long imdb name": "Ramo Law"
+    }
+  ],
+  "cinematographer": [
+    {
+      "canonical name": "Honti, Zoltan",
+      "name": "Zoltan Honti",
+      "long imdb name": "Zoltan Honti",
+      "long imdb canonical name": "Honti, Zoltan"
+    }
+  ],
+  "akas": [
+    "The Tenant::UK (DVD title)",
+    "A Casa dos Fundos::Brazil (imdb display title)",
+    "A vend\u00e9gh\u00e1z::Hungary (imdb display title)"
+  ],
+  "aspect ratio": "1.78 : 1",
+  "director": [
+    {
+      "canonical name": "Jaymes, Chris",
+      "name": "Chris Jaymes",
+      "long imdb name": "Chris Jaymes",
+      "long imdb canonical name": "Jaymes, Chris"
+    }
+  ],
+  "kind": "movie",
+  "countries": [
+    "USA"
+  ],
+  "transportation department": [
+    {
+      "canonical name": "Alabise, Nick",
+      "name": "Nick Alabise",
+      "long imdb name": "Nick Alabise",
+      "long imdb canonical name": "Alabise, Nick"
+    },
+    {
+      "canonical name": "Dargenzio, Louis",
+      "name": "Louis Dargenzio",
+      "long imdb name": "Louis Dargenzio",
+      "long imdb canonical name": "Dargenzio, Louis"
+    },
+    {
+      "canonical name": "Duff, Jay",
+      "name": "Jay Duff",
+      "long imdb name": "Jay Duff",
+      "long imdb canonical name": "Duff, Jay"
+    }
+  ],
+  "plot outline": "When Chloe (Kristen Dalton) and Michael Carpenter rent out the cottage behind their house to charming romance novelist, Robert Mars (David Arquette) their American dream soon turns into a suburban nightmare.",
+  "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BODE5NzMwODU3OV5BMl5BanBnXkFtZTcwNDM3NzM0OA@@.jpg",
+  "canonical title": "Cottage, The",
+  "cast": [
+    {
+      "canonical name": "Arquette, David",
+      "name": "David Arquette",
+      "long imdb name": "David Arquette",
+      "long imdb canonical name": "Arquette, David"
+    },
+    {
+      "canonical name": "Dalton, Kristen",
+      "name": "Kristen Dalton",
+      "long imdb name": "Kristen Dalton",
+      "long imdb canonical name": "Dalton, Kristen"
+    },
+    {
+      "canonical name": "Browne, Victor",
+      "name": "Victor Browne",
+      "long imdb name": "Victor Browne",
+      "long imdb canonical name": "Browne, Victor"
+    },
+    {
+      "canonical name": "O'Mara, Morissa",
+      "name": "Morissa O'Mara",
+      "long imdb name": "Morissa O'Mara",
+      "long imdb canonical name": "O'Mara, Morissa"
+    },
+    {
+      "canonical name": "O'Mara, Alana",
+      "name": "Alana O'Mara",
+      "long imdb name": "Alana O'Mara",
+      "long imdb canonical name": "O'Mara, Alana"
+    },
+    {
+      "canonical name": "Hocking, Franny",
+      "name": "Franny Hocking",
+      "long imdb name": "Franny Hocking",
+      "long imdb canonical name": "Hocking, Franny"
+    },
+    {
+      "canonical name": "Baumann, Ken",
+      "name": "Ken Baumann",
+      "long imdb name": "Ken Baumann",
+      "long imdb canonical name": "Baumann, Ken"
+    },
+    {
+      "canonical name": "Nicholson, Lorraine",
+      "name": "Lorraine Nicholson",
+      "long imdb name": "Lorraine Nicholson",
+      "long imdb canonical name": "Nicholson, Lorraine"
+    },
+    {
+      "canonical name": "Young, Bellamy",
+      "name": "Bellamy Young",
+      "long imdb name": "Bellamy Young",
+      "long imdb canonical name": "Young, Bellamy"
+    },
+    {
+      "canonical name": "Shadanloo, Rome",
+      "name": "Rome Shadanloo",
+      "long imdb name": "Rome Shadanloo",
+      "long imdb canonical name": "Shadanloo, Rome"
+    },
+    {
+      "canonical name": "Slabotsky, Kyle",
+      "name": "Kyle Slabotsky",
+      "long imdb name": "Kyle Slabotsky",
+      "long imdb canonical name": "Slabotsky, Kyle"
+    },
+    {
+      "canonical name": "Aitkenhead, Melanie",
+      "name": "Melanie Aitkenhead",
+      "long imdb name": "Melanie Aitkenhead",
+      "long imdb canonical name": "Aitkenhead, Melanie"
+    },
+    {
+      "canonical name": "Barrielle, Barbara Jean",
+      "name": "Barbara Jean Barrielle",
+      "long imdb name": "Barbara Jean Barrielle",
+      "long imdb canonical name": "Barrielle, Barbara Jean"
+    },
+    {
+      "canonical name": "Barrielle, Charlotte",
+      "name": "Charlotte Barrielle",
+      "long imdb name": "Charlotte Barrielle",
+      "long imdb canonical name": "Barrielle, Charlotte"
+    },
+    {
+      "canonical name": "Dalton, Darren",
+      "name": "Darren Dalton",
+      "long imdb name": "Darren Dalton",
+      "long imdb canonical name": "Dalton, Darren"
+    },
+    {
+      "canonical name": "Lewis, Shannon",
+      "name": "Shannon Lewis",
+      "long imdb name": "Shannon Lewis",
+      "long imdb canonical name": "Lewis, Shannon"
+    },
+    {
+      "canonical name": "Lewis-Reddy, Shannon",
+      "name": "Shannon Lewis-Reddy",
+      "long imdb name": "Shannon Lewis-Reddy",
+      "long imdb canonical name": "Lewis-Reddy, Shannon"
+    },
+    {
+      "canonical name": "Segal, Paige",
+      "name": "Paige Segal",
+      "long imdb name": "Paige Segal",
+      "long imdb canonical name": "Segal, Paige"
+    },
+    {
+      "canonical name": "Solomowitz, Matthew",
+      "name": "Matthew Solomowitz",
+      "long imdb name": "Matthew Solomowitz",
+      "long imdb canonical name": "Solomowitz, Matthew"
+    },
+    {
+      "canonical name": "Squier, Moira",
+      "name": "Moira Squier",
+      "long imdb name": "Moira Squier",
+      "long imdb canonical name": "Squier, Moira"
+    },
+    {
+      "canonical name": "Turlure, Laurent",
+      "name": "Laurent Turlure",
+      "long imdb name": "Laurent Turlure",
+      "long imdb canonical name": "Turlure, Laurent"
+    }
+  ],
+  "smart long imdb canonical title": "Cottage, The (2012)",
+  "original music": [
+    {
+      "canonical name": "Baiardi, Michael",
+      "name": "Michael Baiardi",
+      "long imdb name": "Michael Baiardi",
+      "long imdb canonical name": "Baiardi, Michael"
+    }
+  ],
+  "smart canonical title": "Cottage, The"
+}
