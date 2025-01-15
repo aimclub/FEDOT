@@ -40,6 +40,7 @@ class FedotXGBoostImplementation(ModelImplementation):
 
         train_input, eval_input = train_test_data_setup(input_data)
 
+        # Conditions for training with eval_set
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
@@ -47,8 +48,9 @@ class FedotXGBoostImplementation(ModelImplementation):
         )
         use_eval_set = self.params.get('use_eval_set')
 
-        if ((is_classification_task and use_eval_set and all_classes_present_in_eval)
-                or (is_regression_task and use_eval_set)):
+        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (use_eval_set and is_regression_task))
+                and not is_multi_output_task(input_data)):
             X_train, y_train = convert_to_dataframe(
                 train_input, identify_cats=self.params.get('enable_categorical')
             )
@@ -59,24 +61,31 @@ class FedotXGBoostImplementation(ModelImplementation):
 
             self.model.eval_metric = self.set_eval_metric(self.classes_)
 
-            self.model.fit(X=X_train, y=y_train, eval_set=[(X_eval, y_eval)], verbose=self.model_params['verbosity'])
+            self.model.fit(
+                X=X_train, y=y_train,
+                eval_set=[(X_eval, y_eval)],
+                verbose=self.model_params['verbosity']
+            )
         else:
+            # Remove parameter used for eval_set
             params = deepcopy(self.model_params)
-            del params["early_stopping_rounds"]
+            if params.get('early_stopping_rounds'):
+                del params["early_stopping_rounds"]
 
+            # Create model with updated params
+            if input_data.task.task_type == TaskTypesEnum.classification:
+                self.model = XGBClassifier(**params)
+            else:
+                self.model = XGBRegressor(**params)
+
+            # Training model without splitting on train and eval
             X_train, y_train = convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            self.features_names = input_data.features_names
-
-            if input_data.task.task_type == TaskTypesEnum.classification:
-                self.model = XGBClassifier(**params).fit(
-                    X=X_train, y=y_train, verbose=self.model_params['verbosity']
-                )
-            else:
-                self.model = XGBRegressor(**params).fit(
-                    X=X_train, y=y_train, verbose=self.model_params['verbosity']
-                )
+            self.model.fit(
+                X=X_train, y=y_train,
+                verbose=self.model_params['verbosity']
+            )
 
         return self.model
 
@@ -169,6 +178,7 @@ class FedotLightGBMImplementation(ModelImplementation):
 
         train_input, eval_input = train_test_data_setup(input_data)
 
+        # Conditions for training with eval_set
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
@@ -176,46 +186,45 @@ class FedotLightGBMImplementation(ModelImplementation):
         )
         use_eval_set = self.params.get('use_eval_set')
 
-        if ((is_classification_task and use_eval_set and all_classes_present_in_eval)
-                or (is_regression_task and use_eval_set)):
-            if is_multi_output_task(input_data):
-                X_train, y_train = convert_to_dataframe(
-                    input_data, identify_cats=self.params.get('enable_categorical')
-                )
-                self._convert_to_multi_output_model(input_data)
-                self.model.fit(X=X_train, y=y_train)
-            else:
-                X_train, y_train = convert_to_dataframe(
-                    train_input, identify_cats=self.params.get('enable_categorical')
-                )
+        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (use_eval_set and is_regression_task))
+                and not is_multi_output_task(input_data)):
+            X_train, y_train = convert_to_dataframe(
+                train_input, identify_cats=self.params.get('enable_categorical')
+            )
 
-                X_eval, y_eval = convert_to_dataframe(
-                    eval_input, identify_cats=self.params.get('enable_categorical')
-                )
+            X_eval, y_eval = convert_to_dataframe(
+                eval_input, identify_cats=self.params.get('enable_categorical')
+            )
 
-                eval_metric = self.set_eval_metric(self.classes_)
-                callbacks = self.update_callbacks()
+            eval_metric = self.set_eval_metric(self.classes_)
+            callbacks = self.update_callbacks()
 
-                self.model.fit(
-                    X=X_train, y=y_train,
-                    eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
-                    callbacks=callbacks
-                )
+            self.model.fit(
+                X=X_train, y=y_train,
+                eval_set=[(X_eval, y_eval)], eval_metric=eval_metric,
+                callbacks=callbacks
+            )
         else:
+            # Remove parameter used for eval_set
+            params = deepcopy(self.model_params)
+            if params.get('early_stopping_rounds'):
+                del params["early_stopping_rounds"]
+
+            # Create model with updated params
+            if is_multi_output_task(input_data):
+                self._convert_to_multi_output_model(input_data, params)
+            else:
+                if is_classification_task:
+                    self.model = LGBMClassifier(**params)
+                else:
+                    self.model = LGBMRegressor(**params)
+
+            # Training model without splitting on train and eval
             X_train, y_train = convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            if is_multi_output_task(input_data):
-                self._convert_to_multi_output_model(input_data)
-                self.model.fit(X=X_train, y=y_train)
-            else:
-                params = deepcopy(self.model_params)
-                del params["early_stopping_rounds"]
-
-                if is_classification_task:
-                    self.model = LGBMClassifier(**params).fit(X=X_train, y=y_train)
-                else:
-                    self.model = LGBMRegressor(**params).fit(X=X_train, y=y_train)
+            self.model.fit(X=X_train, y=y_train)
 
         return self.model
 
@@ -253,10 +262,7 @@ class FedotLightGBMImplementation(ModelImplementation):
     def plot_feature_importance(self):
         plot_feature_importance(self.features_names, self.model.feature_importances_)
 
-    def _convert_to_multi_output_model(self, input_data: InputData):
-        params = deepcopy(self.model_params)
-        del params["early_stopping_rounds"]
-
+    def _convert_to_multi_output_model(self, input_data: InputData, params):
         if input_data.task.task_type == TaskTypesEnum.classification:
             multiout_func = MultiOutputClassifier
             lgb_model = LGBMClassifier(**params)
@@ -317,6 +323,7 @@ class FedotCatBoostImplementation(ModelImplementation):
 
         train_input, eval_input = train_test_data_setup(input_data)
 
+        # Conditions for training with eval_set
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
@@ -324,8 +331,9 @@ class FedotCatBoostImplementation(ModelImplementation):
         )
         use_eval_set = self.params.get('use_eval_set')
 
-        if ((is_classification_task and use_eval_set and all_classes_present_in_eval)
-                or (is_regression_task and use_eval_set)):
+        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (use_eval_set and is_regression_task))
+                and not is_multi_output_task(input_data)):
             # TODO: Using this method for tuning
             train_input, eval_input = train_test_data_setup(input_data)
 
@@ -335,16 +343,22 @@ class FedotCatBoostImplementation(ModelImplementation):
             self.model.fit(X=train_input, eval_set=eval_input)
 
         else:
+            # Remove parameter used for eval_set
             params = deepcopy(self.model_params)
-            del params["use_best_model"]
-            del params["use_eval_set"]
+            if params.get('use_best_model'):
+                del params['use_best_model']
 
-            train_input = self.convert_to_pool(input_data, identify_cats=self.params.get('enable_categorical'))
-
+            # Create model with updated params
             if input_data.task.task_type == TaskTypesEnum.classification:
-                self.model = CatBoostClassifier(**params).fit(train_input)
+                self.model = CatBoostClassifier(**params)
             else:
-                self.model = CatBoostRegressor(**params).fit(train_input)
+                self.model = CatBoostRegressor(**params)
+
+            # Training model without splitting on train and eval
+            train_input = self.convert_to_pool(
+                input_data, identify_cats=self.params.get('enable_categorical')
+            )
+            self.model.fit(X=train_input)
 
         return self.model
 
