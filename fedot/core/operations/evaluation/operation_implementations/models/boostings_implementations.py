@@ -44,7 +44,7 @@ class FedotXGBoostImplementation(ModelImplementation):
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
-                np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
+            np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
         use_eval_set = self.params.get('use_eval_set')
 
@@ -182,7 +182,7 @@ class FedotLightGBMImplementation(ModelImplementation):
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
-                np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
+            np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
         use_eval_set = self.params.get('use_eval_set')
 
@@ -327,7 +327,7 @@ class FedotCatBoostImplementation(ModelImplementation):
         is_classification_task = input_data.task.task_type == TaskTypesEnum.classification
         is_regression_task = input_data.task.task_type == TaskTypesEnum.regression
         all_classes_present_in_eval = (
-                np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
+            np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
         use_eval_set = self.params.get('use_eval_set')
 
