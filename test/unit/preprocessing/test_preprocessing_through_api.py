@@ -7,6 +7,7 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 def data_with_only_categorical_features():
@@ -276,3 +277,44 @@ def test_auto_preprocessing_mode():
         assert prediction_single.features.shape == prediction_multi.features.shape
         assert (prediction_single.features == prediction_single.features).all()
         assert (prediction_single.predict == prediction_single.predict).all()
+
+
+def test_correct_preprocessing_without_using_eval_set():
+    """ Checks for data preprocessing in a case where eval_set is not provided."""
+    # Regression task
+    funcs = [data_with_only_categorical_features, data_with_too_much_nans,
+             data_with_spaces_and_nans_in_features, data_with_nans_in_target_column,
+             data_with_nans_in_multi_target]
+
+    for data_generator in funcs:
+        input_data = data_generator()
+        for model in ['catboostreg', 'lgbmreg', 'xgboostreg']:
+            fedot_model = Fedot(
+                problem = 'regression',s
+                initial_assumption = PipelineBuilder()
+                .add_node(model, params={"use_eval_set": False}).build()
+            )
+
+            pipeline = fedot_model.fit(input_data, predefined_model='auto')
+            predicted = fedot_model.predict(input_data)
+
+            assert pipeline is not None
+            assert predicted is not None
+
+    # Classification task
+    funcs = [data_with_text_features, data_with_text_features_and_nans,
+             data_with_categorical_target]
+    for data_generator in funcs:
+        input_data = data_generator()
+        for model in ['catboost', 'lgbm', 'xgboost']:
+            fedot_model = Fedot(
+                problem='classification',
+                initial_assumption=PipelineBuilder()
+                .add_node(model, params={"use_eval_set": True}).build()
+            )
+
+            pipeline = fedot_model.fit(input_data, predefined_model='auto')
+            predicted = fedot_model.predict(input_data)
+
+            assert pipeline is not None
+            assert predicted is not None
