@@ -290,7 +290,7 @@ def test_correct_preprocessing_without_using_eval_set():
         input_data = data_generator()
         for model in ['catboostreg', 'lgbmreg', 'xgboostreg']:
             fedot_model = Fedot(
-                problem = 'regression',s
+                problem = 'regression',
                 initial_assumption = PipelineBuilder()
                 .add_node(model, params={"use_eval_set": False}).build()
             )
