@@ -46,10 +46,10 @@ class FedotXGBoostImplementation(ModelImplementation):
         all_classes_present_in_eval = (
             np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
-        use_eval_set = self.params.get('use_eval_set')
+        is_using_eval_set = bool(self.params.get('use_eval_set'))
 
-        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
-                or (use_eval_set and is_regression_task))
+        if (((is_using_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (is_using_eval_set and is_regression_task))
                 and not is_multi_output_task(input_data)):
             X_train, y_train = convert_to_dataframe(
                 train_input, identify_cats=self.params.get('enable_categorical')
@@ -184,10 +184,10 @@ class FedotLightGBMImplementation(ModelImplementation):
         all_classes_present_in_eval = (
             np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
-        use_eval_set = self.params.get('use_eval_set')
+        is_using_eval_set = bool(self.params.get('use_eval_set'))
 
-        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
-                or (use_eval_set and is_regression_task))
+        if (((is_using_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (is_using_eval_set and is_regression_task))
                 and not is_multi_output_task(input_data)):
             X_train, y_train = convert_to_dataframe(
                 train_input, identify_cats=self.params.get('enable_categorical')
@@ -329,10 +329,10 @@ class FedotCatBoostImplementation(ModelImplementation):
         all_classes_present_in_eval = (
             np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
         )
-        use_eval_set = self.params.get('use_eval_set')
+        is_using_eval_set = bool(self.params.get('use_eval_set'))
 
-        if (((use_eval_set and is_classification_task and all_classes_present_in_eval)
-                or (use_eval_set and is_regression_task))
+        if (((is_using_eval_set and is_classification_task and all_classes_present_in_eval)
+                or (is_using_eval_set and is_regression_task))
                 and not is_multi_output_task(input_data)):
             # TODO: Using this method for tuning
             train_input, eval_input = train_test_data_setup(input_data)
@@ -341,7 +341,6 @@ class FedotCatBoostImplementation(ModelImplementation):
             eval_input = self.convert_to_pool(eval_input, identify_cats=self.params.get('enable_categorical'))
 
             self.model.fit(X=train_input, eval_set=eval_input)
-
         else:
             # Remove parameter used for eval_set
             params = deepcopy(self.model_params)
