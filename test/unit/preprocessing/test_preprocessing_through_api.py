@@ -7,7 +7,6 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 def data_with_only_categorical_features():
