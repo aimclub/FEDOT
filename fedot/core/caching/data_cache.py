@@ -23,26 +23,22 @@ class DataCache(BaseCache):
         super().__init__(DataCacheDB(cache_dir, custom_pid))
         self.manager = Manager()
         self.metrics_cache = self.manager.dict()
-        self.current_pipeline = ""
         if self._db.use_stats:
             self.metrics_cache["metrics_hit"] = 0
             self.metrics_cache["metrics_total"] = 0
             self.metrics_stats = {}
 
-    def add_node(self, node):
-        if self.current_pipeline == "":
-            self.current_pipeline += f"/{node.description()}"
-        else:
-            self.current_pipeline = f"({self.current_pipeline};)/{node.description()}"
-
+    # TODO: metric is outputData now, use DB
     def save_metric(self, pipeline, metric, fold_id=None):
         uid = self._create_uid(pipeline, fold_id)
+        self.log.debug(f"--- save pipeline metrics cache: {uid}")
         self.metrics_cache[uid] = metric
         if self._db.use_stats:
             self.metrics_stats[uid] = 0
 
     def load_metric(self, pipeline, fold_id=None):
         uid = self._create_uid(pipeline, fold_id)
+        self.log.debug(f"--- load pipeline metrics cache: {uid}")
         result = self.metrics_cache.get(uid, None)
         if self._db.use_stats:
             if result:
@@ -59,16 +55,17 @@ class DataCache(BaseCache):
             eff_dct["metrics"] = round(hit / total, 3) if total else 0
             return eff_dct
 
-    def save_predicted(self, pipeline: "Pipeline", outputData: OutputData, fold_id: Optional[int] = None):
+    def save_predicted(self, pipeline: str, output_mode: str, fold_id: int, outputData: OutputData,):
         """
         Save the prediction for a given UID.
 
         :param prediction (np.ndarray): The prediction to be saved.
         :param uid (str): The unique identifier for the prediction.
         """
-        uid = self._create_uid(pipeline, fold_id)
+        uid = f"{pipeline}_{output_mode}_{fold_id}"
         try:
             self._db.add_prediction(uid, outputData)
+            self.log.message(f"--- SAVE node prediction cache: {uid}")
         except Exception as ex:
             unexpected_exc = not (
                 isinstance(
@@ -80,15 +77,15 @@ class DataCache(BaseCache):
                 raise_if_test=unexpected_exc,
             )
 
-    def load_predicted(self, pipeline: "Pipeline", fold_id: Optional[int] = None) -> np.ndarray:
+    def load_predicted(self, pipeline: str, output_mode: str, fold_id: int) -> np.ndarray:
         """
         Load the prediction data for the given unique identifier.
         :param uid (str): The unique identifier of the prediction data.
         :return np.ndarray: The loaded prediction data.
         """
-        self.log.message(pipeline.descriptive_id)
-        uid = self._create_uid(pipeline, fold_id)
+        uid = f"{pipeline}_{output_mode}_{fold_id}"
         outputData = self._db.get_prediction(uid)
+        self.log.message(f"--- {'MISS' if outputData is None else 'HIT'} node prediction cache: {uid}")
         return outputData
 
     def _create_uid(
@@ -110,7 +107,7 @@ class DataCache(BaseCache):
             for node in pipeline.nodes:
                 base_uid += f"{node.descriptive_id}_"
         else:
-            base_uid += f"{self.current_pipeline}_"
+            base_uid += f"{pipeline.descriptive_id}_"
         if fold_id is not None:
             base_uid += f"{fold_id}"
         return base_uid

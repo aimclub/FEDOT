@@ -238,35 +238,18 @@ class PipelineNode(LinkedGraphNode):
         """
         self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
 
-        # TODO: load predict to cache
-        # return loaded prediction for node
-        operation_predict = None
-        if data_cache is not None:
-            data_cache.add_node(self)
-            operation_predict = data_cache.load_predicted(self, fold_id)
-        if operation_predict is not None:
-            self.log.debug("-- load predict node data_cache")
-            return operation_predict
-
         input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
                                           data_cache=data_cache, fold_id=fold_id)
 
         with Timer() as t:
-            if data_cache is not None:
-                data_cache.current_pipeline = ""
-                data_cache.add_node(self)
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        params=self._parameters,
                                                        data=input_data,
-                                                       output_mode=output_mode)
+                                                       output_mode=output_mode,
+                                                       data_cache=data_cache,
+                                                       fold_id=fold_id,
+                                                       descriptive_id=self.descriptive_id)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
-
-        # TODO: save predict to cache
-
-        if data_cache is not None:
-            data_cache.save_predicted(self, operation_predict, f"{fold_id}")
-            self.log.debug("-- save predict node data_cache")
-
         return operation_predict
 
     def get_data_from_node(self) -> dict:

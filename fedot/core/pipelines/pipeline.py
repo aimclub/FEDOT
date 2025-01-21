@@ -291,11 +291,15 @@ class Pipeline(GraphDelegate, Serializable):
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
+        result = None
         if data_cache is not None:
-            data_cache.current_pipeline = ""
+            result = data_cache.load_metric(self, fold_id)
 
-        result = self.root_node.predict(input_data=copied_input_data,
-                                        output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
+        if result is None:
+            result = self.root_node.predict(input_data=copied_input_data,
+                                            output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
+            if data_cache is not None:
+                data_cache.save_metric(self, result, fold_id)
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             result.predict = result.predict.ravel()

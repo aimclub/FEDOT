@@ -74,7 +74,6 @@ class QualityMetric(Metric):
             # if results is None:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                # TODO: train cache
                 reference_data, results = cls._simple_prediction(pipeline, reference_data, data_cache, fold_id)
             else:
                 # Perform time series in-sample validation

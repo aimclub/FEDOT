@@ -2,12 +2,12 @@ from test.data.datasets import get_dataset
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
-# metric = ["rmse"]
-# task_type = "regression"
+metric = ["rmse"]
+task_type = "regression"
 # X, y = make_regression(n_samples=100, n_features=1, noise=1)
 
-metric = ["f1"]
-task_type = "classification"
+# metric = ["f1"]
+# task_type = "classification"
 # X, y = make_classification(n_samples=100, n_features=1)
 
 # X_train, X_test, y_train, y_test = train_test_split(
@@ -29,6 +29,54 @@ train_data, test_data, _ = get_dataset(task_type)
 #               params={'alpha': 7.359303296600219})
 #     .build()
 # )
+
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node("ransac_non_lin_reg", params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000}, branch_idx=0)
+#     .add_node("pca", params={'svd_solver': 'full', 'n_components': 0.7})
+#     .add_node("linear")
+#     .add_node("sgdr")
+#     .add_node("normalization")
+#     .add_branch(("ransac_non_lin_reg", {'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000}), branch_idx=1)
+#     .join_branches("linear")
+#     .build()
+# )
+
+"""
+(
+(
+(
+(
+/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};
+)
+/n_pca_{'svd_solver': 'full', 'n_components': 0.7};
+)
+/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};
+)
+/n_sgdr;
+;
+/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};
+)
+/n_linear
+"""
+
+bug_pipeline = (
+    PipelineBuilder()
+    .add_node(
+        "ransac_non_lin_reg",
+        params={'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000},
+        branch_idx=0)
+    .add_node("pca", params={'svd_solver': 'full', 'n_components': 0.7})
+    .add_node(
+        "ransac_non_lin_reg",
+        params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000})
+    .add_node("sgdr")
+    .add_branch(
+        ("ransac_non_lin_reg",
+         {'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000}),
+        branch_idx=1)
+    .join_branches("linear")
+    .build())
 
 """Classification"""
 # bug_pipeline = (
@@ -55,29 +103,26 @@ train_data, test_data, _ = get_dataset(task_type)
 #     .build()
 # )
 
-bug_pipeline = (
-    PipelineBuilder()
-    # .add_node("resample", params={'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1})
-    .add_node("mlp")
-    .add_node("qda")
-    .add_node("qda")
-    # .add_node("mlp")
-    .build()
-)
+# bug_pipeline = (
+#     PipelineBuilder()
+#     .add_node("qda")
+#     .add_node("qda")
+#     .build()
+# )
 
 auto_model = Fedot(
     problem=task_type,
     metric=metric,
     preset="best_quality",
     with_tuning=False,
-    timeout=0.1,
-    cv_folds=5,
+    timeout=600,
+    cv_folds=2,
     seed=42,
     n_jobs=1,
     # logging_level=10,
     use_pipelines_cache=False,
     use_auto_preprocessing=False,
-    # history_dir="./saved_history"
+    history_dir="./saved_history",
     initial_assumption=bug_pipeline
 )
 
@@ -87,7 +132,14 @@ auto_model.fit(features=train_data)
 prediction = auto_model.predict(features=test_data, save_predictions=False)
 
 auto_model.current_pipeline.show()
+print()
 print(auto_model.current_pipeline.descriptive_id)
+# print(
+#     auto_model.current_pipeline.descriptive_id ==
+#     "(((((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};)/n_linear;)/n_sgdr;)/n_normalization;;/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_linear")
+print(
+    auto_model.current_pipeline.descriptive_id ==
+    "((((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};)/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_sgdr;;/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};)/n_linear")
 
 # auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
 # auto_model.history.save("saved_history.json")
