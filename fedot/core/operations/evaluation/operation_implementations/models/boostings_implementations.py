@@ -59,8 +59,9 @@ class FedotXGBoostImplementation(ModelImplementation):
             )
         else:
             # Disable parameter used for eval_set
-            self.model.early_stopping_rounds = None
-            self.params.update(early_stopping_rounds=None)
+            if bool(self.params.get('early_stopping_rounds')):
+                self.model.early_stopping_rounds = None
+                self.params.update(early_stopping_rounds=None)
 
             # Training model without splitting on train and eval
             X_train, y_train = convert_to_dataframe(
@@ -148,6 +149,8 @@ class FedotLightGBMImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
+        self.check_and_update_params()
+
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.model = None
         self.features_names = None
@@ -180,8 +183,9 @@ class FedotLightGBMImplementation(ModelImplementation):
             )
         else:
             # Disable parameter used for eval_set
-            self.model._other_params.update(early_stopping_rounds=None)
-            self.params.update(early_stopping_rounds=None)
+            if bool(self.params.get('early_stopping_rounds')):
+                self.model._other_params.update(early_stopping_rounds=None)
+                self.params.update(early_stopping_rounds=None)
 
             if is_multi_output_task(input_data):
                 self._convert_to_multi_output_model(input_data)
@@ -202,6 +206,13 @@ class FedotLightGBMImplementation(ModelImplementation):
         prediction = self.model.predict(X)
 
         return prediction
+
+    def check_and_update_params(self):
+        early_stopping_rounds = self.params.get('early_stopping_rounds')
+        use_eval_set = self.params.get('use_eval_set')
+
+        if isinstance(early_stopping_rounds, int) and not use_eval_set:
+            self.params.update(early_stopping_rounds=None)
 
     def update_callbacks(self) -> list:
         callback = []
@@ -293,8 +304,9 @@ class FedotCatBoostImplementation(ModelImplementation):
             self.model.fit(X=train_input, eval_set=eval_input)
         else:
             # Disable parameter used for eval_set
-            self.model._init_params.update(use_best_model=False)
-            self.params.update(use_best_model=False)
+            if bool(self.params.get('use_best_model')):
+                self.model._init_params.update(use_best_model=False)
+                self.params.update(use_best_model=False)
 
             # Training model without splitting on train and eval
             train_input = self.convert_to_pool(
