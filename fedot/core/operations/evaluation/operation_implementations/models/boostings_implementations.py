@@ -418,22 +418,22 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
 
 
 def check_eval_set_condition(input_data: InputData, params: OperationParameters) -> bool:
-    train_input, eval_input = train_test_data_setup(input_data)
-
-    # Conditions for training with eval_set
-    is_classification_task = train_input.task.task_type == TaskTypesEnum.classification
-    is_regression_task = train_input.task.task_type == TaskTypesEnum.regression
-    is_ts_forecasting_task = train_input.task.task_type == TaskTypesEnum.ts_forecasting
-    all_classes_present_in_eval = (
-            np.unique(np.array(train_input.target)) in np.unique(np.array(eval_input.target))
-    )
     is_using_eval_set = bool(params.get('use_eval_set'))
+    if not is_using_eval_set or is_multi_output_task(input_data):
+        return False
 
-    # Check conditions
-    if (((is_using_eval_set and is_classification_task and all_classes_present_in_eval)
-         or (is_using_eval_set and is_regression_task)
-         or (is_using_eval_set and is_ts_forecasting_task))
-            and not is_multi_output_task(train_input)):
+    # No special conditions for regression task
+    if input_data.task.task_type == TaskTypesEnum.regression:
         return True
+
+    # For classification task check
+    # if all classes presented in train_set are also presented in eval_set
+    if input_data.task.task_type == TaskTypesEnum.classification:
+        train_input, eval_input = train_test_data_setup(input_data)
+        train_classes = np.unique(train_input.target)
+        eval_classes = np.unique(eval_input.target)
+        all_classes_present_in_eval = np.all(np.isin(train_classes, eval_classes))
+        if all_classes_present_in_eval:
+            return True
 
     return False
