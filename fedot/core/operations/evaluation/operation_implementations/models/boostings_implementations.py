@@ -60,6 +60,7 @@ class FedotXGBoostImplementation(ModelImplementation):
         else:
             # Disable parameter used for eval_set
             self.model.early_stopping_rounds = None
+            self.params.update(early_stopping_rounds=None)
 
             # Training model without splitting on train and eval
             X_train, y_train = convert_to_dataframe(
@@ -179,7 +180,11 @@ class FedotLightGBMImplementation(ModelImplementation):
             )
         else:
             # Disable parameter used for eval_set
-            self.model.early_stopping_rounds = None
+            self.model._other_params.update(early_stopping_rounds=None)
+            self.params.update(early_stopping_rounds=None)
+
+            if is_multi_output_task(input_data):
+                self._convert_to_multi_output_model(input_data)
 
             # Training model without splitting on train and eval
             X_train, y_train = convert_to_dataframe(
@@ -223,17 +228,15 @@ class FedotLightGBMImplementation(ModelImplementation):
     def plot_feature_importance(self):
         plot_feature_importance(self.features_names, self.model.feature_importances_)
 
-    def _convert_to_multi_output_model(self, input_data: InputData, params):
+    def _convert_to_multi_output_model(self, input_data: InputData):
         if input_data.task.task_type == TaskTypesEnum.classification:
             multiout_func = MultiOutputClassifier
-            lgb_model = LGBMClassifier(**params)
         elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
             multiout_func = MultiOutputRegressor
-            lgb_model = LGBMRegressor(**params)
         else:
             raise ValueError(f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
 
-        self.model = multiout_func(lgb_model)
+        self.model = multiout_func(self.model)
 
         return self.model
 
@@ -290,7 +293,8 @@ class FedotCatBoostImplementation(ModelImplementation):
             self.model.fit(X=train_input, eval_set=eval_input)
         else:
             # Disable parameter used for eval_set
-            self.model.use_best_model = False
+            self.model._init_params.update(use_best_model=False)
+            self.params.update(use_best_model=False)
 
             # Training model without splitting on train and eval
             train_input = self.convert_to_pool(
