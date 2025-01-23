@@ -34,6 +34,9 @@ class BoostingStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain Boosting Strategy for {operation_type}')
 
     def fit(self, train_data: InputData):
+        if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            raise ValueError('Time series forecasting not supported for boosting models')
+
         if is_multi_output_task(train_data):
             if self.operation_type == 'catboost':
                 self.params_for_fit.update(loss_function='MultiLogloss')
