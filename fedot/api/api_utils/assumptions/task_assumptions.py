@@ -93,10 +93,6 @@ class RegressionAssumptions(TaskAssumptions):
         return {
             'gbm_linear': PipelineBuilder().
             add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
-            'xgb_lgbm_linear': PipelineBuilder().
-            add_branch('xgboostreg', 'lgbmreg').join_branches('ridge'),
-            'gbm_rf_linear': PipelineBuilder().
-            add_branch('catboostreg', 'xgboostreg', 'lgbmreg', 'rfr').join_branches('ridge'),
             'catboostreg': PipelineBuilder().add_node('catboostreg'),
             'xgboostreg': PipelineBuilder().add_node('xgboostreg'),
             'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
@@ -123,10 +119,6 @@ class ClassificationAssumptions(TaskAssumptions):
         return {
             'gbm_linear': PipelineBuilder().
             add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
-            'xgb_lgbm_linear': PipelineBuilder().
-            add_branch('xgboost', 'lgbm').join_branches('logit'),
-            'gbm_rf_linear': PipelineBuilder().
-            add_branch('catboost', 'xgboost', 'lgbm', 'rf').join_branches('logit'),
             'catboost': PipelineBuilder().add_node('catboost'),
             'xgboost': PipelineBuilder().add_node('xgboost'),
             'lgbm': PipelineBuilder().add_node('lgbm'),
