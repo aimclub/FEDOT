@@ -44,7 +44,8 @@
     "allow_writing_files": false,
     "use_eval_set": true,
     "use_best_model": true,
-    "enable_categorical": true
+    "enable_categorical": true,
+    "early_stopping_rounds": 30
   },
   "catboostreg": {
     "n_jobs": -1,
@@ -67,7 +68,8 @@
     "allow_writing_files": false,
     "use_eval_set": true,
     "use_best_model": true,
-    "enable_categorical": true
+    "enable_categorical": true,
+    "early_stopping_rounds": 30
   },
   "lgbm": {
     "boosting_type": "gbdt",
