@@ -1,4 +1,3 @@
-from copy import deepcopy
 import os
 from typing import Optional
 
@@ -194,7 +193,7 @@ class FedotLightGBMImplementation(ModelImplementation):
             X_train, y_train = convert_to_dataframe(
                 input_data, identify_cats=self.params.get('enable_categorical')
             )
-            self.model.fit(X=X_train, y=y_train)
+            self.model.fit(X_train, y_train)
 
         return self.model
 
@@ -395,24 +394,31 @@ def plot_feature_importance(feature_names, feature_importance):
 
 
 def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
-    copied_input_data = deepcopy(data)
+    """
+    Converts InputData data class to DataFrame.
+    """
+    features = pd.DataFrame(data=data.features)
+    target = data.target[:features.shape[0]]
 
-    dataframe = pd.DataFrame(data=copied_input_data.features)
-
-    if copied_input_data.target is not None and copied_input_data.target.size > 0:
-        target = copied_input_data.target[:dataframe.shape[0]]
-
-        # Multi-target case, when we got >2 columns in `target`
-        if is_multi_output_task(copied_input_data):
-            target = pd.DataFrame(target)
-            dataframe = dataframe.join(target, lsuffix='_caller', rsuffix='_other')
-        else:
-            dataframe['target'] = np.ravel(target)
+    if data.target is not None and data.target.size > 0:
+        if not is_multi_output_task(data):
+            target = np.ravel(target)
     else:
         # TODO: temp workaround in case data.target is set to None intentionally
         #  for test.integration.models.test_model.check_predict_correct
-        dataframe['target'] = np.zeros(len(data.features))
+        target = np.zeros(len(data.features))
 
+    target = pd.DataFrame(target)
+
+    convert_column_types(features, data, identify_cats)
+
+    return features, target
+
+
+def convert_column_types(dataframe, data: Optional[InputData], identify_cats: bool):
+    """
+    Converts DataFrame columns to categorical or numeric data types.
+    """
     if identify_cats and data.categorical_idx is not None:
         for col in dataframe.columns[data.categorical_idx]:
             dataframe[col] = dataframe[col].astype('category')
@@ -421,15 +427,11 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         for col in dataframe.columns[data.numerical_idx]:
             dataframe[col] = dataframe[col].astype('float')
 
-    if is_multi_output_task(copied_input_data):
-        X_without_target = dataframe.iloc[:, 0:-2]
-        y_target = dataframe.iloc[:, -2:]
-        return X_without_target, y_target
-
-    return dataframe.drop(columns=['target']), dataframe['target']
-
 
 def check_eval_set_condition(input_data: InputData, params: OperationParameters) -> bool:
+    """
+    Checks the model training condition with eval_set.
+    """
     is_using_eval_set = bool(params.get('use_eval_set'))
     if not is_using_eval_set or is_multi_output_task(input_data):
         return False

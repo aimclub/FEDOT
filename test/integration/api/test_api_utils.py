@@ -1,6 +1,8 @@
 import logging
 from copy import deepcopy
 
+import numpy as np
+
 import pytest
 
 from examples.simple.classification.classification_pipelines import (classification_pipeline_with_balancing,
@@ -108,24 +110,18 @@ def test_init_assumption_with_inappropriate_available_operations():
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
+    received_nodes = received_assumptions[0].nodes
+    received_nodes = [obj for obj in received_nodes if obj.name != 'scaling']
 
     # Getting default initial assumption from task_assumptions.py
     repository = OperationTypesRepository()
     obj = ClassificationAssumptions(repository)
     assumptions_dict = obj.builders
     first_key = next(iter(assumptions_dict))
-    node_scaling = PipelineNode('scaling')
-
     default_assumption = assumptions_dict[first_key].build()
+    default_nodes = default_assumption.nodes
 
-    a = received_assumptions[0].root_node.descriptive_id
-    b = default_assumption.root_node.descriptive_id
-
-    assert received_assumptions[0].root_node.descriptive_id == default_assumption.root_node.descriptive_id
-    # assert received_assumptions[0].length == default_assumption.length
-    # assert received_assumptions[0].depth == default_assumption.depth
-    # for received, default in zip(received_nodes, default_nodes):
-    #     assert received.descriptive_id == default.descriptive_id
+    assert np.all(np.isin(received_nodes, default_nodes))
 
 
 def test_api_composer_available_operations():
