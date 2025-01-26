@@ -1,8 +1,6 @@
 import logging
 from copy import deepcopy
 
-import numpy as np
-
 import pytest
 
 from examples.simple.classification.classification_pipelines import (classification_pipeline_with_balancing,
@@ -10,7 +8,6 @@ from examples.simple.classification.classification_pipelines import (classificat
 from fedot import Fedot
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import ClassificationAssumptions
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
