@@ -13,7 +13,6 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from golem.core.dag.graph_node import GraphNode
 from golem.core.dag.graph import ReconnectType
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.data.datasets import get_cholesterol_dataset
@@ -98,11 +97,6 @@ def test_the_formation_of_initial_assumption():
 def test_init_assumption_with_inappropriate_available_operations():
     """ Checks that if given available operations are not suitable for the task,
     then the default initial assumption will be formed """
-    def rm_node(nodes: list[GraphNode], node: str, reconnect_type: ReconnectType):
-        removable_node = next((i for i in nodes if i.name == node), None)
-        if removable_node:
-            received_assumption.delete_node(removable_node, reconnect_type)
-
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
     available_operations = ['linear', 'xgboostreg', 'lagged']
@@ -114,16 +108,16 @@ def test_init_assumption_with_inappropriate_available_operations():
         .build()
     received_assumption = received_assumption[0]
     # Remove default 'scaling' node for comparison
-    rm_node(received_assumption.nodes, 'scaling', ReconnectType.all)
+    node_to_delete = next((i for i in received_assumption.nodes if i.name == 'scaling'), None)
+    if node_to_delete in received_assumption.nodes:
+        received_assumption.delete_node(node_to_delete, ReconnectType.all)
 
     # Getting default initial assumption from task_assumptions.py
     repository = OperationTypesRepository()
     classification_assumptions = ClassificationAssumptions(repository)
-    assumptions_dict = classification_assumptions.builders # get all assumptions
-    first_key = next(iter(assumptions_dict)) # get first default assumption
-    default_assumption = assumptions_dict[first_key].build() # get pipeline of default assumption
-    # Remove default 'scaling' node for comparison
-    rm_node(default_assumption.nodes, 'scaling', ReconnectType.all)
+    assumptions_dict = classification_assumptions.builders  # get all assumptions
+    first_key = next(iter(assumptions_dict))  # get first default assumption
+    default_assumption = assumptions_dict[first_key].build()  # build pipeline
 
     # Check for matching between received and default assumptions
     assert received_assumption.length == default_assumption.length
