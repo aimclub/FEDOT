@@ -408,24 +408,17 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
         #  for test.integration.models.test_model.check_predict_correct
         target = np.zeros(len(data.features))
 
-    target = pd.DataFrame(target)
-
-    convert_column_types(features, data, identify_cats)
-
-    return features, target
-
-
-def convert_column_types(dataframe, data: Optional[InputData], identify_cats: bool):
-    """
-    Converts DataFrame columns to categorical or numeric data types.
-    """
     if identify_cats and data.categorical_idx is not None:
-        for col in dataframe.columns[data.categorical_idx]:
-            dataframe[col] = dataframe[col].astype('category')
+        for col in features.columns[data.categorical_idx]:
+            features[col] = features[col].astype('category')
 
     if data.numerical_idx is not None:
-        for col in dataframe.columns[data.numerical_idx]:
-            dataframe[col] = dataframe[col].astype('float')
+        for col in features.columns[data.numerical_idx]:
+            features[col] = features[col].astype('float')
+
+    target = pd.DataFrame(target)
+
+    return features, target
 
 
 def check_eval_set_condition(input_data: InputData, params: OperationParameters) -> bool:
