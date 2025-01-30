@@ -62,7 +62,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         graph_id = graph.root_node.descriptive_id
         self._log.debug(f'Pipeline {graph_id} fit started')
-        self._log.message(f"Pipeline {graph_id}:")
+        # self._log.message(f"Pipeline {graph_id}:")
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
@@ -99,7 +99,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         # prepared_pipeline.
         if self._data_cache is not None:
-            self._log.message(f"Metrics cache effectiveness ratio: {self._data_cache.get_effectiveness_metrics_ratio}")
             self._log.message(f"Predictions cache effectiveness ratio: {self._data_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
@@ -155,8 +154,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
             # TODO: try load metrics
             intermediate_fitness = None
-            if self._data_cache is not None:
-                intermediate_fitness = self._data_cache.load_predicted(intermediate_graph)
+            # if self._data_cache is not None:
+            #     intermediate_fitness = self._data_cache.load_predicted(intermediate_graph)
 
             if intermediate_fitness is not None:
                 self._log.message("--- load intermediate metrics cache")
@@ -170,9 +169,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                                                        reference_data=test_data,
                                                        validation_blocks=self._validation_blocks)
                 # TODO: try save metrics
-                if self._data_cache is not None:
-                    self._log.message("--- save intermediate metrics cache")
-                    self._data_cache.save_predicted(intermediate_graph, intermediate_fitness)
+                # if self._data_cache is not None:
+                #     self._log.message("--- save intermediate metrics cache")
+                #     self._data_cache.save_predicted(intermediate_graph, intermediate_fitness)
 
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]

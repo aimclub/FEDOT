@@ -1,6 +1,6 @@
-import sqlite3
+
 from typing import TYPE_CHECKING, List, Optional, Union
-from multiprocessing import Manager
+
 
 import numpy as np
 
@@ -21,71 +21,58 @@ class DataCache(BaseCache):
 
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         super().__init__(DataCacheDB(cache_dir, custom_pid))
-        self.manager = Manager()
-        self.metrics_cache = self.manager.dict()
-        if self._db.use_stats:
-            self.metrics_cache["metrics_hit"] = 0
-            self.metrics_cache["metrics_total"] = 0
-            self.metrics_stats = {}
 
-    # TODO: metric is outputData now, use DB
-    def save_metric(self, pipeline, metric, fold_id=None):
-        uid = self._create_uid(pipeline, fold_id)
-        self.log.debug(f"--- save pipeline metrics cache: {uid}")
-        self.metrics_cache[uid] = metric
-        if self._db.use_stats:
-            self.metrics_stats[uid] = 0
-
-    def load_metric(self, pipeline, fold_id=None):
-        uid = self._create_uid(pipeline, fold_id)
-        self.log.debug(f"--- load pipeline metrics cache: {uid}")
-        result = self.metrics_cache.get(uid, None)
-        if self._db.use_stats:
-            if result:
-                self.metrics_cache["metrics_hit"] += 1
-                self.metrics_stats[uid] += 1
-            self.metrics_cache["metrics_total"] += 1
-        return result
-
-    @property
-    def get_effectiveness_metrics_ratio(self):
-        if self._db.use_stats:
-            eff_dct = {}
-            hit, total = self.metrics_cache["metrics_hit"], self.metrics_cache["metrics_total"]
-            eff_dct["metrics"] = round(hit / total, 3) if total else 0
-            return eff_dct
-
-    def save_predicted(self, pipeline: str, output_mode: str, fold_id: int, outputData: OutputData,):
+    def save_pipeline_prediction(self, pipeline: "Pipeline", outputData: OutputData, fold_id: int):
         """
-        Save the prediction for a given UID.
+        Save the prediction results of a pipeline to the cache.
+        """
+        type = "pipeline"
+        uid = f"{type}_{self._create_uid(pipeline, fold_id)}"
+        self._save_prediction(uid, type, outputData)
 
-        :param prediction (np.ndarray): The prediction to be saved.
-        :param uid (str): The unique identifier for the prediction.
+    def load_pipeline_prediction(self, pipeline: "Pipeline", fold_id: int):
         """
-        uid = f"{pipeline}_{output_mode}_{fold_id}"
-        try:
-            self._db.add_prediction(uid, outputData)
-            self.log.message(f"--- SAVE node prediction cache: {uid}")
-        except Exception as ex:
-            unexpected_exc = not (
-                isinstance(
-                    ex, sqlite3.DatabaseError) and "disk is full" in str(ex)
-            )
-            self.log.warning(
-                f"Predictions can not be saved: {ex}. Continue",
-                exc=ex,
-                raise_if_test=unexpected_exc,
-            )
+        Load the prediction results of a pipeline to the cache.
+        """
+        type = "pipeline"
+        uid = f"{type}_{self._create_uid(pipeline, fold_id)}"
+        return self._load_prediction(uid, type)
 
-    def load_predicted(self, pipeline: str, output_mode: str, fold_id: int) -> np.ndarray:
+    def save_node_fit_prediction():
         """
-        Load the prediction data for the given unique identifier.
-        :param uid (str): The unique identifier of the prediction data.
-        :return np.ndarray: The loaded prediction data.
+        Save the prediction results of a fitted node to the cache.
         """
-        uid = f"{pipeline}_{output_mode}_{fold_id}"
-        outputData = self._db.get_prediction(uid)
-        self.log.message(f"--- {'MISS' if outputData is None else 'HIT'} node prediction cache: {uid}")
+        pass
+
+    def load_node_fit_prediction():
+        """
+        Save the prediction results of a fitted node to the cache.
+        """
+        pass
+
+    def save_node_prediction(self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData,):
+        """
+        Save the prediction results of a node.
+        """
+        type = "pred"
+        uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
+        self._save_prediction(uid, type, outputData)
+
+    def load_node_prediction(self, descriptive_id: str, output_mode: str, fold_id: int):
+        """
+        Load the prediction results of a node.
+        """
+        type = "pred"
+        uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
+        return self._load_prediction(uid, type)
+
+    def _save_prediction(self, uid: str, type: str, outputData: OutputData):
+        self.log.debug(f"--- SAVE prediction cache: {uid}")
+        self._db.add_prediction(uid, type, outputData)
+
+    def _load_prediction(self, uid: str, type: str):
+        outputData = self._db.get_prediction(uid, type)
+        self.log.debug(f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
         return outputData
 
     def _create_uid(
@@ -101,7 +88,6 @@ class DataCache(BaseCache):
         :return str: The unique identifier generated for the pipeline.
         """
         base_uid = ""
-        # TODO: pipeline or node
         from fedot.core.pipelines.pipeline import Pipeline
         if isinstance(pipeline, Pipeline):
             for node in pipeline.nodes:

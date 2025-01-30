@@ -1,10 +1,7 @@
 import pickle
 import sqlite3
 from contextlib import closing
-from os import getpid
-from typing import List, Optional, Tuple, TypeVar
-
-import numpy as np
+from typing import Optional
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
 from fedot.core.data.data import OutputData
@@ -20,14 +17,13 @@ class DataCacheDB(BaseCacheDB):
 
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         use_stats = True
-        super().__init__("prediction", cache_dir, use_stats=use_stats,
-                         stats_keys=['predictions_hit', 'predictions_total'])
+        super().__init__("predictions", cache_dir, use_stats=use_stats, stats_keys=[
+            'pipeline_hit', 'pipeline_total', 'fit_hit', 'fit_total', 'pred_hit', 'pred_total'])
         self._init_db()
         if use_stats:
             self._init_db_stats()
-        # TODO: probably initialize pickler only once
 
-    def add_prediction(self, uid: str, outputData: OutputData):
+    def add_prediction(self, uid: str, type: str, outputData: OutputData):
         """
         Stores predicted `outputData` in binary fromat in a SQL table.
         """
@@ -37,13 +33,10 @@ class DataCacheDB(BaseCacheDB):
                     cur = conn.cursor()
                     pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
                     cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
-                    # if self.use_stats:
-                    #     stats_query = "INSERT INTO stats (id, retrieve_count) VALUES (?, 0)"
-                    #     cur.execute(stats_query, (uid,))
         except sqlite3.Error as e:
-            print(f"SQLite add error: {e}")
+            print(f"SQLite add {type} error: {e}")
 
-    def get_prediction(self, uid: str) -> Optional[OutputData]:
+    def get_prediction(self, uid: str, type: str) -> Optional[OutputData]:
         """
         Retrieves the predicted `outputData` from binary format in a SQL table.
         """
@@ -58,17 +51,17 @@ class DataCacheDB(BaseCacheDB):
                         result = pickle.loads(result[1])
                     if self.use_stats:
                         if result:
-                            self._inc_eff(cur, 'predictions_hit')
+                            self._inc_eff(cur, f'{type}_hit')
                             self._inc_stats(cur, uid)
-                        self._inc_eff(cur, 'predictions_total')
+                        self._inc_eff(cur, f'{type}_total')
             return result
         except sqlite3.Error as e:
-            print(f"SQLite get Error: {e}")
+            print(f"SQLite get {type} Error: {e}")
             return None
 
     def retrieve_stats(self):
         """
-        Retrieves stats for all non-zero pipeline nodes.
+        Retrieves statistics for all non-zero prediction cache entries.
         """
         try:
             if self.use_stats:
@@ -82,9 +75,9 @@ class DataCacheDB(BaseCacheDB):
             print(f"SQLite get Error: {e}")
             return None
 
-    def _inc_stats(self, cur, id):
+    def _inc_stats(self, cur: sqlite3.Cursor, id: str):
         """
-        Increases retrieve count for each pipeline node.
+        Increases the retrieve count for a specific prediction cache entry.
         """
         try:
             query = """
@@ -100,7 +93,7 @@ class DataCacheDB(BaseCacheDB):
 
     def _init_db_stats(self):
         """
-        Initializes DB stats table.
+        Initializes the database statistics table.
         """
         try:
             if self.use_stats:
@@ -114,7 +107,7 @@ class DataCacheDB(BaseCacheDB):
 
     def _init_db(self):
         """
-        Initializes DB working table.
+        Initializes the main database working table.
         """
         try:
             with closing(sqlite3.connect(self.db_path)) as conn:

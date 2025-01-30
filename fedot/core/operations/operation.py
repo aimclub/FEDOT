@@ -135,14 +135,15 @@ class Operation:
         else:
             prediction = None
             if data_cache is not None:
-                prediction = data_cache.load_predicted(descriptive_id, output_mode, fold_id)
+                prediction = data_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
 
             if prediction is None:
                 prediction = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
+                # self.log.message("--- PREDICT node")
                 if data_cache is not None:
-                    data_cache.save_predicted(
+                    data_cache.save_node_prediction(
                         descriptive_id, output_mode, fold_id, prediction)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 

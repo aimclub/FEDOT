@@ -93,16 +93,6 @@ class GPComposer(Composer):
                 w = csv.writer(f)
                 [w.writerow(info) for info in self.data_cache._db.retrieve_stats()]
 
-            metrics_file_path = os.path.join(directory, "metrics.csv")
-            with open(metrics_file_path, "w", newline="") as f:
-                # metrics effectiveness
-                w = csv.DictWriter(f, self.data_cache.get_effectiveness_metrics_ratio.keys())
-                w.writeheader()
-                w.writerow(self.data_cache.get_effectiveness_metrics_ratio)
-                # metrics usage stats
-                w = csv.writer(f)
-                [w.writerow([k, v]) for k, v in self.data_cache.metrics_stats.items()]
-
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
