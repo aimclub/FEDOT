@@ -122,8 +122,8 @@ def test_init_assumption_with_inappropriate_available_operations():
     # Check for matching between received and default assumptions
     assert received_assumption.length == default_assumption.length
     assert received_assumption.depth == default_assumption.depth
-    for received, default in zip(received_assumption.nodes, default_assumption.nodes):
-        assert received.descriptive_id == default.descriptive_id
+    for received_node, default_node in zip(received_assumption.nodes, default_assumption.nodes):
+        assert received_node.descriptive_id == default_node.descriptive_id
 
 
 def test_api_composer_available_operations():
