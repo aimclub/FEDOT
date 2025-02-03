@@ -57,11 +57,11 @@ class Data:
     def from_numpy(cls,
                    features_array: np.ndarray,
                    target_array: np.ndarray,
-                   features_names: np.ndarray[str] = None,
-                   categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                    idx: Optional[np.ndarray] = None,
                    task: Union[Task, str] = 'classification',
-                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table) -> InputData:
+                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table,
+                   features_names: np.ndarray[str] = None,
+                   categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None) -> InputData:
         """Import data from numpy array.
 
         Args:
@@ -79,7 +79,13 @@ class Data:
         """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        return array_to_input_data(features_array, target_array, features_names, categorical_idx, idx, task, data_type)
+        return array_to_input_data(features_array=features_array,
+                                   target_array=target_array,
+                                   features_names=features_names,
+                                   categorical_idx=categorical_idx,
+                                   idx=idx,
+                                   task=task,
+                                   data_type=data_type)
 
     @classmethod
     def from_numpy_time_series(cls,
@@ -104,7 +110,11 @@ class Data:
             task = Task(TaskTypesEnum(task))
         if target_array is None:
             target_array = features_array
-        return array_to_input_data(features_array, target_array, idx, task, data_type)
+        return array_to_input_data(features_array=features_array,
+                                   target_array=target_array,
+                                   idx=idx,
+                                   task=task,
+                                   data_type=data_type)
 
     @classmethod
     def from_dataframe(cls,
@@ -848,11 +858,11 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
 
 def array_to_input_data(features_array: np.ndarray,
                         target_array: np.ndarray,
-                        features_names: np.ndarray[str] = None,
-                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                         idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: Optional[DataTypesEnum] = None) -> InputData:
+                        data_type: Optional[DataTypesEnum] = None,
+                        features_names: np.ndarray[str] = None,
+                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None) -> InputData:
     if idx is None:
         idx = np.arange(len(features_array))
     if data_type is None:
