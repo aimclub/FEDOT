@@ -67,5 +67,4 @@ Multiclass classification (negative logloss):
 
 .. image:: ./img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
-We can claim that results are statistically better that TPOT and and indistinguishable from H2O and AutoGluon.
-
+We can conclude that FEDOT achieves performance comparable with AutoGluon, H2O and TPOT.
