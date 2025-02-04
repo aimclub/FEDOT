@@ -273,6 +273,12 @@ bug_pipeline_00 = (
 
 """(((((/n_resample_{'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1};)/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 40960, 'max_trials': 100, 'max_skips': 1000};)/n_catboostreg_{'allow_writing_files': False, 'verbose': False, 'iterations': 1000, 'enable_categorical': True, 'use_eval_set': True, 'use_best_model': True, 'early_stopping_rounds': 30, 'n_jobs': 1};;(/n_resample_{'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1};)/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 40960, 'max_trials': 100, 'max_skips': 1000};;/n_resample_{'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};;(/n_resample_{'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1};)/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 40960, 'max_trials': 100, 'max_skips': 1000};;/n_resample_{'balance': 'expand_minority', 'replace': False, 'balance_ratio': 1};)/n_fast_ica_{'whiten': 'unit-variance'};)/n_linear"""
 
+""""""
+
+"""MetricsObjective - Objective evaluation error for graph {'depth': 6, 'length': 6, 'nodes': [linear, ransac_lin_reg, ransac_lin_reg, ransac_non_lin_reg, sgdr, pca]} on metric rmse: Metric can not be evaluated because of: X has 27 features, but SGDRegressor is expecting 26 features as input."""
+
+"""(((((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.5024646909061051, 'residual_threshold': 1.8119360430821913e+41, 'max_trials': 244.04573231429495, 'max_skips': 173075.51871026386};)/n_pca_{'svd_solver': 'full', 'n_components': 0.38958856945380116};;((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.5024646909061051, 'residual_threshold': 1.8119360430821913e+41, 'max_trials': 244.04573231429495, 'max_skips': 173075.51871026386};;(/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};;/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_sgdr;;((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.5024646909061051, 'residual_threshold': 1.8119360430821913e+41, 'max_trials': 244.04573231429495, 'max_skips': 173075.51871026386};;(/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_ransac_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10, 'max_trials': 100, 'max_skips': 1000};;/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_linear"""
+
 """Classification"""
 # bug_pipeline = (
 #     PipelineBuilder()
@@ -355,9 +361,9 @@ print(auto_model.current_pipeline.descriptive_id)
 #     "((((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};)/n_ransac_non_lin_reg_{'min_samples': 0.290191412541976, 'residual_threshold': 19.187633275042266, 'max_trials': 457.13281912005596, 'max_skips': 273915.78487223637};)/n_sgdr;;/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000};)/n_linear")
 
 # bug_pipeline_00
-print(
-    auto_model.current_pipeline.descriptive_id ==
-    "((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 40960, 'max_trials': 100, 'max_skips': 1000};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};;/n_fast_ica_{'whiten': 'unit-variance'};)/n_linear")
+# print(
+#     auto_model.current_pipeline.descriptive_id ==
+#     "((/n_ransac_non_lin_reg_{'min_samples': 0.4, 'residual_threshold': 40960, 'max_trials': 100, 'max_skips': 1000};)/n_pca_{'svd_solver': 'full', 'n_components': 0.7};;/n_fast_ica_{'whiten': 'unit-variance'};)/n_linear")
 
 
 # auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
