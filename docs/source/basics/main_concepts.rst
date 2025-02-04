@@ -13,8 +13,7 @@ The main framework concepts are as follows:
 
 The comparison of fedot with main existing AutoML tools is provided below:
 
- |automl_features|
+|automl_features|
 
 .. |automl_features| image:: ./comp_table.png
    :width: 80%
-                    |
