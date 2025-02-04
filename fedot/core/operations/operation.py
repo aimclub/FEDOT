@@ -71,7 +71,8 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
+    def fit(self, params: Optional[Union[OperationParameters, dict]],
+            data: InputData, data_cache=None, fold_id=None, descriptive_id=None):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -86,7 +87,8 @@ class Operation:
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict_for_fit(self.fitted_operation, data, params)
+        predict_train = self.predict_for_fit(self.fitted_operation, data, params,
+                                             data_cache=data_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
         return self.fitted_operation, predict_train
 
@@ -107,7 +109,7 @@ class Operation:
             descriptive_id=descriptive_id)
 
     def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-                        output_mode: str = 'default'):
+                        output_mode: str = 'default', data_cache=None, fold_id=None, descriptive_id=None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
 
@@ -118,7 +120,9 @@ class Operation:
             output_mode: string with information about output of operation,
                 for example, is the operation predict probabilities or class labels
         """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
+        return self._predict(
+            fitted_operation, data, params, output_mode, is_fit_stage=True, data_cache=data_cache, fold_id=fold_id,
+            descriptive_id=descriptive_id)
 
     def _predict(
             self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
@@ -128,12 +132,20 @@ class Operation:
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
 
+        prediction = None
         if is_fit_stage:
-            prediction = self._eval_strategy.predict_for_fit(
-                trained_operation=fitted_operation,
-                predict_data=data)
+            if data_cache is not None:
+                prediction = data_cache.load_node_fit_prediction(descriptive_id, output_mode, fold_id)
+
+            if prediction is None:
+                prediction = self._eval_strategy.predict_for_fit(
+                    trained_operation=fitted_operation,
+                    predict_data=data)
+
+                if data_cache is not None:
+                    data_cache.save_node_fit_prediction(
+                        descriptive_id, output_mode, fold_id, prediction)
         else:
-            prediction = None
             if data_cache is not None:
                 prediction = data_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
 
@@ -141,7 +153,7 @@ class Operation:
                 prediction = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
-                # self.log.message("--- PREDICT node")
+
                 if data_cache is not None:
                     data_cache.save_node_prediction(
                         descriptive_id, output_mode, fold_id, prediction)

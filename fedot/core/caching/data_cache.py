@@ -22,11 +22,13 @@ class DataCache(BaseCache):
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         super().__init__(DataCacheDB(cache_dir, custom_pid))
 
+    # PIPELINE
+
     def save_pipeline_prediction(self, pipeline: "Pipeline", outputData: OutputData, fold_id: int):
         """
         Save the prediction results of a pipeline to the cache.
         """
-        type = "pipeline"
+        type = "pipelinePred"
         uid = f"{type}_{self._create_uid(pipeline, fold_id)}"
         self._save_prediction(uid, type, outputData)
 
@@ -34,27 +36,39 @@ class DataCache(BaseCache):
         """
         Load the prediction results of a pipeline to the cache.
         """
-        type = "pipeline"
+        type = "pipelinePred"
         uid = f"{type}_{self._create_uid(pipeline, fold_id)}"
         return self._load_prediction(uid, type)
 
-    def save_node_fit_prediction():
+    # NODE
+
+    def save_node_fit_prediction(self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData):
         """
         Save the prediction results of a fitted node to the cache.
         """
-        pass
+        if "ransac" in descriptive_id:
+            return
+        type = "nodeFit"
+        uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
+        self._save_prediction(uid, type, outputData)
 
-    def load_node_fit_prediction():
+    def load_node_fit_prediction(self, descriptive_id: str, output_mode: str, fold_id: int):
         """
         Save the prediction results of a fitted node to the cache.
         """
-        pass
+        if "ransac" in descriptive_id:
+            return
+        type = "nodeFit"
+        uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
+        return self._load_prediction(uid, type)
 
-    def save_node_prediction(self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData,):
+    def save_node_prediction(self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData):
         """
         Save the prediction results of a node.
         """
-        type = "pred"
+        if "ransac" in descriptive_id:
+            return
+        type = "nodePred"
         uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
         self._save_prediction(uid, type, outputData)
 
@@ -62,7 +76,9 @@ class DataCache(BaseCache):
         """
         Load the prediction results of a node.
         """
-        type = "pred"
+        if "ransac" in descriptive_id:
+            return
+        type = "nodePred"
         uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
         return self._load_prediction(uid, type)
 

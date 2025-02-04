@@ -193,31 +193,23 @@ class PipelineNode(LinkedGraphNode):
         """
         self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
 
-        # TODO: load predicted
-        # operation_predict = None
-        # if data_cache is not None and fold_id is not None:
-        #     operation_predict = data_cache.load_predicted(self, f"{fold_id}_fit")
-        # if operation_predict is not None:
-        #     self.log.message("-- load fit node data_cache")
-        #     return operation_predict
-
         input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
         if self.fitted_operation is None:
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
-                                                                              data=input_data)
+                                                                              data=input_data,
+                                                                              data_cache=data_cache,
+                                                                              fold_id=fold_id,
+                                                                              descriptive_id=self.descriptive_id)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-
             operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
                                                                data=input_data,
-                                                               params=self._parameters)
-
-        # TODO: save node's predictions to cache
-        # if data_cache is not None and fold_id is not None:
-        #     data_cache.save_predicted(self, operation_predict, f"{fold_id}_fit")
-        #     self.log.message("-- save fit node data_cache")
+                                                               params=self._parameters,
+                                                               data_cache=data_cache,
+                                                               fold_id=fold_id,
+                                                               descriptive_id=self.descriptive_id)
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -408,7 +400,7 @@ def _combine_parents(parent_nodes: List[PipelineNode],
             prediction = parent.predict(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data)
+            prediction = parent.fit(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
             parent_results.append(prediction)
         else:
             raise ValueError("Value parent_operation should be 'fit' or 'predict'")
