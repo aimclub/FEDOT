@@ -53,18 +53,35 @@ using self-runned tasks form OpenML test suite (10 folds run) using F1:
 
 Also, we tested FEDOT on the results of `AMLB <https://github.com/openml/automlbenchmark>`_ benchmark.
 The visualization of FEDOT (v.0.7.3) results against H2O (3.46.0.4), AutoGluon (v.1.1.0), TPOT (v.0.12.1) and LightAutoML (v.0.3.7.3)
-obtained using built-in visualizations of critial difference plot from AutoMLBenchmark are provided below:
+obtained using built-in visualizations of critial difference plot (CD) from AutoMLBenchmark [1].
 
-All datasets (ROC AUC and negative log loss):
+In a CD (Critical Difference) diagram,
+we display each framework's average rank and highlight which ranks are
+statistically significantly different from one another.
+
+To determine the average rank per task,
+we first replace any missing values with a constant predictor and
+then calculate the average performance across all folds.
+
+We assess statistical significance of the rank differences using a non-parametric Friedman test with a
+threshold of p < 0.05 (resulting in p ≈ 0 for all diagrams)
+and apply a Nemenyi post-hoc test to identify which framework pairs differ significantly.
+
+Time budget for all experiments is 1 hour, 10 folds are used (1h8c setup for ALMB). The results are
+obtained using sever based on Xeon Cascadelake (2900MHz) with 12 cores and 24GB memory.
+
+CD for all datasets (ROC AUC and negative log loss):
 
 .. image:: ./img_benchmarks/cd-all-1h8c-constantpredictor.png
 
-Binary classification (ROC AUC):
+CD for binary classification (ROC AUC):
 
 .. image:: ./img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
 
-Multiclass classification (negative logloss):
+CD for multiclass classification (negative logloss):
 
 .. image:: ./img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
 We can conclude that FEDOT achieves performance comparable with AutoGluon, H2O and TPOT.
+
+[1] Gijsbers P. et al. Amlb: an automl benchmark //Journal of Machine Learning Research. – 2024. – Т. 25. – №. 101. – С. 1-65.
