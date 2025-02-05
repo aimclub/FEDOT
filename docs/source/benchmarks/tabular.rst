@@ -60,8 +60,9 @@ we display each framework's average rank and highlight which ranks are
 statistically significantly different from one another.
 
 To determine the average rank per task,
-we first replace any missing values with a constant predictor and
-then calculate the average performance across all folds.
+we first replace any missing values with a constant predictor,
+calculate ranks for represented AutoML solutions and constant predictor
+for each dataset and than took an average value of ranks across all datasets for each represented solution.
 
 We assess statistical significance of the rank differences using a non-parametric Friedman test with a
 threshold of p < 0.05 (resulting in p ≈ 0 for all diagrams)
@@ -74,14 +75,25 @@ CD for all datasets (ROC AUC and negative log loss):
 
 .. image:: ./img_benchmarks/cd-all-1h8c-constantpredictor.png
 
+The CD diagram for all datasets (ROC AUC and negative log loss) shows that all AutoML frameworks
+(LightAutoML, H2OAutoML, TPOT,  AutoGluon, FEDOT) perform statistically better than constant predictor:
+
 CD for binary classification (ROC AUC):
 
 .. image:: ./img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
+
+The CD diagram for binary classification (ROC AUC) shows that all AutoML frameworks
+(LightAutoML, H2OAutoML, TPOT,  AutoGluon, FEDOT) perform similarly,
+falling within the same CD interval, and significantly outperform  the constant predictor:
 
 CD for multiclass classification (negative logloss):
 
 .. image:: ./img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
 
-We can conclude that FEDOT achieves performance comparable with AutoGluon, H2O and TPOT.
+The CD diagram for multiclass classification (negative log loss) shows that
+TPOT and Fedot demonstrate intermediate performance being on the border of the
+CD interval with constant predictor and the CD interval with H2OAutoML:
 
-[1] Gijsbers P. et al. Amlb: an automl benchmark //Journal of Machine Learning Research. – 2024. – Т. 25. – №. 101. – С. 1-65.
+We can conclude that FEDOT achieves performance comparable with competitors for tabular tasks.
+
+[1] Gijsbers P. et al. AMLB: an AutoML benchmark //Journal of Machine Learning Research. – 2024. – Т. 25. – №. 101. – С. 1-65.
