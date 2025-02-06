@@ -256,9 +256,6 @@ class Pipeline(GraphDelegate, Serializable):
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
-        # TODO: remove
-        # if data_cache is not None:
-        #     data_cache.load_predicted(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData],
                 output_mode: str = 'default', data_cache=None, fold_id=None) -> OutputData:
@@ -290,16 +287,8 @@ class Pipeline(GraphDelegate, Serializable):
             copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-
-        result = None
-        if data_cache is not None:
-            result = data_cache.load_pipeline_prediction(self, fold_id)
-
-        if result is None:
-            result = self.root_node.predict(input_data=copied_input_data,
-                                            output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
-            if data_cache is not None:
-                data_cache.save_pipeline_prediction(self, result, fold_id)
+        result = self.root_node.predict(input_data=copied_input_data,
+                                        output_mode=output_mode, data_cache=data_cache, fold_id=fold_id)
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             result.predict = result.predict.ravel()

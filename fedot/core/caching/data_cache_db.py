@@ -18,9 +18,8 @@ class DataCacheDB(BaseCacheDB):
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
         use_stats = True
         super().__init__("predictions", cache_dir, use_stats=use_stats,
-                         stats_keys=['pipelinePred_hit', 'pipelinePred_total',
-                                     'nodeFit_hit', 'nodeFit_total',
-                                     'nodePred_hit', 'nodePred_total'])
+                         stats_keys=['fit_hit', 'fit_total',
+                                     'pred_hit', 'pred_total'])
         self._init_db()
         if use_stats:
             self._init_db_stats()
