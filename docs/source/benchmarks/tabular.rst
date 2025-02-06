@@ -52,8 +52,10 @@ using self-runned tasks form OpenML test suite (10 folds run) using F1:
 
 
 Also, we tested FEDOT on the results of `AMLB <https://github.com/openml/automlbenchmark>`_ benchmark.
-The visualization of FEDOT (v.0.7.3) results against H2O (3.46.0.4), AutoGluon (v.1.1.0), TPOT (v.0.12.1) and LightAutoML (v.0.3.7.3)
-obtained using built-in visualizations of critial difference plot (CD) from AutoMLBenchmark [1].
+We used the setup of the framework obtained from 'frameworks_2021Q3.yaml'. The run on 'frameworks_2023Q2.yaml' is now in progress.
+Some runs for AutoGluon are failed due to the errors decscribed in [1] for versions lower the 0.8.
+
+The visualization obtained using built-in visualizations of critical difference plot (CD) from AutoMLBenchmark [1].
 
 In a CD (Critical Difference) diagram,
 we display each framework's average rank and highlight which ranks are
