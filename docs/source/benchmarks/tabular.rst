@@ -22,7 +22,7 @@ threshold of p < 0.05 (resulting in p ≈ 0 for all diagrams)
 and apply a Nemenyi post-hoc test to identify which framework pairs differ significantly.
 
 Time budget for all experiments is 1 hour, 10 folds are used (1h8c setup for ALMB). The results are
-obtained using sever based on Xeon Cascadelake (2900MHz) with 12 cores and 24GB memory.
+obtained using sever based on Xeon Cascadelake (2900MHz) with 12 cores and 16GB memory.
 
 CD for all datasets (ROC AUC and negative log loss):
 
@@ -57,6 +57,12 @@ The raw metrics (ROC AUC for binary and logloss for multiclass) for frameworks a
 
 .. image:: ./img_benchmarks/metrics.png
 
+The comparison with [1] shows that AutoGluon is underperforming in our hardware setup,
+while TPOT and H2O are quite close in both setups.
+To avoid any confusion, we provide below an additional comparison of the FEDOT metrics with the metrics from [1].
+However, it should be noted that the conditions are different, as are the exact versions of the frameworks.
+
+.. image:: ./img_benchmarks/fedot_amlb.png
 
 [1] Gijsbers P. et al. AMLB: an AutoML benchmark //Journal of Machine Learning Research. – 2024. – Т. 25. – №. 101. – С. 1-65.
 
