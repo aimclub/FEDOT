@@ -2,18 +2,25 @@ from test.data.datasets import get_dataset
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
-metric = ["rmse"]
-task_type = "regression"
+# metric = ["rmse"]
+# task_type = "regression"
 # X, y = make_regression(n_samples=100, n_features=1, noise=1)
 
 # metric = ["f1"]
 # task_type = "classification"
 # X, y = make_classification(n_samples=100, n_features=1)
 
+metric = ["rmse"]
+task_type = "ts_forecasting"
+
 # X_train, X_test, y_train, y_test = train_test_split(
 #     X, y, test_size=0.33, random_state=42)
 
-train_data, test_data, _ = get_dataset(task_type)
+train_data, test_data, _ = get_dataset(task_type,
+                                       validation_blocks=1,
+                                       n_samples=10000,
+                                       n_features=100,
+                                       forecast_length=1)
 
 """Regression"""
 # bug_pipeline = (
@@ -316,7 +323,7 @@ auto_model = Fedot(
     metric=metric,
     preset="best_quality",
     with_tuning=False,
-    timeout=60,
+    timeout=40,
     cv_folds=2,
     seed=42,
     n_jobs=1,
@@ -368,5 +375,7 @@ print(auto_model.current_pipeline.descriptive_id)
 
 # auto_model.current_pipeline.save(path="./saved_pipelines", create_subdir=True, is_datetime_in_path=True)
 # auto_model.history.save("saved_history.json")
-print(auto_model.get_metrics())
-print(auto_model.return_report().head(10))
+
+# NOTE: doesn't work with ts_forecasting
+# print(auto_model.get_metrics())
+# print(auto_model.return_report().head(10))
