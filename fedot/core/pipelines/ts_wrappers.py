@@ -67,7 +67,9 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: Union[InputData, M
 
 
 def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData],
-                          horizon: int = None) -> np.array:
+                          horizon: int = None,
+                          data_cache=None,
+                          fold_id=None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
@@ -118,7 +120,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     final_forecast = []
     for _, border in zip(range(0, number_of_iterations), intervals):
 
-        iter_predict = pipeline.predict(input_data=data)
+        iter_predict = pipeline.predict(input_data=data, data_cache=data_cache, fold_id=fold_id)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
 

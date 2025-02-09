@@ -120,7 +120,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache, fold_id)
-        predicted_train = graph.fit(
+        graph.fit(
             train_data,
             n_jobs=n_jobs,
             time_constraint=self._time_constraint,
@@ -132,8 +132,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             self._pipelines_cache.save_pipeline(graph, fold_id)
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
-        # if self._data_cache is not None:
-        #     self._data_cache.save_predicted(graph, predicted_train, "fit" + str(fold_id))
 
         return graph
 
