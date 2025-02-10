@@ -119,7 +119,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # load preprocessing
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache, fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
             n_jobs=n_jobs,
@@ -144,16 +144,13 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, self._data_cache,  fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache,   fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
 
-            # TODO: try load metrics
             intermediate_fitness = None
-            # if self._data_cache is not None:
-            #     intermediate_fitness = self._data_cache.load_predicted(intermediate_graph)
 
             if intermediate_fitness is not None:
                 self._log.message("--- load intermediate metrics cache")
@@ -166,10 +163,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                 intermediate_fitness = self._objective(intermediate_graph,
                                                        reference_data=test_data,
                                                        validation_blocks=self._validation_blocks)
-                # TODO: try save metrics
-                # if self._data_cache is not None:
-                #     self._log.message("--- save intermediate metrics cache")
-                #     self._data_cache.save_predicted(intermediate_graph, intermediate_fitness)
 
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
