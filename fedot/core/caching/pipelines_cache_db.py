@@ -1,5 +1,7 @@
 import pickle
 import sqlite3
+import zlib
+from sys import getsizeof
 from contextlib import closing
 from os import getpid
 from typing import List, Optional, Tuple, TypeVar
@@ -8,6 +10,7 @@ from fedot.core.caching.base_cache_db import BaseCacheDB
 from fedot.core.operations.operation import Operation
 
 IOperation = TypeVar('IOperation', bound=Operation)
+MAX_BLOB_SIZE = 2**31 - 1
 
 
 class OperationsCacheDB(BaseCacheDB):
@@ -78,10 +81,12 @@ class OperationsCacheDB(BaseCacheDB):
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                pickled = [
-                    (uid, sqlite3.Binary(pickle.dumps(val, pickle.HIGHEST_PROTOCOL)))
-                    for uid, val in uid_val_lst
-                ]
+                pickled = []
+                for uid, val in uid_val_lst:
+                    serialized = pickle.dumps(val, pickle.HIGHEST_PROTOCOL)
+                    if getsizeof(serialized) > MAX_BLOB_SIZE:
+                        serialized = zlib.compress(serialized)
+                    pickled.append((uid, sqlite3.Binary(serialized)))
                 cur.executemany(f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);', pickled)
 
     def _init_db(self):
