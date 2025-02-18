@@ -21,6 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.utilities.composer_timer import fedot_composer_timer
+from fedot.core.operations.operation import Operation
 
 
 class ApiComposer:
@@ -55,6 +56,8 @@ class ApiComposer:
         # TODO: data_cache param
         self.data_cache = DataCache(cache_dir)
         self.data_cache.reset()
+
+        Operation.data_cache = self.data_cache
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """

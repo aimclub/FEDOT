@@ -22,6 +22,8 @@ class Operation:
         operation_type: name of the operation
     """
 
+    data_cache = None
+
     def __init__(self, operation_type: str, **kwargs):
         self.operation_type = operation_type
 
@@ -134,28 +136,29 @@ class Operation:
 
         prediction = None
         if is_fit_stage:
-            if data_cache is not None:
-                prediction = data_cache.load_node_prediction(descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
+            if self.data_cache is not None:
+                prediction = self.data_cache.load_node_prediction(
+                    descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
 
             if prediction is None:
                 prediction = self._eval_strategy.predict_for_fit(
                     trained_operation=fitted_operation,
                     predict_data=data)
 
-                if data_cache is not None:
-                    data_cache.save_node_prediction(
+                if self.data_cache is not None:
+                    self.data_cache.save_node_prediction(
                         descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
         else:
-            if data_cache is not None:
-                prediction = data_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
+            if self.data_cache is not None:
+                prediction = self.data_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
 
             if prediction is None:
                 prediction = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
                     predict_data=data)
 
-                if data_cache is not None:
-                    data_cache.save_node_prediction(
+                if self.data_cache is not None:
+                    self.data_cache.save_node_prediction(
                         descriptive_id, output_mode, fold_id, prediction)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 
