@@ -116,20 +116,3 @@ def data_has_text_features(data: InputData) -> bool:
     """
     # TODO andreygetmanov: make compatible with current text checking
     return data.data_type is DataTypesEnum.text
-
-
-def remove_empty_columns(input_data: InputData):
-    """
-    Remove columns that contain only NaN values.
-    """
-    df_features = pd.DataFrame(input_data.features)
-    original_columns = set(df_features.columns)  # get original columns
-
-    df_features = df_features.dropna(axis=1, how='all')
-    remaining_columns = set(df_features.columns)  # get columns after removing
-
-    # Keep only non-empty columns and get indices of removed columns
-    removed_indices = tuple(original_columns - remaining_columns)
-
-    input_data.features = df_features.values
-    return removed_indices

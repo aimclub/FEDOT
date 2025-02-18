@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScal
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
-    replace_inf_with_nans, remove_empty_columns
+    replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -321,7 +321,7 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         replace_inf_with_nans(input_data)
-        removed_indices = remove_empty_columns(input_data)
+        self._remove_empty_columns(input_data)
 
         categorical_features, numerical_features = None, None
 
@@ -374,6 +374,11 @@ class ImputationImplementation(DataOperationImplementation):
         self.fit(input_data)
         output_data = self.transform_for_fit(input_data)
         return output_data
+
+    def get_params(self) -> OperationParameters:
+        features_imputers = {'imputer_categorical': self.params_cat,
+                             'imputer_numerical': self.params_num}
+        return OperationParameters(**features_imputers)
 
     def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array) -> np.array:
         """Merge numerical and categorical features in right order (as it was in source table)
@@ -430,7 +435,57 @@ class ImputationImplementation(DataOperationImplementation):
 
         return filled_numerical_features
 
-    def get_params(self) -> OperationParameters:
-        features_imputers = {'imputer_categorical': self.params_cat,
-                             'imputer_numerical': self.params_num}
-        return OperationParameters(**features_imputers)
+    def _remove_empty_columns(self, input_data: InputData):
+        """
+            Remove columns that contain only NaN values and update related indices and imputers.
+
+        Args:
+            input_data (InputData)
+
+        Modifies:
+            - Removes empty columns from input_data.features
+            - Updates numerical and categorical indices
+            - Updates imputer _statistics
+
+        Raises:
+            ValueError: If input_data is None
+        """
+        if input_data is None:
+            raise ValueError("InputData is None")
+
+        df_features = pd.DataFrame(input_data.features)
+        original_columns = set(df_features.columns)  # get original columns
+
+        df_features = df_features.dropna(axis=1, how='all')
+        remaining_columns = set(df_features.columns)  # get columns after removing
+
+        # Keep only non-empty columns and get indices of removed columns
+        removed_indices = tuple(original_columns - remaining_columns)
+
+        # Update indices in input data and .self
+        input_data.numerical_idx = np.array(
+            [x for x in input_data.numerical_idx if x not in removed_indices]
+        )
+        input_data.categorical_idx = np.array(
+            [x for x in input_data.categorical_idx if x not in removed_indices]
+        )
+        self.non_categorical_ids = np.array( # УПРОСТИТЬ ЭТИ МАКАРОНЫ
+            [x for x in self.non_categorical_ids if x not in removed_indices]
+        )
+        self.categorical_or_encoded_ids = np.array(
+            [x for x in self.categorical_or_encoded_ids if x not in removed_indices]
+        )
+
+        # Update indices in imputers
+        self.imputer_num.n_features_in_, self.imputer_cat.n_features_in_ = (
+            self.non_categorical_ids.size,
+            self.categorical_or_encoded_ids.size
+        )
+
+        # Update statistics by removing moment with NaN in imputers НАПИСАТЬ НОРМАЛЬНЫЙ МЕТОД ДЛЯ ОЧИСТКИ ОТ NAN
+
+        # for idx, moment in enumerate(self.imputer_num.statistics_):
+        #     if moment == np.nan:
+
+        self.imputer_num.statistics_ = self.imputer_num.statistics_[~np.isnan(self.imputer_num.statistics_)]
+        # self.imputer_cat.statistics_ = self.imputer_cat.statistics_[~np.isnan(self.imputer_cat.statistics_)]
