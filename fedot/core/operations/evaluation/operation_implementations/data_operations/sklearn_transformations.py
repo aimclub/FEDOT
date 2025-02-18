@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScal
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
-    replace_inf_with_nans
+    replace_inf_with_nans, remove_empty_columns
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -321,6 +321,7 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         replace_inf_with_nans(input_data)
+        removed_indices = remove_empty_columns(input_data)
 
         categorical_features, numerical_features = None, None
 
