@@ -437,7 +437,7 @@ class ImputationImplementation(DataOperationImplementation):
 
     def _try_remove_empty_columns(self, input_data: InputData) -> bool:
         """
-        Remove columns that contain only NaN values and update related indices and imputers.
+        Remove columns that contain only NaN values and update related indices.
 
         Args:
             input_data (InputData)
@@ -445,7 +445,6 @@ class ImputationImplementation(DataOperationImplementation):
         Modifies:
             - Removes empty columns from input_data.features
             - Updates numerical and categorical indices
-            - Updates imputer _statistics
 
         Raises:
             ValueError: InputData is None
@@ -467,7 +466,7 @@ class ImputationImplementation(DataOperationImplementation):
             # Update values
             input_data.features = df_features.values
 
-            # Update indices in input data and in .self
+            # Update self and input_data indices
             self._update_indices(input_data, removed_elements)
 
             return True
