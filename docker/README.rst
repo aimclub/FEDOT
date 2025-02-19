@@ -16,7 +16,7 @@ FEDOT и Docker
 Jupiter
 =======
 
-- **Проверте наличе docker (docker-compose)** docker (docker-compose) должен быть установлен
+- **Проверьте наличие docker (docker-compose)** docker (docker-compose) должен быть установлен
 - `git clone https://github.com/aimclub/FEDOT.git` получаем файлы из git
 - `cd FEDOT` переходим в папку проекта
 - `cd docker/jupiter` переходим в папку с Docker файлами для jupiter notebook
