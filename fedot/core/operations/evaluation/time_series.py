@@ -10,7 +10,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
     ARIMAImplementation, STLForecastARIMAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.cgru import \
-    CGRUImplementation
+    CGRUImplementation, CLSTMImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
     RepeatLastValueImplementation, NaiveAverageForecastImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
@@ -40,6 +40,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'stl_arima': STLForecastARIMAImplementation,
         'ets': ExpSmoothingImplementation,
         'cgru': CGRUImplementation,
+        'clstm': CLSTMImplementation,
         'polyfit': PolyfitImplementation,
         'glm': GLMImplementation,
         'locf': RepeatLastValueImplementation,
