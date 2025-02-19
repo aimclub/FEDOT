@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -437,7 +437,7 @@ class ImputationImplementation(DataOperationImplementation):
 
     def _remove_empty_columns(self, input_data: InputData):
         """
-            Remove columns that contain only NaN values and update related indices and imputers.
+        Remove columns that contain only NaN values and update related indices and imputers.
 
         Args:
             input_data (InputData)
@@ -448,11 +448,12 @@ class ImputationImplementation(DataOperationImplementation):
             - Updates imputer _statistics
 
         Raises:
-            ValueError: If input_data is None
+            ValueError: InputData is None
         """
         if input_data is None:
             raise ValueError("InputData is None")
 
+        # Drop empty columns
         df_features = pd.DataFrame(input_data.features)
         original_columns = set(df_features.columns)  # get original columns
 
@@ -460,32 +461,56 @@ class ImputationImplementation(DataOperationImplementation):
         remaining_columns = set(df_features.columns)  # get columns after removing
 
         # Keep only non-empty columns and get indices of removed columns
-        removed_indices = tuple(original_columns - remaining_columns)
+        removed_elements = tuple(original_columns - remaining_columns)
 
-        # Update indices in input data and .self
-        input_data.numerical_idx = np.array(
-            [x for x in input_data.numerical_idx if x not in removed_indices]
-        )
-        input_data.categorical_idx = np.array(
-            [x for x in input_data.categorical_idx if x not in removed_indices]
-        )
-        self.non_categorical_ids = np.array( # УПРОСТИТЬ ЭТИ МАКАРОНЫ
-            [x for x in self.non_categorical_ids if x not in removed_indices]
-        )
-        self.categorical_or_encoded_ids = np.array(
-            [x for x in self.categorical_or_encoded_ids if x not in removed_indices]
-        )
+        if removed_elements:
+            # Update values
+            input_data.features = df_features.values
 
-        # Update indices in imputers
+            # Update indices in input data and in .self
+            self._update_indices(input_data, removed_elements)
+
+            # Update statistics of imputer by removing moment with NaN????????????????????????????????
+            self.imputer_num.statistics_ = self.imputer_num.statistics_[~np.isnan(self.imputer_num.statistics_)]
+            self.imputer_cat.statistics_ = self.imputer_cat.statistics_[~np.isnan(self.imputer_cat.statistics_)]
+
+    def _update_indices(self, input_data: InputData, removed_elements: Sequence):
+        """
+        Args:
+            input_data (InputData): data with features
+            removed_elements (Sequence): indices of empty columns
+
+        Modifies:
+            - Updates indices of input_data
+            - Updates indices of self.non_categorical_ids and self.categorical_or_encoded_ids
+            - Updates imputer settings
+
+        Example:
+            >>> array_of_indices = [1, 2, 3, 5, 10, 12, 15, 20]
+            >>> idxs_of_empty_col = (10, )  # removed element
+            >>> array_without_empty_cols = [1, 2, 3, 5, 12, 15, 20]
+            >>> self._update_indices(input_data, idxs_of_empty_col)
+            >>> # Goal of this function
+            >>> updated_array_indices = [1, 2, 3, 5, 11, 14, 19]  # because of decreasing input_data.features shape
+        """
+        numerical_idx = input_data.numerical_idx.copy()
+        categorical_idx = input_data.categorical_idx.copy()
+        # Shift of indices after removed one
+        for element in removed_elements:
+            for arr in [numerical_idx, categorical_idx]:
+                idx, _ = np.where(arr == element)  # get index of removed element
+                arr = np.array([x for x in arr if x != element])  # remove element from array
+                for i in range(idx + 1, len(arr)):
+                    arr[i] = arr[i] - 1  # shift of subsequent indices
+
+        # Update indices
+        input_data.numerical_idx = numerical_idx
+        input_data.categorical_idx = categorical_idx
+
+        # Update self indices and imputer settings
+        self.non_categorical_ids = input_data.numerical_idx
+        self.categorical_or_encoded_ids = input_data.categorical_idx
         self.imputer_num.n_features_in_, self.imputer_cat.n_features_in_ = (
             self.non_categorical_ids.size,
             self.categorical_or_encoded_ids.size
         )
-
-        # Update statistics by removing moment with NaN in imputers НАПИСАТЬ НОРМАЛЬНЫЙ МЕТОД ДЛЯ ОЧИСТКИ ОТ NAN
-
-        # for idx, moment in enumerate(self.imputer_num.statistics_):
-        #     if moment == np.nan:
-
-        self.imputer_num.statistics_ = self.imputer_num.statistics_[~np.isnan(self.imputer_num.statistics_)]
-        # self.imputer_cat.statistics_ = self.imputer_cat.statistics_[~np.isnan(self.imputer_cat.statistics_)]
