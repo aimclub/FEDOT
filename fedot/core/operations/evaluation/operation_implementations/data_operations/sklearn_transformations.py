@@ -279,6 +279,7 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         replace_inf_with_nans(input_data)
+        self._try_remove_empty_columns(input_data)
 
         if data_type_is_table(input_data):
             self.non_categorical_ids = input_data.numerical_idx
@@ -321,9 +322,8 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         replace_inf_with_nans(input_data)
-        self._remove_empty_columns(input_data)
 
-        categorical_features, numerical_features = None, None
+        categorical_features, numerical_features, transformed_features = None, None, None
 
         if data_type_is_table(input_data):
             numerical, categorical = divide_data_categorical_numerical(
@@ -435,7 +435,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         return filled_numerical_features
 
-    def _remove_empty_columns(self, input_data: InputData):
+    def _try_remove_empty_columns(self, input_data: InputData) -> bool:
         """
         Remove columns that contain only NaN values and update related indices and imputers.
 
@@ -460,7 +460,7 @@ class ImputationImplementation(DataOperationImplementation):
         df_features = df_features.dropna(axis=1, how='all')
         remaining_columns = set(df_features.columns)  # get columns after removing
 
-        # Keep only non-empty columns and get indices of removed columns
+        # Get removed elements
         removed_elements = tuple(original_columns - remaining_columns)
 
         if removed_elements:
@@ -470,9 +470,8 @@ class ImputationImplementation(DataOperationImplementation):
             # Update indices in input data and in .self
             self._update_indices(input_data, removed_elements)
 
-            # Update statistics of imputer by removing moment with NaN????????????????????????????????
-            self.imputer_num.statistics_ = self.imputer_num.statistics_[~np.isnan(self.imputer_num.statistics_)]
-            self.imputer_cat.statistics_ = self.imputer_cat.statistics_[~np.isnan(self.imputer_cat.statistics_)]
+            return True
+        return False
 
     def _update_indices(self, input_data: InputData, removed_elements: Sequence):
         """
@@ -483,7 +482,6 @@ class ImputationImplementation(DataOperationImplementation):
         Modifies:
             - Updates indices of input_data
             - Updates indices of self.non_categorical_ids and self.categorical_or_encoded_ids
-            - Updates imputer settings
 
         Example:
             >>> array_of_indices = [1, 2, 3, 5, 10, 12, 15, 20]
@@ -493,24 +491,21 @@ class ImputationImplementation(DataOperationImplementation):
             >>> # Goal of this function
             >>> updated_array_indices = [1, 2, 3, 5, 11, 14, 19]  # because of decreasing input_data.features shape
         """
-        numerical_idx = input_data.numerical_idx.copy()
-        categorical_idx = input_data.categorical_idx.copy()
-        # Shift of indices after removed one
+        # Shift and update indices
         for element in removed_elements:
-            for arr in [numerical_idx, categorical_idx]:
-                idx, _ = np.where(arr == element)  # get index of removed element
-                arr = np.array([x for x in arr if x != element])  # remove element from array
-                for i in range(idx + 1, len(arr)):
-                    arr[i] = arr[i] - 1  # shift of subsequent indices
+            for arr_ref in [("numerical_idx", input_data.numerical_idx),
+                            ("categorical_idx", input_data.categorical_idx)]:
+                arr_name, arr = arr_ref
+                if element in arr:
+                    arr = arr[arr != element]  # remove element
+                    arr[arr > element] -= 1  # shift the remaining indices
 
-        # Update indices
-        input_data.numerical_idx = numerical_idx
-        input_data.categorical_idx = categorical_idx
+                # Update array
+                if arr_name == "numerical_idx":
+                    input_data.numerical_idx = arr
+                else:
+                    input_data.categorical_idx = arr
 
-        # Update self indices and imputer settings
+        # Update self indices
         self.non_categorical_ids = input_data.numerical_idx
         self.categorical_or_encoded_ids = input_data.categorical_idx
-        self.imputer_num.n_features_in_, self.imputer_cat.n_features_in_ = (
-            self.non_categorical_ids.size,
-            self.categorical_or_encoded_ids.size
-        )
