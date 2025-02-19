@@ -398,11 +398,12 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
     Converts InputData data class to DataFrame.
     """
     features = pd.DataFrame(data=data.features)
-    target = None
 
     if data.target is not None and data.target.size > 0:
         if not is_multi_output_task(data):
             target = np.ravel(data.target[:features.shape[0]])
+        else:
+            target = data.target
     else:
         # TODO: temp workaround in case data.target is set to None intentionally
         #  for test.integration.models.test_model.check_predict_correct
