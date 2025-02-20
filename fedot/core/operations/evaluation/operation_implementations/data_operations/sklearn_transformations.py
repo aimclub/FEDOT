@@ -437,8 +437,6 @@ class ImputationImplementation(DataOperationImplementation):
 
     def _try_remove_empty_columns(self, input_data: InputData) -> bool:
         """
-        Remove columns that contain only NaN values and update related indices.
-
         Args:
             input_data: data with features
 
