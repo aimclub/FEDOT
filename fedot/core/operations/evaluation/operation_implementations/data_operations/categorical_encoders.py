@@ -99,11 +99,14 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         if isinstance(features, np.ndarray):
             transformed_categorical = self.encoder.transform(features[:, self.categorical_ids]).toarray()
             # Stack transformed categorical and non-categorical data, ignore if none
-            non_categorical_features = features[:, self.non_categorical_ids.astype(int)]
+            non_categorical_features = np.array(features[:, self.non_categorical_ids.astype(int)])
 
         else:
             transformed_categorical = self.encoder.transform(features.iloc[:, self.categorical_ids]).toarray()
-            non_categorical_features = features.iloc[:, self.non_categorical_ids.astype(int)].to_numpy()
+            non_categorical_features = np.array(features.iloc[:, self.non_categorical_ids.astype(int)])
+
+        transformed_categorical = transformed_categorical.astype(np.float32)
+        non_categorical_features = non_categorical_features.astype(np.float32)
 
         frames = (non_categorical_features, transformed_categorical)
         transformed_features = np.hstack(frames)
