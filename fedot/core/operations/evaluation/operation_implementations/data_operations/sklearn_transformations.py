@@ -440,7 +440,7 @@ class ImputationImplementation(DataOperationImplementation):
         Remove columns that contain only NaN values and update related indices.
 
         Args:
-            input_data (InputData)
+            input_data: data with features
 
         Modifies:
             - Removes empty columns from input_data.features
@@ -475,8 +475,8 @@ class ImputationImplementation(DataOperationImplementation):
     def _update_indices(self, input_data: InputData, removed_elements: Sequence):
         """
         Args:
-            input_data (InputData): data with features
-            removed_elements (Sequence): indices of empty columns
+            input_data: data with features
+            removed_elements: indices of empty columns
 
         Modifies:
             - Updates indices of input_data
