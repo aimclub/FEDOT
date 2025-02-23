@@ -21,18 +21,18 @@ class GPComposer(Composer):
 
     :param optimizer: optimizer generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
-    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
-                 pipelines_cache: Optional[OperationsCache] = None,
+                 operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
                  data_cache: Optional[DataCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
-        self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
+        self.operations_cache: Optional[OperationsCache] = operations_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
         self.data_cache: Optional[DataCache] = data_cache
 
@@ -56,7 +56,7 @@ class GPComposer(Composer):
         objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
                                                         data_producer=data_producer,
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
-                                                        pipelines_cache=self.pipelines_cache,
+                                                        operations_cache=self.operations_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
                                                         data_cache=self.data_cache,
                                                         validation_blocks=data_splitter.validation_blocks,

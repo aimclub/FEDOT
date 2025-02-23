@@ -54,7 +54,7 @@ class ComposerBuilder:
         self._keep_history: bool = True
         self._full_history_dir: Optional[Path] = None
 
-        self.pipelines_cache: Optional[OperationsCache] = None
+        self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.data_cache: Optional[DataCache] = None
 
@@ -99,11 +99,11 @@ class ComposerBuilder:
         return self
 
     def with_cache(self,
-                   pipelines_cache: Optional[OperationsCache] = None,
+                   operations_cache: Optional[OperationsCache] = None,
                    preprocessing_cache: Optional[PreprocessingCache] = None,
                    data_cache: Optional[DataCache] = None
                    ):
-        self.pipelines_cache = pipelines_cache
+        self.operations_cache = operations_cache
         self.preprocessing_cache = preprocessing_cache
         self.data_cache = data_cache
         return self
@@ -159,7 +159,7 @@ class ComposerBuilder:
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     self.pipelines_cache,
+                                     self.operations_cache,
                                      self.preprocessing_cache,
                                      self.data_cache)
 

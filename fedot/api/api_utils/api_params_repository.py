@@ -59,7 +59,7 @@ class ApiParamsRepository:
             max_pipeline_fit_time=None,
             initial_assumption=None,
             preset=AUTO_PRESET_NAME,
-            use_pipelines_cache=True,
+            use_operations_cache=True,
             use_preprocessing_cache=True,
             use_input_preprocessing=True,
             use_auto_preprocessing=False,

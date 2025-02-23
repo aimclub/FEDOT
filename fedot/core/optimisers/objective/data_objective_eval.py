@@ -29,7 +29,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     :param eval_n_jobs: number of jobs used to evaluate the objective.
     :params do_unfit: unfit graph after evaluation
@@ -40,7 +40,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  data_producer: DataSource,
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
-                 pipelines_cache: Optional[OperationsCache] = None,
+                 operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
                  data_cache: Optional[DataCache] = None,
                  eval_n_jobs: int = 1,
@@ -49,7 +49,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
-        self._pipelines_cache = pipelines_cache
+        self._operations_cache = operations_cache
         self._preprocessing_cache = preprocessing_cache
         self._data_cache = data_cache
         self._log = default_log(self)
@@ -119,7 +119,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # load preprocessing
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
             n_jobs=n_jobs,
@@ -128,8 +128,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             fold_id=fold_id
         )
 
-        if self._pipelines_cache is not None:
-            self._pipelines_cache.save_pipeline(graph, fold_id)
+        if self._operations_cache is not None:
+            self._operations_cache.save_pipeline(graph, fold_id)
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
@@ -144,7 +144,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache,   fold_id)
+        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache,   fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue

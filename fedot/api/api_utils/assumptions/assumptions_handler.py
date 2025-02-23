@@ -53,7 +53,7 @@ class AssumptionsHandler:
 
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
-                                             pipelines_cache: Optional[OperationsCache] = None,
+                                             operations_cache: Optional[OperationsCache] = None,
                                              preprocessing_cache: Optional[PreprocessingCache] = None,
                                              data_cache: Optional[DataCache] = None,
                                              eval_n_jobs: int = -1) -> Pipeline:
@@ -61,7 +61,7 @@ class AssumptionsHandler:
         Check if initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
-        :param pipelines_cache: Cache manager for fitted models, optional.
+        :param operations_cache: Cache manager for fitted models, optional.
         :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
         :param eval_n_jobs: number of jobs to fit the initial pipeline
         """
@@ -69,11 +69,11 @@ class AssumptionsHandler:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
             # load preprocessing
-            pipeline.try_load_from_cache(pipelines_cache, preprocessing_cache, data_cache)
+            pipeline.try_load_from_cache(operations_cache, preprocessing_cache, data_cache)
             pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
-            if pipelines_cache is not None:
-                pipelines_cache.save_pipeline(pipeline)
+            if operations_cache is not None:
+                operations_cache.save_pipeline(pipeline)
             if preprocessing_cache is not None:
                 preprocessing_cache.add_preprocessor(pipeline)
             # TODO: data_cache
