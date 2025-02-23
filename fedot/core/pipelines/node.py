@@ -182,7 +182,7 @@ class PipelineNode(LinkedGraphNode):
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def fit(self, input_data: InputData, data_cache=None, fold_id=None) -> OutputData:
+    def fit(self, input_data: InputData, predictions_cache=None, fold_id=None) -> OutputData:
         """Runs training process in the node
 
         Args:
@@ -199,7 +199,7 @@ class PipelineNode(LinkedGraphNode):
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
                                                                               data=input_data,
-                                                                              data_cache=data_cache,
+                                                                              predictions_cache=predictions_cache,
                                                                               fold_id=fold_id,
                                                                               descriptive_id=self.descriptive_id)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
@@ -207,7 +207,7 @@ class PipelineNode(LinkedGraphNode):
             operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
                                                                data=input_data,
                                                                params=self._parameters,
-                                                               data_cache=data_cache,
+                                                               predictions_cache=predictions_cache,
                                                                fold_id=fold_id,
                                                                descriptive_id=self.descriptive_id)
 
@@ -218,7 +218,7 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', data_cache=None, fold_id=None) -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default', predictions_cache=None, fold_id=None) -> OutputData:
         """Runs prediction process in the node
 
         Args:
@@ -231,14 +231,14 @@ class PipelineNode(LinkedGraphNode):
         self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
-                                          data_cache=data_cache, fold_id=fold_id)
+                                          predictions_cache=predictions_cache, fold_id=fold_id)
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        params=self._parameters,
                                                        data=input_data,
                                                        output_mode=output_mode,
-                                                       data_cache=data_cache,
+                                                       predictions_cache=predictions_cache,
                                                        fold_id=fold_id,
                                                        descriptive_id=self.descriptive_id)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
@@ -277,10 +277,11 @@ class PipelineNode(LinkedGraphNode):
         else:
             self._node_data = value
 
-    def _get_input_data(self, input_data: InputData, parent_operation: str, data_cache=None, fold_id=None):
+    def _get_input_data(self, input_data: InputData, parent_operation: str, predictions_cache=None, fold_id=None):
         if self.nodes_from:
             input_data = self._input_from_parents(
-                input_data=input_data, parent_operation=parent_operation, data_cache=data_cache, fold_id=fold_id)
+                input_data=input_data, parent_operation=parent_operation, predictions_cache=predictions_cache,
+                fold_id=fold_id)
         else:
             if self.direct_set:
                 input_data = self.node_data
@@ -289,7 +290,7 @@ class PipelineNode(LinkedGraphNode):
         return input_data
 
     def _input_from_parents(
-            self, input_data: InputData, parent_operation: str, data_cache=None, fold_id=None) -> InputData:
+            self, input_data: InputData, parent_operation: str, predictions_cache=None, fold_id=None) -> InputData:
         """Processes all the parent nodes via the current operation using ``input_data``
 
         Args:
@@ -308,7 +309,7 @@ class PipelineNode(LinkedGraphNode):
         parent_nodes = self._nodes_from_with_fixed_order()
 
         parent_results, _ = _combine_parents(parent_nodes, input_data,
-                                             parent_operation, data_cache=data_cache, fold_id=fold_id)
+                                             parent_operation, predictions_cache=predictions_cache, fold_id=fold_id)
         secondary_input = DataMerger.get(parent_results).merge()
         # Update info about visited nodes
         parent_operations = [node.operation.operation_type for node in parent_nodes]
@@ -377,7 +378,7 @@ class PipelineNode(LinkedGraphNode):
 
 def _combine_parents(parent_nodes: List[PipelineNode],
                      input_data: Optional[InputData], parent_operation: str,
-                     data_cache=None,
+                     predictions_cache=None,
                      fold_id=None) -> Tuple[List[OutputData], np.array]:
     """ Combines predictions from the ``parent_nodes``
 
@@ -397,10 +398,10 @@ def _combine_parents(parent_nodes: List[PipelineNode],
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            prediction = parent.predict(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
+            prediction = parent.predict(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data, data_cache=data_cache, fold_id=fold_id)
+            prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parent_results.append(prediction)
         else:
             raise ValueError("Value parent_operation should be 'fit' or 'predict'")

@@ -10,7 +10,7 @@ from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.caching.data_cache import DataCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
@@ -42,7 +42,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  validation_blocks: Optional[int] = None,
                  operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
-                 data_cache: Optional[DataCache] = None,
+                 predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
@@ -51,7 +51,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._validation_blocks = validation_blocks
         self._operations_cache = operations_cache
         self._preprocessing_cache = preprocessing_cache
-        self._data_cache = data_cache
+        self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
 
@@ -81,7 +81,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
                                                 validation_blocks=self._validation_blocks,
-                                                data_cache=self._data_cache,
+                                                predictions_cache=self._predictions_cache,
                                                 fold_id=fold_id)
 
             if evaluated_fitness.valid:
@@ -98,8 +98,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
 
         # prepared_pipeline.
-        if self._data_cache is not None:
-            self._log.message(f"Predictions cache effectiveness ratio: {self._data_cache.effectiveness_ratio}")
+        if self._predictions_cache is not None:
+            self._log.message(f"Predictions cache effectiveness ratio: {self._predictions_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
@@ -124,7 +124,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             train_data,
             n_jobs=n_jobs,
             time_constraint=self._time_constraint,
-            data_cache=self._data_cache,
+            predictions_cache=self._predictions_cache,
             fold_id=fold_id
         )
 

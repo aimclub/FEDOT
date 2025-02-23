@@ -5,7 +5,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.caching.data_cache import DataCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -29,12 +29,12 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
-                 data_cache: Optional[DataCache] = None):
+                 predictions_cache: Optional[PredictionsCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.operations_cache: Optional[OperationsCache] = operations_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
-        self.data_cache: Optional[DataCache] = data_cache
+        self.predictions_cache: Optional[PredictionsCache] = predictions_cache
 
         self.best_models: Collection[Pipeline] = ()
 
@@ -58,7 +58,7 @@ class GPComposer(Composer):
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
                                                         operations_cache=self.operations_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
-                                                        data_cache=self.data_cache,
+                                                        predictions_cache=self.predictions_cache,
                                                         validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
@@ -74,7 +74,7 @@ class GPComposer(Composer):
         self.log.info('GP composition finished')
 
         # TODO: refactor or remove
-        if self.data_cache is not None:
+        if self.predictions_cache is not None:
             import os
             import csv
             from datetime import datetime
@@ -86,12 +86,12 @@ class GPComposer(Composer):
             predictions_file_path = os.path.join(directory, "predictions.csv")
             with open(predictions_file_path, "w", newline="") as f:
                 # prediciton effectiveness
-                w = csv.DictWriter(f, self.data_cache.effectiveness_ratio.keys())
+                w = csv.DictWriter(f, self.predictions_cache.effectiveness_ratio.keys())
                 w.writeheader()
-                w.writerow(self.data_cache.effectiveness_ratio)
+                w.writerow(self.predictions_cache.effectiveness_ratio)
                 # prediction usage stats
                 w = csv.writer(f)
-                [w.writerow(info) for info in self.data_cache._db.retrieve_stats()]
+                [w.writerow(info) for info in self.predictions_cache._db.retrieve_stats()]
 
         return best_model
 

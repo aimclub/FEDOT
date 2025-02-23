@@ -1,11 +1,11 @@
 from typing import Optional
 
 from fedot.core.caching.base_cache import BaseCache
-from fedot.core.caching.data_cache_db import DataCacheDB
+from fedot.core.caching.predictions_cache_db import PredictionsCacheDB
 from fedot.core.data.data import OutputData
 
 
-class DataCache(BaseCache):
+class PredictionsCache(BaseCache):
     """
     Stores/loads predictions to increase performance of calculations.
 
@@ -16,7 +16,7 @@ class DataCache(BaseCache):
     PRED_TYPE = "pred"
 
     def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__(DataCacheDB(cache_dir, custom_pid))
+        super().__init__(PredictionsCacheDB(cache_dir, custom_pid))
 
     def save_node_prediction(
             self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData, is_fit: bool = False):

@@ -59,7 +59,7 @@ class QualityMetric(Metric):
 
     @classmethod
     def get_value(cls, pipeline: Pipeline, reference_data: InputData,
-                  data_cache=None,
+                  predictions_cache=None,
                   fold_id=None,
                   validation_blocks: Optional[int] = None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
@@ -74,11 +74,11 @@ class QualityMetric(Metric):
             # if results is None:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                reference_data, results = cls._simple_prediction(pipeline, reference_data, data_cache, fold_id)
+                reference_data, results = cls._simple_prediction(pipeline, reference_data, predictions_cache, fold_id)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(
-                    pipeline, reference_data, validation_blocks, data_cache=data_cache, fold_id=fold_id)
+                    pipeline, reference_data, validation_blocks, predictions_cache=predictions_cache, fold_id=fold_id)
             metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
@@ -100,11 +100,11 @@ class QualityMetric(Metric):
 
     @classmethod
     def _simple_prediction(
-            cls, pipeline: Pipeline, reference_data: InputData, data_cache=None, fold_id=None) -> Tuple[
+            cls, pipeline: Pipeline, reference_data: InputData, predictions_cache=None, fold_id=None) -> Tuple[
             InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
         return reference_data, pipeline.predict(
-            reference_data, output_mode=cls.output_mode, data_cache=data_cache, fold_id=fold_id)
+            reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
 
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
@@ -119,7 +119,7 @@ class QualityMetric(Metric):
 
     @staticmethod
     def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int,
-                              data_cache=None,
+                              predictions_cache=None,
                               fold_id=None) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
 
@@ -130,7 +130,7 @@ class QualityMetric(Metric):
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
                                                  horizon=horizon,
-                                                 data_cache=data_cache,
+                                                 predictions_cache=predictions_cache,
                                                  fold_id=fold_id)
 
         # Wrap target and prediction arrays into OutputData and InputData

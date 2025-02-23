@@ -12,7 +12,7 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.caching.data_cache import DataCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -56,7 +56,7 @@ class ComposerBuilder:
 
         self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
-        self.data_cache: Optional[DataCache] = None
+        self.predictions_cache: Optional[PredictionsCache] = None
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -101,11 +101,11 @@ class ComposerBuilder:
     def with_cache(self,
                    operations_cache: Optional[OperationsCache] = None,
                    preprocessing_cache: Optional[PreprocessingCache] = None,
-                   data_cache: Optional[DataCache] = None
+                   predictions_cache: Optional[PredictionsCache] = None
                    ):
         self.operations_cache = operations_cache
         self.preprocessing_cache = preprocessing_cache
-        self.data_cache = data_cache
+        self.predictions_cache = predictions_cache
         return self
 
     @staticmethod
@@ -161,6 +161,6 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.operations_cache,
                                      self.preprocessing_cache,
-                                     self.data_cache)
+                                     self.predictions_cache)
 
         return composer

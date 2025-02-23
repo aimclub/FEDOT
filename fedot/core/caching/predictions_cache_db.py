@@ -7,9 +7,9 @@ from fedot.core.caching.base_cache_db import BaseCacheDB
 from fedot.core.data.data import OutputData
 
 
-class DataCacheDB(BaseCacheDB):
+class PredictionsCacheDB(BaseCacheDB):
     """
-    Database for `DataCache` class.
+    Database for `PredictionsCache` class.
     Includes low-level idea of caching predicted output using relational database.
 
     :param cache_dir: path to the place where cache files should be stored.
