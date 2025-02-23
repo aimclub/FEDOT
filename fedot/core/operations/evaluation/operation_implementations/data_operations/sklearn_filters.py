@@ -73,16 +73,17 @@ class RegRANSACImplementation(FilterImplementation):
 
     def fit(self, input_data: InputData):
         iter_ = 0
+        residual_threshold = self.params.get('residual_threshold')
 
         while iter_ < self.max_iter:
             try:
                 self.operation.inlier_mask_ = None
+                self.params.update(residual_threshold=residual_threshold)
                 self.operation.fit(input_data.features, input_data.target)
                 return self.operation
             except ValueError:
                 self.log.info("RANSAC: multiplied residual_threshold on 2")
-                residual_threshold = self.params.get('residual_threshold')
-                self.params.update(residual_threshold=residual_threshold * 2)
+                residual_threshold = residual_threshold * 2
                 iter_ += 1
 
         return self.operation
