@@ -94,7 +94,8 @@ class Pipeline(GraphDelegate, Serializable):
         return process_state_dict['train_predicted']
 
     def _fit(
-            self, input_data: Optional[InputData] = None, process_state_dict: dict = None, fitted_operations: list = None,
+            self, input_data: Optional[InputData] = None,
+            process_state_dict: dict = None, fitted_operations: list = None,
             predictions_cache=None, fold_id=None) -> Optional[OutputData]:
         """Runs training process in all of the pipeline nodes starting with root
 
