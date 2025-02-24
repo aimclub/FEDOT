@@ -322,7 +322,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        categorical_features, numerical_features, transformed_features = None, None, None
+        categorical_features, numerical_features = None, None
 
         if data_type_is_table(input_data):
             numerical, categorical = divide_data_categorical_numerical(
@@ -373,11 +373,6 @@ class ImputationImplementation(DataOperationImplementation):
         self.fit(input_data)
         output_data = self.transform_for_fit(input_data)
         return output_data
-
-    def get_params(self) -> OperationParameters:
-        features_imputers = {'imputer_categorical': self.params_cat,
-                             'imputer_numerical': self.params_num}
-        return OperationParameters(**features_imputers)
 
     def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array) -> np.array:
         """Merge numerical and categorical features in right order (as it was in source table)
@@ -433,3 +428,8 @@ class ImputationImplementation(DataOperationImplementation):
             filled_column[filled_column < mean_value] = min_value
 
         return filled_numerical_features
+
+    def get_params(self) -> OperationParameters:
+        features_imputers = {'imputer_categorical': self.params_cat,
+                             'imputer_numerical': self.params_num}
+        return OperationParameters(**features_imputers)
