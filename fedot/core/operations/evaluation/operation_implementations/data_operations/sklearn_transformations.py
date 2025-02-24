@@ -1,5 +1,5 @@
 import random
-from typing import Optional, Sequence
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -279,7 +279,6 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         replace_inf_with_nans(input_data)
-        self._try_remove_empty_columns(input_data)
 
         if data_type_is_table(input_data):
             self.non_categorical_ids = input_data.numerical_idx
@@ -434,75 +433,3 @@ class ImputationImplementation(DataOperationImplementation):
             filled_column[filled_column < mean_value] = min_value
 
         return filled_numerical_features
-
-    def _try_remove_empty_columns(self, input_data: InputData) -> bool:
-        """
-        Args:
-            input_data: data with features
-
-        Modifies:
-            - Removes empty columns from input_data.features
-            - Updates numerical and categorical indices
-
-        Raises:
-            ValueError: InputData is None
-        """
-        if input_data is None:
-            raise ValueError("InputData is None")
-
-        # Drop empty columns
-        df_features = pd.DataFrame(input_data.features)
-        original_columns = set(df_features.columns)  # get original columns
-
-        df_features = df_features.dropna(axis=1, how='all')
-        remaining_columns = set(df_features.columns)  # get columns after removing
-
-        # Get removed elements
-        removed_elements = tuple(original_columns - remaining_columns)
-
-        if removed_elements:
-            # Update values
-            input_data.features = df_features.values
-
-            # Update self and input_data indices
-            self._update_indices(input_data, removed_elements)
-
-            return True
-        return False
-
-    def _update_indices(self, input_data: InputData, removed_elements: Sequence):
-        """
-        Args:
-            input_data: data with features
-            removed_elements: indices of empty columns
-
-        Modifies:
-            - Updates indices of input_data
-            - Updates indices of self.non_categorical_ids and self.categorical_or_encoded_ids
-
-        Example:
-            >>> array_of_indices = [1, 2, 3, 5, 10, 12, 15, 20]
-            >>> idxs_of_empty_col = (10, )  # removed element
-            >>> array_without_empty_cols = [1, 2, 3, 5, 12, 15, 20]
-            >>> self._update_indices(input_data, idxs_of_empty_col)
-            >>> # Goal of this function
-            >>> updated_array_indices = [1, 2, 3, 5, 11, 14, 19]  # because of decreasing input_data.features shape
-        """
-        # Shift and update indices
-        for element in removed_elements:
-            for arr_ref in [("numerical_idx", input_data.numerical_idx),
-                            ("categorical_idx", input_data.categorical_idx)]:
-                arr_name, arr = arr_ref
-                if element in arr:
-                    arr = arr[arr != element]  # remove element
-                    arr[arr > element] -= 1  # shift the remaining indices
-
-                # Update array
-                if arr_name == "numerical_idx":
-                    input_data.numerical_idx = arr
-                else:
-                    input_data.categorical_idx = arr
-
-        # Update self indices
-        self.non_categorical_ids = input_data.numerical_idx
-        self.categorical_or_encoded_ids = input_data.categorical_idx
