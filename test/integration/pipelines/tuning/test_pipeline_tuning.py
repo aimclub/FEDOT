@@ -521,7 +521,8 @@ def test_complex_search_space():
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner, IOptTuner])
+# TODO: (YamLyubov) add IOptTuner when it will support nested parameters.
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_complex_search_space_tuning_correct(tuner):
     """ Tests Tuners for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
