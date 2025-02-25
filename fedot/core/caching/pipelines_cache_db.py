@@ -6,6 +6,8 @@ from contextlib import closing
 from os import getpid
 from typing import List, Optional, Tuple, TypeVar
 
+from golem.core.log import default_log
+
 from fedot.core.caching.base_cache_db import BaseCacheDB
 from fedot.core.operations.operation import Operation
 
@@ -84,8 +86,13 @@ class OperationsCacheDB(BaseCacheDB):
                 pickled = []
                 for uid, val in uid_val_lst:
                     serialized = pickle.dumps(val, pickle.HIGHEST_PROTOCOL)
-                    if getsizeof(serialized) > MAX_BLOB_SIZE:
+                    serialized_size = getsizeof(serialized)
+                    if serialized_size > MAX_BLOB_SIZE:
                         serialized = zlib.compress(serialized)
+                        default_log('Cache').warning(
+                            f'Pipeline serialization was compressed due to size limit exceeded. '
+                            f'Size: {serialized_size:.2f} bytes (limit: {MAX_BLOB_SIZE} bytes)'
+                        )
                     pickled.append((uid, sqlite3.Binary(serialized)))
                 cur.executemany(f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);', pickled)
 
