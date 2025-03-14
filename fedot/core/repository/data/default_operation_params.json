@@ -155,6 +155,18 @@
     "optimizer": "adamw",
     "loss": "mse"
   },
+  "clstm": {
+    "hidden_size": 200,
+    "learning_rate": 0.001,
+    "cnn1_kernel_size": 5,
+    "cnn1_output_size": 32,
+    "cnn2_kernel_size": 5,
+    "cnn2_output_size": 64,
+    "batch_size": 64,
+    "num_epochs": 50,
+    "optimizer": "adamw",
+    "loss": "mse"
+  },
   "h2o_regr": {
     "timeout": 20,
     "seed": 42,
@@ -183,6 +195,10 @@
   "pca": {
     "svd_solver": "full",
     "n_components": 0.7
+  },
+  "dask_pca": {
+    "svd_solver": "full",
+    "n_components": 2
   },
   "ts_naive_average": {
     "part_for_averaging": 1.0

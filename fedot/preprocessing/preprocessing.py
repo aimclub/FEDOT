@@ -569,7 +569,9 @@ class DataPreprocessor(BasePreprocessor):
             else:
                 if data.data_type == DataTypesEnum.table:
                     self.log.debug('-- Reduce memory in features')
+                    was_features_in_numpy = isinstance(data.features, np.ndarray)
                     data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
+                    data.features = data.features.to_numpy() if was_features_in_numpy else data.features
 
                     if data.target is not None:
                         self.log.debug('-- Reduce memory in target')
