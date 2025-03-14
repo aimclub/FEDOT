@@ -93,6 +93,7 @@ class RegressionAssumptions(TaskAssumptions):
         return {
             'rfr': PipelineBuilder().add_node('rfr'),
             'ridge': PipelineBuilder().add_node('ridge'),
+            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
         }
 
     def ensemble_operation(self) -> str:
@@ -112,9 +113,13 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
+            'gbm_linear': PipelineBuilder().
+            add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            'catboost': PipelineBuilder().add_node('catboost'),
+            'xgboost': PipelineBuilder().add_node('xgboost'),
+            'lgbm': PipelineBuilder().add_node('lgbm'),
             'rf': PipelineBuilder().add_node('rf'),
             'logit': PipelineBuilder().add_node('logit'),
-            'catboost': PipelineBuilder().add_node('catboost'),
         }
 
     def ensemble_operation(self) -> str:

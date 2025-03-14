@@ -1,7 +1,10 @@
 from datetime import timedelta
 from typing import Iterable, Sequence, Type, Union
 
-from golem.core.tuning.iopt_tuner import IOptTuner
+try:
+    from golem.core.tuning.iopt_tuner import IOptTuner
+except ModuleNotFoundError:
+    print('IOpt tuner not installed')
 from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from golem.core.tuning.tuner_interface import BaseTuner

@@ -99,6 +99,14 @@ class TableTypesCorrector:
             'target', np.empty((self.feature_type_ids.shape[0], 1), dtype=float)
         ).copy()
 
+        # Check for appeared empty columns
+        is_nan = pd.isnull(data.features)
+        columns_with_all_nan = np.all(is_nan, axis=0)
+        empty_columns = np.where(columns_with_all_nan)[0]
+        if empty_columns:
+            for col in empty_columns:
+                self.string_columns_transformation_failed.setdefault(col, None)
+
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
