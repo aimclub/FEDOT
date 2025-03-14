@@ -1,8 +1,10 @@
+import os.path
 from datetime import timedelta
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
+from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.advanced.multimodal_text_num_example import run_multi_modal_example
 from examples.advanced.multiobj_optimisation import run_classification_multiobj_example
 from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
@@ -102,3 +104,9 @@ def test_api_explain_example():
 def test_multi_modal_example():
     result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', with_tuning=False, timeout=2)
     assert result > 0.5
+
+
+def test_full_multi_modal_example():
+    result = run_multi_modal_pipeline(files_path=os.path.join(fedot_project_root(), 'test', 'data', 'multi_modal'),
+                                      timeout=0.1, visualization=False)
+    assert result > 0.1

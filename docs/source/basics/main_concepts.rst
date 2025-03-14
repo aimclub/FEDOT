@@ -10,3 +10,10 @@ The main framework concepts are as follows:
 - **Versatility.** FEDOT is :doc:`not limited to specific modeling tasks </advanced/architecture>`, for example, it can be used in ODE or PDE;
 - **Reproducibility.** Resulting pipelines can be :doc:`exported separately as JSON </advanced/pipeline_import_export>` or :doc:`together with your input data as ZIP archive </advanced/project_import_export>` for experiments reproducibility;
 - **Customizability.** FEDOT allows `managing models complexity <https://fedot.readthedocs.io/en/master/introduction/fedot_features/automation_features.html#models-used>`_ and thereby achieving desired quality.
+
+The comparison of fedot with main existing AutoML tools is provided below:
+
+|automl_features|
+
+.. |automl_features| image:: ./comp_table.png
+   :width: 80%
