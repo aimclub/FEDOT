@@ -80,8 +80,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
-                self._log.warning(f'Invalid fitness after objective evaluation. '
-                                  f'Skipping the graph: {graph_id}', raise_if_test=True)
+                self._log.log_or_raise('warning', ValueError(f'Invalid fitness after objective evaluation. '
+                                                             f'Skipping the graph: {graph_id}'))
             if self._do_unfit:
                 graph.unfit()
         if folds_metrics:
