@@ -300,14 +300,14 @@
     "lgbm": {
       "meta": "boosting_class",
       "tags": [
-        "tree", "non_linear"
+        "tree", "non_linear", "boosting"
       ]
     },
     "lgbmreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non_linear"
+        "tree", "non_multi", "non_linear", "boosting"
       ]
     },
     "linear": {
@@ -330,6 +330,7 @@
     "mlp": {
       "meta": "sklearn_class",
       "tags": [
+        "deprecated",
         "neural",
         "non_linear"
       ]
@@ -482,14 +483,14 @@
       "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_linear"
+        "tree", "non_linear", "boosting"
       ]
     },
     "xgboostreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non_linear"
+        "tree", "non_multi", "non_linear", "boosting"
       ]
     },
     "cnn": {
