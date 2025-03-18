@@ -332,6 +332,7 @@ class FedotBuilder:
                     - ``topological_features`` -> Topological features
 
                 .. details:: Available for composing tabular models:
+
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor
                     - ``knn`` -> K-nearest neighbors Classifier
