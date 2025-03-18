@@ -258,7 +258,7 @@ class FedotBuilder:
         Args:
             available_operations: list of model names to use. Pick the names according to operations repository.
 
-                .. details:: Possible options:
+                .. details:: All options:
 
                     - ``adareg`` -> AdaBoost Regressor
                     - ``ar`` -> AutoRegression
@@ -330,6 +330,21 @@ class FedotBuilder:
                     - ``cut`` -> Cut Transformation
                     - ``exog_ts`` -> Exogeneus Transformation
                     - ``topological_features`` -> Topological features
+
+                .. details:: Available for composing tabular models:
+                    - ``catboost`` -> Catboost Classifier
+                    - ``catboostreg`` -> Catboost Regressor
+                    - ``knn`` -> K-nearest neighbors Classifier
+                    - ``knnreg`` -> K-nearest neighbors Regressor
+                    - ``lgbm`` -> Light Gradient Boosting Machine Classifier
+                    - ``lgbmreg`` -> Light Gradient Boosting Machine Regressor
+                    - ``logit`` -> Logistic Regression Classifier
+                    - ``rf`` -> Random Forest Classifier
+                    - ``rfr`` -> Random Forest Regressor
+                    - ``ridge`` -> Ridge Linear Regressor
+                    - ``treg`` -> Extra Trees Regressor
+                    - ``xgboost`` -> Extreme Gradient Boosting Classifier
+                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
 
             max_depth: max depth of a pipeline. Defaults to ``6``.
 
