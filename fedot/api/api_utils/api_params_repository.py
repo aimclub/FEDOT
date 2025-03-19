@@ -61,6 +61,7 @@ class ApiParamsRepository:
             preset=AUTO_PRESET_NAME,
             use_operations_cache=True,
             use_preprocessing_cache=True,
+            use_predictions_cache=False,
             use_input_preprocessing=True,
             use_auto_preprocessing=False,
             use_meta_rules=False,

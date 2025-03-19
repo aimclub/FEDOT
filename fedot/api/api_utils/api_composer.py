@@ -42,6 +42,7 @@ class ApiComposer:
     def init_cache(self):
         use_operations_cache = self.params.get('use_operations_cache')
         use_preprocessing_cache = self.params.get('use_preprocessing_cache')
+        use_predictions_cache = self.params.get('use_predictions_cache')
         use_input_preprocessing = self.params.get('use_input_preprocessing')
         cache_dir = self.params.get('cache_dir')
         if use_operations_cache:
@@ -52,9 +53,10 @@ class ApiComposer:
             self.preprocessing_cache = PreprocessingCache(cache_dir)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
-        # TODO: predictions_cache param
-        self.predictions_cache = PredictionsCache(cache_dir)
-        self.predictions_cache.reset()
+        if use_predictions_cache:
+            self.predictions_cache = PredictionsCache(cache_dir)
+            #  in case of previously generated singleton cache
+            self.predictions_cache.reset()
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
