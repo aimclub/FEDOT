@@ -302,6 +302,7 @@ def convert_to_multivariate_model(sklearn_model, train_data: InputData):
 
 
 def is_multi_output_task(train_data):
-    target_shape = train_data.target.shape
-    is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
-    return is_multi_target
+    if train_data.target is not None:
+        target_shape = train_data.target.shape
+        is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
+        return is_multi_target

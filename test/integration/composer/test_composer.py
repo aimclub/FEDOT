@@ -26,7 +26,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root, set_random_seed
+from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
@@ -164,7 +164,6 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_multi_objective_composer(data_fixture, request):
-    set_random_seed(42)
 
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data

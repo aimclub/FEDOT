@@ -59,7 +59,7 @@ class ApiParamsRepository:
             max_pipeline_fit_time=None,
             initial_assumption=None,
             preset=AUTO_PRESET_NAME,
-            use_operations_cache=True,
+            use_pipelines_cache=True,
             use_preprocessing_cache=True,
             use_predictions_cache=False,
             use_input_preprocessing=True,
@@ -68,7 +68,8 @@ class ApiParamsRepository:
             cache_dir=default_fedot_data_dir(),
             keep_history=True,
             history_dir=default_fedot_data_dir(),
-            with_tuning=True
+            with_tuning=True,
+            seed=None
         )
         return default_param_values_dict
 
@@ -119,6 +120,7 @@ class ApiParamsRepository:
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
         gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        gp_algorithm_params['seed'] = params['seed']
         return gp_algorithm_params
 
     @staticmethod

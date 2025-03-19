@@ -9,7 +9,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def get_data(data_length=500, test_length=100):
+def get_data(data_length=300, test_length=5):
     garmonics = [(0.1, 0.9), (0.1, 1), (0.1, 1.1), (0.05, 2), (0.05, 5), (1, 0.02)]
     time = np.linspace(0, 100, data_length)
     data = time * 0
@@ -30,7 +30,7 @@ def get_fitted_fedot(forecast_length, train_data, **kwargs):
               'task_params': TsForecastingParams(forecast_length=forecast_length),
               'seed': 1,
               'timeout': None,
-              'pop_size': 50,
+              'pop_size': 5,
               'num_of_generations': 5,
               'with_tuning': False}
     params.update(kwargs)
@@ -47,25 +47,22 @@ def check_fedots(fedots: List[Fedot], test_data: InputData, are_same: bool = Tru
         :return: None"""
     for fedot in fedots[1:]:
         assert are_same == np.allclose(fedots[0].history.all_historical_fitness, fedot.history.all_historical_fitness)
-        # TODO return check
-        # assert are_same == np.allclose(fedots[0].forecast(test_data), fedot.forecast(test_data))
+        if are_same:
+            assert np.allclose(fedots[0].forecast(test_data), fedot.forecast(test_data))
 
 
 def test_result_reproducing():
     """ Test check that Fedot instance returns same compose result
         and makes same compose process in different run with fixed seeds """
-    # TODO: fix reproducing
-    #       it is randomly unstable
-    pass
-    # train, test = get_data()
-    # old_fedot = None
-    # # try in cycle because some problems are random
-    # for _ in range(4):
-    #     fedot = get_fitted_fedot(forecast_length=test.idx.shape[0],
-    #                              train_data=train)
-    #     if old_fedot is not None:
-    #         check_fedots([fedot, old_fedot], test, are_same=True)
-    #     old_fedot = fedot
+    train, test = get_data()
+    old_fedot = None
+    # try in cycle because some problems are random
+    for _ in range(4):
+        fedot = get_fitted_fedot(forecast_length=test.idx.shape[0],
+                                 train_data=train)
+        if old_fedot is not None:
+            check_fedots([fedot, old_fedot], test, are_same=True)
+        old_fedot = fedot
 
 
 def test_result_changing():
