@@ -331,7 +331,7 @@ class FedotBuilder:
                     - ``exog_ts`` -> Exogeneus Transformation
                     - ``topological_features`` -> Topological features
 
-                .. details:: Available for composing tabular models:
+                .. details:: Tabular models available for composing:
 
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor

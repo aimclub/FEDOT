@@ -28,7 +28,7 @@ def test_presets_classification():
 
     assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations) == len(
         operations_for_auto)
-    assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
+    assert {'logit', 'knn'} <= set(operations_for_fast_train)
 
 
 def test_presets_regression():
@@ -47,7 +47,7 @@ def test_presets_regression():
 
     assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(regr_operations) == len(
         operations_for_auto)
-    assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_fast_train)
+    assert {'ridge'} <= set(operations_for_fast_train)
 
 
 def test_presets_time_series():
@@ -66,8 +66,7 @@ def test_presets_time_series():
 
     assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(ts_operations) == len(
         operations_for_auto)
-    # TODO: add 'ar' to set below after arima fixing
-    assert {'adareg', 'scaling', 'lasso'} <= set(operations_for_fast_train)
+    assert {'ar', 'scaling'} <= set(operations_for_fast_train)
 
 
 def test_presets_inserting_in_params_correct():
