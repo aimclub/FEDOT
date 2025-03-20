@@ -144,7 +144,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache,   fold_id)
+        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue

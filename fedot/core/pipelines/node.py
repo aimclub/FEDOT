@@ -218,7 +218,12 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', predictions_cache=None, fold_id=None) -> OutputData:
+    def predict(
+            self,
+            input_data: InputData,
+            output_mode: str = 'default',
+            predictions_cache=None,
+            fold_id=None) -> OutputData:
         """Runs prediction process in the node
 
         Args:

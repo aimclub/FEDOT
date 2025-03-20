@@ -88,14 +88,23 @@ bug_pipeline_0 = (
 """
 
 bug_pipeline_1 = (
-    PipelineBuilder()
-    .add_node("ransac_non_lin_reg", params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000})
-    .add_node("pca", params={'svd_solver': 'full', 'n_components': 0.7})
-    .add_node("ransac_non_lin_reg", params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000})
-    .add_node("sgdr")
-    .add_node("linear")
-    .build()
-)
+    PipelineBuilder() .add_node(
+        "ransac_non_lin_reg",
+        params={
+            'min_samples': 0.4,
+            'residual_threshold': 10240,
+            'max_trials': 100,
+            'max_skips': 1000}) .add_node(
+                "pca",
+                params={
+                    'svd_solver': 'full',
+                    'n_components': 0.7}) .add_node(
+                        "ransac_non_lin_reg",
+                        params={
+                            'min_samples': 0.4,
+                            'residual_threshold': 10240,
+                            'max_trials': 100,
+                            'max_skips': 1000}) .add_node("sgdr") .add_node("linear") .build())
 
 """"""
 
@@ -121,20 +130,27 @@ bug_pipeline_1 = (
 """
 
 bug_pipeline_2 = (
-    PipelineBuilder()
-    .add_node(
+    PipelineBuilder() .add_node(
         "ransac_non_lin_reg",
-        params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000},
-        branch_idx=0)
-    .add_node("normalization")
-    .add_node(
+        params={
+            'min_samples': 0.4,
+            'residual_threshold': 10240,
+            'max_trials': 100,
+            'max_skips': 1000},
+        branch_idx=0) .add_node("normalization") .add_node(
         "ransac_non_lin_reg",
-        params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000})
-    .add_node("sgdr")
-    .add_branch(
-        ("ransac_non_lin_reg", {'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000}), branch_idx=1)
-    .join_branches("linear")
-    .build())
+        params={
+            'min_samples': 0.4,
+            'residual_threshold': 10240,
+            'max_trials': 100,
+            'max_skips': 1000}) .add_node("sgdr") .add_branch(
+        ("ransac_non_lin_reg",
+         {
+             'min_samples': 0.4,
+             'residual_threshold': 10240,
+             'max_trials': 100,
+             'max_skips': 1000}),
+        branch_idx=1) .join_branches("linear") .build())
 
 """"""
 
@@ -159,20 +175,31 @@ bug_pipeline_2 = (
 """
 
 bug_pipeline_3 = (
-    PipelineBuilder()
-    .add_node(
+    PipelineBuilder() .add_node(
         "ransac_non_lin_reg",
-        params={'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000},
-        branch_idx=0)
-    .add_node("pca", params={'svd_solver': 'full', 'n_components': 0.7})
-    .add_node(
+        params={
+            'min_samples': 0.4,
+            'residual_threshold': 10240,
+            'max_trials': 100,
+            'max_skips': 1000},
+        branch_idx=0) .add_node(
+        "pca",
+        params={
+            'svd_solver': 'full',
+            'n_components': 0.7}) .add_node(
         "ransac_non_lin_reg",
-        params={'min_samples': 0.290191412541976, 'residual_threshold': 19.187633275042266, 'max_trials': 457.13281912005596, 'max_skips': 273915.78487223637})
-    .add_node("sgdr")
-    .add_branch(("ransac_non_lin_reg", {'min_samples': 0.4, 'residual_threshold': 10240, 'max_trials': 100, 'max_skips': 1000}), branch_idx=1)
-    .join_branches("linear")
-    .build()
-)
+        params={
+            'min_samples': 0.290191412541976,
+            'residual_threshold': 19.187633275042266,
+            'max_trials': 457.13281912005596,
+            'max_skips': 273915.78487223637}) .add_node("sgdr") .add_branch(
+        ("ransac_non_lin_reg",
+         {
+             'min_samples': 0.4,
+             'residual_threshold': 10240,
+             'max_trials': 100,
+             'max_skips': 1000}),
+        branch_idx=1) .join_branches("linear") .build())
 
 """"""
 
