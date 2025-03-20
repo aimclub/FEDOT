@@ -58,10 +58,12 @@ class QualityMetric(Metric):
         raise AbstractMethodNotImplementError
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+    def get_value(cls,
+                  pipeline: Pipeline,
+                  reference_data: InputData,
+                  validation_blocks: Optional[int] = None,
                   predictions_cache=None,
-                  fold_id=None,
-                  validation_blocks: Optional[int] = None) -> float:
+                  fold_id=None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
             pipeline: a :class:`Pipeline` instance for evaluation.
@@ -109,7 +111,9 @@ class QualityMetric(Metric):
     @classmethod
     def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
                                validation_blocks: Optional[int] = None) -> float:
-        quality_metric = cls.get_value(pipeline, reference_data, validation_blocks)
+        quality_metric = cls.get_value(pipeline=pipeline,
+                                       reference_data=reference_data,
+                                       validation_blocks=validation_blocks)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
