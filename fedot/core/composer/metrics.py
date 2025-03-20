@@ -109,11 +109,17 @@ class QualityMetric(Metric):
             reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
-                               validation_blocks: Optional[int] = None) -> float:
+    def get_value_with_penalty(cls,
+                               pipeline: Pipeline,
+                               reference_data: InputData,
+                               validation_blocks: Optional[int] = None,
+                               predictions_cache=None,
+                               fold_id=None) -> float:
         quality_metric = cls.get_value(pipeline=pipeline,
                                        reference_data=reference_data,
-                                       validation_blocks=validation_blocks)
+                                       validation_blocks=validation_blocks,
+                                       predictions_cache=predictions_cache,
+                                       fold_id=fold_id)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
