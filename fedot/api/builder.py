@@ -227,7 +227,7 @@ class FedotBuilder:
 
             use_operations_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
 
-            use_predictions_cache: indicates whether to use cache for fit/predict node's predictions. Defaults to ``False``.
+            use_predictions_cache: indicates whether to use cache for fit/predict node's predictions. Defaults to ``True``.
 
             optimizer: inherit from :class:`golem.core.optimisers.optimizer.GraphOptimizer`
                 to specify a custom optimizer.
