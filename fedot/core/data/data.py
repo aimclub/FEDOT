@@ -152,7 +152,7 @@ class Data:
             df = pd.concat([features_df, target_df], axis=1)
             features, target = process_target_and_features(df, target_columns)
         else:
-            features, target = process_target_and_features(features_df, target_column='')
+            features, target = process_target_and_features(features_df, target_column=None)
 
         categorical_features = None
         if categorical_idx is not None:
@@ -801,12 +801,15 @@ def process_target_and_features(data_frame: pd.DataFrame,
         (``np.array`` (table) with features, ``np.array`` (column) with target)
     """
 
-    if not target_column:
+    if target_column == '':
         # Take the last column in the table
         target_column = data_frame.columns[-1]
-
-    target = atleast_2d(data_frame[target_column].to_numpy())
-    features = data_frame.drop(columns=target_column).to_numpy()
+    if target_column:
+        target = atleast_2d(data_frame[target_column].to_numpy())
+        features = data_frame.drop(columns=target_column).to_numpy()
+    else:
+        target = None
+        features = data_frame.to_numpy()
 
     return features, target
 
