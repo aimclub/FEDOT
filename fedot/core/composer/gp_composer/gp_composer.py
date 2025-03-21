@@ -23,6 +23,7 @@ class GPComposer(Composer):
     :param composer_requirements: requirements for composition process.
     :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
+    :param predictions_cache: Cache manager for fit/predict node's predictions, optional.
     """
 
     def __init__(self, optimizer: GraphOptimizer,
