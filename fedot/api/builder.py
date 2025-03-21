@@ -197,7 +197,8 @@ class FedotBuilder:
             pop_size: int = DEFAULT_VALUE,
             keep_n_best: int = DEFAULT_VALUE,
             genetic_scheme: str = DEFAULT_VALUE,
-            use_pipelines_cache: bool = DEFAULT_VALUE,
+            use_operations_cache: bool = DEFAULT_VALUE,
+            use_predictions_cache: bool = DEFAULT_VALUE,
             optimizer: Optional[Type[GraphOptimizer]] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of ML pipelines evolutionary optimization.
@@ -224,7 +225,9 @@ class FedotBuilder:
 
             genetic_scheme: name of the genetic scheme. Defaults to ``steady_state``.
 
-            use_pipelines_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
+            use_operations_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
+
+            use_predictions_cache: indicates whether to use cache for fit/predict node's predictions. Defaults to ``True``.
 
             optimizer: inherit from :class:`golem.core.optimisers.optimizer.GraphOptimizer`
                 to specify a custom optimizer.
@@ -242,7 +245,8 @@ class FedotBuilder:
             pop_size=pop_size,
             keep_n_best=keep_n_best,
             genetic_scheme=genetic_scheme,
-            use_pipelines_cache=use_pipelines_cache,
+            use_operations_cache=use_operations_cache,
+            use_predictions_cache=use_predictions_cache,
             optimizer=optimizer,
         )
         return self
