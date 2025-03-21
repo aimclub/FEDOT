@@ -89,8 +89,8 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
 @pytest.mark.parametrize(
     "task_type, metric_name, pred_model",
     [
-        ("classification", "f1", "dt"),
-        ("regression", "rmse", "dtreg"),
+        ("classification", "f1", "rf"),
+        ("regression", "rmse", "rfr"),
     ],
 )
 def test_api_fit_atomized_model(task_type, metric_name, pred_model):

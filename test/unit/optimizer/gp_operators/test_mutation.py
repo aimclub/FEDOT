@@ -74,7 +74,7 @@ def get_simple_linear_boosting_pipeline() -> Pipeline:
     node_pf = PipelineNode('poly_features', nodes_from=[node_scaling])
     node_rf = PipelineNode('rf', nodes_from=[node_pf])
     node_decompose = PipelineNode('class_decompose', nodes_from=[node_pf, node_rf])
-    node_linear = PipelineNode('linear', nodes_from=[node_decompose])
+    node_linear = PipelineNode('ridge', nodes_from=[node_decompose])
     final_node = PipelineNode('logit', nodes_from=[node_linear, node_rf])
     pipeline = Pipeline(final_node)
     return pipeline
