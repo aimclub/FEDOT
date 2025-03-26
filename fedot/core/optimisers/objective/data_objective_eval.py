@@ -62,7 +62,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         graph_id = graph.root_node.descriptive_id
         self._log.debug(f'Pipeline {graph_id} fit started')
-        # self._log.message(f"Pipeline {graph_id}:")
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
@@ -99,7 +98,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         # prepared_pipeline.
         if self._predictions_cache is not None:
-            self._log.message(f"Predictions cache effectiveness ratio: {self._predictions_cache.effectiveness_ratio}")
+            self._log.debug(f"Predictions cache effectiveness ratio: {self._predictions_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
@@ -149,21 +148,14 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
-
-            intermediate_fitness = None
-
-            if intermediate_fitness is not None:
-                self._log.message("--- load intermediate metrics cache")
-            else:
-                intermediate_graph.fit(
-                    train_data,
-                    time_constraint=self._time_constraint,
-                    n_jobs=self._eval_n_jobs,
-                )
-                intermediate_fitness = self._objective(intermediate_graph,
-                                                       reference_data=test_data,
-                                                       validation_blocks=self._validation_blocks)
-
+            intermediate_graph.fit(
+                train_data,
+                time_constraint=self._time_constraint,
+                n_jobs=self._eval_n_jobs,
+            )
+            intermediate_fitness = self._objective(intermediate_graph,
+                                                   reference_data=test_data,
+                                                   validation_blocks=self._validation_blocks)
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
 
