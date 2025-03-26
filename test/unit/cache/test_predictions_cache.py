@@ -10,7 +10,12 @@ from fedot.core.data.data import OutputData
 @pytest.fixture
 def mock_db() -> MagicMock:
     """Fixture to mock PredictionsCacheDB"""
-    return MagicMock(spec=PredictionsCacheDB)
+    # NOTE: The created mock is being reused in other tests due to pytest's fixture caching
+    mock = MagicMock(spec=PredictionsCacheDB)
+    mock.use_stats = True
+    mock.retrieve_stats.return_value = []
+    mock.get_prediction.return_value = None
+    return mock
 
 
 @pytest.fixture
