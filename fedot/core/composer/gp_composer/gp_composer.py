@@ -1,4 +1,9 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
+import os
+import csv
+from datetime import datetime
+from golem.core.log import is_test_session
+from fedot.core.utils import fedot_project_root
 
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
@@ -74,25 +79,8 @@ class GPComposer(Composer):
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
 
-        # TODO: refactor or remove
-        if self.predictions_cache is not None:
-            import os
-            import csv
-            from datetime import datetime
-
-            directory = f"./saved_cache_effectiveness/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            predictions_file_path = os.path.join(directory, "predictions.csv")
-            with open(predictions_file_path, "w", newline="") as f:
-                # prediciton effectiveness
-                w = csv.DictWriter(f, self.predictions_cache.effectiveness_ratio.keys())
-                w.writeheader()
-                w.writerow(self.predictions_cache.effectiveness_ratio)
-                # prediction usage stats
-                w = csv.writer(f)
-                [w.writerow(info) for info in self.predictions_cache._db.retrieve_stats()]
+        if is_test_session() and self.predictions_cache is not None:
+            self._save_predictions_cache()
 
         return best_model
 
@@ -105,3 +93,24 @@ class GPComposer(Composer):
             return None, []
         chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
         return chosen_best_pipeline, best_pipelines
+
+    def _save_predictions_cache(self):
+        """
+        Saves predictions cache effectiveness and usage statistics to a CSV file.
+        """
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        directory = os.path.join(f"{str(fedot_project_root())}/saved_cache_effectiveness", timestamp)
+        os.makedirs(directory, exist_ok=True)
+
+        predictions_file_path = os.path.join(directory, "predictions.csv")
+
+        # Write predictions cache data
+        with open(predictions_file_path, "w", newline="") as f:
+            # Write effectiveness ratio
+            writer = csv.DictWriter(f, self.predictions_cache.effectiveness_ratio.keys())
+            writer.writeheader()
+            writer.writerow(self.predictions_cache.effectiveness_ratio)
+
+            # Write usage statistics
+            stats_writer = csv.writer(f)
+            stats_writer.writerows(self.predictions_cache._db.retrieve_stats())
