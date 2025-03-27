@@ -340,7 +340,6 @@
         "*tree"
       ],
       "tags": [
-        "deprecated",
         "non_linear",
         "dimensionality_transforming",
         "correct_params",
@@ -351,7 +350,6 @@
     "poly_features": {
       "meta": "dimension_transformation",
       "tags": [
-        "deprecated",
         "non_linear",
         "dimensionality_transforming",
         "non_applicable_for_ts",
@@ -388,7 +386,6 @@
         "*tree"
       ],
       "tags": [
-        "deprecated",
         "affects_target",
         "linear",
         "filtering",
@@ -402,7 +399,6 @@
         "*tree"
       ],
       "tags": [
-        "deprecated",
         "affects_target",
         "non_linear",
         "filtering",
@@ -413,7 +409,6 @@
     "isolation_forest_reg": {
       "meta": "regression_preprocessing",
       "tags": [
-        "deprecated",
         "non_linear",
         "filtering",
         "non_applicable_for_ts"
@@ -422,7 +417,6 @@
     "isolation_forest_class": {
       "meta": "classification_preprocessing",
       "tags": [
-        "deprecated",
         "non_linear",
         "filtering"
       ]
@@ -430,7 +424,6 @@
     "rfe_lin_reg": {
       "meta": "regression_preprocessing",
       "tags": [
-        "deprecated",
         "linear",
         "feature_selection",
         "non_applicable_for_ts",
@@ -441,7 +434,6 @@
     "rfe_non_lin_reg": {
       "meta": "regression_preprocessing",
       "tags": [
-        "deprecated",
         "non_linear",
         "feature_selection",
         "non_applicable_for_ts",
@@ -452,7 +444,6 @@
     "rfe_lin_class": {
       "meta": "classification_preprocessing",
       "tags": [
-        "deprecated",
         "linear",
         "feature_selection",
         "non-default"
@@ -461,7 +452,6 @@
     "rfe_non_lin_class": {
       "meta": "classification_preprocessing",
       "tags": [
-        "deprecated",
         "non_linear",
         "feature_selection",
         "non-default"
