@@ -4,6 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -775,6 +776,17 @@ class OutputData(Data):
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
+
+    def save_predict(self, path_to_save: PathType) -> PathType:
+        prediction = self.predict.tolist() if len(self.predict.shape) >= 2 else self.predict
+        prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
+        try:
+            prediction_df.to_csv(path_to_save, index=False)
+        except (FileNotFoundError, PermissionError, OSError):
+            path_to_save = './predictions.csv'
+            prediction_df.to_csv(path_to_save, index=False)
+
+        return Path(path_to_save).resolve()
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

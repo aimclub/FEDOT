@@ -269,8 +269,7 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     )
 
     for i in range(prediction.features.shape[1]):
-        assert all(list(map(lambda x: isinstance(x, types_encountered), prediction.features.to_numpy()[:, i]))) or \
-            all(list(map(lambda x: isinstance(x, types_encountered), prediction.features[:, i])))
+        assert all(list(map(lambda x: isinstance(x, types_encountered), prediction.features[:, i])))
 
 
 def test_fill_nan_without_categorical():

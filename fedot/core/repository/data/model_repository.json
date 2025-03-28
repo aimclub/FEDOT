@@ -200,6 +200,14 @@
         "non-default"
       ]
     },
+    "clstm": {
+      "meta": "ts_model",
+      "presets": ["ts"],
+      "tags": [
+        "non_linear",
+        "non-default"
+      ]
+    },
     "bernb": {
       "meta": "sklearn_class",
       "presets": ["fast_train"],

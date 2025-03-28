@@ -46,7 +46,8 @@ class Pipeline(GraphDelegate, Serializable):
         self.computation_time = None
         self.log = default_log(self)
 
-        self.use_input_preprocessing = use_input_preprocessing  # used outside of the class
+        # Used externally, outside of this class
+        self.use_input_preprocessing = use_input_preprocessing
         # Define data preprocessor
         self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 
@@ -64,9 +65,6 @@ class Pipeline(GraphDelegate, Serializable):
     def _fit_with_time_limit(self, input_data: Optional[InputData],
                              time: timedelta) -> OutputData:
         """Runs training process in all the pipeline nodes starting with root with time limit.
-
-        Todo:
-            unresolved sentence
 
         Args:
             input_data: data used for operations training
@@ -94,7 +92,7 @@ class Pipeline(GraphDelegate, Serializable):
 
     def _fit(self, input_data: Optional[InputData] = None,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
-        """Runs training process in all of the pipeline nodes starting with root
+        """Runs training process in all the pipeline nodes starting with root
 
         Args:
             input_data: data used for operation training
@@ -204,7 +202,7 @@ class Pipeline(GraphDelegate, Serializable):
         """Property showing whether pipeline is fitted
 
         Returns:
-            flag showing if all of the pipeline nodes are fitted already
+            flag showing if all the pipeline nodes are already fitted
         """
 
         return all(node.fitted_operation is not None for node in self.nodes)
@@ -253,7 +251,7 @@ class Pipeline(GraphDelegate, Serializable):
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
-        """Runs the predict process in all of the pipeline nodes starting with root
+        """Runs the predict process in all the pipeline nodes starting with root
 
         input_data: data for prediction
         output_mode: desired form of output for operations
@@ -295,7 +293,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             path: custom path to dir where to save JSON or name of json file where to save pipeline.
-            If only file name is specified, than absolute path to this file will be created.
+            If only file name is specified, then absolute path to this file will be created.
             create_subdir: if True -- create one more dir in the last dir
                            if False -- save to the last dir in specified path
             is_datetime_in_path: is it required to add the datetime timestamp to the path
@@ -351,6 +349,14 @@ class Pipeline(GraphDelegate, Serializable):
         primary_nodes = [node for node in self.nodes
                          if node.is_primary]
         return primary_nodes
+
+    @property
+    def nodes(self) -> List[PipelineNode]:
+        return self.operator.nodes
+
+    @nodes.setter
+    def nodes(self, new_nodes: List[PipelineNode]) -> None:
+        self.operator.nodes = new_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
         """Returns pipeline formed from the last node solving the given problem and all its parents

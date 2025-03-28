@@ -10,12 +10,15 @@ def cgru_forecasting():
     """ Example of cgru pipeline serialization """
     horizon = 12
     window_size = 200
-    train_data, test_data = get_ts_data('salaries', horizon)
+    train_data, test_data, _ = get_ts_data('beer', horizon)
 
-    pipeline = PipelineBuilder().add_node("lagged", params={'window_size': window_size}).add_node("cgru").build()
+    pipeline = (PipelineBuilder()
+                .add_node("lagged", params={'window_size': window_size})
+                .add_node("cgru")
+                .build())
 
     pipeline.fit(train_data)
-    prediction = pipeline.predict(test_data).predict[0]
+    prediction = pipeline.predict(test_data).predict
 
     plot_info = [
         {'idx': np.concatenate([train_data.idx, test_data.idx]),
