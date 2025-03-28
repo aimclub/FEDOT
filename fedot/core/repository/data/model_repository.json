@@ -211,6 +211,7 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
+        "deprecated",
         "simple",
         "bayesian",
         "non_multi",
@@ -235,6 +236,7 @@
       "meta": "sklearn_class",
       "presets": ["fast_train", "*tree"],
       "tags": [
+        "deprecated",
         "simple",
         "tree",
         "interpretable",
@@ -245,6 +247,7 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts", "*tree"],
       "tags": [
+        "deprecated",
         "tree",
         "interpretable",
         "non_linear"
@@ -254,6 +257,7 @@
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
+        "deprecated",
         "boosting",
         "non_multi",
         "non_linear",
@@ -296,20 +300,20 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant", "linear", "correct_params", "non-default"
+        "deprecated", "discriminant", "linear", "correct_params", "non-default"
       ]
     },
     "lgbm": {
       "meta": "boosting_class",
       "tags": [
-        "tree", "non_linear"
+        "tree", "non_linear", "boosting"
       ]
     },
     "lgbmreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non_linear"
+        "tree", "non_multi", "non_linear", "boosting"
       ]
     },
     "linear": {
@@ -332,6 +336,7 @@
     "mlp": {
       "meta": "sklearn_class",
       "tags": [
+        "deprecated",
         "neural",
         "non_linear"
       ]
@@ -340,6 +345,7 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
+        "deprecated",
         "non-default",
         "bayesian",
         "non_multi",
@@ -350,6 +356,7 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
+        "deprecated",
         "discriminant",
         "quadratic",
         "non_linear"
@@ -390,7 +397,7 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "non_multi", "non_linear"
+        "deprecated", "non_multi", "non_linear"
       ]
     },
     "stl_arima": {
@@ -455,6 +462,7 @@
     "svc": {
       "meta": "custom_class",
       "tags": [
+        "deprecated",
         "no_prob",
         "expensive",
         "non_linear"
@@ -463,6 +471,7 @@
     "svr": {
       "meta": "sklearn_regr",
       "tags": [
+        "deprecated",
         "non_multi",
         "non_linear"
       ]
@@ -480,14 +489,14 @@
       "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_linear"
+        "tree", "non_linear", "boosting"
       ]
     },
     "xgboostreg": {
       "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
-        "tree", "non_multi", "non_linear"
+        "tree", "non_multi", "non_linear", "boosting"
       ]
     },
     "cnn": {
