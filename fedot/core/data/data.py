@@ -57,7 +57,7 @@ class Data:
     @classmethod
     def from_numpy(cls,
                    features_array: np.ndarray,
-                   target_array: np.ndarray,
+                   target_array: Optional[np.ndarray] = None,
                    idx: Optional[np.ndarray] = None,
                    task: Union[Task, str] = 'classification',
                    data_type: Optional[DataTypesEnum] = DataTypesEnum.table,
@@ -120,7 +120,7 @@ class Data:
     @classmethod
     def from_dataframe(cls,
                        features_df: Union[pd.DataFrame, pd.Series],
-                       target_df: Union[pd.DataFrame, pd.Series],
+                       target_df: Optional[Union[pd.DataFrame, pd.Series]] = None,
                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
@@ -146,10 +146,14 @@ class Data:
             target_df = pd.DataFrame(target_df)
 
         idx = features_df.index.to_numpy()
-        target_columns = target_df.columns.to_list()
         features_names = features_df.columns.to_numpy()
-        df = pd.concat([features_df, target_df], axis=1)
-        features, target = process_target_and_features(df, target_columns)
+
+        if target_df is not None:
+            target_columns = target_df.columns.to_list()
+            df = pd.concat([features_df, target_df], axis=1)
+            features, target = process_target_and_features(df, target_columns)
+        else:
+            features, target = process_target_and_features(features_df, target_column=None)
 
         categorical_features = None
         if categorical_idx is not None:
@@ -587,11 +591,13 @@ class InputData(Data):
     def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
             raise ValueError('Incorrect boundaries for subset')
-        new_features = None
+        new_features = new_target = None
         if self.features is not None:
             new_features = self.features[start:end + 1]
+        if self.target is not None:
+            new_target = self.target[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
-                         target=self.target[start:end + 1],
+                         target=new_target,
                          task=self.task, data_type=self.data_type)
 
     def subset_indices(self, selected_idx: List):
@@ -609,12 +615,13 @@ class InputData(Data):
         # extractions of row number for each existing index from selected_idx
         row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
                     if str(selected_ind) in idx_list]
-        new_features = None
-
+        new_features = new_target = None
         if self.features is not None:
             new_features = self.features[row_nums]
+        if self.target is not None:
+            new_target = self.target[row_nums]
         return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
-                         target=self.target[row_nums],
+                         target=new_target,
                          task=self.task, data_type=self.data_type)
 
     def subset_features(self, feature_ids: np.array) -> Optional[InputData]:
@@ -809,7 +816,6 @@ def process_target_and_features(data_frame: pd.DataFrame,
     if target_column == '':
         # Take the last column in the table
         target_column = data_frame.columns[-1]
-
     if target_column:
         target = atleast_2d(data_frame[target_column].to_numpy())
         features = data_frame.drop(columns=target_column).to_numpy()
@@ -869,7 +875,7 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
 
 
 def array_to_input_data(features_array: np.ndarray,
-                        target_array: np.ndarray,
+                        target_array: Optional[np.ndarray] = None,
                         idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: Optional[DataTypesEnum] = None,
