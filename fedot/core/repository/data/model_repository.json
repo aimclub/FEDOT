@@ -161,7 +161,6 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts", "*tree"],
       "tags": [
-        "deprecated",
         "boosting",
         "non_multi",
         "non_linear"
@@ -292,7 +291,6 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "deprecated",
         "simple",
         "linear",
         "interpretable"
@@ -322,7 +320,7 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "deprecated", "simple", "linear", "interpretable"
+        "simple", "linear", "interpretable"
       ]
     },
     "logit": {

@@ -12,8 +12,8 @@ from test.data.datasets import data_with_binary_features_and_categorical_target
 
 
 minimal_sets_for_fast_train_by_task = {
-    'classification': {'dt', 'logit', 'knn'},
-    'regression': {'dtreg', 'lasso', 'ridge', 'linear'},
+    'classification': {'rf', 'logit', 'knn'},
+    'regression': {'rfr', 'lasso', 'ridge', 'linear'},
     'ts_forecasting': {'ar', 'adareg', 'scaling', 'lasso'},
     'clustering': {'kmeans'}
 }
