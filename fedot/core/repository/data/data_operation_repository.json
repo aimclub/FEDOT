@@ -330,7 +330,8 @@
         "dimensionality_transforming",
         "correct_params",
         "non_applicable_for_ts",
-        "feature_reduction"
+        "feature_reduction",
+        "non-default"
       ]
     },
     "kernel_pca": {

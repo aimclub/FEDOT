@@ -55,7 +55,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             # workaround for NaN-containing arrays during pca fitting, especially for fast_ica
             # fast_ica cannot fit with features represented by a rather sparse matrix
             features = self.preprocess_input(input_data)
-            self.log.info(self.pca)
             try:
                 self.pca.fit(features)
             except Exception as e:
