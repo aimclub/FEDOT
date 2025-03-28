@@ -223,7 +223,7 @@ def test_binary_pseudo_string_column_process_correctly():
     )
 
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features) or \
         all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
 
@@ -256,7 +256,7 @@ def test_mixed_column_with_str_and_float_values():
     )
 
     assert train_predicted.features.shape[1] == 1
-    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features.to_numpy()) or \
+    assert all(isinstance(el[0], types_encountered) for el in train_predicted.features) or \
         all(isinstance(el[0], types_encountered) for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
