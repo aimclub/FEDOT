@@ -1,6 +1,5 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from pathlib import Path
 
 from fedot import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
@@ -68,15 +67,15 @@ def preprocess_keys(parameters: dict):
                 pass
 
 
-def run_fedot(parameters, main_params, fit_params, save_predictions=True):
+def run_fedot(parameters, main_params, fit_params, path_to_save='./predictions.csv'):
     """ Function for run prediction on fedot """
     model = Fedot(**main_params)
     print("\nFitting start...")
     model.fit(**fit_params)
     print("\nPrediction start...")
-    prediction = model.predict(features=getattr(parameters, 'test'), in_sample=False, save_predictions=save_predictions)
-    print(f"\nPrediction saved at {Path.cwd().joinpath('predictions.csv')}")
-    return prediction
+    return model.predict(features=getattr(parameters, 'test'),
+                         in_sample=False,
+                         path_to_save=path_to_save)
 
 
 # parameters to init Fedot class
