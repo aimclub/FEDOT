@@ -12,9 +12,13 @@ def mock_db() -> MagicMock:
     """Fixture to mock PredictionsCacheDB"""
     # NOTE: The created mock is being reused in other tests due to pytest's fixture caching
     mock = MagicMock(spec=PredictionsCacheDB)
+
     mock.use_stats = True
+    mock.log = MagicMock()
+
     mock.retrieve_stats.return_value = []
     mock.get_prediction.return_value = None
+
     return mock
 
 
@@ -22,8 +26,10 @@ def mock_db() -> MagicMock:
 def predictions_cache(mock_db: MagicMock) -> PredictionsCache:
     """Fixture to create PredictionsCache with mocked database"""
     cache = PredictionsCache(cache_dir=None)
+
     cache._db = mock_db
     cache.log = MagicMock()
+
     return cache
 
 
