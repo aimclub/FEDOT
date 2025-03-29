@@ -36,15 +36,14 @@ class PredictionsCacheDB(BaseCacheDB):
     retrieve_count = retrieve_count + 1
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        use_stats = True
-        super().__init__("predictions",
-                         cache_dir,
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None, use_stats: bool = False):
+        super().__init__(main_table="predictions",
+                         cache_dir=cache_dir,
                          use_stats=use_stats,
                          stats_keys=['fit_hit', 'fit_total', 'pred_hit', 'pred_total'],
                          custom_pid=custom_pid)
         self._init_db()
-        if use_stats:
+        if self.use_stats:
             self._init_db_stats()
 
     def add_prediction(self, uid: str, type: str, outputData: OutputData) -> None:

@@ -19,7 +19,7 @@ class MockOutputData:
 @pytest.fixture
 def tmp_cache(tmpdir) -> PredictionsCacheDB:
     """Fixture to create a temporary cache database."""
-    return PredictionsCacheDB(cache_dir=tmpdir)
+    return PredictionsCacheDB(cache_dir=tmpdir, use_stats=True)
 
 
 def test_table_creation(tmp_cache: PredictionsCacheDB) -> None:
