@@ -58,8 +58,12 @@ class QualityMetric(Metric):
         raise AbstractMethodNotImplementError
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
-                  validation_blocks: Optional[int] = None) -> float:
+    def get_value(cls,
+                  pipeline: Pipeline,
+                  reference_data: InputData,
+                  validation_blocks: Optional[int] = None,
+                  predictions_cache=None,
+                  fold_id=None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
             pipeline: a :class:`Pipeline` instance for evaluation.
@@ -69,12 +73,14 @@ class QualityMetric(Metric):
         """
         metric = cls.default_value
         try:
+            # if results is None:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                reference_data, results = cls._simple_prediction(pipeline, reference_data)
+                reference_data, results = cls._simple_prediction(pipeline, reference_data, predictions_cache, fold_id)
             else:
                 # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+                reference_data, results = cls._in_sample_prediction(
+                    pipeline, reference_data, validation_blocks, predictions_cache=predictions_cache, fold_id=fold_id)
             metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
@@ -95,14 +101,25 @@ class QualityMetric(Metric):
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData) -> Tuple[InputData, OutputData]:
+    def _simple_prediction(
+            cls, pipeline: Pipeline, reference_data: InputData, predictions_cache=None, fold_id=None) -> Tuple[
+            InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
-        return reference_data, pipeline.predict(reference_data, output_mode=cls.output_mode)
+        return reference_data, pipeline.predict(
+            reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
-                               validation_blocks: Optional[int] = None) -> float:
-        quality_metric = cls.get_value(pipeline, reference_data, validation_blocks)
+    def get_value_with_penalty(cls,
+                               pipeline: Pipeline,
+                               reference_data: InputData,
+                               validation_blocks: Optional[int] = None,
+                               predictions_cache=None,
+                               fold_id=None) -> float:
+        quality_metric = cls.get_value(pipeline=pipeline,
+                                       reference_data=reference_data,
+                                       validation_blocks=validation_blocks,
+                                       predictions_cache=predictions_cache,
+                                       fold_id=fold_id)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
@@ -111,8 +128,9 @@ class QualityMetric(Metric):
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int
-                              ) -> Tuple[InputData, OutputData]:
+    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int,
+                              predictions_cache=None,
+                              fold_id=None) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
 
         horizon = int(validation_blocks * data.task.task_params.forecast_length)
@@ -121,7 +139,9 @@ class QualityMetric(Metric):
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
-                                                 horizon=horizon)
+                                                 horizon=horizon,
+                                                 predictions_cache=predictions_cache,
+                                                 fold_id=fold_id)
 
         # Wrap target and prediction arrays into OutputData and InputData
         results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,

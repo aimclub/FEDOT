@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.utils import set_random_seed
 

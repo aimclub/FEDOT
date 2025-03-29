@@ -21,7 +21,7 @@ def test_classification_quality_improvement():
 
     common_params = dict(problem=problem,
                          n_jobs=1,
-                         use_pipelines_cache=False,
+                         use_operations_cache=False,
                          use_preprocessing_cache=False,
                          with_tuning=with_tuning,
                          logging_level=logging.DEBUG,
@@ -63,7 +63,7 @@ def test_multiobjective_improvement():
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_operations_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

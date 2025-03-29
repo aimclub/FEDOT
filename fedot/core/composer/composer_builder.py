@@ -10,8 +10,9 @@ from golem.core.optimisers.initial_graphs_generator import GenerationFunction, I
 from golem.core.optimisers.optimizer import AlgorithmParameters, GraphGenerationParams, GraphOptimizer
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -53,8 +54,9 @@ class ComposerBuilder:
         self._keep_history: bool = True
         self._full_history_dir: Optional[Path] = None
 
-        self.pipelines_cache: Optional[OperationsCache] = None
+        self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
+        self.predictions_cache: Optional[PredictionsCache] = None
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -96,10 +98,14 @@ class ComposerBuilder:
         self.initial_population_generation_function = generation_function
         return self
 
-    def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
-                   preprocessing_cache: Optional[PreprocessingCache] = None):
-        self.pipelines_cache = pipelines_cache
+    def with_cache(self,
+                   operations_cache: Optional[OperationsCache] = None,
+                   preprocessing_cache: Optional[PreprocessingCache] = None,
+                   predictions_cache: Optional[PredictionsCache] = None
+                   ):
+        self.operations_cache = operations_cache
         self.preprocessing_cache = preprocessing_cache
+        self.predictions_cache = predictions_cache
         return self
 
     @staticmethod
@@ -153,7 +159,8 @@ class ComposerBuilder:
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     self.pipelines_cache,
-                                     self.preprocessing_cache)
+                                     self.operations_cache,
+                                     self.preprocessing_cache,
+                                     self.predictions_cache)
 
         return composer
