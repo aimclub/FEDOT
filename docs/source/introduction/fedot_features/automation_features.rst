@@ -166,6 +166,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `ar`,AutoRegression,Forecasting
    `arima`,ARIMA,Forecasting
    `cgru`,Convolutional Gated Recurrent Unit,Forecasting
+   `clstm`,Convolutional Long Short-Term Memory,Forecasting
    `ets`,Exponential Smoothing,Forecasting
    `glm`,Generalized Linear Models,Forecasting
    `locf`,Last Observation Carried Forward,Forecasting
@@ -209,6 +210,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `ar`,`statsmodels.tsa.ar_model.AutoReg`,`fast_train` `ts`
    `arima`,`statsmodels.tsa.arima.model.ARIMA`,`ts`
    `cgru`,`FEDOT model`,`ts`
+   `clstm`,`FEDOT model`,`ts`
    `ets`,`statsmodels.tsa.exponential_smoothing.ets.ETSModel`,`fast_train` `ts`
    `glm`,`statsmodels.genmod.generalized_linear_model.GLM`,`fast_train` `ts`
    `locf`,`FEDOT model`,`fast_train` `ts`

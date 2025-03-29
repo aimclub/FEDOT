@@ -61,7 +61,7 @@ def empty_datasource():
     task = Task(TaskTypesEnum.classification)
     features = np.array([])
     target = np.array([])
-    input_data = InputData(idx=[], features=features, target=target,
+    input_data = InputData(idx=np.array([]), features=features, target=target,
                            task=task, data_type=DataTypesEnum.table,
                            supplementary_data=SupplementaryData())
     yield input_data, input_data
