@@ -5,6 +5,7 @@ from golem.utilities.singleton_meta import SingletonMeta
 
 from fedot.core.caching.operations_cache_db import OperationsCacheDB
 from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
+from fedot.core.caching.predictions_cache_db import PredictionsCacheDB
 
 
 class BaseCache(metaclass=SingletonMeta):
@@ -14,7 +15,7 @@ class BaseCache(metaclass=SingletonMeta):
     :param cache_db: specific DB for specific data
     """
 
-    def __init__(self, cache_db: Union[OperationsCacheDB, PreprocessingCacheDB]):
+    def __init__(self, cache_db: Union[OperationsCacheDB, PreprocessingCacheDB, PredictionsCacheDB]):
         self._db = cache_db
         self.log = default_log(__name__)
 
