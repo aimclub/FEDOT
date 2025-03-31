@@ -333,15 +333,12 @@ class FedotBuilder:
 
                 .. details:: Tabular models available for composing:
 
-                    - ``adareg`` -> AdaBoost Regressor
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor
                     - ``knn`` -> K-nearest neighbors Classifier
                     - ``knnreg`` -> K-nearest neighbors Regressor
-                    - ``lasso`` -> Lasso Linear Regressor
                     - ``lgbm`` -> Light Gradient Boosting Machine Classifier
                     - ``lgbmreg`` -> Light Gradient Boosting Machine Regressor
-                    - ``linear`` -> Linear Regression Regressor
                     - ``logit`` -> Logistic Regression Classifier
                     - ``rf`` -> Random Forest Classifier
                     - ``rfr`` -> Random Forest Regressor
