@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
 from golem.core.log import default_log
 from golem.serializers.serializer import register_serializable
 
-from fedot.core.caching.predictions_cache import PredictionsCache
+if TYPE_CHECKING:
+    from fedot.core.caching.predictions_cache import PredictionsCache
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
