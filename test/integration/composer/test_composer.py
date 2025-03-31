@@ -205,7 +205,7 @@ def test_multi_objective_composer(data_fixture, request):
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
-    available_secondary_model_types = ['rf', 'knn', 'logit']
+    available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
     available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
 
     quality_metric = lambda *args, **kwargs: 1.0  # noqa
