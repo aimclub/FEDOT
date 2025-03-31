@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from uuid import uuid4
 
 import pytest
 
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.utils import set_random_seed
 
 
@@ -19,9 +22,12 @@ def run_around_tests():
         del OperationsCache._instances[OperationsCache]
     if PreprocessingCache in PreprocessingCache._instances:
         del PreprocessingCache._instances[PreprocessingCache]
+    if PredictionsCache in PredictionsCache._instances:
+        del PredictionsCache._instances[PredictionsCache]
 
     unique_id_for_dbs = str(uuid4()).replace('-', '')
 
     OperationsCache(custom_pid=unique_id_for_dbs)
     PreprocessingCache(custom_pid=unique_id_for_dbs)
+    PredictionsCache(custom_pid=unique_id_for_dbs)
     yield
