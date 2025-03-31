@@ -106,7 +106,7 @@ class QualityMetric(Metric):
     def _simple_prediction(cls,
                            pipeline: Pipeline,
                            reference_data: InputData,
-                           predictions_cache: Optional[PredictionsCache],
+                           predictions_cache: Optional[PredictionsCache] = None,
                            fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
         return reference_data, pipeline.predict(
