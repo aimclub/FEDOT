@@ -63,8 +63,11 @@ class Pipeline(GraphDelegate, Serializable):
         self.unfit()
         self.fit(input_data)
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData],
-                             time: timedelta, predictions_cache=None, fold_id=None) -> OutputData:
+    def _fit_with_time_limit(self,
+                             input_data: Optional[InputData],
+                             time: timedelta,
+                             predictions_cache: Optional[PredictionsCache] = None,
+                             fold_id: Optional[int] = None) -> OutputData:
         """Runs training process in all the pipeline nodes starting with root with time limit.
 
         Args:
@@ -91,10 +94,12 @@ class Pipeline(GraphDelegate, Serializable):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(
-            self, input_data: Optional[InputData] = None,
-            process_state_dict: dict = None, fitted_operations: list = None,
-            predictions_cache=None, fold_id=None) -> Optional[OutputData]:
+    def _fit(self,
+             input_data: Optional[InputData] = None,
+             process_state_dict: dict = None,
+             fitted_operations: list = None,
+             predictions_cache: Optional[PredictionsCache] = None,
+             fold_id: Optional[int] = None) -> Optional[OutputData]:
         """Runs training process in all the pipeline nodes starting with root
 
         Args:
@@ -171,10 +176,12 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1,
-            predictions_cache=None,
-            fold_id=None) -> OutputData:
+    def fit(self,
+            input_data: Union[InputData, MultiModalData],
+            time_constraint: Optional[timedelta] = None,
+            n_jobs: int = 1,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None) -> OutputData:
         """
         Runs training process in all the pipeline nodes starting with root
 
@@ -261,8 +268,11 @@ class Pipeline(GraphDelegate, Serializable):
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
-    def predict(self, input_data: Union[InputData, MultiModalData],
-                output_mode: str = 'default', predictions_cache=None, fold_id=None) -> OutputData:
+    def predict(self,
+                input_data: Union[InputData, MultiModalData],
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None) -> OutputData:
         """Runs the predict process in all the pipeline nodes starting with root
 
         input_data: data for prediction

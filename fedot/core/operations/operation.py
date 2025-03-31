@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Union
 from golem.core.log import default_log
 from golem.serializers.serializer import register_serializable
 
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -71,8 +72,12 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]],
-            data: InputData, predictions_cache=None, fold_id=None, descriptive_id=None):
+    def fit(self,
+            params: Optional[Union[OperationParameters, dict]],
+            data: InputData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None,
+            descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -93,8 +98,14 @@ class Operation:
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, params: Optional[Union[OperationParameters, dict]] = None,
-                output_mode: str = 'default', predictions_cache=None, fold_id=None, descriptive_id=None):
+    def predict(self,
+                fitted_operation,
+                data: InputData,
+                params: Optional[Union[OperationParameters, dict]] = None,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None,
+                descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
@@ -108,8 +119,14 @@ class Operation:
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False,
                              predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-                        output_mode: str = 'default', predictions_cache=None, fold_id=None, descriptive_id=None):
+    def predict_for_fit(self,
+                        fitted_operation,
+                        data: InputData,
+                        params: Optional[OperationParameters] = None,
+                        output_mode: str = 'default',
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None,
+                        descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
 
@@ -123,10 +140,15 @@ class Operation:
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True,
                              predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def _predict(
-            self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-            output_mode: str = 'default', is_fit_stage: bool = False, predictions_cache=None, fold_id=None,
-            descriptive_id=None):
+    def _predict(self,
+                 fitted_operation,
+                 data: InputData,
+                 params: Optional[OperationParameters] = None,
+                 output_mode: str = 'default',
+                 is_fit_stage: bool = False,
+                 predictions_cache: Optional[PredictionsCache] = None,
+                 fold_id: Optional[int] = None,
+                 descriptive_id: Optional[str] = None):
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length

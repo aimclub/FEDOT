@@ -1,3 +1,4 @@
+from typing import Optional
 import os.path
 import sys
 from abc import abstractmethod
@@ -12,6 +13,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
                              precision_score, r2_score, roc_auc_score, roc_curve, silhouette_score)
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
@@ -62,8 +64,8 @@ class QualityMetric(Metric):
                   pipeline: Pipeline,
                   reference_data: InputData,
                   validation_blocks: Optional[int] = None,
-                  predictions_cache=None,
-                  fold_id=None) -> float:
+                  predictions_cache: Optional[PredictionsCache] = None,
+                  fold_id: Optional[int] = None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
             pipeline: a :class:`Pipeline` instance for evaluation.
@@ -101,9 +103,11 @@ class QualityMetric(Metric):
         return metric
 
     @classmethod
-    def _simple_prediction(
-            cls, pipeline: Pipeline, reference_data: InputData, predictions_cache=None, fold_id=None) -> Tuple[
-            InputData, OutputData]:
+    def _simple_prediction(cls,
+                           pipeline: Pipeline,
+                           reference_data: InputData,
+                           predictions_cache: Optional[PredictionsCache],
+                           fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
         return reference_data, pipeline.predict(
             reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
@@ -113,8 +117,8 @@ class QualityMetric(Metric):
                                pipeline: Pipeline,
                                reference_data: InputData,
                                validation_blocks: Optional[int] = None,
-                               predictions_cache=None,
-                               fold_id=None) -> float:
+                               predictions_cache: Optional[PredictionsCache] = None,
+                               fold_id: Optional[int] = None) -> float:
         quality_metric = cls.get_value(pipeline=pipeline,
                                        reference_data=reference_data,
                                        validation_blocks=validation_blocks,
@@ -128,9 +132,11 @@ class QualityMetric(Metric):
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_prediction(pipeline: Pipeline, data: InputData, validation_blocks: int,
-                              predictions_cache=None,
-                              fold_id=None) -> Tuple[InputData, OutputData]:
+    def _in_sample_prediction(pipeline: Pipeline,
+                              data: InputData,
+                              validation_blocks: int,
+                              predictions_cache: Optional[PredictionsCache] = None,
+                              fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
 
         horizon = int(validation_blocks * data.task.task_params.forecast_length)

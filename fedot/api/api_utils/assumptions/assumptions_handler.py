@@ -76,7 +76,6 @@ class AssumptionsHandler:
                 operations_cache.save_pipeline(pipeline)
             if preprocessing_cache is not None:
                 preprocessing_cache.add_preprocessor(pipeline)
-            # TODO: predictions_cache
 
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')

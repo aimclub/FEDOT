@@ -9,6 +9,7 @@ from golem.core.log import default_log
 from golem.core.optimisers.timer import Timer
 from golem.serializers.serializer import register_serializable
 
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.operations.factory import OperationFactory
@@ -182,7 +183,10 @@ class PipelineNode(LinkedGraphNode):
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def fit(self, input_data: InputData, predictions_cache=None, fold_id=None) -> OutputData:
+    def fit(self,
+            input_data: InputData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None) -> OutputData:
         """Runs training process in the node
 
         Args:
@@ -218,12 +222,11 @@ class PipelineNode(LinkedGraphNode):
             self.update_params()
         return operation_predict
 
-    def predict(
-            self,
-            input_data: InputData,
-            output_mode: str = 'default',
-            predictions_cache=None,
-            fold_id=None) -> OutputData:
+    def predict(self,
+                input_data: InputData,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None) -> OutputData:
         """Runs prediction process in the node
 
         Args:
@@ -282,7 +285,11 @@ class PipelineNode(LinkedGraphNode):
         else:
             self._node_data = value
 
-    def _get_input_data(self, input_data: InputData, parent_operation: str, predictions_cache=None, fold_id=None):
+    def _get_input_data(self,
+                        input_data: InputData,
+                        parent_operation: str,
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None):
         if self.nodes_from:
             input_data = self._input_from_parents(
                 input_data=input_data, parent_operation=parent_operation, predictions_cache=predictions_cache,
@@ -294,8 +301,11 @@ class PipelineNode(LinkedGraphNode):
                 self.node_data = input_data
         return input_data
 
-    def _input_from_parents(
-            self, input_data: InputData, parent_operation: str, predictions_cache=None, fold_id=None) -> InputData:
+    def _input_from_parents(self,
+                            input_data: InputData,
+                            parent_operation: str,
+                            predictions_cache: Optional[PredictionsCache] = None,
+                            fold_id: Optional[int] = None) -> InputData:
         """Processes all the parent nodes via the current operation using ``input_data``
 
         Args:
@@ -382,9 +392,10 @@ class PipelineNode(LinkedGraphNode):
 
 
 def _combine_parents(parent_nodes: List[PipelineNode],
-                     input_data: Optional[InputData], parent_operation: str,
-                     predictions_cache=None,
-                     fold_id=None) -> Tuple[List[OutputData], np.array]:
+                     input_data: Optional[InputData],
+                     parent_operation: str,
+                     predictions_cache: Optional[PredictionsCache] = None,
+                     fold_id: Optional[int] = None) -> Tuple[List[OutputData], np.array]:
     """ Combines predictions from the ``parent_nodes``
 
     Args:
