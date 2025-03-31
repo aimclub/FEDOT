@@ -100,7 +100,7 @@ class GPComposer(Composer):
         """
         if not self.predictions_cache._db.use_stats:
             return
-        
+
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         directory = os.path.join(f"{str(fedot_project_root())}/saved_cache_effectiveness", timestamp)
         os.makedirs(directory, exist_ok=True)
