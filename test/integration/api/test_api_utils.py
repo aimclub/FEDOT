@@ -84,13 +84,13 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['dt']
+    available_operations = ['rf']
 
     initial_assumptions = AssumptionsBuilder \
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
-    res_init_assumption = Pipeline(PipelineNode('dt'))
+    res_init_assumption = Pipeline(PipelineNode('rf'))
     assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
