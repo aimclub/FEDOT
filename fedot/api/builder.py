@@ -177,7 +177,8 @@ class FedotBuilder:
             cache_dir: path to a directory containing cache files (if any cache is enabled).
                 By default, creates a folder named "FEDOT" in temporary system files of an OS.
 
-            use_stats: a boolean flag that determines whether to calculate and use cache usage statistics, such as the hit-to-total ratio. Defaults to ``False``
+            use_stats: indicates whether to calculate and use cache usage statistics, 
+                such as the hit-to-total ratio. Defaults to ``False``
 
         Returns:
             :class:`FedotBuilder` instance.
