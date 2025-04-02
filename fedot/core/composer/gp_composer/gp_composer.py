@@ -3,7 +3,7 @@ import os
 import csv
 from datetime import datetime
 from golem.core.log import is_test_session
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import default_fedot_data_dir
 
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
@@ -102,10 +102,10 @@ class GPComposer(Composer):
             return
 
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        directory = os.path.join(f"{str(fedot_project_root())}/saved_cache_effectiveness", timestamp)
+        directory = os.path.join(f"{str(default_fedot_data_dir())}", "saved_cache_effectiveness")
         os.makedirs(directory, exist_ok=True)
 
-        predictions_file_path = os.path.join(directory, "predictions.csv")
+        predictions_file_path = os.path.join(directory, f"{timestamp}_predictions.csv")
 
         # Write predictions cache data
         with open(predictions_file_path, "w", newline="") as f:
