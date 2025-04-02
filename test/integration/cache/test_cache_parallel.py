@@ -66,4 +66,5 @@ def test_parallel_cache_files():
             Parallel(n_jobs=cpus)(tasks)
         except sqlite3.OperationalError:
             assert False, 'DBs collides'
-        assert len(list(data_dir.glob('cache_*.*_db'))) >= 9  # (operations_cache, preprocessing_cache, predictions_cache) x 3
+        # (operations_cache, preprocessing_cache, predictions_cache) x 3
+        assert len(list(data_dir.glob('cache_*.*_db'))) >= 9
