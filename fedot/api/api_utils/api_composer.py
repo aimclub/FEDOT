@@ -45,16 +45,17 @@ class ApiComposer:
         use_predictions_cache = self.params.get('use_predictions_cache')
         use_input_preprocessing = self.params.get('use_input_preprocessing')
         cache_dir = self.params.get('cache_dir')
+        use_stats = self.params.get('use_stats')
         if use_operations_cache:
-            self.operations_cache = OperationsCache(cache_dir)
+            self.operations_cache = OperationsCache(cache_dir=cache_dir, use_stats=use_stats)
             #  in case of previously generated singleton cache
             self.operations_cache.reset()
         if use_input_preprocessing and use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(cache_dir)
+            self.preprocessing_cache = PreprocessingCache(cache_dir=cache_dir, use_stats=use_stats)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
         if use_predictions_cache:
-            self.predictions_cache = PredictionsCache(cache_dir)
+            self.predictions_cache = PredictionsCache(cache_dir=cache_dir, use_stats=use_stats)
             #  in case of previously generated singleton cache
             self.predictions_cache.reset()
 

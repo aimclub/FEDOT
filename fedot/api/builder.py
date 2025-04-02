@@ -148,6 +148,7 @@ class FedotBuilder:
             keep_history: bool = DEFAULT_VALUE,
             history_dir: Optional[str] = DEFAULT_VALUE,
             cache_dir: Optional[str] = DEFAULT_VALUE,
+            use_stats: Optional[bool] = DEFAULT_VALUE
     ) -> FedotBuilder:
         """ Sets parameters of outputs: logging, cache directories, etc.
 
@@ -176,6 +177,8 @@ class FedotBuilder:
             cache_dir: path to a directory containing cache files (if any cache is enabled).
                 By default, creates a folder named "FEDOT" in temporary system files of an OS.
 
+            use_stats: a boolean flag that determines whether to calculate and use cache usage statistics, such as the hit-to-total ratio. Defaults to ``False``
+
         Returns:
             :class:`FedotBuilder` instance.
         """
@@ -185,6 +188,7 @@ class FedotBuilder:
             keep_history=keep_history,
             history_dir=history_dir,
             cache_dir=cache_dir,
+            use_stats=use_stats
         )
         return self
 

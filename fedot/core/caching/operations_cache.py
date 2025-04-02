@@ -18,8 +18,8 @@ class OperationsCache(BaseCache):
     :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__(OperationsCacheDB(cache_dir, custom_pid))
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None, use_stats: bool = False):
+        super().__init__(OperationsCacheDB(cache_dir, custom_pid, use_stats))
 
     def save_nodes(self, nodes: Union[PipelineNode, List[PipelineNode]], fold_id: Optional[int] = None):
         """

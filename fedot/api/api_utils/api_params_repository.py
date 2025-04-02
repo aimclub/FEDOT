@@ -62,6 +62,7 @@ class ApiParamsRepository:
             use_operations_cache=True,
             use_preprocessing_cache=True,
             use_predictions_cache=True,
+            use_stats=False,
             use_input_preprocessing=True,
             use_auto_preprocessing=False,
             use_meta_rules=False,

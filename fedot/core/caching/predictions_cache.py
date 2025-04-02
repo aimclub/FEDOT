@@ -15,8 +15,8 @@ class PredictionsCache(BaseCache):
     FIT_TYPE = "fit"
     PRED_TYPE = "pred"
 
-    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__(PredictionsCacheDB(cache_dir, custom_pid))
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None, use_stats: bool = False):
+        super().__init__(PredictionsCacheDB(cache_dir, custom_pid, use_stats))
 
     def save_node_prediction(
             self, descriptive_id: str, output_mode: str, fold_id: int, outputData: OutputData, is_fit: bool = False):
