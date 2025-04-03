@@ -602,6 +602,16 @@
       "tags": [
         "imbalanced"
       ]
+    },
+    "bagging": {
+      "meta": "ensemble_",
+      "presets": [
+        "fast_train"
+      ],
+      "tags": [
+        "cat_features",
+        "non_applicable_for_ts"
+      ]
     }
   }
 }
