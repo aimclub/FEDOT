@@ -8,7 +8,6 @@ from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
@@ -55,7 +54,6 @@ class AssumptionsHandler:
                                              pipeline: Pipeline,
                                              operations_cache: Optional[OperationsCache] = None,
                                              preprocessing_cache: Optional[PreprocessingCache] = None,
-                                             predictions_cache: Optional[PredictionsCache] = None,
                                              eval_n_jobs: int = -1) -> Pipeline:
         """
         Check if initial pipeline can be fitted on a presented data
@@ -69,7 +67,7 @@ class AssumptionsHandler:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
             # load preprocessing
-            pipeline.try_load_from_cache(operations_cache, preprocessing_cache, predictions_cache)
+            pipeline.try_load_from_cache(operations_cache, preprocessing_cache)
             pipeline.fit(data_train, n_jobs=eval_n_jobs)
 
             if operations_cache is not None:
