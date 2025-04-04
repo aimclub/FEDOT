@@ -1,4 +1,5 @@
 import logging
+import re
 from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
@@ -541,6 +542,33 @@ class Fedot:
 
         report = pd.DataFrame(data=report.values(), index=report.keys())
         return report.iloc[:, 0].dt.components.iloc[:, :-2]
+
+    def leaderboard(self):
+        """ Print leaderboard of ensembles """
+        try:
+            leaderboard = self.history.get_leaderboard()
+
+            lines = [line.strip() for line in leaderboard.strip().split('\n') if line.strip()]
+
+            # Get ensembles
+            ensemble_lines = [line for line in lines if re.match(r'^I\d+', line)]
+
+            # Parse ensembles strings exclude Generation
+            ensemble_data = []
+            for line in ensemble_lines:
+                match = re.match(r'^(I\d+)\s+(-?\d+\.\d+)\s+\|\s+([^\|]+)\|\s+(.+)$', line)
+                if match:
+                    name, fitness, _, graph = match.groups()
+                    ensemble_data.append((name, float(fitness), graph.strip()))
+                else:
+                    print(f"Can't parse line: {line}")
+
+            ensemble_df = pd.DataFrame(ensemble_data, columns=['ID', 'Fitness', 'Graph'])
+
+            print('\nLeaderboard of ensembles:\n')
+            print(ensemble_df.to_markdown(tablefmt="grid", numalign="center"))
+        except ValueError:
+            print("Error in retrieving history of optimization")
 
     @staticmethod
     def _init_logger(logging_level: int):
