@@ -3,9 +3,13 @@ scipy<1.13.0
 # Base framework
 thegolem==0.4.1
 
+
 # Data
 numpy>=1.16.0, !=1.24.0
 pandas>=1.3.0; python_version >='3.8'
+dask-ml==2024.4.4; python_version <= '3.10'
+dask-ml>2024.4.4; python_version > '3.10'
+dask>=2023.5.0; python_version < '3.10'
 
 # Models and frameworks
 anytree>=2.8.0
@@ -35,6 +39,8 @@ joblib>=0.17.0
 requests>=2.0
 typing>=3.7.0
 psutil>=5.9.2
+fsspec>=2024; python_version > '3.8'
+fsspec>=2024,<=2025.3.0; python_version <= '3.8'
 
 # Tests
 pytest>=6.2.0

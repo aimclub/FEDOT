@@ -30,8 +30,8 @@ def get_fitted_fedot(forecast_length, train_data, **kwargs):
               'task_params': TsForecastingParams(forecast_length=forecast_length),
               'seed': 1,
               'timeout': None,
-              'pop_size': 5,
-              'num_of_generations': 5,
+              'pop_size': 4,
+              'num_of_generations': 4,
               'with_tuning': False}
     params.update(kwargs)
     fedot = Fedot(**params)

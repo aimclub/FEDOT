@@ -89,7 +89,7 @@ class OperationTypesRepository:
     def __init__(self, operation_type: str = 'model'):
         self.log = default_log(self)
 
-        self._tags_excluded_by_default = ['non-default', 'expensive']
+        self._tags_excluded_by_default = ['non-default', 'expensive', 'deprecated']
         OperationTypesRepository.init_default_repositories()
 
         self.operation_type = operation_type

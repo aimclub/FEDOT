@@ -110,7 +110,9 @@ class HyperparametersPreprocessor:
         'kmeans': {
             'n_clusters': ['integer']
         },
-
+        'dask_pca': {
+            'n_components': ['le0_to_none', 'integer']
+        },
         'kernel_pca': {
             'n_components': ['le0_to_none', 'integer']
         },
