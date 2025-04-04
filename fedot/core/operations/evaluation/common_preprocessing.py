@@ -11,6 +11,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.topological.fast_topological_extractor import \
     TopologicalFeaturesImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.bagging import BaggingEnsemble
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -32,7 +33,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
                 - ``poly_features``-> PolyFeaturesImplementation,
                 - ``one_hot_encoding``-> OneHotEncodingImplementation,
                 - ``label_encoding``-> LabelEncodingImplementation,
-                - ``fast_ica``-> FastICAImplementation
+                - ``fast_ica``-> FastICAImplementation,
+                - ``bagging`` -> BaggingEnsemble
 
         params: hyperparameters to fit the operation with
 
@@ -48,7 +50,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'one_hot_encoding': OneHotEncodingImplementation,
         'label_encoding': LabelEncodingImplementation,
         'fast_ica': FastICAImplementation,
-        'topological_features': TopologicalFeaturesImplementation
+        'topological_features': TopologicalFeaturesImplementation,
+        'bagging': BaggingEnsemble
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

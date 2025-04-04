@@ -117,6 +117,9 @@ class HyperparametersPreprocessor:
         'fast_ica': {
             'n_components': ['le0_to_none', 'integer']
         },
+        'bagging': {
+            'method': ['absolute']
+        },
     }
 
     def __init__(self,
