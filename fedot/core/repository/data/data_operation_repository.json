@@ -609,6 +609,7 @@
         "fast_train"
       ],
       "tags": [
+        "non-default",
         "cat_features",
         "non_applicable_for_ts"
       ]
