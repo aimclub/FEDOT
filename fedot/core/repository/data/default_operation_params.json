@@ -222,5 +222,8 @@
     "max_homology_dimension": 1,
     "metric": "euclidean",
     "stride": 1
+  },
+    "bagging": {
+    "method": "weighted"
   }
 }
