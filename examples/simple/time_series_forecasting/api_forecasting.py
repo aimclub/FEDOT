@@ -62,8 +62,13 @@ def get_ts_data(dataset='m4_monthly', horizon: int = 30, m4_id=None, validation_
 
 
 def run_ts_forecasting_example(
-        dataset='australia', horizon: int = 30, timeout: float = None, visualization: bool = False, validation_blocks: int = 2,
-        with_tuning: bool = True, use_stats: bool = False):
+        dataset='australia',
+        horizon: int = 30,
+        timeout: float = None,
+        visualization: bool = False,
+        validation_blocks: int = 2,
+        with_tuning: bool = True,
+        use_stats: bool = False):
     train_data, test_data, label = get_ts_data(dataset, horizon, validation_blocks=validation_blocks)
     # init model for the time series forecasting
 
