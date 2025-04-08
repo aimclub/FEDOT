@@ -26,8 +26,9 @@ def run_around_tests():
         del PredictionsCache._instances[PredictionsCache]
 
     unique_id_for_dbs = str(uuid4()).replace('-', '')
+    use_stats = True
 
-    OperationsCache(custom_pid=unique_id_for_dbs)
-    PreprocessingCache(custom_pid=unique_id_for_dbs)
-    PredictionsCache(custom_pid=unique_id_for_dbs)
+    OperationsCache(custom_pid=unique_id_for_dbs, use_stats=use_stats)
+    PreprocessingCache(custom_pid=unique_id_for_dbs, use_stats=use_stats)
+    PredictionsCache(custom_pid=unique_id_for_dbs, use_stats=use_stats)
     yield
