@@ -39,7 +39,7 @@ class PredictionsCache(BaseCache):
         uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
         return self._load_prediction(uid)
 
-    def _save_prediction(self, uid: str,  outputData: OutputData):
+    def _save_prediction(self, uid: str, outputData: OutputData):
         self.log.debug(f"--- SAVE prediction cache: {uid}")
         self._db.add_prediction(uid, outputData)
 
