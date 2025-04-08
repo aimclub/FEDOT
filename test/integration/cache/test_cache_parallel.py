@@ -52,7 +52,7 @@ def test_parallel_cache_files():
     # all files cache files in test dir must be removed
     # if `cache_dir` api param wasn't specified explicitly
     data_dir = Path(default_fedot_data_dir())
-    common_params = dict(timeout=10, with_tuning=False, use_stats=True)
+    common_params = dict(timeout=5, with_tuning=False, use_stats=True)
 
     tasks = [
         delayed(run_regression_example)(**common_params, preset='fast_train'),
