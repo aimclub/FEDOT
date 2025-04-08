@@ -52,11 +52,11 @@ def test_parallel_cache_files():
     # all files cache files in test dir must be removed
     # if `cache_dir` api param wasn't specified explicitly
     data_dir = Path(default_fedot_data_dir())
-    common_params = dict(timeout=0.1, with_tuning=False)
+    common_params = dict(timeout=5, with_tuning=False, use_stats=True)
 
     tasks = [
         delayed(run_regression_example)(**common_params, preset='fast_train'),
-        delayed(run_classification_example)(**common_params),
+        delayed(run_classification_example)(**common_params, preset='fast_train'),
         delayed(run_ts_forecasting_example)(**common_params, dataset='beer', horizon=10),
     ]
 
@@ -68,3 +68,5 @@ def test_parallel_cache_files():
             assert False, 'DBs collides'
         # (operations_cache, preprocessing_cache, predictions_cache) x 3
         assert len(list(data_dir.glob('cache_*.*_db'))) >= 9
+        # (regression, classification, ts_sforecasting) .csv files x 3
+        assert len(list(Path(data_dir, "saved_cache_effectiveness").glob('*.csv'))) >= 3
