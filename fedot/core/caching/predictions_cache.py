@@ -27,7 +27,7 @@ class PredictionsCache(BaseCache):
             return
         type = self.FIT_TYPE if is_fit else self.PRED_TYPE
         uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
-        self._save_prediction(uid, type, outputData)
+        self._save_prediction(uid, outputData)
 
     def load_node_prediction(self, descriptive_id: str, output_mode: str, fold_id: int, is_fit: bool = False):
         """
@@ -37,13 +37,13 @@ class PredictionsCache(BaseCache):
             return
         type = self.FIT_TYPE if is_fit else self.PRED_TYPE
         uid = f"{type}_{descriptive_id}_{output_mode}_{fold_id}"
-        return self._load_prediction(uid, type)
+        return self._load_prediction(uid)
 
-    def _save_prediction(self, uid: str, type: str, outputData: OutputData):
+    def _save_prediction(self, uid: str,  outputData: OutputData):
         self.log.debug(f"--- SAVE prediction cache: {uid}")
-        self._db.add_prediction(uid, type, outputData)
+        self._db.add_prediction(uid, outputData)
 
-    def _load_prediction(self, uid: str, type: str):
-        outputData = self._db.get_prediction(uid, type)
+    def _load_prediction(self, uid: str):
+        outputData = self._db.get_prediction(uid)
         self.log.debug(f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
         return outputData

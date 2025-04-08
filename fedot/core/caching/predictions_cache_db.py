@@ -46,88 +46,71 @@ class PredictionsCacheDB(BaseCacheDB):
         if self.use_stats:
             self._init_db_stats()
 
-    def add_prediction(self, uid: str, type: str, outputData: OutputData) -> None:
+    def add_prediction(self, uid: str, outputData: OutputData) -> None:
         """
         Stores predicted `outputData` in binary format in a SQL table.
         """
-        try:
-            with closing(sqlite3.connect(self.db_path)) as conn:
-                with conn:
-                    cur = conn.cursor()
-                    pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
-                    cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite add {type} error: {e}")
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
+                cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
 
-    def get_prediction(self, uid: str, type: str) -> Optional[OutputData]:
+    def get_prediction(self, uid: str) -> Optional[OutputData]:
         """
         Retrieves the predicted `outputData` from binary format in a SQL table.
         """
-        try:
-            with closing(sqlite3.connect(self.db_path)) as conn:
-                with conn:
-                    cur = conn.cursor()
-                    query = f"SELECT id, prediction FROM {self._main_table} WHERE id = ?"
-                    cur.execute(query, (uid,))
-                    result = cur.fetchone()
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                query = f"SELECT id, prediction FROM {self._main_table} WHERE id = ?"
+                cur.execute(query, (uid,))
+                result = cur.fetchone()
+                if result:
+                    result = pickle.loads(result[1])
+                if self.use_stats:
+                    type = uid.split("_")[0]
                     if result:
-                        result = pickle.loads(result[1])
-                    if self.use_stats:
-                        if result:
-                            self._inc_eff(cur, f'{type}_hit')
-                            self._inc_stats(cur, uid)
-                        self._inc_eff(cur, f'{type}_total')
-            return result
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite get {type} Error: {e}")
-            return None
+                        self._inc_eff(cur, f'{type}_hit')
+                        self._inc_stats(cur, uid)
+                    self._inc_eff(cur, f'{type}_total')
+        return result
 
     def retrieve_stats(self) -> Optional[List[Tuple[str, int]]]:
         """
         Retrieves statistics for all non-zero prediction cache entries.
         """
-        try:
-            if self.use_stats:
-                with closing(sqlite3.connect(self.db_path)) as conn:
-                    with conn:
-                        cur = conn.cursor()
-                        query = "SELECT id, retrieve_count FROM stats;"
-                        cur.execute(query)
-                        return cur.fetchall()
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite get Error: {e}")
-            return None
+        if self.use_stats:
+            with closing(sqlite3.connect(self.db_path)) as conn:
+                with conn:
+                    cur = conn.cursor()
+                    query = "SELECT id, retrieve_count FROM stats;"
+                    cur.execute(query)
+                    return cur.fetchall()
 
     def _inc_stats(self, cur: sqlite3.Cursor, id: str) -> None:
         """
         Increases the retrieve count for a specific prediction cache entry.
         """
-        try:
-            cur.execute(self.INSERT_STATS_QUERY, (id, id,))
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite inc stats Error: {e}")
+        cur.execute(self.INSERT_STATS_QUERY, (id, id,))
 
     def _init_db_stats(self) -> None:
         """
         Initializes the database statistics table.
         """
-        try:
-            if self.use_stats:
-                with closing(sqlite3.connect(self.db_path)) as conn:
-                    with conn:
-                        cur = conn.cursor()
-                        cur.execute(self.CREATE_STATS_TABLE_QUERY)
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite init db stats Error: {e}")
+        if self.use_stats:
+            with closing(sqlite3.connect(self.db_path)) as conn:
+                with conn:
+                    cur = conn.cursor()
+                    cur.execute("PRAGMA journal_mode=WAL;")
+                    cur.execute(self.CREATE_STATS_TABLE_QUERY)
 
     def _init_db(self) -> None:
         """
         Initializes the main database working table.
         """
-        try:
-            with closing(sqlite3.connect(self.db_path)) as conn:
-                with conn:
-                    cur = conn.cursor()
-                    cur.execute(self.CREATE_MAIN_TABLE_QUERY.format(table_name=self._main_table))
-        except sqlite3.Error as e:
-            self.log.error(f"SQLite init db error: {e}")
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                cur.execute("PRAGMA journal_mode=WAL;")
+                cur.execute(self.CREATE_MAIN_TABLE_QUERY.format(table_name=self._main_table))

@@ -36,12 +36,12 @@ def test_table_creation(tmp_cache: PredictionsCacheDB) -> None:
 
 def test_add_and_get_prediction(tmp_cache: PredictionsCacheDB) -> None:
     """Test adding a prediction and retrieving it successfully."""
-    uid = "test_uid"
+    uid = "pred_test_uid"
     data = MockOutputData(42)
 
-    tmp_cache.add_prediction(uid, "pred", data)
+    tmp_cache.add_prediction(uid, data)
 
-    retrieved = tmp_cache.get_prediction(uid, "pred")
+    retrieved = tmp_cache.get_prediction(uid)
     assert retrieved == data, "Retrieved data does not match original data."
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
@@ -50,9 +50,9 @@ def test_add_and_get_prediction(tmp_cache: PredictionsCacheDB) -> None:
 
 def test_get_non_existent_prediction(tmp_cache: PredictionsCacheDB) -> None:
     """Test retrieving a non-existent prediction returns None and updates stats."""
-    uid = "non_existent"
+    uid = "pred_non_existent"
 
-    retrieved = tmp_cache.get_prediction(uid, "pred")
+    retrieved = tmp_cache.get_prediction(uid)
     assert retrieved is None, "Non-existent UID should return None."
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
@@ -61,30 +61,30 @@ def test_get_non_existent_prediction(tmp_cache: PredictionsCacheDB) -> None:
 
 def test_add_duplicate_prediction(tmp_cache: PredictionsCacheDB) -> None:
     """Test that duplicate UID predictions are ignored."""
-    uid = "test_uid"
+    uid = "pred_test_uid"
 
     data1 = MockOutputData(42)
     data2 = MockOutputData(43)
 
-    tmp_cache.add_prediction(uid, "pred", data1)
-    tmp_cache.add_prediction(uid, "pred", data2)
+    tmp_cache.add_prediction(uid, data1)
+    tmp_cache.add_prediction(uid, data2)
 
-    retrieved = tmp_cache.get_prediction(uid, "pred")
+    retrieved = tmp_cache.get_prediction(uid)
     assert retrieved == data1, "Duplicate UID should retain original data."
 
 
 def test_retrieve_stats(tmp_cache: PredictionsCacheDB) -> None:
     """Test retrieve_stats returns correct counts for multiple accesses."""
-    uid1, uid2 = "uid1", "uid2"
+    uid1, uid2 = "pred_uid1", "pred_uid2"
 
     data = MockOutputData(42)
 
-    tmp_cache.add_prediction(uid1, "pred", data)
-    tmp_cache.add_prediction(uid2, "pred", data)
+    tmp_cache.add_prediction(uid1, data)
+    tmp_cache.add_prediction(uid2, data)
 
-    tmp_cache.get_prediction(uid1, "pred")
-    tmp_cache.get_prediction(uid1, "pred")
-    tmp_cache.get_prediction(uid2, "pred")
+    tmp_cache.get_prediction(uid1)
+    tmp_cache.get_prediction(uid1)
+    tmp_cache.get_prediction(uid2)
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
     expected_stats = [(uid1, 2), (uid2, 1)]
@@ -93,13 +93,13 @@ def test_retrieve_stats(tmp_cache: PredictionsCacheDB) -> None:
 
 def test_multiple_retrieve_types(tmp_cache: PredictionsCacheDB) -> None:
     """Test retrieve_count increments regardless of prediction type."""
-    uid = "test_uid"
+    uid = "pred_test_uid"
 
     data = MockOutputData(42)
 
-    tmp_cache.add_prediction(uid, "pred", data)
-    tmp_cache.get_prediction(uid, "pred")
-    tmp_cache.get_prediction(uid, "fit")
+    tmp_cache.add_prediction(uid, data)
+    tmp_cache.get_prediction(uid)
+    tmp_cache.get_prediction(uid)
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
     assert (uid, 2) in stats, "Retrieve count should increment per UID regardless of type."
