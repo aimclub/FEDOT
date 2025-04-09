@@ -113,8 +113,19 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'gbm_linear': PipelineBuilder().
-            add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            'gbm_hybrid_stacking': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm', 'forward')
+            .join_branches('logit'),
+
+            'gbm_hybrid_2lvl_stacking': PipelineBuilder() \
+            .add_branch('catboost', 'xgboost', 'lgbm', 'forward') \
+            .join_branches('forward') \
+            .add_branch('catboost', 'xgboost', 'lgbm') \
+            .join_branches('logit'),
+
+            'gbm_stacking': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+
             'catboost': PipelineBuilder().add_node('catboost'),
             'xgboost': PipelineBuilder().add_node('xgboost'),
             'lgbm': PipelineBuilder().add_node('lgbm'),
