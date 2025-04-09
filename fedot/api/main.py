@@ -544,31 +544,51 @@ class Fedot:
         return report.iloc[:, 0].dt.components.iloc[:, :-2]
 
     def leaderboard(self):
-        """ Print leaderboard of ensembles """
+        """ Print leaderboard of generations """
         try:
             leaderboard = self.history.get_leaderboard()
-
-            lines = [line.strip() for line in leaderboard.strip().split('\n') if line.strip()]
-
-            # Get ensembles
-            ensemble_lines = [line for line in lines if re.match(r'^I\d+', line)]
-
-            # Parse ensembles strings exclude Generation
-            ensemble_data = []
-            for line in ensemble_lines:
-                match = re.match(r'^(I\d+)\s+(-?\d+\.\d+)\s+\|\s+([^\|]+)\|\s+(.+)$', line)
-                if match:
-                    name, fitness, _, graph = match.groups()
-                    ensemble_data.append((name, float(fitness), graph.strip()))
+            lines = leaderboard.strip().split('\n')
+            rows = []
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                if '|' in line:
+                    # to split by |
+                    parts = [p.strip() for p in line.split('|')]
+                    if parts[0].startswith('Position'):
+                        continue  # to make header
+                    position_gen = parts[0].split()
+                    if len(position_gen) == 2:
+                        position, fitness = position_gen
+                        generation = '-'
+                    else:
+                        position = position_gen[0]
+                        fitness = '-'
+                        generation = '-'
+                    graph = parts[-1]
                 else:
-                    print(f"Can't parse line: {line}")
+                    parts = re.split(r',(?![^{]*})', line)
+                    if len(parts) >= 4:
+                        position = parts[0].strip()
+                        fitness = parts[1].strip()
+                        generation = parts[2].strip()
+                        graph = ','.join(parts[3:]).strip()
+                    else:
+                        continue
+                rows.append({
+                    'Position': position,
+                    'Fitness': float(fitness),
+                    'Generation': generation,
+                    'Graph': graph
+                })
 
-            ensemble_df = pd.DataFrame(ensemble_data, columns=['ID', 'Fitness', 'Graph'])
+            df = pd.DataFrame(rows)
+            return df
 
-            print('\nLeaderboard of ensembles:\n')
-            print(ensemble_df.to_markdown(tablefmt="grid", numalign="center"))
-        except ValueError:
-            print("Error in retrieving history of optimization")
+        except Exception as e:
+            self.log.message('Failed to parse leaderboard.')
+            raise ValueError("Failed to parse leaderboard due to unexpected error.") from e
 
     @staticmethod
     def _init_logger(logging_level: int):
