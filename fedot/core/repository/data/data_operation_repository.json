@@ -618,6 +618,14 @@
       "tags": [
         "imbalanced"
       ]
+    },
+    "forward": {
+      "meta": "custom_preprocessing",
+      "tags": [
+        "fast_train",
+        "ts",
+        "*tree"
+      ]
     }
   }
 }
