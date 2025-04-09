@@ -148,6 +148,7 @@ class FedotBuilder:
             keep_history: bool = DEFAULT_VALUE,
             history_dir: Optional[str] = DEFAULT_VALUE,
             cache_dir: Optional[str] = DEFAULT_VALUE,
+            use_stats: Optional[bool] = DEFAULT_VALUE
     ) -> FedotBuilder:
         """ Sets parameters of outputs: logging, cache directories, etc.
 
@@ -176,6 +177,9 @@ class FedotBuilder:
             cache_dir: path to a directory containing cache files (if any cache is enabled).
                 By default, creates a folder named "FEDOT" in temporary system files of an OS.
 
+            use_stats: indicates whether to calculate and use cache usage statistics,
+                such as the hit-to-total ratio. Defaults to ``False``
+
         Returns:
             :class:`FedotBuilder` instance.
         """
@@ -185,6 +189,7 @@ class FedotBuilder:
             keep_history=keep_history,
             history_dir=history_dir,
             cache_dir=cache_dir,
+            use_stats=use_stats
         )
         return self
 
@@ -197,7 +202,8 @@ class FedotBuilder:
             pop_size: int = DEFAULT_VALUE,
             keep_n_best: int = DEFAULT_VALUE,
             genetic_scheme: str = DEFAULT_VALUE,
-            use_pipelines_cache: bool = DEFAULT_VALUE,
+            use_operations_cache: bool = DEFAULT_VALUE,
+            use_predictions_cache: bool = DEFAULT_VALUE,
             optimizer: Optional[Type[GraphOptimizer]] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of ML pipelines evolutionary optimization.
@@ -224,7 +230,9 @@ class FedotBuilder:
 
             genetic_scheme: name of the genetic scheme. Defaults to ``steady_state``.
 
-            use_pipelines_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
+            use_operations_cache: indicates whether to use pipeline structures caching. Defaults to ``True``.
+
+            use_predictions_cache: indicates whether to use cache for fit/predict node's predictions. Defaults to ``True``.
 
             optimizer: inherit from :class:`golem.core.optimisers.optimizer.GraphOptimizer`
                 to specify a custom optimizer.
@@ -242,7 +250,8 @@ class FedotBuilder:
             pop_size=pop_size,
             keep_n_best=keep_n_best,
             genetic_scheme=genetic_scheme,
-            use_pipelines_cache=use_pipelines_cache,
+            use_operations_cache=use_operations_cache,
+            use_predictions_cache=use_predictions_cache,
             optimizer=optimizer,
         )
         return self
