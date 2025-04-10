@@ -1,7 +1,5 @@
 from typing import Optional
 
-import numpy as np
-import pandas as pd
 from sklearn.ensemble import BaggingRegressor, BaggingClassifier
 
 from fedot.core.data.data import InputData, OutputData
@@ -10,15 +8,21 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class BaggingImplementation(ModelImplementation):
+    """ Bagging ensemble implementation from scikit-learn """
+
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
 
     def fit(self, input_data: InputData):
-        pass
+        """
+        Build a Bagging ensemble of estimators from the training set
+        (Decision Tree estimator by default)
+        """
+        self.model.fit(X=input_data.features, y=input_data.target)
 
     def predict(self, input_data: InputData) -> OutputData:
-        pass
+        return self.model.predict(input_data.features)
 
 
 class BaggingClassifierImplementation(BaggingImplementation):
