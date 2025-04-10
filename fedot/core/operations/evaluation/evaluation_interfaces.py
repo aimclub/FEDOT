@@ -11,7 +11,9 @@ from sklearn.ensemble import (
     ExtraTreesRegressor,
     GradientBoostingRegressor,
     RandomForestClassifier,
-    RandomForestRegressor
+    RandomForestRegressor,
+    BaggingClassifier,
+    BaggingRegressor
 )
 from sklearn.linear_model import (
     Lasso as SklearnLassoReg,
@@ -146,6 +148,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
                 - ``xgbreg``-> XGBRegressor
                 - ``adareg``-> AdaBoostRegressor
+                - ``bagreg`` -> BaggingRegressor
                 - ``gbr``-> GradientBoostingRegressor
                 - ``dtreg``-> DecisionTreeRegressor
                 - ``treg``-> ExtraTreesRegressor
@@ -158,6 +161,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                 - ``lgbmreg``-> LGBMRegressor
                 - ``xgboost``-> XGBClassifier
                 - ``logit``-> SklearnLogReg
+                - ``bag`` -> BaggingClassifier
                 - ``bernb``-> SklearnBernoulliNB
                 - ``multinb``-> SklearnMultinomialNB
                 - ``dt``-> DecisionTreeClassifier
@@ -193,6 +197,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'lgbm': LGBMClassifier,
 
         'kmeans': SklearnKmeans,
+
+        'bag': BaggingClassifier,
+        'bagreg': BaggingRegressor
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
