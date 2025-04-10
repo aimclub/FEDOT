@@ -622,6 +622,7 @@
     "forward": {
       "meta": "custom_preprocessing",
       "tags": [
+        "non-default",
         "fast_train",
         "ts",
         "*tree"
