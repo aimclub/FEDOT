@@ -372,16 +372,6 @@
       "presets": ["fast_train", "*tree"],
       "tags": ["tree", "non_linear"]
     },
-    "bag": {
-      "meta": "sklearn_class",
-      "presets": ["fast_train", "*tree"],
-      "tags": ["tree", "non_linear"]
-    },
-    "bagreg": {
-      "meta": "sklearn_regr",
-      "presets": ["fast_train", "*tree"],
-      "tags": ["tree", "non_linear"]
-    },
     "ridge": {
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
