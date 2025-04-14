@@ -28,7 +28,7 @@ class BlendingImplementation(ModelImplementation):
 
         :param input_data: metadata - models predictions
         """
-        metric = MetricsRepository.get_metric('accuracy')
+        metric = MetricsRepository.get_metric()  # !!!!
 
         df = pd.read_csv(r"C:\Users\user\Desktop\iris_gbm_stacking_preds.csv")
         array = df.values
@@ -40,6 +40,19 @@ class BlendingImplementation(ModelImplementation):
         # Equals weights initialization
         weights = [1 / num_classes] * num_classes
 
+        search_space = [Real(0.0, 1.0, name=f'weight_{i}') for i in range(models_count)]
+
+        result = gp_minimize(
+            self._get_score,
+            search_space,
+            n_calls=self.max_iter,
+            random_state=42,
+            verbose=True
+        )
+
+        optimal_weights = np.array(result.x) / np.sum(result.x)
+
+    def _get_score(self, weights, y_pred, y_true, metric, num_samples, num_classes, models_count):
         # Get predictions
         result = np.zeros((num_samples, num_classes))
         for class_idx in range(num_classes):
@@ -47,7 +60,7 @@ class BlendingImplementation(ModelImplementation):
             class_preds = np.zeros((num_samples, num_classes))
             for model_idx in range(models_count):
                 col_idx = model_idx * num_classes + class_idx
-                class_preds[:, model_idx] = array[:, col_idx]
+                class_preds[:, model_idx] = y_pred[:, col_idx]
 
             # Applying weighted average for current class
             result[:, class_idx] = np.sum(class_preds * weights, axis=1)
@@ -56,18 +69,11 @@ class BlendingImplementation(ModelImplementation):
         row_sums = result.sum(axis=1, keepdims=True)
         normalized_result = result / row_sums
 
-        return normalized_result
+        # !! протестировать это
+        labels = np.argmax(normalized_result, axis=1)
+        score = metric(y_true, labels)
 
-    def _get_score(self, y_true, metric, num_samples, num_classes):
-
-        pass
-
-    def _optimize(self, y_pred, y_true, models_count, num_classes, ):
-        """ Bayesian optimization for weights """
-        pass
-
-
-
+        return score
 
 
 if __name__ == "__main__":
