@@ -11,48 +11,82 @@ from fedot.core.operations.evaluation. \
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.repository.metrics_repository import MetricsRepository
+from fedot.core.repository.metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from golem.core.log import default_log
 
 
-class BlendingImplementation(ModelImplementation):
+class BledingImplementation(ModelImplementation):  # !!
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.max_iter = 50
+        self.max_iter = 50  # !!
+        self.seed = 42      # !!
+        self.logger = default_log('Blending level')
+        self.metric = MetricsRepository.get_metric(ClassificationMetricsEnum.accuracy)  # !!
 
     def fit(self, input_data: InputData):
         """ Blending does not provide fit method """
         pass
 
+
+class BlendingClassifier(BledingImplementation):
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+
     def predict(self, input_data: InputData) -> OutputData:
-        """ Get prediction with chosen strategy. Weighted average set as default
-
-        :param input_data: metadata - models predictions
         """
-        metric = MetricsRepository.get_metric()  # !!!!
-
-        df = pd.read_csv(r"C:\Users\user\Desktop\iris_gbm_stacking_preds.csv")
-        array = df.values
+        Get prediction using weighted average blending strategy.
+        
+        Args:
+            input_data: InputData with models predictions
+            
+        Returns:
+            OutputData: Labels of blended predictions
+        """
+        # Constants
+        df = pd.read_csv(r"iris_gbm_stacking_preds.csv")  # !!!
+        features = df.values  # !!!
+        target = input_data.target
 
         num_classes = 3  # !!!!
-        num_samples = array.shape[0]
-        models_count = array.shape[1] // num_classes
+        num_samples = features.shape[0]
+        models_count = features.shape[1] // num_classes  # !
 
-        # Equals weights initialization
-        weights = [1 / num_classes] * num_classes
+        # Getting optimal weights
+        self.logger.info(f"Starting optimization with {models_count} models"
+                         "Obtained metric - {metric}.")
 
-        search_space = [Real(0.0, 1.0, name=f'weight_{i}') for i in range(models_count)]
+        def score_func(weights):
+            return self._get_score(weights, features, target, num_classes, num_samples, models_count)
+        
+        optimal_weights = self._optimize(func=score_func, models_count=models_count)
 
-        result = gp_minimize(
-            self._get_score,
-            search_space,
-            n_calls=self.max_iter,
-            random_state=42,
-            verbose=True
-        )
+        # Getting predictions and score
+        predictions, score = self._get_score(weights=optimal_weights)
+        self.logger.info(f"Optimization result - {self.metric} = {abs(score)}."
+                         f"Models weights: {optimal_weights}")
 
-        optimal_weights = np.array(result.x) / np.sum(result.x)
+        # Convert to OutputData and return
+        output_data = self._convert_to_output(input_data=input_data, predict=predictions)
+        return output_data
+        
+    def _get_score(self, weights, features, target, num_classes, num_samples, models_count):
+        """
+        Calculate weighted average blending and evaluate its performance.
+        
+        Args:
+            weights: List of weights for each model
+            features: Array of models predictions
+            target: True target values
+            metric: Metric function to evaluate performance
+            num_classes: Number of classes in classification task
+            models_count: Number of models to blend
+            
+        Returns:
+            Predicted labels and score
+        """
+        # Weights normalization
+        weights = np.array(weights) / np.sum(weights)
 
-    def _get_score(self, weights, y_pred, y_true, metric, num_samples, num_classes, models_count):
         # Get predictions
         result = np.zeros((num_samples, num_classes))
         for class_idx in range(num_classes):
@@ -60,22 +94,53 @@ class BlendingImplementation(ModelImplementation):
             class_preds = np.zeros((num_samples, num_classes))
             for model_idx in range(models_count):
                 col_idx = model_idx * num_classes + class_idx
-                class_preds[:, model_idx] = y_pred[:, col_idx]
+                class_preds[:, model_idx] = features[:, col_idx]
 
             # Applying weighted average for current class
             result[:, class_idx] = np.sum(class_preds * weights, axis=1)
 
-        # Normalization to get probabilities
+        # Result normalization
         row_sums = result.sum(axis=1, keepdims=True)
         normalized_result = result / row_sums
 
-        # !! протестировать это
+        # !!!!!! протестировать это
         labels = np.argmax(normalized_result, axis=1)
-        score = metric(y_true, labels)
 
-        return score
+        # !!temporal negative score because accuracy as default!!
+        score = -self.metric(target, labels)
+
+        return labels, score
+
+    def _optimize(self, func, models_count):
+        """
+        Perform Bayesian optimization to find optimal weights.
+        
+        Args:
+            func: Scoring function that accepts weights
+            models_count: Number of models to optimize weights for
+            
+        Returns:
+            Array of optimized weights
+        """
+        search_space = [Real(0.0, 1.0, name=f'weight_{i}') for i in range(models_count)]
+
+        result = gp_minimize(
+            func,
+            search_space,
+            n_calls=self.max_iter,
+            random_state=self.seed,
+            verbose=False
+        )
+
+        # Return normalized weights
+        optimal_weights = np.array(result.x) / np.sum(result.x)
+        return optimal_weights
+
+
+class BlendingRegressor(BledingImplementation):  # !!
+    pass
 
 
 if __name__ == "__main__":
-    bld = BlendingImplementation()
+    bld = BlendingClassifier()
     bld.predict(input_data=None)
