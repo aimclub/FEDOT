@@ -53,7 +53,7 @@ class BlendingClassifier(BledingImplementation):
 
         # Getting optimal weights
         self.logger.info(f"Starting optimization with {models_count} models"
-                         "Obtained metric - {metric}.")
+                         f"Obtained metric - {self.metric}.")
 
         def score_func(weights):
             return self._get_score(weights, features, target, num_classes, num_samples, models_count)
