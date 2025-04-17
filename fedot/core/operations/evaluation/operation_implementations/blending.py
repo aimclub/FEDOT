@@ -11,7 +11,8 @@ from fedot.core.operations.evaluation. \
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.repository.metrics_repository import MetricsRepository, ClassificationMetricsEnum
+# from fedot.core.repository.metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from sklearn.metrics import accuracy_score as accuracy
 from golem.core.log import default_log
 
 
@@ -20,10 +21,14 @@ class BledingImplementation(ModelImplementation):  # !!
         super().__init__(params)
         self.max_iter = 50  # !!
         self.seed = 42      # !!
-        self.logger = default_log('Blending level')
-        self.metric = MetricsRepository.get_metric(ClassificationMetricsEnum.accuracy)  # !!
+        self.logger = default_log('Blending')
+        self.metric = accuracy
 
     def fit(self, input_data: InputData):
+        """ Blending does not provide fit method """
+        pass
+
+    def predict(self, input_data: InputData):
         """ Blending does not provide fit method """
         pass
 
@@ -42,18 +47,18 @@ class BlendingClassifier(BledingImplementation):
         Returns:
             OutputData: Labels of blended predictions
         """
+        # Add asserts and conditions
         # Constants
-        df = pd.read_csv(r"iris_gbm_stacking_preds.csv")  # !!!
+        df = pd.read_csv(r"C:\Users\user\Desktop\iris_gbm_stacking_preds.csv").head(44)  # !!!
         features = df.values  # !!!
-        target = input_data.target
+        target = pd.read_csv(r"C:\Users\user\Desktop\iris_target_03.csv")
 
         num_classes = 3  # !!!!
         num_samples = features.shape[0]
         models_count = features.shape[1] // num_classes  # !
 
         # Getting optimal weights
-        self.logger.info(f"Starting optimization with {models_count} models"
-                         f"Obtained metric - {self.metric}.")
+        self.logger.info(f"Starting optimization with {models_count} models. Obtained metric - accuracy.")  # !! hardcode metric
 
         def score_func(weights):
             return self._get_score(weights, features, target, num_classes, num_samples, models_count)
@@ -61,15 +66,17 @@ class BlendingClassifier(BledingImplementation):
         optimal_weights = self._optimize(func=score_func, models_count=models_count)
 
         # Getting predictions and score
-        predictions, score = self._get_score(weights=optimal_weights)
-        self.logger.info(f"Optimization result - {self.metric} = {abs(score)}."
+        predictions, score = self._get_score(
+            optimal_weights, features, target, num_classes, num_samples, models_count, outp_mode=True
+        )
+        self.logger.info(f"Optimization result - accuracy = {abs(score)}."  # !! hardcode metric
                          f"Models weights: {optimal_weights}")
 
         # Convert to OutputData and return
         output_data = self._convert_to_output(input_data=input_data, predict=predictions)
         return output_data
         
-    def _get_score(self, weights, features, target, num_classes, num_samples, models_count):
+    def _get_score(self, weights, features, target, num_classes, num_samples, models_count, outp_mode=False):
         """
         Calculate weighted average blending and evaluate its performance.
         
@@ -103,13 +110,14 @@ class BlendingClassifier(BledingImplementation):
         row_sums = result.sum(axis=1, keepdims=True)
         normalized_result = result / row_sums
 
-        # !!!!!! протестировать это
         labels = np.argmax(normalized_result, axis=1)
-
         # !!temporal negative score because accuracy as default!!
         score = -self.metric(target, labels)
 
-        return labels, score
+        if outp_mode:
+            return labels, score
+
+        return score
 
     def _optimize(self, func, models_count):
         """
