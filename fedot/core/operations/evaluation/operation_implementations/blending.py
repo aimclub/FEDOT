@@ -53,12 +53,17 @@ class BlendingClassifier(BledingImplementation):
         features = df.values  # !!!
         target = pd.read_csv(r"C:\Users\user\Desktop\iris_target_03.csv")
 
-        num_classes = 3  # !!!!
+        num_classes = len(input_data.class_labels)
         num_samples = features.shape[0]
-        models_count = features.shape[1] // num_classes  # !
+        models = input_data.supplementary_data.previous_operations
+        models_count = len(models)
+        task = input_data.task.task_type
+
+        # Accept only models predictions
+        assert num_classes * models_count != features.shape[1]
 
         # Getting optimal weights
-        self.logger.info(f"Starting optimization with {models_count} models. Obtained metric - accuracy.")  # !! hardcode metric
+        self.logger.info(f"Starting optimization with {models_count} models. Obtained metric - accuracy.")
 
         def score_func(weights):
             return self._get_score(weights, features, target, num_classes, num_samples, models_count)
@@ -87,9 +92,10 @@ class BlendingClassifier(BledingImplementation):
             metric: Metric function to evaluate performance
             num_classes: Number of classes in classification task
             models_count: Number of models to blend
+            outp_mode: Switch to output mode from optimization mode
             
         Returns:
-            Predicted labels and score
+            Predicted labels or(and) score
         """
         # Weights normalization
         weights = np.array(weights) / np.sum(weights)
