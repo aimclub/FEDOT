@@ -1,29 +1,23 @@
 from typing import Callable, Optional, Union, Tuple
 
 import numpy as np
-import pandas as pd
 from skopt import gp_minimize
 from skopt.space import Real
+from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum
-# from fedot.core.repository.metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from sklearn.metrics import accuracy_score as accuracy, root_mean_squared_log_error as rmse
-from golem.core.log import default_log
 
 
 class BlendingImplementation(ModelImplementation):
     """Base class for blending operations"""
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.max_iter = 50  # !!
-        self.seed = 42      # !!
-        self.logger = default_log('Blending')
-        self.metric = None  # !!
+        self.max_iter = 50
+        self.seed = 42
+        self.metric = None
         self.task_type = None
 
     def fit(self, input_data: InputData):
@@ -76,7 +70,7 @@ class BlendingClassifier(BlendingImplementation):
         Get prediction using weighted average blending strategy.
         
         Args:
-            input_data: InputData with models predictions
+            input_data: models predictions
             
         Returns:
             OutputData: Labels of blended predictions
@@ -90,29 +84,27 @@ class BlendingClassifier(BlendingImplementation):
         models_count = len(models)
 
         if features.shape[1] != num_classes * models_count:
-            self.logger.warning(
+            self.log.warning(
                 f"Feature dimensionality mismatch: expected {num_classes * models_count}, got {features.shape[1]}")
 
         # Weights optimization
-        self.logger.info(f"Starting optimization with {models_count} models: {models}. Obtained metric - !!!.")
+        self.log.info(f"Starting optimization with models: {models}. Obtained metric - Accuracy.")
 
         def score_func(weights):
             return self._get_score(weights, features, target, num_classes, num_samples, models_count)
         
-        optimal_weights = self._optimize(func=score_func, models_count=models_count)
-
+        optimal_weights = self._optimize(func=score_func, models_count=models_count).round(6)
         # Get predictions and score
-        predictions, score = self._get_score(
+        labels, score = self._get_score(
             optimal_weights, features, target, num_classes, num_samples, models_count, outp_mode=True
         )
         model_weight_dict = dict(zip(models, optimal_weights))
-        self.logger.info(f"Optimization result - accuracy = {abs(score)}."  # !! hardcode metric
-                         f"Models weights: {model_weight_dict}")
+        self.log.info(f"Optimization result - accuracy = {abs(score)}. Models weights: {model_weight_dict}")
 
         # Convert to OutputData and return
-        output_data = self._convert_to_output(input_data=input_data, predict=predictions)
+        output_data = self._convert_to_output(input_data=input_data, predict=labels)
         return output_data
-        
+
     def _get_score(
             self, weights: np.ndarray, features: np.ndarray, target: np.ndarray,
             num_classes: int, num_samples: int, models_count: int, outp_mode=False) -> Union[
@@ -127,7 +119,7 @@ class BlendingClassifier(BlendingImplementation):
             num_classes: Number of classes in classification task
             models_count: Number of models to blend
             outp_mode: Switch to output mode from optimization mode
-            
+
         Returns:
             Predicted labels or(and) score
         """
@@ -148,10 +140,10 @@ class BlendingClassifier(BlendingImplementation):
 
         # Result normalization
         row_sums = result.sum(axis=1, keepdims=True)
-        normalized_result = result / row_sums
+        probs = result / row_sums
 
-        labels = np.argmax(normalized_result, axis=1)
-        # Because gp_minimize is minimizing operation !!! look at metric
+        labels = np.argmax(probs, axis=1)
+        # Because gp_minimize is minimizing operation
         score = -self.metric(target, labels)
 
         if outp_mode:
@@ -165,7 +157,7 @@ class BlendingRegressor(BlendingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.metric = rmse
+        self.metric = mse
         self.task_type = 'regression'
 
     def predict(self, input_data: InputData) -> OutputData:
@@ -186,7 +178,7 @@ class BlendingRegressor(BlendingImplementation):
         models_count = len(models)
 
         # Weights optimization
-        self.logger.info(f"Starting optimization with {models_count} models: {models}. Obtained metric - !!!.")
+        self.log.info(f"Starting optimization with models: {models}. Obtained metric - MSE.")
 
         def score_func(weights):
             return self._get_score(weights, features, target, num_samples, models_count)
@@ -198,8 +190,7 @@ class BlendingRegressor(BlendingImplementation):
             optimal_weights, features, target, num_samples, models_count, outp_mode=True
         )
         model_weight_dict = dict(zip(models, optimal_weights))
-        self.logger.info(f"Optimization result - accuracy = {abs(score)}."  # !! hardcode metric
-                         f"Models weights: {model_weight_dict}")
+        self.log.info(f"Optimization result - MSE = {abs(score)}. Models weights: {model_weight_dict}")
 
         # Convert to OutputData and return
         output_data = self._convert_to_output(input_data=input_data, predict=predictions)
@@ -230,7 +221,7 @@ class BlendingRegressor(BlendingImplementation):
         for model_idx in range(models_count):
             predictions += weights[model_idx] * features[:, model_idx]
 
-        # Because gp_minimize is minimizing operation !!! look at metric
+        # Because gp_minimize is minimizing operation
         score = -self.metric(target, predictions)
 
         if outp_mode:
