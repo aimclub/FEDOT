@@ -1,17 +1,15 @@
+import logging
 from itertools import chain
 from typing import Optional
-from golem.core.log import default_log
 
 import numpy as np
 
 try:
     from gph import ripser_parallel as ripser
 except ModuleNotFoundError:
-    default_log('ModuleNotFoundError').debug(
-        "Topological features operation requires extra dependencies for time series forecasting, which are not"
-        " installed. It can infuence the performance. Please install it by 'pip install fedot[extra]'"
-    )
-
+    logging.log(100,
+                "Topological features operation requires extra dependencies for time series forecasting, which are not"
+                " installed. It can infuence the performance. Please install it by 'pip install fedot[extra]'")
 
 from joblib import Parallel, delayed
 
