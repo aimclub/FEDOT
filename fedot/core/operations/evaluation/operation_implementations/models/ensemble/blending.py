@@ -160,8 +160,8 @@ class BlendingClassifier(BlendingImplementation):
 
         labels = np.argmax(probs, axis=1)
 
-        # If target is None, then return only labels for prediction,
-        # else it is optimizing mode
+        # If `target` is None, return predicted labels only (inference mode).
+        # Otherwise, proceed with optimization (training mode).
         if target is not None:
             score = -self.metric(target, labels)  # gp_minimize is minimizing operation
         else:
