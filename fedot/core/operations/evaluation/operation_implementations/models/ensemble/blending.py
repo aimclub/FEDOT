@@ -1,6 +1,7 @@
 from typing import Callable, Optional, Union, Tuple
 
 import numpy as np
+from golem.core.log import default_log
 from skopt import gp_minimize
 from skopt.space import Real
 from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
@@ -19,18 +20,72 @@ class BlendingImplementation(ModelImplementation):
         self.seed = 42
         self.metric = None
         self.task_type = None
+        self.weights = None
+        self.score_func = None
+        self.log = default_log('Blending')
 
     def fit(self, input_data: InputData):
         """
-        Blending does not provide fit method
+        Fitting weights for weight-average blending strategy.
+
+        Args:
+            input_data: InputData with models predictions
+
         """
-        pass
+        num_predictions = input_data.features.shape[1]
+        num_classes = len(input_data.class_labels)
+        num_samples = input_data.features.shape[0]
+        models = input_data.supplementary_data.previous_operations
+        models_count = len(models)
+
+        if self.task_type == 'classification' and num_predictions != num_classes * models_count:
+            self.log.warning(
+                f"Feature dimensionality mismatch: expected {num_classes * models_count}, got {num_predictions}")
+
+        # Weights optimization
+        self.log.message(f"Starting optimization with models: {models}. "
+                      f"Obtained metric - {self.metric.__name__}.")
+
+        def score_func(weights):
+            return self.score_func(
+                weights=weights,
+                features=input_data.features,
+                num_classes=num_classes,
+                num_samples=num_samples,
+                models_count=models_count,
+                target=input_data.target
+            )
+
+        optimized_weights = self._optimize(func=score_func, models_count=models_count).round(6)
+
+        # Set optimized weights
+        score = score_func(optimized_weights)
+        model_weight_dict = dict(zip(models, optimized_weights))
+        self.log.message(f"Optimization result - {self.metric.__name__} = {abs(score)}. "
+                      f"Models weights: {model_weight_dict}")
+
+        self.weights = optimized_weights
 
     def predict(self, input_data: InputData):
         """
-        Abstract method to be implemented in child classes
+        Get prediction using weighted average blending strategy.
+
+        Args:
+            input_data: InputData with models predictions
+
+        Returns:
+            OutputData: Blended predictions
         """
-        raise NotImplementedError("Implement in child class")
+        labels = self.score_func(
+            weights=self.weights,
+            features=input_data.features,
+            num_classes=len(input_data.class_labels),
+            num_samples=input_data.features.shape[0],
+            models_count=len(input_data.supplementary_data.previous_operations)
+        )
+        # Convert to OutputData and return
+        output_data = self._convert_to_output(input_data=input_data, predict=labels)
+        return output_data
 
     def _optimize(self, func: Callable, models_count: int):
         """
@@ -54,8 +109,8 @@ class BlendingImplementation(ModelImplementation):
         )
 
         # Return normalized weights
-        optimal_weights = np.array(result.x) / np.sum(result.x)
-        return optimal_weights
+        optimized_weights = np.array(result.x) / np.sum(result.x)
+        return optimized_weights
 
 
 class BlendingClassifier(BlendingImplementation):
@@ -64,50 +119,11 @@ class BlendingClassifier(BlendingImplementation):
         super().__init__(params)
         self.metric = accuracy
         self.task_type = 'classification'
-
-    def predict(self, input_data: InputData) -> OutputData:
-        """
-        Get prediction using weighted average blending strategy.
-        
-        Args:
-            input_data: models predictions
-            
-        Returns:
-            OutputData: Labels of blended predictions
-        """
-        features = input_data.features
-        target = input_data.target
-
-        num_classes = len(input_data.class_labels)
-        num_samples = features.shape[0]
-        models = input_data.supplementary_data.previous_operations
-        models_count = len(models)
-
-        if features.shape[1] != num_classes * models_count:
-            self.log.warning(
-                f"Feature dimensionality mismatch: expected {num_classes * models_count}, got {features.shape[1]}")
-
-        # Weights optimization
-        self.log.info(f"Starting optimization with models: {models}. Obtained metric - Accuracy.")
-
-        def score_func(weights):
-            return self._get_score(weights, features, target, num_classes, num_samples, models_count)
-        
-        optimal_weights = self._optimize(func=score_func, models_count=models_count).round(6)
-        # Get predictions and score
-        labels, score = self._get_score(
-            optimal_weights, features, target, num_classes, num_samples, models_count, outp_mode=True
-        )
-        model_weight_dict = dict(zip(models, optimal_weights))
-        self.log.info(f"Optimization result - accuracy = {abs(score)}. Models weights: {model_weight_dict}")
-
-        # Convert to OutputData and return
-        output_data = self._convert_to_output(input_data=input_data, predict=labels)
-        return output_data
+        self.score_func = self._get_score
 
     def _get_score(
-            self, weights: np.ndarray, features: np.ndarray, target: np.ndarray,
-            num_classes: int, num_samples: int, models_count: int, outp_mode=False) -> Union[
+            self, weights: np.ndarray, features: np.ndarray, num_classes: int,
+            num_samples: int, models_count: int, target: np.ndarray=None) -> Union[
         float, Tuple[np.ndarray, float]]:
         """
         Calculate weighted average blending and evaluate its performance.
@@ -143,11 +159,13 @@ class BlendingClassifier(BlendingImplementation):
         probs = result / row_sums
 
         labels = np.argmax(probs, axis=1)
-        # Because gp_minimize is minimizing operation
-        score = -self.metric(target, labels)
 
-        if outp_mode:
-            return labels, score
+        # If target is None, then return only labels for prediction,
+        # else it is optimizing mode
+        if target is not None:
+            score = -self.metric(target, labels)  # gp_minimize is minimizing operation
+        else:
+            return labels
 
         return score
 
@@ -159,42 +177,7 @@ class BlendingRegressor(BlendingImplementation):
         super().__init__(params)
         self.metric = mse
         self.task_type = 'regression'
-
-    def predict(self, input_data: InputData) -> OutputData:
-        """
-        Get prediction using weighted average blending strategy for regression.
-
-        Args:
-            input_data: InputData with models predictions
-
-        Returns:
-            OutputData: Blended regression predictions
-        """
-        features = input_data.features
-        target = input_data.target
-
-        num_samples = features.shape[0]
-        models = input_data.supplementary_data.previous_operations
-        models_count = len(models)
-
-        # Weights optimization
-        self.log.info(f"Starting optimization with models: {models}. Obtained metric - MSE.")
-
-        def score_func(weights):
-            return self._get_score(weights, features, target, num_samples, models_count)
-
-        optimal_weights = self._optimize(func=score_func, models_count=models_count)
-
-        # Get predictions and score
-        predictions, score = self._get_score(
-            optimal_weights, features, target, num_samples, models_count, outp_mode=True
-        )
-        model_weight_dict = dict(zip(models, optimal_weights))
-        self.log.info(f"Optimization result - MSE = {abs(score)}. Models weights: {model_weight_dict}")
-
-        # Convert to OutputData and return
-        output_data = self._convert_to_output(input_data=input_data, predict=predictions)
-        return output_data
+        self.score_func = self._get_score
 
     def _get_score(self, weights: np.ndarray, features: np.ndarray, target: np.ndarray,
                    num_samples: int, models_count: int, outp_mode: bool = False) -> Union[
