@@ -32,7 +32,7 @@ class BlendingImplementation(ModelImplementation):
             input_data: InputData with models predictions
 
         """
-        if not self.score_func:
+        if self.score_func is None:
             raise ValueError('There is no score function to be optimized. '
                              'Use `regression` or `classification` blending implementations')
 
@@ -80,7 +80,7 @@ class BlendingImplementation(ModelImplementation):
         Returns:
             OutputData: Blended predictions
         """
-        if not self.weights:
+        if self.weights is None:
             raise ValueError('Blending weights are not initialized. Call fit() first.')
 
         # Get predictions
