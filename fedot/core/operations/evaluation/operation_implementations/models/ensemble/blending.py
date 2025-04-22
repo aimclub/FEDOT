@@ -60,11 +60,10 @@ class BlendingImplementation(ModelImplementation):
                 target=input_data.target
             )
 
-        optimized_weights = self._optimize(func=score_func_wrap, models_count=models_count).round(6)
+        optimized_weights, score = self._optimize(func=score_func_wrap, models_count=models_count)
 
         # Set optimized weights
-        score = score_func_wrap(optimized_weights)
-        model_weight_dict = dict(zip(models, optimized_weights))
+        model_weight_dict = dict(zip(models, optimized_weights.round(6)))
         self.log.message(f"Optimization result - {self.metric.__name__} = {round(abs(score), 4)}. "
                       f"Models weights: {model_weight_dict}")
 
@@ -116,9 +115,9 @@ class BlendingImplementation(ModelImplementation):
             verbose=False
         )
 
-        # Return normalized weights
+        # Return normalized weights and best score
         optimized_weights = np.array(result.x) / np.sum(result.x)
-        return optimized_weights
+        return optimized_weights, result.fun
 
 
 class BlendingClassifier(BlendingImplementation):
@@ -153,7 +152,7 @@ class BlendingClassifier(BlendingImplementation):
         result = np.zeros((num_samples, num_classes))
         for class_idx in range(num_classes):
             # Get prediction for current class from all models
-            class_preds = np.zeros((num_samples, num_classes))
+            class_preds = np.zeros((num_samples, models_count))
             for model_idx in range(models_count):
                 col_idx = model_idx * num_classes + class_idx
                 class_preds[:, model_idx] = features[:, col_idx]

@@ -170,22 +170,6 @@
         "ml"
       ],
       "tasks": "[TaskTypesEnum.classification]"
-    },
-    "ensemble_regr": {
-      "accepted_node_types": [
-        "any"
-      ],
-      "description": "Implementations of the ensemble methods for regression",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.ensemble",
-        "EnsembleStrategy"
-      ],
-      "tags": [
-        "ml"
-      ],
-      "tasks": "[TaskTypesEnum.regression]"
     }
   },
   "operations": {
@@ -551,9 +535,6 @@
         "tags": [
           "non-default"
         ]
-    },
-    "blend_reg": {
-        "meta": "ensemble_method"
     }
   }
 }
