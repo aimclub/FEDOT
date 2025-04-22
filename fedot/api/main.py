@@ -1,5 +1,4 @@
 import logging
-import re
 from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
@@ -542,53 +541,6 @@ class Fedot:
 
         report = pd.DataFrame(data=report.values(), index=report.keys())
         return report.iloc[:, 0].dt.components.iloc[:, :-2]
-
-    def leaderboard(self):
-        """ Print leaderboard of generations """
-        try:
-            leaderboard = self.history.get_leaderboard()
-            lines = leaderboard.strip().split('\n')
-            rows = []
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                if '|' in line:
-                    # to split by |
-                    parts = [p.strip() for p in line.split('|')]
-                    if parts[0].startswith('Position'):
-                        continue  # to make header
-                    position_gen = parts[0].split()
-                    if len(position_gen) == 2:
-                        position, fitness = position_gen
-                        generation = '-'
-                    else:
-                        position = position_gen[0]
-                        fitness = '-'
-                        generation = '-'
-                    graph = parts[-1]
-                else:
-                    parts = re.split(r',(?![^{]*})', line)
-                    if len(parts) >= 4:
-                        position = parts[0].strip()
-                        fitness = parts[1].strip()
-                        generation = parts[2].strip()
-                        graph = ','.join(parts[3:]).strip()
-                    else:
-                        continue
-                rows.append({
-                    'Position': position,
-                    'Fitness': float(fitness),
-                    'Generation': generation,
-                    'Graph': graph
-                })
-
-            df = pd.DataFrame(rows)
-            return df
-
-        except Exception as e:
-            self.log.message('Failed to parse leaderboard.')
-            raise ValueError("Failed to parse leaderboard due to unexpected error.") from e
 
     @staticmethod
     def _init_logger(logging_level: int):
