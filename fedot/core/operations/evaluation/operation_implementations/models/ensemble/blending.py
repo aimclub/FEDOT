@@ -26,12 +26,16 @@ class BlendingImplementation(ModelImplementation):
 
     def fit(self, input_data: InputData):
         """
-        Fitting weights for weight-average blending strategy.
+        Fits weights for weighted-average blending of model predictions.
 
         Args:
             input_data: InputData with models predictions
 
         """
+        if not self.score_func:
+            raise ValueError('There is no score function to be optimized. '
+                             'Use `regression` or `classification` blending implementations')
+
         num_predictions = input_data.features.shape[1]
         num_classes = len(input_data.class_labels)
         num_samples = input_data.features.shape[0]
@@ -39,14 +43,14 @@ class BlendingImplementation(ModelImplementation):
         models_count = len(models)
 
         if self.task_type == 'classification' and num_predictions != num_classes * models_count:
-            self.log.warning(
-                f"Feature dimensionality mismatch: expected {num_classes * models_count}, got {num_predictions}")
+            raise ValueError(f"Feature dimensionality mismatch: "
+                             f"expected {num_classes * models_count}, got {num_predictions}")
 
         # Weights optimization
-        self.log.message(f"Starting optimization with models: {models}. "
+        self.log.message(f"Starting weights optimization for models: {models}. "
                       f"Obtained metric - {self.metric.__name__}.")
 
-        def score_func(weights):
+        def score_func_wrap(weights):
             return self.score_func(
                 weights=weights,
                 features=input_data.features,
@@ -56,12 +60,12 @@ class BlendingImplementation(ModelImplementation):
                 target=input_data.target
             )
 
-        optimized_weights = self._optimize(func=score_func, models_count=models_count).round(6)
+        optimized_weights = self._optimize(func=score_func_wrap, models_count=models_count).round(6)
 
         # Set optimized weights
-        score = score_func(optimized_weights)
+        score = score_func_wrap(optimized_weights)
         model_weight_dict = dict(zip(models, optimized_weights))
-        self.log.message(f"Optimization result - {self.metric.__name__} = {abs(score)}. "
+        self.log.message(f"Optimization result - {self.metric.__name__} = {round(abs(score), 4)}. "
                       f"Models weights: {model_weight_dict}")
 
         self.weights = optimized_weights
@@ -76,6 +80,10 @@ class BlendingImplementation(ModelImplementation):
         Returns:
             OutputData: Blended predictions
         """
+        if not self.weights:
+            raise ValueError('Blending weights are not initialized. Call fit() first.')
+
+        # Get predictions
         labels = self.score_func(
             weights=self.weights,
             features=input_data.features,
@@ -134,10 +142,9 @@ class BlendingClassifier(BlendingImplementation):
             target: True target values
             num_classes: Number of classes in classification task
             models_count: Number of models to blend
-            outp_mode: Switch to output mode from optimization mode
 
         Returns:
-            Predicted labels or(and) score
+            Predicted labels or score
         """
         # Weights normalization
         weights = np.array(weights) / np.sum(weights)
@@ -179,8 +186,8 @@ class BlendingRegressor(BlendingImplementation):
         self.task_type = 'regression'
         self.score_func = self._get_score
 
-    def _get_score(self, weights: np.ndarray, features: np.ndarray, target: np.ndarray,
-                   num_samples: int, models_count: int, outp_mode: bool = False) -> Union[
+    def _get_score(self, weights: np.ndarray, features: np.ndarray,
+                   num_samples: int, models_count: int, target: np.ndarray = None) -> Union[
         float, Tuple[np.ndarray, float]]:
         """
         Calculate weighted average blending and evaluate its performance for regression.
@@ -191,10 +198,9 @@ class BlendingRegressor(BlendingImplementation):
             target: True target values
             num_samples: Number of samples
             models_count: Number of models to blend
-            outp_mode: Switch to output mode from optimization mode
 
         Returns:
-            Predicted values or(and) score
+            Predicted values or score
         """
         # Weights normalization
         weights = np.array(weights) / np.sum(weights)
@@ -204,10 +210,11 @@ class BlendingRegressor(BlendingImplementation):
         for model_idx in range(models_count):
             predictions += weights[model_idx] * features[:, model_idx]
 
-        # Because gp_minimize is minimizing operation
-        score = -self.metric(target, predictions)
-
-        if outp_mode:
-            return predictions, score
+        # If `target` is None, return predicted labels only (inference mode).
+        # Otherwise, proceed with optimization (training mode).
+        if target is not None:
+            score = -self.metric(target, predictions)  # gp_minimize is minimizing operation
+        else:
+            return predictions
 
         return score
