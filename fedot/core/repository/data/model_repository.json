@@ -155,8 +155,11 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
     },
-    "ensemble_method": {
-      "description": "Implementations of the ensemble methods",
+    "ensemble_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of the ensemble methods for classification",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
@@ -164,9 +167,25 @@
         "EnsembleStrategy"
       ],
       "tags": [
-        "non-default"
+        "ml"
       ],
-      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification"
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "ensemble_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of the ensemble methods for regression",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.ensemble",
+        "EnsembleStrategy"
+      ],
+      "tags": [
+        "ml"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
     }
   },
   "operations": {
@@ -528,7 +547,10 @@
         ]
 	},
     "blend_clf": {
-        "meta": "ensemble_method"
+        "meta": "ensemble_class",
+        "tags": [
+          "non-default"
+        ]
     },
     "blend_reg": {
         "meta": "ensemble_method"
