@@ -34,7 +34,7 @@ class EnsembleStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         if is_multi_output_task(train_data):
-            raise ValueError(f'Ensemble methods not support multi-output task')
+            raise ValueError(f'Ensemble methods do not support multi-output tasks.')
 
         operation_implementation = self.operation_impl(self.params_for_fit)
 
@@ -45,5 +45,10 @@ class EnsembleStrategy(EvaluationStrategy):
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         prediction = trained_operation.predict(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
-        return self._convert_to_output(prediction, predict_data)
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        prediction = trained_operation.predict_for_fit(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted

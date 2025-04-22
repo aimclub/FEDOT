@@ -122,15 +122,18 @@ class ClassificationAssumptions(TaskAssumptions):
             # .join_branches('forward') \
             # .add_branch('catboost', 'xgboost', 'lgbm') \
             # .join_branches('logit'),
+            #
+            # 'gbm_stacking': PipelineBuilder()
+            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
 
-            'gbm_stacking': PipelineBuilder()
+            'gbm_blending': PipelineBuilder()
             .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
 
-            'catboost': PipelineBuilder().add_node('catboost'),
-            'xgboost': PipelineBuilder().add_node('xgboost'),
-            'lgbm': PipelineBuilder().add_node('lgbm'),
-            'rf': PipelineBuilder().add_node('rf'),
-            'logit': PipelineBuilder().add_node('logit'),
+            # 'catboost': PipelineBuilder().add_node('catboost'),
+            # 'xgboost': PipelineBuilder().add_node('xgboost'),
+            # 'lgbm': PipelineBuilder().add_node('lgbm'),
+            # 'rf': PipelineBuilder().add_node('rf'),
+            # 'logit': PipelineBuilder().add_node('logit'),
         }
 
     def ensemble_operation(self) -> str:
