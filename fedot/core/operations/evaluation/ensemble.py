@@ -49,6 +49,8 @@ class EnsembleStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if len(predict_data.class_labels) == 2:  # if binary classification task
+            expand_binary_input(predict_data)
         prediction = trained_operation.predict(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
@@ -63,16 +65,16 @@ def expand_binary_input(train_data: InputData) -> None:
     """Expands binary classification probabilities array by adding complementary probabilities.
 
     Example:
-        Before transformation (3 models): [P0_m1, P0_m2, P0_m3]
+        Before transformation (3 models): [P1_m1, P1_m2, P1_m3]
         After transformation: [P0_m1, P1_m1, P0_m2, P1_m2, P0_m3, P1_m3]
 
     Args:
-        train_data: InputData with P(class=0) probabilities for each model
+        train_data: InputData with P(class=1) probabilities for each model
 
     Returns:
         None: Modifies train_data.features in-place
     """
     full_probs_arr = np.zeros((train_data.features.shape[0], train_data.features.shape[1] * 2))
-    full_probs_arr[:, 0::2] = train_data.features  # Even columns (0, 2, 4...) - P(class=0)
-    full_probs_arr[:, 1::2] = 1 - train_data.features  # Odd columns (1, 3, 5...) - P(class=1)
+    full_probs_arr[:, 1::2] = train_data.features  # even columns (0, 2, 4...) - P(class=1)
+    full_probs_arr[:, 0::2] = 1 - train_data.features  # odd columns (1, 3, 5...) - P(class=0)
     train_data.features = full_probs_arr

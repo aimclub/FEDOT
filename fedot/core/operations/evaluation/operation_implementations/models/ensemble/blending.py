@@ -1,9 +1,8 @@
-from typing import Callable, Optional, Union, Tuple
+from typing import Optional, Union, Tuple
 
 import numpy as np
 from golem.core.log import default_log
-from skopt import gp_minimize
-from skopt.space import Real
+import optuna
 from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
 
 from fedot.core.data.data import InputData, OutputData
@@ -16,13 +15,15 @@ class BlendingImplementation(ModelImplementation):
     """Base class for blending operations"""
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
+        self.log = default_log('Blending')
+
         self.max_iter = 50
         self.seed = 42
         self.metric = None
         self.task_type = None
         self.weights = None
         self.score_func = None
-        self.log = default_log('Blending')
 
     def fit(self, input_data: InputData):
         """
@@ -50,9 +51,22 @@ class BlendingImplementation(ModelImplementation):
         self.log.message(f"Starting weights optimization for models: {models}. "
                       f"Obtained metric - {self.metric.__name__}.")
 
-        def score_func_wrap(weights):
+        def objective(trial):
+            # Suggest weights for each model
+            weights = [
+                trial.suggest_float(f'weight_{i}', 0.0, 1.0)
+                for i in range(models_count)
+            ]
+
+            # Normalize weights to sum to 1
+            weights = np.array(weights)
+            if np.sum(weights) == 0:
+                return float('-inf')  # Penalize zero weights
+
+            normalized_weights = weights / np.sum(weights)
+
             return self.score_func(
-                weights=weights,
+                weights=normalized_weights,
                 features=input_data.features,
                 num_classes=num_classes,
                 num_samples=num_samples,
@@ -60,11 +74,22 @@ class BlendingImplementation(ModelImplementation):
                 target=input_data.target
             )
 
-        optimized_weights, score = self._optimize(func=score_func_wrap, models_count=models_count)
+        # Create and run Optuna study
+        study = optuna.create_study(
+            direction="maximize",
+            sampler=optuna.samplers.TPESampler(seed=self.seed),
+            pruner=optuna.pruners.MedianPruner()
+        )
+        study.optimize(objective, n_trials=self.max_iter)
+        optimized_weights = np.array([
+            study.best_params[f'weight_{i}']
+            for i in range(models_count)
+        ])
+        optimized_weights /= np.sum(optimized_weights)
 
         # Set optimized weights
         model_weight_dict = dict(zip(models, optimized_weights.round(6)))
-        self.log.message(f"Optimization result - {self.metric.__name__} = {round(abs(score), 4)}. "
+        self.log.message(f"Optimization result - {self.metric.__name__} = {study.best_value:.4f}. "
                       f"Models weights: {model_weight_dict}")
 
         self.weights = optimized_weights
@@ -94,31 +119,6 @@ class BlendingImplementation(ModelImplementation):
         output_data = self._convert_to_output(input_data=input_data, predict=labels)
         return output_data
 
-    def _optimize(self, func: Callable, models_count: int):
-        """
-        Perform Bayesian optimization to find optimal weights.
-
-        Args:
-            func: Scoring function that accepts weights
-            models_count: Number of models to optimize weights for
-
-        Returns:
-            Array of optimized weights
-        """
-        search_space = [Real(0.0, 1.0, name=f'weight_{i}') for i in range(models_count)]
-
-        result = gp_minimize(
-            func,
-            search_space,
-            n_calls=self.max_iter,
-            random_state=self.seed,
-            verbose=False
-        )
-
-        # Return normalized weights and best score
-        optimized_weights = np.array(result.x) / np.sum(result.x)
-        return optimized_weights, result.fun
-
 
 class BlendingClassifier(BlendingImplementation):
     """Implementation of blending for classification tasks"""
@@ -145,11 +145,8 @@ class BlendingClassifier(BlendingImplementation):
         Returns:
             Predicted labels or score
         """
-        # Weights normalization
-        weights = np.array(weights) / np.sum(weights)
-
         # Get predictions
-        result = np.zeros((num_samples, num_classes))
+        probs = np.zeros((num_samples, num_classes))
         for class_idx in range(num_classes):
             # Get prediction for current class from all models
             class_preds = np.zeros((num_samples, models_count))
@@ -158,18 +155,14 @@ class BlendingClassifier(BlendingImplementation):
                 class_preds[:, model_idx] = features[:, col_idx]
 
             # Applying weighted average for current class
-            result[:, class_idx] = np.sum(class_preds * weights, axis=1)
-
-        # Result normalization
-        row_sums = result.sum(axis=1, keepdims=True)
-        probs = result / row_sums
+            probs[:, class_idx] = np.sum(class_preds * weights, axis=1)
 
         labels = np.argmax(probs, axis=1)
 
         # If `target` is None, return predicted labels only (inference mode).
         # Otherwise, proceed with optimization (training mode).
         if target is not None:
-            score = -self.metric(target, labels)  # gp_minimize is minimizing operation
+            score = self.metric(target, labels)
         else:
             return labels
 
@@ -201,9 +194,6 @@ class BlendingRegressor(BlendingImplementation):
         Returns:
             Predicted values or score
         """
-        # Weights normalization
-        weights = np.array(weights) / np.sum(weights)
-
         # Get predictions by applying the weights
         predictions = np.zeros(num_samples)
         for model_idx in range(models_count):
@@ -212,7 +202,7 @@ class BlendingRegressor(BlendingImplementation):
         # If `target` is None, return predicted labels only (inference mode).
         # Otherwise, proceed with optimization (training mode).
         if target is not None:
-            score = -self.metric(target, predictions)  # gp_minimize is minimizing operation
+            score = -self.metric(target, predictions)  # minimizing operation for regr
         else:
             return predictions
 
