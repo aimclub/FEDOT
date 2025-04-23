@@ -1,14 +1,16 @@
 from typing import Optional, Union, Tuple
+from abc import abstractmethod
 
 import numpy as np
-from golem.core.log import default_log
 import optuna
+from golem.core.log import default_log
 from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class BlendingImplementation(ModelImplementation):
@@ -24,8 +26,9 @@ class BlendingImplementation(ModelImplementation):
         self.task_type = None
         self.weights = None
         self.score_func = None
+        self.output_mode = 'default'
 
-    def fit(self, input_data: InputData):
+    def fit(self, input_data: InputData) -> None:
         """
         Fits weights for weighted-average blending of model predictions.
 
@@ -94,30 +97,10 @@ class BlendingImplementation(ModelImplementation):
 
         self.weights = optimized_weights
 
-    def predict(self, input_data: InputData):
-        """
-        Get prediction using weighted average blending strategy.
-
-        Args:
-            input_data: InputData with models predictions
-
-        Returns:
-            OutputData: Blended predictions
-        """
-        if self.weights is None:
-            raise ValueError('Blending weights are not initialized. Call fit() first.')
-
-        # Get predictions
-        labels = self.score_func(
-            weights=self.weights,
-            features=input_data.features,
-            num_classes=len(input_data.class_labels),
-            num_samples=input_data.features.shape[0],
-            models_count=len(input_data.supplementary_data.previous_operations)
-        )
-        # Convert to OutputData and return
-        output_data = self._convert_to_output(input_data=input_data, predict=labels)
-        return output_data
+    @abstractmethod
+    def predict(self, input_data: InputData) -> OutputData:
+        """Abstract method. Should be override in child class"""
+        raise AbstractMethodNotImplementError
 
 
 class BlendingClassifier(BlendingImplementation):
@@ -128,10 +111,60 @@ class BlendingClassifier(BlendingImplementation):
         self.task_type = 'classification'
         self.score_func = self._get_score
 
+    def predict(self, input_data: InputData) -> OutputData:
+        """
+        Get labels using weighted average blending strategy.
+
+        Args:
+            input_data: InputData with models predictions
+
+        Returns:
+            OutputData: Labels of classes
+        """
+        if self.weights is None:
+            raise ValueError('Blending weights are not initialized. Call fit() first.')
+
+        # Get predictions
+        labels, _ = self.score_func(
+            weights=self.weights,
+            features=input_data.features,
+            num_classes=len(input_data.class_labels),
+            num_samples=input_data.features.shape[0],
+            models_count=len(input_data.supplementary_data.previous_operations)
+        )
+        # Convert to OutputData and return
+        output_data = self._convert_to_output(input_data=input_data, predict=labels)
+        return output_data
+
+    def predict_proba(self, input_data: InputData) -> OutputData:
+        """
+        Get probabilities using weighted average blending strategy.
+
+        Args:
+            input_data: InputData with models predictions
+
+        Returns:
+            OutputData: Probabilities of classes
+        """
+        if self.weights is None:
+            raise ValueError('Blending weights are not initialized. Call fit() first.')
+
+        # Get predictions
+        _, probs = self.score_func(
+            weights=self.weights,
+            features=input_data.features,
+            num_classes=len(input_data.class_labels),
+            num_samples=input_data.features.shape[0],
+            models_count=len(input_data.supplementary_data.previous_operations)
+        )
+        # Convert to OutputData and return
+        output_data = self._convert_to_output(input_data=input_data, predict=probs)
+        return output_data
+
     def _get_score(
             self, weights: np.ndarray, features: np.ndarray, num_classes: int,
             num_samples: int, models_count: int, target: np.ndarray=None) -> Union[
-        float, Tuple[np.ndarray, float]]:
+        float, Tuple[np.ndarray, np.ndarray]]:
         """
         Calculate weighted average blending and evaluate its performance.
 
@@ -164,7 +197,7 @@ class BlendingClassifier(BlendingImplementation):
         if target is not None:
             score = self.metric(target, labels)
         else:
-            return labels
+            return labels, probs
 
         return score
 
