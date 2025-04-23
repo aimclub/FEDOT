@@ -1,5 +1,5 @@
 from typing import Optional
-
+from abc import abstractmethod
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
@@ -9,6 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ensemble.
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
 from fedot.utilities.random import ImplementationRandomStateHandler
+from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class EnsembleStrategy(EvaluationStrategy):
@@ -48,17 +49,45 @@ class EnsembleStrategy(EvaluationStrategy):
 
         return operation_implementation
 
+    @abstractmethod
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        if len(predict_data.class_labels) == 2:  # if binary classification task
-            expand_binary_input(predict_data)
-        prediction = trained_operation.predict(predict_data)
-        converted = self._convert_to_output(prediction, predict_data)
-        return converted
+        """This method used for prediction of the target data
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        prediction = trained_operation.predict_for_fit(predict_data)
-        converted = self._convert_to_output(prediction, predict_data)
-        return converted
+        Args:
+            trained_operation: operation object
+            predict_data: data to predict
+
+        Returns:
+            passed data with new predicted target
+        """
+        raise AbstractMethodNotImplementError
+
+
+class EnsembleClassificationStrategy(EnsembleStrategy):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if len(predict_data.class_labels) == 2:
+            expand_binary_input(predict_data)
+
+        if self.output_mode in ['labels']:
+            prediction = trained_operation.predict(predict_data)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_operation.predict_proba(predict_data)
+        else:
+            raise ValueError(f'Output mode {self.output_mode} is not supported')
+
+        return self._convert_to_output(prediction, predict_data)
+
+
+class EnsembleRegressionStrategy(EnsembleStrategy):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+        super().__init__(operation_type, params)
+
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        prediction = trained_operation.predict(predict_data)
+        return self._convert_to_output(prediction, predict_data)
 
 
 def expand_binary_input(train_data: InputData) -> None:

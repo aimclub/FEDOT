@@ -164,7 +164,7 @@
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.ensemble",
-        "EnsembleStrategy"
+        "EnsembleClassificationStrategy"
       ],
       "tags": [
         "ml"
@@ -524,17 +524,20 @@
       "output_type": "[DataTypesEnum.table]"
     },
     "custom": {
-		"meta": "custom_model",
-		"tags": [
-          "custom_model",
-          "non-default"
-        ]
+      "meta": "custom_model",
+      "tags": [
+        "custom_model",
+        "non-default"
+      ]
 	},
     "blend_clf": {
-        "meta": "ensemble_class",
-        "tags": [
-          "non-default"
-        ]
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "simple",
+        "linear",
+        "interpretable"
+      ]
     }
   }
 }
