@@ -42,11 +42,9 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
 
     path = os.path.join(str(fedot_project_root()), files_path)
 
-    if not os.path.exists(path):
-        raise FileNotFoundError(path)
-
     # unpacking of data archive
     unpack_archived_data(path)
+
     # import of table data
     data_num = InputData.from_json_files(path, fields_to_use=['votes', 'rating'],
                                          label='genres', task=task, is_multilabel=True, shuffle=False)

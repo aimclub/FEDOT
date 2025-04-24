@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
+from examples.real_cases.dataset_preparation import unpack_archived_data
 from fedot.core.data.data import InputData, get_df_from_csv
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -101,8 +102,8 @@ def test_with_custom_target():
 
 def test_data_from_json():
     # several features
-    files_path = os.path.join('test', 'data', 'multi_modal')
-    path = os.path.join(str(fedot_project_root()), files_path)
+    path = os.path.join(fedot_project_root(), 'examples', 'data', 'multimodal')
+    unpack_archived_data(path)
     data = InputData.from_json_files(path, fields_to_use=['votes', 'year'],
                                      label='rating', task=Task(TaskTypesEnum.regression))
     assert data.features.shape[1] == 2  # check there is two features
