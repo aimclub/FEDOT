@@ -107,6 +107,6 @@ def test_multi_modal_example():
 
 
 def test_full_multi_modal_example():
-    result = run_multi_modal_pipeline(files_path=os.path.join(fedot_project_root(), 'test', 'data', 'multi_modal'),
+    result = run_multi_modal_pipeline(files_path=os.path.join('examples', 'data', 'multimodal'),
                                       timeout=0.1, visualization=False)
     assert result > 0.1
