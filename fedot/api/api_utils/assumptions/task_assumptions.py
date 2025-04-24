@@ -91,9 +91,11 @@ class RegressionAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'rfr': PipelineBuilder().add_node('rfr'),
-            'ridge': PipelineBuilder().add_node('ridge'),
-            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
+            'gbm_blending': PipelineBuilder()
+            .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('blend_reg'),
+            # 'rfr': PipelineBuilder().add_node('rfr'),
+            # 'ridge': PipelineBuilder().add_node('ridge'),
+            # 'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
         }
 
     def ensemble_operation(self) -> str:

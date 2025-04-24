@@ -3,6 +3,7 @@ from abc import abstractmethod
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
@@ -41,7 +42,8 @@ class EnsembleStrategy(EvaluationStrategy):
 
         operation_implementation = self.operation_impl(self.params_for_fit)
 
-        if len(train_data.class_labels) == 2:  # if binary classification task
+        if train_data.task.task_type == TaskTypesEnum.classification \
+            and len(train_data.class_labels) == 2:  # if binary classification task
             expand_binary_input(train_data)
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
