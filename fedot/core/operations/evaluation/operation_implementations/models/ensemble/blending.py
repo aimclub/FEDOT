@@ -228,9 +228,7 @@ class BlendingRegressor(BlendingImplementation):
             Predicted values or score
         """
         # Get predictions by applying the weights
-        predictions = np.zeros(num_samples)
-        for model_idx in range(models_count):
-            predictions += weights[model_idx] * features[:, model_idx]
+        predictions = np.dot(features, weights)
 
         # If `target` is None, return predicted labels only (inference mode).
         # Otherwise, proceed with optimization (training mode).
