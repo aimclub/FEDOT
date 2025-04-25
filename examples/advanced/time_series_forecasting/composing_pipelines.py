@@ -74,7 +74,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
                       'series': time_series,
                       'label': 'Actual time series'})
 
-    rmse = mean_squared_error(test_target, predict, squared=False)
+    rmse = mean_squared_error(test_target, predict) ** 0.5
     mae = mean_absolute_error(test_target, predict)
 
     metrics_info['Metrics without composing'] = {'RMSE': round(rmse, 3),
@@ -117,7 +117,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
 
-    rmse = mean_squared_error(test_target, predict_after, squared=False)
+    rmse = mean_squared_error(test_target, predict_after) ** 0.5
     mae = mean_absolute_error(test_target, predict_after)
 
     metrics_info['Metrics after composing'] = {'RMSE': round(rmse, 3),

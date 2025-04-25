@@ -33,7 +33,7 @@ def cgru_forecasting():
                              'Border line')
     ]
 
-    rmse = mean_squared_error(test_data.target, prediction, squared=False)
+    rmse = mean_squared_error(test_data.target, prediction) ** 0.5
     mae = mean_absolute_error(test_data.target, prediction)
     print(f'RMSE - {rmse:.4f}')
     print(f'MAE - {mae:.4f}')

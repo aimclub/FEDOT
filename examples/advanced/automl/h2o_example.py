@@ -95,7 +95,7 @@ def h2o_ts_pipeline_evaluation(visualization=False):
                   'series': test_target,
                   'label': 'Test part'}]
     metrics_info = {}
-    rmse = mean_squared_error(test_target, test_pred, squared=False)
+    rmse = mean_squared_error(test_target, test_pred) ** 0.5
     mae = mean_absolute_error(test_target, test_pred)
 
     metrics_info['Metrics'] = {'RMSE': round(rmse, 3),

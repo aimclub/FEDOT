@@ -36,7 +36,7 @@ def custom_metric_for_synt_data(pipeline, fit_data, predict_data, **kwargs):
     pipeline.fit_from_scratch(fit_data)
     results = pipeline.predict(predict_data)
     error = mean_squared_error(y_true=results.target,
-                               y_pred=results.predict, squared=False)
+                               y_pred=results.predict) ** 0.5
     return error
 
 

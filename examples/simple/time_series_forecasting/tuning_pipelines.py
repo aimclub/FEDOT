@@ -34,7 +34,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
                       'series': np.concatenate([test_data.features, test_data.target]),
                       'label': 'Actual time series'})
 
-    rmse = mean_squared_error(test_target, predict, squared=False)
+    rmse = mean_squared_error(test_target, predict) ** 0.5
     mae = mean_absolute_error(test_target, predict)
 
     metrics_info['Metrics without tuning'] = {'RMSE': round(rmse, 3),
@@ -55,7 +55,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
         prediction_after = pipeline.predict(test_data)
         predict_after = np.ravel(np.array(prediction_after.predict))
 
-        rmse = mean_squared_error(test_target, predict_after, squared=False)
+        rmse = mean_squared_error(test_target, predict_after) ** 0.5
         mae = mean_absolute_error(test_target, predict_after)
 
         metrics_info['Metrics after tuning'] = {'RMSE': round(rmse, 3),

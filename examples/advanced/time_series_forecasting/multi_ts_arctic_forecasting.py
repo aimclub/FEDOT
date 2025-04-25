@@ -19,7 +19,7 @@ from fedot.core.repository.metrics_repository import \
 
 
 def calculate_metrics(target, predicted):
-    rmse = mean_squared_error(target, predicted, squared=True)
+    rmse = mean_squared_error(target, predicted) ** 0.5
     mae = mean_absolute_error(target, predicted)
     return rmse, mae
 

@@ -134,7 +134,7 @@ def test_arima_pipeline_fit_correct():
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
 
-    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
+    rmse_test = mean_squared_error(test_target, test_pred) ** 0.5
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
 
@@ -169,7 +169,7 @@ def test_simple_pipeline_forecast_correct():
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
-    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
+    rmse_test = mean_squared_error(test_target, test_pred) ** 0.5
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
 
@@ -198,7 +198,7 @@ def test_regression_multiscale_pipeline_forecast_correct():
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
-    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
+    rmse_test = mean_squared_error(test_target, test_pred) ** 0.5
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target,
                                                 is_strict=True)

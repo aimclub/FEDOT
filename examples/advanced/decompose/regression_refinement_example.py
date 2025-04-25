@@ -118,14 +118,14 @@ def run_river_experiment(file_path, with_tuning=False):
 
     y_data_test = np.ravel(y_data_test)
 
-    mse_value = mean_squared_error(y_data_test, r_preds, squared=False)
+    rmse_value = mean_squared_error(y_data_test, r_preds) ** 0.5
     mae_value = mean_absolute_error(y_data_test, r_preds)
-    print(f'RMSE with decompose - {mse_value:.2f}')
+    print(f'RMSE with decompose - {rmse_value:.2f}')
     print(f'MAE with decompose - {mae_value:.2f}\n')
 
-    mse_value_non = mean_squared_error(y_data_test, non_preds, squared=False)
+    rmse_value_non = mean_squared_error(y_data_test, non_preds) ** 0.5
     mae_value_non = mean_absolute_error(y_data_test, non_preds)
-    print(f'RMSE non decompose - {mse_value_non:.2f}')
+    print(f'RMSE non decompose - {rmse_value_non:.2f}')
     print(f'MAE non decompose - {mae_value_non:.2f}\n')
 
 

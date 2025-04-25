@@ -147,7 +147,7 @@ class RMSE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=False)
+                                  y_pred=predicted.predict) ** 0.5
 
 
 class MSE(QualityMetric):
@@ -156,7 +156,7 @@ class MSE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=True)
+                                  y_pred=predicted.predict)
 
 
 class MSLE(QualityMetric):

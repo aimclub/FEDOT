@@ -42,8 +42,8 @@ def test_gapfilling_problem():
     ridge_predicted = np.array(dataframe['ridge'])[gap_ids]
     composite_predicted = np.array(dataframe['composite'])[gap_ids]
 
-    rmse_ridge = mean_squared_error(actual, ridge_predicted, squared=False)
-    rmse_composite = mean_squared_error(actual, composite_predicted, squared=False)
+    rmse_ridge = mean_squared_error(actual, ridge_predicted) ** 0.5
+    rmse_composite = mean_squared_error(actual, composite_predicted) ** 0.5
 
     assert rmse_ridge < 40.0
     assert rmse_composite < 40.0

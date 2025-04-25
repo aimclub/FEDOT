@@ -203,6 +203,6 @@ def test_gap_filling_forward_ridge_metric_correct():
     predicted_values = without_gap[id_gaps]
     true_values = real_values[id_gaps]
 
-    rmse_test = mean_squared_error(true_values, predicted_values, squared=False)
+    rmse_test = mean_squared_error(true_values, predicted_values) ** 0.5
 
     assert rmse_test < 1.0
