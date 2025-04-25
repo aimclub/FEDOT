@@ -43,7 +43,7 @@ class EnsembleStrategy(EvaluationStrategy):
         operation_implementation = self.operation_impl(self.params_for_fit)
 
         if train_data.task.task_type == TaskTypesEnum.classification \
-            and len(train_data.class_labels) == 2:  # if binary classification task
+                and len(train_data.class_labels) == 2:  # if binary classification task
             expand_binary_input(train_data)
 
         with ImplementationRandomStateHandler(implementation=operation_implementation):
