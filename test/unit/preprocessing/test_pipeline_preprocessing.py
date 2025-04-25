@@ -81,8 +81,7 @@ def test_only_categorical_data_process_correctly():
     pipeline.fit(categorical_data)
     fitted_ridge = pipeline.nodes[0]
     coefficients = fitted_ridge.operation.fitted_operation.coef_
-    coefficients_shape = coefficients.shape
-    assert 5 == coefficients_shape[1]
+    assert 5 == coefficients.size
 
 
 def test_nans_columns_process_correctly():
@@ -96,9 +95,7 @@ def test_nans_columns_process_correctly():
     # Ridge should use only one feature to make prediction
     fitted_ridge = pipeline.nodes[0]
     coefficients = fitted_ridge.operation.fitted_operation.coef_
-    coefficients_shape = coefficients.shape
-
-    assert 1 == coefficients_shape[1]
+    assert 1 == coefficients.size
 
 
 def test_spaces_columns_process_correctly():
@@ -110,9 +107,7 @@ def test_spaces_columns_process_correctly():
 
     pipeline.fit(data_with_spaces)
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
-    coefficients_shape = coefficients.shape
-
-    assert 2 == coefficients_shape[1]
+    assert 2 == coefficients.size
 
 
 def test_data_with_nans_in_target_process_correctly():
@@ -177,7 +172,7 @@ def test_pipeline_with_imputer():
     # Coefficients for ridge regression
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
     # Linear must use 12 features - several of them are encoded ones
-    assert coefficients.shape[1] == 12
+    assert coefficients.size == 12
 
 
 def test_pipeline_with_encoder():
