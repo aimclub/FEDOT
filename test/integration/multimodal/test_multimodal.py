@@ -46,7 +46,7 @@ def get_simple_multimodal_data(task_type, data_type):
 
 
 def test_multi_modal_pipeline():
-    path = fedot_project_root().joinpath('test', 'data', 'multi_modal')
+    path = fedot_project_root().joinpath('examples', 'data', 'multimodal')
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
