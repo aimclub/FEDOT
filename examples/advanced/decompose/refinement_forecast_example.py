@@ -84,7 +84,7 @@ def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.a
 
 
 def display_metrics(test_part, predicted_values, pipeline_name):
-    mse = mean_squared_error(test_part.target, predicted_values)
+    mse = mean_squared_error(test_part.target, predicted_values) ** 0.5
     mae = mean_absolute_error(test_part.target, predicted_values)
     print(f'RMSE {pipeline_name} - {mse:.4f}')
     print(f'MAE {pipeline_name} - {mae:.4f}\n')

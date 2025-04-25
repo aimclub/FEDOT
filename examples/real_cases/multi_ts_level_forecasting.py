@@ -65,7 +65,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
     model.plot_prediction()
 
     print(f'MAE: {mean_absolute_error(target, forecast)}')
-    print(f'RMSE: {mean_squared_error(target, forecast)}')
+    print(f'RMSE: {mean_squared_error(target, forecast) ** 0.5}')
     print(f'MAPE: {mean_absolute_percentage_error(target, forecast)}')
 
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))

@@ -118,10 +118,10 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                          train_input=train_input,
                                          predict_input=predict_input)
 
-        mse_value = mean_squared_error(y_data_test, preds, squared=False)
+        rmse_value = mean_squared_error(y_data_test, preds) ** 0.5
         mae_value = mean_absolute_error(y_data_test, preds)
         print(f'Obtained metrics for current iteration {i}:')
-        print(f'RMSE - {mse_value:.2f}')
+        print(f'RMSE - {rmse_value:.2f}')
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
@@ -137,11 +137,11 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                                    train_input=train_input,
                                                    predict_input=predict_input)
 
-            mse_value = mean_squared_error(y_data_test, preds_tuned, squared=False)
+            rmse_value = mean_squared_error(y_data_test, preds_tuned) ** 0.5
             mae_value = mean_absolute_error(y_data_test, preds_tuned)
 
             print(f'Obtained metrics for current iteration {i} after tuning:')
-            print(f'RMSE - {mse_value:.2f}')
+            print(f'RMSE - {rmse_value:.2f}')
             print(f'MAE - {mae_value:.2f}\n')
 
         obtained_pipelines.append(obtained_models)
