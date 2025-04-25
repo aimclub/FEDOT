@@ -15,6 +15,7 @@ from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 class BlendingImplementation(ModelImplementation):
     """Base class for blending operations"""
+
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -52,7 +53,7 @@ class BlendingImplementation(ModelImplementation):
 
         # Weights optimization
         self.log.message(f"Starting weights optimization for models: {models}. "
-                      f"Obtained metric - {self.metric.__name__}.")
+                         f"Obtained metric - {self.metric.__name__}.")
 
         def objective(trial):
             # Suggest weights for each model
@@ -93,7 +94,7 @@ class BlendingImplementation(ModelImplementation):
         # Set optimized weights
         model_weight_dict = dict(zip(models, optimized_weights.round(6)))
         self.log.message(f"Optimization result - {self.metric.__name__} = {study.best_value:.4f}. "
-                      f"Models weights: {model_weight_dict}")
+                         f"Models weights: {model_weight_dict}")
 
         self.weights = optimized_weights
 
@@ -105,6 +106,7 @@ class BlendingImplementation(ModelImplementation):
 
 class BlendingClassifier(BlendingImplementation):
     """Implementation of blending for classification tasks"""
+
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.metric = accuracy
@@ -162,9 +164,9 @@ class BlendingClassifier(BlendingImplementation):
         return output_data
 
     def _get_score(
-            self, weights: np.ndarray, features: np.ndarray, num_classes: int,
-            num_samples: int, models_count: int, target: np.ndarray=None) -> Union[
-        float, Tuple[np.ndarray, np.ndarray]]:
+        self, weights: np.ndarray, features: np.ndarray, num_classes: int,
+        num_samples: int, models_count: int, target: np.ndarray = None) -> Union[
+            float, Tuple[np.ndarray, np.ndarray]]:
         """
         Calculate weighted average blending and evaluate its performance.
 
@@ -213,7 +215,7 @@ class BlendingRegressor(BlendingImplementation):
 
     def _get_score(self, weights: np.ndarray, features: np.ndarray,
                    num_samples: int, models_count: int, target: np.ndarray = None) -> Union[
-        float, Tuple[np.ndarray, float]]:
+            float, Tuple[np.ndarray, float]]:
         """
         Calculate weighted average blending and evaluate its performance for regression.
 
