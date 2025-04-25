@@ -146,8 +146,14 @@ class RMSE(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict) ** 0.5
+        # TODO: remove workaround when python3.8 (scikit-learn<1.6) support is no longer required
+        try:
+            from sklearn.metrics import root_mean_squared_error
+            return root_mean_squared_error(y_true=reference.target,
+                                           y_pred=predicted.predict)
+        except ImportError:
+            return mean_squared_error(y_true=reference.target,
+                                      y_pred=predicted.predict, squared=False)
 
 
 class MSE(QualityMetric):
