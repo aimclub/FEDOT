@@ -103,7 +103,7 @@ class TableTypesCorrector:
         is_nan = pd.isnull(data.features)
         columns_with_all_nan = np.all(is_nan, axis=0)
         empty_columns = np.where(columns_with_all_nan)[0]
-        if empty_columns:
+        if empty_columns.size > 0:
             for col in empty_columns:
                 self.string_columns_transformation_failed.setdefault(col, None)
 
@@ -408,7 +408,7 @@ def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:
     types, which column contains.
     """
     table_of_types = pd.DataFrame(table, copy=True)
-    table_of_types = table_of_types.replace({np.nan: None}).applymap(lambda el: TYPE_TO_ID[type(el)])
+    table_of_types = table_of_types.replace({np.nan: None}).map(lambda el: TYPE_TO_ID[type(el)])
 
     # Build dataframe with unique types for each column
     uniques = table_of_types.apply(pd.unique, result_type='reduce').to_frame(_TYPES).T
@@ -422,7 +422,7 @@ def define_column_types(table: Optional[np.ndarray]) -> pd.DataFrame:
     }
     types_counts = (
         table_of_types
-        .apply(pd.value_counts, dropna=False)
+        .apply(lambda col: col.value_counts(dropna=False))
         .reindex(counts_index_mapper.keys(), copy=False)  # Sets all type ids
         .replace(np.nan, 0)
         .rename(index=counts_index_mapper, copy=False)  # Renames all type ids to strs
