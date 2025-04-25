@@ -1,5 +1,4 @@
-from typing import Optional, Union, Tuple
-from abc import abstractmethod
+from typing import Optional, Union, Tuple, Callable
 
 import numpy as np
 import optuna
@@ -10,7 +9,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.utilities.custom_errors import AbstractMethodNotImplementError
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class BlendingImplementation(ModelImplementation):
@@ -41,8 +40,12 @@ class BlendingImplementation(ModelImplementation):
             raise ValueError('There is no score function to be optimized. '
                              'Use `regression` or `classification` blending implementations')
 
+        # Constants
         num_predictions = input_data.features.shape[1]
-        num_classes = len(input_data.class_labels)
+        if input_data.task.task_type == TaskTypesEnum.classification:
+            num_classes = len(input_data.class_labels)
+        else:
+            num_classes = None  # there is no classes for regression task
         num_samples = input_data.features.shape[0]
         models = input_data.supplementary_data.previous_operations
         models_count = len(models)
@@ -55,6 +58,7 @@ class BlendingImplementation(ModelImplementation):
         self.log.message(f"Starting weights optimization for models: {models}. "
                          f"Obtained metric - {self.metric.__name__}.")
 
+        # Optuna objective function
         def objective(trial):
             # Suggest weights for each model
             weights = [
@@ -69,15 +73,76 @@ class BlendingImplementation(ModelImplementation):
 
             normalized_weights = weights / np.sum(weights)
 
-            return self.score_func(
-                weights=normalized_weights,
-                features=input_data.features,
-                num_classes=num_classes,
-                num_samples=num_samples,
-                models_count=models_count,
-                target=input_data.target
-            )
+            score_args = {
+                'weights': normalized_weights,
+                'features': input_data.features,
+                'num_samples': num_samples,
+                'models_count': models_count,
+                'target': input_data.target
+            }
 
+            if self.task_type == 'classification':
+                score_args['num_classes'] = num_classes
+
+            return self.score_func(**score_args)
+
+        # Get optimized weights and score
+        optimized_weights, best_score = self._optuna_setup(objective, models_count)
+
+        # Set optimized weights
+        model_weight_dict = dict(zip(models, optimized_weights.round(6)))
+        self.log.message(f"Optimization result - {self.metric.__name__} = {best_score:.4f}. "
+                         f"Models weights: {model_weight_dict}")
+
+        self.weights = optimized_weights
+
+    def predict(self, input_data: InputData) -> OutputData:
+        """
+        Get predictions using weighted average blending strategy.
+
+        Args:
+            input_data: InputData with models predictions
+        Returns:
+            OutputData: Aggregated predictions
+        """
+        # Prepare common arguments
+        score_args = {
+            'weights': self.weights,
+            'features': input_data.features,
+            'num_samples': input_data.features.shape[0],
+            'models_count': len(input_data.supplementary_data.previous_operations)
+        }
+
+        # Add task-specific arguments
+        if self.task_type == 'classification':
+            score_args['num_classes'] = len(input_data.class_labels)
+
+        # Get predictions based on task type
+        result = self.score_func(**score_args)
+
+        # Process result based on task type
+        if self.task_type == 'classification':
+            labels, _ = result
+            output_data = self._convert_to_output(input_data=input_data, predict=labels)
+        else:  # regression
+            predictions = result
+            output_data = self._convert_to_output(input_data=input_data, predict=predictions)
+
+        return output_data
+
+    def _optuna_setup(self, objective: Callable, models_count: int) -> Tuple[np.ndarray, float]:
+        """
+        Set up and run Optuna optimization for model weights.
+
+        Args:
+            objective: Callable function that Optuna will optimize
+            models_count: Number of models in the ensemble
+
+        Returns:
+            Tuple containing:
+                - np.ndarray: Optimized and normalized weights for each model
+                - float: Best score achieved during optimization
+        """
         # Create and run Optuna study
         study = optuna.create_study(
             direction="maximize",
@@ -89,19 +154,11 @@ class BlendingImplementation(ModelImplementation):
             study.best_params[f'weight_{i}']
             for i in range(models_count)
         ])
+
         optimized_weights /= np.sum(optimized_weights)
+        best_score = study.best_value
 
-        # Set optimized weights
-        model_weight_dict = dict(zip(models, optimized_weights.round(6)))
-        self.log.message(f"Optimization result - {self.metric.__name__} = {study.best_value:.4f}. "
-                         f"Models weights: {model_weight_dict}")
-
-        self.weights = optimized_weights
-
-    @abstractmethod
-    def predict(self, input_data: InputData) -> OutputData:
-        """Abstract method. Should be override in child class"""
-        raise AbstractMethodNotImplementError
+        return optimized_weights, best_score
 
 
 class BlendingClassifier(BlendingImplementation):
@@ -113,31 +170,6 @@ class BlendingClassifier(BlendingImplementation):
         self.task_type = 'classification'
         self.score_func = self._get_score
 
-    def predict(self, input_data: InputData) -> OutputData:
-        """
-        Get labels using weighted average blending strategy.
-
-        Args:
-            input_data: InputData with models predictions
-
-        Returns:
-            OutputData: Labels of classes
-        """
-        if self.weights is None:
-            raise ValueError('Blending weights are not initialized. Call fit() first.')
-
-        # Get predictions
-        labels, _ = self.score_func(
-            weights=self.weights,
-            features=input_data.features,
-            num_classes=len(input_data.class_labels),
-            num_samples=input_data.features.shape[0],
-            models_count=len(input_data.supplementary_data.previous_operations)
-        )
-        # Convert to OutputData and return
-        output_data = self._convert_to_output(input_data=input_data, predict=labels)
-        return output_data
-
     def predict_proba(self, input_data: InputData) -> OutputData:
         """
         Get probabilities using weighted average blending strategy.
@@ -148,10 +180,6 @@ class BlendingClassifier(BlendingImplementation):
         Returns:
             OutputData: Probabilities of classes
         """
-        if self.weights is None:
-            raise ValueError('Blending weights are not initialized. Call fit() first.')
-
-        # Get predictions
         _, probs = self.score_func(
             weights=self.weights,
             features=input_data.features,
@@ -159,7 +187,7 @@ class BlendingClassifier(BlendingImplementation):
             num_samples=input_data.features.shape[0],
             models_count=len(input_data.supplementary_data.previous_operations)
         )
-        # Convert to OutputData and return
+
         output_data = self._convert_to_output(input_data=input_data, predict=probs)
         return output_data
 
@@ -213,9 +241,8 @@ class BlendingRegressor(BlendingImplementation):
         self.task_type = 'regression'
         self.score_func = self._get_score
 
-    def _get_score(self, weights: np.ndarray, features: np.ndarray,
-                   num_samples: int, models_count: int, target: np.ndarray = None) -> Union[
-            float, Tuple[np.ndarray, float]]:
+    def _get_score(self, weights: np.ndarray, features: np.ndarray, target: np.ndarray = None, **kwargs) -> Union[
+        float, np.ndarray]:
         """
         Calculate weighted average blending and evaluate its performance for regression.
 
@@ -224,7 +251,6 @@ class BlendingRegressor(BlendingImplementation):
             features: Array of models predictions
             target: True target values
             num_samples: Number of samples
-            models_count: Number of models to blend
 
         Returns:
             Predicted values or score

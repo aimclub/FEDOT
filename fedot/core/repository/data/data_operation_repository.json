@@ -621,11 +621,14 @@
     },
     "forward": {
       "meta": "custom_preprocessing",
-      "tags": [
-        "non-default",
+      "presets": [
         "fast_train",
         "ts",
         "*tree"
+      ],
+      "tags": [
+        "non-default",
+        "simple"
       ]
     }
   }
