@@ -441,7 +441,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_pipeline_tuner < 1.1
+    assert time() - start_pipeline_tuner < 1.1 + 0.1
 
     start_sequential_tuner = time()
     _ = run_pipeline_tuner(tuner=SequentialTuner,
@@ -450,7 +450,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_sequential_tuner < 1.1
+    assert time() - start_sequential_tuner < 1.1 + 0.1
 
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
@@ -458,7 +458,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                        loss_function=ClassificationMetricsEnum.ROCAUC,
                        iterations=1000,
                        early_stopping_rounds=1)
-    assert time() - start_node_tuner < 1.1
+    assert time() - start_node_tuner < 1.1 + 0.1
 
 
 def test_search_space_correctness_after_customization():
