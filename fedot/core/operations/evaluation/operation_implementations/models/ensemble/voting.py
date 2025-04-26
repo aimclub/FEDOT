@@ -8,9 +8,9 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class VotingClassifier(ModelImplementation):
-    """Hard voting implementation (majority voting)."""
+    """Hard and soft voting ensemble implementation"""
 
-    def __init__(self, params: Optional[OperationParameters] = None, strategy: str = 'hard'):
+    def __init__(self, params: Optional[OperationParameters] = None, strategy: str = 'soft'):
         super().__init__(params)
         allowed_strategies = ['hard', 'soft']
         if strategy not in allowed_strategies:
