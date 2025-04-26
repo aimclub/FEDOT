@@ -26,9 +26,8 @@ class BlendingImplementation(ModelImplementation):
         self.task_type = None
         self.weights = None
         self.score_func = None
-        self.output_mode = 'default'
 
-    def fit(self, input_data: InputData) -> None:
+    def fit(self, input_data: InputData):
         """
         Fits weights for weighted-average blending of model predictions.
 
@@ -41,18 +40,18 @@ class BlendingImplementation(ModelImplementation):
                              'Use `regression` or `classification` blending implementations')
 
         # Constants
-        num_predictions = input_data.features.shape[1]
+        n_preds = input_data.features.shape[1]
         if input_data.task.task_type == TaskTypesEnum.classification:
-            num_classes = len(input_data.class_labels)
+            n_classes = len(input_data.class_labels)
         else:
-            num_classes = None  # there is no classes for regression task
-        num_samples = input_data.features.shape[0]
+            n_classes = None  # there is no classes for regression task
+        n_samples = input_data.features.shape[0]
         models = input_data.supplementary_data.previous_operations
-        models_count = len(models)
+        n_models = len(models)
 
-        if self.task_type == 'classification' and num_predictions != num_classes * models_count:
+        if self.task_type == 'classification' and n_preds != n_classes * n_models:
             raise ValueError(f"Feature dimensionality mismatch: "
-                             f"expected {num_classes * models_count}, got {num_predictions}")
+                             f"expected {n_classes * n_models}, got {n_preds}")
 
         # Weights optimization
         self.log.message(f"Starting weights optimization for models: {models}. "
@@ -63,7 +62,7 @@ class BlendingImplementation(ModelImplementation):
             # Suggest weights for each model
             weights = [
                 trial.suggest_float(f'weight_{i}', 0.0, 1.0)
-                for i in range(models_count)
+                for i in range(n_models)
             ]
 
             # Normalize weights to sum to 1
@@ -76,25 +75,26 @@ class BlendingImplementation(ModelImplementation):
             score_args = {
                 'weights': normalized_weights,
                 'features': input_data.features,
-                'num_samples': num_samples,
-                'models_count': models_count,
+                'n_samples': n_samples,
+                'n_models': n_models,
                 'target': input_data.target
             }
 
             if self.task_type == 'classification':
-                score_args['num_classes'] = num_classes
+                score_args['n_classes'] = n_classes
 
             return self.score_func(**score_args)
 
         # Get optimized weights and score
-        optimized_weights, best_score = self._optuna_setup(objective, models_count)
+        optimized_weights, best_score = self._optuna_setup(objective, n_models)
 
         # Set optimized weights
         model_weight_dict = dict(zip(models, optimized_weights.round(6)))
-        self.log.message(f"Optimization result - {self.metric.__name__} = {best_score:.4f}. "
+        self.log.message(f"Optimization result on train set - {self.metric.__name__} = {best_score:.4f}. "
                          f"Models weights: {model_weight_dict}")
 
         self.weights = optimized_weights
+        return self
 
     def predict(self, input_data: InputData) -> OutputData:
         """
@@ -109,13 +109,13 @@ class BlendingImplementation(ModelImplementation):
         score_args = {
             'weights': self.weights,
             'features': input_data.features,
-            'num_samples': input_data.features.shape[0],
-            'models_count': len(input_data.supplementary_data.previous_operations)
+            'n_samples': input_data.features.shape[0],
+            'n_models': len(input_data.supplementary_data.previous_operations)
         }
 
         # Add task-specific arguments
         if self.task_type == 'classification':
-            score_args['num_classes'] = len(input_data.class_labels)
+            score_args['n_classes'] = len(input_data.class_labels)
 
         # Get predictions based on task type
         result = self.score_func(**score_args)
@@ -183,17 +183,17 @@ class BlendingClassifier(BlendingImplementation):
         _, probs = self.score_func(
             weights=self.weights,
             features=input_data.features,
-            num_classes=len(input_data.class_labels),
-            num_samples=input_data.features.shape[0],
-            models_count=len(input_data.supplementary_data.previous_operations)
+            n_classes=len(input_data.class_labels),
+            n_samples=input_data.features.shape[0],
+            n_models=len(input_data.supplementary_data.previous_operations)
         )
 
         output_data = self._convert_to_output(input_data=input_data, predict=probs)
         return output_data
 
     def _get_score(
-        self, weights: np.ndarray, features: np.ndarray, num_classes: int,
-        num_samples: int, models_count: int, target: np.ndarray = None) -> Union[
+        self, weights: np.ndarray, features: np.ndarray, n_classes: int,
+        n_samples: int, n_models: int, target: np.ndarray = None) -> Union[
             float, Tuple[np.ndarray, np.ndarray]]:
         """
         Calculate weighted average blending and evaluate its performance.
@@ -202,19 +202,19 @@ class BlendingClassifier(BlendingImplementation):
             weights: List of weights for each model
             features: Array of models predictions
             target: True target values
-            num_classes: Number of classes in classification task
-            models_count: Number of models to blend
+            n_classes: Number of classes in classification task
+            n_models: Number of models to blend
 
         Returns:
             Predicted labels or score
         """
         # Get predictions
-        probs = np.zeros((num_samples, num_classes))
-        for class_idx in range(num_classes):
+        probs = np.zeros((n_samples, n_classes))
+        for class_idx in range(n_classes):
             # Get prediction for current class from all models
-            class_preds = np.zeros((num_samples, models_count))
-            for model_idx in range(models_count):
-                col_idx = model_idx * num_classes + class_idx
+            class_preds = np.zeros((n_samples, n_models))
+            for model_idx in range(n_models):
+                col_idx = model_idx * n_classes + class_idx
                 class_preds[:, model_idx] = features[:, col_idx]
 
             # Applying weighted average for current class

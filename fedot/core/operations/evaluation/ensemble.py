@@ -3,6 +3,7 @@ from abc import abstractmethod
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.voting import VotingClassifier
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
@@ -30,6 +31,7 @@ class EnsembleStrategy(EvaluationStrategy):
     _operations_by_types = {
         'blend_clf': BlendingClassifier,
         'blend_reg': BlendingRegressor,
+        'voting': VotingClassifier
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -73,9 +75,9 @@ class EnsembleClassificationStrategy(EnsembleStrategy):
         if len(predict_data.class_labels) == 2:
             expand_binary_input(predict_data)
 
-        if self.output_mode in ['labels']:
+        if self.output_mode == 'labels' or isinstance(trained_operation, VotingClassifier):
             prediction = trained_operation.predict(predict_data)
-        elif self.output_mode in ['probs', 'full_probs', 'default']:
+        elif self.output_mode == 'default':
             prediction = trained_operation.predict_proba(predict_data)
         else:
             raise ValueError(f'Output mode {self.output_mode} is not supported')
