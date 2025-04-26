@@ -566,6 +566,26 @@
         "interpretable"
       ]
     },
+    "stack_clf": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "linear",
+        "interpretable"
+      ]
+    },
+    "stack_reg": {
+      "meta": "ensemble_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "linear",
+        "interpretable"
+      ]
+    },
     "voting": {
       "meta": "ensemble_class",
       "presets": ["fast_train"],

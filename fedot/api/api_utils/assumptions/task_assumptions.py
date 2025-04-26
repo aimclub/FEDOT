@@ -125,8 +125,8 @@ class ClassificationAssumptions(TaskAssumptions):
             # .add_branch('catboost', 'xgboost', 'lgbm') \
             # .join_branches('logit'),
             #
-            # 'gbm_stacking': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
+            'gbm_stacking': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
 
             # 'gbm_blending': PipelineBuilder()
             # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),

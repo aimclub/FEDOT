@@ -3,6 +3,8 @@ from abc import abstractmethod
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
+    StackingClassifier, StackingRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.voting import VotingClassifier
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -25,12 +27,17 @@ class EnsembleStrategy(EvaluationStrategy):
 
                 - ``blend_clf``-> BlendingClassifier
                 - ``blend_reg``-> BlendingRegressor
+                - ``stack_clf`` -> StackingClassifier
+                - ``stack_reg`` -> StackingRegressor
+                - ``voting`` -> VotingClassifier
 
         params: hyperparameters to fit the operation with
     """
     _operations_by_types = {
         'blend_clf': BlendingClassifier,
         'blend_reg': BlendingRegressor,
+        'stack_clf': StackingClassifier,
+        'stack_reg': StackingRegressor,
         'voting': VotingClassifier
     }
 
