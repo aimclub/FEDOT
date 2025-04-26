@@ -9,21 +9,14 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 
 from sklearn.linear_model import (
-    LinearRegression, Ridge, LogisticRegression
+    Ridge, LogisticRegression
 )
 
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
 
 class StackingIndustrialImplementation(ModelImplementation):
-    """Class ensemble predictions.
-
-    """
-    METHOD = {
-        'linreg': LinearRegression,
-        'ridge': Ridge,
-        'logit': LogisticRegression
-    }
+    """Class ensemble predictions."""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)

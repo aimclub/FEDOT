@@ -128,8 +128,11 @@ class ClassificationAssumptions(TaskAssumptions):
             # 'gbm_stacking': PipelineBuilder()
             # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
 
-            'gbm_blending': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
+            # 'gbm_blending': PipelineBuilder()
+            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
+
+            'gbm_voting': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('voting'),
 
             # 'catboost': PipelineBuilder().add_node('catboost'),
             # 'xgboost': PipelineBuilder().add_node('xgboost'),

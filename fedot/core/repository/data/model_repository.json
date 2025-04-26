@@ -565,6 +565,16 @@
         "linear",
         "interpretable"
       ]
+    },
+    "voting": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "linear",
+        "interpretable"
+      ]
     }
   }
 }
