@@ -595,6 +595,24 @@
         "linear",
         "interpretable"
       ]
+    },
+    "meta_dt": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "tree"
+      ]
+    },
+    "meta_dtreg": {
+      "meta": "ensemble_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "tree"
+      ]
     }
   }
 }
