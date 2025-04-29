@@ -1,23 +1,28 @@
-from typing import Collection, Optional, Sequence, Tuple, Union
-import os
 import csv
+import os
 from datetime import datetime
-from golem.core.log import is_test_session
-from fedot.core.utils import default_fedot_data_dir
+from typing import Collection, Optional, Sequence, Tuple, Union
+from uuid import uuid4
 
+from golem.core.log import is_test_session
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective.data_objective_eval import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_objective_eval import (
+    PipelineObjectiveEvaluate,
+)
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import (
+    PipelineComposerRequirements,
+)
+from fedot.core.utils import default_fedot_data_dir
 
 
 class GPComposer(Composer):
@@ -102,10 +107,11 @@ class GPComposer(Composer):
             return
 
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        uuid = uuid4()
         directory = os.path.join(f"{str(default_fedot_data_dir())}", "saved_cache_effectiveness")
         os.makedirs(directory, exist_ok=True)
 
-        predictions_file_path = os.path.join(directory, f"{timestamp}_predictions.csv")
+        predictions_file_path = os.path.join(directory, f"{timestamp}_predictions_{str(uuid)}.csv")
 
         # Write predictions cache data
         with open(predictions_file_path, "w", newline="") as f:
