@@ -117,8 +117,11 @@ class ClassificationAssumptions(TaskAssumptions):
         return {
             # 'bagging_dt': PipelineBuilder().add_node('bagging_dt'),
 
-            'gbm_bagging': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('bagging_dt'),
+            # 'gbm_bagging': PipelineBuilder()
+            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('bagging_dt'),
+
+            'gbm_meta_gbm': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('meta_gbm'),
 
             # 'gbm_stacking': PipelineBuilder()
             # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
