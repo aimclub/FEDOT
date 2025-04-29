@@ -115,27 +115,11 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            # 'gbm_hybrid_stacking': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm', 'forward')
-            # .join_branches('logit'),
-            #
-            # 'gbm_hybrid_2lvl_stacking': PipelineBuilder() \
-            # .add_branch('catboost', 'xgboost', 'lgbm', 'forward') \
-            # .join_branches('forward') \
-            # .add_branch('catboost', 'xgboost', 'lgbm') \
-            # .join_branches('logit'),
-            #
-            'gbm_mtd': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('meta_dt'),
+            # 'gbm_stacking': PipelineBuilder()
+            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
 
-            'gbm_stacking': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
-
-            # 'gbm_blending': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
-
-            'gbm_voting': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('voting'),
+            'gbm_blending': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
 
             # 'catboost': PipelineBuilder().add_node('catboost'),
             # 'xgboost': PipelineBuilder().add_node('xgboost'),
