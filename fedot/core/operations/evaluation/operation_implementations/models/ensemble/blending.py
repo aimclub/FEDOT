@@ -42,14 +42,15 @@ class BlendingImplementation(ModelImplementation):
         # Constants
         n_preds = input_data.features.shape[1]
         if input_data.task.task_type == TaskTypesEnum.classification:
-            n_classes = len(input_data.class_labels)
+            n_classes = input_data.num_classes
+            try_expand_binary_input(input_data)
         else:
             n_classes = None  # there is no classes for regression task
         n_samples = input_data.features.shape[0]
         models = input_data.supplementary_data.previous_operations
         n_models = len(models)
 
-        if self.task_type == 'classification' and n_preds != n_classes * n_models:
+        if self.task_type == 'classification' and n_preds != n_classes * n_models and n_classes != 2:
             raise ValueError(f"Feature dimensionality mismatch: "
                              f"expected {n_classes * n_models}, got {n_preds}")
 
@@ -115,7 +116,10 @@ class BlendingImplementation(ModelImplementation):
 
         # Add task-specific arguments
         if self.task_type == 'classification':
-            score_args['n_classes'] = len(input_data.class_labels)
+            score_args['n_classes'] = input_data.num_classes
+            if try_expand_binary_input(input_data):
+                # Send expanded meta-data
+                score_args['features'] = input_data.features
 
         # Get predictions based on task type
         result = self.score_func(**score_args)
@@ -180,10 +184,11 @@ class BlendingClassifier(BlendingImplementation):
         Returns:
             OutputData: Probabilities of classes
         """
+        try_expand_binary_input(input_data)
         _, probs = self.score_func(
             weights=self.weights,
             features=input_data.features,
-            n_classes=len(input_data.class_labels),
+            n_classes=input_data.num_classes,
             n_samples=input_data.features.shape[0],
             n_models=len(input_data.supplementary_data.previous_operations)
         )
@@ -266,3 +271,24 @@ class BlendingRegressor(BlendingImplementation):
             return predictions
 
         return score
+
+
+def try_expand_binary_input(train_data: InputData) -> bool:
+    """Expands binary classification probabilities array by adding complementary probabilities.
+
+    Example:
+        Before transformation (3 models): [P1_m1, P1_m2, P1_m3]
+        After transformation: [P0_m1, P1_m1, P0_m2, P1_m2, P0_m3, P1_m3]
+
+    Args:
+        train_data: InputData with P(class=1) probabilities for each model
+
+    Returns:
+        None: Modifies train_data.features in-place
+    """
+    if train_data.num_classes == 2:  # binary classification
+        full_probs_arr = np.zeros((train_data.features.shape[0], train_data.features.shape[1] * 2))
+        full_probs_arr[:, 1::2] = train_data.features  # even columns (0, 2, 4...) - P(class=1)
+        full_probs_arr[:, 0::2] = 1 - train_data.features  # odd columns (1, 3, 5...) - P(class=0)
+        train_data.features = full_probs_arr
+        return True
