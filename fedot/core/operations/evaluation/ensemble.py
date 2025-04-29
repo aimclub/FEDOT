@@ -6,6 +6,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ensemble.
     BaggingClassificationImplementation, BaggingRegressionImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.meta_gbm import (
+    MetaGBMClassifier, MetaGBMRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
     StackingClassifier, StackingRegressor)
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -30,6 +32,8 @@ class EnsembleStrategy(EvaluationStrategy):
                 - ``stack_reg`` -> StackingRegressor
                 - ``bagging_dt`` -> BaggingClassificationImplementation
                 - ``bagging_dtreg`` -> BaggingRegressionImplementation
+                - ``meta_gbm`` -> MetaGBMClassifier
+                - ``meta_gbm`` -> MetaGBMRegressor
 
         params: hyperparameters to fit the operation with
     """
@@ -39,7 +43,9 @@ class EnsembleStrategy(EvaluationStrategy):
         'stack_clf': StackingClassifier,
         'stack_reg': StackingRegressor,
         'bagging_dt': BaggingClassificationImplementation,
-        'bagging_dtreg': BaggingRegressionImplementation
+        'bagging_dtreg': BaggingRegressionImplementation,
+        'meta_gbm': MetaGBMClassifier,
+        'meta_gbmreg': MetaGBMRegressor
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

@@ -603,6 +603,26 @@
         "non_linear",
         "non-default"
       ]
+    },
+    "meta_gbm": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "linear",
+        "interpretable"
+      ]
+    },
+    "meta_gbmreg": {
+      "meta": "ensemble_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "non-default",
+        "simple",
+        "linear",
+        "interpretable"
+      ]
     }
   }
 }
