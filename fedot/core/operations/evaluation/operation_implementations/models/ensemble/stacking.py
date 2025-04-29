@@ -1,6 +1,9 @@
 from typing import Optional
 
 import optuna
+from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
+from sklearn.linear_model import Ridge, Lasso, LogisticRegression
+
 from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
@@ -8,9 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.data.data_split import train_test_data_setup
-
-from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
-from sklearn.linear_model import Ridge, Lasso, LogisticRegression
 
 
 class StackingImplementation(ModelImplementation):

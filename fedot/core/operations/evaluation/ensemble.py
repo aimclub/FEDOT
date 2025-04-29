@@ -2,6 +2,8 @@ from typing import Optional
 from abc import abstractmethod
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging_dt import \
+    BaggingClassificationImplementation, BaggingRegressionImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
@@ -26,6 +28,8 @@ class EnsembleStrategy(EvaluationStrategy):
                 - ``blend_reg``-> BlendingRegressor
                 - ``stack_clf`` -> StackingClassifier
                 - ``stack_reg`` -> StackingRegressor
+                - ``bagging_dt`` -> BaggingClassificationImplementation
+                - ``bagging_dtreg`` -> BaggingRegressionImplementation
 
         params: hyperparameters to fit the operation with
     """
@@ -33,7 +37,9 @@ class EnsembleStrategy(EvaluationStrategy):
         'blend_clf': BlendingClassifier,
         'blend_reg': BlendingRegressor,
         'stack_clf': StackingClassifier,
-        'stack_reg': StackingRegressor
+        'stack_reg': StackingRegressor,
+        'bagging_dt': BaggingClassificationImplementation,
+        'bagging_dtreg': BaggingRegressionImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -72,7 +78,7 @@ class EnsembleClassificationStrategy(EnsembleStrategy):
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         if self.output_mode == 'labels':
             prediction = trained_operation.predict(predict_data)
-        elif self.output_mode == 'default':
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = trained_operation.predict_proba(predict_data)
         else:
             raise ValueError(f'Output mode {self.output_mode} is not supported')

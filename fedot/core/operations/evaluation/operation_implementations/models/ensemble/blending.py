@@ -2,8 +2,9 @@ from typing import Optional, Union, Tuple, Callable
 
 import numpy as np
 import optuna
-from golem.core.log import default_log
 from sklearn.metrics import accuracy_score as accuracy, mean_squared_error as mse
+
+from golem.core.log import default_log
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation. \
@@ -284,7 +285,7 @@ def try_expand_binary_input(train_data: InputData) -> bool:
         train_data: InputData with P(class=1) probabilities for each model
 
     Returns:
-        None: Modifies train_data.features in-place
+        bool: Modifies train_data.features in-place and return true if success
     """
     if train_data.num_classes == 2:  # binary classification
         full_probs_arr = np.zeros((train_data.features.shape[0], train_data.features.shape[1] * 2))
