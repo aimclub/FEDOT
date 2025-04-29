@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
-from typing import Optional, Tuple, Union, Sequence, List, Dict
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import func_timeout
 from golem.core.dag.graph import Graph
@@ -16,8 +16,8 @@ from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
 from fedot.core.caching.operations_cache import OperationsCache
-from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.data_operation import DataOperation
@@ -248,8 +248,9 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = type(self.preprocessor)()
 
     def try_load_from_cache(
-            self, cache: Optional[OperationsCache],
-            preprocessing_cache: Optional[PreprocessingCache],
+            self,
+            operations_cache: Optional[OperationsCache] = None,
+            preprocessing_cache: Optional[PreprocessingCache] = None,
             fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
@@ -263,8 +264,8 @@ class Pipeline(GraphDelegate, Serializable):
             bool: indicating if at least one node was loaded
         """
 
-        if cache is not None:
-            cache.try_load_into_pipeline(self, fold_id)
+        if operations_cache is not None:
+            operations_cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
