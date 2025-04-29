@@ -585,6 +585,24 @@
         "linear",
         "interpretable"
       ]
+    },
+    "bagging_dt": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "tree",
+        "non_linear",
+        "non-default"
+      ]
+    },
+    "bagging_dtreg": {
+      "meta": "ensemble_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "tree",
+        "non_linear",
+        "non-default"
+      ]
     }
   }
 }

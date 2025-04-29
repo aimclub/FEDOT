@@ -115,11 +115,16 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
+            # 'bagging_dt': PipelineBuilder().add_node('bagging_dt'),
+
+            'gbm_bagging': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('bagging_dt'),
+
             # 'gbm_stacking': PipelineBuilder()
             # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
 
-            'gbm_blending': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
+            # 'gbm_blending': PipelineBuilder()
+            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
 
             # 'catboost': PipelineBuilder().add_node('catboost'),
             # 'xgboost': PipelineBuilder().add_node('xgboost'),
