@@ -23,6 +23,7 @@ class PredictionsCache(BaseCache):
         """
         Save the prediction results of a node.
         """
+        # TODO: issue#1363 remove or rework ransac
         if "ransac" in descriptive_id:
             return
         type = self.FIT_TYPE if is_fit else self.PRED_TYPE
@@ -33,6 +34,7 @@ class PredictionsCache(BaseCache):
         """
         Load the prediction results of a node.
         """
+        # TODO: issue#1363 remove or rework ransac
         if "ransac" in descriptive_id:
             return
         type = self.FIT_TYPE if is_fit else self.PRED_TYPE
