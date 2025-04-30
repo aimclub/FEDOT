@@ -8,8 +8,9 @@ from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import Objective, to_fitness
 from golem.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
@@ -28,7 +29,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     :param eval_n_jobs: number of jobs used to evaluate the objective.
     :params do_unfit: unfit graph after evaluation
@@ -39,16 +40,18 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  data_producer: DataSource,
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
-                 pipelines_cache: Optional[OperationsCache] = None,
+                 operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
+                 predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
-        self._pipelines_cache = pipelines_cache
+        self._operations_cache = operations_cache
         self._preprocessing_cache = preprocessing_cache
+        self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
 
@@ -76,7 +79,10 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
-                                                validation_blocks=self._validation_blocks)
+                                                validation_blocks=self._validation_blocks,
+                                                predictions_cache=self._predictions_cache,
+                                                fold_id=fold_id)
+
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
@@ -91,6 +97,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
 
         # prepared_pipeline.
+        if self._predictions_cache is not None:
+            self._log.debug(f"Predictions cache effectiveness ratio: {self._predictions_cache.effectiveness_ratio}")
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
@@ -110,15 +118,17 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         graph.unfit()
 
         # load preprocessing
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
             n_jobs=n_jobs,
-            time_constraint=self._time_constraint
+            time_constraint=self._time_constraint,
+            predictions_cache=self._predictions_cache,
+            fold_id=fold_id
         )
 
-        if self._pipelines_cache is not None:
-            self._pipelines_cache.save_pipeline(graph, fold_id)
+        if self._operations_cache is not None:
+            self._operations_cache.save_pipeline(graph, fold_id)
         if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
@@ -133,7 +143,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
