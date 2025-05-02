@@ -92,10 +92,10 @@ class RegressionAssumptions(TaskAssumptions):
     def builders(self):
         return {
             'gbm_blending': PipelineBuilder()
-            .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('blend_reg'),
-            # 'rfr': PipelineBuilder().add_node('rfr'),
-            # 'ridge': PipelineBuilder().add_node('ridge'),
-            # 'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
+            .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('blendreg'),
+            'rfr': PipelineBuilder().add_node('rfr'),
+            'ridge': PipelineBuilder().add_node('ridge'),
+            'lgbmreg': PipelineBuilder().add_node('lgbmreg'),
         }
 
     def ensemble_operation(self) -> str:
@@ -115,25 +115,17 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            # 'bagging_dt': PipelineBuilder().add_node('bagging_dt'),
+            'gbm_stacking': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stacking'),
 
-            # 'gbm_bagging': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('bagging_dt'),
+            'gbm_blending': PipelineBuilder()
+            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blending'),
 
-            'gbm_meta_gbm': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('meta_gbm'),
-
-            # 'gbm_stacking': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('stack_clf'),
-
-            # 'gbm_blending': PipelineBuilder()
-            # .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blend_clf'),
-
-            # 'catboost': PipelineBuilder().add_node('catboost'),
-            # 'xgboost': PipelineBuilder().add_node('xgboost'),
-            # 'lgbm': PipelineBuilder().add_node('lgbm'),
-            # 'rf': PipelineBuilder().add_node('rf'),
-            # 'logit': PipelineBuilder().add_node('logit'),
+            'catboost': PipelineBuilder().add_node('catboost'),
+            'xgboost': PipelineBuilder().add_node('xgboost'),
+            'lgbm': PipelineBuilder().add_node('lgbm'),
+            'rf': PipelineBuilder().add_node('rf'),
+            'logit': PipelineBuilder().add_node('logit'),
         }
 
     def ensemble_operation(self) -> str:

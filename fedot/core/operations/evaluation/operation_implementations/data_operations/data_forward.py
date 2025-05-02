@@ -6,7 +6,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
-class DataForwardImplementation(DataOperationImplementation):
+class DummyOperationImplementation(DataOperationImplementation):
     """ Dummy class for data forwarding """
 
     def __init__(self, params: Optional[OperationParameters]):
@@ -14,7 +14,7 @@ class DataForwardImplementation(DataOperationImplementation):
 
     def fit(self, input_data: InputData):
         """
-        Data forwarding operation doesn't support fit method
+        Dummy operation doesn't support fit method
         """
         pass
 
