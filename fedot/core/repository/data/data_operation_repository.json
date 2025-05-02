@@ -619,7 +619,7 @@
         "imbalanced"
       ]
     },
-    "forward": {
+    "dummy": {
       "meta": "custom_preprocessing",
       "presets": [
         "fast_train",

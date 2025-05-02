@@ -2,12 +2,8 @@ from typing import Optional
 from abc import abstractmethod
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging_dt import \
-    BaggingClassificationImplementation, BaggingRegressionImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.meta_gbm import (
-    MetaGBMClassifier, MetaGBMRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
     StackingClassifier, StackingRegressor)
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -26,26 +22,18 @@ class EnsembleStrategy(EvaluationStrategy):
 
             .. details:: possible operations:
 
-                - ``blend_clf``-> BlendingClassifier
-                - ``blend_reg``-> BlendingRegressor
-                - ``stack_clf`` -> StackingClassifier
-                - ``stack_reg`` -> StackingRegressor
-                - ``bagging_dt`` -> BaggingClassificationImplementation
-                - ``bagging_dtreg`` -> BaggingRegressionImplementation
-                - ``meta_gbm`` -> MetaGBMClassifier
-                - ``meta_gbm`` -> MetaGBMRegressor
+                - ``blending``-> BlendingClassifier
+                - ``blendreg``-> BlendingRegressor
+                - ``stacking`` -> StackingClassifier
+                - ``stackreg`` -> StackingRegressor
 
         params: hyperparameters to fit the operation with
     """
     _operations_by_types = {
-        'blend_clf': BlendingClassifier,
-        'blend_reg': BlendingRegressor,
-        'stack_clf': StackingClassifier,
-        'stack_reg': StackingRegressor,
-        'bagging_dt': BaggingClassificationImplementation,
-        'bagging_dtreg': BaggingRegressionImplementation,
-        'meta_gbm': MetaGBMClassifier,
-        'meta_gbmreg': MetaGBMRegressor
+        'blending': BlendingClassifier,
+        'blendreg': BlendingRegressor,
+        'stacking': StackingClassifier,
+        'stackreg': StackingRegressor,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

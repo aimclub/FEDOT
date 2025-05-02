@@ -12,7 +12,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.topological.fast_topological_extractor import \
     TopologicalFeaturesImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.data_forward import \
-    DataForwardImplementation
+    DummyOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -36,7 +36,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
                 - ``one_hot_encoding``-> OneHotEncodingImplementation,
                 - ``label_encoding``-> LabelEncodingImplementation,
                 - ``fast_ica``-> FastICAImplementation
-                - ``forward`` -> DataForwardImplementation
+                - ``dummy`` -> DummyOperatorImplementation
 
         params: hyperparameters to fit the operation with
 
@@ -54,7 +54,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'label_encoding': LabelEncodingImplementation,
         'fast_ica': FastICAImplementation,
         'topological_features': TopologicalFeaturesImplementation,
-        'forward': DataForwardImplementation
+        'dummy': DummyOperationImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
