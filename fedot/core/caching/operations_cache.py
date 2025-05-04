@@ -4,7 +4,7 @@ from typing import List, Optional, TYPE_CHECKING, Union
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.caching.base_cache import BaseCache
-from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
+from fedot.core.caching.operations_cache_db import OperationsCacheDB
 from fedot.core.pipelines.node import PipelineNode
 
 if TYPE_CHECKING:
@@ -18,8 +18,8 @@ class OperationsCache(BaseCache):
     :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__(OperationsCacheDB(cache_dir, custom_pid))
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None, use_stats: bool = False):
+        super().__init__(OperationsCacheDB(cache_dir, custom_pid, use_stats))
 
     def save_nodes(self, nodes: Union[PipelineNode, List[PipelineNode]], fold_id: Optional[int] = None):
         """

@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -26,8 +27,14 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData) -> ('Pipeline', OutputData):
-        predicted_train = self.pipeline.fit(input_data=data)
+    def fit(self,
+            params: Optional[Union[OperationParameters, dict]],
+            data: InputData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None,
+            descriptive_id: Optional[str] = None) -> ('Pipeline', OutputData):
+        predicted_train = self.pipeline.fit(
+            input_data=data, predictions_cache=predictions_cache, fold_id=fold_id)
         fitted_atomized_operation = self.pipeline
         return fitted_atomized_operation, predicted_train
 
@@ -35,10 +42,14 @@ class AtomizedModel(Operation):
                 fitted_operation: 'Pipeline',
                 data: InputData,
                 params: Optional[Union[OperationParameters, Dict[str, Any]]] = None,
-                output_mode: str = 'default') -> OutputData:
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None,
+                descriptive_id: Optional[str] = None) -> OutputData:
 
         # Preprocessing applied
-        prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
+        prediction = fitted_operation.predict(input_data=data, output_mode=output_mode,
+                                              predictions_cache=predictions_cache, fold_id=fold_id)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 
@@ -46,8 +57,13 @@ class AtomizedModel(Operation):
                         fitted_operation: 'Pipeline',
                         data: InputData,
                         params: Optional[OperationParameters] = None,
-                        output_mode: str = 'default') -> OutputData:
-        return self.predict(fitted_operation, data, params, output_mode)
+                        output_mode: str = 'default',
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None,
+                        descriptive_id: Optional[str] = None) -> OutputData:
+        return self.predict(
+            fitted_operation=fitted_operation, data=data, params=params, output_mode=output_mode,
+            predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
     def fine_tune(self,
                   metric_function: MetricCallable,

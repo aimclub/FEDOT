@@ -4,6 +4,7 @@ from typing import Union, Optional
 
 import numpy as np
 
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
@@ -66,8 +67,11 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: Union[InputData, M
     return final_forecast
 
 
-def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData],
-                          horizon: int = None) -> np.array:
+def in_sample_ts_forecast(pipeline,
+                          input_data: Union[InputData, MultiModalData],
+                          horizon: int = None,
+                          predictions_cache: Optional[PredictionsCache] = None,
+                          fold_id: Optional[int] = None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
@@ -118,7 +122,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     final_forecast = []
     for _, border in zip(range(0, number_of_iterations), intervals):
 
-        iter_predict = pipeline.predict(input_data=data)
+        iter_predict = pipeline.predict(input_data=data, predictions_cache=predictions_cache, fold_id=fold_id)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
 
