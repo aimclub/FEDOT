@@ -23,6 +23,20 @@
     "use_eval_set": true,
     "early_stopping_rounds": 30
   },
+  "xgb_bag": {
+    "n_jobs": 1,
+    "verbosity": 0,
+    "booster": "gbtree",
+    "tree_method": "auto",
+    "enable_categorical": true
+  },
+  "xgbreg_bag": {
+    "n_jobs": 1,
+    "verbosity": 0,
+    "booster": "gbtree",
+    "tree_method": "auto",
+    "enable_categorical": true
+  },
   "catboost": {
     "n_jobs": -1,
     "num_trees": 3000,
@@ -69,14 +83,52 @@
     "use_best_model": true,
     "enable_categorical": true
   },
+  "cb_bag": {
+    "n_jobs": -1,
+    "num_trees": 3000,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 1e-2,
+    "bootstrap_type": "Bernoulli",
+    "grow_policy": "SymmetricTree",
+    "max_depth": 5,
+    "min_data_in_leaf": 1,
+    "one_hot_max_size": 10,
+    "fold_permutation_block": 1,
+    "boosting_type": "Plain",
+    "od_type": "Iter",
+    "od_wait": 100,
+    "max_bin": 32,
+    "feature_border_type": "GreedyLogSum",
+    "nan_mode": "Min",
+    "verbose": false,
+    "allow_writing_files": false
+  },
+  "cbreg_bag": {
+    "n_jobs": -1,
+    "num_trees": 3000,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 1e-2,
+    "bootstrap_type": "Bernoulli",
+    "grow_policy": "SymmetricTree",
+    "max_depth": 5,
+    "min_data_in_leaf": 1,
+    "one_hot_max_size": 10,
+    "fold_permutation_block": 1,
+    "boosting_type": "Plain",
+    "od_type": "Iter",
+    "od_wait": 100,
+    "max_bin": 32,
+    "feature_border_type": "GreedyLogSum",
+    "nan_mode": "Min",
+    "verbose": false,
+    "allow_writing_files": false
+  },
   "lgbm": {
     "boosting_type": "gbdt",
     "max_depth": -1,
     "bagging_fraction": 0.85,
     "extra_trees": false,
     "enable_categorical": true,
-    "use_eval_set": true,
-    "early_stopping_rounds": 30,
     "n_jobs": 1,
     "verbose": -1
   },
@@ -86,8 +138,24 @@
     "bagging_fraction": 0.85,
     "extra_trees": false,
     "enable_categorical": true,
-    "use_eval_set": true,
-    "early_stopping_rounds": 30,
+    "n_jobs": 1,
+    "verbose": -1
+  },
+  "lgbm_bag": {
+    "boosting_type": "gbdt",
+    "max_depth": -1,
+    "bagging_fraction": 0.85,
+    "extra_trees": false,
+    "enable_categorical": true,
+    "n_jobs": 1,
+    "verbose": -1
+  },
+  "lgbmreg_bag": {
+    "boosting_type": "gbdt",
+    "max_depth": -1,
+    "bagging_fraction": 0.85,
+    "extra_trees": false,
+    "enable_categorical": true,
     "n_jobs": 1,
     "verbose": -1
   },
