@@ -402,6 +402,7 @@
         "*tree"
       ],
       "tags": [
+        "deprecated",
         "affects_target",
         "linear",
         "filtering",
@@ -415,6 +416,7 @@
         "*tree"
       ],
       "tags": [
+        "deprecated",
         "affects_target",
         "non_linear",
         "filtering",

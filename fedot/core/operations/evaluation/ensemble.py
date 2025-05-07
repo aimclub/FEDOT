@@ -2,6 +2,9 @@ from typing import Optional
 from abc import abstractmethod
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging import \
+    CatBoostBaggingClassification, CatBoostBaggingRegression, XGBoostBaggingClassification, XGBoostBaggingRegression, \
+    LGBMBaggingClassification, LGBMBaggingRegression
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
@@ -22,8 +25,8 @@ class EnsembleStrategy(EvaluationStrategy):
 
             .. details:: possible operations:
 
-                - ``blending``-> BlendingClassifier
-                - ``blendreg``-> BlendingRegressor
+                - ``blending`` -> BlendingClassifier
+                - ``blendreg`` -> BlendingRegressor
                 - ``stacking`` -> StackingClassifier
                 - ``stackreg`` -> StackingRegressor
 
@@ -34,6 +37,12 @@ class EnsembleStrategy(EvaluationStrategy):
         'blendreg': BlendingRegressor,
         'stacking': StackingClassifier,
         'stackreg': StackingRegressor,
+        'cb_bag': CatBoostBaggingClassification,
+        'cbreg_bag': CatBoostBaggingRegression,
+        'xgb_bag': XGBoostBaggingClassification,
+        'xgbreg_bag': XGBoostBaggingRegression,
+        'lgbm_bag': LGBMBaggingClassification,
+        'lgbmreg_bag': LGBMBaggingRegression,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

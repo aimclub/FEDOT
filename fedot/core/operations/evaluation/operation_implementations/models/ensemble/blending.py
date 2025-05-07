@@ -55,7 +55,6 @@ class BlendingImplementation(ModelImplementation):
             raise ValueError(f"Feature dimensionality mismatch: "
                              f"expected {n_classes * n_models}, got {n_preds}")
 
-        # Weights optimization
         self.log.message(f"Starting weights optimization for models: {models}. "
                          f"Obtained metric - {self.metric.__name__}.")
 
@@ -92,8 +91,7 @@ class BlendingImplementation(ModelImplementation):
 
         # Set optimized weights
         model_weight_dict = dict(zip(models, optimized_weights.round(6)))
-        self.log.message(f"Optimization result on train set - {self.metric.__name__} = {best_score:.4f}. "
-                         f"Models weights: {model_weight_dict}")
+        self.log.message(f"Models weights: {model_weight_dict}")
 
         self.weights = optimized_weights
         return self
@@ -267,7 +265,7 @@ class BlendingRegressor(BlendingImplementation):
         # If `target` is None, return predicted labels only (inference mode).
         # Otherwise, proceed with optimization (training mode).
         if target is not None:
-            score = -self.metric(target, predictions)  # minimizing operation for regr
+            score = -self.metric(target, predictions) # minimizing operation for regression
         else:
             return predictions
 
