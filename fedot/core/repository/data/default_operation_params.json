@@ -5,6 +5,14 @@
   "rfr": {
     "n_jobs": 1
   },
+  "rf_bag": {
+    "n_jobs": 1,
+    "max_depth": 100000
+  },
+  "rfr_bag": {
+    "n_jobs": 1,
+    "max_depth": 100000
+  },
   "xgboost": {
     "n_jobs": 1,
     "verbosity": 0,

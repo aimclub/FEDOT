@@ -1,7 +1,7 @@
 from typing import Optional
 
 from golem.core.log import default_log
-from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+from sklearn.ensemble import BaggingClassifier, BaggingRegressor, RandomForestClassifier, RandomForestRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
@@ -15,7 +15,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 class BaggingImplementation(ModelImplementation):
     """Base class for bagging operations"""
-    __operation_params = ['n_jobs', 'use_eval_set']
+    __operation_params = ['n_jobs']
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -105,4 +105,22 @@ class LGBMBaggingRegression(BaggingImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         est =  LGBMRegressor(**self.model_params)
+        self.model = BaggingRegressor(estimator=est)
+
+
+class RFBaggingClassification(BaggingImplementation):
+    """Random Forest Bagging implementation for classification tasks"""
+
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        est =  RandomForestClassifier(**self.model_params)
+        self.model = BaggingClassifier(estimator=est)
+
+
+class RFBaggingRegression(BaggingImplementation):
+    """Random Forest Bagging implementation for regression tasks"""
+
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        est =  RandomForestRegressor(**self.model_params)
         self.model = BaggingRegressor(estimator=est)

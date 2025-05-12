@@ -626,6 +626,20 @@
       "tags": [
         "tree", "non_linear", "boosting"
       ]
+    },
+    "rf_bag": {
+      "meta": "ensemble_class",
+      "presets": ["fast_train"],
+      "tags": [
+        "tree", "non_linear"
+      ]
+    },
+    "rfr_bag": {
+      "meta": "ensemble_regr",
+      "presets": ["fast_train"],
+      "tags": [
+        "tree", "non_linear"
+      ]
     }
   }
 }

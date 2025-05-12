@@ -4,7 +4,7 @@ from abc import abstractmethod
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging import \
     CatBoostBaggingClassification, CatBoostBaggingRegression, XGBoostBaggingClassification, XGBoostBaggingRegression, \
-    LGBMBaggingClassification, LGBMBaggingRegression
+    LGBMBaggingClassification, LGBMBaggingRegression, RFBaggingClassification, RFBaggingRegression
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
     BlendingClassifier, BlendingRegressor)
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
@@ -43,6 +43,8 @@ class EnsembleStrategy(EvaluationStrategy):
         'xgbreg_bag': XGBoostBaggingRegression,
         'lgbm_bag': LGBMBaggingClassification,
         'lgbmreg_bag': LGBMBaggingRegression,
+        'rf_bag': RFBaggingClassification,
+        'rfr_bag': RFBaggingRegression,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
