@@ -37,7 +37,7 @@ def test_gapfilling_example():
         # Get only values in the gap
         predicted_values = arr_without_gaps[gap_ids]
         true_values = real_data[gap_ids]
-        model_rmse = mean_squared_error(true_values, predicted_values) ** 2
+        model_rmse = mean_squared_error(true_values, predicted_values) ** 0.5
         # only ridge correctly interpolate the data
         if key == 'ridge':
             assert model_rmse < 0.5
