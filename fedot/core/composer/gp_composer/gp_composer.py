@@ -1,17 +1,28 @@
+import csv
+import os
+from datetime import datetime
 from typing import Collection, Optional, Sequence, Tuple, Union
+from uuid import uuid4
 
+from golem.core.log import is_test_session
 from golem.core.optimisers.graph import OptGraph
 from golem.core.optimisers.optimizer import GraphOptimizer
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective.data_objective_eval import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_objective_eval import (
+    PipelineObjectiveEvaluate,
+)
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.pipeline_composer_requirements import (
+    PipelineComposerRequirements,
+)
+from fedot.core.utils import default_fedot_data_dir
 
 
 class GPComposer(Composer):
@@ -20,18 +31,21 @@ class GPComposer(Composer):
 
     :param optimizer: optimizer generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
-    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param operations_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
+    :param predictions_cache: Cache manager for fit/predict node's predictions, optional.
     """
 
     def __init__(self, optimizer: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
-                 pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
+                 operations_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None,
+                 predictions_cache: Optional[PredictionsCache] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
-        self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
+        self.operations_cache: Optional[OperationsCache] = operations_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
+        self.predictions_cache: Optional[PredictionsCache] = predictions_cache
 
         self.best_models: Collection[Pipeline] = ()
 
@@ -53,8 +67,9 @@ class GPComposer(Composer):
         objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
                                                         data_producer=data_producer,
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
-                                                        pipelines_cache=self.pipelines_cache,
+                                                        operations_cache=self.operations_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
+                                                        predictions_cache=self.predictions_cache,
                                                         validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
@@ -68,6 +83,10 @@ class GPComposer(Composer):
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
+
+        if is_test_session() and self.predictions_cache is not None:
+            self._save_predictions_cache()
+
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Optional[Pipeline],
@@ -79,3 +98,28 @@ class GPComposer(Composer):
             return None, []
         chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
         return chosen_best_pipeline, best_pipelines
+
+    def _save_predictions_cache(self):
+        """
+        Saves predictions cache effectiveness and usage statistics to a CSV file.
+        """
+        if not self.predictions_cache._db.use_stats:
+            return
+
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        uuid = uuid4()
+        directory = os.path.join(f"{str(default_fedot_data_dir())}", "saved_cache_effectiveness")
+        os.makedirs(directory, exist_ok=True)
+
+        predictions_file_path = os.path.join(directory, f"{timestamp}_predictions_{str(uuid)}.csv")
+
+        # Write predictions cache data
+        with open(predictions_file_path, "w", newline="") as f:
+            # Write effectiveness ratio
+            writer = csv.DictWriter(f, self.predictions_cache.effectiveness_ratio.keys())
+            writer.writeheader()
+            writer.writerow(self.predictions_cache.effectiveness_ratio)
+
+            # Write usage statistics
+            stats_writer = csv.writer(f)
+            stats_writer.writerows(self.predictions_cache._db.retrieve_stats())

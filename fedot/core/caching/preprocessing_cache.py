@@ -15,8 +15,8 @@ class PreprocessingCache(BaseCache):
     :param cache_dir: path to the place where cache files should be stored.
     """
 
-    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None):
-        super().__init__(PreprocessingCacheDB(cache_dir, custom_pid))
+    def __init__(self, cache_dir: Optional[str] = None, custom_pid=None, use_stats: bool = False):
+        super().__init__(PreprocessingCacheDB(cache_dir, custom_pid, use_stats))
 
     def try_load_preprocessor(self, pipeline: 'Pipeline', fold_id: Union[int, None]):
         """

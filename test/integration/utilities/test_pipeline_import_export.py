@@ -26,7 +26,7 @@ def preprocessing_files_before_and_after_tests(request):
     paths = ['test_fitted_pipeline_convert_to_json', 'test_import_json_to_pipeline_correctly_1',
              'test_empty_pipeline_convert_to_json', 'test_pipeline_convert_to_json',
              'test_export_pipeline_to_json_correctly', 'test_import_json_to_pipeline_correctly_2',
-             'test_fitted_pipeline_cache_correctness_after_export_and_import',
+             'test_fitted_operations_cache_correctness_after_export_and_import',
              'test_import_json_to_fitted_pipeline_correctly', 'test_export_import_for_one_pipeline_object_correctly_1',
              'test_export_import_for_one_pipeline_object_correctly_2', 'data_model_forecasting',
              'test_export_import_for_one_pipeline_object_correctly_3', 'data_model_classification',
@@ -189,15 +189,15 @@ def test_pipeline_template_to_json_correctly():
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
-def test_fitted_pipeline_cache_correctness_after_export_and_import():
+def test_fitted_operations_cache_correctness_after_export_and_import():
     train_data, test_data = get_classification_data()
 
     pipeline = create_classification_pipeline_with_preprocessing()
     pipeline.fit(train_data)
-    pipeline.save('test_fitted_pipeline_cache_correctness_after_export_and_import', create_subdir=False)
+    pipeline.save('test_fitted_operations_cache_correctness_after_export_and_import', create_subdir=False)
     prediction = pipeline.predict(test_data)
 
-    json_load_path = create_correct_path('test_fitted_pipeline_cache_correctness_after_export_and_import')
+    json_load_path = create_correct_path('test_fitted_operations_cache_correctness_after_export_and_import')
     new_pipeline = Pipeline.from_serialized(json_load_path)
 
     new_prediction = new_pipeline.predict(test_data)
