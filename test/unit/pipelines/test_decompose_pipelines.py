@@ -69,7 +69,11 @@ def generate_cascade_decompose_pipeline():
     return pipeline
 
 
-def get_classification_data(classes_amount: int = 2):
+def get_classification_data(
+        classes_amount: int = 2,
+        samples_amount: int = 800,
+        features_amount: int = 4,
+):
     """ Function generate synthetic dataset for classification task
 
     :param classes_amount: amount of classes to predict
@@ -81,9 +85,12 @@ def get_classification_data(classes_amount: int = 2):
     # Define options for dataset with 800 objects
     features_options = {'informative': 2, 'redundant': 1,
                         'repeated': 1, 'clusters_per_class': 1}
-    x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
-                                                                  800, 4,
-                                                                  classes_amount)
+    x_train, y_train, x_test, y_test = get_classification_dataset(
+        features_options,
+        samples_amount=samples_amount,
+        features_amount=features_amount,
+        classes_amount=classes_amount
+    )
     y_train = y_train.reshape((-1, 1))
     y_test = y_test.reshape((-1, 1))
 
