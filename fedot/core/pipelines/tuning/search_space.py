@@ -964,11 +964,6 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.0, 1.0],
                     'type': 'continuous'
                 },
-                'balance_probabilities': {
-                    'hyperopt-dist': hp.choice,
-                    'sampling-scope': [[True, False]],
-                    'type': 'categorical'
-                },
                 'average_before_softmax': {
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [[True, False]],
