@@ -222,5 +222,34 @@
     "max_homology_dimension": 1,
     "metric": "euclidean",
     "stride": 1
+  },
+  "tabpfn": {
+    "n_jobs": 1,
+    "n_estimators": 4,
+    "softmax_temperature": 0.9,
+    "balance_probabilities": false,
+    "average_before_softmax": false,
+    "model_path": "auto",
+    "device": "cpu",
+    "ignore_pretraining_limits": false,
+    "inference_precision": "auto",
+    "fit_mode": "fit_preprocessors",
+    "memory_saving_mode": "auto",
+    "inference_config": null
+  },
+  "tabpfnreg": {
+    "n_jobs": 1,
+    "n_estimators": 4,
+    "softmax_temperature": 0.9,
+    "balance_probabilities": false,
+    "average_before_softmax": false,
+    "model_path": "auto",
+    "device": "cpu",
+    "ignore_pretraining_limits": false,
+    "inference_precision": "auto",
+    "fit_mode": "fit_preprocessors",
+    "memory_saving_mode": "auto",
+    "inference_config": null,
+    "enable_categorical": true
   }
 }
