@@ -930,6 +930,50 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [['euclidean', 'manhattan', 'cosine']],
                     'type': 'categorical'}
+            },
+            'tabpfn': {
+                'n_estimators': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 10],
+                    'type': 'discrete'
+                },
+                'softmax_temperature': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.0, 1.0],
+                    'type': 'continuous'
+                },
+                'balance_probabilities': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'average_before_softmax': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+            },
+            'tabpfnreg': {
+                'n_estimators': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 10],
+                    'type': 'discrete'
+                },
+                'softmax_temperature': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.0, 1.0],
+                    'type': 'continuous'
+                },
+                'balance_probabilities': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'average_before_softmax': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
             }
         }
 
