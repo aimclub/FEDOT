@@ -99,6 +99,7 @@ def test_tabpfn_classification_operation():
         assert predicted_output.predict.shape[0] == 240
         assert metric > 0.5
 
+
 def test_tabpfn_regression_operation():
     n_samples = 50
     data = get_synthetic_regression_data(n_samples=n_samples, n_features=4, random_state=42)

@@ -18,7 +18,6 @@ class FedotTabPFNImplementation(ModelImplementation):
         self.model = None
         self.classes_ = None
 
-
     def fit(self, input_data: InputData):
         self.model.categorical_features_indices = input_data.categorical_idx
 
@@ -28,7 +27,6 @@ class FedotTabPFNImplementation(ModelImplementation):
         self.model.fit(X=input_data.features, y=input_data.target)
 
         return self.model
-
 
     def predict(self, input_data: InputData) -> OutputData:
         if self.params.get('enable_categorical'):
