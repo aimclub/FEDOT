@@ -57,7 +57,7 @@ class TabPFNClassificationStrategy(TabPFNStrategy):
         return converted
 
 
-class  TabPFNRegressionStrategy(TabPFNStrategy):
+class TabPFNRegressionStrategy(TabPFNStrategy):
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
 
