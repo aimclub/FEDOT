@@ -235,11 +235,12 @@
     "inference_precision": "auto",
     "fit_mode": "fit_preprocessors",
     "memory_saving_mode": "auto",
-    "inference_config": null
+    "inference_config": null,
+    "enable_categorical": false
   },
   "tabpfnreg": {
     "n_jobs": 1,
-    "n_estimators": 4,
+    "n_estimators": 8,
     "softmax_temperature": 0.9,
     "average_before_softmax": false,
     "model_path": "auto",
