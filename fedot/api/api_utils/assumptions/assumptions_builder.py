@@ -127,6 +127,12 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
+        # TODO: fix this workaround during the improvement of multi-modality
+        for i, subpipeline in enumerate(subpipelines):
+            if (len(subpipeline) == 1 and len(subpipeline[0].nodes) == 1 and
+                    str(subpipeline[0].nodes[0]) in ['cnn', 'data_source_img']):
+                subpipelines[i] = [Pipeline(PipelineNode('cnn', nodes_from=[PipelineNode('data_source_img')]))]
+
         # Then zip these alternatives together and add final node to get ensembles.
         ensemble_builders: List[PipelineBuilder] = []
         for pre_ensemble in zip(*subpipelines):

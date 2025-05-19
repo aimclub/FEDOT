@@ -23,17 +23,11 @@ except ModuleNotFoundError:
     nn = TorchMock
 
 
-class CGRUImplementation(ModelImplementation):
+class ConvolutionalNetworkImplementation(ModelImplementation):
     def __init__(self, params: OperationParameters):
         super().__init__(params)
+        self.model = self.init_network(self.params)
         self.device = self._get_device()
-        self.model = CGRUNetwork(
-            hidden_size=int(params.get("hidden_size")),
-            cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
-            cnn1_output_size=int(params.get("cnn1_output_size")),
-            cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
-            cnn2_output_size=int(params.get("cnn2_output_size"))
-        )
 
         self.optim_dict = {
             'adamw': torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate),
@@ -46,14 +40,18 @@ class CGRUImplementation(ModelImplementation):
         }
         self.mu = None
         self.std = None
-        self.optimizer = self.optim_dict[params.get("optimizer")]
-        self.criterion = self.loss_dict[params.get("loss")]()
+        self.optimizer = self.optim_dict[self.params.get("optimizer")]
+        self.criterion = self.loss_dict[self.params.get("loss")]()
         self.scheduler = MultiStepLR(self.optimizer, milestones=[30, 80], gamma=0.5)
         self.seed = None
 
     @property
     def learning_rate(self) -> float:
         return self.params.get("learning_rate")
+
+    @staticmethod
+    def init_network(params: OperationParameters) -> nn.Module:
+        raise NotImplementedError
 
     def fit(self, train_data: InputData):
         """ Class fit ar model on data.
@@ -204,8 +202,6 @@ class CGRUNetwork(nn.Module):
 
 
 class CLSTMNetwork(nn.Module):
-    """Model isn't used in composing due to same performance with GRU. Saved for further experiments"""
-
     def __init__(self,
                  hidden_size=200,
                  cnn1_kernel_size=5,
@@ -226,7 +222,7 @@ class CLSTMNetwork(nn.Module):
         )
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
-        self.linear = nn.Linear(self.hidden_size * 2, 1)
+        self.linear = None
         self.seed = None
 
     def init_linear(self, forecast_length):
@@ -252,3 +248,27 @@ class CLSTMNetwork(nn.Module):
         predictions = self.linear(hidden_cat)
 
         return predictions
+
+
+class CGRUImplementation(ConvolutionalNetworkImplementation):
+    @staticmethod
+    def init_network(params: OperationParameters):
+        return CGRUNetwork(
+            hidden_size=int(params.get("hidden_size")),
+            cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
+            cnn1_output_size=int(params.get("cnn1_output_size")),
+            cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
+            cnn2_output_size=int(params.get("cnn2_output_size"))
+        )
+
+
+class CLSTMImplementation(ConvolutionalNetworkImplementation):
+    @staticmethod
+    def init_network(params: OperationParameters):
+        return CLSTMNetwork(
+            hidden_size=int(params.get("hidden_size")),
+            cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
+            cnn1_output_size=int(params.get("cnn1_output_size")),
+            cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
+            cnn2_output_size=int(params.get("cnn2_output_size"))
+        )

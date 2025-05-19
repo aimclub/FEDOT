@@ -705,27 +705,27 @@ Another examples can be found here:
 
 **Regression**
 
-* `Regression with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
-* `Regression refinement example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/regression_refinement_example.py>`_
+* `Regression with tuning <https://github.com/aimclub/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
+* `Regression refinement example <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/decompose/regression_refinement_example.py>`_
 
 **Classification**
 
-* `Classification with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
-* `Classification refinement example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/classification_refinement_example.py>`_
-* `Resample example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/resample_example.py>`_
-* `Pipeline tuning for classification task <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/pipeline_tune.py>`_
+* `Classification with tuning <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
+* `Classification refinement example <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/decompose/classification_refinement_example.py>`_
+* `Resample example <https://github.com/aimclub/FEDOT/blob/master/examples/simple/classification/resample_example.py>`_
+* `Pipeline tuning for classification task <https://github.com/aimclub/FEDOT/blob/master/examples/simple/pipeline_tune.py>`_
 
 **Forecasting**
 
-* `Pipeline tuning for time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
-* `Tuning pipelines with sparse_lagged / lagged node  <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
-* `Topaz multi time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
-* `Custom model tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
-* `Case: river level forecasting with composer <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
-* `Case: river level forecasting (manual) <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
+* `Pipeline tuning for time series forecasting <https://github.com/aimclub/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
+* `Tuning pipelines with sparse_lagged / lagged node  <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
+* `Topaz multi time series forecasting <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
+* `Custom model tuning <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
+* `Case: river level forecasting with composer <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_composer.py>`_
+* `Case: river level forecasting (manual) <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/river_levels_prediction/river_level_case_manual.py>`_
 
 **Multitask**
 
-* `Multitask pipeline: classification and regression <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
+* `Multitask pipeline: classification and regression <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
 
 .. _GOLEM documentation: https://thegolem.readthedocs.io/en/latest/api/tuning.html

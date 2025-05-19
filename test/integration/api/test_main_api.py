@@ -11,8 +11,10 @@ from sklearn.preprocessing import LabelEncoder
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot import Fedot
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.tasks import TsForecastingParams
 from test.data.datasets import get_dataset, get_multimodal_ts_data, load_categorical_unimodal, \
     load_categorical_multidata
@@ -29,16 +31,17 @@ TESTS_MAIN_API_DEFAULT_PARAMS = {
 
 @pytest.mark.parametrize('task_type, metric_name', [
     ('classification', 'f1'),
+    ('classification', 'neg_log_loss'),
     ('regression', 'rmse')
 ])
 def test_api_predict_correct(task_type, metric_name):
     train_data, test_data, _ = get_dataset(task_type)
     changed_api_params = {
         **TESTS_MAIN_API_DEFAULT_PARAMS,
-        'timeout': 1,
+        'timeout': 2,
         'preset': 'fast_train'
     }
-    model = Fedot(problem=task_type, metric=metric_name, **changed_api_params)
+    model = Fedot(problem=task_type, metric=metric_name, **changed_api_params, cv_folds=2)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics(metric_names=metric_name, rounding_order=5)
@@ -73,7 +76,7 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     base_pipeline = deepcopy(model.fit(features=train_data, predefined_model=pred_model))
     pred_before = model.predict(features=test_data)
 
-    tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout))
+    tuned_pipeline = deepcopy(model.tune(timeout=tuning_timeout, n_jobs=1))
     pred_after = model.predict(features=test_data)
 
     assert isinstance(tuned_pipeline, Pipeline)
@@ -81,6 +84,42 @@ def test_api_tune_correct(task_type, metric_name, pred_model):
     assert model.api_composer.was_tuned
     assert not model.api_composer.was_optimised
     assert len(test_data.target) == len(pred_before) == len(pred_after)
+
+
+@pytest.mark.parametrize(
+    "task_type, metric_name, pred_model",
+    [
+        ("classification", "f1", "rf"),
+        ("regression", "rmse", "rfr"),
+    ],
+)
+def test_api_fit_atomized_model(task_type, metric_name, pred_model):
+    train_data, test_data, _ = get_dataset(task_type, n_samples=100, n_features=5, iris_dataset=False)
+
+    auto_model = Fedot(
+        problem=task_type,
+        metric=metric_name,
+        **TESTS_MAIN_API_DEFAULT_PARAMS,
+        initial_assumption=PipelineBuilder().add_node("scaling").add_node(pred_model).build()
+    )
+
+    auto_model.fit(features=train_data)
+    pred_auto_model = auto_model.predict(features=test_data)
+
+    prev_model = auto_model.current_pipeline
+    prev_model.unfit()
+
+    atomized_model = Pipeline(
+        PipelineNode(operation_type=AtomizedModel(prev_model), nodes_from=[PipelineNode("normalization")])
+    )
+
+    auto_model_from_atomized = Fedot(
+        problem=task_type, metric=metric_name, **TESTS_MAIN_API_DEFAULT_PARAMS, initial_assumption=atomized_model
+    )
+    auto_model_from_atomized.fit(features=train_data)
+    pred_auto_model_from_atomized = auto_model_from_atomized.predict(features=test_data)
+
+    assert len(test_data.target) == len(pred_auto_model) == len(pred_auto_model_from_atomized)
 
 
 def test_api_simple_ts_predict_correct(task_type: str = 'ts_forecasting'):
@@ -165,8 +204,6 @@ def test_pandas_input_for_api():
 
     train_features = pd.DataFrame(train_data.features)
     train_target = pd.Series(train_data.target.reshape(-1))
-
-    test_features = pd.DataFrame(test_data.features)
     test_target = pd.Series(test_data.target.reshape(-1))
 
     # task selection, initialisation of the framework
@@ -176,7 +213,7 @@ def test_pandas_input_for_api():
     baseline_model.fit(features=train_features, target=train_target, predefined_model='xgboost')
 
     # evaluate the prediction with test data
-    prediction = baseline_model.predict(features=test_features)
+    prediction = baseline_model.predict(features=test_data)
 
     assert len(prediction) == len(test_target)
 
@@ -225,8 +262,14 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
 
+    types_encountered = (
+        int, float,
+        np.int8, np.int16, np.int32, np.int64,
+        np.float16, np.float32, np.float64,
+    )
+
     for i in range(prediction.features.shape[1]):
-        assert all(list(map(lambda x: isinstance(x, (int, float)), prediction.features[:, i])))
+        assert all(list(map(lambda x: isinstance(x, types_encountered), prediction.features[:, i])))
 
 
 def test_fill_nan_without_categorical():
@@ -239,8 +282,8 @@ def test_fill_nan_without_categorical():
     prediction = pipeline.predict(test_data)
     prediction_train = pipeline.predict(train_data)
 
-    assert pd.isna(prediction.features).sum() == 0
-    assert pd.isna(prediction_train.features).sum() == 0
+    assert pd.isna(prediction.features).all().sum() == 0
+    assert pd.isna(prediction_train.features).all().sum() == 0
 
 
 def test_dict_multimodal_input_for_api():

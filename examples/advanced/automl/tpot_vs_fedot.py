@@ -55,7 +55,7 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
 
 
 if __name__ == '__main__':
-    train_file_path = "../../../cases/data/scoring/scoring_train.csv"
-    test_file_path = "../../../cases/data/scoring/scoring_test.csv"
+    train_file_path = "../../real_examples/real_cases/data/scoring/scoring_train.csv"
+    test_file_path = "../../real_examples/real_cases/data/scoring/scoring_test.csv"
 
     run_tpot_vs_fedot_example(train_file_path, test_file_path)

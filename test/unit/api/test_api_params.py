@@ -2,7 +2,6 @@ import dataclasses
 from typing import Optional
 
 import pytest
-
 from golem.core.optimisers.genetic.gp_optimizer import EvoGraphOptimizer
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
@@ -32,7 +31,7 @@ fedot_params_full = dict(parallelization_mode='populational',
                          max_pipeline_fit_time=7,
                          initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
                          preset=AUTO_PRESET_NAME,
-                         use_pipelines_cache=True,
+                         use_operations_cache=True,
                          use_preprocessing_cache=True,
                          use_input_preprocessing=True,
                          use_auto_preprocessing=False,
@@ -48,7 +47,7 @@ params_with_missings = dict(parallelization_mode='populational',
                             cv_folds=None,
                             initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
                             preset=AUTO_PRESET_NAME,
-                            use_pipelines_cache=True,
+                            use_operations_cache=True,
                             use_preprocessing_cache=True,
                             history_dir='history',
                             with_tuning=False)
@@ -82,6 +81,9 @@ def test_correctly_sets_default_params(input_params):
                                                 ('gp_algo', correct_gp_algorithm_attributes)])
 def test_filter_params_correctly(input_params, case, correct_keys):
     params_repository = get_api_params_repository()
+    if case == 'gp_algo':
+        input_params['seed'] = 0
+        correct_keys.add('seed')
     input_params = params_repository.check_and_set_default_params(input_params)
     if case == 'composer':
         output_params = params_repository.get_params_for_composer_requirements(input_params)

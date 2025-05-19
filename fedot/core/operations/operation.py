@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
 from golem.core.log import default_log
 from golem.serializers.serializer import register_serializable
+
+if TYPE_CHECKING:
+    from fedot.core.caching.predictions_cache import PredictionsCache
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
@@ -71,7 +76,12 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
+    def fit(self,
+            params: Optional[Union[OperationParameters, dict]],
+            data: InputData,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None,
+            descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -86,12 +96,20 @@ class Operation:
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict_for_fit(self.fitted_operation, data, params)
+        predict_train = self.predict_for_fit(
+            self.fitted_operation, data, params, predictions_cache=predictions_cache, fold_id=fold_id,
+            descriptive_id=descriptive_id)
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, params: Optional[Union[OperationParameters, dict]] = None,
-                output_mode: str = 'default'):
+    def predict(self,
+                fitted_operation,
+                data: InputData,
+                params: Optional[Union[OperationParameters, dict]] = None,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None,
+                descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
@@ -102,10 +120,17 @@ class Operation:
             output_mode: string with information about output of operation,
             for example, is the operation predict probabilities or class labels
         """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False)
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False,
+                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-                        output_mode: str = 'default'):
+    def predict_for_fit(self,
+                        fitted_operation,
+                        data: InputData,
+                        params: Optional[OperationParameters] = None,
+                        output_mode: str = 'default',
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None,
+                        descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
 
@@ -116,23 +141,49 @@ class Operation:
             output_mode: string with information about output of operation,
                 for example, is the operation predict probabilities or class labels
         """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True,
+                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def _predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
-                 output_mode: str = 'default', is_fit_stage: bool = False):
+    def _predict(self,
+                 fitted_operation,
+                 data: InputData,
+                 params: Optional[OperationParameters] = None,
+                 output_mode: str = 'default',
+                 is_fit_stage: bool = False,
+                 predictions_cache: Optional[PredictionsCache] = None,
+                 fold_id: Optional[int] = None,
+                 descriptive_id: Optional[str] = None):
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
 
+        prediction = None
         if is_fit_stage:
-            prediction = self._eval_strategy.predict_for_fit(
-                trained_operation=fitted_operation,
-                predict_data=data)
+            if predictions_cache is not None:
+                prediction = predictions_cache.load_node_prediction(
+                    descriptive_id, output_mode, fold_id, is_fit=is_fit_stage)
+
+            if prediction is None:
+                prediction = self._eval_strategy.predict_for_fit(
+                    trained_operation=fitted_operation,
+                    predict_data=data)
+
+                if predictions_cache is not None:
+                    predictions_cache.save_node_prediction(
+                        descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
         else:
-            prediction = self._eval_strategy.predict(
-                trained_operation=fitted_operation,
-                predict_data=data)
+            if predictions_cache is not None:
+                prediction = predictions_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
+
+            if prediction is None:
+                prediction = self._eval_strategy.predict(
+                    trained_operation=fitted_operation,
+                    predict_data=data)
+
+                if predictions_cache is not None:
+                    predictions_cache.save_node_prediction(
+                        descriptive_id, output_mode, fold_id, prediction)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 
         # any inplace operations here are dangerous!

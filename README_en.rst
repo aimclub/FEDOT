@@ -63,6 +63,8 @@ FEDOT concepts
 Installation
 ============
 
+- Package installer for Python **pip**
+
 The simplest way to install FEDOT is using ``pip``:
 
 .. code-block::
@@ -74,6 +76,10 @@ Installation with optional dependencies for image and text processing, and for D
 .. code-block::
 
   $ pip install fedot[extra]
+
+- **Docker** container
+
+Available docker images can be found here `here <https://github.com/aimclub/FEDOT/tree/master/docker/README_en.rst>`_.
 
 How to Use
 ==========
@@ -125,9 +131,9 @@ Also, external examples are available:
 
 Extended examples:
 
-- Credit scoring problem, i.e. `binary classification task <https://github.com/aimclub/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`__
-- Time series forecasting, i.e. `random process regression <https://github.com/aimclub/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
-- Spam detection, i.e. `natural language preprocessing <https://github.com/aimclub/FEDOT/blob/master/cases/spam_detection.py>`__
+- Credit scoring problem, i.e. `binary classification task <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/credit_scoring/credit_scoring_problem.py>`__
+- Time series forecasting, i.e. `random process regression <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/metocean_forecasting_problem.py>`__
+- Spam detection, i.e. `natural language preprocessing <https://github.com/aimclub/FEDOT/blob/master/examples/real_cases/spam_detection.py>`__
 - Wine variety prediction with `multi-modal data <https://github.com/aimclub/FEDOT/blob/master/examples/advanced/multimodal_text_num_example.py>`__
 
 
@@ -180,9 +186,12 @@ Current R&D and future plans
 Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
 The major ongoing tasks and plans:
 
-* Implementation of meta-learning based at GNN and RL (see `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__)
+* Implementation of large language model for AutoML tasks in `FEDOT.LLM <https://github.com/ITMO-NSS-team/FEDOT.LLM>`__.
+* Implementation of meta-learning based at GNN and RL (see `GAMLET <https://github.com/ITMO-NSS-team/GAMLET>`__).
 * Improvement of the optimisation-related algorithms implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__.
 * Support for more complicated pipeline design patters, especially for time series forecasting.
+
+In addition, we are working on a number of research tasks related to benchmarking of time series forecasting using AutoML and multimodal modelling.
 
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
@@ -201,18 +210,27 @@ Acknowledgments
 
 We acknowledge the contributors for their important impact and the participants of numerous scientific conferences and workshops for their valuable advice and suggestions.
 
+Funding
+=======
+
+This research is financially supported by the Foundation for
+National Technology Initiative's Projects Support as a part of the roadmap
+implementation for the development of the high-tech field of
+Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
+
 Side Projects
 =============
-- The optimisation core implemented in `GOLEM <https://github.com/aimclub/GOLEM/>`__ repository.
+- The optimisation core implemented in the GOLEM.
 - The prototype of the web-GUI for FEDOT is available in the `FEDOT.WEB <https://github.com/aimclub/FEDOT.Web>`__ repository.
-- The prototype of FEDOT-based meta-AutoML in the `MetaFEDOT <https://github.com/ITMO-NSS-team/MetaFEDOT>`__ repository.
+- The prototype of FEDOT-based meta-AutoML in the GAMLET.
+- The prototype of FEDOT-based LLM for nexgen AutoML in the FEDOT.LLM.
 
 Contacts
 ========
 - `Telegram channel for solving problems and answering questions about FEDOT <https://t.me/FEDOT_helpdesk>`_
 - `Natural System Simulation Team <https://itmo-nss-team.github.io/>`_
 - `Anna Kalyuzhnaya <https://scholar.google.com/citations?user=bjiILqcAAAAJ&hl=ru>`_, Team leader (anna.kalyuzhnaya@itmo.ru)
-- `Newsfeed <https://t.me/NSS_group>`_
+- `Telegram newsfeed channel <https://t.me/NSS_group>`_
 - `Youtube channel <https://www.youtube.com/channel/UC4K9QWaEUpT_p3R4FeDp5jA>`_
 
 Supported by
@@ -238,9 +256,6 @@ Citation
   year={2021},
   pages={926-933},
   doi={10.1109/CEC45853.2021.9504773}}
-
-
-Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutionary-multi-modal-AutoML-with-FEDOT-framework>`_.
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
    :target: https://fedot.readthedocs.io/en/latest/

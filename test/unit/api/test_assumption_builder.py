@@ -95,7 +95,7 @@ def test_assumptions_builder_for_multimodal_data():
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: node.is_primary, mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 1  # minus final ensemble
+    assert mm_pipeline.length > len(mm_data)
 
 
 def test_assumptions_builder_unsuitable_available_operations():
@@ -104,7 +104,7 @@ def test_assumptions_builder_unsuitable_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['linear', 'xgboost', 'lagged']
+    available_operations = ['linear', 'lagged', 'xgboostreg']
 
     default_builder = UniModalAssumptionsBuilder(train_input)
     checked_builder = UniModalAssumptionsBuilder(train_input) \

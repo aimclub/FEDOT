@@ -2,6 +2,7 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -10,6 +11,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from .test_time_series_operations import get_timeseries
 
 
 def get_ts_pipeline(window_size):
@@ -67,7 +69,7 @@ def test_ransac_with_invalid_params_fit_correctly():
     than the number of objects
     """
 
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path)
     train, test = train_test_data_setup(data)
@@ -102,3 +104,15 @@ def test_params_filter_with_non_default():
     assert default_params == {}
     assert 'n_neighbors' in list(updated_params.keys())
     assert len(list(updated_params.keys())) == 1
+
+
+@pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
+                         [(40, 1, 1, 10), (5, 1, 1, 10), (4, 1, 1, 10), (2, 1, 1, 10), (1, 1, 1, 10)])
+def test_positive_window_size_in_fast_topo(length, features_count, target_count, window_size):
+    data = get_timeseries(length=length, features_count=features_count, target_count=target_count, random=True)
+    lagged_node = PipelineNode('lagged')
+    lagged_node.parameters = {'window_size': window_size}
+    lagged_data = lagged_node.fit(data)
+    topo_node = PipelineNode('topological_features')
+    topo_node.fit(lagged_data)
+    assert topo_node.fitted_operation._window_size > 0

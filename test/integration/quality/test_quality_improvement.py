@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 
 def test_classification_quality_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
 
     seed = 50
     problem = 'classification'
@@ -21,7 +21,7 @@ def test_classification_quality_improvement():
 
     common_params = dict(problem=problem,
                          n_jobs=1,
-                         use_pipelines_cache=False,
+                         use_operations_cache=False,
                          use_preprocessing_cache=False,
                          with_tuning=with_tuning,
                          logging_level=logging.DEBUG,
@@ -45,8 +45,8 @@ def test_classification_quality_improvement():
 
 def test_multiobjective_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
     problem = 'classification'
     seed = 50
 
@@ -55,15 +55,15 @@ def test_multiobjective_improvement():
     quality_metric_2 = 'accuracy'
     metrics = [quality_metric_1, quality_metric_2]
 
-    timeout = 4
-    composer_params = dict(num_of_generations=10,
+    timeout = 10
+    composer_params = dict(num_of_generations=1,
                            pop_size=10,
                            with_tuning=False,
                            preset='fast_train',
                            metric=metrics)
 
     auto_model = Fedot(problem=problem, timeout=timeout, seed=seed, logging_level=logging.DEBUG,
-                       **composer_params, use_pipelines_cache=False, use_preprocessing_cache=False)
+                       **composer_params, use_operations_cache=False, use_preprocessing_cache=False)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

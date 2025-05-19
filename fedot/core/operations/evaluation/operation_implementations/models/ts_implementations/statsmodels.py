@@ -1,3 +1,4 @@
+import warnings
 from copy import copy
 
 import numpy as np
@@ -5,6 +6,7 @@ import statsmodels.api as sm
 from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian
 from statsmodels.genmod.families.links import identity, inverse_power, inverse_squared, log as lg
 from statsmodels.genmod.generalized_linear_model import GLM
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
@@ -250,36 +252,50 @@ class ExpSmoothingImplementation(ModelImplementation):
     def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.model = None
-        if self.params.get("seasonal"):
-            self.seasonal_periods = int(self.params.get("seasonal_periods"))
+        if self.params.get('seasonal'):
+            self.seasonal_periods = int(self.params.get('seasonal_periods'))
         else:
             self.seasonal_periods = None
 
+    def _init_model(self, endog: np.ndarray):
+        self.model = ETSModel(endog=endog,
+                              error=self.params.get('error'),
+                              trend=self.params.get('trend'),
+                              seasonal=self.params.get('seasonal'),
+                              damped_trend=self.params.get('damped_trend') if self.params.get('trend') else None,
+                              seasonal_periods=self.seasonal_periods)
+
     def fit(self, input_data):
-        self.model = ETSModel(
-            input_data.features.astype("float64"),
-            error=self.params.get("error"),
-            trend=self.params.get("trend"),
-            seasonal=self.params.get("seasonal"),
-            damped_trend=self.params.get("damped_trend") if self.params.get("trend") else None,
-            seasonal_periods=self.seasonal_periods
-        )
-        self.model = self.model.fit(disp=False)
+        endog = input_data.features.astype('float64')
+
+        # check ets params according to statsmodels restrictions
+        if self._check_and_correct_params(endog):
+            self.log.info(f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
+
+        try:
+            with warnings.catch_warnings():
+                warnings.filterwarnings("error", category=ConvergenceWarning)
+                self._init_model(endog)
+                # if convergence warning is caught, switch to default ETSModel
+                self.model.fit(disp=False)
+        except ConvergenceWarning as e:
+            self.params.update(**{'error': 'add', 'trend': None, 'seasonal': None})
+            self._init_model(endog)
+            self.log.info(f'Switched to default ETSModel due to a convergence warning: {e}')
+        finally:
+            self.model = self.model.fit(disp=False)
         return self.model
 
     def predict(self, input_data):
         input_data = copy(input_data)
-        idx = input_data.idx
+        forecast_length = input_data.task.task_params.forecast_length
 
-        start_id = idx[0]
-        end_id = idx[-1]
-        predictions = self.model.predict(start=start_id,
-                                         end=end_id)
-        predict = predictions
-        predict = np.array(predict).reshape(1, -1)
-        new_idx = np.arange(start_id, end_id + 1)
+        start_id = input_data.idx[0]
+        end_id = start_id + forecast_length - 1
+        predictions = self.model.forecast(steps=forecast_length)
+        predict = np.array(predictions).reshape(1, -1)
 
-        input_data.idx = new_idx
+        input_data.idx = np.arange(start_id, end_id + 1)
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -312,3 +328,27 @@ class ExpSmoothingImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
+
+    def _check_and_correct_params(self, endog: np.ndarray) -> bool:
+        ets_components = ['error', 'trend', 'seasonal']
+        params_changed = False
+        if any(self.params.get(component) == 'mul' for component in ets_components):
+            if np.any(endog <= 0):
+                for component in ets_components:
+                    if self.params.get(component) == 'mul':
+                        self.params.update(**{component: 'add'})
+                params_changed = True
+
+        if self.params.get('trend') == 'mul' \
+                and self.params.get('damped_trend') \
+                and not self.params.get('seasonal'):
+            self.params.update(**{'trend': 'add'})
+            params_changed = True
+
+        if self.params.get('seasonal'):
+            self.seasonal_periods = min(int(0.5 * (len(endog) - 1)), self.seasonal_periods)
+            self.seasonal_periods = max(self.seasonal_periods, 1)
+            self.params.update(**{'seasonal_periods': self.seasonal_periods})
+            params_changed = True
+
+        return params_changed

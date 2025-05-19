@@ -6,46 +6,88 @@
     "n_jobs": 1
   },
   "xgboost": {
-    "eval_metric": "mlogloss",
-    "nthread": 1,
     "n_jobs": 1,
-    "verbose": 0
+    "verbosity": 0,
+    "booster": "gbtree",
+    "tree_method": "auto",
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
+  },
+  "xgboostreg": {
+    "n_jobs": 1,
+    "verbosity": 0,
+    "booster": "gbtree",
+    "tree_method": "auto",
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
   },
   "catboost": {
-    "allow_writing_files": false,
+    "n_jobs": -1,
+    "num_trees": 3000,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 1e-2,
+    "bootstrap_type": "Bernoulli",
+    "grow_policy": "SymmetricTree",
+    "max_depth": 5,
+    "min_data_in_leaf": 1,
+    "one_hot_max_size": 10,
+    "fold_permutation_block": 1,
+    "boosting_type": "Plain",
+    "od_type": "Iter",
+    "od_wait": 100,
+    "max_bin": 32,
+    "feature_border_type": "GreedyLogSum",
+    "nan_mode": "Min",
     "verbose": false,
-    "iterations": 1000,
-    "use_eval_set": false,
-    "use_best_model": false,
-    "early_stopping_rounds": null,
-    "n_jobs": 1
+    "allow_writing_files": false,
+    "use_eval_set": true,
+    "use_best_model": true,
+    "enable_categorical": true
   },
   "catboostreg": {
-    "allow_writing_files": false,
+    "n_jobs": -1,
+    "num_trees": 3000,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 1e-2,
+    "bootstrap_type": "Bernoulli",
+    "grow_policy": "SymmetricTree",
+    "max_depth": 5,
+    "min_data_in_leaf": 1,
+    "one_hot_max_size": 10,
+    "fold_permutation_block": 1,
+    "boosting_type": "Plain",
+    "od_type": "Iter",
+    "od_wait": 100,
+    "max_bin": 32,
+    "feature_border_type": "GreedyLogSum",
+    "nan_mode": "Min",
     "verbose": false,
-    "iterations": 1000,
-    "use_eval_set": false,
-    "use_best_model": false,
-    "early_stopping_rounds": null,
-    "n_jobs": 1
+    "allow_writing_files": false,
+    "use_eval_set": true,
+    "use_best_model": true,
+    "enable_categorical": true
   },
   "lgbm": {
-    "num_leaves": 32,
-    "colsample_bytree": 0.8,
-    "subsample": 0.8,
-    "subsample_freq": 10,
-    "learning_rate": 0.03,
-    "n_estimators": 100,
+    "boosting_type": "gbdt",
+    "max_depth": -1,
+    "bagging_fraction": 0.85,
+    "extra_trees": false,
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30,
     "n_jobs": 1,
     "verbose": -1
   },
   "lgbmreg": {
-    "num_leaves": 32,
-    "colsample_bytree": 0.8,
-    "subsample": 0.8,
-    "subsample_freq": 10,
-    "learning_rate": 0.03,
-    "n_estimators": 100,
+    "boosting_type": "gbdt",
+    "max_depth": -1,
+    "bagging_fraction": 0.85,
+    "extra_trees": false,
+    "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30,
     "n_jobs": 1,
     "verbose": -1
   },
@@ -113,6 +155,18 @@
     "optimizer": "adamw",
     "loss": "mse"
   },
+  "clstm": {
+    "hidden_size": 200,
+    "learning_rate": 0.001,
+    "cnn1_kernel_size": 5,
+    "cnn1_output_size": 32,
+    "cnn2_kernel_size": 5,
+    "cnn2_output_size": 64,
+    "batch_size": 64,
+    "num_epochs": 50,
+    "optimizer": "adamw",
+    "loss": "mse"
+  },
   "h2o_regr": {
     "timeout": 20,
     "seed": 42,
@@ -141,6 +195,10 @@
   "pca": {
     "svd_solver": "full",
     "n_components": 0.7
+  },
+  "dask_pca": {
+    "svd_solver": "full",
+    "n_components": 2
   },
   "ts_naive_average": {
     "part_for_averaging": 1.0

@@ -11,7 +11,7 @@ from golem.core.optimisers.random.random_search import RandomSearchOptimizer
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot import Fedot
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
@@ -26,7 +26,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root, set_random_seed
+from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
@@ -164,7 +164,6 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_multi_objective_composer(data_fixture, request):
-    set_random_seed(42)
 
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
@@ -241,17 +240,17 @@ def test_evaluation_saving_info_from_process(data_fixture, request):
 
     data_source = DataSourceSplitter().build(data)
     objective_evaluator = PipelineObjectiveEvaluate(MetricsObjective(quality_metric), data_source,
-                                                    pipelines_cache=OperationsCache())
+                                                    operations_cache=OperationsCache())
 
     objective_evaluator(pipeline_first())
-    global_cache_len_before = len(objective_evaluator._pipelines_cache)
+    global_cache_len_before = len(objective_evaluator._operations_cache)
 
     assert global_cache_len_before > 0
 
     # evaluate additional pipeline to see that cache changes
     new_pipeline = pipeline_second()
     objective_evaluator(new_pipeline)
-    global_cache_len_after = len(objective_evaluator._pipelines_cache)
+    global_cache_len_after = len(objective_evaluator._operations_cache)
 
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None

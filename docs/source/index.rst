@@ -1,11 +1,9 @@
 Welcome to FEDOT's documentation!
 =================================
 
-This site contains main documentation for the `FEDOT framework <https://github.com/nccr-itmo/FEDOT>`__.
+This site contains main documentation for the `FEDOT framework <https://github.com/aimclub/FEDOT>`__.
 
-The additional description of the algorthmic core, real-world cases and other details is available in `FEDOT.Docs <https://itmo-nss-team.github.io/FEDOT.Miscellaneous>`__.
-
-Fedot is a framework for automated modelling and machine learning, aimed to create the complex composite models that allow obtaining the efficient solution of various applied problems.
+FEDOT is a framework for automated modelling and machine learning, aimed to create the complex composite models that allow obtaining the efficient solution of various applied problems.
 
 The introductionary video about Fedot is available here:
 
@@ -14,7 +12,7 @@ The introductionary video about Fedot is available here:
    :target: http://www.youtube.com/watch?v=RjbuV6i6de4
    :alt: Introducing Fedot
 
-The main aim of the Fedot - to improve the quality of analysis of various natural, technical, and social processes by the automated identification of the composite models from available data sets.
+The main aim of the FEDOT - to improve the quality of analysis of various natural, technical, and social processes by the automated identification of the composite models from available data sets.
 
 
 Content

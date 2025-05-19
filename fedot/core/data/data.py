@@ -4,6 +4,7 @@ import glob
 import os
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -42,7 +43,7 @@ class Data:
     idx: np.ndarray
     task: Task
     data_type: DataTypesEnum
-    features: np.ndarray
+    features: Union[np.ndarray, pd.DataFrame]
     categorical_features: Optional[np.ndarray] = None
     categorical_idx: Optional[np.ndarray] = None
     numerical_idx: Optional[np.ndarray] = None
@@ -56,25 +57,36 @@ class Data:
     @classmethod
     def from_numpy(cls,
                    features_array: np.ndarray,
-                   target_array: np.ndarray,
+                   target_array: Optional[np.ndarray] = None,
                    idx: Optional[np.ndarray] = None,
                    task: Union[Task, str] = 'classification',
-                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table) -> InputData:
+                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table,
+                   features_names: np.ndarray[str] = None,
+                   categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None) -> InputData:
         """Import data from numpy array.
 
-                        Args:
-                            features_array: numpy array with features.
-                            target_array: numpy array with target.
-                            idx: indices of arrays.
-                            task: the :obj:`Task` to solve with the data.
-                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_array: numpy array with features.
+            target_array: numpy array with target.
+            features_names: numpy array with names of features
+            categorical_idx: a list or numpy array with indexes or names of features (if provided feature_names)
+                that indicate that the feature is categorical.
+            idx: indices of arrays.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                        Returns:
-                            data
-                        """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        return array_to_input_data(features_array, target_array, idx, task, data_type)
+        return array_to_input_data(features_array=features_array,
+                                   target_array=target_array,
+                                   features_names=features_names,
+                                   categorical_idx=categorical_idx,
+                                   idx=idx,
+                                   task=task,
+                                   data_type=data_type)
 
     @classmethod
     def from_numpy_time_series(cls,
@@ -85,39 +97,46 @@ class Data:
                                data_type: Optional[DataTypesEnum] = DataTypesEnum.ts) -> InputData:
         """Import time series from numpy array.
 
-                        Args:
-                            features_array: numpy array with features time series.
-                            target_array: numpy array with target time series (if None same as features).
-                            idx: indices of arrays.
-                            task: the :obj:`Task` to solve with the data.
-                            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_array: numpy array with features time series.
+            target_array: numpy array with target time series (if None same as features).
+            idx: indices of arrays.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                        Returns:
-                            data
-                        """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
-        if not target_array:
+        if target_array is None:
             target_array = features_array
-        return array_to_input_data(features_array, target_array, idx, task, data_type)
+        return array_to_input_data(features_array=features_array,
+                                   target_array=target_array,
+                                   idx=idx,
+                                   task=task,
+                                   data_type=data_type)
 
     @classmethod
     def from_dataframe(cls,
                        features_df: Union[pd.DataFrame, pd.Series],
-                       target_df: Union[pd.DataFrame, pd.Series],
+                       target_df: Optional[Union[pd.DataFrame, pd.Series]] = None,
+                       categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
         """Import data from pandas DataFrame.
 
-                Args:
-                    features_df: loaded pandas DataFrame or Series with features.
-                    target_df: loaded pandas DataFrame or Series with target.
-                    task: the :obj:`Task` to solve with the data.
-                    data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
+        Args:
+            features_df: loaded pandas DataFrame or Series with features.
+            target_df: loaded pandas DataFrame or Series with target.
+            categorical_idx: a list or numpy array with indexes or names of features that indicate that
+                the feature is categorical.
+            task: the :obj:`Task` to solve with the data.
+            data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
 
-                Returns:
-                    data
-                """
+        Returns:
+            data: :InputData: representation of data in an internal data structure.
+        """
 
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
@@ -127,13 +146,45 @@ class Data:
             target_df = pd.DataFrame(target_df)
 
         idx = features_df.index.to_numpy()
-        target_columns = target_df.columns.to_list()
         features_names = features_df.columns.to_numpy()
-        df = pd.concat([features_df, target_df], axis=1)
-        features, target = process_target_and_features(df, target_columns)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
-                         features_names=features_names)
+        if target_df is not None:
+            target_columns = target_df.columns.to_list()
+            df = pd.concat([features_df, target_df], axis=1)
+            features, target = process_target_and_features(df, target_columns)
+        else:
+            features, target = process_target_and_features(features_df, target_column=None)
+
+        categorical_features = None
+        if categorical_idx is not None:
+            if isinstance(categorical_idx, list):
+                categorical_idx = np.array(categorical_idx)
+
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
+                raise ValueError(
+                    'Impossible to specify categorical features by name when the features_names are not specified'
+                )
+
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
+                categorical_idx = np.array(
+                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                )
+
+            if categorical_idx.size != 0:
+                categorical_features = features[:, categorical_idx]
+
+        data = InputData(
+            idx=idx,
+            features=features,
+            target=target,
+            task=task,
+            data_type=data_type,
+            features_names=features_names,
+            categorical_idx=categorical_idx,
+            categorical_features=categorical_features
+        )
+
+        return data
 
     @classmethod
     def from_csv(cls,
@@ -142,7 +193,8 @@ class Data:
                  task: Union[Task, str] = 'classification',
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List[Union[str, int]]] = None,
-                 target_columns: Union[str, List[Union[str, int]]] = '',
+                 target_columns: Union[str, List[Union[str, int]], None] = '',
+                 categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                  index_col: Optional[Union[str, int]] = None,
                  possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """Import data from ``csv``.
@@ -154,6 +206,8 @@ class Data:
             task: the :obj:`Task` to solve with the data.
             data_type: the type of the data. Possible values are listed at :class:`DataTypesEnum`.
             target_columns: name of the target column (the last column if empty and no target if ``None``).
+            categorical_idx: a list or numpy array with indexes or names of features that indicate that
+                the feature is categorical.
             index_col: name or index of the column to use as the :obj:`Data.idx`.\n
                 If ``None``, then check the first column's name and use it as index if succeeded
                 (see the param ``possible_idx_keywords``).\n
@@ -171,15 +225,44 @@ class Data:
         df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
-        if not target_columns:
-            features_names = df.columns.to_numpy()[:-1]
-        else:
+        if target_columns:
             features_names = df.drop(target_columns, axis=1).columns.to_numpy()
+
+        else:
+            features_names = df.columns.to_numpy()
 
         features, target = process_target_and_features(df, target_columns)
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type,
-                         features_names=features_names)
+        categorical_features = None
+        if categorical_idx is not None:
+            if isinstance(categorical_idx, list):
+                categorical_idx = np.array(categorical_idx)
+
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
+                raise ValueError(
+                    'Impossible to specify categorical features by name when the features_names are not specified'
+                )
+
+            if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
+                categorical_idx = np.array(
+                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                )
+
+            if categorical_idx.size != 0:
+                categorical_features = features[:, categorical_idx]
+
+        data = InputData(
+            idx=idx,
+            features=features,
+            target=target,
+            task=task,
+            data_type=data_type,
+            features_names=features_names,
+            categorical_idx=categorical_idx,
+            categorical_features=categorical_features
+        )
+
+        return data
 
     @classmethod
     def from_csv_time_series(cls,
@@ -371,7 +454,7 @@ class Data:
 
         features = np.array(messages)
         target = np.array(df_text[label]).reshape(-1, 1)
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -389,7 +472,7 @@ class Data:
 
         features = np.array(df_text['text'])
         target = np.array(df_text[label]).reshape(-1, 1)
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -455,7 +538,7 @@ class Data:
         else:
             target = np.array(df_data[label])
 
-        idx = [index for index in range(len(target))]
+        idx = np.array([index for index in range(len(target))])
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
@@ -466,6 +549,13 @@ class Data:
             dataframe['target'] = self.target
         dataframe.to_csv(path_to_save)
 
+    @property
+    def memory_usage(self):
+        if isinstance(self.features, np.ndarray):
+            return sum([feature.nbytes for feature in self.features.T])
+        else:
+            return self.features.memory_usage().sum()
+
 
 @dataclass
 class InputData(Data):
@@ -475,9 +565,12 @@ class InputData(Data):
     def __post_init__(self):
         if self.numerical_idx is None:
             if self.features is not None and isinstance(self.features, np.ndarray) and self.features.ndim > 1:
-                self.numerical_idx = list(range(self.features.shape[1]))
+                if self.categorical_idx is None:
+                    self.numerical_idx = np.arange(0, self.features.shape[1])
+                else:
+                    self.numerical_idx = np.setdiff1d(np.arange(0, self.features.shape[1]), self.categorical_idx)
             else:
-                self.numerical_idx = [0]
+                self.numerical_idx = np.array([0])
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -498,11 +591,13 @@ class InputData(Data):
     def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
             raise ValueError('Incorrect boundaries for subset')
-        new_features = None
+        new_features = new_target = None
         if self.features is not None:
             new_features = self.features[start:end + 1]
+        if self.target is not None:
+            new_target = self.target[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
-                         target=self.target[start:end + 1],
+                         target=new_target,
                          task=self.task, data_type=self.data_type)
 
     def subset_indices(self, selected_idx: List):
@@ -520,27 +615,38 @@ class InputData(Data):
         # extractions of row number for each existing index from selected_idx
         row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
                     if str(selected_ind) in idx_list]
-        new_features = None
-
+        new_features = new_target = None
         if self.features is not None:
             new_features = self.features[row_nums]
+        if self.target is not None:
+            new_target = self.target[row_nums]
         return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
-                         target=self.target[row_nums],
+                         target=new_target,
                          task=self.task, data_type=self.data_type)
 
-    def subset_features(self, feature_ids: list) -> Optional[InputData]:
+    def subset_features(self, feature_ids: np.array) -> Optional[InputData]:
         """
         Return new :obj:`InputData` with subset of features based on non-empty ``features_ids`` list or `None` otherwise
         """
-        if not feature_ids:
+        if feature_ids is None or feature_ids.size == 0:
             return None
+        if isinstance(self.features, np.ndarray):
+            subsample_features = self.features[:, feature_ids]
+        else:
+            subsample_features = self.features.iloc[:, feature_ids]
 
-        subsample_features = self.features[:, feature_ids]
-        subsample_input = InputData(features=subsample_features,
-                                    data_type=self.data_type,
-                                    target=self.target, task=self.task,
-                                    idx=self.idx,
-                                    supplementary_data=self.supplementary_data)
+        subsample_input = InputData(
+            features=subsample_features,
+            data_type=self.data_type,
+            target=self.target, task=self.task,
+            idx=self.idx,
+            categorical_idx=np.setdiff1d(self.categorical_idx, feature_ids),
+            numerical_idx=np.setdiff1d(self.numerical_idx, feature_ids),
+            encoded_idx=np.setdiff1d(self.encoded_idx, feature_ids),
+            categorical_features=self.categorical_features,
+            features_names=self.features_names,
+            supplementary_data=self.supplementary_data
+        )
 
         return subsample_input
 
@@ -565,7 +671,7 @@ class InputData(Data):
         copied_data = deepcopy(self)
         is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
-        # if fit stage- just creating range of integers
+        # if fit stage-just creating range of integers
         if is_timestamp or is_numpy_datetime:
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
             copied_data.idx = np.array(range(len(copied_data.idx)))
@@ -607,8 +713,11 @@ class InputData(Data):
         num_features_names, cat_features_names = None, None
 
         # Checking numerical data exists
-        if self.numerical_idx:
-            num_features = self.features[:, self.numerical_idx]
+        if self.numerical_idx is not None and self.numerical_idx.size != 0:
+            if isinstance(self.features, np.ndarray):
+                num_features = self.features[:, self.numerical_idx]
+            else:
+                num_features = self.features.iloc[:, self.numerical_idx].to_numpy()
 
             if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
@@ -616,7 +725,7 @@ class InputData(Data):
                 num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
 
         # Checking categorical data exists
-        if self.categorical_idx:
+        if self.categorical_idx is not None and self.categorical_idx.size != 0:
             cat_features = self.categorical_features
 
             if self.features_names is not None and np.size(self.features_names):
@@ -643,6 +752,9 @@ class InputData(Data):
         else:
             raise ValueError('There is no features')
 
+        if isinstance(new_features, pd.DataFrame):
+            new_features.columns = new_features_names
+
         return InputData(idx=self.idx, features=new_features, features_names=new_features_names,
                          numerical_idx=new_num_idx, categorical_idx=new_cat_idx,
                          target=self.target, task=self.task, data_type=self.data_type)
@@ -660,10 +772,21 @@ class OutputData(Data):
     """``Data`` type for data prediction in the node
     """
 
-    features: Optional[np.ndarray] = None
+    features: Optional[Union[np.ndarray, pd.DataFrame]] = None
     predict: Optional[np.ndarray] = None
     target: Optional[np.ndarray] = None
     encoded_idx: Optional[np.ndarray] = None
+
+    def save_predict(self, path_to_save: PathType) -> PathType:
+        prediction = self.predict.tolist() if len(self.predict.shape) >= 2 else self.predict
+        prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
+        try:
+            prediction_df.to_csv(path_to_save, index=False)
+        except (FileNotFoundError, PermissionError, OSError):
+            path_to_save = './predictions.csv'
+            prediction_df.to_csv(path_to_save, index=False)
+
+        return Path(path_to_save).resolve()
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
@@ -693,7 +816,6 @@ def process_target_and_features(data_frame: pd.DataFrame,
     if target_column == '':
         # Take the last column in the table
         target_column = data_frame.columns[-1]
-
     if target_column:
         target = atleast_2d(data_frame[target_column].to_numpy())
         features = data_frame.drop(columns=target_column).to_numpy()
@@ -753,15 +875,47 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
 
 
 def array_to_input_data(features_array: np.ndarray,
-                        target_array: np.ndarray,
+                        target_array: Optional[np.ndarray] = None,
                         idx: Optional[np.ndarray] = None,
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: Optional[DataTypesEnum] = None) -> InputData:
+                        data_type: Optional[DataTypesEnum] = None,
+                        features_names: np.ndarray[str] = None,
+                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None) -> InputData:
     if idx is None:
         idx = np.arange(len(features_array))
     if data_type is None:
         data_type = autodetect_data_type(task)
-    return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
+
+    categorical_features = None
+    if categorical_idx is not None:
+        if isinstance(categorical_idx, list):
+            categorical_idx = np.array(categorical_idx)
+
+        if categorical_idx.size != 0 and isinstance(categorical_idx[0], str) and features_names is None:
+            raise ValueError(
+                'Impossible to specify categorical features by name when the features_names are not specified'
+            )
+
+        if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
+            categorical_idx = np.array(
+                [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+            )
+
+        if categorical_idx.size != 0:
+            categorical_features = features_array[:, categorical_idx]
+
+    data = InputData(
+        idx=idx,
+        features=features_array,
+        target=target_array,
+        features_names=features_names,
+        categorical_idx=categorical_idx,
+        categorical_features=categorical_features,
+        task=task,
+        data_type=data_type
+    )
+
+    return data
 
 
 def autodetect_data_type(task: Task) -> DataTypesEnum:

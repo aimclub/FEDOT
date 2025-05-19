@@ -74,7 +74,7 @@ def get_simple_linear_boosting_pipeline() -> Pipeline:
     node_pf = PipelineNode('poly_features', nodes_from=[node_scaling])
     node_rf = PipelineNode('rf', nodes_from=[node_pf])
     node_decompose = PipelineNode('class_decompose', nodes_from=[node_pf, node_rf])
-    node_linear = PipelineNode('linear', nodes_from=[node_decompose])
+    node_linear = PipelineNode('ridge', nodes_from=[node_decompose])
     final_node = PipelineNode('logit', nodes_from=[node_linear, node_rf])
     pipeline = Pipeline(final_node)
     return pipeline
@@ -168,7 +168,7 @@ def test_no_opt_or_graph_nodes_after_mutation():
     graph = get_simple_linear_graph()
     mutation = get_mutation_obj()
     for mut in mutation.parameters.mutation_types:
-        graph, _ = mutation._adapt_and_apply_mutation(new_graph=graph, mutation_type=mut)
+        graph = mutation._apply_mutations(new_graph=graph, mutation_type=mut)
     new_pipeline = adapter.restore(graph)
 
     assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))

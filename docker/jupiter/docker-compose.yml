@@ -1,0 +1,10 @@
+version: '3'
+services:
+  jupyter-fedot:
+    build:
+      context: .
+      dockerfile: Dockerfile_Jupiter
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/home/jovyan/work

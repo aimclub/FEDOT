@@ -1,26 +1,33 @@
 import random
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+import dask.array as da
+from dask_ml.decomposition import PCA as DaskPCA
+from dask_ml.utils import check_array
 from sklearn.decomposition import FastICA, KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
+
+from fedot.core.constants import PCA_MIN_THRESHOLD_TS
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.data_preprocessing import convert_into_column, data_has_categorical_features, \
-    divide_data_categorical_numerical, find_categorical_columns, replace_inf_with_nans
+from fedot.core.data.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
+    replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
-    """ Class for applying PCA and kernel PCA models from sklearn
+    """
+    Class for applying PCA and kernel PCA models from sklearn
 
     Args:
-        params: OpearationParameters with the arguments
+        params: OperationParameters with the arguments
     """
 
     def __init__(self, params: Optional[OperationParameters]):
@@ -29,8 +36,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_features = None
         self.number_of_samples = None
 
-    def fit(self, input_data: InputData):
-        """The method trains the PCA model
+    def fit(self, input_data: InputData) -> PCA:
+        """
+        The method trains the PCA model
 
         Args:
             input_data: data with features, target and ids for PCA training
@@ -42,13 +50,23 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
 
         if self.number_of_features > 1:
-            self.check_and_correct_params()
-            self.pca.fit(input_data.features)
+            self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
+            # TODO: remove a workaround by refactoring other operations in troubled pipelines (e.g. topo)
+            # workaround for NaN-containing arrays during pca fitting, especially for fast_ica
+            # fast_ica cannot fit with features represented by a rather sparse matrix
+            features = self.preprocess_input(input_data)
+            try:
+                self.pca.fit(features)
+            except Exception as e:
+                self.log.info(f'Switched from {type(self.pca).__name__} to default PCA on fit stage due to {e}')
+                self.pca = PCA()
+                self.pca.fit(features)
 
         return self.pca
 
     def transform(self, input_data: InputData) -> OutputData:
-        """Method for transformation tabular data using PCA
+        """
+        Method for transformation tabular data using PCA
 
         Args:
             input_data: data with features, target and ids for PCA applying
@@ -56,20 +74,30 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         Returns:
             data with transformed features attribute
         """
+        features = self.preprocess_input(input_data)
 
         if self.number_of_features > 1:
-            transformed_features = self.pca.transform(input_data.features)
+            transformed_features = self.pca.transform(features)
         else:
-            transformed_features = input_data.features
+            transformed_features = features
 
         # Update features
-        output_data = self._convert_to_output(input_data,
-                                              transformed_features)
+        transformed_features = self.postprocess_input(transformed_features)
+        output_data = self._convert_to_output(input_data, transformed_features)
         self.update_column_types(output_data)
         return output_data
 
-    def check_and_correct_params(self):
-        """Method check if number of features in data enough for ``n_components``
+    @staticmethod
+    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
+        return input_data.features
+
+    @staticmethod
+    def postprocess_input(transformed_features: Union[np.ndarray, pd.DataFrame]) -> Union[np.ndarray, pd.DataFrame]:
+        return transformed_features
+
+    def check_and_correct_params(self, is_ts_data: bool = False):
+        """
+        Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
         n_components = self.params.get('n_components')
@@ -79,13 +107,19 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         elif n_components == 'mle':
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                self.params.update(n_components=0.5)
+                if not isinstance(self.pca, DaskPCA):
+                    self.params.update(n_components=0.5)
+                else:
+                    self.params.update(n_components=None)
+        if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
+            self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
-        """Update column types after applying PCA operations
+        """
+        Update column types after applying PCA operations
         """
 
         _, n_cols = output_data.predict.shape
@@ -94,7 +128,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
 
 class PCAImplementation(ComponentAnalysisImplementation):
-    """Class for applying PCA from sklearn
+    """
+    Class for applying PCA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -110,8 +145,41 @@ class PCAImplementation(ComponentAnalysisImplementation):
         self.number_of_features = None
 
 
+class DaskPCAImplementation(ComponentAnalysisImplementation):
+    """
+    Class for applying PCA from sklearn
+
+    Args:
+        params: OperationParameters with the hyperparameters
+    """
+
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        if not self.params:
+            # Default parameters
+            default_params = {'svd_solver': 'full', 'n_components': 'mle'}
+            self.params.update(**default_params)
+        self.pca = DaskPCA(**self.params.to_dict())
+        self.number_of_features = None
+
+    @staticmethod
+    def preprocess_input(input_data: InputData) -> Union[np.ndarray, pd.DataFrame]:
+        features = input_data.features
+        if isinstance(input_data.features, pd.DataFrame):
+            features = features.values
+        features = check_array(features, accept_sparse=True, dtype=None)
+        if not isinstance(features, da.Array):
+            features = da.array(features)
+        return features
+
+    @staticmethod
+    def postprocess_input(transformed_features):
+        return transformed_features.compute()
+
+
 class KernelPCAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying kernel PCA from sklearn
+    """
+    Class for applying kernel PCA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -123,7 +191,8 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying FastICA from sklearn
+    """
+    Class for applying FastICA from sklearn
 
     Args:
         params: OperationParameters with the hyperparameters
@@ -135,7 +204,8 @@ class FastICAImplementation(ComponentAnalysisImplementation):
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
-    """ Class for application of :obj:`PolynomialFeatures` operation on data,
+    """
+    Class for application of :obj:`PolynomialFeatures` operation on data,
     where only not encoded features (were not converted from categorical using
     ``OneHot encoding``) are used
 
@@ -158,19 +228,22 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         self.columns_to_take = None
 
     def fit(self, input_data: InputData):
-        """ Method for fit Poly features operation """
+        """
+        Method for fit Poly features operation
+        """
         # Check the number of columns in source dataset
         n_rows, n_cols = input_data.features.shape
         if n_cols > self.th_columns:
             # Randomly choose subsample of features columns - 10 features
             column_indices = np.arange(n_cols)
-            self.columns_to_take = random.sample(list(column_indices), self.th_columns)
+            self.columns_to_take = np.array(random.sample(list(column_indices), self.th_columns))
             input_data = input_data.subset_features(self.columns_to_take)
 
         return super().fit(input_data)
 
     def transform(self, input_data: InputData) -> OutputData:
-        """Firstly perform filtration of columns
+        """
+        Firstly perform filtration of columns
         """
 
         clipped_input_data = input_data
@@ -241,7 +314,7 @@ class ImputationImplementation(DataOperationImplementation):
         default_params_categorical = {'strategy': 'most_frequent'}
         self.params_cat = {**self.params.to_dict(), **default_params_categorical}
         self.params_num = self.params.to_dict()
-        self.categorical_ids = None
+        self.categorical_or_encoded_ids = None
         self.non_categorical_ids = None
         self.ids_binary_integer_features = {}
 
@@ -258,10 +331,20 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data):
+            self.non_categorical_ids = input_data.numerical_idx
+
+            # The data may have arrived here before categorical data encoding was called.
+            if input_data.categorical_idx is not None and input_data.encoded_idx is None:
+                self.categorical_or_encoded_ids = input_data.categorical_idx
+
+            # Otherwise, it may have arrived here after categorical data encoding
+            elif input_data.encoded_idx is not None:
+                self.categorical_or_encoded_ids = input_data.encoded_idx
+
             # Tabular data contains categorical features
-            categorical_ids, non_categorical_ids = find_categorical_columns(input_data.features)
-            numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids,
-                                                                       non_categorical_ids)
+            numerical, categorical = divide_data_categorical_numerical(
+                input_data, self.categorical_or_encoded_ids, self.non_categorical_ids
+            )
 
             if categorical is not None and categorical.features.size > 0:
                 categorical.features = convert_into_column(categorical.features)
@@ -289,12 +372,12 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data) and data_has_categorical_features(input_data):
-            feature_type_ids = input_data.supplementary_data.col_type_ids['features']
-            self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
-                                                                                      feature_type_ids)
-            numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
-                                                                       self.non_categorical_ids)
+        categorical_features, numerical_features = None, None
+
+        if data_type_is_table(input_data):
+            numerical, categorical = divide_data_categorical_numerical(
+                input_data, self.categorical_or_encoded_ids, self.non_categorical_ids
+            )
 
             if categorical is not None:
                 categorical_features = convert_into_column(categorical.features)
@@ -308,13 +391,14 @@ class ImputationImplementation(DataOperationImplementation):
                 numerical_features = self.imputer_num.transform(numerical_features)
                 numerical_features = self._correct_binary_ids_features(numerical_features)
 
-            if categorical is not None and numerical is not None:
+            if categorical_features is not None and numerical_features is not None:
                 # Stack both categorical and numerical features
                 transformed_features = self._categorical_numerical_union(categorical_features,
                                                                          numerical_features)
-            elif categorical is not None and numerical is None:
+            elif categorical_features is not None and numerical_features is None:
                 # Dataset contain only categorical features
                 transformed_features = categorical_features
+
             elif categorical is None and numerical is not None:
                 # Dataset contain only numerical features
                 transformed_features = numerical_features
@@ -344,7 +428,7 @@ class ImputationImplementation(DataOperationImplementation):
         """Merge numerical and categorical features in right order (as it was in source table)
         """
 
-        categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_ids)
+        categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_or_encoded_ids)
         numerical_df = pd.DataFrame(numerical_features, columns=self.non_categorical_ids)
         all_features_df = pd.concat([numerical_df, categorical_df], axis=1)
 

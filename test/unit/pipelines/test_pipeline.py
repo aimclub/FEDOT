@@ -427,6 +427,30 @@ def test_ts_forecasting_pipeline_with_poly_features():
     assert prediction is not None
 
 
+def test_ts_forecasting_pipeline_with_ets():
+    """ Test for an ets-comprising pipeline, ensuring predict does not contain NaNs """
+    smoothing_node = PipelineNode('smoothing')
+    smoothing_node.parameters = {'window_size': 9}
+    gaussian_filter_node = PipelineNode('gaussian_filter', nodes_from=[smoothing_node])
+    smoothing_node.parameters = {'sigma': 4.747037682823521}
+    ets_node = PipelineNode('ets', nodes_from=[gaussian_filter_node])
+    ets_node.parameters = {
+        'error': 'mul',
+        'trend': 'mul',
+        'seasonal': 'add',
+        'damped_trend': False,
+        'seasonal_periods': 37
+    }
+    pipeline = Pipeline(ets_node)
+
+    train_data, test_data = get_ts_data(n_steps=450, forecast_length=30)
+
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+    assert prediction is not None
+    assert not np.isnan(prediction.predict).any()
+
+
 def test_get_nodes_with_operation():
     pipeline = pipeline_first()
     actual_nodes = pipeline.get_nodes_by_name(name='rf')

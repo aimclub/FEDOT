@@ -3,7 +3,7 @@ from typing import Union
 
 from sklearn.metrics import f1_score as f1
 
-from cases.dataset_preparation import unpack_archived_data
+from examples.real_cases.dataset_preparation import unpack_archived_data
 from fedot import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -41,8 +41,10 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     """
 
     path = os.path.join(str(fedot_project_root()), files_path)
+
     # unpacking of data archive
     unpack_archived_data(path)
+
     # import of table data
     data_num = InputData.from_json_files(path, fields_to_use=['votes', 'rating'],
                                          label='genres', task=task, is_multilabel=True, shuffle=False)
@@ -68,7 +70,7 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
+def run_multi_modal_pipeline(files_path: str, timeout=15, visualization=False) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
@@ -76,7 +78,7 @@ def run_multi_modal_pipeline(files_path: str, visualization=False) -> float:
 
     fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.6)
 
-    automl_model = Fedot(problem='classification', timeout=15)
+    automl_model = Fedot(problem='classification', timeout=timeout)
     pipeline = automl_model.fit(features=fit_data,
                                 target=fit_data.target)
 

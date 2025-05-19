@@ -8,15 +8,15 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_regression_example(visualise: bool = False, with_tuning: bool = True,
-                           timeout: float = 2., preset: str = 'auto'):
-    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+                           timeout: float = 2., preset: str = 'auto', use_stats: bool = False):
+    data_path = f'{fedot_project_root()}/examples/real_cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,
                               task=Task(TaskTypesEnum.regression))
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_dir': 'custom_history_dir', 'preset': preset}
+    composer_params = {'history_dir': 'custom_history_dir', 'preset': preset, 'use_stats': use_stats}
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, logging_level=logging.FATAL,
                        with_tuning=with_tuning, **composer_params)
 

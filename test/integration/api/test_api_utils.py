@@ -7,10 +7,13 @@ from examples.simple.classification.classification_pipelines import (classificat
                                                                      classification_pipeline_without_balancing)
 from fedot import Fedot
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.task_assumptions import ClassificationAssumptions
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from golem.core.dag.graph import ReconnectType
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.data.datasets import get_cholesterol_dataset
 from test.integration.api.test_main_api import get_dataset
@@ -51,8 +54,8 @@ def test_predefined_initial_assumption():
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
-    model = Fedot(problem='classification', timeout=.1,
-                  logging_level=logging.DEBUG, available_operations=available_operations,
+    model = Fedot(problem='classification', timeout=1.0,
+                  logging_level=logging.ERROR, available_operations=available_operations,
                   initial_assumption=initial_pipelines)
     old_params = deepcopy(model.params)
     model.fit(train_input)
@@ -81,33 +84,46 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['dt']
+    available_operations = ['rf']
 
     initial_assumptions = AssumptionsBuilder \
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
-    res_init_assumption = Pipeline(PipelineNode('dt'))
+    res_init_assumption = Pipeline(PipelineNode('rf'))
     assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
 def test_init_assumption_with_inappropriate_available_operations():
     """ Checks that if given available operations are not suitable for the task,
     then the default initial assumption will be formed """
-
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    available_operations = ['linear', 'xgboost', 'lagged']
+    available_operations = ['linear', 'xgboostreg', 'lagged']
 
-    initial_assumptions = AssumptionsBuilder \
+    # Receiving initial assumption
+    received_assumption = AssumptionsBuilder \
         .get(train_input) \
         .from_operations(available_operations) \
         .build()
-    primary = PipelineNode('scaling')
-    root = PipelineNode('rf', nodes_from=[primary])
-    res_init_assumption = Pipeline(root)
+    received_assumption = received_assumption[0]
+    # Remove default 'scaling' node for comparison
+    node_to_delete = next((i for i in received_assumption.nodes if i.name == 'scaling'), None)
+    if node_to_delete in received_assumption.nodes:
+        received_assumption.delete_node(node_to_delete, ReconnectType.all)
 
-    assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
+    # Getting default initial assumption from task_assumptions.py
+    repository = OperationTypesRepository()
+    classification_assumptions = ClassificationAssumptions(repository)
+    assumptions_dict = classification_assumptions.builders  # get all assumptions
+    first_key = next(iter(assumptions_dict))  # get first default assumption
+    default_assumption = assumptions_dict[first_key].build()  # build pipeline
+
+    # Check for matching between received and default assumptions
+    assert received_assumption.length == default_assumption.length
+    assert received_assumption.depth == default_assumption.depth
+    for received_node, default_node in zip(received_assumption.nodes, default_assumption.nodes):
+        assert received_node.descriptive_id == default_node.descriptive_id
 
 
 def test_api_composer_available_operations():

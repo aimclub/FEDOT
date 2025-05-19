@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import timedelta
 from os import PathLike
-from typing import Optional, Tuple, Union, Sequence, List, Dict
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import func_timeout
 from golem.core.dag.graph import Graph
@@ -15,7 +15,8 @@ from golem.core.paths import copy_doc
 from golem.utilities.serializable import Serializable
 from golem.visualisation.graph_viz import NodeColorType
 
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -46,7 +47,8 @@ class Pipeline(GraphDelegate, Serializable):
         self.computation_time = None
         self.log = default_log(self)
 
-        self.use_input_preprocessing = use_input_preprocessing  # used outside of the class
+        # Used externally, outside of this class
+        self.use_input_preprocessing = use_input_preprocessing
         # Define data preprocessor
         self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 
@@ -61,12 +63,12 @@ class Pipeline(GraphDelegate, Serializable):
         self.unfit()
         self.fit(input_data)
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData],
-                             time: timedelta) -> OutputData:
+    def _fit_with_time_limit(self,
+                             input_data: Optional[InputData],
+                             time: timedelta,
+                             predictions_cache: Optional[PredictionsCache] = None,
+                             fold_id: Optional[int] = None) -> OutputData:
         """Runs training process in all the pipeline nodes starting with root with time limit.
-
-        Todo:
-            unresolved sentence
 
         Args:
             input_data: data used for operations training
@@ -82,7 +84,7 @@ class Pipeline(GraphDelegate, Serializable):
         try:
             func_timeout.func_timeout(
                 time, self._fit,
-                args=(input_data, process_state_dict, fitted_operations)
+                args=(input_data, process_state_dict, fitted_operations, predictions_cache, fold_id)
             )
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
@@ -92,9 +94,13 @@ class Pipeline(GraphDelegate, Serializable):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: Optional[InputData] = None,
-             process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
-        """Runs training process in all of the pipeline nodes starting with root
+    def _fit(self,
+             input_data: Optional[InputData] = None,
+             process_state_dict: dict = None,
+             fitted_operations: list = None,
+             predictions_cache: Optional[PredictionsCache] = None,
+             fold_id: Optional[int] = None) -> Optional[OutputData]:
+        """Runs training process in all the pipeline nodes starting with root
 
         Args:
             input_data: data used for operation training
@@ -109,7 +115,8 @@ class Pipeline(GraphDelegate, Serializable):
 
         with Timer() as t:
             computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
-            train_predicted = self.root_node.fit(input_data=input_data)
+            train_predicted = self.root_node.fit(
+                input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 
@@ -137,18 +144,17 @@ class Pipeline(GraphDelegate, Serializable):
         if is_fit_stage:
             copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
             # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                           data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                          data=copied_input_data)
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.reduce_memory_size(data=copied_input_data)
         else:
             copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
             # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
-                                                                               data=copied_input_data)
-            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
-                                                                              data=copied_input_data)
+            copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self, data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self, data=copied_input_data)
             copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+            copied_input_data = self.preprocessor.reduce_memory_size(data=copied_input_data)
+
         return copied_input_data
 
     def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
@@ -170,8 +176,12 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
+    def fit(self,
+            input_data: Union[InputData, MultiModalData],
+            time_constraint: Optional[timedelta] = None,
+            n_jobs: int = 1,
+            predictions_cache: Optional[PredictionsCache] = None,
+            fold_id: Optional[int] = None) -> OutputData:
         """
         Runs training process in all the pipeline nodes starting with root
 
@@ -194,9 +204,12 @@ class Pipeline(GraphDelegate, Serializable):
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data)
+            train_predicted = self._fit(input_data=copied_input_data,
+                                        predictions_cache=predictions_cache, fold_id=fold_id)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
+            train_predicted = self._fit_with_time_limit(
+                input_data=copied_input_data, time=time_constraint, predictions_cache=predictions_cache,
+                fold_id=fold_id)
 
         return train_predicted
 
@@ -205,7 +218,7 @@ class Pipeline(GraphDelegate, Serializable):
         """Property showing whether pipeline is fitted
 
         Returns:
-            flag showing if all of the pipeline nodes are fitted already
+            flag showing if all the pipeline nodes are already fitted
         """
 
         return all(node.fitted_operation is not None for node in self.nodes)
@@ -234,8 +247,11 @@ class Pipeline(GraphDelegate, Serializable):
     def unfit_preprocessor(self):
         self.preprocessor = type(self.preprocessor)()
 
-    def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
-                            fold_id: Optional[int] = None):
+    def try_load_from_cache(
+            self,
+            operations_cache: Optional[OperationsCache] = None,
+            preprocessing_cache: Optional[PreprocessingCache] = None,
+            fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 
@@ -248,13 +264,17 @@ class Pipeline(GraphDelegate, Serializable):
             bool: indicating if at least one node was loaded
         """
 
-        if cache is not None:
-            cache.try_load_into_pipeline(self, fold_id)
+        if operations_cache is not None:
+            operations_cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
-    def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
-        """Runs the predict process in all of the pipeline nodes starting with root
+    def predict(self,
+                input_data: Union[InputData, MultiModalData],
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None) -> OutputData:
+        """Runs the predict process in all the pipeline nodes starting with root
 
         input_data: data for prediction
         output_mode: desired form of output for operations
@@ -282,7 +302,8 @@ class Pipeline(GraphDelegate, Serializable):
             copied_input_data = self._preprocess(input_data, is_fit_stage=False)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
-        result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
+        result = self.root_node.predict(input_data=copied_input_data,
+                                        output_mode=output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             result.predict = result.predict.ravel()
@@ -296,7 +317,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             path: custom path to dir where to save JSON or name of json file where to save pipeline.
-            If only file name is specified, than absolute path to this file will be created.
+            If only file name is specified, then absolute path to this file will be created.
             create_subdir: if True -- create one more dir in the last dir
                            if False -- save to the last dir in specified path
             is_datetime_in_path: is it required to add the datetime timestamp to the path
@@ -352,6 +373,14 @@ class Pipeline(GraphDelegate, Serializable):
         primary_nodes = [node for node in self.nodes
                          if node.is_primary]
         return primary_nodes
+
+    @property
+    def nodes(self) -> List[PipelineNode]:
+        return self.operator.nodes
+
+    @nodes.setter
+    def nodes(self, new_nodes: List[PipelineNode]) -> None:
+        self.operator.nodes = new_nodes
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
         """Returns pipeline formed from the last node solving the given problem and all its parents

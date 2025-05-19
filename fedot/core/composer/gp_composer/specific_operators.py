@@ -111,13 +111,13 @@ def add_resample_mutation(pipeline: Pipeline, **kwargs):
 
 
 def choose_new_model(boosting_model_candidates: List[str]) -> str:
-    """ Since 'linear' and 'dtreg' operations are suitable for solving the problem
+    """ Since 'ridge' and 'rfr' operations are suitable for solving the problem
     and they are simpler than others, they are preferred """
 
-    if 'linear' in boosting_model_candidates:
-        new_model = 'linear'
-    elif 'dtreg' in boosting_model_candidates:
-        new_model = 'dtreg'
+    if 'ridge' in boosting_model_candidates:
+        new_model = 'ridge'
+    elif 'rfr' in boosting_model_candidates:
+        new_model = 'rfr'
     else:
         new_model = choice(boosting_model_candidates)
     return new_model

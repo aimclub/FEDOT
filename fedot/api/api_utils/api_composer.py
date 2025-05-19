@@ -10,8 +10,9 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.time import ApiTime
-from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -28,8 +29,9 @@ class ApiComposer:
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
-        self.pipelines_cache: Optional[OperationsCache] = None
+        self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
+        self.predictions_cache: Optional[PredictionsCache] = None
         self.timer = None
         # status flag indicating that composer step was applied
         self.was_optimised = False
@@ -38,18 +40,24 @@ class ApiComposer:
         self.init_cache()
 
     def init_cache(self):
-        use_pipelines_cache = self.params.get('use_pipelines_cache')
+        use_operations_cache = self.params.get('use_operations_cache')
         use_preprocessing_cache = self.params.get('use_preprocessing_cache')
+        use_predictions_cache = self.params.get('use_predictions_cache')
         use_input_preprocessing = self.params.get('use_input_preprocessing')
         cache_dir = self.params.get('cache_dir')
-        if use_pipelines_cache:
-            self.pipelines_cache = OperationsCache(cache_dir)
+        use_stats = self.params.get('use_stats')
+        if use_operations_cache:
+            self.operations_cache = OperationsCache(cache_dir=cache_dir, use_stats=use_stats)
             #  in case of previously generated singleton cache
-            self.pipelines_cache.reset()
+            self.operations_cache.reset()
         if use_input_preprocessing and use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(cache_dir)
+            self.preprocessing_cache = PreprocessingCache(cache_dir=cache_dir, use_stats=use_stats)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
+        if use_predictions_cache:
+            self.predictions_cache = PredictionsCache(cache_dir=cache_dir, use_stats=use_stats)
+            #  in case of previously generated singleton cache
+            self.predictions_cache.reset()
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -102,15 +110,20 @@ class ApiComposer:
                                                                     use_input_preprocessing=self.params.get(
                                                                         'use_input_preprocessing'))
 
-        with self.timer.launch_assumption_fit():
+        with self.timer.launch_assumption_fit(n_folds=self.params.data['cv_folds']):
             fitted_assumption = \
                 assumption_handler.fit_assumption_and_check_correctness(deepcopy(initial_assumption[0]),
-                                                                        pipelines_cache=self.pipelines_cache,
+                                                                        operations_cache=self.operations_cache,
                                                                         preprocessing_cache=self.preprocessing_cache,
                                                                         eval_n_jobs=self.params.n_jobs)
 
         self.log.message(
-            f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
+            f'Initial pipeline was fitted in '
+            f'{round(self.timer.assumption_fit_spend_time_single_fold.total_seconds(), 1)} sec.')
+
+        self.log.message(
+            f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
+            f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
         self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
 
@@ -125,7 +138,7 @@ class ApiComposer:
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
-                                   .with_cache(self.pipelines_cache, self.preprocessing_cache)
+                                   .with_cache(self.operations_cache, self.preprocessing_cache, self.predictions_cache)
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 

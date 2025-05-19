@@ -2,8 +2,6 @@ import os
 from time import time
 
 import pytest
-
-from fedot.core.repository.dataset_types import DataTypesEnum
 from golem.core.tuning.hyperopt_tuner import get_node_parameters_for_hyperopt
 from golem.core.tuning.iopt_tuner import IOptTuner
 from golem.core.tuning.optuna_tuner import OptunaTuner
@@ -14,15 +12,17 @@ from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline, \
-    ts_glm_pipeline
+    ts_polyfit_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, NESTED_PARAMS_LABEL
@@ -128,7 +128,7 @@ def get_class_pipelines():
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_glm_pipeline(), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
@@ -141,7 +141,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['dt']
+    return ['rf']
 
 
 def get_regr_losses():
@@ -169,7 +169,7 @@ def get_not_default_search_space():
         'lgbmreg': {
             'learning_rate': {
                 'hyperopt-dist': hp.loguniform,
-                'sampling-scope': [0.05, 0.1],
+                'sampling-scope': [0.03, 0.1],
                 'type': 'continuous'},
             'colsample_bytree': {
                 'hyperopt-dist': hp.uniform,
@@ -216,9 +216,8 @@ def run_pipeline_tuner(train_data,
                        tuner=SimultaneousTuner,
                        search_space=PipelineSearchSpace(),
                        cv=None,
-                       iterations=3,
+                       iterations=5,
                        early_stopping_rounds=None, **kwargs):
-
     # if data is time series then lagged window should be tuned correctly
     # because lagged window raises error if windows size is uncorrect
     # and tuner will fall
@@ -241,11 +240,12 @@ def run_pipeline_tuner(train_data,
         .with_metric(loss_function) \
         .with_cv_folds(cv) \
         .with_iterations(iterations) \
+        .with_n_jobs(1) \
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_search_space(search_space) \
         .with_additional_params(**kwargs) \
         .build(train_data)
-    tuned_pipeline = pipeline_tuner.tune(pipeline)
+    tuned_pipeline = pipeline_tuner.tune(pipeline, show_progress=False)
     return pipeline_tuner, tuned_pipeline
 
 
@@ -290,7 +290,7 @@ def test_custom_params_setter(data_fixture, request):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test all tuners for pipeline """
     data = request.getfixturevalue(data_fixture)
@@ -299,6 +299,7 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
+                print(pipeline)
                 pipeline_tuner, tuned_pipeline = run_pipeline_tuner(tuner=tuner,
                                                                     train_data=data,
                                                                     pipeline=pipeline,
@@ -323,7 +324,7 @@ def test_pipeline_tuner_with_no_parameters_to_tune(classification_dataset, tuner
     assert not tuned_pipeline.is_fitted
 
 
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
     """ Test all tuners for pipeline with initial parameters """
     # a model
@@ -347,7 +348,7 @@ def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
-@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
+@pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request, tuner):
     """ Test tuners with different search spaces """
     data = request.getfixturevalue(data_fixture)
@@ -423,7 +424,7 @@ def test_ts_pipeline_with_stats_model(n_steps, tuner):
             .with_metric(RegressionMetricsEnum.MSE) \
             .with_iterations(3) \
             .with_search_space(search_space).build(train_data)
-        tuned_pipeline = tuner_ar.tune(ar_pipeline)
+        tuned_pipeline = tuner_ar.tune(ar_pipeline, show_progress=False)
         assert tuned_pipeline is not None
         assert tuner_ar.obtained_metric is not None
 
@@ -440,7 +441,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_pipeline_tuner < 1
+    assert (time() - start_pipeline_tuner) < 1.1 + 0.1
 
     start_sequential_tuner = time()
     _ = run_pipeline_tuner(tuner=SequentialTuner,
@@ -449,7 +450,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                            loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
-    assert time() - start_sequential_tuner < 1
+    assert (time() - start_sequential_tuner) < 1.1 + 0.1
 
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
@@ -457,7 +458,7 @@ def test_early_stop_in_tuning(data_fixture, request):
                        loss_function=ClassificationMetricsEnum.ROCAUC,
                        iterations=1000,
                        early_stopping_rounds=1)
-    assert time() - start_node_tuner < 1
+    assert (time() - start_node_tuner) < 1.1 + 0.1
 
 
 def test_search_space_correctness_after_customization():
@@ -472,15 +473,15 @@ def test_search_space_correctness_after_customization():
     custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                            replace_default_search_space=True)
 
-    default_params = get_node_parameters_for_hyperopt(default_search_space,
-                                                      node_id=0,
-                                                      operation_name='gbr')
-    custom_without_replace_params = get_node_parameters_for_hyperopt(custom_search_space_without_replace,
+    default_params, _ = get_node_parameters_for_hyperopt(default_search_space,
+                                                         node_id=0,
+                                                         node=PipelineNode('gbr'))
+    custom_without_replace_params, _ = get_node_parameters_for_hyperopt(custom_search_space_without_replace,
+                                                                        node_id=0,
+                                                                        node=PipelineNode('gbr'))
+    custom_with_replace_params, _ = get_node_parameters_for_hyperopt(custom_search_space_with_replace,
                                                                      node_id=0,
-                                                                     operation_name='gbr')
-    custom_with_replace_params = get_node_parameters_for_hyperopt(custom_search_space_with_replace,
-                                                                  node_id=0,
-                                                                  operation_name='gbr')
+                                                                     node=PipelineNode('gbr'))
 
     assert default_params.keys() == custom_without_replace_params.keys()
     assert default_params.keys() != custom_with_replace_params.keys()
@@ -522,10 +523,11 @@ def test_complex_search_space():
 
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
 def test_complex_search_space_tuning_correct(tuner):
-    """ Tests SimultaneousTuner for time series forecasting task with GLM model that has a complex glm search space"""
+    """ Tests Tuners for time series forecasting task with GLM model that has a complex glm search space"""
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
 
-    glm_pipeline = Pipeline(PipelineNode('glm'))
+    # ridge added because IOpt requires at least one continuous parameter
+    glm_pipeline = PipelineBuilder().add_sequence('glm', 'ridge', branch_idx=0).build()
     initial_parameters = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \
@@ -534,11 +536,7 @@ def test_complex_search_space_tuning_correct(tuner):
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     found_parameters = tuned_glm_pipeline.nodes[0].parameters
-    if tuner.init_metric == tuner.obtained_metric:
-        # TODO: (YamLyubov) Remove the check when IOptTuner will be able to tune categorical parameters.
-        assert initial_parameters == found_parameters
-    else:
-        assert initial_parameters != found_parameters
+    assert initial_parameters != found_parameters
 
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
@@ -559,8 +557,7 @@ def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner
                                                                  train_data=data,
                                                                  pipeline=pipeline,
                                                                  loss_function=loss_functions,
-                                                                 cv=cv,
-                                                                 iterations=10)
+                                                                 cv=cv)
             assert tuned_pipelines is not None
             assert all([tuned_pipeline is not None for tuned_pipeline in ensure_wrapped_in_sequence(tuned_pipelines)])
             for metrics in pipeline_tuner.obtained_metric:

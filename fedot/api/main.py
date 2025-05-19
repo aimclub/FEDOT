@@ -18,7 +18,7 @@ from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, PathType
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
@@ -33,9 +33,9 @@ from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
-from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -95,7 +95,7 @@ class Fedot:
         self.log = self._init_logger(logging_level)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout)
+        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
 
         default_metrics = MetricByTask.get_default_quality_metrics(self.params.task.task_type)
         passed_metrics = self.params.get('metric')
@@ -166,12 +166,21 @@ class Fedot:
             with fedot_composer_timer.launch_preprocessing():
                 self.train_data = self.data_processor.fit_transform(self.train_data)
 
+        # TODO: Workaround for AtomizedModel
+        init_asm = self.params.data.get('initial_assumption')
+        if predefined_model is None:
+            if isinstance(init_asm, Pipeline) and ("atomized" in init_asm.descriptive_id):
+                self.log.message('Composition for AtomizedModel currently unavailable')
+                predefined_model = init_asm
+
         with fedot_composer_timer.launch_fitting():
             if predefined_model is not None:
                 # Fit predefined model and return it without composing
-                self.current_pipeline = PredefinedModel(predefined_model, self.train_data, self.log,
-                                                        use_input_preprocessing=self.params.get(
-                                                            'use_input_preprocessing')).fit()
+                self.current_pipeline = PredefinedModel(
+                    predefined_model, self.train_data, self.log,
+                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                    api_preprocessor=self.data_processor.preprocessor,
+                ).fit()
             else:
                 self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)
 
@@ -202,7 +211,8 @@ class Fedot:
         return self.current_pipeline
 
     def tune(self,
-             input_data: Optional[InputData] = None,
+             input_data: Optional[FeaturesType] = None,
+             target: TargetType = 'target',
              metric_name: Optional[Union[str, MetricCallable]] = None,
              iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
              timeout: Optional[float] = None,
@@ -212,7 +222,8 @@ class Fedot:
         """Method for hyperparameters tuning of current pipeline
 
         Args:
-            input_data: data for tuning pipeline.
+            input_data: data for tuning pipeline in one of the supported formats.
+            target: data target values in one of the supported target formats.
             metric_name: name of metric for quality tuning.
             iterations: numbers of tuning iterations.
             timeout: time for tuning (in minutes). If ``None`` or ``-1`` means tuning until max iteration reach.
@@ -227,7 +238,10 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         with fedot_composer_timer.launch_tuning('post'):
-            input_data = input_data or self.train_data
+            if input_data is None:
+                input_data = self.train_data
+            else:
+                input_data = self.data_processor.define_data(features=input_data, target=target, is_predict=False)
             cv_folds = cv_folds or self.params.get('cv_folds')
             n_jobs = n_jobs or self.params.n_jobs
 
@@ -242,7 +256,7 @@ class Fedot:
                               .with_timeout(timeout)
                               .build(input_data))
 
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress)
+            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             # Tuner returns a not fitted pipeline, and it is required to fit on train dataset
@@ -252,9 +266,9 @@ class Fedot:
 
     def predict(self,
                 features: FeaturesType,
-                save_predictions: bool = False,
                 in_sample: bool = True,
-                validation_blocks: Optional[int] = None) -> np.ndarray:
+                validation_blocks: Optional[int] = None,
+                path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Predicts new target using already fitted model.
 
         For time-series performs forecast with depth ``forecast_length`` if ``in_sample=False``.
@@ -262,10 +276,10 @@ class Fedot:
 
         Args:
             features: an array with features of test data.
-            save_predictions: if ``True`` - save predictions as csv-file in working directory.
             in_sample: used while time-series prediction. If ``in_sample=True`` performs in-sample forecast using
                 features with number if iterations specified in ``validation_blocks``.
             validation_blocks: number of validation blocks for in-sample forecast.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -287,21 +301,21 @@ class Fedot:
                                                                      in_sample=self._is_in_sample_prediction,
                                                                      validation_blocks=validation_blocks)
 
-        if save_predictions:
-            self.save_predict(self.prediction)
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
 
         return self.prediction.predict
 
     def predict_proba(self,
                       features: FeaturesType,
-                      save_predictions: bool = False,
-                      probs_for_all_classes: bool = False) -> np.ndarray:
+                      probs_for_all_classes: bool = False,
+                      path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Predicts the probability of new target using already fitted classification model
 
         Args:
             features: an array with features of test data.
-            save_predictions: if ``True`` - save predictions as ``.csv`` file in working directory.
             probs_for_all_classes: if ``True`` - return probability for each class even for binary classification.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -319,8 +333,8 @@ class Fedot:
 
                 self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
 
-                if save_predictions:
-                    self.save_predict(self.prediction)
+                if path_to_save is not None:
+                    self.save_predict(self.prediction, path_to_save)
             else:
                 raise ValueError('Probabilities of predictions are available only for classification')
 
@@ -329,14 +343,14 @@ class Fedot:
     def forecast(self,
                  pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
                  horizon: Optional[int] = None,
-                 save_predictions: bool = False) -> np.ndarray:
+                 path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
         out-of-sample forecast is applied (not supported for multi-modal data).
 
         Args:
             pre_history: an array with features for pre-history of the forecast.
             horizon: amount of steps to forecast.
-            save_predictions: if ``True`` save predictions as csv-file in working directory.
+            path_to_save: if specified, path to save prediction to.
 
         Returns:
             An array with prediction values.
@@ -354,8 +368,8 @@ class Fedot:
         predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
-        if save_predictions:
-            self.save_predict(self.prediction)
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
         return self.prediction.predict
 
     def _check_forecast_applicable(self):
@@ -464,16 +478,10 @@ class Fedot:
 
         return metrics
 
-    def save_predict(self, predicted_data: OutputData):
-        # TODO unify with OutputData.save_to_csv()
+    def save_predict(self, predicted_data: OutputData, path_to_save: PathType):
         """ Saves pipeline forecasts in csv file """
-        if len(predicted_data.predict.shape) >= 2:
-            prediction = predicted_data.predict.tolist()
-        else:
-            prediction = predicted_data.predict
-        pd.DataFrame({'Index': predicted_data.idx,
-                      'Prediction': prediction}).to_csv('./predictions.csv', index=False)
-        self.log.message('Predictions was saved in current directory.')
+        saved_to_path = predicted_data.save_predict(path_to_save)
+        self.log.message(f'Predictions saved to {saved_to_path}')
 
     def export_as_project(self, project_path='fedot_project.zip'):
         export_project_to_zip(zip_name=project_path, opt_history=self.history,
