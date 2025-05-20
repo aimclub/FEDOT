@@ -251,5 +251,25 @@
     "memory_saving_mode": "auto",
     "inference_config": null,
     "enable_categorical": true
+  },
+  "autotabpfn": {
+    "max_time":  30,
+    "preset": "default",
+    "ges_scoring_string": "roc",
+    "device": "auto",
+    "ignore_pretraining_limits": false,
+    "enable_categorical": true,
+    "max_samples_cpu": 1000,
+    "max_samples_gpu": 5000
+  },
+  "autotabpfnreg": {
+    "max_time":  30,
+    "preset": "default",
+    "ges_scoring_string": "mse",
+    "device": "auto",
+    "ignore_pretraining_limits": false,
+    "enable_categorical": true,
+    "max_samples_cpu": 1000,
+    "max_samples_gpu": 5000
   }
 }

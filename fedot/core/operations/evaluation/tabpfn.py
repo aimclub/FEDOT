@@ -5,7 +5,8 @@ import numpy as np
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, is_multi_output_task
 from fedot.core.operations.evaluation.operation_implementations.models.tabpfn import \
-    FedotTabPFNClassificationImplementation, FedotTabPFNRegressionImplementation
+    FedotTabPFNClassificationImplementation, FedotTabPFNRegressionImplementation, \
+    FedotAutoTabPFNClassificationImplementation, FedotAutoTabPFNRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
@@ -15,6 +16,8 @@ class TabPFNStrategy(EvaluationStrategy):
     _operations_by_types = {
         'tabpfn': FedotTabPFNClassificationImplementation,
         'tabpfnreg': FedotTabPFNRegressionImplementation,
+        'autotabpfn': FedotAutoTabPFNClassificationImplementation,
+        'autotabpfnreg': FedotAutoTabPFNRegressionImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

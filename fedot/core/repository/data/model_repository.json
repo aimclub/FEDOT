@@ -142,7 +142,10 @@
         "TabPFNClassificationStrategy"
       ],
       "tags": [
-        "neural"
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn"
       ],
       "tasks": "[TaskTypesEnum.classification]"
     },
@@ -159,7 +162,10 @@
         "TabPFNRegressionStrategy"
       ],
       "tags": [
-        "neural"
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn"
       ],
       "tasks": "[TaskTypesEnum.regression]"
     },
@@ -550,17 +556,19 @@
 	},
     "tabpfn": {
       "meta": "tabpfn_class",
-      "tags": [
-        "neural",
-        "non_linear"
-      ]
+      "tags": ["non_auto"]
     },
     "tabpfnreg": {
       "meta": "tabpfn_regr",
-      "tags": [
-        "neural",
-        "non_linear"
-      ]
+      "tags": ["non_auto"]
+    },
+    "autotabpfn": {
+      "meta": "tabpfn_class",
+      "tags": ["auto"]
+    },
+    "autotabpfnreg": {
+      "meta": "tabpfn_regr",
+      "tags": ["auto"]
     }
   }
 }
