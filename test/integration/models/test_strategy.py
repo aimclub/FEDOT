@@ -79,9 +79,10 @@ def test_boosting_regression_operation():
 
 
 def test_tabpfn_classification_operation():
+    n_samples = 50
     train_data, test_data = get_classification_data(
         classes_amount=2,
-        samples_amount=50,
+        samples_amount=n_samples,
         features_amount=4,
     )
 
@@ -96,7 +97,7 @@ def test_tabpfn_classification_operation():
         metric = roc_auc(test_data.target, predicted_output.predict)
 
         assert isinstance(pipeline, Pipeline)
-        assert predicted_output.predict.shape[0] == 240
+        assert predicted_output.predict.shape[0] == n_samples * 0.3
         assert metric > 0.5
 
 
