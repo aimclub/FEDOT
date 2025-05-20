@@ -230,13 +230,15 @@
     "balance_probabilities": false,
     "average_before_softmax": false,
     "model_path": "auto",
-    "device": "cpu",
+    "device": "auto",
     "ignore_pretraining_limits": false,
     "inference_precision": "auto",
     "fit_mode": "fit_preprocessors",
     "memory_saving_mode": "auto",
     "inference_config": null,
-    "enable_categorical": false
+    "enable_categorical": false,
+    "max_samples_cpu": 1000,
+    "max_samples_gpu": 5000
   },
   "tabpfnreg": {
     "n_jobs": 1,
@@ -244,13 +246,15 @@
     "softmax_temperature": 0.9,
     "average_before_softmax": false,
     "model_path": "auto",
-    "device": "cpu",
+    "device": "auto",
     "ignore_pretraining_limits": false,
     "inference_precision": "auto",
     "fit_mode": "fit_preprocessors",
     "memory_saving_mode": "auto",
     "inference_config": null,
-    "enable_categorical": true
+    "enable_categorical": true,
+    "max_samples_cpu": 1000,
+    "max_samples_gpu": 5000
   },
   "autotabpfn": {
     "max_time":  30,

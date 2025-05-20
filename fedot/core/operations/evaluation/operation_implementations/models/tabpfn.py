@@ -8,7 +8,11 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FedotTabPFNImplementation(ModelImplementation):
-    __operation_params = ['enable_categorical']
+    __operation_params = [
+        'enable_categorical',
+        'max_samples_cpu',
+        'max_samples_gpu',
+    ]
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -35,7 +39,22 @@ class FedotTabPFNImplementation(ModelImplementation):
 
         prediction = self.model.predict(input_data.features)
 
-        return prediction
+        output_data = self._convert_to_output(
+            input_data=input_data,
+            predict=prediction
+        )
+        return output_data
+
+    def predict_proba(self, input_data: InputData):
+        if self.params.get('enable_categorical'):
+            input_data = input_data.get_not_encoded_data()
+
+        prediction = self.model.predict_proba(input_data.features)
+        output_data = self._convert_to_output(
+            input_data=input_data,
+            predict=prediction
+        )
+        return output_data
 
 
 class FedotTabPFNClassificationImplementation(FedotTabPFNImplementation):
@@ -46,13 +65,6 @@ class FedotTabPFNClassificationImplementation(FedotTabPFNImplementation):
     def fit(self, input_data: InputData):
         self.classes_ = np.unique(np.array(input_data.target))
         return super().fit(input_data=input_data)
-
-    def predict_proba(self, input_data: InputData):
-        if self.params.get('enable_categorical'):
-            input_data = input_data.get_not_encoded_data()
-
-        prediction = self.model.predict_proba(input_data.features)
-        return prediction
 
 
 class FedotTabPFNRegressionImplementation(FedotTabPFNImplementation):
