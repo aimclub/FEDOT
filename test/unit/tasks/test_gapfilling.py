@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
-from sklearn.metrics import mean_squared_error
 from typing import Callable
 
 from examples.simple.time_series_forecasting.gapfilling import get_array_with_gaps
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 
@@ -203,6 +203,6 @@ def test_gap_filling_forward_ridge_metric_correct():
     predicted_values = without_gap[id_gaps]
     true_values = real_values[id_gaps]
 
-    rmse_test = mean_squared_error(true_values, predicted_values) ** 0.5
+    rmse_test = root_mean_squared_error(true_values, predicted_values)
 
     assert rmse_test < 1.0

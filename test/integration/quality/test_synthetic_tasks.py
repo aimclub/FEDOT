@@ -2,9 +2,8 @@ import logging
 import os
 from functools import partial
 
-from sklearn.metrics import mean_squared_error
-
 from fedot import Fedot
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -35,8 +34,8 @@ def custom_metric_for_synt_data(pipeline, fit_data, predict_data, **kwargs):
     # reference_data is added for compatibility with composer interface
     pipeline.fit_from_scratch(fit_data)
     results = pipeline.predict(predict_data)
-    error = mean_squared_error(y_true=results.target,
-                               y_pred=results.predict) ** 0.5
+    error = root_mean_squared_error(y_true=results.target,
+                                    y_pred=results.predict)
     return error
 
 

@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 from sklearn.datasets import make_regression
-from sklearn.metrics import mean_squared_error as mse
 
 from fedot import Fedot
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -55,8 +55,8 @@ def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=No
 def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
     train_pred = pipeline.predict(input_data=train_data)
     test_pred = pipeline.predict(input_data=test_data)
-    rmse_value_test = mse(y_true=test_data.target, y_pred=test_pred.predict) ** 0.5
-    rmse_value_train = mse(y_true=train_data.target, y_pred=train_pred.predict) ** 0.5
+    rmse_value_test = root_mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
+    rmse_value_train = root_mean_squared_error(y_true=train_data.target, y_pred=train_pred.predict)
 
     return rmse_value_train, rmse_value_test
 

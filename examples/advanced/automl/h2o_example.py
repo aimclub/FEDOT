@@ -1,8 +1,9 @@
 import numpy as np
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
+from sklearn.metrics import roc_auc_score as roc_auc, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -95,7 +96,7 @@ def h2o_ts_pipeline_evaluation(visualization=False):
                   'series': test_target,
                   'label': 'Test part'}]
     metrics_info = {}
-    rmse = mean_squared_error(test_target, test_pred) ** 0.5
+    rmse = root_mean_squared_error(test_target, test_pred)
     mae = mean_absolute_error(test_target, test_pred)
 
     metrics_info['Metrics'] = {'RMSE': round(rmse, 3),

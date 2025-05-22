@@ -6,12 +6,13 @@ from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from matplotlib import pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 
 from examples.real_cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import \
@@ -19,7 +20,7 @@ from fedot.core.repository.metrics_repository import \
 
 
 def calculate_metrics(target, predicted):
-    rmse = mean_squared_error(target, predicted) ** 0.5
+    rmse = root_mean_squared_error(target, predicted)
     mae = mean_absolute_error(target, predicted)
     return rmse, mae
 
