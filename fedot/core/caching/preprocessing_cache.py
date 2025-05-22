@@ -30,8 +30,8 @@ class PreprocessingCache(BaseCache):
             processors = self._db.get_preprocessor(structural_id)
             if processors:
                 pipeline.encoder, pipeline.imputer = processors
-        except Exception as ex:
-            self.log.warning(f'Preprocessor search error: {ex}', raise_if_test=True)
+        except Exception:
+            self.log.log_or_raise('warning', ValueError('Preprocessor search error'))
 
     def add_preprocessor(self, pipeline: 'Pipeline', fold_id: Optional[Union[int, None]] = None):
         """
