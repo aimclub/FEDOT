@@ -216,7 +216,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visu
         predicted = np.ravel(np.array(predicted_values))
         test_data = np.ravel(test_data)
 
-        mse_before = mean_squared_error(test_data, predicted, squared=False)
+        mse_before = mean_squared_error(test_data, predicted)
         mae_before = mean_absolute_error(test_data, predicted)
         mape_before = mean_absolute_percentage_error(test_data, predicted)
 

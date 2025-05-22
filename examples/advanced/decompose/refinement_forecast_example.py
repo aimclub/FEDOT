@@ -3,8 +3,9 @@ import warnings
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -84,9 +85,9 @@ def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.a
 
 
 def display_metrics(test_part, predicted_values, pipeline_name):
-    mse = mean_squared_error(test_part.target, predicted_values, squared=False)
+    rmse = root_mean_squared_error(test_part.target, predicted_values)
     mae = mean_absolute_error(test_part.target, predicted_values)
-    print(f'RMSE {pipeline_name} - {mse:.4f}')
+    print(f'RMSE {pipeline_name} - {rmse:.4f}')
     print(f'MAE {pipeline_name} - {mae:.4f}\n')
 
 

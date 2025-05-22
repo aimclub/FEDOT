@@ -128,7 +128,7 @@ predicted_values = predicted_values.predict
 predicted = np.ravel(np.array(predicted_values))
 test_data = np.ravel(np.array(test_data))
 
-mse_before = mean_squared_error(test_data, predicted, squared=False)
+mse_before = mean_squared_error(test_data, predicted)
 mae_before = mean_absolute_error(test_data, predicted)
 mape_before = mean_absolute_percentage_error(test_data, predicted)
 print(f'ARIMA MSE - {mse_before:.4f}')
@@ -153,7 +153,7 @@ predicted = np.ravel(np.array(predicted_values))
 test_data = np.ravel(np.array(test_data))
 
 
-mse_before = mean_squared_error(test_data, predicted, squared=False)
+mse_before = mean_squared_error(test_data, predicted)
 mae_before = mean_absolute_error(test_data, predicted)
 mape_before = mean_absolute_percentage_error(test_data, predicted)
 print(f'Lagged with nemo MSE - {mse_before:.4f}')
@@ -178,7 +178,7 @@ predicted = np.ravel(np.array(predicted_values))
 test_data = np.ravel(np.array(test_data))
 
 
-mse_before = mean_squared_error(test_data, predicted, squared=False)
+mse_before = mean_squared_error(test_data, predicted)
 mae_before = mean_absolute_error(test_data, predicted)
 mape_before = mean_absolute_percentage_error(test_data, predicted)
 print(f'ARIMA with nemo MSE - {mse_before:.4f}')

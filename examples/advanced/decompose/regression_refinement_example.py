@@ -3,9 +3,10 @@ import warnings
 import numpy as np
 import pandas as pd
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -118,14 +119,14 @@ def run_river_experiment(file_path, with_tuning=False):
 
     y_data_test = np.ravel(y_data_test)
 
-    mse_value = mean_squared_error(y_data_test, r_preds, squared=False)
+    rmse_value = root_mean_squared_error(y_data_test, r_preds)
     mae_value = mean_absolute_error(y_data_test, r_preds)
-    print(f'RMSE with decompose - {mse_value:.2f}')
+    print(f'RMSE with decompose - {rmse_value:.2f}')
     print(f'MAE with decompose - {mae_value:.2f}\n')
 
-    mse_value_non = mean_squared_error(y_data_test, non_preds, squared=False)
+    rmse_value_non = root_mean_squared_error(y_data_test, non_preds)
     mae_value_non = mean_absolute_error(y_data_test, non_preds)
-    print(f'RMSE non decompose - {mse_value_non:.2f}')
+    print(f'RMSE non decompose - {rmse_value_non:.2f}')
     print(f'MAE non decompose - {mae_value_non:.2f}\n')
 
 

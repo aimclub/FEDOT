@@ -1,8 +1,9 @@
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
 from examples.simple.time_series_forecasting.api_forecasting import get_ts_data
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
@@ -33,7 +34,7 @@ def cgru_forecasting():
                              'Border line')
     ]
 
-    rmse = mean_squared_error(test_data.target, prediction, squared=False)
+    rmse = root_mean_squared_error(test_data.target, prediction)
     mae = mean_absolute_error(test_data.target, prediction)
     print(f'RMSE - {rmse:.4f}')
     print(f'MAE - {mae:.4f}')

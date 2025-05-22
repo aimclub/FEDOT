@@ -1,12 +1,12 @@
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import mean_squared_error
 
 from examples.real_cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from examples.real_cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from examples.real_cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from examples.real_cases.spam_detection import run_text_problem_from_saved_meta_file
 from examples.real_cases.time_series_gapfilling_case import run_gapfilling_case
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
@@ -42,8 +42,8 @@ def test_gapfilling_problem():
     ridge_predicted = np.array(dataframe['ridge'])[gap_ids]
     composite_predicted = np.array(dataframe['composite'])[gap_ids]
 
-    rmse_ridge = mean_squared_error(actual, ridge_predicted, squared=False)
-    rmse_composite = mean_squared_error(actual, composite_predicted, squared=False)
+    rmse_ridge = root_mean_squared_error(actual, ridge_predicted)
+    rmse_composite = root_mean_squared_error(actual, composite_predicted)
 
     assert rmse_ridge < 40.0
     assert rmse_composite < 40.0

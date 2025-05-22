@@ -169,13 +169,21 @@ class QualityMetric(Metric):
         return least_frequent_val
 
 
+def root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> float:
+    # TODO: remove workaround when python3.8 (scikit-learn<1.6) support is no longer required
+    try:
+        from sklearn.metrics import root_mean_squared_error
+        return root_mean_squared_error(y_true=y_true, y_pred=y_pred)
+    except ImportError:
+        return mean_squared_error(y_true=y_true, y_pred=y_pred, squared=False)
+
+
 class RMSE(QualityMetric):
     default_value = sys.maxsize
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=False)
+        return root_mean_squared_error(reference.target, predicted.predict)
 
 
 class MSE(QualityMetric):
@@ -184,7 +192,7 @@ class MSE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=True)
+                                  y_pred=predicted.predict)
 
 
 class MSLE(QualityMetric):

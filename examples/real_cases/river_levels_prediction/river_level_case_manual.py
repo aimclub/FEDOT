@@ -4,8 +4,9 @@ from datetime import timedelta
 
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error
 
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -51,11 +52,11 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         preds = predicted_values.predict
 
         y_data_test = np.ravel(y_data_test)
-        mse_value = mean_squared_error(y_data_test, preds, squared=False)
+        rmse_value = root_mean_squared_error(y_data_test, preds)
         mae_value = mean_absolute_error(y_data_test, preds)
 
         print(f'Obtained metrics for current iteration {i}:')
-        print(f'RMSE - {mse_value:.2f}')
+        print(f'RMSE - {rmse_value:.2f}')
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
@@ -75,12 +76,11 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict
 
-            mse_value = mean_squared_error(y_data_test, preds_tuned,
-                                           squared=False)
+            rmse_value = root_mean_squared_error(y_data_test, preds_tuned)
             mae_value = mean_absolute_error(y_data_test, preds_tuned)
 
             print(f'Obtained metrics for current iteration {i} after tuning:')
-            print(f'RMSE - {mse_value:.2f}')
+            print(f'RMSE - {rmse_value:.2f}')
             print(f'MAE - {mae_value:.2f}\n')
 
 

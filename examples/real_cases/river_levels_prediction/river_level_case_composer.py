@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
@@ -118,10 +119,10 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                          train_input=train_input,
                                          predict_input=predict_input)
 
-        mse_value = mean_squared_error(y_data_test, preds, squared=False)
+        rmse_value = root_mean_squared_error(y_data_test, preds)
         mae_value = mean_absolute_error(y_data_test, preds)
         print(f'Obtained metrics for current iteration {i}:')
-        print(f'RMSE - {mse_value:.2f}')
+        print(f'RMSE - {rmse_value:.2f}')
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
@@ -137,11 +138,11 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                                    train_input=train_input,
                                                    predict_input=predict_input)
 
-            mse_value = mean_squared_error(y_data_test, preds_tuned, squared=False)
+            rmse_value = root_mean_squared_error(y_data_test, preds_tuned)
             mae_value = mean_absolute_error(y_data_test, preds_tuned)
 
             print(f'Obtained metrics for current iteration {i} after tuning:')
-            print(f'RMSE - {mse_value:.2f}')
+            print(f'RMSE - {rmse_value:.2f}')
             print(f'MAE - {mae_value:.2f}\n')
 
         obtained_pipelines.append(obtained_models)
