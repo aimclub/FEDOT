@@ -5,10 +5,9 @@ import numpy as np
 import pandas as pd
 from golem.core.optimisers.genetic.gp_params import GPAlgorithmParameters
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
-from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from matplotlib import pyplot as plt
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -75,7 +74,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
                       'series': time_series,
                       'label': 'Actual time series'})
 
-    rmse = root_mean_squared_error(test_target, predict)
+    rmse = mean_squared_error(test_target, predict, squared=False)
     mae = mean_absolute_error(test_target, predict)
 
     metrics_info['Metrics without composing'] = {'RMSE': round(rmse, 3),
@@ -118,7 +117,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
 
-    rmse = root_mean_squared_error(test_target, predict_after)
+    rmse = mean_squared_error(test_target, predict_after, squared=False)
     mae = mean_absolute_error(test_target, predict_after)
 
     metrics_info['Metrics after composing'] = {'RMSE': round(rmse, 3),

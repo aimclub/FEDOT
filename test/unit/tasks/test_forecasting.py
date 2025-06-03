@@ -5,9 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy import stats
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
@@ -135,7 +134,7 @@ def test_arima_pipeline_fit_correct():
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
 
-    rmse_test = root_mean_squared_error(test_target, test_pred)
+    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
 
@@ -170,7 +169,7 @@ def test_simple_pipeline_forecast_correct():
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
-    rmse_test = root_mean_squared_error(test_target, test_pred)
+    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
 
@@ -199,7 +198,7 @@ def test_regression_multiscale_pipeline_forecast_correct():
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
-    rmse_test = root_mean_squared_error(test_target, test_pred)
+    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target,
                                                 is_strict=True)

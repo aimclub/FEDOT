@@ -1,11 +1,10 @@
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
 from examples.simple.time_series_forecasting.api_forecasting import get_ts_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_locf_ridge_pipeline
-from fedot.core.composer.metrics import root_mean_squared_error
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum
@@ -35,7 +34,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
                       'series': np.concatenate([test_data.features, test_data.target]),
                       'label': 'Actual time series'})
 
-    rmse = root_mean_squared_error(test_target, predict)
+    rmse = mean_squared_error(test_target, predict, squared=False)
     mae = mean_absolute_error(test_target, predict)
 
     metrics_info['Metrics without tuning'] = {'RMSE': round(rmse, 3),
@@ -56,7 +55,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
         prediction_after = pipeline.predict(test_data)
         predict_after = np.ravel(np.array(prediction_after.predict))
 
-        rmse = root_mean_squared_error(test_target, predict_after)
+        rmse = mean_squared_error(test_target, predict_after, squared=False)
         mae = mean_absolute_error(test_target, predict_after)
 
         metrics_info['Metrics after tuning'] = {'RMSE': round(rmse, 3),
