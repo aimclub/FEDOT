@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.boostings
     FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
     FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
+from fedot.core.utils import is_multi_output_task
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
 
