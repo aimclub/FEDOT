@@ -32,7 +32,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utils import is_multi_output_task, set_multi_output_mode
+from fedot.core.utils import is_multi_output_task
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.random import ImplementationRandomStateHandler
 
