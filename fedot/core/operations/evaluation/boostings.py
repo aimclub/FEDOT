@@ -40,6 +40,7 @@ class BoostingStrategy(EvaluationStrategy):
             raise ValueError('Time series forecasting not supported for boosting models')
 
         if is_multi_output_task(train_data):
+            self.operation_impl.is_multi_target = True
             if self.operation_type == 'catboost':
                 self.params_for_fit.update(loss_function='MultiLogloss')
             elif self.operation_type == 'catboostreg':
@@ -66,7 +67,12 @@ class BoostingClassificationStrategy(BoostingStrategy):
         elif (self.output_mode in ['probs', 'full_probs', 'default'] and
               predict_data.task.task_type is TaskTypesEnum.classification):
             n_classes = len(trained_operation.classes_)
-            is_multi_output_target = is_multi_output_task(predict_data)
+
+            # Check for each model because a multimodal task may come up
+            if hasattr(self.operation_impl, 'is_multi_target'):
+                is_multi_output_target = getattr(self.operation_impl, 'is_multi_target')
+            else:
+                is_multi_output_target = False
 
             prediction = trained_operation.predict_proba(predict_data)
             is_prediction_correct = self._check_prediction_correctness(prediction)

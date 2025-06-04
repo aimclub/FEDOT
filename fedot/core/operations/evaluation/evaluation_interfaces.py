@@ -223,6 +223,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         # Multi-output task or not
         is_multi_target = is_multi_output_task(train_data)
+        if is_multi_target:
+            self.operation_impl.is_multi_target = True
+        else:
+            self.operation_impl.is_multi_target = False
+
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             if is_model_not_support_multi and is_multi_target:
                 # Manually wrap the regressor into multi-output model
@@ -255,7 +260,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
     def _sklearn_compatible_prediction(self, trained_operation, features):
-        is_multi_output_target = isinstance(trained_operation.classes_, list)
+        if hasattr(self.operation_impl, 'is_multi_target'):
+            is_multi_output_target = getattr(self.operation_impl, 'is_multi_target')
+        else:
+            is_multi_output_target = False
+
         # Check if target is multilabel (has 2 or more columns)
         if is_multi_output_target:
             n_classes = len(trained_operation.classes_[0])
