@@ -15,7 +15,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utils import default_fedot_data_dir
-from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
+from fedot.core.utils import is_multi_output_task
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
