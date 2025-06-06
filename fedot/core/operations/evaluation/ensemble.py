@@ -5,10 +5,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging import \
     CatBoostBaggingClassification, CatBoostBaggingRegression, XGBoostBaggingClassification, XGBoostBaggingRegression, \
     LGBMBaggingClassification, LGBMBaggingRegression, RFBaggingClassification, RFBaggingRegression
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
-    BlendingClassifier, BlendingRegressor)
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.stacking import (
-    StackingClassifier, StackingRegressor)
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import BlendingImplementation
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
@@ -25,26 +22,21 @@ class EnsembleStrategy(EvaluationStrategy):
 
             .. details:: possible operations:
 
-                - ``blending`` -> BlendingClassifier
-                - ``blendreg`` -> BlendingRegressor
-                - ``stacking`` -> StackingClassifier
-                - ``stackreg`` -> StackingRegressor
+                - ``blending`` -> BlendingImplementation
 
         params: hyperparameters to fit the operation with
     """
     _operations_by_types = {
-        'blending': BlendingClassifier,
-        'blendreg': BlendingRegressor,
-        'stacking': StackingClassifier,
-        'stackreg': StackingRegressor,
-        'cb_bag': CatBoostBaggingClassification,
-        'cbreg_bag': CatBoostBaggingRegression,
-        'xgb_bag': XGBoostBaggingClassification,
-        'xgbreg_bag': XGBoostBaggingRegression,
-        'lgbm_bag': LGBMBaggingClassification,
-        'lgbmreg_bag': LGBMBaggingRegression,
-        'rf_bag': RFBaggingClassification,
-        'rfr_bag': RFBaggingRegression,
+        'blending': BlendingImplementation,
+        'blending_': BlendingImplementation,  # same class for regression tasks
+        # 'cb_bag': CatBoostBaggingClassification,
+        # 'cbreg_bag': CatBoostBaggingRegression,
+        # 'xgb_bag': XGBoostBaggingClassification,
+        # 'xgbreg_bag': XGBoostBaggingRegression,
+        # 'lgbm_bag': LGBMBaggingClassification,
+        # 'lgbmreg_bag': LGBMBaggingRegression,
+        # 'rf_bag': RFBaggingClassification,
+        # 'rfr_bag': RFBaggingRegression,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

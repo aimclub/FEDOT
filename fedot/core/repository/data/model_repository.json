@@ -556,26 +556,7 @@
         "interpretable"
       ]
     },
-    "blendreg": {
-      "meta": "ensemble_regr",
-      "presets": ["fast_train"],
-      "tags": [
-        "simple",
-        "linear",
-        "interpretable"
-      ]
-    },
-    "stacking": {
-      "meta": "ensemble_class",
-      "presets": ["fast_train"],
-      "tags": [
-        "non-default",
-        "simple",
-        "linear",
-        "interpretable"
-      ]
-    },
-    "stackreg": {
+    "blending_": {
       "meta": "ensemble_regr",
       "presets": ["fast_train"],
       "tags": [
