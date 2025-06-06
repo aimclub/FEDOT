@@ -31,7 +31,7 @@ class BlendingImplementation(ModelImplementation):
     def _fit(self, input_data: InputData):
         """Method for weights optimization."""
         if self.n_models == 1:
-            self.log.info(f"Got only one model; using weight 1.0 for {self.models[0]}")
+            self.log.message(f"Got only one model; using weight 1.0 for {self.models[0]}")
             self.weights = np.array([1.0])
             return self
     
