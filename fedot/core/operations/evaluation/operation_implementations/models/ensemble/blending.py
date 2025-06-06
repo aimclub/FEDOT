@@ -21,13 +21,22 @@ class BlendingImplementation(ModelImplementation):
 
         self.task = None
         self.max_iter = 100
+        self.classes_ = None
         self.n_classes = None
         self.models = None
         self.n_models = None
 
         self.score_func = None
         self.log = default_log('WeightedAverageBlending')
-    
+
+    def _init(self, input_data: InputData):
+        self.task = input_data.task.task_type
+        self.classes_ = input_data.class_labels
+        self.n_classes = input_data.num_classes
+        self.models = input_data.supplementary_data.previous_operations
+        self.n_models = len(self.models)
+        self.score_func = self._setup_default_score_func()
+
     def _fit(self, input_data: InputData):
         """Method for weights optimization."""
         if self.n_models == 1:
@@ -63,10 +72,7 @@ class BlendingImplementation(ModelImplementation):
         Args:
             input_data: InputData with models predictions
         """
-        self.task = input_data.task.task_type
-        self.score_func = self._setup_default_score_func()
-        self.models = input_data.supplementary_data.previous_operations
-        self.n_models = len(self.models)
+        self._init(input_data)
 
         # Get weights
         self._fit(input_data=input_data)

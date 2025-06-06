@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Optional
 from abc import abstractmethod
 
@@ -76,7 +77,11 @@ class EnsembleClassificationStrategy(EnsembleStrategy):
         if self.output_mode == 'labels':
             prediction = trained_operation.predict(predict_data)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data)
+            n_classes = len(trained_operation.classes_)
+            prediction = trained_operation.predict_proba(predict_data).predict
+            # Full probs for binary classification
+            if self.output_mode == 'full_probs' and n_classes == 2 and prediction.shape[1] == 1:
+                prediction = np.hstack([1 - prediction, prediction])
         else:
             raise ValueError(f'Output mode {self.output_mode} is not supported')
 
