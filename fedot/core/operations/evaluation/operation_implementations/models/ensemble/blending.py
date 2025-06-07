@@ -1,7 +1,7 @@
 from typing import Optional
 
 import numpy as np
-from scipy.optimize import minimize
+import optuna
 from sklearn.metrics import log_loss, mean_squared_error
 
 from golem.core.log import default_log
@@ -20,13 +20,16 @@ class BlendingImplementation(ModelImplementation):
         super().__init__(params)
 
         self.task = None
-        self.max_iter = 100
+        self.n_trials = 100
         self.classes_ = None
         self.n_classes = None
         self.models = None
         self.n_models = None
 
         self.score_func = None
+        self.study = None
+
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
         self.log = default_log('WeightedAverageBlending')
 
     def _init(self, input_data: InputData):
@@ -36,6 +39,11 @@ class BlendingImplementation(ModelImplementation):
         self.models = input_data.supplementary_data.previous_operations
         self.n_models = len(self.models)
         self.score_func = self._setup_default_score_func()
+        self.study = optuna.create_study(
+            direction='minimize',
+            sampler=optuna.samplers.TPESampler(seed=42),
+            pruner=optuna.pruners.MedianPruner(),
+        )
 
     def _fit(self, input_data: InputData):
         """Method for weights optimization."""
@@ -43,26 +51,38 @@ class BlendingImplementation(ModelImplementation):
             self.log.message(f"Got only one model; using weight 1.0 for {self.models[0]}")
             self.weights = np.array([1.0])
             return self
-    
+
         self.log.message(f"Starting weights optimization for models: {self.models}. "
                     f"Obtained optimization metric - {self.score_func.__name__}.")
-        
+
         predictions = self._divide_predictions(input_data=input_data)
-        initial_weights = np.ones(self.n_models) / self.n_models
 
-        constraints = {'type': 'eq', 'fun': lambda w: np.sum(w) - 1}
-        bounds = [(0, 1)] * self.n_models
+        def objective(trial):
+            # Suggest weights for each model
+            weights = [
+                trial.suggest_float(f'weight_{i}', 0.0, 1.0)
+                for i in range(self.n_models)
+            ]
 
-        def objective(weights):
-            blended_pred = self._blend_predictions(predictions, weights, return_labels=False)
-            score = self.score_func(input_data.target, blended_pred)
-            return score
-        
-        result = minimize(objective, initial_weights,
-                          bounds=bounds, constraints=constraints,
-                          options={'maxiter': self.max_iter})
-        
-        self.weights = result.x
+            # Normalize weights to sum to 1
+            weights = np.array(weights)
+            if np.sum(weights) == 0:
+                return float('-inf')  # Penalize zero weights
+            normalized_weights = weights / np.sum(weights)
+
+            blended_pred = self._blend_predictions(predictions, normalized_weights, return_labels=False)
+            return self.score_func(input_data.target, blended_pred)
+
+        self.study.optimize(objective, n_trials=self.n_trials)
+        self.log.message(f"Optimization completed. Best {self.score_func.__name__} score: {self.study.best_value:.6f}")
+
+        optimized_weights = np.array([
+            self.study.best_params[f'weight_{i}']
+            for i in range(self.n_models)
+        ])
+        optimized_weights /= np.sum(optimized_weights)
+
+        self.weights = optimized_weights
         return self
 
     def fit(self, input_data: InputData):
