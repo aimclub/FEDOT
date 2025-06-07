@@ -14,7 +14,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class BlendingImplementation(ModelImplementation):
-    """Base class for weighted average blender."""
+    """Base class for weighted average blending."""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -44,16 +44,16 @@ class BlendingImplementation(ModelImplementation):
             sampler=optuna.samplers.TPESampler(seed=42),
             pruner=optuna.pruners.MedianPruner(),
         )
+        self.n_classes = input_data.num_classes
 
     def _fit(self, input_data: InputData):
         """Method for weights optimization."""
+        if self.n_models == 0:
+            raise ValueError("No previous models provided for blending.")
         if self.n_models == 1:
             self.log.message(f"Got only one model; using weight 1.0 for {self.models[0]}")
             self.weights = np.array([1.0])
             return self
-
-        self.log.message(f"Starting weights optimization for models: {self.models}. "
-                    f"Obtained optimization metric - {self.score_func.__name__}.")
 
         predictions = self._divide_predictions(input_data=input_data)
 
@@ -67,13 +67,17 @@ class BlendingImplementation(ModelImplementation):
             # Normalize weights to sum to 1
             weights = np.array(weights)
             if np.sum(weights) == 0:
-                return float('-inf')  # Penalize zero weights
+                return float('inf')  # Penalize zero weights
             normalized_weights = weights / np.sum(weights)
 
             blended_pred = self._blend_predictions(predictions, normalized_weights, return_labels=False)
             return self.score_func(input_data.target, blended_pred)
 
+        self.log.message(f"Starting weights optimization for models: {self.models}. "
+                    f"Obtained score function - {self.score_func.__name__}.")
+
         self.study.optimize(objective, n_trials=self.n_trials)
+
         self.log.message(f"Optimization completed. Best {self.score_func.__name__} score: {self.study.best_value:.6f}")
 
         optimized_weights = np.array([
@@ -97,7 +101,7 @@ class BlendingImplementation(ModelImplementation):
         # Get weights
         self._fit(input_data=input_data)
 
-        # Log weights result
+        # Logging weights result
         sorted_pairs = sorted(zip(self.models, self.weights), key=lambda x: x[1], reverse=True)
         weight_formula = " + ".join([f"{round(w, 3)} * {model}" for model, w in sorted_pairs])
         self.log.message(f"Blended prediction = {weight_formula}")
@@ -149,7 +153,7 @@ class BlendingImplementation(ModelImplementation):
         elif self.task == TaskTypesEnum.regression or self.task == TaskTypesEnum.ts_forecasting:
             return mean_squared_error
         else:
-            raise ValueError("Can't get score function for the task {task}.")
+            raise ValueError(f"Can't get score function for the task {self.task}.")
 
     def _divide_predictions(self, input_data: InputData) -> list:
         """Split concatenated predictions from different models into separate arrays."""
@@ -157,19 +161,6 @@ class BlendingImplementation(ModelImplementation):
         preds_list = []
 
         if self.task == TaskTypesEnum.classification:
-            if self.n_classes is None:
-                # Determine number of classes from input data
-                if hasattr(input_data, 'num_classes'):
-                    self.n_classes = input_data.num_classes
-                else:
-                    # For binary classification, we might have only 1 probability column per model
-                    # So we need to infer from the input shape
-                    if predictions.shape[1] == self.n_models:
-                        self.n_classes = 2  # Binary case with one probability per model
-                    else:
-                        # Assume multiclass with all probabilities provided
-                        self.n_classes = predictions.shape[1] // self.n_models
-            
             if self.n_classes == 2:
                 # Binary classification case - one probability per model
                 if predictions.shape[1] != self.n_models:
