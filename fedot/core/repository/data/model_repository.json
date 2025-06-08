@@ -550,7 +550,6 @@
       "meta": "ensemble_class",
       "presets": ["fast_train"],
       "tags": [
-        "deprecated",
         "simple",
         "linear",
         "interpretable"
@@ -560,7 +559,6 @@
       "meta": "ensemble_regr",
       "presets": ["fast_train"],
       "tags": [
-        "deprecated",
         "simple",
         "linear",
         "interpretable"
