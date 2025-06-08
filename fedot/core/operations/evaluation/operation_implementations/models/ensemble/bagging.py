@@ -21,12 +21,14 @@ class BaggingImplementation(ModelImplementation):
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.seed = 42
         self.model = None
+        self.classes_ = None
 
     def fit(self, input_data: InputData):
         """Fit the bagging model.
         Args:
             input_data: Input data features.
         """
+        self.classes_ = input_data.class_labels
         self.model.fit(input_data.features, input_data.target)
         return self
 
