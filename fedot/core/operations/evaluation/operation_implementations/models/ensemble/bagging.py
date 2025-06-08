@@ -59,7 +59,7 @@ class CatBoostBaggingClassification(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  CatBoostClassifier(**self.model_params)
+        est = CatBoostClassifier(**self.model_params)
         self.model = BaggingClassifier(estimator=est)
 
 
@@ -68,7 +68,7 @@ class CatBoostBaggingRegression(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  CatBoostRegressor(**self.model_params)
+        est = CatBoostRegressor(**self.model_params)
         self.model = BaggingRegressor(estimator=est)
 
 
@@ -77,7 +77,7 @@ class XGBoostBaggingClassification(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  XGBClassifier(**self.model_params)
+        est = XGBClassifier(**self.model_params)
         self.model = BaggingClassifier(estimator=est)
 
 
@@ -86,7 +86,7 @@ class XGBoostBaggingRegression(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  XGBRegressor(**self.model_params)
+        est = XGBRegressor(**self.model_params)
         self.model = BaggingRegressor(estimator=est)
 
 
@@ -95,7 +95,7 @@ class LGBMBaggingClassification(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  LGBMClassifier(**self.model_params)
+        est = LGBMClassifier(**self.model_params)
         self.model = BaggingClassifier(estimator=est)
 
 
@@ -104,5 +104,5 @@ class LGBMBaggingRegression(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        est =  LGBMRegressor(**self.model_params)
+        est = LGBMRegressor(**self.model_params)
         self.model = BaggingRegressor(estimator=est)
