@@ -73,7 +73,7 @@ class BlendingImplementation(ModelImplementation):
             return self.score_func(input_data.target, blended_pred)
 
         self.log.message(f"Starting weights optimization for models: {self.models}. "
-                    f"Obtained score function - {self.score_func.__name__}.")
+                         f"Obtained score function - {self.score_func.__name__}.")
 
         self.study.optimize(objective, n_trials=self.n_trials)
 
@@ -164,16 +164,17 @@ class BlendingImplementation(ModelImplementation):
                 # Binary classification case - one probability per model
                 if predictions.shape[1] != self.n_models:
                     raise ValueError(f"For binary classification expected {self.n_models} columns, "
-                                f"got {predictions.shape[1]}")
+                                     f"got {predictions.shape[1]}")
                 # Split into separate model predictions
                 for i in range(self.n_models):
-                    model_pred = predictions[:, i:i+1]  # Keep as 2D array
+                    model_pred = predictions[:, i:i + 1]  # Keep as 2D array
                     preds_list.append(model_pred)
             else:
                 # Multiclass case - n_classes probabilities per model
                 if predictions.shape[1] != self.n_classes * self.n_models:
-                    raise ValueError(f"For multiclass classification expected {self.n_classes * self.n_models} columns, "
-                                f"got {predictions.shape[1]}")
+                    raise ValueError(
+                        f"For multiclass classification expected {self.n_classes * self.n_models} columns, "
+                        f"got {predictions.shape[1]}")
                 # Split into separate model predictions
                 for i in range(self.n_models):
                     start = i * self.n_classes
@@ -184,10 +185,10 @@ class BlendingImplementation(ModelImplementation):
             # Regression or time series forecasting case - one value per model
             if predictions.shape[1] != self.n_models:
                 raise ValueError(f"For regression expected {self.n_models} columns, "
-                            f"got {predictions.shape[1]}")
+                                 f"got {predictions.shape[1]}")
             # Split into separate model predictions
             for i in range(self.n_models):
-                model_pred = predictions[:, i:i+1]  # Keep as 2D array
+                model_pred = predictions[:, i:i + 1]  # Keep as 2D array
                 preds_list.append(model_pred)
 
         return preds_list

@@ -1,3 +1,8 @@
+from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
+    DataOperationImplementation
+from fedot.core.data.data import InputData, OutputData
+from joblib import Parallel, delayed
 import logging
 from itertools import chain
 from typing import Optional
@@ -17,13 +22,6 @@ except ModuleNotFoundError:
                     "which are not installed. It can infuence the performance. "
                     "Please install it by 'pip install fedot[extra]'")
         is_extra_deps_installed = False
-
-from joblib import Parallel, delayed
-
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
-    DataOperationImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class TopologicalFeaturesImplementation(DataOperationImplementation):
