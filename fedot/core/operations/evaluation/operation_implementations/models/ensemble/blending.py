@@ -44,7 +44,6 @@ class BlendingImplementation(ModelImplementation):
             sampler=optuna.samplers.TPESampler(seed=42),
             pruner=optuna.pruners.MedianPruner(),
         )
-        self.n_classes = input_data.num_classes
 
     def _fit(self, input_data: InputData):
         """Method for weights optimization."""
