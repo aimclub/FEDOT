@@ -8,6 +8,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.boostings
     FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation, \
     FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
     FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.perpetual import PerpetualClassifier, \
+    PerpetualRegressor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -21,7 +23,9 @@ class BoostingStrategy(EvaluationStrategy):
         'xgboost': FedotXGBoostClassificationImplementation,
         'xgboostreg': FedotXGBoostRegressionImplementation,
         'lgbm': FedotLightGBMClassificationImplementation,
-        'lgbmreg': FedotLightGBMRegressionImplementation
+        'lgbmreg': FedotLightGBMRegressionImplementation,
+        'perpetual': PerpetualClassifier,
+        'perpreg': PerpetualRegressor,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

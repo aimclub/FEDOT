@@ -113,6 +113,7 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
+            'perpetual': PipelineBuilder().add_node('perpetual'),
             'gbm_linear': PipelineBuilder().
             add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
             'catboost': PipelineBuilder().add_node('catboost'),

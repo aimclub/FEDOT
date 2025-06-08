@@ -513,6 +513,20 @@
           "custom_model",
           "non-default"
         ]
+	},
+    "perpetual": {
+      "meta": "boosting_class",
+      "presets": ["*tree"],
+      "tags": [
+        "non_linear", "boosting"
+      ]
+	},
+    "perpreg": {
+      "meta": "boosting_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "non_linear", "boosting"
+      ]
 	}
   }
 }
