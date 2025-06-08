@@ -5,14 +5,6 @@
   "rfr": {
     "n_jobs": 1
   },
-  "rf_bag": {
-    "n_jobs": 1,
-    "max_depth": 100000
-  },
-  "rfr_bag": {
-    "n_jobs": 1,
-    "max_depth": 100000
-  },
   "xgboost": {
     "n_jobs": 1,
     "verbosity": 0,
@@ -98,7 +90,6 @@
     "l2_leaf_reg": 1e-2,
     "bootstrap_type": "Bernoulli",
     "grow_policy": "SymmetricTree",
-    "max_depth": 5,
     "min_data_in_leaf": 1,
     "one_hot_max_size": 10,
     "fold_permutation_block": 1,
@@ -118,7 +109,6 @@
     "l2_leaf_reg": 1e-2,
     "bootstrap_type": "Bernoulli",
     "grow_policy": "SymmetricTree",
-    "max_depth": 5,
     "min_data_in_leaf": 1,
     "one_hot_max_size": 10,
     "fold_permutation_block": 1,

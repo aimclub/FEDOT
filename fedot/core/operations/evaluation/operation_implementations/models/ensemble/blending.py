@@ -91,7 +91,7 @@ class BlendingImplementation(ModelImplementation):
 
     def fit(self, input_data: InputData):
         """
-        Fits weights for weighted-average blending of model predictions.
+        Fit weights for weighted-average blending of model predictions.
 
         Args:
             input_data: InputData with models predictions
