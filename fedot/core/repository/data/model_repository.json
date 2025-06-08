@@ -548,7 +548,7 @@
 	},
     "blending": {
       "meta": "ensemble_class",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "non-default",
         "simple",
@@ -558,7 +558,7 @@
     },
     "blending_": {
       "meta": "ensemble_regr",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "non-default",
         "simple",
@@ -568,42 +568,42 @@
     },
     "cb_bag": {
       "meta": "ensemble_class",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "cbreg_bag": {
       "meta": "ensemble_regr",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "xgb_bag": {
       "meta": "ensemble_class",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "xgbreg_bag": {
       "meta": "ensemble_regr",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "lgbm_bag": {
       "meta": "ensemble_class",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "lgbmreg_bag": {
       "meta": "ensemble_regr",
-      "presets": ["fast_train"],
+      "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
