@@ -548,9 +548,9 @@
 	},
     "blending": {
       "meta": "ensemble_class",
-      "presets": ["*tree"],
+      "presets": ["fast_train"],
       "tags": [
-        "non-default",
+        "deprecated",
         "simple",
         "linear",
         "interpretable"
@@ -558,9 +558,9 @@
     },
     "blending_": {
       "meta": "ensemble_regr",
-      "presets": ["*tree"],
+      "presets": ["fast_train"],
       "tags": [
-        "non-default",
+        "deprecated",
         "simple",
         "linear",
         "interpretable"
