@@ -1,7 +1,6 @@
 from typing import Optional
 
-from golem.core.log import default_log
-from sklearn.ensemble import BaggingClassifier, BaggingRegressor, RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import BaggingClassifier, BaggingRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
@@ -19,13 +18,12 @@ class BaggingImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.log = default_log('Bagging')
         self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
         self.seed = 42
         self.model = None
 
     def fit(self, input_data: InputData):
-        """Fit the bagging model. Decision Tree estimator set as default.
+        """Fit the bagging model.
         Args:
             input_data: Input data features.
         """
@@ -91,7 +89,7 @@ class XGBoostBaggingRegression(BaggingImplementation):
 
 
 class LGBMBaggingClassification(BaggingImplementation):
-    """LGBM Bagging implementation for classification tasks"""
+    """LightGBM Bagging implementation for classification tasks"""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
@@ -100,27 +98,9 @@ class LGBMBaggingClassification(BaggingImplementation):
 
 
 class LGBMBaggingRegression(BaggingImplementation):
-    """LGBM Bagging implementation for regression tasks"""
+    """LightGBM Bagging implementation for regression tasks"""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         est =  LGBMRegressor(**self.model_params)
-        self.model = BaggingRegressor(estimator=est)
-
-
-class RFBaggingClassification(BaggingImplementation):
-    """Random Forest Bagging implementation for classification tasks"""
-
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        est =  RandomForestClassifier(**self.model_params)
-        self.model = BaggingClassifier(estimator=est)
-
-
-class RFBaggingRegression(BaggingImplementation):
-    """Random Forest Bagging implementation for regression tasks"""
-
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        est =  RandomForestRegressor(**self.model_params)
         self.model = BaggingRegressor(estimator=est)
