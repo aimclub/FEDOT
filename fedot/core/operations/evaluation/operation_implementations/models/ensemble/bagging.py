@@ -24,28 +24,16 @@ class BaggingImplementation(ModelImplementation):
         self.classes_ = None
 
     def fit(self, input_data: InputData):
-        """Fit the bagging model.
-        Args:
-            input_data: Input data features.
-        """
         self.classes_ = input_data.class_labels
         self.model.fit(input_data.features, input_data.target)
         return self
 
     def predict(self, input_data: InputData) -> OutputData:
-        """Make labels predictions using the bagging model.
-        Args:
-            input_data: Input data features.
-        """
         labels = self.model.predict(X=input_data.features)
         output_data = self._convert_to_output(input_data=input_data, predict=labels)
         return output_data
 
     def predict_proba(self, input_data: InputData) -> OutputData:
-        """Make probabilities predictions using the bagging model.
-        Args:
-            input_data: Input data features.
-        """
         if input_data.task == TaskTypesEnum.regression or input_data.task == TaskTypesEnum.ts_forecasting:
             raise ValueError('This method does not support regression or time series forecasting tasks')
 
