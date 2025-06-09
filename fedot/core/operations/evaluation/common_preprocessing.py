@@ -36,7 +36,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
                 - ``one_hot_encoding``-> OneHotEncodingImplementation,
                 - ``label_encoding``-> LabelEncodingImplementation,
                 - ``fast_ica``-> FastICAImplementation
-                - ``dummy`` -> DummyOperatorImplementation
+                - ``dummy`` -> DummyOperationImplementation
 
         params: hyperparameters to fit the operation with
 

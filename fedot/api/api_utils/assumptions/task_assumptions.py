@@ -91,8 +91,6 @@ class RegressionAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'gbm_blending': PipelineBuilder()
-            .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('blendreg'),
             'gbm_stacking': PipelineBuilder()
             .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
             'rfr': PipelineBuilder().add_node('catboostreg'),
@@ -116,8 +114,6 @@ class ClassificationAssumptions(TaskAssumptions):
     @property
     def builders(self):
         return {
-            'gbm_blending': PipelineBuilder()
-            .add_branch('catboost', 'xgboost', 'lgbm').join_branches('blending'),
             'gbm_stacking': PipelineBuilder()
             .add_branch('catboost', 'xgboost', 'lgbm').join_branches('logit'),
             'rf': PipelineBuilder().add_node('rf'),

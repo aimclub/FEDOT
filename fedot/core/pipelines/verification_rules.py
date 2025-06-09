@@ -314,16 +314,22 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
 
 
 def is_blending_follow_model(pipeline: Pipeline):
+    """
+    Verifies that every blending operation ('blending' or 'blendreg') in the pipeline
+    has only model operations as its direct predecessors. Also checks if blending is not the only
+    operation in a pipeline.
+    """
     error_message = f'{ERROR_PREFIX} At least one model is required before blending'
 
     for node in pipeline.nodes:
-        is_blending_in_pipeline = node.operation.operation_type == 'blending' or node.operation.operation_type == 'blendreg'
+        is_blending_in_pipeline = (node.operation.operation_type == 'blending'
+                                   or node.operation.operation_type == 'blendreg')
         if is_blending_in_pipeline:
             prev_nodes = node.nodes_from
             for prev_node in prev_nodes:
                 if prev_node.operation.operations_repo.operation_type != 'model':
                     raise ValueError(error_message)
-        elif is_blending_in_pipeline and pipeline.depth == 1:
+        elif is_blending_in_pipeline and pipeline.depth == 1 or is_blending_in_pipeline and pipeline.length == 1:
             raise ValueError(error_message)
 
     return True
