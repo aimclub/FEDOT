@@ -18,6 +18,7 @@ class BlendingImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
+        self.seed = 42  # constant seed for optuna
 
         self.task = None
         self.n_trials = 100
@@ -38,7 +39,7 @@ class BlendingImplementation(ModelImplementation):
         self._init_task_specific_params(input_data)
         self.study = optuna.create_study(
             direction='minimize',
-            sampler=optuna.samplers.TPESampler(seed=42),
+            sampler=optuna.samplers.TPESampler(seed=self.seed),
             pruner=optuna.pruners.MedianPruner()
         )
 
