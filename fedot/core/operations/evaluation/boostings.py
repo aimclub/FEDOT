@@ -8,6 +8,9 @@ from fedot.core.operations.evaluation.operation_implementations.models.boostings
     FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation, \
     FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
     FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging import \
+    CatBoostBaggingClassification, CatBoostBaggingRegression, XGBoostBaggingClassification, XGBoostBaggingRegression, \
+    LGBMBaggingClassification, LGBMBaggingRegression
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -21,7 +24,13 @@ class BoostingStrategy(EvaluationStrategy):
         'xgboost': FedotXGBoostClassificationImplementation,
         'xgboostreg': FedotXGBoostRegressionImplementation,
         'lgbm': FedotLightGBMClassificationImplementation,
-        'lgbmreg': FedotLightGBMRegressionImplementation
+        'lgbmreg': FedotLightGBMRegressionImplementation,
+        'cb_bag': CatBoostBaggingClassification,
+        'cbreg_bag': CatBoostBaggingRegression,
+        'xgb_bag': XGBoostBaggingClassification,
+        'xgbreg_bag': XGBoostBaggingRegression,
+        'lgbm_bag': LGBMBaggingClassification,
+        'lgbmreg_bag': LGBMBaggingRegression
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
@@ -69,6 +78,8 @@ class BoostingClassificationStrategy(BoostingStrategy):
             is_multi_output_target = is_multi_output_task(predict_data)
 
             prediction = trained_operation.predict_proba(predict_data)
+            if isinstance(prediction, OutputData):
+                prediction = prediction.predict
             is_prediction_correct = self._check_prediction_correctness(prediction)
 
             if n_classes < 2:

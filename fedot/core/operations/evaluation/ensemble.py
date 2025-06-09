@@ -3,15 +3,14 @@ from typing import Optional
 from abc import abstractmethod
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.bagging import \
-    CatBoostBaggingClassification, CatBoostBaggingRegression, XGBoostBaggingClassification, XGBoostBaggingRegression, \
-    LGBMBaggingClassification, LGBMBaggingRegression
-from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import BlendingImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ensemble.blending import (
+    BlendingClassifier, BlendingRegressor
+)
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
-from fedot.utilities.random import ImplementationRandomStateHandler
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
+from fedot.utilities.random import ImplementationRandomStateHandler
 
 
 class EnsembleStrategy(EvaluationStrategy):
@@ -23,25 +22,14 @@ class EnsembleStrategy(EvaluationStrategy):
 
             .. details:: possible operations:
 
-                - ``blending`` -> BlendingImplementation
-                - ``cb_bag``: CatBoostBaggingClassification,
-                - ``cbreg_bag``: CatBoostBaggingRegression,
-                - ``xgb_bag``: XGBoostBaggingClassification,
-                - ``xgbreg_bag``: XGBoostBaggingRegression,
-                - ``lgbm_bag``: LGBMBaggingClassification,
-                - ``lgbmreg_bag``: LGBMBaggingRegression
+                - ``blending`` -> BlendingClassifier
+                - ``blendreg`` -> BlendingRegressor
 
         params: hyperparameters to fit the operation with
     """
     _operations_by_types = {
-        'blending': BlendingImplementation,
-        'blending_': BlendingImplementation,  # same class for regression tasks
-        'cb_bag': CatBoostBaggingClassification,
-        'cbreg_bag': CatBoostBaggingRegression,
-        'xgb_bag': XGBoostBaggingClassification,
-        'xgbreg_bag': XGBoostBaggingRegression,
-        'lgbm_bag': LGBMBaggingClassification,
-        'lgbmreg_bag': LGBMBaggingRegression
+        'blending': BlendingClassifier,
+        'blendreg': BlendingRegressor,
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):

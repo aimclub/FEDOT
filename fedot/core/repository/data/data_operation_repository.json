@@ -203,6 +203,32 @@
         "non-default"
       ],
       "tasks": "[TaskTypesEnum.classification]"
+    },
+    "ensemble_clf": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "description": "Implementations of the ensemble operations",
+      "forbidden_node_types": [
+        "secondary"
+      ],
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.ensemble",
+        "EnsembleClassificationStrategy"
+      ]
+    },
+    "ensemble_reg": {
+      "tasks": "[TaskTypesEnum.regression]",
+      "description": "Implementations of the ensemble operations",
+      "forbidden_node_types": [
+        "secondary"
+      ],
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.ensemble",
+        "EnsembleRegressionStrategy"
+      ]
     }
   },
   "operations": {
@@ -626,6 +652,28 @@
       "presets": [
         "fast_train",
         "ts",
+        "*tree"
+      ],
+      "tags": [
+        "non-default",
+        "simple"
+      ]
+    },
+    "blending": {
+      "meta": "ensemble_clf",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "non-default",
+        "simple"
+      ]
+    },
+    "blendreg": {
+      "meta": "ensemble_reg",
+      "presets": [
+        "fast_train",
         "*tree"
       ],
       "tags": [

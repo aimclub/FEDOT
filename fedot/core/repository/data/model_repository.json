@@ -154,38 +154,6 @@
         "non-default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
-    },
-    "ensemble_class": {
-      "accepted_node_types": [
-        "any"
-      ],
-      "description": "Implementations of the ensemble methods for classification",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.ensemble",
-        "EnsembleClassificationStrategy"
-      ],
-      "tags": [
-        "ml"
-      ],
-      "tasks": "[TaskTypesEnum.classification]"
-    },
-    "ensemble_regr": {
-      "accepted_node_types": [
-        "any"
-      ],
-      "description": "Implementations of the ensemble methods for regression",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.ensemble",
-        "EnsembleRegressionStrategy"
-      ],
-      "tags": [
-        "ml"
-      ],
-      "tasks": "[TaskTypesEnum.regression]"
     }
   },
   "operations": {
@@ -546,63 +514,43 @@
         "non-default"
       ]
 	},
-    "blending": {
-      "meta": "ensemble_class",
-      "presets": ["fast_train"],
-      "tags": [
-        "non-default",
-        "simple",
-        "linear",
-        "interpretable"
-      ]
-    },
-    "blending_": {
-      "meta": "ensemble_regr",
-      "presets": ["fast_train"],
-      "tags": [
-        "non-default",
-        "simple",
-        "linear",
-        "interpretable"
-      ]
-    },
     "cb_bag": {
-      "meta": "ensemble_class",
+      "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "cbreg_bag": {
-      "meta": "ensemble_regr",
+      "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "xgb_bag": {
-      "meta": "ensemble_class",
+      "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "xgbreg_bag": {
-      "meta": "ensemble_regr",
+      "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "lgbm_bag": {
-      "meta": "ensemble_class",
+      "meta": "boosting_class",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
       ]
     },
     "lgbmreg_bag": {
-      "meta": "ensemble_regr",
+      "meta": "boosting_regr",
       "presets": ["*tree"],
       "tags": [
         "tree", "non_linear", "boosting"
