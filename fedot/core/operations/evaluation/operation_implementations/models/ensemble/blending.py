@@ -13,7 +13,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-class BaseBlendingImplementation(ModelImplementation):
+class BlendingImplementation(ModelImplementation):
     """Base class for weighted average blending."""
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -34,7 +34,7 @@ class BaseBlendingImplementation(ModelImplementation):
 
     def _init(self, input_data: InputData):
         self.models = input_data.supplementary_data.previous_operations
-        self.n_models = len(self.models)
+        self.n_models = len(self.models) if self.models else None
         self._init_task_specific_params(input_data)
         self.study = optuna.create_study(
             direction='minimize',
@@ -43,7 +43,7 @@ class BaseBlendingImplementation(ModelImplementation):
         )
 
     def _fit(self, input_data: InputData):
-        if self.n_models == 0:
+        if self.n_models == 0 or self.n_models is None:
             raise ValueError("No previous models provided for blending.")
         if self.n_models == 1:
             self.log.message(f"Got only one model; using weight 1.0 for {self.models[0]}")
@@ -94,7 +94,7 @@ class BaseBlendingImplementation(ModelImplementation):
         raise NotImplementedError()
 
 
-class BlendingClassifier(BaseBlendingImplementation):
+class BlendingClassifier(BlendingImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
@@ -139,7 +139,7 @@ class BlendingClassifier(BaseBlendingImplementation):
         return self._convert_to_output(input_data, result)
 
 
-class BlendingRegressor(BaseBlendingImplementation):
+class BlendingRegressor(BlendingImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
 
