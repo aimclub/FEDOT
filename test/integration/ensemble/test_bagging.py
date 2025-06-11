@@ -15,25 +15,27 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data_split import train_test_data_setup
 
 
-#================== Test Data Preparation ========================
+# ================== Test Data Preparation ========================
 
 def get_multiclass_data():
     """Generate multiclass classification data"""
     X, y = make_classification(n_samples=100, n_features=5,
-                              n_classes=3, n_informative=3, random_state=42)
+                               n_classes=3, n_informative=3, random_state=42)
     return InputData(idx=np.arange(0, len(X)), features=X, target=y,
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.classification))
 
+
 def get_regression_data():
     """Generate regression data"""
     X, y = make_regression(n_samples=100, n_features=5,
-                          n_informative=3, random_state=42)
+                           n_informative=3, random_state=42)
     return InputData(idx=np.arange(0, len(X)), features=X, target=y,
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.regression))
 
-#================== Bagging ========================
+# ================== Bagging ========================
+
 
 def test_bagging_classification():
     """Single-model case processing test in blending"""
@@ -55,6 +57,7 @@ def test_bagging_classification():
         f1 = f1_score(predictions.target, predictions.predict, average='macro')
         assert f1 > 0.5  # better than constant predictor
 
+
 def test_bagging_regression():
     """Single-model case processing test in blending"""
     input_data = get_regression_data()
@@ -74,6 +77,7 @@ def test_bagging_regression():
         # Checking metrics
         r2 = r2_score(predictions.target, predictions.predict)
         assert r2 > 0  # better than constant predictor
+
 
 def test_bagging_reg_tuning_correctness():
     """Test bagging hyperparameters tuning correctness"""
@@ -100,7 +104,8 @@ def test_bagging_reg_tuning_correctness():
     # Pipeline with single branch
     pipeline = PipelineBuilder().add_node(model).build()
     pipeline_tuner.tune(pipeline)
-    assert pipeline_tuner.was_tuned == True
+    assert pipeline_tuner.was_tuned
+
 
 def test_bagging_clf_tuning_correctness():
     """Test bagging hyperparameters tuning correctness"""
@@ -127,4 +132,4 @@ def test_bagging_clf_tuning_correctness():
     # Pipeline with single branch
     pipeline = PipelineBuilder().add_node(model).build()
     pipeline_tuner.tune(pipeline)
-    assert pipeline_tuner.was_tuned == True
+    assert pipeline_tuner.was_tuned

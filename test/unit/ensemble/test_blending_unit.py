@@ -9,33 +9,36 @@ from fedot.core.operations.evaluation.operation_implementations.models.ensemble.
     BlendingClassifier, BlendingRegressor)
 
 
-#================== Test Data Preparation ========================
+# ================== Test Data Preparation ========================
 
 def get_binclass_data():
     """Generate binary classification data"""
     X, y = make_classification(n_samples=100, n_features=5,
-                              n_classes=2, random_state=42)
+                               n_classes=2, random_state=42)
     return InputData(idx=np.arange(0, len(X)), features=X, target=y,
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.classification))
+
 
 def get_multiclass_data():
     """Generate multiclass classification data"""
     X, y = make_classification(n_samples=100, n_features=5,
-                              n_classes=3, n_informative=3, random_state=42)
+                               n_classes=3, n_informative=3, random_state=42)
     return InputData(idx=np.arange(0, len(X)), features=X, target=y,
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.classification))
 
+
 def get_regression_data():
     """Generate regression data"""
     X, y = make_regression(n_samples=100, n_features=5,
-                          n_informative=3, random_state=42)
+                           n_informative=3, random_state=42)
     return InputData(idx=np.arange(0, len(X)), features=X, target=y,
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.regression))
 
-#================== Tests ========================
+# ================== Tests ========================
+
 
 def test_blending_implementation_no_models_raises_error():
     """Check that an error is raised if there are no models"""
@@ -44,12 +47,14 @@ def test_blending_implementation_no_models_raises_error():
     with pytest.raises(ValueError, match="No previous models provided for blending"):
         blending.fit(input_data)
 
+
 def test_blendreg_implementation_no_models_raises_error():
     """Check that an error is raised if there are no models"""
     blending = BlendingRegressor()
     input_data = get_regression_data()
     with pytest.raises(ValueError, match="No previous models provided for blending"):
         blending.fit(input_data)
+
 
 def test_blending_implementation_single_model_uses_weight_one():
     """Check that one model uses a weight of 1.0"""
@@ -61,6 +66,7 @@ def test_blending_implementation_single_model_uses_weight_one():
     blending.fit(input_data)
     assert np.allclose(blending.weights, [1.0])
 
+
 def test_blending_classifier_init_task_specific_params():
     """Check initialization of parameters for classification"""
     classifier = BlendingClassifier()
@@ -68,6 +74,7 @@ def test_blending_classifier_init_task_specific_params():
     classifier._init_task_specific_params(input_data)
     assert classifier.task == TaskTypesEnum.classification
     assert classifier.n_classes == 2
+
 
 def test_blending_classifier_divide_predictions_binary():
     """Check the separation of predictions for binary classification"""
@@ -82,6 +89,7 @@ def test_blending_classifier_divide_predictions_binary():
     assert len(predictions) == 2
     assert np.allclose(predictions[0], [[0.1]])
     assert np.allclose(predictions[1], [[0.9]])
+
 
 def test_blending_classifier_divide_predictions_multiclass():
     """Check the separation of predictions for multiclass classification"""
@@ -98,6 +106,7 @@ def test_blending_classifier_divide_predictions_multiclass():
     assert np.allclose(predictions[0], [[0.1, 0.2, 0.7]])
     assert np.allclose(predictions[1], [[0.3, 0.3, 0.4]])
 
+
 def test_blending_classifier_blend_predictions_binary():
     """Check blending of predictions for binary classification"""
     classifier = BlendingClassifier()
@@ -106,6 +115,7 @@ def test_blending_classifier_blend_predictions_binary():
     weights = [0.4, 0.6]
     blended = classifier._blend_predictions(predictions, weights)
     assert blended[0] == 1  # 0.4*0.1 + 0.6*0.9 = 0.58 > 0.5 => class 1
+
 
 def test_blending_classifier_blend_predictions_multiclass():
     """Check blending of predictions for multiclass classification"""
@@ -116,12 +126,14 @@ def test_blending_classifier_blend_predictions_multiclass():
     blended = classifier._blend_predictions(predictions, weights)
     assert blended[0] == 2  # argmax of [0.2, 0.25, 0.55] is 2
 
+
 def test_blending_regressor_init_task_specific_params():
     """Check initialization of parameters for regression"""
     regressor = BlendingRegressor()
     input_data = get_regression_data()
     regressor._init_task_specific_params(input_data)
     assert regressor.task == TaskTypesEnum.regression
+
 
 def test_blending_regressor_divide_predictions():
     """Check the separation of predictions for regression"""
@@ -136,6 +148,7 @@ def test_blending_regressor_divide_predictions():
     assert np.allclose(predictions[0], [[1.5]])
     assert np.allclose(predictions[1], [[2.5]])
 
+
 def test_blending_regressor_blend_predictions():
     """Check blending of predictions for regression"""
     regressor = BlendingRegressor()
@@ -143,6 +156,7 @@ def test_blending_regressor_blend_predictions():
     weights = [0.3, 0.7]
     blended = regressor._blend_predictions(predictions, weights)
     assert np.allclose(blended, [[1.7]])  # 0.3*1.0 + 0.7*2.0 = 1.7
+
 
 def test_blending_classifier_shape_mismatch_raises_error():
     """Check the error handling of the form mismatch for classification"""
@@ -155,6 +169,7 @@ def test_blending_classifier_shape_mismatch_raises_error():
                            task=Task(TaskTypesEnum.classification))
     with pytest.raises(ValueError, match="Expected shape mismatch"):
         classifier._divide_predictions(input_data)
+
 
 def test_blending_regressor_shape_mismatch_raises_error():
     """Check the error handling of the form mismatch for regression"""
