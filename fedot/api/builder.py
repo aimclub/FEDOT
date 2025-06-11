@@ -279,7 +279,7 @@ class FedotBuilder:
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor
                     - ``cb_bag`` -> Catboost Bagging Classifier
-                    - ``catboostreg`` -> Catboost Bagging Regressor
+                    - ``cbreg_bag`` -> Catboost Bagging Regressor
                     - ``dt`` -> Decision Tree Classifier
                     - ``dtreg`` -> Decision Tree Regressor
                     - ``dummy`` -> Data Forwarding Operator in Pipeline
