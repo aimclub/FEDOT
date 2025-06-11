@@ -197,7 +197,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `knnreg`,`sklearn.neighbors.KNeighborsRegressor`,`fast_train` `ts`
    `lasso`,`sklearn.linear_model.Lasso`,`fast_train` `ts`
    `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`,`*tree`
-   `lgbmreg_bag`,``sklearn.ensemble.BaggingRegressor and lightgbm.sklearn.LGBMRegressor`,`*tree`
+   `lgbmreg_bag`,`sklearn.ensemble.BaggingRegressor and lightgbm.sklearn.LGBMRegressor`,`*tree`
    `linear`,`sklearn.linear_model.LinearRegression`,`fast_train` `ts`
    `rfr`,`sklearn.ensemble.RandomForestRegressor`,`fast_train` `*tree`
    `ridge`,`sklearn.linear_model.Ridge`,`fast_train` `ts`
