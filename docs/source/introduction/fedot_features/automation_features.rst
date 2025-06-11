@@ -70,6 +70,7 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `label_encoding`,Label Encoder, Feature encoding
    `resample`,Imbalanced binary class transformation in classification, Data transformation
    `topological_features`,Calculation of topological features,Time series transformation
+   `dummy`,Simple forwarding operator, Data forwarding
 
 
 .. csv-table:: Feature transformation operations implementations
@@ -107,6 +108,7 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `resample`,`FEDOT model using sklearn.utils.resample`,
    `topological_features`,FEDOT model,`ts`,
    `fast_topological_features`,FEDOT model,`ts`
+   `dummy`,FEDOT model,`fast_train` `*tree`
 
 
 Models used
@@ -135,12 +137,15 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    :header: "API name","Definition","Problem"
 
    `adareg`,AdaBoost regressor,Regression
+   `blendreg`, Weighted Average Blending,Regression
    `catboostreg`,Catboost regressor,Regression
+   `cbreg_bag`, Catboost Bagging regressor,Regression
    `dtreg`,Decision Tree regressor,Regression
    `gbr`,Gradient Boosting regressor,Regression
    `knnreg`,K-nearest neighbors regressor,Regression
    `lasso`,Lasso Linear regressor,Regression
    `lgbmreg`,Light Gradient Boosting Machine regressor,Regression
+   `lgbmreg_bag`,Light Gradient Boosting Machine Bagging regressor,Regression
    `linear`,Linear Regression regressor,Regression
    `rfr`,Random Forest regressor,Regression
    `ridge`,Ridge Linear regressor,Regression
@@ -148,13 +153,17 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `svr`,Linear Support Vector regressor,Regression
    `treg`,Extra Trees regressor,Regression
    `xgboostreg`,Extreme Gradient Boosting regressor,Regression
+   `xgbreg_bag`,Extreme Gradient Boosting Bagging regressor,Regression
    `bernb`,Naive Bayes classifier (multivariate Bernoulli),Classification
+   `blending`, Weighted Average Blending,Classification
    `catboost`,Catboost classifier,Classification
+   `cb_bag`, Catboost Bagging classifier,Classification
    `cnn`,Convolutional Neural Network,Classification
    `dt`,Decision Tree classifier,Classification
    `knn`,K-nearest neighbors classifier,Classification
    `lda`,Linear Discriminant Analysis,Classification
    `lgbm`,Light Gradient Boosting Machine classifier,Classification
+   `lgbm_bag`,Light Gradient Boosting Machine Bagging classifier,Classification
    `logit`,Logistic Regression classifier,Classification
    `mlp`,Multi-layer Perceptron classifier,Classification
    `multinb`,Naive Bayes classifier (multinomial),Classification
@@ -162,6 +171,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `rf`,Random Forest classifier,Classification
    `svc`,Support Vector classifier,Classification
    `xgboost`,Extreme Gradient Boosting classifier,Classification
+   `xgb_bag`,Extreme Gradient Boosting Bagging classifier,Classification
    `kmeans`,K-Means clustering,Clustering
    `ar`,AutoRegression,Forecasting
    `arima`,ARIMA,Forecasting
@@ -179,12 +189,15 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    :header: "API name","Model used","Presets"
 
    `adareg`,`sklearn.ensemble.AdaBoostRegressor`,`fast_train` `ts` `*tree`
+   `blendreg`, `FEDOT model`, `*tree`
    `catboostreg`,`catboost.CatBoostRegressor`,`*tree`
+   `cbreg_bag`,`sklearn.ensemble.BaggingRegressor and catboost.CatBoostRegressor`,`*tree`
    `dtreg`,`sklearn.tree.DecisionTreeRegressor`,`fast_train` `ts` `*tree`
    `gbr`,`sklearn.ensemble.GradientBoostingRegressor`,`*tree`
    `knnreg`,`sklearn.neighbors.KNeighborsRegressor`,`fast_train` `ts`
    `lasso`,`sklearn.linear_model.Lasso`,`fast_train` `ts`
    `lgbmreg`,`lightgbm.sklearn.LGBMRegressor`,`*tree`
+   `lgbmreg_bag`,``sklearn.ensemble.BaggingRegressor and lightgbm.sklearn.LGBMRegressor`,`*tree`
    `linear`,`sklearn.linear_model.LinearRegression`,`fast_train` `ts`
    `rfr`,`sklearn.ensemble.RandomForestRegressor`,`fast_train` `*tree`
    `ridge`,`sklearn.linear_model.Ridge`,`fast_train` `ts`
@@ -192,13 +205,17 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `svr`,`sklearn.svm.LinearSVR`,
    `treg`,`sklearn.ensemble.ExtraTreesRegressor`,`*tree`
    `xgboostreg`,`xgboost.XGBRegressor`,`*tree`
+   `xgbreg_bag`,`sklearn.ensemble.BaggingRegressor and xgboost.XGBRegressor`,`*tree`
    `bernb`,`sklearn.naive_bayes.BernoulliNB`,`fast_train`
+   `blending`, `FEDOT model`, `*tree`
    `catboost`,`catboost.CatBoostClassifier`,`*tree`
+   `cb_bag`,`sklearn.ensemble.BaggingClassifier and catboost.CatBoostClassifier`,`*tree`
    `cnn`,`FEDOT model`,
    `dt`,`sklearn.tree.DecisionTreeClassifier`,`fast_train` `*tree`
    `knn`,`sklearn.neighbors.KNeighborsClassifier`,`fast_train`
    `lda`,`sklearn.discriminant_analysis.LinearDiscriminantAnalysis`,`fast_train`
    `lgbm`,`lightgbm.sklearn.LGBMClassifier`,
+   `lgbm_bag`,`sklearn.ensemble.BaggingClassifier and lightgbm.sklearn.LGBMClassifier`, `*tree`
    `logit`,`sklearn.linear_model.LogisticRegression`,`fast_train`
    `mlp`,`sklearn.neural_network.MLPClassifier`,
    `multinb`,`sklearn.naive_bayes.MultinomialNB`,`fast_train`
@@ -206,6 +223,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `rf`,`sklearn.ensemble.RandomForestClassifier`,`fast_train` `*tree`
    `svc`,`sklearn.svm.SVC`,
    `xgboost`,`xgboost.XGBClassifier`,`*tree`
+   `xgb_bag`,`sklearn.ensemble.BaggingClassifier and xgboost.XGBClassifier`,`*tree`
    `kmeans`,`sklearn.cluster.Kmeans`,`fast_train`
    `ar`,`statsmodels.tsa.ar_model.AutoReg`,`fast_train` `ts`
    `arima`,`statsmodels.tsa.arima.model.ARIMA`,`ts`

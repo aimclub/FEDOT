@@ -47,7 +47,6 @@ class BlendingImplementation(ModelImplementation):
         if self.n_models == 0 or self.n_models is None:
             raise ValueError("No previous models provided for blending.")
         if self.n_models == 1:
-            self.log.message(f"Got only one model; using weight 1.0 for {self.models[0]}")
             self.weights = np.array([1.0])
             return self
 
@@ -74,7 +73,7 @@ class BlendingImplementation(ModelImplementation):
         self._fit(input_data)
         sorted_pairs = sorted(zip(self.models, self.weights), key=lambda x: x[1], reverse=True)
         formula = " + ".join([f"{round(w, 3)} * {model}" for model, w in sorted_pairs])
-        self.log.message(f"Blended prediction = {formula}")
+        self.log.debug(f"Blended prediction = {formula}")
         return self
 
     def predict(self, input_data: InputData) -> OutputData:

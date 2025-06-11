@@ -584,25 +584,13 @@
     },
     "blending": {
       "meta": "ensemble_clf",
-      "presets": [
-        "fast_train",
-        "*tree"
-      ],
-      "tags": [
-        "non-default",
-        "simple"
-      ]
+      "presets": ["*tree"],
+      "tags": ["non-default", "custom_model"]
     },
     "blendreg": {
       "meta": "ensemble_reg",
-      "presets": [
-        "fast_train",
-        "*tree"
-      ],
-      "tags": [
-        "non-default",
-        "simple"
-      ]
+      "presets": ["*tree"],
+      "tags": ["non-default", "custom_model"]
     }
   }
 }

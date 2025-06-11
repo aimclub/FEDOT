@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from sklearn.datasets import make_classification, make_regression
 
@@ -144,3 +145,17 @@ def test_blendreg_with_custom_parameters():
     assert isinstance(blending_operation, BlendingRegressor)
     assert len(blending_operation.weights) == 2
     assert np.isclose(sum(blending_operation.weights), 1.0)
+
+def test_blending_are_serializable():
+    input_data = get_binclass_data()
+    pipeline = PipelineBuilder().add_node('logit').add_node('blending').build()
+    pipeline.fit(input_data)
+    serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
+    assert isinstance(serialized, bytes)
+
+def test_blendreg_are_serializable():
+    input_data = get_regression_data()
+    pipeline = PipelineBuilder().add_node('linear').add_node('blendreg').build()
+    pipeline.fit(input_data)
+    serialized = pickle.dumps(pipeline, pickle.HIGHEST_PROTOCOL)
+    assert isinstance(serialized, bytes)

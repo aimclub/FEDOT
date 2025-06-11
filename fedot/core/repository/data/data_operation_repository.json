@@ -402,7 +402,6 @@
         "*tree"
       ],
       "tags": [
-        "deprecated",
         "affects_target",
         "linear",
         "filtering",
@@ -416,7 +415,6 @@
         "*tree"
       ],
       "tags": [
-        "deprecated",
         "affects_target",
         "non_linear",
         "filtering",
@@ -625,13 +623,9 @@
       "meta": "custom_preprocessing",
       "presets": [
         "fast_train",
-        "ts",
         "*tree"
       ],
-      "tags": [
-        "non-default",
-        "simple"
-      ]
+      "tags": ["non-default", "feature_selection"]
     }
   }
 }
