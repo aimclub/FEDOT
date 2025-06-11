@@ -274,10 +274,15 @@ class FedotBuilder:
                     - ``arima`` -> ARIMA
                     - ``cgru`` -> Convolutional Gated Recurrent Unit
                     - ``bernb`` -> Naive Bayes Classifier (multivariate Bernoulli)
+                    - ``blending`` -> Weighted Average Blending Classifier
+                    - ``blendreg`` -> Weighted Average Blending Regressor
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor
+                    - ``cb_bag`` -> Catboost Bagging Classifier
+                    - ``catboostreg`` -> Catboost Bagging Regressor
                     - ``dt`` -> Decision Tree Classifier
                     - ``dtreg`` -> Decision Tree Regressor
+                    - ``dummy`` -> Data Forwarding Operator in Pipeline
                     - ``gbr`` -> Gradient Boosting Regressor
                     - ``kmeans`` -> K-Means clustering
                     - ``knn`` -> K-nearest neighbors Classifier
@@ -286,6 +291,8 @@ class FedotBuilder:
                     - ``lda`` -> Linear Discriminant Analysis
                     - ``lgbm`` -> Light Gradient Boosting Machine Classifier
                     - ``lgbmreg`` -> Light Gradient Boosting Machine Regressor
+                    - ``lgbm_bag`` -> Light Gradient Boosting Machine Bagging Classifier
+                    - ``lgbmreg_bag`` -> Light Gradient Boosting Machine Bagging Regressor
                     - ``linear`` -> Linear Regression Regressor
                     - ``logit`` -> Logistic Regression Classifier
                     - ``mlp`` -> Multi-layer Perceptron Classifier
@@ -305,7 +312,9 @@ class FedotBuilder:
                     - ``svr`` -> Linear Support Vector Regressor
                     - ``treg`` -> Extra Trees Regressor
                     - ``xgboost`` -> Extreme Gradient Boosting Classifier
-                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
+                    - ``xgboostreg`` -> Extreme Gradient Boosting Regressor
+                    - ``xgb_bag`` -> Extreme Gradient Boosting Bagging Classifier
+                    - ``xgbreg_bag`` -> Extreme Gradient Boosting Bagging Regressor
                     - ``cnn`` -> Convolutional Neural Network
                     - ``scaling`` -> Scaling
                     - ``normalization`` -> Normalization

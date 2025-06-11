@@ -70,7 +70,7 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `label_encoding`,Label Encoder, Feature encoding
    `resample`,Imbalanced binary class transformation in classification, Data transformation
    `topological_features`,Calculation of topological features,Time series transformation
-   `dummy`,Simple forwarding operator, Data forwarding
+   `dummy`,Simple forwarding operator in pipeline, Data forwarding
 
 
 .. csv-table:: Feature transformation operations implementations
