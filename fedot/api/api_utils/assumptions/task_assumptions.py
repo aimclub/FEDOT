@@ -93,7 +93,7 @@ class RegressionAssumptions(TaskAssumptions):
         return {
             'gbm_stacking': PipelineBuilder()
             .add_branch('catboostreg', 'xgboostreg', 'lgbmreg').join_branches('ridge'),
-            'rfr': PipelineBuilder().add_node('catboostreg'),
+            'rfr': PipelineBuilder().add_node('rfr'),
             'ridge': PipelineBuilder().add_node('ridge')
         }
 

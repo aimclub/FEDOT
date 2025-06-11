@@ -18,10 +18,10 @@ class BlendingImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.seed = 42  # constant seed for optuna
+        self.seed = self.params.get('seed', 42)
+        self.n_trials = self.params.get('n_trials', 100)
 
         self.task = None
-        self.n_trials = 100
         self.classes_ = None
         self.n_classes = None
         self.models = None
