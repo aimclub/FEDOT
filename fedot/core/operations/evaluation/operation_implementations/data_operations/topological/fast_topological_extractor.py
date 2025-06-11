@@ -9,19 +9,17 @@ from typing import Optional
 
 import numpy as np
 
-global is_extra_deps_installed
+import os
 
 try:
     from gph import ripser_parallel as ripser
 except ModuleNotFoundError:
-    if 'is_extra_deps_installed' not in globals():
-        is_extra_deps_installed = True
-    if is_extra_deps_installed:
+    if not os.environ.get('FEDOT_RIPSER_WARNING_SHOWN'):
         logging.log(100,
                     "Topological features operation requires extra dependencies for time series forecasting, "
-                    "which are not installed. It can infuence the performance. "
+                    "which are not installed. It can influence the performance. "
                     "Please install it by 'pip install fedot[extra]'")
-        is_extra_deps_installed = False
+        os.environ['FEDOT_RIPSER_WARNING_SHOWN'] = '1'
 
 
 class TopologicalFeaturesImplementation(DataOperationImplementation):
