@@ -1,15 +1,12 @@
 import datetime
 
 import hyperopt
-from hyperopt import hp
 import numpy as np
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.datasets import make_classification, make_regression
 from sklearn.metrics import f1_score, r2_score
 
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
