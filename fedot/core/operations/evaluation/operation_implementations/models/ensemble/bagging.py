@@ -1,4 +1,3 @@
-import numpy as np
 from typing import Optional
 
 from sklearn.ensemble import BaggingClassifier, BaggingRegressor
@@ -11,9 +10,24 @@ from fedot.core.pipelines.node import PipelineNode
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _assert_same_node_count(fitted_nodes: list, prev_nodes: list):
-    if len(fitted_nodes) != len(prev_nodes):
-        raise ValueError(f"Number of nodes mismatch: expected {len(prev_nodes)} nodes, got {len(fitted_nodes)}")
+def _get_prev_node(input_data: InputData):
+    prev_models = input_data.supplementary_data.previous_operations
+    error_message = (
+        "The Bagging node requires exactly one previous model. "
+        f"Got: {len(prev_models) if prev_models is not None else 'None'}"
+    )
+
+    if not prev_models:
+        raise ValueError(error_message)
+
+    if len(prev_models) > 1:
+        raise ValueError(error_message)
+
+    model = prev_models[0]
+    if model is None:
+        raise ValueError("The provided model is None")
+
+    return model
 
 
 class BaggingImplementation(ModelImplementation):
@@ -22,57 +36,41 @@ class BaggingImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.seed = self.params.get('seed', 42)
-        self.n_jobs = self.params.get('n_jobs', -1)
         self.n_estimators = self.params.get('n_estimators', 10)
 
-        self.bagging_model = None
+        self.bagging = None
         self.classes_ = None
-        self.fitted_models = []
+        self.fitted_model = None
 
-    def _init(self, previous_nodes):
-        self.classes_ = previous_nodes[0].node_data.class_labels
+    def _init(self, input_data: InputData):
+        self.classes_ = input_data.class_labels
 
-    def _fit(self, previous_nodes: list['PipelineNode']):
-        for node in previous_nodes:
-            est = node.fitted_operation.model if hasattr(node.fitted_operation, 'model') else node.fitted_operation
-            model = self.bagging_model(
-                estimator=est,
-                n_estimators=self.n_estimators,
-                random_state=self.seed,
-                n_jobs=self.n_jobs
-            )
-            model.fit(node.node_data.features, node.node_data.target)
-            self.fitted_models.append(model)
+    def fit(self, input_data: InputData):
+        self._init(input_data)
 
-    def fit(self, input_data: InputData, **kwargs):
-        self._init(previous_nodes=kwargs['prev_nodes'])
-        self._fit(previous_nodes=kwargs['prev_nodes'])
+        prev_node: PipelineNode = _get_prev_node(input_data)
+        est = getattr(prev_node.fitted_operation, 'model', prev_node.fitted_operation)
+        model = self.bagging(
+            estimator=est,
+            n_estimators=self.n_estimators,
+            random_state=self.seed,
+        )
+
+        self.fitted_model = model.fit(prev_node.node_data.features, prev_node.node_data.target)
         return self
 
-    def predict(self, input_data: InputData, **kwargs) -> OutputData:
-        result = []
-        previous_nodes = kwargs['prev_nodes']
-        _assert_same_node_count(self.fitted_models, previous_nodes)
-
-        for fitted_model, node in zip(self.fitted_models, previous_nodes):
-            probs = fitted_model.predict(X=node.node_data.features)
-            result.append(probs)
-        result = np.hstack(result)
+    def predict(self, input_data: InputData) -> OutputData:
+        prev_node: PipelineNode = _get_prev_node(input_data)
+        result = self.fitted_model.predict(prev_node.node_data.features)
         output_data = self._convert_to_output(input_data=input_data, predict=result)
         return output_data
 
-    def predict_proba(self, input_data: InputData, **kwargs) -> OutputData:
+    def predict_proba(self, input_data: InputData) -> OutputData:
         if input_data.task.task_type != TaskTypesEnum.classification:
             raise ValueError('predict_proba is only available for classification tasks')
 
-        result = []
-        previous_nodes = kwargs['prev_nodes']
-        _assert_same_node_count(self.fitted_models, previous_nodes)
-
-        for fitted_model, node in zip(self.fitted_models, previous_nodes):
-            probs = fitted_model.predict_proba(X=node.node_data.features)
-            result.append(probs)
-        result = np.hstack(result)
+        prev_node: PipelineNode = _get_prev_node(input_data)
+        result = self.fitted_model.predict_proba(prev_node.node_data.features)
         output_data = self._convert_to_output(input_data=input_data, predict=result)
         return output_data
 
@@ -82,7 +80,7 @@ class FedotBaggingClassifier(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.bagging_model = BaggingClassifier
+        self.bagging = BaggingClassifier
 
 
 class FedotBaggingRegressor(BaggingImplementation):
@@ -90,4 +88,4 @@ class FedotBaggingRegressor(BaggingImplementation):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.bagging_model = BaggingRegressor
+        self.bagging = BaggingRegressor

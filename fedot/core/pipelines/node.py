@@ -199,29 +199,21 @@ class PipelineNode(LinkedGraphNode):
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
-        additional_args = {}
-        if self.operation.operation_type == 'bagging' or self.operation.operation_type == 'bagreg':
-            additional_args = {'prev_nodes': self.nodes_from}
         if self.fitted_operation is None:
             with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit(
-                    params=self._parameters,
-                    data=input_data,
-                    predictions_cache=predictions_cache,
-                    fold_id=fold_id,
-                    descriptive_id=self.descriptive_id,
-                    **additional_args
-                )
+                self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
+                                                                              data=input_data,
+                                                                              predictions_cache=predictions_cache,
+                                                                              fold_id=fold_id,
+                                                                              descriptive_id=self.descriptive_id)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict_for_fit(
-                fitted_operation=self.fitted_operation,
-                data=input_data,
-                params=self._parameters,
-                predictions_cache=predictions_cache,
-                fold_id=fold_id,
-                descriptive_id=self.descriptive_id
-            )
+            operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
+                                                               data=input_data,
+                                                               params=self._parameters,
+                                                               predictions_cache=predictions_cache,
+                                                               fold_id=fold_id,
+                                                               descriptive_id=self.descriptive_id)
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -249,21 +241,14 @@ class PipelineNode(LinkedGraphNode):
         input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
                                           predictions_cache=predictions_cache, fold_id=fold_id)
 
-        additional_args = {}
-        if self.operation.operation_type == 'bagging' or self.operation.operation_type == 'bagreg':
-            additional_args = {'prev_nodes': self.nodes_from}
-
         with Timer() as t:
-            operation_predict = self.operation.predict(
-                fitted_operation=self.fitted_operation,
-                params=self._parameters,
-                data=input_data,
-                output_mode=output_mode,
-                predictions_cache=predictions_cache,
-                fold_id=fold_id,
-                descriptive_id=self.descriptive_id,
-                **additional_args
-            )
+            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                       params=self._parameters,
+                                                       data=input_data,
+                                                       output_mode=output_mode,
+                                                       predictions_cache=predictions_cache,
+                                                       fold_id=fold_id,
+                                                       descriptive_id=self.descriptive_id)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
@@ -342,7 +327,6 @@ class PipelineNode(LinkedGraphNode):
                                              parent_operation, predictions_cache=predictions_cache, fold_id=fold_id)
         secondary_input = DataMerger.get(parent_results).merge()
         # Update info about visited nodes
-        parent_operations = [node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_nodes
         return secondary_input
 

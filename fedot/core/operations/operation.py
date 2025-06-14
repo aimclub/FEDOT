@@ -81,8 +81,7 @@ class Operation:
             data: InputData,
             predictions_cache: Optional[PredictionsCache] = None,
             fold_id: Optional[int] = None,
-            descriptive_id: Optional[str] = None,
-            **kwargs):
+            descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -95,11 +94,11 @@ class Operation:
         """
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
-        self.fitted_operation = self._eval_strategy.fit(train_data=data, **kwargs)
+        self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict_for_fit(
             self.fitted_operation, data, params, predictions_cache=predictions_cache, fold_id=fold_id,
-            descriptive_id=descriptive_id, **kwargs)
+            descriptive_id=descriptive_id)
 
         return self.fitted_operation, predict_train
 
@@ -110,8 +109,7 @@ class Operation:
                 output_mode: str = 'default',
                 predictions_cache: Optional[PredictionsCache] = None,
                 fold_id: Optional[int] = None,
-                descriptive_id: Optional[str] = None,
-                **kwargs):
+                descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
@@ -123,8 +121,7 @@ class Operation:
             for example, is the operation predict probabilities or class labels
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False,
-                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id,
-                             **kwargs)
+                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
     def predict_for_fit(self,
                         fitted_operation,
@@ -133,8 +130,7 @@ class Operation:
                         output_mode: str = 'default',
                         predictions_cache: Optional[PredictionsCache] = None,
                         fold_id: Optional[int] = None,
-                        descriptive_id: Optional[str] = None,
-                        **kwargs):
+                        descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
 
@@ -146,8 +142,7 @@ class Operation:
                 for example, is the operation predict probabilities or class labels
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True,
-                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id,
-                             **kwargs)
+                             predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
     def _predict(self,
                  fitted_operation,
@@ -157,8 +152,7 @@ class Operation:
                  is_fit_stage: bool = False,
                  predictions_cache: Optional[PredictionsCache] = None,
                  fold_id: Optional[int] = None,
-                 descriptive_id: Optional[str] = None,
-                 **kwargs):
+                 descriptive_id: Optional[str] = None):
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
@@ -173,7 +167,7 @@ class Operation:
             if prediction is None:
                 prediction = self._eval_strategy.predict_for_fit(
                     trained_operation=fitted_operation,
-                    predict_data=data, **kwargs)
+                    predict_data=data)
 
                 if predictions_cache is not None:
                     predictions_cache.save_node_prediction(
@@ -185,7 +179,7 @@ class Operation:
             if prediction is None:
                 prediction = self._eval_strategy.predict(
                     trained_operation=fitted_operation,
-                    predict_data=data, **kwargs)
+                    predict_data=data)
 
                 if predictions_cache is not None:
                     predictions_cache.save_node_prediction(

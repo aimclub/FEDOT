@@ -25,7 +25,10 @@ from fedot.core.pipelines.verification_rules import (
     has_no_conflicts_with_data_flow,
     has_no_data_flow_conflicts_in_ts_pipeline,
     has_primary_nodes,
-    only_non_lagged_operations_are_primary, has_correct_location_of_resample, is_blending_follow_model
+    only_non_lagged_operations_are_primary,
+    has_correct_location_of_resample,
+    has_no_conflicts_for_blending,
+    has_no_conflicts_for_bagging
 )
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -41,7 +44,8 @@ common_rules = [has_one_root,
                 has_correct_data_connections,
                 has_correct_data_sources,
                 has_correct_location_of_resample,
-                is_blending_follow_model]
+                has_no_conflicts_for_blending,
+                has_no_conflicts_for_bagging]
 
 ts_rules = [only_non_lagged_operations_are_primary,
             has_no_data_flow_conflicts_in_ts_pipeline]

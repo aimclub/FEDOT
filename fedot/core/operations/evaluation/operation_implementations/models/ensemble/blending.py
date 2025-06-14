@@ -34,17 +34,19 @@ class BlendingImplementation(ModelImplementation):
         self.log = default_log('WeightedAverageBlending')
 
     def _init(self, input_data: InputData):
-        self.models = input_data.supplementary_data.previous_operations
-        self.n_models = len(self.models) if self.models else None
+        previous_ops = getattr(input_data.supplementary_data, "previous_operations", [])
+        self.models = [op.name for op in previous_ops] if previous_ops else []
+        self.n_models = len(self.models)
         self._init_task_specific_params(input_data)
-        self.study = optuna.create_study(
-            direction='minimize',
-            sampler=optuna.samplers.TPESampler(seed=self.seed),
-            pruner=optuna.pruners.MedianPruner()
-        )
+        if self.n_models >= 2:
+            self.study = optuna.create_study(
+                direction="minimize",
+                sampler=optuna.samplers.TPESampler(seed=self.seed),
+                pruner=optuna.pruners.MedianPruner(),
+            )
 
     def _fit(self, input_data: InputData):
-        if self.n_models == 0 or self.n_models is None:
+        if self.n_models == 0:
             raise ValueError("No previous models provided for blending.")
         if self.n_models == 1:
             self.weights = np.array([1.0])

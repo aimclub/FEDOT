@@ -313,7 +313,7 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
     return True
 
 
-def is_blending_follow_model(pipeline: Pipeline):
+def has_no_conflicts_for_blending(pipeline: Pipeline):
     """
     Verifies that every blending operation ('blending' or 'blendreg') in the pipeline
     has only model operations as its direct predecessors. Also checks if blending is not the only
@@ -322,14 +322,39 @@ def is_blending_follow_model(pipeline: Pipeline):
     error_message = f'{ERROR_PREFIX} At least one model is required before blending'
 
     for node in pipeline.nodes:
-        is_blending_in_pipeline = (node.operation.operation_type == 'blending'
+        is_blending_node = (node.operation.operation_type == 'blending'
                                    or node.operation.operation_type == 'blendreg')
-        if is_blending_in_pipeline:
+        if is_blending_node:
             prev_nodes = node.nodes_from
             for prev_node in prev_nodes:
                 if prev_node.operation.operations_repo.operation_type != 'model':
                     raise ValueError(error_message)
-        elif is_blending_in_pipeline and pipeline.depth == 1 or is_blending_in_pipeline and pipeline.length == 1:
+        elif is_blending_node and pipeline.depth == 1 or is_blending_node and pipeline.length == 1:
+            raise ValueError(error_message)
+
+    return True
+
+
+def has_no_conflicts_for_bagging(pipeline: Pipeline):
+    """
+    Verifies that every bagging operation ('bagging' or 'bagreg') in the pipeline
+    has only one model operation as its direct predecessors. Also checks if blending is not the only
+    operation in a pipeline.
+    """
+    error_message = f'{ERROR_PREFIX} Model is required before bagging'
+
+    for node in pipeline.nodes:
+        is_bagging_node = (node.operation.operation_type == 'bagging'
+                                   or node.operation.operation_type == 'bagreg')
+        if is_bagging_node:
+            prev_nodes = node.nodes_from
+            if len(prev_nodes) != 1:
+                raise ValueError(f'{ERROR_PREFIX} Only one model is required before bagging')
+            if prev_nodes[0].operation.operations_repo.operation_type != 'model':
+                raise ValueError(error_message)
+            if 'ensemble' in prev_nodes[0].tags:
+                raise ValueError(f'{ERROR_PREFIX} Bagging cannot be applied after an ensemble operation')
+        elif is_bagging_node and pipeline.depth == 1 or is_bagging_node and pipeline.length == 1:
             raise ValueError(error_message)
 
     return True
