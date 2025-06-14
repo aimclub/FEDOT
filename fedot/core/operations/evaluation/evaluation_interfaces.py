@@ -71,7 +71,7 @@ class EvaluationStrategy:
         raise AbstractMethodNotImplementError(self.__class__)
 
     @abstractmethod
-    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData, **kwargs) -> OutputData:
         """Method to predict the target data for predict stage.
 
         Args:
@@ -83,7 +83,7 @@ class EvaluationStrategy:
         """
         raise AbstractMethodNotImplementError
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+    def predict_for_fit(self, trained_operation, predict_data: InputData, **kwargs) -> OutputData:
         """Method to predict the target data for fit stage.
         Allows to implement predict method different from main predict method
         if another behaviour for fit graph stage is needed.
@@ -94,7 +94,7 @@ class EvaluationStrategy:
         Returns:
             passed data with new predicted target
         """
-        return self.predict(trained_operation, predict_data)
+        return self.predict(trained_operation, predict_data, **kwargs)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self._operations_by_types:

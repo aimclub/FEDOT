@@ -540,57 +540,25 @@
         "non-default"
       ]
 	},
-    "cb_bag": {
-      "meta": "boosting_class",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
-    "cbreg_bag": {
-      "meta": "boosting_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
-    "xgb_bag": {
-      "meta": "boosting_class",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
-    "xgbreg_bag": {
-      "meta": "boosting_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
-    "lgbm_bag": {
-      "meta": "boosting_class",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
-    "lgbmreg_bag": {
-      "meta": "boosting_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "tree", "non_linear", "boosting"
-      ]
-    },
     "blending": {
       "meta": "ensemble_clf",
       "presets": ["*tree"],
-      "tags": ["non-default", "custom_model"]
+      "tags": ["non-default", "custom_model", "ensemble"]
     },
     "blendreg": {
       "meta": "ensemble_reg",
       "presets": ["*tree"],
-      "tags": ["non-default", "custom_model"]
+      "tags": ["non-default", "custom_model", "ensemble"]
+    },
+    "bagging": {
+      "meta": "ensemble_clf",
+      "presets": ["*tree"],
+      "tags": ["non-default", "custom_model", "ensemble"]
+    },
+    "bagreg": {
+      "meta": "ensemble_reg",
+      "presets": ["*tree"],
+      "tags": ["non-default", "custom_model", "ensemble"]
     }
   }
 }

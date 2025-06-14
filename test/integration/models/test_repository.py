@@ -29,7 +29,7 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
                                               tags=['ml'])
 
         assert 'linear' in model_names
-        assert len(model_names) == 17
+        assert len(model_names) == 14
 
 
 def test_search_in_repository_by_tag_correct():
