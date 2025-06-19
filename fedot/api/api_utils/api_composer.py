@@ -84,7 +84,7 @@ class ApiComposer:
                 fitted_assumption
             )
 
-        if with_tuning:
+        if False:
             with fedot_composer_timer.launch_tuning('composing'):
                 best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
 
@@ -142,7 +142,7 @@ class ApiComposer:
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 
-        if self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs):
+        if False:
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
