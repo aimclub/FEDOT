@@ -15,60 +15,14 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def _predict_for_oof_set(previous_nodes, cv_folds, seed, n_classes, stratified=False, predict_proba=False):
-    # Get models from previous nodes
-    models = []
-    if previous_nodes:
-        models = [getattr(op.fitted_operation, 'model', op.fitted_operation)
-                  for op in previous_nodes]
-    if not models:
-        raise ValueError("No previous models provided for blending.")
-
-    X, y = previous_nodes[0].node_data.features, previous_nodes[0].node_data.target
-
-    # Initialize KFold
-    if stratified:
-        kf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=seed)
-        split_args = (X, y)
-    else:
-        kf = KFold(n_splits=cv_folds, shuffle=True, random_state=seed)
-        split_args = (X,)
-
-    result = []
-
-    for model in models:
-        model = copy(model)
-        oof_preds = np.zeros((len(y), n_classes))
-
-        for train_index, val_index in kf.split(*split_args):
-            # Get train/validation splits
-            X_train = X.iloc[train_index] if hasattr(X, 'iloc') else X[train_index]
-            X_val = X.iloc[val_index] if hasattr(X, 'iloc') else X[val_index]
-            y_train = y.iloc[train_index] if hasattr(y, 'iloc') else y[train_index]
-
-            # Fit model and make predictions
-            model.fit(X_train, y_train)
-            if predict_proba:
-                y_pred = model.predict_proba(X_val)
-            else:
-                y_pred = model.predict(X_val)
-                y_pred = np.ravel(y_pred)
-
-            oof_preds[val_index] = y_pred
-
-        result.append(oof_preds)
-
-    return result
-
-
 class BlendingImplementation(ModelImplementation):
     """Base class for weighted average blending."""
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.seed = self.params.get('seed', 42)
-        self.n_trials = self.params.get('n_trials', 50)
-        self.cv_folds = self.params.get('cv_folds', 5)
+        self.n_trials = self.params.get('n_trials', 100)
+        self.strategy = self.params.get('strategy', 'average')
 
         self.task = None
         self.classes_ = None
@@ -90,7 +44,7 @@ class BlendingImplementation(ModelImplementation):
         self.model_names = [op.name for op in self.previous_nodes] if self.previous_nodes else []
         self.n_models = len(self.model_names)
         self._init_task_specific_params(input_data)
-        if self.n_models >= 2:
+        if self.n_models >= 2 and self.strategy == 'weighted':
             self.study = optuna.create_study(
                 direction="minimize",
                 sampler=optuna.samplers.TPESampler(seed=self.seed),
@@ -103,24 +57,29 @@ class BlendingImplementation(ModelImplementation):
         if self.n_models == 1:
             self.weights = np.array([1.0])
             return self
+        if self.strategy == 'average':
+            self.weights = np.ones(self.n_models) / self.n_models
+            return self
+        elif self.strategy == 'weighted':
+            predictions = self._divide_predictions(input_data)
 
-        predictions = self._get_oof_predictions()
+            def objective(trial):
+                weights = np.array([
+                    trial.suggest_float(f'weight_{i}', 0.0, 1.0)
+                    for i in range(self.n_models)
+                ])
+                if np.sum(weights) == 0:
+                    return float('inf')
+                normalized = weights / np.sum(weights)
+                blended = self._blend_predictions(predictions, normalized, return_labels=False)
+                return self._score(input_data.target, blended)
 
-        def objective(trial):
-            weights = np.array([
-                trial.suggest_float(f'weight_{i}', 0.0, 1.0)
-                for i in range(self.n_models)
-            ])
-            if np.sum(weights) == 0:
-                return float('inf')
-            normalized = weights / np.sum(weights)
-            blended = self._blend_predictions(predictions, normalized, return_labels=False)
-            return self._score(input_data.target, blended)
-
-        self.study.optimize(objective, n_trials=self.n_trials)
-        self.weights = np.array([self.study.best_params[f'weight_{i}'] for i in range(self.n_models)])
-        self.weights /= np.sum(self.weights)
-        return self
+            self.study.optimize(objective, n_trials=self.n_trials)
+            self.weights = np.array([self.study.best_params[f'weight_{i}'] for i in range(self.n_models)])
+            self.weights /= np.sum(self.weights)
+            return self
+        else:
+            raise ValueError("Unknown blending strategy. Use 'average' or 'weighted'.")
 
     def fit(self, input_data: InputData):
         self._init(input_data)
@@ -142,9 +101,6 @@ class BlendingImplementation(ModelImplementation):
         raise NotImplementedError()
 
     def _divide_predictions(self, input_data: InputData):
-        raise NotImplementedError()
-
-    def _get_oof_predictions(self):
         raise NotImplementedError()
 
     def _blend_predictions(self, predictions, weights, return_labels: bool = True):
@@ -190,10 +146,6 @@ class BlendingClassifier(BlendingImplementation):
                 preds_list.append(predictions[:, start:end])
         return preds_list
 
-    def _get_oof_predictions(self):
-        return _predict_for_oof_set(self.previous_nodes, self.cv_folds, self.seed,
-                                    self.n_classes, stratified=True, predict_proba=True)
-
     def predict_proba(self, input_data: InputData) -> OutputData:
         predictions = self._divide_predictions(input_data)
         result = self._blend_predictions(predictions, self.weights, return_labels=False)
@@ -218,7 +170,3 @@ class BlendingRegressor(BlendingImplementation):
         if predictions.shape[1] != self.n_models:
             raise ValueError("Expected one value per model for regression.")
         return [predictions[:, i:i + 1] for i in range(self.n_models)]
-
-    def _get_oof_predictions(self):
-        return _predict_for_oof_set(self.previous_nodes, self.cv_folds, self.seed,
-                                    self.n_classes, stratified=False, predict_proba=False)

@@ -40,7 +40,7 @@ def get_regression_data():
                      data_type=DataTypesEnum.table,
                      task=Task(TaskTypesEnum.regression))
 
-# ================== Ensemble with blending ========================
+# ================== Test blending ========================
 
 
 def test_blending_classifier_integration():
@@ -146,7 +146,7 @@ def test_blendreg_with_custom_parameters():
 
     pipeline = (PipelineBuilder()
                 .add_branch('linear', 'rfr')
-                .join_branches('blendreg', params={'n_trials': 50}).build())
+                .join_branches('blendreg', params={'strategy': 'weighted'}).build())
 
     pipeline.fit(input_data)
     blending_operation = pipeline.root_node.fitted_operation

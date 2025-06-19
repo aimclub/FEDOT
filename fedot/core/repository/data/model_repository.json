@@ -543,12 +543,12 @@
     "blending": {
       "meta": "ensemble_clf",
       "presets": ["*tree"],
-      "tags": ["non-default", "custom_model", "ensemble"]
+      "tags": ["custom_model", "ensemble"]
     },
     "blendreg": {
       "meta": "ensemble_reg",
       "presets": ["*tree"],
-      "tags": ["non-default", "custom_model", "ensemble"]
+      "tags": ["custom_model", "ensemble"]
     },
     "bagging": {
       "meta": "ensemble_clf",

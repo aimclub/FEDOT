@@ -214,10 +214,12 @@
     "stride": 1
   },
   "blending": {
-    "n_trials": 100
+    "n_trials": 100,
+    "strategy": "average"
   },
   "blendreg": {
-    "n_trials": 100
+    "n_trials": 100,
+    "strategy": "average"
   },
   "bagging": {
     "n_estimators": 10
