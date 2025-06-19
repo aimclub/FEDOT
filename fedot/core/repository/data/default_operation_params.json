@@ -238,7 +238,8 @@
     "inference_config": null,
     "enable_categorical": false,
     "max_samples_cpu": 1000,
-    "max_samples_gpu": 5000
+    "max_samples_gpu": 5000,
+    "max_features": 500
   },
   "tabpfnreg": {
     "n_jobs": 1,
@@ -254,7 +255,8 @@
     "inference_config": null,
     "enable_categorical": true,
     "max_samples_cpu": 1000,
-    "max_samples_gpu": 5000
+    "max_samples_gpu": 5000,
+    "max_features": 500
   },
   "autotabpfn": {
     "max_time":  30,
@@ -264,7 +266,8 @@
     "ignore_pretraining_limits": false,
     "enable_categorical": true,
     "max_samples_cpu": 1000,
-    "max_samples_gpu": 5000
+    "max_samples_gpu": 5000,
+    "max_features": 500
   },
   "autotabpfnreg": {
     "max_time":  30,
@@ -274,6 +277,7 @@
     "ignore_pretraining_limits": false,
     "enable_categorical": true,
     "max_samples_cpu": 1000,
-    "max_samples_gpu": 5000
+    "max_samples_gpu": 5000,
+    "max_features": 500
   }
 }

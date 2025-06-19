@@ -12,6 +12,7 @@ class FedotTabPFNImplementation(ModelImplementation):
         'enable_categorical',
         'max_samples_cpu',
         'max_samples_gpu',
+        'max_features'
     ]
 
     def __init__(self, params: Optional[OperationParameters] = None):

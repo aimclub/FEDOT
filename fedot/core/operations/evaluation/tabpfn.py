@@ -27,13 +27,15 @@ class TabPFNStrategy(EvaluationStrategy):
         self.device = params.get('device', 'auto')
         self.max_samples_cpu = params.get('max_samples_cpu', 1000)
         self.max_samples_gpu = params.get('max_samples_gpu', 5000)
+        self.max_features = params.get('max_features', 500)
 
     def fit(self, train_data: InputData):
         check_data_size(
             data=train_data,
             device=self.device,
             max_samples_cpu=self.max_samples_cpu,
-            max_samples_gpu=self.max_samples_gpu
+            max_samples_gpu=self.max_samples_gpu,
+            max_features=self.max_features,
         )
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
             raise ValueError('Time series forecasting not supported for TabPFN')
@@ -83,6 +85,7 @@ def check_data_size(
         device: str = "auto",
         max_samples_cpu: int = 1000,
         max_samples_gpu: int = 5000,
+        max_features: int = 500,
 ) -> bool:
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -95,5 +98,10 @@ def check_data_size(
         raise ValueError(
             f"Input data has too many samples ({data.features.shape[0]}), "
             f"maximum is {max_samples} for device '{device}'"
+        )
+    if data.features.shape[1] > max_features:
+        raise ValueError(
+            f"Input data has too many features ({data.features.shape[1]}), "
+            f"maximum is {max_features}"
         )
     return True
