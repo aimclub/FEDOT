@@ -27,7 +27,6 @@ class BlendingImplementation(ModelImplementation):
         self.task = None
         self.classes_ = None
         self.n_classes = None
-        self.previous_nodes = None
         self.model_names = None
         self.n_models = None
 
@@ -40,8 +39,7 @@ class BlendingImplementation(ModelImplementation):
         self.log = default_log('WeightedAverageBlending')
 
     def _init(self, input_data: InputData):
-        self.previous_nodes = getattr(input_data.supplementary_data, "previous_operations", [])
-        self.model_names = [op.name for op in self.previous_nodes] if self.previous_nodes else []
+        self.model_names = getattr(input_data.supplementary_data, "previous_operations", [])
         self.n_models = len(self.model_names)
         self._init_task_specific_params(input_data)
         if self.n_models >= 2 and self.strategy == 'weighted':
