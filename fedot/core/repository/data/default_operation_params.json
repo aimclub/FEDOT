@@ -11,7 +11,8 @@
     "booster": "gbtree",
     "tree_method": "auto",
     "enable_categorical": true,
-    "use_eval_set": true
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
   },
   "xgboostreg": {
     "n_jobs": 1,
@@ -19,7 +20,8 @@
     "booster": "gbtree",
     "tree_method": "auto",
     "enable_categorical": true,
-    "use_eval_set": true
+    "use_eval_set": true,
+    "early_stopping_rounds": 30
   },
   "catboost": {
     "n_jobs": -1,
@@ -40,6 +42,8 @@
     "nan_mode": "Min",
     "verbose": false,
     "allow_writing_files": false,
+    "use_eval_set": true,
+    "use_best_model": true,
     "enable_categorical": true
   },
   "catboostreg": {
@@ -61,6 +65,8 @@
     "nan_mode": "Min",
     "verbose": false,
     "allow_writing_files": false,
+    "use_eval_set": true,
+    "use_best_model": true,
     "enable_categorical": true
   },
   "lgbm": {
@@ -69,6 +75,8 @@
     "bagging_fraction": 0.85,
     "extra_trees": false,
     "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30,
     "n_jobs": 1,
     "verbose": -1
   },
@@ -78,6 +86,8 @@
     "bagging_fraction": 0.85,
     "extra_trees": false,
     "enable_categorical": true,
+    "use_eval_set": true,
+    "early_stopping_rounds": 30,
     "n_jobs": 1,
     "verbose": -1
   },

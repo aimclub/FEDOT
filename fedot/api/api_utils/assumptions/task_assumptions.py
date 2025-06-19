@@ -93,7 +93,7 @@ class RegressionAssumptions(TaskAssumptions):
         return {
             'rfr': PipelineBuilder().add_node('rfr'),
             'ridge': PipelineBuilder().add_node('ridge'),
-            'lgbm': PipelineBuilder().add_node('lgbm')
+            'lgbmreg': PipelineBuilder().add_node('lgbmreg')
         }
 
     def ensemble_operation(self) -> str:
