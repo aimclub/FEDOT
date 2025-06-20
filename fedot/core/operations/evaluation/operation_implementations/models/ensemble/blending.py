@@ -22,7 +22,7 @@ class BlendingImplementation(ModelImplementation):
         super().__init__(params)
         self.seed = self.params.get('seed', 42)
         self.n_trials = self.params.get('n_trials', 100)
-        self.strategy = self.params.get('strategy', 'average')
+        self.strategy = self.params.get('strategy', 'weighted')
 
         self.task = None
         self.classes_ = None
