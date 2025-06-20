@@ -225,7 +225,7 @@
   },
   "blending": {
     "n_trials": 100,
-    "strategy": "average"
+    "strategy": "weighted"
   },
   "blendreg": {
     "n_trials": 100,
