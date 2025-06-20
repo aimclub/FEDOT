@@ -69,11 +69,3 @@ class PipelineOptNodeFactory(OptNodeFactory):
     @staticmethod
     def filter_specific_candidates(candidates: list):
         return sorted(list(filter(lambda x: not check_for_specific_operations(x), candidates)))
-
-    def get_all_available_operations(self) -> Optional[List[str]]:
-        """
-        Returns all available models and data operations.
-        """
-        # TODO: get_all_available_operations is abstract method in OptNodeFactory
-        #       PipelineOptNodeFactory cannot be instantiate without that method
-        raise MethodNotImplementError(self.__class__)
