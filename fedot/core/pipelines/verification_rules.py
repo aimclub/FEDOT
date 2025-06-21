@@ -328,7 +328,7 @@ def has_no_conflicts_for_blending(pipeline: Pipeline):
                 raise ValueError(f'{ERROR_PREFIX} At least one model is required before blending')
 
             for prev_node in prev_nodes:
-                if not 'ml' in prev_node.tags:
+                if 'ml' not in prev_node.tags:
                     raise ValueError(
                         f"{ERROR_PREFIX} Invalid blending input: node '{prev_node}' "
                         f"must be a model (tag 'ml' missing)."
