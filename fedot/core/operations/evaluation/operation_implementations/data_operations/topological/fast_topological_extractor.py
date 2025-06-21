@@ -1,3 +1,4 @@
+import os
 import logging
 from itertools import chain
 from typing import Optional
@@ -7,9 +8,12 @@ import numpy as np
 try:
     from gph import ripser_parallel as ripser
 except ModuleNotFoundError:
-    logging.log(100,
-                "Topological features operation requires extra dependencies for time series forecasting, which are not"
-                " installed. It can infuence the performance. Please install it by 'pip install fedot[extra]'")
+    if not os.environ.get('FEDOT_RIPSER_WARNING_SHOWN'):
+        logging.log(100,
+                    "Topological features operation requires extra dependencies for time series forecasting, "
+                    "which are not installed. It can influence the performance. "
+                    "Please install it by 'pip install fedot[extra]'")
+        os.environ['FEDOT_RIPSER_WARNING_SHOWN'] = '1'
 
 from joblib import Parallel, delayed
 
