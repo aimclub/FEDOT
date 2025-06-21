@@ -323,7 +323,7 @@ def has_no_conflicts_for_blending(pipeline: Pipeline):
 
     for node in pipeline.nodes:
         is_blending_node = (node.operation.operation_type == 'blending'
-                                   or node.operation.operation_type == 'blendreg')
+                            or node.operation.operation_type == 'blendreg')
         if is_blending_node:
             prev_nodes = node.nodes_from
             for prev_node in prev_nodes:
