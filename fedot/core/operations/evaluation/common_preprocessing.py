@@ -11,7 +11,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.topological.fast_topological_extractor import \
     TopologicalFeaturesImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.data_forward import \
+from fedot.core.operations.evaluation.operation_implementations.data_operations.dummy import \
     DummyOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.random import ImplementationRandomStateHandler
