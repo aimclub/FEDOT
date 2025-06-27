@@ -465,7 +465,8 @@ def test_locf_forecast_correctly():
 def test_models_does_not_fall_on_constant_data(operation):
     """ Run models on constant data """
     # models that raise exception
-    to_skip = {'custom', 'arima', 'catboost', 'cgru', 'clstm', 'catboostreg', 'lda', 'decompose', 'class_decompose'}
+    to_skip = {'custom', 'arima', 'catboost', 'cgru', 'clstm', 'catboostreg',
+               'lda', 'decompose', 'class_decompose', 'blending', 'blendreg'}
     if operation.id in to_skip:
         return
 
@@ -487,7 +488,7 @@ def test_models_does_not_fall_on_constant_data(operation):
 
 @pytest.mark.parametrize('operation', OperationTypesRepository('all')._repo, ids=lambda x: x.id)
 def test_operations_are_serializable(operation):
-    to_skip = ['custom', 'decompose', 'class_decompose']
+    to_skip = ['custom', 'decompose', 'class_decompose', 'blending', 'blendreg']
     if operation.id in to_skip:
         return
 

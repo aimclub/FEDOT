@@ -69,6 +69,8 @@ class BoostingClassificationStrategy(BoostingStrategy):
             is_multi_output_target = is_multi_output_task(predict_data)
 
             prediction = trained_operation.predict_proba(predict_data)
+            if isinstance(prediction, OutputData):
+                prediction = prediction.predict
             is_prediction_correct = self._check_prediction_correctness(prediction)
 
             if n_classes < 2:
