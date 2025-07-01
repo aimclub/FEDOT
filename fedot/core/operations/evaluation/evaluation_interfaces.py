@@ -269,7 +269,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             if n_classes < 2:
                 raise ValueError('Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs':
-                if is_multi_output_target:
+                if is_multi_output_model(self.operation_impl):
                     prediction = np.stack([pred[:, 1] for pred in prediction]).T
                 else:
                     prediction = prediction[:, 1]
