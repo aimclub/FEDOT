@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.boostings
     FedotXGBoostClassificationImplementation, FedotXGBoostRegressionImplementation, \
     FedotLightGBMClassificationImplementation, FedotLightGBMRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
+from fedot.core.utils import is_multi_output_target, is_multi_output_model
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -39,7 +39,8 @@ class BoostingStrategy(EvaluationStrategy):
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
             raise ValueError('Time series forecasting not supported for boosting models')
 
-        if is_multi_output_task(train_data):
+        if is_multi_output_target(train_data):
+            self.operation_impl.is_multi_target = True
             if self.operation_type == 'catboost':
                 self.params_for_fit.update(loss_function='MultiLogloss')
             elif self.operation_type == 'catboostreg':
@@ -66,7 +67,6 @@ class BoostingClassificationStrategy(BoostingStrategy):
         elif (self.output_mode in ['probs', 'full_probs', 'default'] and
               predict_data.task.task_type is TaskTypesEnum.classification):
             n_classes = len(trained_operation.classes_)
-            is_multi_output_target = is_multi_output_task(predict_data)
 
             prediction = trained_operation.predict_proba(predict_data)
             is_prediction_correct = self._check_prediction_correctness(prediction)
@@ -74,7 +74,7 @@ class BoostingClassificationStrategy(BoostingStrategy):
             if n_classes < 2:
                 raise ValueError('Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs' and is_prediction_correct:
-                if is_multi_output_target and isinstance(prediction, list):
+                if is_multi_output_model(self.operation_impl) and isinstance(prediction, list):
                     prediction = np.stack([pred[:, 1] for pred in prediction]).T
                 else:
                     prediction = prediction[:, 1]
