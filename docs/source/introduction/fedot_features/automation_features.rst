@@ -173,6 +173,10 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `polyfit`,Polynomial approximation,Forecasting
    `stl_arima`,STL Decomposition with ARIMA,Forecasting
    `ts_naive_average`,Naive Average,Forecasting
+   `tabpfn`,TabPFN classifier,Classification
+   `tabpfnreg`,TabPFN regressor,Regression,
+   `autotabpfn`,AutoTabPFN classifier,Classification
+   `autotabpfnreg`,AutoTabPFN regressor,Regression,
 
 
 .. csv-table:: Available models implementations
