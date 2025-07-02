@@ -11,6 +11,8 @@ import pandas as pd
 from golem.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
+from fedot.core.data.data import InputData
+
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
 
@@ -133,3 +135,15 @@ def convert_memory_size(size_bytes):
     byte_digit = math.pow(1024, integer_size_value)
     size_in_digit_name = round(size_bytes / byte_digit, 2)
     return "%s %s" % (size_in_digit_name, digit_name[integer_size_value])
+
+
+def is_multi_output_target(train_data: InputData) -> bool:
+    """Determine if the task is multi-output based on target shape."""
+    if train_data.target is not None:
+        return len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1
+    return False
+
+
+def is_multi_output_model(operation_impl) -> bool:
+    """Check if operation is configured for multi-output target."""
+    return getattr(operation_impl, 'is_multi_target', False)

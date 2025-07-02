@@ -32,6 +32,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utils import is_multi_output_target, is_multi_output_model
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 from fedot.utilities.random import ImplementationRandomStateHandler
 
@@ -221,7 +222,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         is_model_not_support_multi = self.operation_type in non_multi_models
 
         # Multi-output task or not
-        is_multi_target = is_multi_output_task(train_data)
+        is_multi_target = is_multi_output_target(train_data)
+        self.operation_impl.is_multi_target = is_multi_target
+
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             if is_model_not_support_multi and is_multi_target:
                 # Manually wrap the regressor into multi-output model
@@ -254,9 +257,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
     def _sklearn_compatible_prediction(self, trained_operation, features):
-        is_multi_output_target = isinstance(trained_operation.classes_, list)
         # Check if target is multilabel (has 2 or more columns)
-        if is_multi_output_target:
+        if is_multi_output_model(self.operation_impl):
             n_classes = len(trained_operation.classes_[0])
         else:
             n_classes = len(trained_operation.classes_)
@@ -267,7 +269,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             if n_classes < 2:
                 raise ValueError('Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs':
-                if is_multi_output_target:
+                if is_multi_output_model(self.operation_impl):
                     prediction = np.stack([pred[:, 1] for pred in prediction]).T
                 else:
                     prediction = prediction[:, 1]
@@ -299,10 +301,3 @@ def convert_to_multivariate_model(sklearn_model, train_data: InputData):
     sklearn_model = multiout_func(sklearn_model)
     sklearn_model.fit(train_data.features, train_data.target)
     return sklearn_model
-
-
-def is_multi_output_task(train_data):
-    if train_data.target is not None:
-        target_shape = train_data.target.shape
-        is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
-        return is_multi_target

@@ -206,6 +206,7 @@ class ModelImplementation(ABC):
     def __init__(self, params: OperationParameters = None):
         self.log = default_log(self)
         self.params = params or OperationParameters()
+        self.is_multi_target: bool = False
 
     @abstractmethod
     def fit(self, input_data: InputData):

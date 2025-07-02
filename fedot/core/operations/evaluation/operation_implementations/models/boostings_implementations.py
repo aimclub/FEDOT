@@ -14,8 +14,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot.core.utils import default_fedot_data_dir
-from fedot.core.operations.evaluation.evaluation_interfaces import is_multi_output_task
+from fedot.core.utils import default_fedot_data_dir, is_multi_output_target
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -186,7 +185,7 @@ class FedotLightGBMImplementation(ModelImplementation):
                 self.model._other_params.update(early_stopping_rounds=None)
                 self.params.update(early_stopping_rounds=None)
 
-            if is_multi_output_task(input_data):
+            if is_multi_output_target(input_data):
                 self._convert_to_multi_output_model(input_data)
 
             # Training model without splitting on train and eval
@@ -400,7 +399,7 @@ def convert_to_dataframe(data: Optional[InputData], identify_cats: bool):
     features = pd.DataFrame(data=data.features)
 
     if data.target is not None and data.target.size > 0:
-        if not is_multi_output_task(data):
+        if not is_multi_output_target(data):
             target = np.ravel(data.target[:features.shape[0]])
         else:
             target = data.target
@@ -427,7 +426,7 @@ def check_eval_set_condition(input_data: InputData, params: OperationParameters)
     Checks the model training condition with eval_set.
     """
     is_using_eval_set = bool(params.get('use_eval_set'))
-    if not is_using_eval_set or is_multi_output_task(input_data):
+    if not is_using_eval_set or is_multi_output_target(input_data):
         return False
 
     # No special conditions for regression task
