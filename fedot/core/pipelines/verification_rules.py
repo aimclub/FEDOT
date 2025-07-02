@@ -313,6 +313,30 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
     return True
 
 
+def has_no_conflicts_for_blending(pipeline: Pipeline):
+    """
+    Verifies that:
+    1. Every blending operation ('blending' or 'blendreg') has only model operations as direct predecessors
+    2. Blending is not the only operation in a pipeline (at least one model exists before blending)
+    """
+    for node in pipeline.nodes:
+        is_blending_node = node.operation.operation_type in ('blending', 'blendreg')
+        if is_blending_node:
+            prev_nodes = node.nodes_from
+
+            if not prev_nodes or pipeline.depth == 1 or pipeline.length == 1:
+                raise ValueError(f'{ERROR_PREFIX} At least one model is required before blending')
+
+            for prev_node in prev_nodes:
+                if 'ml' not in prev_node.tags:
+                    raise ValueError(
+                        f"{ERROR_PREFIX} Invalid blending input: node '{prev_node}' "
+                        f"must be a model (tag 'ml' missing)."
+                    )
+
+    return True
+
+
 def __check_decompose_parent_position(nodes_to_check: list):
     """ Function check if the data flow before decompose operation is correct
     or not

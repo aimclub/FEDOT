@@ -118,7 +118,7 @@
     "q": 2
   },
   "ets": {
-    "error":"add",
+    "error": "add",
     "trend": null,
     "seasonal": null,
     "damped_trend": false,
@@ -222,5 +222,13 @@
     "max_homology_dimension": 1,
     "metric": "euclidean",
     "stride": 1
+  },
+  "blending": {
+    "n_trials": 100,
+    "strategy": "average"
+  },
+  "blendreg": {
+    "n_trials": 100,
+    "strategy": "average"
   }
 }

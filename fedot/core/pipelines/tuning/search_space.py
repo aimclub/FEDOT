@@ -930,7 +930,19 @@ class PipelineSearchSpace(SearchSpace):
                     'hyperopt-dist': hp.choice,
                     'sampling-scope': [['euclidean', 'manhattan', 'cosine']],
                     'type': 'categorical'}
-            }
+            },
+            'blending': {
+                'strategy': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['average', 'weighted']],
+                    'type': 'categorical'}
+            },
+            'blendreg': {
+                'strategy': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [['average', 'weighted']],
+                    'type': 'categorical'}
+            },
         }
 
         if self.custom_search_space is not None:

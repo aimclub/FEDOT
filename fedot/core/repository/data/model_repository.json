@@ -154,6 +154,32 @@
         "non-default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
+    },
+    "ensemble_clf": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "description": "Implementations of the ensemble operations",
+      "forbidden_node_types": [
+        "secondary"
+      ],
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.ensemble",
+        "EnsembleClassificationStrategy"
+      ]
+    },
+    "ensemble_reg": {
+      "tasks": "[TaskTypesEnum.regression]",
+      "description": "Implementations of the ensemble operations",
+      "forbidden_node_types": [
+        "secondary"
+      ],
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.ensemble",
+        "EnsembleRegressionStrategy"
+      ]
     }
   },
   "operations": {
@@ -508,11 +534,21 @@
       "output_type": "[DataTypesEnum.table]"
     },
     "custom": {
-		"meta": "custom_model",
-		"tags": [
-          "custom_model",
-          "non-default"
-        ]
-	}
+      "meta": "custom_model",
+      "tags": [
+        "custom_model",
+        "non-default"
+      ]
+	},
+    "blending": {
+      "meta": "ensemble_clf",
+      "presets": ["*tree"],
+      "tags": ["custom_model", "ensemble"]
+    },
+    "blendreg": {
+      "meta": "ensemble_reg",
+      "presets": ["*tree"],
+      "tags": ["custom_model", "ensemble"]
+    }
   }
 }
