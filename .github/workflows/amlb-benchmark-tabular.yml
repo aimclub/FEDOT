@@ -1,0 +1,82 @@
+name: Run AutoMLBenchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: 'Python version'
+        default: '3.9'
+      os:
+        description: 'Runner OS'
+        default: 'ubuntu-latest'
+      preset:
+        description: 'Available: test, small, medium, large'
+        default: test
+      constraint:
+        description: 'Available: test, 1h4c, 1h8c'
+        default: test
+
+env:
+  FEDOT_REPO: 'https://github.com/aimclub/FEDOT.git'
+  BENCHMARK_DIR: 'automlbenchmark'
+
+jobs:
+  run_benchmark:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Checkout AutoMLBenchmark
+        uses: actions/checkout@v4
+        with:
+          repository: openml/automlbenchmark
+          path: ${{ env.BENCHMARK_DIR }}
+          fetch-depth: 0
+
+      - name: Set up Python ${{ inputs.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+          cache: 'pip'
+
+      - name: Specify FEDOT branch
+        run: |
+          echo "Using FEDOT branch: ${{ github.ref_name }}"
+          rm -f ${{ env.BENCHMARK_DIR }}/frameworks/FEDOT/setup.sh
+          cat > ${{ env.BENCHMARK_DIR }}/frameworks/FEDOT/setup.sh << 'EOF'
+          #!/usr/bin/env bash
+          set -e
+          
+          HERE=$(dirname "$0")
+          BRANCH="${{ github.ref_name }}"
+          REPO="${{ env.FEDOT_REPO }}"
+          
+          . ${HERE}/../shared/setup.sh ${HERE} true
+          
+          source ${HERE}/venv/bin/activate
+          pip install --upgrade pip
+          pip install git+${REPO}@${BRANCH}
+          
+          python -c "from fedot import __version__; print(__version__)" >> "${HERE}/.setup/installed"
+          echo "FEDOT installed in: $(which python)"
+          EOF
+          
+          chmod +x ${{ env.BENCHMARK_DIR }}/frameworks/FEDOT/setup.sh
+
+      - name: Install AutoMLBenchmark dependencies
+        run: |
+          cd ${{ env.BENCHMARK_DIR }}
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run benchmark
+        run: |
+          cd ${{ env.BENCHMARK_DIR }}
+          python runbenchmark.py FEDOT ${{ inputs.preset }} ${{ inputs.constraint }}
+        env:
+          GITHUB_PAT: ${{ secrets.PUBLIC_ACCESS_GITHUB_PAT }}
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: fedot-benchmark-results-${{ github.run_id }}
+          path: ${{ env.BENCHMARK_DIR }}/results/
+          retention-days: 7
