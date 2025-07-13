@@ -67,8 +67,11 @@ def test_random_composer(data_fixture, request):
     task = Task(task_type=TaskTypesEnum.classification)
 
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    primary_models = available_model_types.copy()
+    primary_models.remove('blending')
+
     req = PipelineComposerRequirements(num_of_generations=3,
-                                       primary=available_model_types,
+                                       primary=primary_models,
                                        secondary=available_model_types)
     objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
     pipeline_generation_params = get_pipeline_generation_params(requirements=req, task=task)

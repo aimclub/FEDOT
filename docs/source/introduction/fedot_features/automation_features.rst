@@ -70,12 +70,13 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `label_encoding`,Label Encoder, Feature encoding
    `resample`,Imbalanced binary class transformation in classification, Data transformation
    `topological_features`,Calculation of topological features,Time series transformation
+   `dummy`,Simple forwarding operator in pipeline, Data forwarding
 
 
 .. csv-table:: Feature transformation operations implementations
    :header: "API name","Model used","Presets"
 
-   `rfe_lin_reg`,`sklearn.feature_selection.RFE`, 
+   `rfe_lin_reg`,`sklearn.feature_selection.RFE`,
    `rfe_non_lin_reg`,`sklearn.feature_selection.RFE`,
    `rfe_lin_class`,`sklearn.feature_selection.RFE`,
    `rfe_non_lin_class`,`sklearn.feature_selection.RFE`,
@@ -107,13 +108,14 @@ FEDOT supports bunch of dimensionality preprocessing operations that can be be a
    `resample`,`FEDOT model using sklearn.utils.resample`,
    `topological_features`,FEDOT model,`ts`,
    `fast_topological_features`,FEDOT model,`ts`
+   `dummy`,FEDOT model,`fast_train` `*tree`
 
 
 Models used
 ^^^^^^^^^^^
 
 Using the parameter ``preset`` of the :doc:`main API </api/api>` you can specify
-what models are available during the learning process. 
+what models are available during the learning process.
 
 It influences:
 
@@ -135,6 +137,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    :header: "API name","Definition","Problem"
 
    `adareg`,AdaBoost regressor,Regression
+   `blendreg`, Weighted Average Blending,Regression
    `catboostreg`,Catboost regressor,Regression
    `dtreg`,Decision Tree regressor,Regression
    `gbr`,Gradient Boosting regressor,Regression
@@ -149,6 +152,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `treg`,Extra Trees regressor,Regression
    `xgboostreg`,Extreme Gradient Boosting regressor,Regression
    `bernb`,Naive Bayes classifier (multivariate Bernoulli),Classification
+   `blending`, Weighted Average Blending,Classification
    `catboost`,Catboost classifier,Classification
    `cnn`,Convolutional Neural Network,Classification
    `dt`,Decision Tree classifier,Classification
@@ -179,6 +183,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    :header: "API name","Model used","Presets"
 
    `adareg`,`sklearn.ensemble.AdaBoostRegressor`,`fast_train` `ts` `*tree`
+   `blendreg`, `FEDOT model`, `*tree`
    `catboostreg`,`catboost.CatBoostRegressor`,`*tree`
    `dtreg`,`sklearn.tree.DecisionTreeRegressor`,`fast_train` `ts` `*tree`
    `gbr`,`sklearn.ensemble.GradientBoostingRegressor`,`*tree`
@@ -193,6 +198,7 @@ Apart from that there are other options whose names speak for themselves: ``'sta
    `treg`,`sklearn.ensemble.ExtraTreesRegressor`,`*tree`
    `xgboostreg`,`xgboost.XGBRegressor`,`*tree`
    `bernb`,`sklearn.naive_bayes.BernoulliNB`,`fast_train`
+   `blending`, `FEDOT model`, `*tree`
    `catboost`,`catboost.CatBoostClassifier`,`*tree`
    `cnn`,`FEDOT model`,
    `dt`,`sklearn.tree.DecisionTreeClassifier`,`fast_train` `*tree`

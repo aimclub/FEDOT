@@ -618,6 +618,14 @@
       "tags": [
         "imbalanced"
       ]
+    },
+    "dummy": {
+      "meta": "custom_preprocessing",
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": ["non-default", "feature_selection"]
     }
   }
 }

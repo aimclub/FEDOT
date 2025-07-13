@@ -274,10 +274,13 @@ class FedotBuilder:
                     - ``arima`` -> ARIMA
                     - ``cgru`` -> Convolutional Gated Recurrent Unit
                     - ``bernb`` -> Naive Bayes Classifier (multivariate Bernoulli)
+                    - ``blending`` -> Weighted Average Blending Classifier
+                    - ``blendreg`` -> Weighted Average Blending Regressor
                     - ``catboost`` -> Catboost Classifier
                     - ``catboostreg`` -> Catboost Regressor
                     - ``dt`` -> Decision Tree Classifier
                     - ``dtreg`` -> Decision Tree Regressor
+                    - ``dummy`` -> Data Forwarding Operator in Pipeline
                     - ``gbr`` -> Gradient Boosting Regressor
                     - ``kmeans`` -> K-Means clustering
                     - ``knn`` -> K-nearest neighbors Classifier
@@ -305,7 +308,7 @@ class FedotBuilder:
                     - ``svr`` -> Linear Support Vector Regressor
                     - ``treg`` -> Extra Trees Regressor
                     - ``xgboost`` -> Extreme Gradient Boosting Classifier
-                    - ``xgbreg`` -> Extreme Gradient Boosting Regressor
+                    - ``xgboostreg`` -> Extreme Gradient Boosting Regressor
                     - ``cnn`` -> Convolutional Neural Network
                     - ``scaling`` -> Scaling
                     - ``normalization`` -> Normalization

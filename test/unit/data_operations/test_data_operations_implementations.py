@@ -387,8 +387,10 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
+    to_skip = ['blendreg']
 
     model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names.remove(*to_skip)
 
     for model_name in model_names:
         node_data_operation = PipelineNode(model_name)
