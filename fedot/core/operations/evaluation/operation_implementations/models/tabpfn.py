@@ -10,8 +10,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 class FedotTabPFNImplementation(ModelImplementation):
     __operation_params = [
         'enable_categorical',
-        'max_samples_cpu',
-        'max_samples_gpu',
+        'max_samples',
         'max_features'
     ]
 

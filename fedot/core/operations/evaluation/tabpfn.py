@@ -25,16 +25,14 @@ class TabPFNStrategy(EvaluationStrategy):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
         self.device = params.get('device', 'auto')
-        self.max_samples_cpu = params.get('max_samples_cpu', 1000)
-        self.max_samples_gpu = params.get('max_samples_gpu', 5000)
+        self.max_samples = params.get('max_samples', 1000)
         self.max_features = params.get('max_features', 500)
 
     def fit(self, train_data: InputData):
         check_data_size(
             data=train_data,
             device=self.device,
-            max_samples_cpu=self.max_samples_cpu,
-            max_samples_gpu=self.max_samples_gpu,
+            max_samples=self.max_samples,
             max_features=self.max_features,
         )
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
@@ -83,17 +81,9 @@ class TabPFNRegressionStrategy(TabPFNStrategy):
 def check_data_size(
         data: InputData,
         device: str = "auto",
-        max_samples_cpu: int = 1000,
-        max_samples_gpu: int = 5000,
+        max_samples: int = 1000,
         max_features: int = 500,
 ) -> bool:
-    if device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    if device == "cpu":
-        max_samples = max_samples_cpu
-    else:
-        max_samples = max_samples_gpu
-
     if data.features.shape[0] > max_samples:
         raise ValueError(
             f"Input data has too many samples ({data.features.shape[0]}), "
