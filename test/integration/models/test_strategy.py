@@ -79,7 +79,6 @@ def test_boosting_regression_operation():
         assert metric < rmse_threshold
 
 
-
 def run_tabpfn(
         model_name: str,
         train_data: pd.DataFrame,
@@ -92,6 +91,7 @@ def run_tabpfn(
 
     assert isinstance(pipeline, Pipeline)
     assert metric > 0.5
+
 
 def test_tabpfn_classification_operation():
     n_samples = 20
