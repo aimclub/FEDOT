@@ -11,7 +11,8 @@ class FedotTabPFNImplementation(ModelImplementation):
     __operation_params = [
         'enable_categorical',
         'max_samples',
-        'max_features'
+        'max_features',
+        'model_path'
     ]
 
     def __init__(self, params: Optional[OperationParameters] = None):
@@ -20,6 +21,11 @@ class FedotTabPFNImplementation(ModelImplementation):
         self.model_params = {
             k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params
         }
+
+        model_path = self.params.get('model_path', None)
+        if model_path is not None:
+            self.model_params['model_path'] = model_path
+
         self.model = None
         self.classes_ = None
 
