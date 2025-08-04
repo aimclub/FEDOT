@@ -16,9 +16,6 @@ anytree>=2.8.0
 catboost>=0.25.0
 lightgbm>=3.0.0
 xgboost>=1.4.0 # to prevent warnings
-torch>=1.9.0
-tabpfn>=2.0.0
-tabpfn-extensions>=0.0.4
 statsmodels>=0.12.0
 ete3>=3.1.0
 networkx>=2.4, !=2.7.*, !=2.8.1, !=2.8.2, !=2.8.3
