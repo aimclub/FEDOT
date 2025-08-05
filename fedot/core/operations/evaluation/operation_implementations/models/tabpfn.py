@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from tabpfn import TabPFNClassifier, TabPFNRegressor
 from tabpfn_extensions.post_hoc_ensembles.sklearn_interface import AutoTabPFNClassifier, AutoTabPFNRegressor
@@ -5,6 +7,7 @@ from typing import Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotTabPFNImplementation(ModelImplementation):
@@ -23,7 +26,9 @@ class FedotTabPFNImplementation(ModelImplementation):
         }
 
         model_path = self.params.get('model_path', None)
-        if model_path is not None:
+        if model_path == "auto":
+            self.model_params['model_path'] = os.path.join(default_fedot_data_dir(), 'tabpfn')
+        elif model_path is not None:
             self.model_params['model_path'] = model_path
 
         self.model = None

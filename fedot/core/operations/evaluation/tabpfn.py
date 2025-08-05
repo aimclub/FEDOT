@@ -1,4 +1,3 @@
-import os
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -8,7 +7,6 @@ from fedot.core.operations.evaluation.operation_implementations.models.tabpfn im
     FedotAutoTabPFNClassificationImplementation, FedotAutoTabPFNRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.utils import default_fedot_data_dir
 from fedot.utilities.random import ImplementationRandomStateHandler
 
 
@@ -26,12 +24,6 @@ class TabPFNStrategy(EvaluationStrategy):
         self.device = params.get('device', 'auto')
         self.max_samples = params.get('max_samples', 1000)
         self.max_features = params.get('max_features', 500)
-
-        model_path = params.get('model_path', None)
-        if model_path == "auto":
-            model_path = os.path.join(default_fedot_data_dir(), 'tabpfn')
-
-        self.model_path = model_path
 
     def fit(self, train_data: InputData):
         check_data_size(
