@@ -129,6 +129,50 @@
       ],
       "tasks": "[TaskTypesEnum.regression]"
     },
+    "tabpfn_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabPFN implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tabpfn",
+        "TabPFNClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn",
+        "non-default",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tabpfn_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabPFN implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tabpfn",
+        "TabPFNRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn",
+        "non-default",
+        "cpu"
+      ],
+      "tasks": "[TaskTypesEnum.regression]"
+    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts]",
@@ -513,6 +557,22 @@
           "custom_model",
           "non-default"
         ]
-	}
+	},
+    "tabpfn": {
+      "meta": "tabpfn_class",
+      "tags": ["non_auto"]
+    },
+    "tabpfnreg": {
+      "meta": "tabpfn_regr",
+      "tags": ["non_auto"]
+    },
+    "autotabpfn": {
+      "meta": "tabpfn_class",
+      "tags": ["auto"]
+    },
+    "autotabpfnreg": {
+      "meta": "tabpfn_regr",
+      "tags": ["auto"]
+    }
   }
 }

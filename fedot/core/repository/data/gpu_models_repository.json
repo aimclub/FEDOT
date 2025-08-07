@@ -59,6 +59,50 @@
         "cuML",
         "gpu"
       ]
+    },
+    "tabpfn_gpu_class": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabPFN implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tabpfn",
+        "TabPFNClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn",
+        "non-default",
+        "gpu"
+      ]
+    },
+    "tabpfn_gpu_regr": {
+      "tasks": "[TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabPFN implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.tabpfn",
+        "TabPFNRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "neural",
+        "non_linear",
+        "tabpfn",
+        "non-default",
+        "gpu"
+      ]
     }
   },
   "operations": {
@@ -134,6 +178,26 @@
     "cd": {
       "meta": "rapids_gpu_class",
       "presets": ["gpu"]
+    },
+    "tabpfn_gpu": {
+      "meta": "tabpfn_gpu_class",
+      "presets": ["gpu"],
+      "tags": ["non_auto"]
+    },
+    "tabpfnreg_gpu": {
+      "meta": "tabpfn_gpu_regr",
+      "presets": ["gpu"],
+      "tags": ["non_auto"]
+    },
+    "autotabpfn_gpu": {
+      "meta": "tabpfn_gpu_class",
+      "presets": ["gpu"],
+      "tags": ["auto"]
+    },
+    "autotabpfnreg_gpu": {
+      "meta": "tabpfn_gpu_regr",
+      "presets": ["gpu"],
+      "tags": ["auto"]
     }
   }
 }
