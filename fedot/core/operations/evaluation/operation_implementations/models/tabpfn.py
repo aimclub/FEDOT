@@ -16,7 +16,6 @@ class FedotTabPFNImplementation(ModelImplementation):
         'max_samples',
         'max_features',
         'model_path',
-        'preset'
     ]
 
     def __init__(self, params: Optional[OperationParameters] = None):
