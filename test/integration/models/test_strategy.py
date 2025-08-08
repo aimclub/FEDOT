@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, r2_score
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -83,18 +83,22 @@ def run_tabpfn(
         model_name: str,
         train_data: pd.DataFrame,
         test_data: pd.DataFrame,
+        task: str,
 ):
     pipeline = PipelineBuilder().add_node(model_name).build()
     pipeline.fit(train_data)
     predicted_output = pipeline.predict(test_data, output_mode='labels')
-    metric = roc_auc(test_data.target, predicted_output.predict)
+    if task == 'classification':
+        metric = roc_auc(test_data.target, predicted_output.predict)
+    else:
+        metric = r2_score(test_data.target, predicted_output.predict)
 
     assert isinstance(pipeline, Pipeline)
     assert metric > 0.5
 
 
 def test_tabpfn_classification_operation():
-    n_samples = 20
+    n_samples = 100
     train_data, test_data = get_classification_data(
         classes_amount=2,
         samples_amount=n_samples,
@@ -106,11 +110,10 @@ def test_tabpfn_classification_operation():
     )
 
     for model_name in model_names:
-        run_tabpfn(model_name, train_data, test_data)
-
+        run_tabpfn(model_name, train_data, test_data, task='classification')
 
 def test_tabpfn_regression_operation():
-    n_samples = 20
+    n_samples = 100
     data = get_synthetic_regression_data(n_samples=n_samples, n_features=4, random_state=42)
     train_data, test_data = train_test_data_setup(data)
 
@@ -119,4 +122,4 @@ def test_tabpfn_regression_operation():
     )
 
     for model_name in model_names:
-        run_tabpfn(model_name, train_data, test_data)
+        run_tabpfn(model_name, train_data, test_data, task='regression')
