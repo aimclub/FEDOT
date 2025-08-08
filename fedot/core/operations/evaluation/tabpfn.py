@@ -21,9 +21,9 @@ class TabPFNStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
-        self.device = params.get('device', 'auto')
-        self.max_samples = params.get('max_samples', 1000)
-        self.max_features = params.get('max_features', 500)
+        self.device = params.get('device', 'auto') if params else 'auto'
+        self.max_samples = params.get('max_samples', 1000) if params else 1000
+        self.max_features = params.get('max_features', 500) if params else 500
 
     def fit(self, train_data: InputData):
         check_data_size(
