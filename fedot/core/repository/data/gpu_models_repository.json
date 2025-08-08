@@ -74,7 +74,6 @@
         "TabPFNClassificationStrategy"
       ],
       "tags": [
-        "ml",
         "neural",
         "non_linear",
         "tabpfn",
@@ -96,7 +95,6 @@
         "TabPFNRegressionStrategy"
       ],
       "tags": [
-        "ml",
         "neural",
         "non_linear",
         "tabpfn",
