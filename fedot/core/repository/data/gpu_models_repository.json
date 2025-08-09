@@ -188,16 +188,6 @@
       "meta": "tabpfn_gpu_regr",
       "presets": ["gpu"],
       "tags": ["non_auto"]
-    },
-    "autotabpfn_gpu": {
-      "meta": "tabpfn_gpu_class",
-      "presets": ["gpu"],
-      "tags": ["auto"]
-    },
-    "autotabpfnreg_gpu": {
-      "meta": "tabpfn_gpu_regr",
-      "presets": ["gpu"],
-      "tags": ["auto"]
     }
   }
 }
