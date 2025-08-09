@@ -563,14 +563,6 @@
     "tabpfnreg": {
       "meta": "tabpfn_regr",
       "tags": ["non_auto"]
-    },
-    "autotabpfn": {
-      "meta": "tabpfn_class",
-      "tags": ["auto"]
-    },
-    "autotabpfnreg": {
-      "meta": "tabpfn_regr",
-      "tags": ["auto"]
     }
   }
 }
