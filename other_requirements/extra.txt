@@ -1,7 +1,6 @@
 # DNNs
 tensorflow >= 2.8.0; python_version >= '3.8'
 torch >= 1.9.0
-llvmlite == 0.44.0
 autogluon.tabular == 1.4.0
 tabpfn == 2.1.2
 tabpfn-extensions == 0.1.3
