@@ -477,8 +477,6 @@ def test_models_does_not_fall_on_constant_data(operation):
         'class_decompose',
         'tabpfn',
         'tabpfnreg',
-        'autotabpfn',
-        'autotabpfnreg',
     }
     if operation.id in to_skip:
         return

@@ -256,26 +256,6 @@
     "max_samples": 1000,
     "max_features": 500
   },
-  "autotabpfn": {
-    "max_time":  30,
-    "preset": "default",
-    "ges_scoring_string": "roc",
-    "device": "cpu",
-    "ignore_pretraining_limits": false,
-    "enable_categorical": true,
-    "max_samples": 1000,
-    "max_features": 500
-  },
-  "autotabpfnreg": {
-    "max_time":  30,
-    "preset": "default",
-    "ges_scoring_string": "mse",
-    "device": "cpu",
-    "ignore_pretraining_limits": false,
-    "enable_categorical": true,
-    "max_samples": 1000,
-    "max_features": 500
-  },
   "tabpfn_gpu": {
     "n_jobs": 1,
     "n_estimators": 4,
@@ -305,26 +285,6 @@
     "fit_mode": "fit_preprocessors",
     "memory_saving_mode": "auto",
     "inference_config": null,
-    "enable_categorical": true,
-    "max_samples": 10000,
-    "max_features": 500
-  },
-  "autotabpfn_gpu": {
-    "max_time":  30,
-    "preset": "default",
-    "ges_scoring_string": "roc",
-    "device": "cuda",
-    "ignore_pretraining_limits": false,
-    "enable_categorical": true,
-    "max_samples": 10000,
-    "max_features": 500
-  },
-  "autotabpfnreg_gpu": {
-    "max_time":  30,
-    "preset": "default",
-    "ges_scoring_string": "mse",
-    "device": "cuda",
-    "ignore_pretraining_limits": false,
     "enable_categorical": true,
     "max_samples": 10000,
     "max_features": 500
