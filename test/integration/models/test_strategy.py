@@ -112,6 +112,7 @@ def test_tabpfn_classification_operation():
     for model_name in model_names:
         run_tabpfn(model_name, train_data, test_data, task='classification')
 
+
 def test_tabpfn_regression_operation():
     n_samples = 100
     data = get_synthetic_regression_data(n_samples=n_samples, n_features=4, random_state=42)
