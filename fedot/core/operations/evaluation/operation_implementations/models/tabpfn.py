@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 from tabpfn import TabPFNClassifier, TabPFNRegressor
-from tabpfn_extensions.post_hoc_ensembles.sklearn_interface import AutoTabPFNClassifier, AutoTabPFNRegressor
 from typing import Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -26,10 +25,14 @@ class FedotTabPFNImplementation(ModelImplementation):
         }
 
         model_path = self.params.get('model_path', None)
+
         if model_path == "auto":
-            self.model_params['model_path'] = os.path.join(default_fedot_data_dir(), 'tabpfn')
+            model_path = os.path.join(default_fedot_data_dir(), 'tabpfn')
+            if not os.path.exists(model_path):
+                os.makedirs(model_path, exist_ok=True)
+            os.environ["TABPFN_MODEL_CACHE_DIR"] = model_path
         elif model_path is not None:
-            self.model_params['model_path'] = model_path
+            os.environ["TABPFN_MODEL_CACHE_DIR"] = model_path
 
         self.model = None
         self.classes_ = None
@@ -82,19 +85,3 @@ class FedotTabPFNRegressionImplementation(FedotTabPFNImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = TabPFNRegressor(**self.model_params)
-
-
-class FedotAutoTabPFNClassificationImplementation(FedotTabPFNImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        self.model = AutoTabPFNClassifier(**self.model_params)
-
-    def fit(self, input_data: InputData):
-        self.classes_ = np.unique(np.array(input_data.target))
-        return super().fit(input_data=input_data)
-
-
-class FedotAutoTabPFNRegressionImplementation(FedotTabPFNImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
-        super().__init__(params)
-        self.model = AutoTabPFNRegressor(**self.model_params)
