@@ -1,13 +1,26 @@
+import logging
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.models.tabpfn import \
-    FedotTabPFNClassificationImplementation, FedotTabPFNRegressionImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.random import ImplementationRandomStateHandler
 
+try:
+    from fedot.core.operations.evaluation.operation_implementations.models.tabpfn import \
+        FedotTabPFNClassificationImplementation, FedotTabPFNRegressionImplementation
+    _TABPFN_AVAILABLE = True
+except ModuleNotFoundError:
+    FedotTabPFNClassificationImplementation = None
+    FedotTabPFNRegressionImplementation = None
+    _ERROR_MESSAGE = (""
+                      "TabPFN is required but not installed. "
+                      "Install with `pip install fedot[extra]` or `pip install tabpfn`."
+                      ""
+                      )
+    _TABPFN_AVAILABLE = False
+    logging.log(100, _ERROR_MESSAGE)
 
 class TabPFNStrategy(EvaluationStrategy):
     _operations_by_types = {
@@ -23,6 +36,9 @@ class TabPFNStrategy(EvaluationStrategy):
         self.max_features = params.get('max_features', 500) if params else 500
 
     def fit(self, train_data: InputData):
+        if not _TABPFN_AVAILABLE:
+            raise ModuleNotFoundError(_ERROR_MESSAGE)
+
         check_data_size(
             data=train_data,
             device=self.device,
@@ -48,6 +64,9 @@ class TabPFNClassificationStrategy(TabPFNStrategy):
         super().__init__(operation_type, params)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if not _TABPFN_AVAILABLE:
+            raise ModuleNotFoundError(_ERROR_MESSAGE)
+
         if self.output_mode == 'labels':
             output = trained_operation.predict(predict_data)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
@@ -69,6 +88,9 @@ class TabPFNRegressionStrategy(TabPFNStrategy):
         super().__init__(operation_type, params)
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
+        if not _TABPFN_AVAILABLE:
+            raise ModuleNotFoundError(_ERROR_MESSAGE)
+
         return trained_operation.predict(predict_data)
 
 
