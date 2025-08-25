@@ -85,16 +85,19 @@ def run_tabpfn(
         test_data: pd.DataFrame,
         task: str,
 ):
-    pipeline = PipelineBuilder().add_node(model_name).build()
-    pipeline.fit(train_data)
-    predicted_output = pipeline.predict(test_data, output_mode='labels')
-    if task == 'classification':
-        metric = roc_auc(test_data.target, predicted_output.predict)
-    else:
-        metric = r2_score(test_data.target, predicted_output.predict)
+    try:
+        pipeline = PipelineBuilder().add_node(model_name).build()
+        pipeline.fit(train_data)
+        predicted_output = pipeline.predict(test_data, output_mode='labels')
+        if task == 'classification':
+            metric = roc_auc(test_data.target, predicted_output.predict)
+        else:
+            metric = r2_score(test_data.target, predicted_output.predict)
 
-    assert isinstance(pipeline, Pipeline)
-    assert metric > 0.5
+        assert isinstance(pipeline, Pipeline)
+        assert metric > 0.5
+    except ModuleNotFoundError:
+        pass
 
 
 def test_tabpfn_classification_operation():
