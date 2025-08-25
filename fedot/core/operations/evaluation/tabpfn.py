@@ -22,6 +22,7 @@ except ModuleNotFoundError:
     _TABPFN_AVAILABLE = False
     logging.log(100, _ERROR_MESSAGE)
 
+
 class TabPFNStrategy(EvaluationStrategy):
     _operations_by_types = {
         'tabpfn': FedotTabPFNClassificationImplementation,
