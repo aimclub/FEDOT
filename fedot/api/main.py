@@ -456,6 +456,12 @@ class Fedot:
                                            data_type=self.train_data.data_type)
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
+        elif not len(self.test_data.target):
+            self.test_data = self.data_processor.define_data(
+                target=self.train_data.target[:len(self.test_data.features)],
+                features=self.test_data.features,
+                is_predict=True,
+            )
 
         metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
         metric_names = [str(metric) for metric in metrics]
