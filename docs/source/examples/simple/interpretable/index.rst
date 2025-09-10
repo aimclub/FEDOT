@@ -1,0 +1,12 @@
+Interpretability
+======================
+
+This section provides basic examples of FEDOT usage:
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   api_explain
+   pipeline_explain
+

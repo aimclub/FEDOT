@@ -7,7 +7,6 @@ In this section you can find notebooks and useful pipeline structures for variou
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Contents
 
    classification_example
    regression_example
@@ -17,3 +16,4 @@ In this section you can find notebooks and useful pipeline structures for variou
    classification_pipelines
    regression_pipelines
    ts_pipelines
+   simple/index
