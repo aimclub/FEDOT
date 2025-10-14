@@ -258,7 +258,6 @@ class Pipeline(GraphDelegate, Serializable):
             self.use_input_preprocessing = use_input_preprocessing
             self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
 
-
     def try_load_from_cache(
             self,
             operations_cache: Optional[OperationsCache] = None,
