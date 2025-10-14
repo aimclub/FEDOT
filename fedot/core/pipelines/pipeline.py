@@ -247,6 +247,18 @@ class Pipeline(GraphDelegate, Serializable):
     def unfit_preprocessor(self):
         self.preprocessor = type(self.preprocessor)()
 
+    def sync_preprocessing_mode(self, use_input_preprocessing: bool):
+        """Synchronizes input preprocessing mode with the parent entities
+
+            Args:
+                use_input_preprocessing: whether to do input preprocessing or not.
+        """
+
+        if use_input_preprocessing != self.use_input_preprocessing:
+            self.use_input_preprocessing = use_input_preprocessing
+            self.preprocessor = DataPreprocessor() if use_input_preprocessing else DummyPreprocessor()
+
+
     def try_load_from_cache(
             self,
             operations_cache: Optional[OperationsCache] = None,
