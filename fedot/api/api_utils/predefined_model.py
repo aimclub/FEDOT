@@ -23,6 +23,7 @@ class PredefinedModel:
                       api_preprocessor: BasePreprocessor = None) -> Pipeline:
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
+            pipelines.sync_preprocessing_mode(use_input_preprocessing=use_input_preprocessing)
         elif self.predefined_model == 'auto':
             # Generate initial assumption automatically
             pipelines = AssumptionsBuilder.get(self.data).from_operations().build(
