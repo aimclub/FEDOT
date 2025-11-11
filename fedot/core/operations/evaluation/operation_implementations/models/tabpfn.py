@@ -10,6 +10,16 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class FedotTabPFNImplementation(ModelImplementation):
+    """FEDOT implementation of TabPFN that uses tabpfn model version 2.
+    To use the newer TabPFN v2.5 model, you must accept the non-commercial usage license
+    in your Hugging Face account at https://huggingface.co/Prior-Labs/tabpfn_2_5.
+    After accepting the license, update the `tabpfn` library to the latest version
+    (currently 6.0.6) and log in to your Hugging Face account, for example using env variable:
+    `os.environ["HF_TOKEN"] = "your_hf_token"`. The library will then automatically
+    use the v2.5 model. If authentication with a token fails, you will get an error.
+
+    """
+
     __operation_params = [
         'enable_categorical',
         'max_samples',
