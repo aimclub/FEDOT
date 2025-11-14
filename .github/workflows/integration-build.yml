@@ -18,6 +18,11 @@ jobs:
         python-version: [ 3.9, '3.10' ]
 
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
       - name: Checkout branch
         uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
