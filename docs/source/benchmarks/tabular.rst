@@ -194,10 +194,10 @@ Binary Classification (ROC AUC)
    Diabetes130US, -, -, -, -, -, -, -, -
    dionis, -, -, -, -, -, -, -, -
    eucalyptus, -, -, -, -, -, -, -, -
-   gina, -, -, -, -, -, -, -, -
+   gina, 0.988, -, -, -, -, -, -, -
    guillermo, 0.891, 0.897, 0.826, 0.914, 0.932, 0.865, 0.912, 0.919
    Higgs, -, -, -, -, -, -, -, -
-   Internet-Advertisements, -, -, -, -, -, -, -, -
+   Internet-Advertisements, 0.984, -, -, -, -, -, -, -
    jasmine, 0.888, 0.887, 0.886, 0.886, 0.880, 0.891, 0.886, 0.887
    kc1, 0.843, 0.829, 0.844, 0.840, 0.831, 0.852, 0.824, 0.841
    KDDCup09-Upselling, -, -, -, -, -, -, -, -
@@ -205,7 +205,7 @@ Binary Classification (ROC AUC)
    KDDCup99, -, -, -, -, -, -, -, -
    kick, -, -, -, -, -, -, -, -
    kr-vs-kp, 1.000, 1.000, 0.999, 1.000, 1.000, 1.000, 1.000, 0.961
-   madeline, -, -, -, -, -, -, -, -
+   madeline, 0.943, -, -, -, -, -, -, -
    micro-mass, -, -, -, -, -, -, -, -
    MiniBooNE, 0.981, 0.987, 0.982, 0.989, 0.988, 0.982, 0.987, 0.987
    nomao, 0.994, 0.996, 0.995, 0.997, 0.997, 0.995, 0.997, 0.997
@@ -217,13 +217,13 @@ Binary Classification (ROC AUC)
    PhishingWebsites, 0.782, -, -, -, -, -, -, -
    phoneme, 0.965, 0.968, 0.969, 0.969, 0.966, 0.971, 0.967, 0.972
    porto-seguro, -, -, -, -, -, -, -, -
-   qsar-biodeg, -, -, -, -, -, -, -, -
+   qsar-biodeg, 0.939, -, -, -, -, -, -, -
    riccardo, 0.998, 1.000, 0.998, 1.000, 1.000, 0.999, 1.000, 1.000
-   Satellite, -, -, -, -, -, -, -, -
+   Satellite, 0.992, -, -, -, -, -, -, -
    sf-police-incidents, -, -, -, -, -, -, -, -
    steel-plates-fault, -, -, -, -, -, -, -, -
    sylvine, 0.988, 0.990, 0.992, 0.990, 0.988, 0.993, 0.992, 0.991
-   wilt, -, -, -, -, -, -, -, -
+   wilt, 0.990, -, -, -, -, -, -, -
 
 Multiclass Classification (LogLoss)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -234,16 +234,18 @@ Multiclass Classification (LogLoss)
 
    Task, FEDOT, H2O, TPOT, AutoGluon(B), LightAutoML, GAMA(B), MLJAR(P), FLAML
    car, 0.011, 0.001, 0.788, 0.002, 0.001, 0.022, 0.010, 0.002
-   cmc, -, -, -, -, -, -, -, -
+   cmc, 0.983, -, -, -, -, -, -, -
    cnae-9, 0.211, 0.200, 0.146, 0.126, 0.152, 0.126, 0.323, 0.164
    connect-4, 0.404, 0.311, 0.392, 0.295, 0.335, 0.417, 0.342, 0.340
    covertype, 0.164, 0.253, 0.696, 0.057, 0.082, 0.526, 0.105, 0.068
+   Diabetes130US, 0.838, -, -, -, -, -, -, -
    dilbert, 0.040, 0.065, 0.150, 0.014, 0.033, 0.176, 0.030, 0.024
-   dna, -, -, -, -, -, -, -, -
+   dna, 0.122, -, -, -, -, -, -, -
+   eucalyptus, 0.755, -, -, -, -, -, -, -
    fabert, 0.859, 0.746, 0.886, 0.683, 0.768, 0.763, 0.771, 0.766
    Fashion-MNIST, 0.388, 0.283, 0.431, 0.221, 0.248, 0.439, 0.259, 0.253
-   first-order-theorem-proving, -, -, -, -, -, -, -, -
-   GesturePhaseSegmentationProcessed, -, -, -, -, -, -, -, -
+   first-order-theorem-proving, 1.109, -, -, -, -, -, -, -
+   GesturePhaseSegmentationProcessed, 0.846, -, -, -, -, -, -, -
    helena, 2.963, 2.791, 2.951, 2.467, 2.555, 2.802, 2.653, 2.617
    jannis, 0.753, 0.669, 0.734, 0.650, 0.666, 0.732, 0.672, 0.674
    jungle_chess_2pcs_raw_endgame_complete, 0.349, 0.136, 1.766, 0.012, 0.145, 0.243, 0.198, 0.210
@@ -253,10 +255,11 @@ Multiclass Classification (LogLoss)
    robert, 1.745, 1.423, 1.956, 1.304, 1.283, 1.710, 1.417, 1.382
    segment, 0.062, 0.061, 0.075, 0.052, 0.061, 0.067, 0.059, 0.067
    shuttle, 0.001, 0.000, 0.001, 0.000, 0.001, 0.001, 0.000, 0.000
+   steel-plates-fault, 0.538, -, -, -, -, -, -, -
    vehicle, 0.354, 0.351, 0.417, 0.312, 0.389, 0.378, 0.349, 0.439
    volkert, 1.040, 0.844, 1.013, 0.672, 0.815, 1.102, 0.808, 0.795
-   wine-quality-white, -, -, -, -, -, -, -, -
-   yeast, -, -, -, -, -, -, -, -
+   wine-quality-white, 0.972, -, -, -, -, -, -, -
+   yeast, 1.131, -, -, -, -, -, -, -
 
 Regression (RMSE)
 ~~~~~~~~~~~~~~~~~
@@ -288,7 +291,7 @@ Regression (RMSE)
    QSAR-TID-10980, 0.72, -, -, -, -, -, -, -
    QSAR-TID-11, 0.76, -, -, -, -, -, -, -
    quake, 0.19, -, -, -, -, -, -, -
-   Santander_transaction_value, -, -, -, -, -, -, -, -
+   Santander_transaction_value, 6944942.00, -, -, -, -, -, -, -
    SAT11-HAND-runtime-regression, 1037.66, -, -, -, -, -, -, -
    sensory, 0.84, -, -, -, -, -, -, -
    socmob, 14.51, -, -, -, -, -, -, -
