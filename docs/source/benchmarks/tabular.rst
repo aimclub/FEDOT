@@ -24,13 +24,6 @@ and apply a Nemenyi post-hoc test to identify which framework pairs differ signi
 Time budget for all experiments is 1 hour, 10 folds are used (1h8c setup for ALMB). The results are
 obtained using sever based on Xeon Cascadelake (2900MHz) with 12 cores and 16GB memory.
 
-CD for all datasets (ROC AUC, negative log loss and RMSE):
-
-.. image:: ./cd_plots/cd_all_datasets.png
-
-The CD diagram for all datasets (ROC AUC, negative log loss and RMSE) shows that all AutoML frameworks
-(LightAutoML, H2OAutoML, TPOT,  AutoGluon, FEDOT) perform statistically better than constant predictor:
-
 CD for binary classification (ROC AUC):
 
 .. image:: ./cd_plots/cd_binary_classification.png
