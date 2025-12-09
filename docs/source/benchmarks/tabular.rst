@@ -24,16 +24,16 @@ and apply a Nemenyi post-hoc test to identify which framework pairs differ signi
 Time budget for all experiments is 1 hour, 10 folds are used (1h8c setup for ALMB). The results are
 obtained using sever based on Xeon Cascadelake (2900MHz) with 12 cores and 16GB memory.
 
-CD for all datasets (ROC AUC and negative log loss):
+CD for all datasets (ROC AUC, negative log loss and RMSE):
 
-.. image:: ./img_benchmarks/cd-all-1h8c-constantpredictor.png
+.. image:: ./cd_plots/cd_all_datasets.png
 
-The CD diagram for all datasets (ROC AUC and negative log loss) shows that all AutoML frameworks
+The CD diagram for all datasets (ROC AUC, negative log loss and RMSE) shows that all AutoML frameworks
 (LightAutoML, H2OAutoML, TPOT,  AutoGluon, FEDOT) perform statistically better than constant predictor:
 
 CD for binary classification (ROC AUC):
 
-.. image:: ./img_benchmarks/cd-binary-classification-1h8c-constantpredictor.png
+.. image:: ./cd_plots/cd_binary_classification.png
 
 The CD diagram for binary classification (ROC AUC) shows that all AutoML frameworks
 (LightAutoML, H2OAutoML, TPOT,  AutoGluon, FEDOT) perform similarly,
@@ -41,7 +41,7 @@ falling within the same CD interval, and significantly outperform  the constant 
 
 CD for multiclass classification (negative logloss):
 
-.. image:: ./img_benchmarks/cd-multiclass-classification-1h8c-constantpredictor.png
+.. image:: ./cd_plots/cd_multiclass_classification.png
 
 The CD diagram for multiclass classification (negative log loss) shows that
 TPOT and Fedot demonstrate intermediate performance being on the border of the
@@ -49,117 +49,17 @@ CD interval with constant predictor and the CD interval with H2OAutoML:
 
 We can conclude that FEDOT achieves performance comparable with competitors for tabular tasks.
 
-The ranks for frameworks are provided below:
-
-
-.. csv-table:: Ranks on Binary Tasks
-   :header-rows: 1
-   :widths: 20,6,6,6,6,6,6
-
-   Task, FEDOT, AutoGluon(B), H2OAutoML, LightAutoML, TPOT, ConstantPredictor
-   adult, 4, 5, 2, 1, 3, 6
-   airlines, , 2, 1, , 3, 4
-   amazon_employee_access, 4, 5, 2, 1, 3, 6
-   apsfailure, 3, 4, 1, 2, 5, 6
-   australian, 3, 2, 4, 1, 5, 6
-   bank-marketing, 3, 5, 2, 1, 4, 6
-   blood-transfusion, 1, 5, 2, 3, 4, 6
-   christine, 3, 5, 2, 1, 4, 6
-   credit-g, 5, 3, 1, 2, 4, 6
-   guillermo, 3, 2, , 1, 4, 5
-   jasmine, 3, 4, 2, 5, 1, 6
-   kc1, 2, 4, , 3, 1, 5
-   kddcup09_appetency, 4, 5, 2, 1, 3, 6
-   kr-vs-kp, 3, 5, 2, 4, 1, 6
-   miniboone, 4, 3, , 1, 2, 5
-   nomao, 5, 4, 2, 1, 3, 6
-   numerai28_6, 3, 4, 2, 1, , 5
-   phoneme, 5, 3, 2, 4, 1, 6
-   riccardo, , 1, , 2, , 3
-   sylvine, 4, 5, 2, 3, 1, 6
-
-
-.. csv-table:: Ranks on MultiClass Tasks
-   :header-rows: 1
-   :widths: 20,6,6,6,6,6,6
-
-   Task, FEDOT, AutoGluon(B), H2OAutoML, LightAutoML, TPOT, ConstantPredictor
-   car, 3, 4, 2, 1, 5, 6
-   cnae-9, 3, 5, 4, 2, 1, 6
-   connect-4, 4, 5, 2, 1, 3, 6
-   covertype, 2, 1, 3, , , 4
-   dilbert, 4, 3, 2, 1, 5, 6
-   fabert, 5, 2, 3, 1, 4, 6
-   fashion-mnist, 3, 2, 4, 1, 5, 6
-   helena, , 2, 3, 1, 4, 5
-   jannis, 5, 4, 2, 1, 3, 6
-   jungle_chess_2pcs_raw_end, 2, 5, 4, 1, 3, 6
-   mfeat-factors, 3, 5, 2, 1, 4, 6
-   robert, , 2, , 1, , 3
-   segment, 3, 5, 1, 2, 4, 6
-   shuttle, 4, 3, 1, 2, , 5
-   vehicle, 2, 5, 1, 4, 3, 6
-   volkert, 4, 2, 3, 1, , 5
-
-
-The raw metrics (ROC AUC for binary and logloss for multiclass) for frameworks are provided below:
-
-
-.. csv-table:: Binary (ROC AUC)
-   :header-rows: 1
-   :widths: 20,6,6,6,6,6,6
-
-   Task, FEDOT, AutoGluon(B), H2OAutoML, LightAutoML, TPOT, ConstantPredictor
-   adult, 0.929, 0.910, 0.931, **0.932**, 0.927, 0.500
-   airlines, , 0.725, **0.730**, , 0.694, 0.500
-   amazon_employee_access, 0.863, 0.857, 0.873, **0.879**, 0.866, 0.500
-   apsfailure, 0.992, 0.991, **0.993**, 0.992, 0.990, 0.500
-   australian, 0.939, 0.940, 0.938, **0.945**, 0.936, 0.500
-   bank-marketing, 0.936, 0.931, 0.939, **0.940**, 0.935, 0.500
-   blood-transfusion, **0.759**, 0.690, 0.754, 0.750, 0.740, 0.500
-   christine, 0.817, 0.804, 0.815, **0.830**, 0.807, 0.500
-   credit-g, 0.778, 0.795, **0.798**, 0.796, 0.794, 0.500
-   guillermo, 0.891, 0.900, , **0.926**, 0.783, 0.500
-   jasmine, 0.888, 0.883, 0.888, 0.880, **0.890**, 0.500
-   kc1, 0.843, 0.822, , 0.831, **0.845**, 0.500
-   kddcup09_appetency, 0.819, 0.804, 0.829, **0.850**, 0.826, 0.500
-   kr-vs-kp, **1.000**, 0.999, **1.000**, **1.000**, **1.000**, 0.500
-   miniboone, 0.981, 0.982, , **0.988**, 0.983, 0.500
-   nomao, 0.994, 0.995, 0.996, **0.997**, 0.995, 0.500
-   numerai28_6, **0.531**, 0.517, **0.531**, **0.531**, , 0.500
-   phoneme, 0.965, 0.965, 0.968, 0.965, **0.971**, 0.500
-   riccardo, , **1.000**, , **1.000**, , 0.500
-   sylvine, 0.988, 0.985, 0.989, 0.988, **0.993**, 0.500
-
-
-.. csv-table:: MultiClass (LogLoss)
-   :header-rows: 1
-   :widths: 20,6,6,6,6,6,6
-
-   Task, FEDOT, AutoGluon(B), H2OAutoML, LightAutoML, TPOT, ConstantPredictor
-   car, 0.011, 0.117, 0.003, **0.002**, 0.643, 0.840
-   cnae-9, 0.211, 0.332, 0.262, 0.156, **0.154**, 2.200
-   connect-4, 0.404, 0.502, **0.338**, **0.337**, 0.373, 0.840
-   covertype, 0.164, **0.071**, 0.264, , , 1.210
-   dilbert, 0.040, 0.148, 0.103, **0.033**, 0.168, 1.610
-   fabert, 0.859, 0.788, 0.792, **0.766**, 0.892, 1.870
-   fashion-mnist, 0.388, 0.333, 0.383, **0.252**, 0.535, 2.300
-   helena, , 2.785, 2.980, **2.537**, 2.982, 4.140
-   jannis, 0.753, 0.728, 0.691, **0.664**, 0.703, 1.110
-   jungle_chess_2pcs_raw_end, 0.349, 0.431, 0.240, **0.149**, 0.219, 0.940
-   mfeat-factors, 0.089, 0.161, 0.093, **0.082**, 0.107, 2.300
-   robert, , 1.684, , **1.318**, , 2.300
-   segment, 0.062, 0.094, **0.060**, 0.061, 0.077, 1.950
-   shuttle, 0.001, 0.001, **0.000**, 0.001, , 0.670
-   vehicle, 0.354, 0.515, **0.331**, 0.404, 0.392, 1.390
-   volkert, 1.040, 0.920, 0.978, **0.812**, , 2.050
-
-
 The comparison with [1] shows that AutoGluon is underperforming in our hardware setup,
 while TPOT and H2O are quite close in both setups.
 To avoid any confusion, we provide below an additional comparison of the FEDOT metrics with the metrics from [1].
 However, it should be noted that the conditions are different, as are the exact versions of the frameworks.
 
+CD for regression (RMSE):
+
+.. image:: ./cd_plots/cd_regression.png
+
+The CD diagram for regression (RMSE) shows the relative performance of all AutoML frameworks
+on regression tasks, where lower RMSE values indicate better performance.
 
 AMLB Paper Comparison
 ---------------------
