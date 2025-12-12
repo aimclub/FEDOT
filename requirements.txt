@@ -1,5 +1,5 @@
 # Base framework
-thegolem @ git+https://github.com/aimclub/GOLEM.git@main#egg=thegolem
+thegolem==0.4.2
 
 
 # Data
