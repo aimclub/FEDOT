@@ -382,6 +382,7 @@ def test_pipeline_with_resample_node():
 
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'
 
+
 def test_incorrect_pipeline_with_parallel_filtering_branches():
     incorrect_pipeline = pipeline_with_incorrect_parallel_filtering_branches()
 
