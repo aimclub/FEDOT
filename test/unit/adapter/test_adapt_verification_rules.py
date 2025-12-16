@@ -9,6 +9,7 @@ SOME_PIPELINE_RULES = (
     has_primary_nodes,
     has_no_conflicts_with_data_flow,
     has_correct_data_connections,
+    has_no_parallel_branches_with_filtering,
 )
 
 

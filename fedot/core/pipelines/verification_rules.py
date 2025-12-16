@@ -1,5 +1,7 @@
 from typing import Optional
 
+from golem.core.dag.linked_graph_node import LinkedGraphNode
+
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
@@ -366,3 +368,30 @@ def __check_multitask_operation_location(pipeline: Pipeline, operations_for_clas
         return True
     else:
         raise ValueError(f'{ERROR_PREFIX} Current pipeline can not solve multitask problem')
+
+
+def has_no_parallel_branches_with_filtering(pipeline: Pipeline):
+    """
+    Checks whether pipeline has parallel branches with filtering operations.
+    If so, merging these branches may be problematic — branches may have
+    different sets of targets, even without intersection.
+    """
+
+    filtering_parents_per_node = dict()
+    __node_branch_contains_filtering(node=pipeline.root_node, filtering_parents_per_node=filtering_parents_per_node)
+    if any([val for val in filtering_parents_per_node.values() if val > 1]):
+        raise ValueError(f'{ERROR_PREFIX} Pipeline has parallel branches containing filtering operations')
+
+    return True
+
+
+def __node_branch_contains_filtering(node: LinkedGraphNode, filtering_parents_per_node: dict) -> bool:
+    if not isinstance(node, PipelineNode):
+        return False
+
+    parents_with_filtering = sum(
+        [__node_branch_contains_filtering(parent_node, filtering_parents_per_node) for parent_node in node.nodes_from]
+    )
+    filtering_parents_per_node[node] = parents_with_filtering
+
+    return bool(parents_with_filtering) or "filtering" in node.operation.metadata.tags
