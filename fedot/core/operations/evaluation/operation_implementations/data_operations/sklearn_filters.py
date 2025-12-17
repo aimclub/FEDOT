@@ -75,7 +75,7 @@ class RegRANSACImplementation(FilterImplementation):
     def fit(self, input_data: InputData):
         iter_ = 0
         residual_threshold = self.params.get('residual_threshold')
-        residual_threshold_step = np.mean(np.abs(input_data.target - np.mean(input_data.target))) // self.max_iter
+        residual_threshold_step = np.mean(np.abs(input_data.target - np.mean(input_data.target))) / self.max_iter
 
         while iter_ < self.max_iter:
             try:
