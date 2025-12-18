@@ -15,6 +15,7 @@ from fedot.core.pipelines.verification_rules import (
     has_parent_contain_single_resample,
     has_no_conflicts_during_multitask,
     has_no_conflicts_after_class_decompose,
+    has_no_parallel_branches_with_filtering,
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from golem.core.dag.verification_rules import has_no_cycle
@@ -198,6 +199,36 @@ def pipeline_with_incorrect_resample_node():
     return pipeline
 
 
+def pipeline_with_incorrect_parallel_filtering_branches():
+    """ Incorrect pipeline
+        locf - ransac_non_lin_reg \
+                                   ridge
+        ets - ransac_lin_reg     /
+    """
+    locf_node = PipelineNode(operation_type='locf')
+    ransac_non_lin_reg_node = PipelineNode(operation_type='ransac_non_lin_reg', nodes_from=[locf_node])
+    ets_node = PipelineNode(operation_type='ets')
+    ransac_lin_reg_node = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[ets_node])
+    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[ransac_non_lin_reg_node, ransac_lin_reg_node]))
+
+    return pipeline
+
+
+def correct_pipeline_with_filtering_branch():
+    """ Correct pipeline with filtering branch
+                                              locf \
+                                                     ridge
+        ets - ransac_lin_reg - ransac_non_lin_reg  /
+    """
+    locf_node = PipelineNode(operation_type='locf')
+    ets_node = PipelineNode(operation_type='ets')
+    ransac_lin_reg_node = PipelineNode(operation_type='ransac_lin_reg', nodes_from=[ets_node])
+    ransac_non_lin_reg_node = PipelineNode(operation_type='ransac_non_lin_reg', nodes_from=[ransac_lin_reg_node])
+    pipeline = Pipeline(PipelineNode(operation_type='ridge', nodes_from=[locf_node, ransac_non_lin_reg_node]))
+
+    return pipeline
+
+
 def test_multi_root_pipeline_raise_exception():
     pipeline = pipeline_with_multiple_roots()
 
@@ -350,3 +381,17 @@ def test_pipeline_with_resample_node():
         has_parent_contain_single_resample(incorrect_pipeline)
 
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'
+
+
+def test_incorrect_pipeline_with_parallel_filtering_branches():
+    incorrect_pipeline = pipeline_with_incorrect_parallel_filtering_branches()
+
+    with pytest.raises(ValueError) as exc:
+        has_no_parallel_branches_with_filtering(incorrect_pipeline)
+
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has parallel branches containing filtering operations'
+
+
+def test_pipeline_with_filtering_branch_correct():
+    pipeline = correct_pipeline_with_filtering_branch()
+    assert has_no_parallel_branches_with_filtering(pipeline)
