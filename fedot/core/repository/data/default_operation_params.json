@@ -133,13 +133,13 @@
   },
   "ransac_lin_reg": {
     "min_samples": 0.4,
-    "residual_threshold": 1,
+    "residual_threshold": 0.5,
     "max_trials": 100,
     "max_skips": 1000
   },
   "ransac_non_lin_reg": {
     "min_samples": 0.4,
-    "residual_threshold": 1,
+    "residual_threshold": 0.5,
     "max_trials": 100,
     "max_skips": 1000
   },

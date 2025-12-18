@@ -83,7 +83,7 @@ class RegRANSACImplementation(FilterImplementation):
                 self.params.update(residual_threshold=residual_threshold)
                 self.operation.residual_threshold = residual_threshold
 
-                self.operation.fit(input_data.features, input_data.target)
+                self.operation.fit(input_data.features, input_data.target.squeeze())
                 if self.operation.inlier_mask_.mean() >= self.min_inliers_ratio:
                     return self.operation
             except ValueError:
