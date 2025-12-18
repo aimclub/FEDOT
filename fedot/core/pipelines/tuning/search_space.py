@@ -517,13 +517,13 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.1, 1000],
                     'type': 'continuous'},
                 'max_trials': {
-                    'hyperopt-dist': hp.uniform,
+                    'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [50, 500],
-                    'type': 'continuous'},
+                    'type': 'discrete'},
                 'max_skips': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [50, 500000],
-                    'type': 'continuous'}
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [50, 50000],
+                    'type': 'discrete'}
             },
             'ransac_non_lin_reg': {
                 'min_samples': {
@@ -535,13 +535,13 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [0.1, 1000],
                     'type': 'continuous'},
                 'max_trials': {
-                    'hyperopt-dist': hp.uniform,
+                    'hyperopt-dist': hp.uniformint,
                     'sampling-scope': [50, 500],
-                    'type': 'continuous'},
+                    'type': 'discrete'},
                 'max_skips': {
-                    'hyperopt-dist': hp.uniform,
-                    'sampling-scope': [50, 500000],
-                    'type': 'continuous'}
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [50, 50000],
+                    'type': 'discrete'}
             },
             'isolation_forest_reg': {
                 'max_samples': {
