@@ -3,8 +3,7 @@ import torch
 
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_impl.power_iteration_decomposition_torch import (
-    johnson_lindenstrauss_min_dim
-)
+    johnson_lindenstrauss_min_dim)
 
 from fedot.industrial.core.repository.constanst_repository import DEFAULT_SVD_SOLVER_TORCH
 

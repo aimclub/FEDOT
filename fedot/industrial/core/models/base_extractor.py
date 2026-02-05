@@ -14,9 +14,9 @@ from fedot.industrial.core.metrics.metrics_implementation import *
 from fedot.industrial.core.operation.IndustrialCachableOperation import IndustrialCachableOperationImplementation
 from fedot.industrial.core.operation.transformation.data.hankel import HankelMatrix
 from fedot.industrial.core.repository.constanst_repository import (STAT_METHODS,
-                                                            STAT_METHODS_GLOBAL,
-                                                            STAT_METHODS_TORCH,
-                                                            STAT_METHODS_GLOBAL_TORCH)
+                                                                   STAT_METHODS_GLOBAL,
+                                                                   STAT_METHODS_TORCH,
+                                                                   STAT_METHODS_GLOBAL_TORCH)
 
 
 class BaseExtractor(IndustrialCachableOperationImplementation):
