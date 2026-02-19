@@ -462,7 +462,8 @@ class DataPreprocessor(BasePreprocessor):
                 # There is no need to perform converting (it was performed already)
                 return column_to_transform
             # It is needed to apply fitted encoder to apply inverse transformation
-            transformed = self.target_encoders[main_target_source_name].inverse_transform(column_to_transform)
+            transformed = self.target_encoders[main_target_source_name].inverse_transform(
+                column_to_transform.astype(int))
 
             # Convert one-dimensional array into column
             if len(transformed.shape) == 1:
