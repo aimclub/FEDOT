@@ -142,7 +142,7 @@ class Fedot:
         MemoryAnalytics.start()
 
         self.target = target
-
+        # here the main preprocessing
         with fedot_composer_timer.launch_data_definition('fit'):
             self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
