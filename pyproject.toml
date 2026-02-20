@@ -1,0 +1,149 @@
+[project]
+name = "fedot"
+dynamic = ["version"]
+description = "Automated machine learning framework for composite pipelines"
+readme = "README_en.rst"
+license = {text = "BSD 3-Clause"}
+requires-python = ">=3.8"
+authors = [
+  {name = "NSS Lab", email = "itmo.nss.team@gmail.com"}
+]
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+urls = {Homepage = "https://github.com/aimclub/FEDOT"}
+
+dependencies = [
+    # Base framework
+    "thegolem==0.4.2",
+
+    # Data processing
+    "numpy>=1.16.0,!=1.24.0",
+    "pandas>=1.3.0",
+    "scipy>0.13.0,<1.15.2",
+    "dask<2026.0.0",
+    "dask-ml~=2024.4",
+
+    # Core ML models
+    "anytree>=2.8.0",
+    "catboost>=0.25.0",
+    "lightgbm>=4.6.0",
+    "xgboost>=1.4.0",
+    "statsmodels>=0.12.0",
+    "scikit-learn>=1.0.0,<1.7.0",
+    "sktime==0.16.1; python_version<'3.10'",
+    "sktime>=0.16.1; python_version>='3.10'",
+
+    # Graphs and trees
+    "ete3>=3.1.0",
+    "networkx>=2.4,!=2.7.*,!=2.8.1,!=2.8.2,!=2.8.3",
+
+    # Analysis and optimization
+    "hyperopt==0.2.7",
+    "SALib>=1.3.0",
+    "scikit-optimize>=0.7.4",
+
+    # Plotting and visualization
+    "matplotlib>=3.3.1; python_version>='3.9'",
+    "pyvis==0.2.1",
+    "seaborn>=0.9.0",
+
+    # Utilities
+    "func_timeout==4.3.5",
+    "joblib>=0.17.0",
+    "requests>=2.0",
+    "typing>=3.7.0",
+    "psutil>=5.9.2",
+    "fsspec>=2024"
+]
+
+[project.optional-dependencies]
+industrial = [
+    "spacy>=3.5,<3.6",
+    "fastai==2.7.18",
+    "giotto-tda==0.6.0",
+    "scikit-tda==1.1.1",
+    "chardet==5.2.0",
+    "tensorly==0.9.0",
+    "pymonad==2.4.0",
+    "pywavelets==1.5.0; python_version>='3.9'",
+    "mklpy==0.6",
+    "librosa==0.10.2.post1",
+    "pyriemann==0.7; python_version>='3.9'",
+    "datasetsforecast==0.0.8",
+    "datasets==2.0.0",
+    "spectrum==0.8.1",
+    "optuna-integration==4.1.0",
+]
+
+[dependency-groups]
+
+dev = [
+    "pytest>=6.2.0",
+    "testfixtures>=6.18.0",
+    "pytest-cov==6.0.0; python_version>='3.9'"
+]
+
+docs = [
+    # Documentation
+    "sphinx==5.3.0",
+    "sphinx-rtd-theme==1.0.0",
+    "readthedocs-sphinx-search==0.3.2",
+    "sphinxcontrib-details-directive",
+    "autodocsumm"
+]
+
+examples = [
+    # Data
+    "openpyxl==3.0.7"
+]
+
+examples-automl = [
+    # Other AutoMLs
+    "tpot==0.12.0",
+    "h2o==3.46.0.6",
+    "openpyxl==3.0.7"
+]
+
+extra = [
+    # DNNs
+    "tensorflow>=2.8.0",
+    "torch>=1.9.0",
+    "tabpfn>=2.0.0,<=2.2.1; python_version>='3.9'",
+    "opencv-python>=4.5.5.64",
+    "Pillow>=8.2.0",
+    "gensim==4.3.2",
+    "nltk==3.8.1",
+    "protobuf~=3.19.0",
+    "giotto-tda==0.6.0",
+    "ripser==0.6.4"
+]
+
+profilers = [
+    # Time profiler
+    "snakeviz==2.1.0",
+    "gprof2dot==2021.2.21",
+    "objgraph==3.5.0",
+    "memory-profiler==0.58.0"
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if __debug__:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+    "except Exception",
+    "if verbose:",
+    "if self.verbose:",
+    "if self.print_training_progress:",
+    "class ApiTemplate"
+]
+
+[build-system]
+requires = ["setuptools>=61", "setuptools_scm>=7"]
+build-backend = "setuptools.build_meta"

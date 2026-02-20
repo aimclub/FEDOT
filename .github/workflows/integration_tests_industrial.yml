@@ -1,0 +1,67 @@
+name: Integration Tests
+
+on:
+  schedule:
+    - cron: '0 12 1,15 * *'
+  push:
+    branches: [ release ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        python-version: ['3.10']
+
+    steps:
+    - name: Free disk space
+      run: |
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+
+    - name: Checkout branch
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python pin ${{ matrix.python-version }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential git
+
+    - name: Sync Fedot.Industrial dependencies
+      run: |
+        uv sync --extra industrial --dev
+
+    #      - name: Create and activate pip venv
+    #        run: |
+    #          python -m venv venv
+    #          source venv/bin/activate
+    #
+    #      - name: Install dependencies
+    #        run: |
+    #          pip3 install pytest
+    #          pip3 install -e . --force-reinstall
+    #          pip3 install pytest-cov
+    #          pip3 install --upgrade dask-ml
+
+    - name: Fedot.Industrial integration tests
+      run: |
+        cd fedot/industrial
+        uv run pytest --cov=fedot_ind tests/integration -vvv --cov-report=xml
+#        run: python -m pytest --cov=fedot_ind tests/integration -vvv --cov-report=xml
+
+    - name: Codecov-coverage
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./fedot/industrial/coverage.xml
+        flags: integrationtests

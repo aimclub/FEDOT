@@ -18,35 +18,38 @@ jobs:
         python-version: [ 3.9, '3.10' ]
 
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-      - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          pip install .[extra]
-          pip install .[examples]
-          pip install .[profilers]
-          pip install pytest-cov
-      - name: Test with pytest
-        run: |
-          pytest --cov=fedot -s test/integration
-      - name: Notify telegram bot
-        uses: appleboy/telegram-action@master
-        if: ${{ failure() && github.event_name == 'schedule' }}
-        with:
-          to: ${{ secrets.CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: "${{ github.event.repository.name }}: scheduled integration tests 
-          [were failed](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-          format: markdown
-          disable_web_page_preview: true
+    - name: Free disk space
+      run: |
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+
+    - name: Checkout branch
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python pin ${{ matrix.python-version }}
+
+    - name: Sync FEDOT dependencies
+      run: |
+        uv sync --group extra --group examples --group profilers --dev
+
+    - name: FEDOT Integration tests
+      run: |
+        uv run pytest --cov=fedot -s test/integration
+
+    - name: Notify telegram bot (schedule failure only)
+      uses: appleboy/telegram-action@master
+      if: ${{ failure() && github.event_name == 'schedule' }}
+      with:
+        to: ${{ secrets.CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: "${{ github.event.repository.name }}: scheduled integration tests 
+        [were failed](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+        format: markdown
+        disable_web_page_preview: true

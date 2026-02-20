@@ -12,9 +12,8 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       matrix:
         python-version: [ 3.9, '3.10' ]
@@ -25,22 +24,34 @@ jobs:
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python pin ${{ matrix.python-version }}
+
+    - name: Lock & Sync dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-        pip install .
-        pip install .[extra]
-        pip install pytest-cov
-    - name: Test with pytest
+        uv sync --extra extra --extra examples --group profilers --dev
+
+    - name: FEDOT core tests
       run: |
-        pytest --cov=fedot -s test/unit
-    - name: Codecov-coverage
+        uv run pytest test/unit --cov=fedot -s
+
+    - name: FEDOT.Industrial tests
+      run: |
+        uv sync --extra industrial --no-dev
+        cd fedot/industrial
+        uv run pytest test/unit --cov=fedot_ind -s
+
+    - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
