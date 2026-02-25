@@ -1,0 +1,101 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["approved", "summary", "issues", "strengths", "metrics"],
+
+  "properties": {
+    "approved": {
+      "type": "boolean",
+      "description": "set `true` if the PR is accepted to merge"
+    },
+
+    "summary": {
+      "type": "string",
+      "description": "make short comprehensive summary of the review"
+    },
+
+    "related_issue": {
+      "type": "integer",
+      "description": "print the number of the related issue"
+    },
+
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "category", "file", "title", "description", "suggestion"],
+
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "suggestion"]
+          },
+
+          "category": {
+            "type": "string",
+            "enum": [
+              "security", "bug", "tensor", "api", "testing",
+              "quality", "performance", "documentation"
+            ]
+          },
+
+          "subcategory": {
+            "type": "string",
+            "enum": [
+              "device_mismatch", "dtype_conversion", "batch_handling",
+              "hidden_fallback", "missing_tests", "shape_documentation"
+            ]
+          },
+
+          "file": {
+            "type": "string",
+            "pattern": "^[\\w\\-/\\.]+\\.(py|js|ts|java|cpp)$"
+          },
+
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+
+          "suggestion": {
+            "type": "string",
+            "maxLength": 1000
+          },
+
+          "code_example": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "metrics": {
+      "type": "object",
+      "required": ["files_reviewed", "critical_count", "warning_count", "suggestion_count"],
+
+      "properties": {
+        "files_reviewed": { "type": "integer", "minimum": 0 },
+        "critical_count": { "type": "integer", "minimum": 0 },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "suggestion_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+
+    "strengths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "provide advantages of the reviewed PR"
+    }
+  }
+}

@@ -1,0 +1,121 @@
+name: Automated Codex Reviews
+
+on:
+  pull_request:
+    branches: [ master ]
+    types: [ opened, synchronize, ready_for_review ]
+
+jobs:
+
+  codex-review:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    outputs:
+      approved: ${{ steps.validate.outputs.approved }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch refs
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
+
+      - name: Set gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: cli/gh@v2
+
+      - name: Select issue
+        id: select
+        run: |
+          BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q .body)
+      
+          ISSUE=$(echo "$BODY" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
+      
+          if [ -z "$ISSUE" ]; then
+            ISSUE=$(gh pr view ${{ github.event.pull_request.number }} --json labels -q '.labels[].name' | \
+              grep '^issue/' | head -1 | cut -d'/' -f2)
+          fi
+      
+          if [ -n "$ISSUE" ] && [ -f ".github/codex/prompts/review_${ISSUE}.md" ]; then
+            echo "issue_number=$ISSUE" >> $GITHUB_OUTPUT
+            echo "prompt_file=.github/codex/prompts/review_${ISSUE}.md" >> $GITHUB_OUTPUT
+          else
+            echo "issue_number=" >> $GITHUB_OUTPUT
+            echo "prompt_file=.github/codex/prompts/review_common.md" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Codex Review
+        id: review
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: ${{ steps.select.outputs.prompt_file }}
+          output-file: codex-output.json
+          codex-args: |
+            --context-file pr.diff
+            --output-schema .github/codex/review_schema.json
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+
+      - name: Validate JSON
+        id: validate
+        run: |
+          if [ ! -f codex-output.json ]; then
+            echo "approved=false" >> $GITHUB_OUTPUT
+            echo "No output file"
+            exit 0
+          fi
+          
+          jq empty codex-output.json || exit 1
+          
+          APPROVED=$(jq -r '.approved // false' codex-output.json)
+          echo "approved=$APPROVED" >> $GITHUB_OUTPUT
+          
+          if [ "$APPROVED" = "false" ]; then
+            ISSUES=$(jq -r '.issues // [] | length' codex-output.json)
+            echo "FEEDBACK=Review failed: $ISSUES issues found. See codex-output.json" >> $GITHUB_ENV
+          fi
+
+      - name: Validate against schema
+        run: |
+          npm install -g ajv-cli
+          ajv validate -s .github/codex/review_schema.json -d codex-output.json
+
+      - name: Post feedback
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let output = 'No output file generated';
+            const status = '${{ steps.validate.outputs.approved }}' === 'true' ? 'Approved' : 'Failed';
+            
+            if (fs.existsSync('codex-output.json')) {
+              output = fs.readFileSync('codex-output.json', 'utf8');
+            }
+            
+            const issue = '${{ steps.select.outputs.issue_number }}';
+            const prompt = '${{ steps.select.outputs.prompt_file }}';
+            const approved = '${{ steps.validate.outputs.approved }}';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `## Codex Review \n**Status**: ${status}\n**Issue**: ${issue || 'N/A'}\n**Prompt**: ${prompt || 'N/A'}\n\n**Output**:\n\`\`\`json\n${output}\n\`\`\``
+            });
+
+      - name: Block merge
+        if: steps.validate.outputs.approved != 'true'
+        run: |
+          echo "Codex review failed - blocking merge"
+          exit 1
