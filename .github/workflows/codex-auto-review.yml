@@ -15,9 +15,6 @@ jobs:
       contents: read
       pull-requests: write
 
-    outputs:
-      approved: ${{ steps.validate.outputs.approved }}
-
     steps:
       - uses: actions/checkout@v5
         with:
@@ -26,6 +23,7 @@ jobs:
       - name: Fetch refs
         run: |
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git checkout origin/${{ github.event.pull_request.base.ref }} -- .github/codex/
           git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
 
       - name: Set gh CLI
@@ -58,11 +56,23 @@ jobs:
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          prompt-file: ${{ steps.select.outputs.prompt_file }}
+          prompt: | 
+            This is PR #${{ github.event.pull_request.number }} for ${{ github.repository }}.
+            ========
+            Read the instructions for the current review below:
+            ----
+            $(cat ${{ steps.select.outputs.prompt_file }})
+            ========
+            Carefully analyze changes introduced by the PR below: 
+            ----
+            $(cat pr.diff)
+            ========
+            Pull request title and body:
+            ----
+            ${{ github.event.pull_request.title }}
+            ${{ github.event.pull_request.body }}
           output-file: codex-output.json
-          codex-args: |
-            --context-file pr.diff
-            --output-schema .github/codex/review_schema.json
+          output-schema-file: .github/codex/review_schema.json
           sandbox: workspace-write
           safety-strategy: drop-sudo
 
@@ -86,6 +96,7 @@ jobs:
           fi
 
       - name: Validate against schema
+        continue-on-error: false
         run: |
           npm install -g ajv-cli
           ajv validate -s .github/codex/review_schema.json -d codex-output.json
