@@ -928,7 +928,8 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
 def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Union[str, int]] = None,
                     possible_idx_keywords: Optional[List[str]] = None, *,
                     columns_to_drop: Optional[List[Union[str, int]]] = None,
-                    columns_to_use: Optional[List[Union[str, int]]] = None):
+                    columns_to_use: Optional[List[Union[str, int]]] = None,
+                    nrows: Optional[int] = None) -> pd.DataFrame:
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
             if is_column_name_suitable_for_index(column_name):
@@ -964,4 +965,4 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     if (index_col is not None) and (index_col not in columns_to_use):
         columns_to_use.append(index_col)
 
-    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)
+    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use, nrows=nrows)
