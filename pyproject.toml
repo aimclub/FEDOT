@@ -4,15 +4,14 @@ dynamic = ["version"]
 description = "Automated machine learning framework for composite pipelines"
 readme = "README_en.rst"
 license = {text = "BSD 3-Clause"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
   {name = "NSS Lab", email = "itmo.nss.team@gmail.com"}
 ]
 classifiers = [
     "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
 ]
 urls = {Homepage = "https://github.com/aimclub/FEDOT"}
 
@@ -47,7 +46,7 @@ dependencies = [
     "scikit-optimize>=0.7.4",
 
     # Plotting and visualization
-    "matplotlib>=3.3.1; python_version>='3.9'",
+    "matplotlib>=3.3.1",
     "pyvis==0.2.1",
     "seaborn>=0.9.0",
 
@@ -64,19 +63,19 @@ dependencies = [
 industrial = [
     "spacy>=3.5,<3.6",
     "fastai==2.7.18",
-    "giotto-tda==0.6.0",
+    "giotto-tda>=0.6.0",
     "scikit-tda==1.1.1",
     "chardet==5.2.0",
     "tensorly==0.9.0",
     "pymonad==2.4.0",
-    "pywavelets==1.5.0; python_version>='3.9'",
+    "pywavelets==1.5.0",
     "mklpy==0.6",
     "librosa==0.10.2.post1",
-    "pyriemann==0.7; python_version>='3.9'",
+    "pyriemann==0.7",
     "datasetsforecast==0.0.8",
     "datasets==2.0.0",
     "spectrum==0.8.1",
-    "optuna-integration==4.1.0",
+    "optuna-integration==4.1.0"
 ]
 
 [dependency-groups]
@@ -84,7 +83,7 @@ industrial = [
 dev = [
     "pytest>=6.2.0",
     "testfixtures>=6.18.0",
-    "pytest-cov==6.0.0; python_version>='3.9'"
+    "pytest-cov==6.0.0"
 ]
 
 docs = [
@@ -112,7 +111,7 @@ extra = [
     # DNNs
     "tensorflow>=2.8.0",
     "torch>=1.9.0",
-    "tabpfn>=2.0.0,<=2.2.1; python_version>='3.9'",
+    "tabpfn>=2.0.0,<=2.2.1",
     "opencv-python>=4.5.5.64",
     "Pillow>=8.2.0",
     "gensim==4.3.2",

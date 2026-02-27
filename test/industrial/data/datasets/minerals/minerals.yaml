@@ -1,0 +1,7 @@
+names:
+- Almandin
+- Amazonit
+- Apatit
+nc: 3
+train: ../minerals/train/images
+val: ../minerals/train/images

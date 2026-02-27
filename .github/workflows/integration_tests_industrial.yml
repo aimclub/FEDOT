@@ -1,8 +1,8 @@
-name: Integration Tests
+name: Integration (Industrial)
 
 on:
   schedule:
-    - cron: '0 12 1,15 * *'
+    - cron: '0 20 * * 1'
   push:
     branches: [ release ]
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
         sudo rm -rf /opt/ghc
 
     - name: Checkout branch
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Install uv
       uses: astral-sh/setup-uv@v5
@@ -38,7 +38,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake build-essential git
 
-    - name: Sync Fedot.Industrial dependencies
+    - name: Sync Industrial dependencies
       run: |
         uv sync --extra industrial --dev
 
@@ -54,14 +54,14 @@ jobs:
     #          pip3 install pytest-cov
     #          pip3 install --upgrade dask-ml
 
-    - name: Fedot.Industrial integration tests
+    - name: Industrial integration tests
       run: |
-        cd fedot/industrial
-        uv run pytest --cov=fedot_ind tests/integration -vvv --cov-report=xml
+        cd test/industrial
+        uv run pytest --cov=fedot_ind integration -vvv --cov-report=xml
 #        run: python -m pytest --cov=fedot_ind tests/integration -vvv --cov-report=xml
 
     - name: Codecov-coverage
       uses: codecov/codecov-action@v4
       with:
-        file: ./fedot/industrial/coverage.xml
+        file: ./test/industrial/coverage.xml
         flags: integrationtests

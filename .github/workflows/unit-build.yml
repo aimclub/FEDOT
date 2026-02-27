@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        python-version: [ 3.9, '3.10' ]
+        python-version: [ '3.10' ]
 
     steps:
     - name: Free disk space
@@ -26,7 +26,7 @@ jobs:
         sudo rm -rf /opt/ghc
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Install uv
       uses: astral-sh/setup-uv@v5
@@ -45,11 +45,11 @@ jobs:
       run: |
         uv run pytest test/unit --cov=fedot -s
 
-    - name: FEDOT.Industrial tests
+    - name: Industrial tests
       run: |
         uv sync --extra industrial --no-dev
-        cd fedot/industrial
-        uv run pytest test/unit --cov=fedot_ind -s
+        cd test/industrial
+        uv run pytest unit --cov=fedot_ind -s
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
