@@ -6,9 +6,9 @@ from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 
-from fedot_ind.core.operation.interfaces.fedot_automl_evaluation_strategy import FedotAutoMLClassificationStrategy, \
+from fedot.industrial.core.operation.interfaces.fedot_automl_evaluation_strategy import FedotAutoMLClassificationStrategy, \
     FedotAutoMLRegressionStrategy
-from fedot_ind.core.repository.initializer_industrial_models import IndustrialModels
+from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
 from tests.unit.api.fixtures import get_data_by_task
 
 

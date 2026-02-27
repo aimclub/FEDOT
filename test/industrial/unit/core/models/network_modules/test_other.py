@@ -1,7 +1,7 @@
 import numpy as np
 from torch import Tensor, nn
 
-from fedot_ind.core.models.nn.network_modules.other import correct_sizes, pass_through, if_module_to_torchscript
+from fedot.industrial.core.models.nn.network_modules.other import correct_sizes, pass_through, if_module_to_torchscript
 
 
 def test_correct_sizes():

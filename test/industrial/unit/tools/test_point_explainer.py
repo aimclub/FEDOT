@@ -4,8 +4,8 @@ import warnings
 import pytest
 from matplotlib import get_backend, pyplot as plt
 
-from fedot_ind.tools.explain.distances import DistanceTypes
-from fedot_ind.tools.explain.explain import PointExplainer
+from fedot.industrial.tools.explain.distances import DistanceTypes
+from fedot.industrial.tools.explain.explain import PointExplainer
 from tests.unit.api.fixtures import get_data_by_task
 from tests.unit.api.main.test_api_main import fedot_industrial_classification
 

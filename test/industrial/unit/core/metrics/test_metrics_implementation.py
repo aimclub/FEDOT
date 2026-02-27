@@ -3,9 +3,9 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from fedot_ind.core.metrics.anomaly_detection.function import filter_detecting_boundaries, check_errors, \
+from fedot.industrial.core.metrics.anomaly_detection.function import filter_detecting_boundaries, check_errors, \
     confusion_matrix
-from fedot_ind.core.metrics.metrics_implementation import ParetoMetrics
+from fedot.industrial.core.metrics.metrics_implementation import ParetoMetrics
 
 
 @pytest.mark.parametrize('basic_multiopt_metric, maximise', (

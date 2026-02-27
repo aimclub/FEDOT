@@ -1,8 +1,8 @@
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-from fedot_ind.tools.loader import DataLoader
-from fedot_ind.core.repository.initializer_industrial_models import IndustrialModels
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data_tensor, init_input_data
-from fedot_ind.core.architecture.preprocessing.data_convertor import TensorConverter
+from fedot.industrial.tools.loader import DataLoader
+from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data_tensor, init_input_data
+from fedot.industrial.core.architecture.preprocessing.data_convertor import TensorConverter
 from tests.unit.api.fixtures import warm_up_cuda_computations
 
 import torch

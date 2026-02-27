@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot_ind.core.metrics.loss.basis_loss import basis_approximation_metric
+from fedot.industrial.core.metrics.loss.basis_loss import basis_approximation_metric
 
 
 @pytest.fixture

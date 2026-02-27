@@ -1,8 +1,8 @@
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
 import pytest
 
-from fedot_ind.core.operation.transformation.window_selector import WindowSizeSelector
-from fedot_ind.tools.synthetic.ts_generator import TimeSeriesGenerator
+from fedot.industrial.core.operation.transformation.window_selector import WindowSizeSelector
+from fedot.industrial.tools.synthetic.ts_generator import TimeSeriesGenerator
 
 
 @pytest.fixture

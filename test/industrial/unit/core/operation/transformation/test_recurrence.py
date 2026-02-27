@@ -4,11 +4,11 @@ import numpy as np
 import torch
 import pandas as pd
 
-from fedot_ind.core.operation.transformation.representation.recurrence.recurrence_extractor import RecurrenceExtractor as RecurrenceNumpy
-from fedot_ind.core.operation.transformation.torch_backend.recurrence.recurrence_extractor import RecurrenceExtractor as RecurrenceTorch
+from fedot.industrial.core.operation.transformation.representation.recurrence.recurrence_extractor import RecurrenceExtractor as RecurrenceNumpy
+from fedot.industrial.core.operation.transformation.torch_backend.recurrence.recurrence_extractor import RecurrenceExtractor as RecurrenceTorch
 from tests.unit.api.fixtures import warm_up_cuda_computations
-from fedot_ind.tools.synthetic.ts_generator import SinWave
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.tools.synthetic.ts_generator import SinWave
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 
 logging.basicConfig(

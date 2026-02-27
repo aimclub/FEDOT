@@ -7,12 +7,12 @@ import pytest
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from matplotlib import get_backend, pyplot as plt
 
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.core.repository.config_repository import DEFAULT_CLF_AUTOML_CONFIG, DEFAULT_COMPUTE_CONFIG, \
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.core.repository.config_repository import DEFAULT_CLF_AUTOML_CONFIG, DEFAULT_COMPUTE_CONFIG, \
     DEFAULT_REG_AUTOML_CONFIG
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
-from fedot_ind.tools.synthetic.synth_ts_data import SynthTimeSeriesData
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.tools.synthetic.synth_ts_data import SynthTimeSeriesData
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 from fedot.core.pipelines.pipeline import Pipeline
 

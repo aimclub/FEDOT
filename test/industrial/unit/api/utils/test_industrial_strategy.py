@@ -2,11 +2,11 @@ import golem
 import shutil
 import os
 import pytest
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.core.repository.config_repository import DEFAULT_CLF_AUTOML_CONFIG, \
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.core.repository.config_repository import DEFAULT_CLF_AUTOML_CONFIG, \
     DEFAULT_COMPUTE_CONFIG, DEFAULT_CLF_LEARNING_CONFIG, DEFAULT_AUTOML_LEARNING_CONFIG
 
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
 from tests.unit.api.fixtures import get_industrial_params, get_data_by_task
 
 STRATEGY = ['federated_automl', 'lora_strategy',

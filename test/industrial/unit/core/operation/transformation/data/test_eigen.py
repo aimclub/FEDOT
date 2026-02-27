@@ -1,6 +1,6 @@
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
 
-from fedot_ind.core.operation.transformation.data.eigen import calculate_corr_matrix, calculate_matrix_norms, \
+from fedot.industrial.core.operation.transformation.data.eigen import calculate_corr_matrix, calculate_matrix_norms, \
     combine_eigenvectors, weighted_inner_product
 
 SAMPLE_DATA = np.array([1, 2, 3, 4, 5])

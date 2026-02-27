@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fedot_ind.tools.loader import DataLoader
-from fedot_ind.tools.serialisation.path_lib import EXAMPLES_DATA_PATH
+from fedot.industrial.tools.loader import DataLoader
+from fedot.industrial.tools.serialisation.path_lib import EXAMPLES_DATA_PATH
 
 MOCK_LOADER = DataLoader(dataset_name='mock')
 

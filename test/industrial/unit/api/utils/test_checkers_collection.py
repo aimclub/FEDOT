@@ -1,9 +1,9 @@
 import pytest
 
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.api.utils.checkers_collections import DataCheck
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
-from fedot_ind.api.utils.checkers_collections import ApiConfigCheck
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.api.utils.checkers_collections import DataCheck
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.api.utils.checkers_collections import ApiConfigCheck
 
 
 def get_corrupted_input_data(fill_value):

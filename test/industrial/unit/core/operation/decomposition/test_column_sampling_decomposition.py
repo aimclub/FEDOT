@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot_ind.core.operation.decomposition.matrix_decomposition.method_impl.column_sampling_decomposition import \
+from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_impl.column_sampling_decomposition import \
     CURDecomposition
 
 

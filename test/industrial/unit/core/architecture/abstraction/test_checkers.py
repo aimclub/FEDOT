@@ -1,6 +1,6 @@
 import pytest
 
-from fedot_ind.core.architecture.abstraction.сheckers import parameter_value_check
+from fedot.industrial.core.architecture.abstraction.сheckers import parameter_value_check
 
 
 @pytest.fixture

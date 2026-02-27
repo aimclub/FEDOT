@@ -1,8 +1,8 @@
 import golem.core.log
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.api.utils.checkers_collections import ApiConfigCheck
-from fedot_ind.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.api.utils.checkers_collections import ApiConfigCheck
+from fedot.industrial.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 
 def mock_message(self, msg: str, **kwargs):

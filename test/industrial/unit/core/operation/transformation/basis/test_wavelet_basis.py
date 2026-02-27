@@ -7,8 +7,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData, InputData
 
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
-from fedot_ind.core.operation.transformation.basis.wavelet import WaveletBasisImplementation
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.core.operation.transformation.basis.wavelet import WaveletBasisImplementation
 
 
 def wavelet_components_combination():

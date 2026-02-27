@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from unittest.mock import MagicMock, patch
 
-from fedot_ind.core.models.pdl.pairwise_transform import PDCDataTransformer, SampleWeights
+from fedot.industrial.core.models.pdl.pairwise_transform import PDCDataTransformer, SampleWeights
 from fedot.core.operations.operation_parameters import OperationParameters
 
 
@@ -245,7 +245,7 @@ class TestSampleWeights:
         assert partial_func.func == weights._sample_weight_optimize
         assert partial_func.keywords == {'l2_lambda': 0.1}
 
-    @patch('fedot_ind.core.models.pdl.pairwise_transform.minimize')
+    @patch('fedot.industrial.core.models.pdl.pairwise_transform.minimize')
     def _test_sample_weight_optimize(
             self,
             mock_minimize,

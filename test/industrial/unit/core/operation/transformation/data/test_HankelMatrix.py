@@ -1,7 +1,7 @@
 import pytest
 
-from fedot_ind.core.operation.transformation.data.hankel import HankelMatrix
-from fedot_ind.tools.synthetic.ts_generator import TimeSeriesGenerator
+from fedot.industrial.core.operation.transformation.data.hankel import HankelMatrix
+from fedot.industrial.tools.synthetic.ts_generator import TimeSeriesGenerator
 
 TS_LENGTH = 1000
 

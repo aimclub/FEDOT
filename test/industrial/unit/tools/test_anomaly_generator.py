@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pytest
 from matplotlib import get_backend
 
-from fedot_ind.tools.synthetic.anomaly_generator import AnomalyGenerator
+from fedot.industrial.tools.synthetic.anomaly_generator import AnomalyGenerator
 
 
 @pytest.fixture

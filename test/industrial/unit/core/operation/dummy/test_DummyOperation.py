@@ -1,9 +1,9 @@
 import pandas as pd
 
-from fedot_ind.core.operation.dummy.dummy_operation import DummyOperation
+from fedot.industrial.core.operation.dummy.dummy_operation import DummyOperation
 import pytest
 import numpy as np
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data
 
 
 @pytest.fixture()

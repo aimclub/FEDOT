@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from fedot_ind.core.models.nn.network_modules.losses import lambda_prepare, ExpWeightedLoss, HuberLoss, \
+from fedot.industrial.core.models.nn.network_modules.losses import lambda_prepare, ExpWeightedLoss, HuberLoss, \
     LogCoshLoss, MaskedLossWrapper, CenterLoss, FocalLoss, TweedieLoss, SMAPELoss, RMSELoss
 
 

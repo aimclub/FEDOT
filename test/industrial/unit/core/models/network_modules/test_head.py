@@ -4,7 +4,7 @@ import torch.nn as nn
 from unittest.mock import patch
 
 # Import necessary modules
-from fedot_ind.core.models.nn.network_modules.layers.head_layers import (
+from fedot.industrial.core.models.nn.network_modules.layers.head_layers import (
     create_pool_head, max_pool_head, create_pool_plus_head, create_conv_head,
     create_mlp_head, create_fc_head, create_rnn_head, imputation_head,
     CreateConvLinNDHead, LinNDHead, RocketNDHead, Xresnet1dNDHead,
@@ -443,7 +443,7 @@ def _test_head_func_with_kwargs(head_func):
 
 def test_aliases():
     """Test that aliases point to the correct functions."""
-    from fedot_ind.core.models.nn.network_modules.layers.head_layers import (
+    from fedot.industrial.core.models.nn.network_modules.layers.head_layers import (
         pool_head, average_pool_head, concat_pool_head, pool_plus_head,
         conv_head, mlp_head, fc_head, rnn_head, conv_lin_nd_head,
         conv_lin_3d_head, create_conv_lin_3d_head, conv_3d_head,
@@ -469,7 +469,7 @@ def test_aliases():
 
 def test_heads_list():
     """Test that the heads list contains all expected head functions."""
-    from fedot_ind.core.models.nn.network_modules.layers.head_layers import heads
+    from fedot.industrial.core.models.nn.network_modules.layers.head_layers import heads
 
     expected_heads = [
         create_mlp_head,

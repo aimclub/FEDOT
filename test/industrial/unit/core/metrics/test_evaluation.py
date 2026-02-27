@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot_ind.core.metrics.evaluation import PerformanceAnalyzer
+from fedot.industrial.core.metrics.evaluation import PerformanceAnalyzer
 
 
 @pytest.fixture()

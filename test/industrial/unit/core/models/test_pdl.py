@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 from fedot.core.operations.operation_parameters import OperationParameters
 from sklearn.model_selection import train_test_split
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data
 
-from fedot_ind.core.models.pdl.pairwise_model import (
+from fedot.industrial.core.models.pdl.pairwise_model import (
     PairwiseDifferenceEstimator,
     PairwiseDifferenceClassifier,
     PairwiseDifferenceRegressor

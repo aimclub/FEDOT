@@ -2,9 +2,9 @@ import os
 
 import pytest
 
-from fedot_ind.core.architecture.postprocessing.results_picker import ResultsPicker
-from fedot_ind.core.ensemble.rank_ensembler import RankEnsemble
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.core.architecture.postprocessing.results_picker import ResultsPicker
+from fedot.industrial.core.ensemble.rank_ensembler import RankEnsemble
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
 
 
 @pytest.fixture()

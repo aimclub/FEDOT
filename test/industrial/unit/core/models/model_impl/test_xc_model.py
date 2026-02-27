@@ -3,10 +3,10 @@ import warnings
 import numpy as np
 import pytest
 from fedot.core.operations.operation_parameters import OperationParameters
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data
 from matplotlib import get_backend, pyplot as plt
 
-from fedot_ind.core.models.nn.network_impl.feature_extraction.explainable_convolution_model import XCModel
+from fedot.industrial.core.models.nn.network_impl.feature_extraction.explainable_convolution_model import XCModel
 
 
 @pytest.fixture(scope='session')

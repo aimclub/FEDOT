@@ -1,12 +1,12 @@
 from typing import Dict
 
-from fedot_ind.api.utils.checkers_collections import ApiConfigCheck
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.api.utils.checkers_collections import ApiConfigCheck
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
 import pytest
 from fedot.api.main import Fedot
 
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
 
 
 def convert_anomalies_dict_to_points(

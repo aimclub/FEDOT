@@ -2,9 +2,9 @@ import os
 import pytest
 import pandas as pd
 
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
-from fedot_ind.core.operation.caching import DataCacher
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.core.operation.caching import DataCacher
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
 
 
 @pytest.fixture

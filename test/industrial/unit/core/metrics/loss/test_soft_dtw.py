@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot_ind.core.metrics.loss.soft_dtw import SoftDTWLoss
+from fedot.industrial.core.metrics.loss.soft_dtw import SoftDTWLoss
 
 
 @pytest.fixture()

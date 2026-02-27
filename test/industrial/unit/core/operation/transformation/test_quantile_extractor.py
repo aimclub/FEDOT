@@ -4,11 +4,11 @@ import numpy as np
 import time
 import itertools
 import logging
-from fedot_ind.core.operation.transformation.representation.statistical.quantile_extractor import QuantileExtractor
-from fedot_ind.core.operation.transformation.torch_backend.statistical.quantile_extractor import TorchQuantileExtractor
+from fedot.industrial.core.operation.transformation.representation.statistical.quantile_extractor import QuantileExtractor
+from fedot.industrial.core.operation.transformation.torch_backend.statistical.quantile_extractor import TorchQuantileExtractor
 from fedot.core.operations.operation_parameters import OperationParameters
 from tests.unit.api.fixtures import warm_up_cuda_computations
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 
 logger = logging.getLogger(__name__)

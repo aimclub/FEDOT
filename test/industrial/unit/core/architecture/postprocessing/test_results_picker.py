@@ -2,8 +2,8 @@ import os
 
 import pandas as pd
 
-from fedot_ind.core.architecture.postprocessing.results_picker import ResultsPicker
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.core.architecture.postprocessing.results_picker import ResultsPicker
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
 
 results_path = os.path.join(PROJECT_PATH, 'tests/data/classification_results')
 

@@ -6,7 +6,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 
-from fedot_ind.core.repository.initializer_industrial_models import IndustrialModels
+from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
 
 
 @pytest.fixture(scope='session')

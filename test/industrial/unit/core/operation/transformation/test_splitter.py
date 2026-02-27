@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from matplotlib import get_backend, pyplot as plt
 
-from fedot_ind.core.operation.transformation.splitter import TSTransformer
+from fedot.industrial.core.operation.transformation.splitter import TSTransformer
 
 
 @pytest.fixture

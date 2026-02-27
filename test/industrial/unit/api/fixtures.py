@@ -7,7 +7,7 @@ import pytest
 import torch
 from tqdm import tqdm
 
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 NUM_SAMPLES = 50
 SERIES_LENGTH = 20

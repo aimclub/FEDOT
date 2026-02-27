@@ -1,10 +1,10 @@
 
-from fedot_ind.core.architecture.settings.computational import backend_methods as np
+from fedot.industrial.core.architecture.settings.computational import backend_methods as np
 import pytest
 from scipy.spatial.distance import pdist
 
-from fedot_ind.core.operation.transformation.data.kernel_matrix import TSTransformer, colorise
-from fedot_ind.tools.synthetic.ts_generator import TimeSeriesGenerator
+from fedot.industrial.core.operation.transformation.data.kernel_matrix import TSTransformer, colorise
+from fedot.industrial.tools.synthetic.ts_generator import TimeSeriesGenerator
 
 
 @pytest.fixture

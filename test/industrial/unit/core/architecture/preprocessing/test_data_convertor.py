@@ -1,9 +1,9 @@
 import pytest
 from fedot.core.data.data import InputData
 
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data
-from fedot_ind.core.architecture.preprocessing.data_convertor import FedotConverter, CustomDatasetCLF
-from fedot_ind.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data
+from fedot.industrial.core.architecture.preprocessing.data_convertor import FedotConverter, CustomDatasetCLF
+from fedot.industrial.tools.synthetic.ts_datasets_generator import TimeSeriesDatasetsGenerator
 
 
 @pytest.fixture

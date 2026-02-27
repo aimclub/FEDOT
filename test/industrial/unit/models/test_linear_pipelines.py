@@ -5,10 +5,10 @@ import shutil
 import pytest
 import logging
 
-from fedot_ind.core.architecture.pipelines.abstract_pipeline import AbstractPipeline
-from fedot_ind.core.repository.constanst_repository import VALID_LINEAR_REG_PIPELINE, VALID_LINEAR_CLF_PIPELINE, \
+from fedot.industrial.core.architecture.pipelines.abstract_pipeline import AbstractPipeline
+from fedot.industrial.core.repository.constanst_repository import VALID_LINEAR_REG_PIPELINE, VALID_LINEAR_CLF_PIPELINE, \
     VALID_LINEAR_DETECTION_PIPELINE, VALID_LINEAR_TSF_PIPELINE
-from fedot_ind.tools.serialisation.path_lib import PROJECT_PATH
+from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
 
 
 logging.basicConfig(level=logging.INFO)

@@ -4,7 +4,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-from fedot_ind.core.models.nn.network_impl.forecasting_model.deepar import DeepAR, DeepARModule
+from fedot.industrial.core.models.nn.network_impl.forecasting_model.deepar import DeepAR, DeepARModule
 
 FORECAST_LENGTH = 100
 

@@ -4,12 +4,12 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from golem.core.tuning.sequential import SequentialTuner
 
-from fedot_ind.api.main import FedotIndustrial
-from fedot_ind.api.utils.checkers_collections import ApiConfigCheck
-from fedot_ind.core.operation.dummy.dummy_operation import init_input_data
-from fedot_ind.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
-from fedot_ind.core.repository.initializer_industrial_models import IndustrialModels
-from fedot_ind.tools.loader import DataLoader
+from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.api.utils.checkers_collections import ApiConfigCheck
+from fedot.industrial.core.operation.dummy.dummy_operation import init_input_data
+from fedot.industrial.core.repository.config_repository import DEFAULT_CLF_API_CONFIG
+from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
+from fedot.industrial.tools.loader import DataLoader
 
 
 def initialize_uni_data():
