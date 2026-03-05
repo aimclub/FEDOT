@@ -1,7 +1,6 @@
 from fedot.core.data.merge.data_merger import ImageDataMerger, TSDataMerger, DataMerger
 from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.fast_topological_extractor import (
-    TopologicalFeaturesImplementation,
-)
+    TopologicalFeaturesImplementation, )
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     LaggedImplementation,
     TsSmoothingImplementation,

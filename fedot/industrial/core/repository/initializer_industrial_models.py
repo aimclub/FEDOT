@@ -42,6 +42,7 @@ from fedot.industrial.core.tuning.search_space import get_industrial_search_spac
 from fedot.core.context import ExecutionContext
 from fedot.industrial.industrial_extension import IndustrialExtension
 
+
 def has_no_resample(pipeline: Pipeline):
     """
     Pipeline can have only one resample operation located in start of the pipeline
