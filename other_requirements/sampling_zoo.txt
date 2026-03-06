@@ -1,0 +1,2 @@
+# Optional dependencies for Sampling Zoo integration.
+# Keep empty if Sampling Zoo is installed from a private source.

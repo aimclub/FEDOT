@@ -196,8 +196,10 @@ class PipelineNode(LinkedGraphNode):
             OutputData: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
-
-        input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+        try:
+            input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+        except Exception:
+            input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
 
         if self.fitted_operation is None:
             with Timer() as t:
@@ -417,8 +419,12 @@ def _combine_parents(parent_nodes: List[PipelineNode],
             prediction = parent.predict(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
-            parent_results.append(prediction)
+            try:
+                prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+                parent_results.append(prediction)
+            except Exception:
+                prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+                parent_results.append(prediction)
         else:
             raise ValueError("Value parent_operation should be 'fit' or 'predict'")
         if input_data is None:

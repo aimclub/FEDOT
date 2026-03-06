@@ -432,6 +432,7 @@ class FedotBuilder:
             use_input_preprocessing: bool = DEFAULT_VALUE,
             use_preprocessing_cache: bool = DEFAULT_VALUE,
             use_auto_preprocessing: bool = DEFAULT_VALUE,
+            sampling_config: Dict[str, Any] = DEFAULT_VALUE,
     ) -> FedotBuilder:
         """ Sets parameters of input data preprocessing.
 
@@ -446,6 +447,9 @@ class FedotBuilder:
             use_preprocessing_cache: bool indicating whether to use optional preprocessors caching.
                 Defaults to ``True``.
 
+            sampling_config: optional configuration of pre-fit sampling stage.
+                If ``None`` or unset, sampling stage is disabled.
+
         Returns:
             :class:`FedotBuilder` instance.
         """
@@ -454,6 +458,7 @@ class FedotBuilder:
             use_input_preprocessing=use_input_preprocessing,
             use_preprocessing_cache=use_preprocessing_cache,
             use_auto_preprocessing=use_auto_preprocessing,
+            sampling_config=sampling_config,
         )
         return self
 

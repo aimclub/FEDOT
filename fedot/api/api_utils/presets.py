@@ -51,7 +51,7 @@ class OperationsPreset:
             # Use best_quality preset but exclude several operations
             preset_name = BEST_QUALITY_PRESET_NAME
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                    'lda', 'qda', 'lgbm', 'one_hot_encoding',
+                    'lda', 'qda', 'lgbm', 'one_hot_encoding','polyfit',
                     'resample', 'stl_arima']
         excluded_tree = []
 

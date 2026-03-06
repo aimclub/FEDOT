@@ -122,7 +122,11 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         Update column types after applying PCA operations
         """
 
-        _, n_cols = output_data.predict.shape
+        predict = np.asarray(output_data.predict)
+        n_cols = 1 if predict.ndim <= 1 else predict.shape[1]
+
+        if output_data.supplementary_data.col_type_ids is None:
+            output_data.supplementary_data.col_type_ids = {}
         output_data.supplementary_data.col_type_ids['features'] = np.array([TYPE_TO_ID[float]] * n_cols)
         return output_data
 
@@ -249,7 +253,10 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         clipped_input_data = input_data
         if self.columns_to_take is not None:
             clipped_input_data = input_data.subset_features(self.columns_to_take)
-        output_data = super().transform(clipped_input_data)
+        try:
+            output_data = super().transform(clipped_input_data)
+        except Exception:
+            output_data = super().transform(clipped_input_data)
 
         if self.columns_to_take is not None:
             # Get generated features from poly function
@@ -269,7 +276,12 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             cols_number_added = output_data.predict.shape[1] - source_features_shape[1]
             if cols_number_added > 0:
                 # There are new columns in the table
-                feature_type_ids = output_data.supplementary_data.col_type_ids['features']
+                if output_data.supplementary_data.col_type_ids is None:
+                    output_data.supplementary_data.col_type_ids = {}
+
+                feature_type_ids = output_data.supplementary_data.col_type_ids.get('features')
+                if feature_type_ids is None:
+                    feature_type_ids = np.array([TYPE_TO_ID[float]] * source_features_shape[1])
                 new_types = [TYPE_TO_ID[float]] * cols_number_added
                 output_data.supplementary_data.col_type_ids['features'] = np.append(feature_type_ids, new_types)
 

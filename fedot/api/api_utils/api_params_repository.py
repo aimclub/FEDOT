@@ -1,9 +1,11 @@
 import datetime
+from dataclasses import asdict
 from typing import Sequence
 
 from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
 from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 
+from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
 from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -70,7 +72,8 @@ class ApiParamsRepository:
             keep_history=True,
             history_dir=default_fedot_data_dir(),
             with_tuning=True,
-            seed=None
+            seed=None,
+            sampling_config=None,
         )
         return default_param_values_dict
 
@@ -81,11 +84,16 @@ class ApiParamsRepository:
         invalid_keys = params.keys() - allowed_keys
         if invalid_keys:
             raise KeyError(f"Invalid key parameters {invalid_keys}")
-        else:
-            missing_params = self.default_params.keys() - params.keys()
-            for k in missing_params:
-                if (v := self.default_params[k]) is not None:
-                    params[k] = v
+
+        if 'sampling_config' in params:
+            validated_sampling_config = validate_sampling_config(params['sampling_config'])
+            params['sampling_config'] = asdict(validated_sampling_config) if validated_sampling_config else None
+
+        missing_params = self.default_params.keys() - params.keys()
+        for k in missing_params:
+            if (v := self.default_params[k]) is not None:
+                params[k] = v
+
         return params
 
     @staticmethod
