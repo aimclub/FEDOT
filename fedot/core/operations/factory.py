@@ -1,8 +1,10 @@
-from fedot.core.operations.automl import AutoML
+﻿from fedot.core.operations.automl import AutoML
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.extension_model import ExtensionModel
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
+from fedot.extensions.runtime_rules import is_extension_operation_name
 
 
 class OperationFactory:
@@ -26,6 +28,8 @@ class OperationFactory:
 
         if self.operation_type == 'model':
             operation = Model(operation_type=self.operation_name)
+        elif self.operation_type == 'extension_model':
+            operation = ExtensionModel(operation_type=self.operation_name)
         elif self.operation_type == 'data_operation':
             operation = DataOperation(operation_type=self.operation_name)
         elif self.operation_type == 'automl':
@@ -46,7 +50,6 @@ class OperationFactory:
         :return : operations type 'model', 'automl' or 'data_operation'
         """
 
-        # Get available models from model_repository.json file
         operations_repo = OperationTypesRepository('data_operation')
         operations = operations_repo.operations
         if 'automl' in OperationTypesRepository.get_available_repositories():
@@ -57,12 +60,12 @@ class OperationFactory:
 
         operation_name = get_operation_type_from_id(self.operation_name)
 
-        # If there is a such model in the list
         if any(operation_name == model.id for model in operations):
             operation_type = 'data_operation'
         elif any(operation_name == model.id for model in models_automl):
             operation_type = 'automl'
-        # Otherwise - it is model
+        elif is_extension_operation_name(operation_name):
+            operation_type = 'extension_model'
         else:
             operation_type = 'model'
         return operation_type
