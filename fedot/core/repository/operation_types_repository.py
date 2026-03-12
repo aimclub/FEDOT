@@ -19,6 +19,7 @@ from fedot.core.repository.operation_query import (
     parse_repository_kind,
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.extensions.operation_rules import get_extension_operation_names, should_include_extensions
 
 EXTRA_TS_INSTALLED = True
 try:
@@ -311,7 +312,19 @@ class OperationTypesRepository:
             extra_ts_installed=EXTRA_TS_INSTALLED,
         )
         operations_info = filter_operation_infos(self._repo, query)
-        return [m.id for m in operations_info]
+        operation_names = [m.id for m in operations_info]
+
+        if should_include_extensions(query.repository_kind):
+            operation_names.extend(
+                get_extension_operation_names(
+                    task_type=task_type,
+                    data_type=data_type,
+                    tags=tags,
+                    forbidden_tags=forbidden_tags,
+                )
+            )
+
+        return sorted(set(operation_names))
 
     @property
     def operations(self):
