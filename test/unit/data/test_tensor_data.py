@@ -2,8 +2,13 @@ import numpy as np
 import torch
 import os
 from fedot.core.data.tensordata import TensorData, LazyTensor
+from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 
+import cupy as cp
+import cudf
+
+import pandas as pd
 
 def test_create_from_numpy():
     """Test TensorData creation from numpy array."""
@@ -15,9 +20,9 @@ def test_create_from_numpy():
     )
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
-    assert isinstance(td.target, torch.Tensor)
+    assert td.target.shape[0] == features.shape[0]
     assert td.features.shape[0] == features.shape[0]
-    assert td.features.shape[1] == (features.shape[1] - 1)
+    assert td.features.shape[1] == features.shape[1] - 1
 
 
 def test_create_from_csv():
@@ -26,7 +31,8 @@ def test_create_from_csv():
     csv_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
     td = TensorData.create(
-        csv_path
+        csv_path,
+        target_idx = "target"
     )
 
     assert isinstance(td, TensorData)
@@ -76,7 +82,7 @@ def test_text_and_categorical_do_not_overlap():
 
     td = TensorData.create(
         X,
-        categorical_idx=np.array([1])
+        categorical_idx=1
     )
 
     assert td.categorical_idx is not None
@@ -113,7 +119,8 @@ def test_create_text_csv_to_tensordata():
     td = TensorData.create(
         csv_path,
         max_rows=10,
-        embedder_batch_size=3        
+        embedder_batch_size=3,
+        device="cuda"     
     )
 
     assert isinstance(td, TensorData)
@@ -159,3 +166,98 @@ def test_lazy_tensordata_to_device():
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.device.type == "cpu"
+
+def test_loader():
+    name = "AbnormalHeartbeat"
+    X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
+
+    train_tensor = TensorData.create(X_train, target=y_train)
+    test_tensor = TensorData.create(X_test, target=y_test)
+
+    assert isinstance(train_tensor, TensorData)
+    assert isinstance(test_tensor, TensorData)
+
+    assert isinstance(train_tensor.features, torch.Tensor)
+    assert isinstance(train_tensor.target, torch.Tensor)
+    assert isinstance(test_tensor.features, torch.Tensor)
+    assert isinstance(test_tensor.target, torch.Tensor)
+
+
+def test_create_from_numpy_cupy():
+    """Test TensorData creation from cupy array."""
+
+    features = np.random.rand(100, 10)
+
+    td = TensorData.create(
+        features,
+        backend_name="gpu"
+    )
+    
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target.shape[0] == features.shape[0]
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1] - 1
+    assert td.features.device.type == "cuda"
+    assert td.target.device.type == "cuda"
+
+
+def test_create_from_cupy():
+    features = cp.random.rand(100, 10)
+
+    td = TensorData.create(
+        features,
+        backend_name="gpu"
+    )
+    
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target.shape[0] == features.shape[0]
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1] - 1
+    assert td.features.device.type == "cuda"
+    assert td.target.device.type == "cuda"
+
+
+def test_create_from_cudf():
+    features = cudf.DataFrame(np.random.rand(100, 10))
+
+    td = TensorData.create(
+        features,
+        backend_name="gpu"
+    )
+    
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target.shape[0] == features.shape[0]
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1] - 1
+    assert td.features.device.type == "cuda"
+    assert td.target.device.type == "cuda"
+
+
+def test_datetime_features():
+    features = pd.DataFrame({"date": pd.date_range("2022-01-01", periods=10, freq="D"), 
+                             "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                             "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
+
+    td = TensorData.create(features, target_idx="target")
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target.shape[0] == features.shape[0]
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1] - 1
+
+
+def test_from_tensor():
+    features = torch.rand(100, 10)
+
+    td = TensorData.create(features)
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target is None
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1]
+    assert td.features.device.type == "cuda"

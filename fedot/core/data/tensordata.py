@@ -2,32 +2,36 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, ClassVar, List, Tuple
 
 import torch
-from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
+import cupy as cp
 import os
 
 from pathlib import Path
 import pandas as pd
+import cudf
 from dataclasses import dataclass, field
 from typing import Optional, Union, Dict, Any, Callable, Type, TypeAlias
 
-from fedot.core.data.array_utilities import atleast_2d
-from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
-from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 from fedot.core.data.data_tools import (
-    is_existed_csv_path, replace_missing_with_nan, encode_categorical_features, 
-    _drop_rows_with_nan_in_target, encode_target, get_text_column_indices,
-    encode_text_columns_np, get_target_and_features, get_target_idx)
-from fedot.core.data.data import (get_df_from_csv,
-                                  autodetect_data_type)
+    get_device_from_str, is_existed_csv_path, encode_text_columns_np, BackendDefiner, TSDataConverter)
 
+from fedot.core.data.data import (autodetect_data_type)
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
 PathType = Union[os.PathLike, str]
+
+IndexType: TypeAlias = Optional[Union[int, str, np.ndarray, List[int], List[str]]]
+TaskType: TypeAlias = Optional[Union[Task, str]]
+DataType: TypeAlias = Optional[Union[DataTypesEnum, str]]
 
 class LazyTensor:
     def __init__(self, create_fn):
@@ -52,30 +56,33 @@ TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor]]
 
 @dataclass
 class TensorData:
-    task: Any
-    data_type: Any
+    """
+    state: str ['fit', 'predict']
+    """
+    task: Union[Task, str]
+    data_type: Union[DataTypesEnum, str]
 
-    idx: Optional[np.ndarray] = None
-
+    state: str = 'fit'
+    idx: IndexType = None
     features: TensorLike = None
     target: TensorLike = None
     predict: TensorLike = None
-
-    target_idx: Optional[Union[int, np.ndarray]] = None
+    target_idx: IndexType = None
     categorical_features: TensorLike = None
-    categorical_idx: Optional[np.ndarray] = None
-    numerical_idx: Optional[np.ndarray] = None
-    encoded_idx: Optional[np.ndarray] = None
-    features_names: Optional[np.ndarray] = None
-
+    categorical_idx: IndexType = None
+    text_idx: IndexType = None
+    numerical_idx: IndexType = None
+    encoded_idx: IndexType = None
+    features_names: IndexType = None
     embedder_name: Optional[str] = None
     embedder_batch_size: int = 16
+    ts_orientation: Optional[str] = None
+    ts_terms_idx: Optional[Union[int, str]] = None
+    ts_forecast_horizon: Optional[int] = None
+    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    backend: BackendDefiner = BackendDefiner(name="cpu")
 
-    device: Optional[str] = None
-
-    _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
-
-    # TODO: add ability to take kwargs from config 
+    # TODO: test dataloader
     dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
         "batch_size": 32,
         "shuffle": True,
@@ -83,88 +90,139 @@ class TensorData:
         "drop_last": False
     })
 
+    _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
+
     def __post_init__(self):
-        """
-        preprocessing for torch export"""
+        self.device = get_device_from_str(self.device)
+
         if isinstance(self.task, str):
             self.task = Task(TaskTypesEnum(self.task))
 
-        self.features = replace_missing_with_nan(self.features)
+        if isinstance(self.data_type, str):
+            self.data_type = DataTypesEnum(self.data_type)
 
-        # TODO: is it available to have target=None?
+        if not isinstance(self.features, torch.Tensor):
+            self._post_init_raw()
+        
+        if self.device.type != self.backend.device.type:
+            self.features = self.features.to(self.device)
+
+            if self.target is not None:
+                self.target = self.target.to(self.device)
+
+
+    def _post_init_raw(self):
+        """
+        preprocessing for torch export"""
+
+        self.target_idx = self.backend.convert_idx_to_array(self.target_idx)
+        self.categorical_idx = self.backend.convert_idx_to_array(self.categorical_idx)
+        self.text_idx = self.backend.convert_idx_to_array(self.text_idx)
+        self.encoded_idx = self.backend.convert_idx_to_array(self.encoded_idx)
+        self.features_names = self.backend.convert_idx_to_array(self.features_names)
+        self.ts_terms_idx = self.backend.convert_idx_to_array(self.ts_terms_idx)
+
+        try:
+            self.features = self.backend.xp.array(self.features)
+        except:
+            raise ValueError(f"Fedot preprocessing doesn't support categorical data in gpu mode")
+
+        self.features = self.backend.replace_missing_with_nan(self.features)
+
+        if self.data_type == DataTypesEnum.ts:
+            ts_preproccessor = TSDataConverter(self.backend.xp)
+            self.features, self.target, self.ts_init_shape, self.ts_terms_idx = ts_preproccessor.process_ts_data(self.features,
+                                                        self.target,
+                                                        self.features_names,
+                                                        self.state,
+                                                        self.ts_orientation,
+                                                        self.ts_terms_idx,
+                                                        self.ts_forecast_horizon)
         if self.target is not None:
-            self.target = atleast_2d(self.target)
-            self.target = replace_missing_with_nan(self.target)
-            self.target = encode_target(self.target)
-        else:
-            self.features, self.target = get_target_and_features(self.features,
-                                                                 self.target_idx)
+            self.target = self.backend.xp.array(self.target)
+            self.target = self.backend.atleast_n_dimensions(self.target, 2)
+            self.target = self.backend.encode_target(self.target)
+            self.target = self.backend.replace_missing_with_nan(self.target)
+        elif (self.data_type != DataTypesEnum.ts) and (self.state == 'fit'):
+            self.features, self.target, self.target_idx = self.backend.get_target_and_features(self.features,
+                                                                self.features_names,
+                                                                self.target_idx)
 
         if self.target is not None:
-            self.features, self.target = _drop_rows_with_nan_in_target(self.features,
-                                                      self.target)
+            self.features, self.target = self.backend._drop_rows_with_nan_in_target(self.features,
+                                                    self.target)
 
         # check for text features
-        text_idx = get_text_column_indices(self.features)
+        if self.text_idx is None and self.backend.name == 'cpu':
+            self.text_idx = self.backend.get_text_column_indices(self.features,
+                                                        self.text_idx)
 
         # encode categorical features
         if self.categorical_idx is not None:
-            if self.categorical_idx.size != 0 and isinstance(self.categorical_idx[0], str) and self.features_names is None:
-                raise ValueError(
-                    'Impossible to specify categorical features by name when the features_names are not specified'
-                )
-
-            if self.categorical_idx.size != 0 and isinstance(self.categorical_idx[0], str):
-                self.categorical_idx = np.array(
-                    [idx for idx, column in enumerate(self.features_names) if column in set(self.categorical_idx)]
-                )
+            self.categorical_idx = self.backend.get_idx_from_features_names(self.categorical_idx, self.features_names)
 
             # if categorical features are recognized like text
-            if text_idx is not None and not set(self.categorical_idx).isdisjoint(set(text_idx)):
-                text_idx = np.setdiff1d(text_idx, self.categorical_idx)
+            if self.text_idx is not None and not set(self.categorical_idx).isdisjoint(set(self.text_idx)):
+                self.text_idx = self.backend.xp.setdiff1d(self.text_idx, self.categorical_idx)
 
-        self.features, self.categorical_idx = encode_categorical_features(
-                    self.features, self.categorical_idx, text_idx
+        self.features, self.categorical_idx = self.backend.encode_categorical_features(
+                    self.features, self.categorical_idx, self.text_idx
             )
-        if self.categorical_idx:
-            self.categorical_features = torch.tensor(
-                self.features[:, self.categorical_idx]
+        if self.categorical_idx is not None:
+            self.categorical_features = self.backend.to_tensor(
+                self.features[:, self.categorical_idx], dtype=torch.float32
             )
         else:
             self.categorical_features = None
         
         # get embeddings for text features
-        if text_idx is not None:
-            text_columns = self.features[:, text_idx]
-            text_tensors = encode_text_columns_np(text_columns, self.embedder_name, self.embedder_batch_size)
-            self.features = np.delete(self.features, text_idx, axis=1)
+        if self.text_idx is not None:
+            text_columns = self.features[:, self.text_idx]
+            text_tensors = encode_text_columns_np(text_columns, 
+                                                  self.embedder_name, 
+                                                  self.embedder_batch_size, 
+                                                  self.backend.device)
+            self.features = self.backend.xp.delete(self.features, self.text_idx, axis=1)
 
         # convert to tensor
         if self.features.shape[1] != 0:
-            self.features = torch.tensor(self.features)
-            if text_idx is not None:
+            self.features = self.backend.to_tensor(self.features, dtype=torch.float32)
+            if self.text_idx is not None:
                 self.features = torch.cat((self.features, text_tensors), dim=1)
         else:
             self.features = text_tensors
             self.data_type = DataTypesEnum.text
 
-        self.idx = np.arange(self.features.shape[0])
-
         if self.task.task_type is TaskTypesEnum.ts_forecasting:
             self.target = self.features.copy()
         elif self.target is not None:
-            self.target = torch.tensor(self.target)
-
+            self.target = self.backend.to_tensor(self.target, dtype=torch.float32)
+        
+        self.idx = torch.arange(self.features.shape[1], device=self.backend.device)
+        self.target_idx = self.backend.to_tensor(self.target_idx, dtype=torch.int32)
+        self.categorical_idx = self.backend.to_tensor(self.categorical_idx, dtype=torch.int32)
+        self.text_idx = self.backend.to_tensor(self.text_idx, dtype=torch.int32)
+        self.numerical_idx = self.backend.to_tensor(self.numerical_idx, dtype=torch.int32)
+        self.encoded_idx = self.backend.to_tensor(self.encoded_idx, dtype=torch.int32)
+        self.ts_terms_idx = self.backend.to_tensor(self.ts_terms_idx, dtype=torch.int32)
 
     @classmethod
-    def _resolve_creator(cls, source_data):
+    def _resolve_creator(cls, source_data: Any) -> Callable:
         for predicate, creator in cls._creators:
-            if predicate(source_data):
+            result = predicate(source_data)
+
+            if not isinstance(result, bool):
+                raise TypeError(
+                    f"Predicate {predicate.__name__} must return bool, got {type(result)}"
+                )
+
+            if result:
                 return creator
-        raise ValueError(f"No creator registered for input: {source_data}")
+
+        raise ValueError(f"No creator registered for input: {type(source_data)}")
     
     @classmethod
-    def register_creator(cls, predicate: Callable[[Any], bool]):
+    def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
         def decorator(func):
             cls._creators.append((predicate, func))
             return func
@@ -176,7 +234,7 @@ class TensorData:
             creator = cls._resolve_creator(source_data)
             return creator(source_data, **kwargs)
         except Exception as e:
-            raise ValueError(f"Unsupported data type: {source_data}")
+            raise ValueError(f"Error creating TensorData: {e}")
 
     @classmethod
     def create_lazy(cls, source_data, **kwargs):
@@ -241,27 +299,45 @@ class TensorData:
             return sum([feature.nbytes for feature in self.features.T])
 
 
+@TensorData.register_creator(lambda x: isinstance(x, torch.Tensor))
+def from_torch(features: torch.Tensor,
+               target: Optional[torch.Tensor] = None,
+               task: TaskType = Task(TaskTypesEnum.classification),
+               state: str = 'fit',
+               data_type: DataType = None,
+               device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+               dataloader_kwargs = None,) -> TensorData:
+    return TensorData(features=features, target=target, task=task, state=state,
+                      data_type=data_type, device=device,
+                      dataloader_kwargs=dataloader_kwargs)
+
+
 @TensorData.register_creator(
-    lambda x: isinstance(x, np.ndarray)
+    lambda x: isinstance(x, np.ndarray) or isinstance(x, cp.ndarray)
 )
 def from_numpy(features: np.ndarray,
                target: Optional[np.ndarray] = None,
-               task: Task = Task(TaskTypesEnum.classification),
-               data_type: Optional[DataTypesEnum] = None,
-               features_names: np.ndarray[str] = None,
-               target_idx: Optional[Union[int, np.ndarray]] = None,
-               categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
-               embedder_name: str = None,
-               embedder_batch_size=16,
-               device: str = 'cpu',
-               dataloader_kwargs = None,) -> TensorData:
+               task: TaskType = Task(TaskTypesEnum.classification),
+               state: str = 'fit',
+               data_type: DataType = None,
+               features_names: IndexType = None,
+               target_idx: IndexType = None,
+               categorical_idx: IndexType = None,
+               text_idx: IndexType = None,
+               embedder_name: Optional[str] = None,
+               embedder_batch_size: int = 16,
+               device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+               dataloader_kwargs = None,
+               backend_name: Optional[str] = "cpu") -> TensorData:
+
+    backend = BackendDefiner(backend_name)
 
     if data_type is None:
         data_type = autodetect_data_type(task)
 
     if isinstance(target, int) and target < features.shape[1]:
-        target = features[:, target]
-        features = np.delete(features, target, axis=1)
+        target_idx = target.copy()
+        target = None
     
     data = TensorData(
         features=features,
@@ -269,79 +345,90 @@ def from_numpy(features: np.ndarray,
         features_names=features_names,
         target_idx=target_idx,
         categorical_idx=categorical_idx,
+        text_idx=text_idx,
         task=task,
+        state=state,
         data_type=data_type,
         embedder_name=embedder_name,
         embedder_batch_size=embedder_batch_size,
         device=device,
-        dataloader_kwargs=dataloader_kwargs
+        backend = backend,
+        dataloader_kwargs=dataloader_kwargs,
     )
 
     return data
 
 
 @TensorData.register_creator(
-    lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series)
+    lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
     features: Union[pd.DataFrame, pd.Series],
     target: Optional[Union[pd.DataFrame, pd.Series]] = None,
-    task: Union[Task, str] = 'classification',
-    target_columns: Optional[Union[List[str], List[int], str, int]] = None,
-    categorical_idx=None,
-    data_type: DataTypesEnum = DataTypesEnum.table,
-    embedder_name: str = None,
-    embedder_batch_size=16,
-    device: str = 'cpu',
+    task: TaskType = Task(TaskTypesEnum.classification),
+    state: str = 'fit',
+    target_idx: IndexType = None,
+    categorical_idx: IndexType = None,
+    text_idx: IndexType = None,
+    data_type: DataType = DataTypesEnum.table,
+    embedder_name: Optional[str] = None,
+    embedder_batch_size: int = 16,
+    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    backend_name: Optional[str] = "cpu",
     dataloader_kwargs = None,
 ) -> TensorData:
     
+    backend = BackendDefiner(backend_name)
+
     features_names = features.columns.to_numpy()
     
-    features = features.values
+    features = backend.get_values_from_df(features)
 
     if target is not None:
-        target = target.values
-    
-    if target_columns is not None:
-        target_idx = get_target_idx(target_columns, features_names)
-    else:
-        target_idx = None
+        target = backend.get_values_from_df(target)
 
     return TensorData(
         features=features,
         target=target,
         task=task,
+        state=state,
         target_idx=target_idx,
         categorical_idx=categorical_idx,
+        text_idx=text_idx,
         data_type=data_type,
         features_names=features_names,
         embedder_name=embedder_name,
         embedder_batch_size=embedder_batch_size,
         device=device,
+        backend = backend,
         dataloader_kwargs=dataloader_kwargs
     )
 
 
 @TensorData.register_creator(
-    lambda x: isinstance(x, str) and x.endswith(".csv")
+    lambda x: isinstance(x, str) and (x.endswith(".csv") or x.endswith(".tsv"))
 )
-def from_csv(
+def from_csv_tsv(
     file_path: str,
     delimiter: str = ',',
     max_rows: Optional[int] = None,
-    task: Union[Task, str] = 'classification',
-    data_type: DataTypesEnum = DataTypesEnum.table,
-    columns_to_drop: list = None,
-    target_columns: str = '',
-    categorical_idx: Optional[Union[list[int, str], np.ndarray[int, str]]] = None,
-    index_col = None,
-    possible_idx_keywords = None,
-    embedder_name = None,
-    embedder_batch_size=16,
-    device: str = 'cpu',
+    task: TaskType = Task(TaskTypesEnum.classification),
+    state: str = 'fit',
+    data_type: DataType = DataTypesEnum.table,
+    columns_to_drop: IndexType = None,
+    target_idx: IndexType = None,
+    categorical_idx: IndexType = None,
+    text_idx: IndexType = None,
+    index_col: IndexType = None,
+    possible_idx_keywords: Optional[List[str]] = None,
+    embedder_name: Optional[str] = None,
+    embedder_batch_size: int = 16,
+    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    backend_name: Optional[str] = "cpu",
     dataloader_kwargs = None
 ) -> TensorData:
+    
+    backend = BackendDefiner(backend_name)
 
     if not is_existed_csv_path(file_path):
         raise ValueError(f'File {file_path} does not exist')
@@ -350,7 +437,7 @@ def from_csv(
         possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
     )
 
-    features = get_df_from_csv(
+    features = backend.get_df_from_csv(
         file_path=file_path,
         delimiter=delimiter,
         index_col=index_col,
@@ -358,24 +445,53 @@ def from_csv(
         columns_to_drop=columns_to_drop,
         nrows=max_rows
     )
-    
+    shape = features.shape
     features_names = features.columns.to_numpy()
-    features = features.values
 
-    if target_columns is not None:
-        target_idx = get_target_idx(target_columns, features_names)
-    else:
-        target_idx = None
+    # TODO: use cudf for get embeddings/encoding in gpu to resolve this
+    features = backend.get_values_from_df(features)
     
     return TensorData(
         features=features,
         task=task,
+        state=state,
         target_idx=target_idx,
         data_type=data_type,
         categorical_idx=categorical_idx,
+        text_idx=text_idx,
         features_names=features_names,
         embedder_name=embedder_name,
         embedder_batch_size=embedder_batch_size,
+        device=device,
+        backend = backend,
+        dataloader_kwargs=dataloader_kwargs
+    )
+
+
+@TensorData.register_creator(
+    lambda x: isinstance(x, str) and x.endswith(".arff")
+)
+def from_arff(
+    file_path: str,
+    task: TaskType = TaskTypesEnum.ts_forecasting,
+    state: str = 'fit',
+    data_type: DataType = DataTypesEnum.ts,
+    target_idx: IndexType = None,
+    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+    backend_name: Optional[str] = "cpu",
+    dataloader_kwargs: Optional[Dict[str, Any]] = None
+) -> TensorData:
+    
+    backend = BackendDefiner(backend_name)
+
+    features, target = backend.read_arff_file(file_path, target_idx=target_idx)
+
+    return TensorData(
+        features=features,
+        target=target,
+        task=task,
+        state=state,
+        data_type=data_type,
         device=device,
         dataloader_kwargs=dataloader_kwargs
     )
