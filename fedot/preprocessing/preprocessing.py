@@ -27,6 +27,11 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
+from fedot.preprocessing.preprocessing_rules import (
+    resolve_main_target_source_name,
+    resolve_source_names,
+    should_initialize_source_helpers,
+)
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_type_check import exclude_image, exclude_multi_ts, exclude_ts
 from fedot.preprocessing.data_types import TYPE_TO_ID, TableTypesCorrector
@@ -72,19 +77,16 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             data: with input data for preprocessing
         """
-        if self.binary_categorical_processors and self.types_correctors:
-            # Preprocessors have been already initialized
+        if not should_initialize_source_helpers(
+            has_binary_processors=bool(self.binary_categorical_processors),
+            has_type_correctors=bool(self.types_correctors),
+        ):
             return None
 
-        if isinstance(data, InputData):
-            self.binary_categorical_processors[DEFAULT_SOURCE_NAME] = BinaryCategoricalPreprocessor()
-            self.types_correctors[DEFAULT_SOURCE_NAME] = TableTypesCorrector()
-        elif isinstance(data, MultiModalData):
-            for data_source in data:
-                self.binary_categorical_processors[data_source] = BinaryCategoricalPreprocessor()
-                self.types_correctors[data_source] = TableTypesCorrector()
-        else:
-            raise ValueError('Unknown type of data.')
+        source_plan = resolve_source_names(data, DEFAULT_SOURCE_NAME)
+        for data_source in source_plan.source_names:
+            self.binary_categorical_processors[data_source] = BinaryCategoricalPreprocessor()
+            self.types_correctors[data_source] = TableTypesCorrector()
 
     def _init_main_target_source_name(self, multi_data: MultiModalData):
         """
@@ -93,14 +95,7 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             multi_data: `MultiModalData`
         """
-        if self.main_target_source_name is not None:
-            # Target name has been already defined
-            return None
-
-        for data_source_name, input_data in multi_data.items():
-            if input_data.supplementary_data.is_main_target:
-                self.main_target_source_name = data_source_name
-                break
+        self.main_target_source_name = resolve_main_target_source_name(self.main_target_source_name, multi_data)
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_fit)
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
