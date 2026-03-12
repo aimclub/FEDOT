@@ -7,6 +7,7 @@ from golem.core.log import default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
+from fedot.api.api_utils.api_composer_rules import build_cache_init_plan, build_tuner_plan
 from fedot.api.api_utils.api_run_planner import build_composer_execution_plan
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
@@ -41,23 +42,23 @@ class ApiComposer:
         self.init_cache()
 
     def init_cache(self):
-        use_operations_cache = self.params.get('use_operations_cache')
-        use_preprocessing_cache = self.params.get('use_preprocessing_cache')
-        use_predictions_cache = self.params.get('use_predictions_cache')
-        use_input_preprocessing = self.params.get('use_input_preprocessing')
-        cache_dir = self.params.get('cache_dir')
-        use_stats = self.params.get('use_stats')
-        if use_operations_cache:
-            self.operations_cache = OperationsCache(cache_dir=cache_dir, use_stats=use_stats)
-            #  in case of previously generated singleton cache
+        cache_plan = build_cache_init_plan(
+            use_operations_cache=self.params.get('use_operations_cache'),
+            use_preprocessing_cache=self.params.get('use_preprocessing_cache'),
+            use_predictions_cache=self.params.get('use_predictions_cache'),
+            use_input_preprocessing=self.params.get('use_input_preprocessing'),
+            cache_dir=self.params.get('cache_dir'),
+            use_stats=self.params.get('use_stats'),
+        )
+
+        if cache_plan.use_operations_cache:
+            self.operations_cache = OperationsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.operations_cache.reset()
-        if use_input_preprocessing and use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(cache_dir=cache_dir, use_stats=use_stats)
-            #  in case of previously generated singleton cache
+        if cache_plan.use_preprocessing_cache:
+            self.preprocessing_cache = PreprocessingCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.preprocessing_cache.reset()
-        if use_predictions_cache:
-            self.predictions_cache = PredictionsCache(cache_dir=cache_dir, use_stats=use_stats)
-            #  in case of previously generated singleton cache
+        if cache_plan.use_predictions_cache:
+            self.predictions_cache = PredictionsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.predictions_cache.reset()
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
@@ -106,7 +107,6 @@ class ApiComposer:
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
             gp_composer.history.tuning_result = adapter.adapt(best_pipeline)
-        # enforce memory cleaning
         gc.collect()
 
         self.log.message('Model generation finished')
@@ -166,7 +166,6 @@ class ApiComposer:
         )
 
         if execution_plan.should_compose:
-            # Launch pipeline structure composition
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
                 self.was_optimised = False
@@ -174,7 +173,6 @@ class ApiComposer:
                 best_pipeline_candidates = gp_composer.best_models
                 self.was_optimised = True
         else:
-            # Use initial pipeline as final solution
             self.log.message(f'Timeout is too small for composing and is skipped '
                              f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
@@ -192,18 +190,23 @@ class ApiComposer:
         """ Launch tuning procedure for obtained pipeline by composer """
         timeout_for_tuning = execution_plan.tuning_timeout_minutes if execution_plan else abs(
             self.timer.determine_resources_for_tuning()) / 60
+        tuner_plan = build_tuner_plan(
+            metrics=self.metrics,
+            timeout_minutes=timeout_for_tuning,
+            iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
+        )
         tuner = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
-                 .with_metric(self.metrics[0])
-                 .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)
-                 .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))
+                 .with_metric(tuner_plan.metric)
+                 .with_iterations(tuner_plan.iterations)
+                 .with_timeout(datetime.timedelta(minutes=tuner_plan.timeout_minutes))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_requirements(self.params.composer_requirements)
                  .build(train_data))
 
         with self.timer.launch_tuning():
             self.was_tuned = False
-            self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
+            self.log.message(f'Hyperparameters tuning started with {round(tuner_plan.timeout_minutes)} min. timeout')
             tuned_pipeline = tuner.tune(pipeline_gp_composed)
             self.log.message('Hyperparameters tuning finished')
         self.was_tuned = tuner.was_tuned
