@@ -1,6 +1,12 @@
-from copy import copy
+﻿from copy import copy
 from typing import Optional
 
+from fedot.api.api_utils.assumptions.assumption_rules import (
+    exclude_operations,
+    finalize_operations,
+    merge_preset_operations,
+    parse_preset_spec,
+)
 from fedot.api.time import ApiTime
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME, AUTO_PRESET_NAME
@@ -40,56 +46,48 @@ class OperationsPreset:
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
-        preset_name = self.preset_name
-        if AUTO_PRESET_NAME in preset_name:
+        preset_spec = parse_preset_spec(self.preset_name)
+
+        if preset_spec.use_auto:
             available_operations = get_operations_for_task(self.task, data_type, mode='all')
             return available_operations
 
-        # TODO remove workaround
-        # Use best_quality preset but exclude several operations
-        if 'stable' in self.preset_name:
-            # Use best_quality preset but exclude several operations
-            preset_name = BEST_QUALITY_PRESET_NAME
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                    'lda', 'qda', 'lgbm', 'one_hot_encoding','polyfit',
+                    'lda', 'qda', 'lgbm', 'one_hot_encoding', 'polyfit',
                     'resample', 'stl_arima']
         excluded_tree = []
 
-        if '*' in preset_name:
-            self.modification_using = True
-            # The modification has been added
-            preset_name, modification = preset_name.split('*')
-            modification = ''.join(('*', modification))
-
-            mod_operations = get_operations_for_task(self.task, data_type, mode='all', preset=modification)
-
-        # Get operations
-        available_operations = get_operations_for_task(self.task, data_type, mode='all', preset=preset_name)
-
-        if self.modification_using:
-            # Find subsample of operations
-            filtered_operations = set(available_operations).intersection(set(mod_operations))
-            available_operations = list(filtered_operations)
-
-        # Exclude "heavy" operations if necessary
-        if 'stable' in self.preset_name:
-            available_operations = self.new_operations_without_heavy(excluded, available_operations)
-
-        if 'gpu' in self.preset_name:
+        self.modification_using = preset_spec.modification is not None
+        if preset_spec.use_gpu:
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
             available_operations = repository.suitable_operation(task_type=self.task.task_type, data_type=data_type)
+        else:
+            base_operations = get_operations_for_task(
+                self.task,
+                data_type,
+                mode='all',
+                preset=preset_spec.base_preset,
+            )
+            if self.modification_using:
+                mod_operations = get_operations_for_task(
+                    self.task,
+                    data_type,
+                    mode='all',
+                    preset=preset_spec.modification,
+                )
+                available_operations = list(merge_preset_operations(base_operations, mod_operations))
+            else:
+                available_operations = base_operations
 
-        filtered_operations = set(available_operations).difference(set(excluded_tree))
-        available_operations = list(filtered_operations)
+        if preset_spec.use_stable:
+            available_operations = list(exclude_operations(available_operations, excluded))
 
-        return sorted(available_operations)
+        return finalize_operations(available_operations, excluded_tree)
 
     @staticmethod
     def new_operations_without_heavy(excluded_operations, available_operations) -> list:
         """ Create new list without heavy operations """
-        available_operations = [_ for _ in available_operations if _ not in excluded_operations]
-
-        return available_operations
+        return list(exclude_operations(available_operations, excluded_operations))
 
 
 def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
