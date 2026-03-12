@@ -1,4 +1,4 @@
-import datetime
+﻿import datetime
 import gc
 from copy import deepcopy
 from typing import List, Optional, Sequence, Tuple, Union
@@ -7,6 +7,7 @@ from golem.core.log import default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
+from fedot.api.api_utils.api_run_planner import build_composer_execution_plan
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.time import ApiTime
@@ -84,9 +85,23 @@ class ApiComposer:
                 fitted_assumption
             )
 
-        if with_tuning:
+        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
+        execution_plan = build_composer_execution_plan(
+            with_tuning=with_tuning,
+            have_time_for_composing=self.was_optimised,
+            have_time_for_tuning=self.timer.have_time_for_tuning(),
+            tuning_timeout_minutes=timeout_for_tuning,
+        )
+
+        if execution_plan.should_tune:
             with fedot_composer_timer.launch_tuning('composing'):
-                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline, execution_plan)
+        elif with_tuning:
+            self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
+                             f'The remaining {max(0, round(execution_plan.tuning_timeout_minutes, 1))} seconds are not enough '
+                             f'to tune the hyperparameters.')
+            self.log.message('Composed pipeline returned without tuning.')
+            self.was_tuned = False
 
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
@@ -142,7 +157,15 @@ class ApiComposer:
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 
-        if self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs):
+        have_time_for_composing = self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs)
+        execution_plan = build_composer_execution_plan(
+            with_tuning=self.params.get('with_tuning'),
+            have_time_for_composing=have_time_for_composing,
+            have_time_for_tuning=False,
+            tuning_timeout_minutes=0,
+        )
+
+        if execution_plan.should_compose:
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
@@ -156,15 +179,19 @@ class ApiComposer:
                              f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
+            self.was_optimised = False
 
         for pipeline in best_pipeline_candidates:
             pipeline.log = self.log
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
-    def tune_final_pipeline(self, train_data: InputData, pipeline_gp_composed: Pipeline) -> Pipeline:
+    def tune_final_pipeline(self, train_data: InputData,
+                            pipeline_gp_composed: Pipeline,
+                            execution_plan=None) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
-        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
+        timeout_for_tuning = execution_plan.tuning_timeout_minutes if execution_plan else abs(
+            self.timer.determine_resources_for_tuning()) / 60
         tuner = (TunerBuilder(self.params.task)
                  .with_tuner(SimultaneousTuner)
                  .with_metric(self.metrics[0])
@@ -174,18 +201,10 @@ class ApiComposer:
                  .with_requirements(self.params.composer_requirements)
                  .build(train_data))
 
-        if self.timer.have_time_for_tuning():
-            # Tune all nodes in the pipeline
-            with self.timer.launch_tuning():
-                self.was_tuned = False
-                self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
-                tuned_pipeline = tuner.tune(pipeline_gp_composed)
-                self.log.message('Hyperparameters tuning finished')
-        else:
-            self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                             f'The remaining {max(0, round(timeout_for_tuning, 1))} seconds are not enough '
-                             f'to tune the hyperparameters.')
-            self.log.message('Composed pipeline returned without tuning.')
-            tuned_pipeline = pipeline_gp_composed
+        with self.timer.launch_tuning():
+            self.was_tuned = False
+            self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
+            tuned_pipeline = tuner.tune(pipeline_gp_composed)
+            self.log.message('Hyperparameters tuning finished')
         self.was_tuned = tuner.was_tuned
         return tuned_pipeline

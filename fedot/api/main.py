@@ -12,6 +12,7 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
+from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.input_analyser import InputAnalyser
@@ -172,19 +173,20 @@ class Fedot:
                 with fedot_composer_timer.launch_preprocessing():
                     self.train_data = self.data_processor.fit_transform(self.train_data)
 
-            # TODO: Workaround for AtomizedModel
-            init_asm = self.params.data.get('initial_assumption')
-            if predefined_model is None:
-                if isinstance(init_asm, Pipeline) and ("atomized" in init_asm.descriptive_id):
+            fit_plan = plan_sampling_stage(
+                requested_predefined_model=predefined_model,
+                initial_assumption=self.params.data.get('initial_assumption'),
+                sampling_config_present=self.params.get('sampling_config') is not None,
+            )
+            predefined_model = fit_plan.resolved_predefined_model
+            if fit_plan.skip_metadata is not None:
+                self.sampling_stage_metadata = fit_plan.skip_metadata
+                if fit_plan.skip_metadata['reason'] == 'predefined_model':
+                    self.log.message('Sampling stage skipped because predefined_model is specified.')
+                elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
                     self.log.message('Composition for AtomizedModel currently unavailable')
-                    predefined_model = init_asm
-                    if self.params.get('sampling_config') is not None:
-                        self.sampling_stage_metadata = {'status': 'skipped', 'reason': 'atomized_initial_assumption'}
-                else:
-                    self._run_sampling_stage_if_necessary()
-            elif self.params.get('sampling_config') is not None:
-                self.sampling_stage_metadata = {'status': 'skipped', 'reason': 'predefined_model'}
-                self.log.message('Sampling stage skipped because predefined_model is specified.')
+            elif fit_plan.should_run_sampling_stage:
+                self._run_sampling_stage_if_necessary()
 
             with fedot_composer_timer.launch_fitting():
                 if predefined_model is not None:
@@ -204,7 +206,8 @@ class Fedot:
                     # Final fit for obtained pipeline on full dataset
 
                     with fedot_composer_timer.launch_train_inference():
-                        if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
+                        final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
+                        if final_fit_plan.should_train_on_full_dataset:
                             self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
                             self.log.message('Final pipeline was fitted')
                         else:
