@@ -1,13 +1,21 @@
-﻿import numpy as np
+import numpy as np
+
+from pymonad.either import Left
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.extensions.contracts import ExtensionManifest, ExternalModelSpec, ModelCapabilities
+from fedot.extensions.contracts import (
+    ExtensionManifest,
+    ExternalModelSpec,
+    ModelCapabilities,
+    ModelHyperparamsSchema,
+)
 from fedot.extensions.registry import clear_extension_registry, register_extension
 from fedot.extensions.runtime_rules import (
     build_extension_strategy_params,
     get_extension_model_spec,
     is_extension_operation_name,
+    try_build_extension_strategy_params,
 )
 
 
@@ -24,6 +32,7 @@ class _ExternalEstimator:
         return np.zeros(features.shape[0])
 
 
+
 def _make_manifest():
     return ExtensionManifest(
         name='runtime_extension',
@@ -37,9 +46,15 @@ def _make_manifest():
                     data_types=(DataTypesEnum.table,),
                     tags=('external', 'linear'),
                 ),
+                hyperparams_schema=ModelHyperparamsSchema(
+                    required=('alpha',),
+                    optional=('beta',),
+                    defaults={'beta': 0.5},
+                ),
             ),
         ),
     )
+
 
 
 def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_params():
@@ -57,5 +72,21 @@ def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_par
         assert callable(params['model_predict'])
         assert params['_extension_output_mode'] == 'labels'
         assert params['alpha'] == 1.0
+        assert params['beta'] == 0.5
+    finally:
+        clear_extension_registry()
+
+
+
+def test_runtime_rules_return_left_when_required_extension_params_are_missing():
+    clear_extension_registry()
+    register_extension(_make_manifest())
+
+    try:
+        params = try_build_extension_strategy_params('external_runtime_model', {'beta': 1.5})
+
+        assert params.__class__ is Left
+        assert params.value.code == 'missing_required_hyperparams'
+        assert params.value.details['required'] == ['alpha']
     finally:
         clear_extension_registry()

@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import Any, Iterable, Tuple
 
 from fedot.core.data.data import InputData
@@ -14,6 +14,12 @@ class PreprocessingSourcePlan:
 class PreprocessorMergePlan:
     take_pipeline_encoders: bool
     take_pipeline_imputers: bool
+
+
+@dataclass(frozen=True)
+class OptionalPreprocessingPlan:
+    apply_imputation: bool
+    apply_encoding: bool
 
 
 def resolve_source_names(data: Any, default_source_name: str) -> PreprocessingSourcePlan:
@@ -38,6 +44,10 @@ def resolve_main_target_source_name(current_source_name, multi_data: MultiModalD
     return None
 
 
+def resolve_target_encoder_source_name(current_source_name, default_source_name: str) -> str:
+    return current_source_name if current_source_name is not None else default_source_name
+
+
 def iter_preprocessed_inputs(data: Any) -> Tuple[Any, ...]:
     if isinstance(data, InputData):
         return (data,)
@@ -58,4 +68,14 @@ def build_preprocessor_merge_plan(use_auto_preprocessing: bool,
     return PreprocessorMergePlan(
         take_pipeline_encoders=not bool(api_features_encoders),
         take_pipeline_imputers=not bool(api_features_imputers),
+    )
+
+
+def build_optional_preprocessing_plan(has_missing_values: bool,
+                                      has_categorical_features: bool,
+                                      has_imputation_operation: bool,
+                                      has_encoding_operation: bool) -> OptionalPreprocessingPlan:
+    return OptionalPreprocessingPlan(
+        apply_imputation=has_missing_values and not has_imputation_operation,
+        apply_encoding=has_categorical_features and not has_encoding_operation,
     )

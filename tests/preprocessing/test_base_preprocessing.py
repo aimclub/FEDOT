@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -7,6 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 
 
 class _FakePreprocessor(BasePreprocessor):
@@ -47,6 +48,7 @@ class _FakePreprocessor(BasePreprocessor):
         return data
 
 
+
 def _make_input_data(*, is_main_target=True):
     return InputData(
         idx=np.array([0, 1]),
@@ -56,6 +58,22 @@ def _make_input_data(*, is_main_target=True):
         data_type=DataTypesEnum.table,
         supplementary_data=SupplementaryData(is_main_target=is_main_target),
     )
+
+
+
+def _make_optional_input_data():
+    data = InputData(
+        idx=np.array([0, 1]),
+        features=np.array([[1.0, 'a'], [np.nan, 'b']], dtype=object),
+        target=np.array([[0.0], [1.0]]),
+        task=Task(TaskTypesEnum.regression),
+        data_type=DataTypesEnum.table,
+        supplementary_data=SupplementaryData(),
+    )
+    data.categorical_idx = np.array([1])
+    data.numerical_idx = np.array([0])
+    return data
+
 
 
 def test_mark_as_preprocessed_marks_unimodal_and_multimodal_inputs():
@@ -68,6 +86,7 @@ def test_mark_as_preprocessed_marks_unimodal_and_multimodal_inputs():
     assert input_data.supplementary_data.obligatorily_preprocessed is True
     assert multi_data['main'].supplementary_data.optionally_preprocessed is True
     assert multi_data['side'].supplementary_data.optionally_preprocessed is True
+
 
 
 def test_merge_preprocessors_uses_typed_merge_plan():
@@ -86,6 +105,7 @@ def test_merge_preprocessors_uses_typed_merge_plan():
     assert merged.features_imputers == pipeline_preprocessor.features_imputers
 
 
+
 def test_data_preprocessor_initialization_uses_source_and_target_rules():
     preprocessor = DataPreprocessor()
     multi_data = MultiModalData({
@@ -99,3 +119,30 @@ def test_data_preprocessor_initialization_uses_source_and_target_rules():
     assert set(preprocessor.binary_categorical_processors.keys()) == {'main', 'side'}
     assert set(preprocessor.types_correctors.keys()) == {'main', 'side'}
     assert preprocessor.main_target_source_name == 'main'
+
+
+
+def test_prepare_optional_uses_typed_optional_plan_and_target_source_resolution():
+    preprocessor = DataPreprocessor()
+    data = _make_optional_input_data()
+    applied_steps = []
+
+    original_check_structure = PipelineStructureExplorer.check_structure_by_tag
+    preprocessor._apply_imputation_unidata = lambda current_data, source_name: applied_steps.append(
+        ('imputation', source_name)
+    ) or current_data
+    preprocessor._apply_categorical_encoding = lambda current_data, source_name: applied_steps.append(
+        ('encoding', source_name)
+    ) or current_data
+    PipelineStructureExplorer.check_structure_by_tag = staticmethod(
+        lambda pipeline, tag_to_check, source_name: tag_to_check == 'imputation'
+    )
+
+    try:
+        preprocessor._prepare_optional(object(), data, DEFAULT_SOURCE_NAME)
+        preprocessor.main_target_source_name = None
+        assert preprocessor._determine_target_converter() == DEFAULT_SOURCE_NAME
+    finally:
+        PipelineStructureExplorer.check_structure_by_tag = original_check_structure
+
+    assert applied_steps == [('encoding', DEFAULT_SOURCE_NAME)]

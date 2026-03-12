@@ -1,9 +1,13 @@
-﻿import inspect
+import inspect
 from typing import Any, Dict, Optional
+
+from pymonad.either import Left
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.extensions.contracts import ExternalModelSpec
+from fedot.extensions.parameter_rules import extract_factory_params, resolve_extension_params
 from fedot.extensions.registry import get_registered_extensions
+
 
 
 def get_extension_model_spec(operation_name: str) -> Optional[ExternalModelSpec]:
@@ -14,24 +18,41 @@ def get_extension_model_spec(operation_name: str) -> Optional[ExternalModelSpec]
     return None
 
 
+
 def is_extension_operation_name(operation_name: str) -> bool:
     return get_extension_model_spec(operation_name) is not None
+
+
+
+def try_build_extension_strategy_params(operation_name: str,
+                                        user_params: Optional[Dict[str, Any]] = None,
+                                        output_mode: str = 'default'):
+    model_spec = get_extension_model_spec(operation_name)
+    if model_spec is None:
+        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+
+    params_resolution = resolve_extension_params(model_spec, user_params)
+    if params_resolution.__class__ is Left:
+        return params_resolution
+
+    resolved_user_params = params_resolution.value
+    return params_resolution.__class__({
+        **resolved_user_params,
+        'model_fit': _build_model_fit(model_spec),
+        'model_predict': _build_model_predict(model_spec),
+        '_extension_output_mode': output_mode,
+    })
+
 
 
 def build_extension_strategy_params(operation_name: str,
                                     user_params: Optional[Dict[str, Any]] = None,
                                     output_mode: str = 'default') -> Dict[str, Any]:
-    model_spec = get_extension_model_spec(operation_name)
-    if model_spec is None:
-        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+    strategy_params = try_build_extension_strategy_params(operation_name, user_params, output_mode)
+    if strategy_params.__class__ is Left:
+        raise ValueError(strategy_params.value.message)
+    return strategy_params.value
 
-    normalized_user_params = dict(user_params or {})
-    return {
-        **normalized_user_params,
-        'model_fit': _build_model_fit(model_spec),
-        'model_predict': _build_model_predict(model_spec),
-        '_extension_output_mode': output_mode,
-    }
 
 
 def get_extension_acceptable_task_types(operation_name: str):
@@ -41,11 +62,13 @@ def get_extension_acceptable_task_types(operation_name: str):
     return model_spec.capabilities.tasks
 
 
+
 def get_extension_data_types(operation_name: str):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
         raise ValueError(f'Extension model "{operation_name}" is not registered.')
     return model_spec.capabilities.data_types
+
 
 
 def _build_model_fit(model_spec: ExternalModelSpec):
@@ -63,6 +86,7 @@ def _build_model_fit(model_spec: ExternalModelSpec):
         return model
 
     return _fit
+
 
 
 def _build_model_predict(model_spec: ExternalModelSpec):
@@ -102,15 +126,17 @@ def _build_model_predict(model_spec: ExternalModelSpec):
     return _predict
 
 
+
 def _instantiate_model(model_spec: ExternalModelSpec, params: Dict[str, Any]):
     factory = model_spec.factory
-    user_params = {key: value for key, value in params.items() if not key.startswith('_') and key not in ('model_fit', 'model_predict')}
+    user_params = extract_factory_params(params)
     try:
         signature = inspect.signature(factory)
         signature.bind_partial(user_params)
         return factory(user_params)
     except TypeError:
         return factory()
+
 
 
 def _call_with_supported_signature(method, *candidate_args):
@@ -124,6 +150,7 @@ def _call_with_supported_signature(method, *candidate_args):
             last_error = error
             continue
     raise last_error or TypeError('No supported signature found for extension model method.')
+
 
 
 def _infer_output_type_name(model_spec: ExternalModelSpec) -> str:

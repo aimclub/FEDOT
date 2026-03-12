@@ -4,7 +4,12 @@ from fedot.core.operations.extension_model import ExtensionModel
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.extensions.contracts import ExtensionManifest, ExternalModelSpec, ModelCapabilities
+from fedot.extensions.contracts import (
+    ExtensionManifest,
+    ExternalModelSpec,
+    ModelCapabilities,
+    ModelHyperparamsSchema,
+)
 from fedot.extensions.registry import clear_extension_registry, register_extension
 
 
@@ -33,6 +38,11 @@ def _make_manifest():
                     tasks=(TaskTypesEnum.regression,),
                     data_types=(DataTypesEnum.table,),
                     tags=('external',),
+                ),
+                hyperparams_schema=ModelHyperparamsSchema(
+                    required=(),
+                    optional=('beta',),
+                    defaults={'beta': 0.5},
                 ),
             ),
         ),
@@ -73,5 +83,6 @@ def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
         assert strategy.operation_id == 'custom'
         assert implementation.was_fitted is True
         assert implementation.params.get('alpha') == 2.0
+        assert implementation.params.get('beta') == 0.5
     finally:
         clear_extension_registry()

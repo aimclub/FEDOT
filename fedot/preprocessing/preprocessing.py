@@ -28,8 +28,10 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.preprocessing_rules import (
+    build_optional_preprocessing_plan,
     resolve_main_target_source_name,
     resolve_source_names,
+    resolve_target_encoder_source_name,
     should_initialize_source_helpers,
 )
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
@@ -264,19 +266,28 @@ class DataPreprocessor(BasePreprocessor):
         if not data_type_is_table(data) or data.supplementary_data.optionally_preprocessed:
             return data
 
-        for has_problems, tag_to_check, action_if_no_tag in [
-            (data_has_missing_values, 'imputation', self._apply_imputation_unidata),
-            (data_has_categorical_features, 'encoding', self._apply_categorical_encoding)
-        ]:
-            self.log.debug(f'Deciding to apply {tag_to_check} for data')
-            if has_problems(data):
-                self.log.debug(f'Finding {tag_to_check} is required and trying to apply')
-                # Data contains missing values
-                has_tag = PipelineStructureExplorer.check_structure_by_tag(
-                    pipeline, tag_to_check=tag_to_check, source_name=source_name)
+        has_missing_values = data_has_missing_values(data)
+        has_categorical_features = data_has_categorical_features(data)
+        has_imputation_operation = has_missing_values and PipelineStructureExplorer.check_structure_by_tag(
+            pipeline, tag_to_check='imputation', source_name=source_name)
+        has_encoding_operation = has_categorical_features and PipelineStructureExplorer.check_structure_by_tag(
+            pipeline, tag_to_check='encoding', source_name=source_name)
+        optional_plan = build_optional_preprocessing_plan(
+            has_missing_values=has_missing_values,
+            has_categorical_features=has_categorical_features,
+            has_imputation_operation=has_imputation_operation,
+            has_encoding_operation=has_encoding_operation,
+        )
 
-                if not has_tag:
-                    data = action_if_no_tag(data, source_name)
+        if optional_plan.apply_imputation:
+            self.log.debug('Applying optional imputation for data')
+            data = self._apply_imputation_unidata(data, source_name)
+
+        if optional_plan.apply_encoding:
+            self.log.debug('Applying optional categorical encoding for data')
+            data = self._apply_categorical_encoding(data, source_name)
+
+        return data
 
     def _find_features_lacking_nans(self, data: InputData, source_name: str):
         """
@@ -475,11 +486,7 @@ class DataPreprocessor(BasePreprocessor):
         Returns:
             selected data source name
         """
-        # Choose data source node name with main target
-        if self.main_target_source_name is None:
-            return DEFAULT_SOURCE_NAME
-        else:
-            return self.main_target_source_name
+        return resolve_target_encoder_source_name(self.main_target_source_name, DEFAULT_SOURCE_NAME)
 
     @staticmethod
     def _correct_shapes(data: InputData) -> InputData:
