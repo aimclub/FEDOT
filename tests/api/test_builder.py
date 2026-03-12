@@ -4,6 +4,7 @@ from itertools import chain
 import pytest
 
 from fedot import Fedot, FedotBuilder
+from fedot.api.builder import DEFAULT_VALUE
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -70,3 +71,14 @@ def test_param_setters_has_all_api_parameters(fedot_builder_methods):
     fedot_api_all_params.discard('composer_tuner_params')
 
     assert builder_params == fedot_api_all_params
+
+
+
+def test_builder_preserves_previous_values_when_new_setup_uses_default_sentinel():
+    builder = FedotBuilder('classification')
+
+    builder.setup_composition(timeout=3, preset='fast_train')
+    builder.setup_composition(timeout=DEFAULT_VALUE)
+
+    assert builder.api_params['timeout'] == 3
+    assert builder.api_params['preset'] == 'fast_train'

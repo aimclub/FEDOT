@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Type, Union
 
 from golem.core.optimisers.optimizer import GraphOptimizer
 
+from fedot.api.builder_rules import build_fedot_kwargs, merge_builder_params
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.metrics_repository import MetricIDType
@@ -66,8 +67,7 @@ class FedotBuilder:
     def __update_params(self, **new_params):
         """ Saves all parameters set by user to the dictionary ``self.api_params``. """
 
-        new_params = {k: v for k, v in new_params.items() if v != DEFAULT_VALUE}
-        self.api_params.update(new_params)
+        self.api_params = merge_builder_params(self.api_params, new_params, DEFAULT_VALUE)
 
     def setup_composition(
             self,
@@ -468,4 +468,4 @@ class FedotBuilder:
         Returns:
             :class:`~fedot.api.main.Fedot` instance.
         """
-        return Fedot(**self.api_params)
+        return Fedot(**build_fedot_kwargs(self.api_params))
