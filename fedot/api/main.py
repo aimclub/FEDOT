@@ -13,6 +13,11 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
+from fedot.api.api_utils.api_service_rules import (
+    build_tune_execution_plan,
+    resolve_forecast_horizon,
+    resolve_predict_proba_mode,
+)
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.input_analyser import InputAnalyser
@@ -255,23 +260,29 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         with fedot_composer_timer.launch_tuning('post'):
-            if input_data is None:
-                input_data = self.train_data
+            tune_plan = build_tune_execution_plan(
+                input_data=input_data,
+                train_data=self.train_data,
+                requested_cv_folds=cv_folds,
+                default_cv_folds=self.params.get('cv_folds'),
+                requested_n_jobs=n_jobs,
+                default_n_jobs=self.params.n_jobs,
+                requested_metric=metric_name,
+                default_metric=self.metrics[0],
+            )
+            if input_data is not None:
+                tune_input_data = self.data_processor.define_data(features=tune_plan.input_data, target=target, is_predict=False)
             else:
-                input_data = self.data_processor.define_data(features=input_data, target=target, is_predict=False)
-            cv_folds = cv_folds or self.params.get('cv_folds')
-            n_jobs = n_jobs or self.params.n_jobs
-
-            metric = metric_name if metric_name else self.metrics[0]
+                tune_input_data = tune_plan.input_data
 
             pipeline_tuner = (TunerBuilder(self.params.task)
                               .with_tuner(SimultaneousTuner)
-                              .with_cv_folds(cv_folds)
-                              .with_n_jobs(n_jobs)
-                              .with_metric(metric)
+                              .with_cv_folds(tune_plan.cv_folds)
+                              .with_n_jobs(tune_plan.n_jobs)
+                              .with_metric(tune_plan.metric)
                               .with_iterations(iterations)
                               .with_timeout(timeout)
-                              .build(input_data))
+                              .build(tune_input_data))
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
@@ -346,7 +357,7 @@ class Fedot:
                 self.test_data = self.data_processor.define_data(target=self.target,
                                                                  features=features, is_predict=True)
 
-                mode = 'full_probs' if probs_for_all_classes else 'probs'
+                mode = resolve_predict_proba_mode(probs_for_all_classes)
 
                 self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
 
@@ -375,7 +386,7 @@ class Fedot:
         self._check_forecast_applicable()
 
         forecast_length = self.train_data.task.task_params.forecast_length
-        horizon = horizon or forecast_length
+        horizon = resolve_forecast_horizon(horizon, forecast_length)
         if pre_history is None:
             pre_history = self.train_data
             pre_history.target = None
