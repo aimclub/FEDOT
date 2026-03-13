@@ -15,6 +15,11 @@ from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.pipelines.pipeline_node_rules import (
+    merge_node_parameters,
+    normalize_node_parameters,
+    should_update_node_parameters,
+)
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL
 
@@ -124,7 +129,7 @@ class PipelineNode(LinkedGraphNode):
         """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
-        updated_parameters = {**self.parameters, **changed_parameters}
+        updated_parameters = merge_node_parameters(self.parameters, changed_parameters)
         self.parameters = updated_parameters
 
     @property
@@ -218,9 +223,7 @@ class PipelineNode(LinkedGraphNode):
                                                                descriptive_id=self.descriptive_id)
 
         # Update parameters after operation fitting (they can be corrected)
-        not_atomized_operation = 'atomized' not in self.operation.operation_type
-
-        if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
+        if should_update_node_parameters(self.operation.operation_type, self.operation.metadata.tags):
             self.update_params()
         return operation_predict
 
@@ -357,15 +360,9 @@ class PipelineNode(LinkedGraphNode):
         Args:
             params: new parameters to be placed instead of existing
         """
-        if params is not None:
-            # The check for "default_params" is needed for backward compatibility.
-            if params == DEFAULT_PARAMS_STUB:
-                params = {}
-            # take nested params if they appeared (mostly used for tuning)
-            if NESTED_PARAMS_LABEL in params:
-                params = params[NESTED_PARAMS_LABEL]
-            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
-            self.content['params'] = self._parameters.to_dict()
+        normalized_params = normalize_node_parameters(params, DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL)
+        self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **normalized_params)
+        self.content['params'] = self._parameters.to_dict()
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
