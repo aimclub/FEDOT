@@ -1,19 +1,26 @@
 import inspect
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib import import_module
-from typing import Any, Dict, Optional
-from sampling_zoo.core.api.api_main import SamplingStrategyFactory
-
+from typing import Any, Dict, Literal, Optional, Union
 import numpy as np
 import pandas as pd
 
 
 @dataclass
-class SamplingProviderResult:
+class SamplingSubsetResult:
     sample_indices: np.ndarray
-    sample_scores: Optional[np.ndarray]
-    meta: Dict[str, Any]
+    sample_scores: Optional[np.ndarray] = None
+    meta: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SamplingChunkingResult:
+    partitions: Dict[str, Any]
+    meta: Dict[str, Any] = field(default_factory=dict)
+
+
+SamplingProviderResult = Union[SamplingSubsetResult, SamplingChunkingResult]
 
 
 class SamplingProvider(ABC):
@@ -21,11 +28,12 @@ class SamplingProvider(ABC):
     def sample(self,
                features: np.ndarray,
                target: np.ndarray,
-               ratio: float,
                strategy: str,
                strategy_params: Dict[str, Any],
                random_state: Optional[int],
-               budget_seconds: Optional[float]) -> SamplingProviderResult:
+               budget_seconds: Optional[float],
+               strategy_kind: Optional[Literal['subset', 'chunking']] = None,
+               injectable_params: Optional[Dict[str, Any]] = None) -> SamplingProviderResult:
         pass
 
 
@@ -37,21 +45,49 @@ class SamplingZooProvider(SamplingProvider):
     )
 
     def __init__(self):
-        self._factory_cls = SamplingStrategyFactory
+        self._factory_cls = self._load_factory()
 
     def sample(self,
                features: np.ndarray,
                target: np.ndarray,
-               ratio: float,
                strategy: str,
                strategy_params: Dict[str, Any],
                random_state: Optional[int],
-               budget_seconds: Optional[float]) -> SamplingProviderResult:
+               budget_seconds: Optional[float],
+               strategy_kind: Optional[Literal['subset', 'chunking']] = None,
+               injectable_params: Optional[Dict[str, Any]] = None) -> SamplingProviderResult:
         del budget_seconds
-
-        n_rows = int(features.shape[0])
-        sample_size = max(1, int(round(ratio * n_rows)))
         factory = self._factory_cls()
+        if strategy_kind is None:
+            strategy_kind = self._resolve_strategy_kind(factory, strategy)
+
+        if strategy_kind == 'chunking':
+            return self._sample_chunking(factory=factory,
+                                         features=features,
+                                         target=target,
+                                         strategy=strategy,
+                                         strategy_params=strategy_params,
+                                         random_state=random_state)
+        elif strategy_kind == 'subset':
+            return self._sample_subset(factory=factory,
+                                       features=features,
+                                       target=target,
+                                       strategy=strategy,
+                                       strategy_params=strategy_params,
+                                       random_state=random_state,
+                                       injectable_params=injectable_params)
+        else:
+            raise ValueError(f'Unsupported sampling strategy kind: {strategy_kind}')
+
+    def _sample_subset(self,
+                       factory: Any,
+                       features: np.ndarray,
+                       target: np.ndarray,
+                       strategy: str,
+                       strategy_params: Dict[str, Any],
+                       random_state: Optional[int],
+                       injectable_params: Optional[Dict[str, Any]]) -> SamplingProviderResult:
+        n_rows = int(features.shape[0])
 
         strategy_kwargs = dict(strategy_params)
         if random_state is not None and 'random_state' not in strategy_kwargs:
@@ -61,8 +97,11 @@ class SamplingZooProvider(SamplingProvider):
             factory=factory,
             strategy_name=strategy,
             strategy_kwargs=strategy_kwargs,
-            sample_size=sample_size,
+            n_rows=n_rows,
+            injectable_params=injectable_params,
         )
+
+        sample_size = strategy_kwargs.get('sample_size') or n_rows
         strategy_obj = self._create_strategy(factory, strategy, strategy_kwargs)
 
         data_frame = pd.DataFrame(features)
@@ -82,12 +121,44 @@ class SamplingZooProvider(SamplingProvider):
         meta = {
             'provider': 'sampling_zoo',
             'strategy': strategy,
+            'strategy_kind': 'subset',
             'sample_size': sample_size,
             'strategy_kwargs': strategy_kwargs,
         }
 
-        return SamplingProviderResult(sample_indices=sampled,
-                                      sample_scores=sample_scores,
+        return SamplingSubsetResult(sample_indices=sampled,
+                                    sample_scores=sample_scores,
+                                    meta=meta)
+
+    def _sample_chunking(self,
+                         factory: Any,
+                         features: np.ndarray,
+                         target: np.ndarray,
+                         strategy: str,
+                         strategy_params: Dict[str, Any],
+                         random_state: Optional[int]) -> SamplingProviderResult:
+        strategy_kwargs = dict(strategy_params)
+        if random_state is not None and 'random_state' not in strategy_kwargs:
+            strategy_kwargs['random_state'] = random_state
+
+        data_frame = pd.DataFrame(features)
+        partitions = self._fit_transform_partitions(factory=factory,
+                                                    strategy=strategy,
+                                                    data_frame=data_frame,
+                                                    target=target,
+                                                    strategy_kwargs=strategy_kwargs)
+        if not isinstance(partitions, dict) or len(partitions) == 0:
+            raise ValueError('Chunking strategy did not return any partitions.')
+
+        meta = {
+            'provider': 'sampling_zoo',
+            'strategy': strategy,
+            'strategy_kind': 'chunking',
+            'strategy_kwargs': strategy_kwargs,
+            'n_partitions': len(partitions),
+        }
+
+        return SamplingChunkingResult(partitions=partitions,
                                       meta=meta)
 
     @staticmethod
@@ -237,6 +308,106 @@ class SamplingZooProvider(SamplingProvider):
         return np.concatenate(values)
 
     @staticmethod
+    def _extract_partitions(strategy_obj: Any,
+                            data_frame: pd.DataFrame,
+                            target: np.ndarray) -> Optional[Dict[str, Any]]:
+        get_partitions = getattr(strategy_obj, 'get_partitions', None)
+        if get_partitions is not None:
+            calls = (
+                lambda: get_partitions(data_frame, target),
+                lambda: get_partitions(data_frame),
+                lambda: get_partitions(),
+            )
+            for call in calls:
+                try:
+                    partitions = call()
+                    if isinstance(partitions, dict):
+                        return partitions
+                except TypeError:
+                    continue
+                except Exception:
+                    return None
+
+        for attr_name in ('partitions', 'partitions_'):
+            partitions = getattr(strategy_obj, attr_name, None)
+            if isinstance(partitions, dict):
+                return partitions
+        return None
+
+    def _fit_transform_partitions(self,
+                                  factory: Any,
+                                  strategy: str,
+                                  data_frame: pd.DataFrame,
+                                  target: np.ndarray,
+                                  strategy_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        fit_transform = getattr(factory, 'fit_transform', None)
+        if fit_transform is not None:
+            calls = (
+                lambda: fit_transform(strategy_type=strategy,
+                                      data=data_frame,
+                                      target=target,
+                                      strategy_kwargs=strategy_kwargs,
+                                      fit_kwargs={}),
+                lambda: fit_transform(strategy, data_frame, target, strategy_kwargs, {}),
+                lambda: fit_transform(strategy, data_frame, target, strategy_kwargs),
+                lambda: fit_transform(strategy, data_frame, target),
+                lambda: fit_transform(strategy, data_frame),
+            )
+            for call in calls:
+                try:
+                    partitions = call()
+                    if isinstance(partitions, dict):
+                        return partitions
+                except TypeError:
+                    continue
+                except Exception:
+                    break
+
+        strategy_obj = self._create_strategy(factory, strategy, strategy_kwargs)
+        self._fit_strategy(strategy_obj, data_frame, target)
+        partitions = self._extract_partitions(strategy_obj, data_frame, target)
+        if partitions is None or not isinstance(partitions, dict):
+            raise ValueError('Chunking strategy did not return partitions.')
+        return partitions
+
+    @staticmethod
+    def _resolve_strategy_kind(factory: Any,
+                               strategy: str) -> Literal['subset', 'chunking']:
+        is_chunking = getattr(factory, 'is_chunking_strategy', None)
+        if callable(is_chunking):
+            try:
+                if is_chunking(strategy):
+                    return 'chunking'
+            except Exception:
+                pass
+
+        is_subset = getattr(factory, 'is_subset_strategy', None)
+        if callable(is_subset):
+            try:
+                if is_subset(strategy):
+                    return 'subset'
+            except Exception:
+                pass
+
+        chunking_list = getattr(factory, 'get_chunking_strategies', None)
+        if callable(chunking_list):
+            try:
+                if strategy in chunking_list():
+                    return 'chunking'
+            except Exception:
+                pass
+
+        subset_list = getattr(factory, 'get_subset_strategies', None)
+        if callable(subset_list):
+            try:
+                if strategy in subset_list():
+                    return 'subset'
+            except Exception:
+                pass
+
+        return 'subset'
+
+    @staticmethod
     def _parse_partition_value(part_value: Any) -> Optional[np.ndarray]:
         if isinstance(part_value, np.ndarray) and part_value.ndim == 1 and np.issubdtype(part_value.dtype, np.number):
             return part_value.astype(int)
@@ -261,10 +432,14 @@ class SamplingZooProvider(SamplingProvider):
 
     @staticmethod
     def _inject_required_kwargs(factory: Any,
-                                strategy_name: str,
-                                strategy_kwargs: Dict[str, Any],
-                                sample_size: int) -> Dict[str, Any]:
+                               strategy_name: str,
+                               strategy_kwargs: Dict[str, Any],
+                               n_rows: int,
+                               injectable_params: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         updated_kwargs = dict(strategy_kwargs)
+        if injectable_params is None:
+            return updated_kwargs
+
         strategy_map = getattr(factory, 'strategy_map', None)
         strategy_cls = strategy_map.get(strategy_name) if isinstance(strategy_map, dict) else None
         if strategy_cls is None:
@@ -275,8 +450,10 @@ class SamplingZooProvider(SamplingProvider):
         except (TypeError, ValueError):
             return updated_kwargs
 
-        if 'sample_size' in signature.parameters and 'sample_size' not in updated_kwargs:
-            updated_kwargs['sample_size'] = sample_size
+        if 'sample_size' in signature.parameters \
+            and 'sample_size' not in updated_kwargs \
+            and injectable_params.get('ratio'):
+            updated_kwargs['sample_size'] = max(1, round(injectable_params.get('ratio') * n_rows))
 
         return updated_kwargs
 

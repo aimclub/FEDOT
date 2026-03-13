@@ -66,6 +66,7 @@ class BenchmarkRunConfig:
 
 def _default_sampling_config(seed: int) -> Dict[str, Any]:
     return {
+        'strategy_kind': 'subset',
         'provider': 'sampling_zoo',
         'strategy': 'random',
         'strategy_params': {},

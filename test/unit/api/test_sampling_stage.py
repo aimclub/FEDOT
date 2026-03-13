@@ -4,7 +4,7 @@ from sklearn.datasets import make_classification
 
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
-from fedot.api.sampling_stage.providers import SamplingProvider, SamplingProviderResult
+from fedot.api.sampling_stage.providers import SamplingProvider, SamplingSubsetResult
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -14,14 +14,15 @@ class FirstKProvider(SamplingProvider):
     def sample(self,
                features: np.ndarray,
                target: np.ndarray,
-               ratio: float,
                strategy: str,
                strategy_params,
                random_state,
-               budget_seconds):
+               budget_seconds,
+               strategy_kind='subset',
+               injectable_params=None):
         del target, strategy, strategy_params, random_state, budget_seconds
-        k = max(1, int(round(features.shape[0] * ratio)))
-        return SamplingProviderResult(
+        k = max(1, int(round(features.shape[0] * injectable_params['ratio'])))
+        return SamplingSubsetResult(
             sample_indices=np.arange(k, dtype=int),
             sample_scores=np.linspace(1.0, 0.0, num=k),
             meta={'provider': 'stub'}
@@ -32,15 +33,16 @@ class DuplicateProvider(SamplingProvider):
     def sample(self,
                features: np.ndarray,
                target: np.ndarray,
-               ratio: float,
                strategy: str,
                strategy_params,
                random_state,
-               budget_seconds):
-        del features, target, ratio, strategy, strategy_params, random_state, budget_seconds
-        return SamplingProviderResult(sample_indices=np.array([0, 0], dtype=int),
-                                      sample_scores=None,
-                                      meta={})
+               budget_seconds,
+               strategy_kind='subset',
+               injectable_params=None):
+        del features, target, strategy, strategy_params, random_state, budget_seconds, strategy_kind, injectable_params
+        return SamplingSubsetResult(sample_indices=np.array([0, 0], dtype=int),
+                                    sample_scores=None,
+                                    meta={})
 
 
 def _classification_input(n_samples: int = 120, n_features: int = 8) -> InputData:
@@ -57,16 +59,17 @@ def _classification_input(n_samples: int = 120, n_features: int = 8) -> InputDat
 
 def test_sampling_config_rejects_unknown_keys():
     with pytest.raises(ValueError, match='Unknown keys'):
-        validate_sampling_config({'unknown_key': 1})
+        validate_sampling_config({'strategy_kind': 'subset', 'unknown_key': 1})
 
 
 def test_sampling_config_rejects_non_fail_fast_mode():
     with pytest.raises(ValueError, match='fail_fast'):
-        validate_sampling_config({'error_policy': 'fallback'})
+        validate_sampling_config({'strategy_kind': 'subset', 'error_policy': 'fallback'})
 
 
 def test_dynamic_cap_budget_and_timeout_update():
     config = {
+        'strategy_kind': 'subset',
         'strategy': 'random',
         'candidate_ratios': [0.5],
         'delta_metric_threshold': 1.0,
@@ -89,6 +92,7 @@ def test_dynamic_cap_budget_and_timeout_update():
 def test_sampling_provider_contract_checks_indices_uniqueness():
     data = _classification_input()
     config = {
+        'strategy_kind': 'subset',
         'strategy': 'random',
         'candidate_ratios': [0.5],
         'delta_metric_threshold': 1.0,
@@ -105,6 +109,7 @@ def test_sampling_provider_contract_checks_indices_uniqueness():
 def test_effective_size_selection_on_deterministic_scores(monkeypatch):
     data = _classification_input()
     config = {
+        'strategy_kind': 'subset',
         'strategy': 'random',
         'candidate_ratios': [0.2, 0.5, 0.9],
         'delta_metric_threshold': 0.05,
@@ -133,6 +138,7 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
 def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
     data = _classification_input()
     config = {
+        'strategy_kind': 'subset',
         'provider': 'sampling_zoo',
         'strategy': 'random',
         'candidate_ratios': [0.5],
@@ -154,6 +160,7 @@ def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
 def test_sampling_config_respects_heavy_parameter_guards():
     with pytest.raises(ValueError, match='guard_max_sample_size'):
         validate_sampling_config({
+            'strategy_kind': 'subset',
             'strategy_params': {'sample_size': 1000},
             'guard_max_sample_size': 100,
         })
@@ -161,12 +168,13 @@ def test_sampling_config_respects_heavy_parameter_guards():
 
 def test_sampling_config_rejects_unsorted_candidate_ratios():
     with pytest.raises(ValueError, match='sorted in ascending order'):
-        validate_sampling_config({'candidate_ratios': [0.5, 0.2]})
+        validate_sampling_config({'strategy_kind': 'subset', 'candidate_ratios': [0.5, 0.2]})
 
 
 def test_dynamic_cap_for_infinite_timeout_uses_absolute_stage_cap():
     executor = SamplingStageExecutor(
         sampling_config={
+            'strategy_kind': 'subset',
             'strategy': 'random',
             'candidate_ratios': [0.5],
             'delta_metric_threshold': 1.0,
@@ -187,4 +195,4 @@ def test_sampling_config_rejects_non_dict_value():
 
 def test_sampling_config_rejects_invalid_validation_size_range():
     with pytest.raises(ValueError, match='validation_size'):
-        validate_sampling_config({'validation_size': 1.0})
+        validate_sampling_config({'strategy_kind': 'subset', 'validation_size': 1.0})

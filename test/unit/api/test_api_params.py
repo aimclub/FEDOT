@@ -96,7 +96,10 @@ def test_filter_params_correctly(input_params, case, correct_keys):
 
 def test_sampling_config_is_accepted_and_preserved():
     params_repository = get_api_params_repository(TaskTypesEnum.classification)
-    params = {'sampling_config': {'strategy': 'random', 'candidate_ratios': [0.2, 0.5], 'delta_metric_threshold': 0.05}}
+    params = {'sampling_config': {'strategy_kind': 'subset',
+                                  'strategy': 'random',
+                                  'candidate_ratios': [0.2, 0.5],
+                                  'delta_metric_threshold': 0.05}}
 
     output_params = params_repository.check_and_set_default_params(params)
 
@@ -109,4 +112,4 @@ def test_sampling_config_rejects_invalid_schema_in_api_params_repository():
     params_repository = get_api_params_repository(TaskTypesEnum.classification)
 
     with pytest.raises(ValueError, match='Unknown keys'):
-        params_repository.check_and_set_default_params({'sampling_config': {'unknown': 1}})
+        params_repository.check_and_set_default_params({'sampling_config': {'strategy_kind': 'subset', 'unknown': 1}})

@@ -32,11 +32,12 @@ from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData, OutputData, PathType
+from fedot.core.data.data import InputData, InputDataList, OutputData, PathType
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.pipelines.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -125,13 +126,13 @@ class Fedot:
         self.target: Optional[TargetType] = None
         self.prediction: Optional[OutputData] = None
         self._is_in_sample_prediction = True
-        self.train_data: Optional[InputData] = None
+        self.train_data: Optional[Union[InputData, InputDataList]] = None
         self.test_data: Optional[InputData] = None
 
         # Outputs
-        self.current_pipeline: Optional[Pipeline] = None
-        self.best_models: Sequence[Pipeline] = ()
-        self.history: Optional[OptHistory] = None
+        self.current_pipeline: Optional[Union[Pipeline, PipelineEnsemble]] = None
+        self.best_models: Sequence[Union[Pipeline, Sequence[Pipeline]]] = ()
+        self.history: Optional[Union[OptHistory, Sequence[OptHistory]]] = None
         self.sampling_stage_metadata: Optional[dict] = None
 
         fedot_composer_timer.reset_timer()
@@ -199,17 +200,21 @@ class Fedot:
                 elif fit_plan.should_run_sampling_stage:
                     self._run_sampling_stage_if_necessary()
 
-                with fedot_composer_timer.launch_fitting():
-                    if predefined_model is not None:
-                        # Fit predefined model and return it without composing
-                        self.current_pipeline = PredefinedModel(
-                            predefined_model, self.train_data, self.log,
-                            use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                            api_preprocessor=self.data_processor.preprocessor,
-                        ).fit()
+            with fedot_composer_timer.launch_fitting():
+                if predefined_model is not None:
+                    # Fit predefined model and return it without composing
+                    self.current_pipeline = PredefinedModel(
+                        predefined_model, self.train_data, self.log,
+                        use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                        api_preprocessor=self.data_processor.preprocessor,
+                    ).fit()
+                else:
+                    if isinstance(self.train_data, InputDataList):
+                        self.current_pipeline, self.best_models, self.history = \
+                            self.api_composer.obtain_ensemble_model(self.train_data)
                     else:
-                        self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
-                            self.train_data)
+                        self.current_pipeline, self.best_models, self.history = \
+                            self.api_composer.obtain_model(self.train_data)
 
                         if self.current_pipeline is None:
                             raise ValueError('No models were found')
@@ -226,16 +231,23 @@ class Fedot:
                             else:
                                 self.log.message('Already fitted initial pipeline is used')
 
-                # Merge API & pipelines encoders if it is required
-                self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-                    api_preprocessor=self.data_processor.preprocessor,
-                    pipeline_preprocessor=self.current_pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-                )
+            # Merge API & pipelines encoders if it is required
+            merged_preprocessor = BasePreprocessor.merge_preprocessors(
+                api_preprocessor=self.data_processor.preprocessor,
+                pipeline_preprocessor=self.current_pipeline.preprocessor,
+                use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+            )
+            self.current_pipeline.preprocessor = merged_preprocessor
+            if isinstance(self.current_pipeline, PipelineEnsemble):
+                for pipeline in self.current_pipeline.pipelines:
+                    pipeline.preprocessor = merged_preprocessor
 
+            if isinstance(self.current_pipeline, Pipeline):
                 self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+            else:
+                self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
 
-                return self.current_pipeline
+            return self.current_pipeline
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
@@ -348,6 +360,8 @@ class Fedot:
         """
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
+        if isinstance(self.current_pipeline, PipelineEnsemble):
+            raise ValueError('Tuning for pipeline ensembles is not supported yet.')
 
         with fedot_composer_timer.launch_tuning('post'):
             tune_plan = build_tune_execution_plan(
@@ -798,15 +812,18 @@ class Fedot:
         )
 
     def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
-                                        full_train_not_preprocessed: Union[InputData, MultiModalData]):
+                                        full_train_not_preprocessed: Union[InputData, InputDataList, MultiModalData]):
         """Applies training procedure for obtained pipeline if dataset was clipped
         """
 
         if recommendations is not None:
             # if data was cut we need to refit pipeline on full data
-            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                 {k: v for k, v in recommendations.items()
-                                                                  if k != 'cut'})
+            cleaned_recommendations = {k: v for k, v in recommendations.items() if k != 'cut'}
+            if isinstance(full_train_not_preprocessed, list):
+                for chunk_data in full_train_not_preprocessed:
+                    self.data_processor.accept_and_apply_recommendations(chunk_data, cleaned_recommendations)
+            else:
+                self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed, cleaned_recommendations)
         self.current_pipeline.fit(
             full_train_not_preprocessed,
             n_jobs=self.params.n_jobs

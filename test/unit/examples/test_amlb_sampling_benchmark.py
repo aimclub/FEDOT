@@ -74,6 +74,7 @@ def test_build_config_from_args_uses_15_min_default_and_sampling_values():
     config = _build_config_from_args(args)
 
     assert config.timeout_minutes_per_dataset == pytest.approx(15.0)
+    assert config.sampling_config['strategy_kind'] == 'subset'
     assert config.sampling_config['random_state'] == 7
     assert config.sampling_config['strategy'] == 'random'
     assert config.sampling_config['candidate_ratios'] == [0.2, 0.5]

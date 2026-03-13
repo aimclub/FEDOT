@@ -826,6 +826,9 @@ def process_target_and_features(data_frame: pd.DataFrame,
     return features, target
 
 
+InputDataList = list[InputData]
+
+
 def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
     return data.data_type is DataTypesEnum.table
 

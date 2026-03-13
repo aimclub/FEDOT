@@ -3,7 +3,7 @@ import pytest
 
 from fedot import Fedot
 from fedot.api.sampling_stage.executor import SamplingStageExecutor, SamplingStageOutput
-from fedot.api.sampling_stage.providers import SamplingProvider, SamplingProviderResult
+from fedot.api.sampling_stage.providers import SamplingProvider, SamplingSubsetResult
 from fedot.core.repository.tasks import TsForecastingParams
 from test.data.datasets import get_dataset
 
@@ -12,12 +12,13 @@ class StratifiedStubProvider(SamplingProvider):
     def sample(self,
                features: np.ndarray,
                target: np.ndarray,
-               ratio: float,
                strategy: str,
                strategy_params,
                random_state,
-               budget_seconds):
-        del features, strategy, strategy_params, budget_seconds
+               budget_seconds,
+               strategy_kind='subset',
+               injectable_params=None):
+        del features, strategy, strategy_params, budget_seconds, strategy_kind
         rng = np.random.default_rng(random_state)
         indices = []
 
@@ -29,9 +30,9 @@ class StratifiedStubProvider(SamplingProvider):
             indices.extend(picked.tolist())
 
         indices = np.array(sorted(set(indices)), dtype=int)
-        return SamplingProviderResult(sample_indices=indices,
-                                      sample_scores=None,
-                                      meta={'provider': 'stratified_stub'})
+        return SamplingSubsetResult(sample_indices=indices,
+                                    sample_scores=None,
+                                    meta={'provider': 'stratified_stub'})
 
 
 def test_fit_with_sampling_config_none_preserves_default_behavior():
@@ -63,6 +64,7 @@ def test_fit_with_sampling_enabled_reduces_train_size_and_exposes_metadata(monke
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
@@ -84,6 +86,7 @@ def test_fail_fast_for_unsupported_ts_task_with_sampling_stage():
                   timeout=0.1,
                   task_params=TsForecastingParams(forecast_length=5),
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
                       'delta_metric_threshold': 0.1,
@@ -106,6 +109,7 @@ def test_fail_fast_when_sampling_provider_dependency_missing(monkeypatch):
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
@@ -135,6 +139,7 @@ def test_sampling_stage_does_not_persist_timeout_mutation(monkeypatch):
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
@@ -160,6 +165,7 @@ def test_sampling_stage_skipped_when_predefined_model(monkeypatch):
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
@@ -183,6 +189,7 @@ def test_fail_fast_for_multimodal_input_with_sampling_stage():
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],
@@ -216,6 +223,7 @@ def test_timeout_restored_after_sampling_stage_real_path(monkeypatch):
                   max_depth=1,
                   max_arity=2,
                   sampling_config={
+                      'strategy_kind': 'subset',
                       'provider': 'sampling_zoo',
                       'strategy': 'random',
                       'candidate_ratios': [0.8],

@@ -18,7 +18,8 @@ from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, InputDataList
+from fedot.core.pipelines.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
@@ -113,6 +114,23 @@ class ApiComposer:
 
         self.log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
+
+    def obtain_ensemble_model(self, train_data_list: InputDataList) -> \
+            Tuple[PipelineEnsemble, Sequence[Sequence[Pipeline]], List[OptHistory]]:
+        pipelines: List[Pipeline] = []
+        best_models: List[Sequence[Pipeline]] = []
+        histories: List[OptHistory] = []
+
+        for chunk_data in train_data_list:
+            pipeline, best_pipeline_candidates, history = self.obtain_model(chunk_data)
+            if pipeline is None:
+                raise ValueError('No models were found for one of the chunks')
+            pipelines.append(pipeline)
+            best_models.append(best_pipeline_candidates)
+            histories.append(history)
+
+        ensemble = PipelineEnsemble(pipelines)
+        return ensemble, best_models, histories
 
     def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
         """ Method for obtaining and fitting initial assumption"""

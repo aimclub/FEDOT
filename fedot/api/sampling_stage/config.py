@@ -1,16 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Literal, Optional, Sequence, Tuple, Union
 
 
 @dataclass(frozen=True)
-class SamplingConfig:
+class SamplingConfigBase:
+    strategy_kind: Literal['subset', 'chunking']
     provider: str = 'sampling_zoo'
     strategy: str = 'random'
     strategy_params: Dict[str, Any] = field(default_factory=dict)
-    candidate_ratios: Tuple[float, ...] = (0.15, 0.2, 0.3, 0.5, 0.7)
-    delta_metric_threshold: float = 0.03
-    delta_type: str = 'relative'
-    validation_size: float = 0.2
     budget_policy: str = 'dynamic_cap'
     cap_max_timeout_share: float = 0.35
     min_automl_time_minutes: float = 0.1
@@ -18,10 +15,53 @@ class SamplingConfig:
     error_policy: str = 'fail_fast'
     artifact_mode: str = 'minimal'
     random_state: Optional[int] = 42
+
+
+@dataclass(frozen=True)
+class SamplingSubsetConfig(SamplingConfigBase):
+    candidate_ratios: Tuple[float, ...] = (0.15, 0.2, 0.3, 0.5, 0.7)
+    delta_metric_threshold: float = 0.03
+    delta_type: str = 'relative'
+    validation_size: float = 0.2
     guard_max_rank: int = 256
     guard_max_modes: int = 4
-    guard_max_partitions: int = 128
     guard_max_sample_size: int = 100000
+
+
+@dataclass(frozen=True)
+class SamplingChunkingConfig(SamplingConfigBase):
+    guard_max_partitions: int = 128
+
+
+SamplingConfig = Union[SamplingSubsetConfig, SamplingChunkingConfig]
+
+_BASE_KEYS = {
+    'strategy_kind',
+    'provider',
+    'strategy',
+    'strategy_params',
+    'budget_policy',
+    'cap_max_timeout_share',
+    'min_automl_time_minutes',
+    'infinite_timeout_cap_minutes',
+    'error_policy',
+    'artifact_mode',
+    'random_state',
+}
+
+_SUBSET_KEYS = {
+    'candidate_ratios',
+    'delta_metric_threshold',
+    'delta_type',
+    'validation_size',
+    'guard_max_rank',
+    'guard_max_modes',
+    'guard_max_sample_size',
+}
+
+_CHUNKING_KEYS = {
+    'guard_max_partitions',
+}
 
 
 def validate_sampling_config(config: Optional[Dict[str, Any]]) -> Optional[SamplingConfig]:
@@ -30,36 +70,30 @@ def validate_sampling_config(config: Optional[Dict[str, Any]]) -> Optional[Sampl
     if not isinstance(config, dict):
         raise ValueError('"sampling_config" must be a dictionary or None.')
 
-    allowed_keys = {
-        'provider',
-        'strategy',
-        'strategy_params',
-        'candidate_ratios',
-        'delta_metric_threshold',
-        'delta_type',
-        'validation_size',
-        'budget_policy',
-        'cap_max_timeout_share',
-        'min_automl_time_minutes',
-        'infinite_timeout_cap_minutes',
-        'error_policy',
-        'artifact_mode',
-        'random_state',
-        'guard_max_rank',
-        'guard_max_modes',
-        'guard_max_partitions',
-        'guard_max_sample_size',
-    }
+    strategy_kind = config.get('strategy_kind')
+    if strategy_kind is None:
+        raise ValueError('"sampling_config.strategy_kind" must be provided.')
+    if strategy_kind not in ('subset', 'chunking'):
+        raise ValueError('"sampling_config.strategy_kind" must be "subset" or "chunking".')
+
+    allowed_keys = _BASE_KEYS | (_SUBSET_KEYS if strategy_kind == 'subset' else _CHUNKING_KEYS)
     unknown_keys = set(config.keys()) - allowed_keys
     if unknown_keys:
         raise ValueError(f'Unknown keys in "sampling_config": {sorted(unknown_keys)}')
 
-    merged = SamplingConfig(**config)
-    _validate_sampling_config_values(merged)
+    if strategy_kind == 'subset':
+        merged = SamplingSubsetConfig(**config)
+        _validate_base_config_values(merged)
+        _validate_subset_config_values(merged)
+        return merged
+
+    merged = SamplingChunkingConfig(**config)
+    _validate_base_config_values(merged)
+    _validate_chunking_config_values(merged)
     return merged
 
 
-def _validate_sampling_config_values(config: SamplingConfig) -> None:
+def _validate_base_config_values(config: SamplingConfigBase) -> None:
     if not isinstance(config.provider, str) or not config.provider.strip():
         raise ValueError('"sampling_config.provider" must be a non-empty string.')
 
@@ -68,19 +102,6 @@ def _validate_sampling_config_values(config: SamplingConfig) -> None:
 
     if not isinstance(config.strategy_params, dict):
         raise ValueError('"sampling_config.strategy_params" must be a dictionary.')
-
-    ratios = _validate_ratios(config.candidate_ratios)
-    if ratios != tuple(config.candidate_ratios):
-        raise ValueError('"sampling_config.candidate_ratios" must be sorted in ascending order without duplicates.')
-
-    if config.delta_metric_threshold < 0:
-        raise ValueError('"sampling_config.delta_metric_threshold" must be >= 0.')
-
-    if config.delta_type not in {'relative', 'absolute'}:
-        raise ValueError('"sampling_config.delta_type" must be one of {"relative", "absolute"}.')
-
-    if not 0 < config.validation_size < 1:
-        raise ValueError('"sampling_config.validation_size" must be in range (0, 1).')
 
     if config.budget_policy != 'dynamic_cap':
         raise ValueError('"sampling_config.budget_policy" supports only "dynamic_cap" in V1.')
@@ -103,11 +124,32 @@ def _validate_sampling_config_values(config: SamplingConfig) -> None:
     if config.random_state is not None and not isinstance(config.random_state, int):
         raise ValueError('"sampling_config.random_state" must be int or None.')
 
-    for key in ('guard_max_rank', 'guard_max_modes', 'guard_max_partitions', 'guard_max_sample_size'):
+
+def _validate_subset_config_values(config: SamplingSubsetConfig) -> None:
+    ratios = _validate_ratios(config.candidate_ratios)
+    if ratios != tuple(config.candidate_ratios):
+        raise ValueError('"sampling_config.candidate_ratios" must be sorted in ascending order without duplicates.')
+
+    if config.delta_metric_threshold < 0:
+        raise ValueError('"sampling_config.delta_metric_threshold" must be >= 0.')
+
+    if config.delta_type not in {'relative', 'absolute'}:
+        raise ValueError('"sampling_config.delta_type" must be one of {"relative", "absolute"}.')
+
+    if not 0 < config.validation_size < 1:
+        raise ValueError('"sampling_config.validation_size" must be in range (0, 1).')
+
+    for key in ('guard_max_rank', 'guard_max_modes', 'guard_max_sample_size'):
         if getattr(config, key) <= 0:
             raise ValueError(f'"sampling_config.{key}" must be > 0.')
 
-    _validate_strategy_param_guards(config)
+    _validate_subset_strategy_param_guards(config)
+
+
+def _validate_chunking_config_values(config: SamplingChunkingConfig) -> None:
+    if config.guard_max_partitions <= 0:
+        raise ValueError('"sampling_config.guard_max_partitions" must be > 0.')
+    _validate_chunking_strategy_param_guards(config)
 
 
 def _validate_ratios(ratios: Sequence[float]) -> Tuple[float, ...]:
@@ -130,7 +172,7 @@ def _validate_ratios(ratios: Sequence[float]) -> Tuple[float, ...]:
     return tuple(sorted_ratios)
 
 
-def _validate_strategy_param_guards(config: SamplingConfig) -> None:
+def _validate_subset_strategy_param_guards(config: SamplingSubsetConfig) -> None:
     params = config.strategy_params
 
     for rank_key in ('rank', 'approx_rank'):
@@ -156,16 +198,19 @@ def _validate_strategy_param_guards(config: SamplingConfig) -> None:
                 f'"sampling_config.strategy_params.modes" exceeds guard_max_modes={config.guard_max_modes}.'
             )
 
-    for key in ('n_partitions', 'partitions', 'n_splits'):
-        value = params.get(key)
-        if value is not None and isinstance(value, int) and value > config.guard_max_partitions:
-            raise ValueError(
-                f'"sampling_config.strategy_params.{key}" exceeds guard_max_partitions={config.guard_max_partitions}.'
-            )
-
     sample_size = params.get('sample_size')
     if sample_size is not None and isinstance(sample_size, int) and sample_size > config.guard_max_sample_size:
         raise ValueError(
             f'"sampling_config.strategy_params.sample_size" exceeds guard_max_sample_size='
             f'{config.guard_max_sample_size}.'
         )
+
+
+def _validate_chunking_strategy_param_guards(config: SamplingChunkingConfig) -> None:
+    params = config.strategy_params
+    for key in ('n_partitions', 'partitions', 'n_splits'):
+        value = params.get(key)
+        if value is not None and isinstance(value, int) and value > config.guard_max_partitions:
+            raise ValueError(
+                f'"sampling_config.strategy_params.{key}" exceeds guard_max_partitions={config.guard_max_partitions}.'
+            )
