@@ -16,9 +16,10 @@ def test_api_params_repository_preserves_valid_sampling_config():
     repository = ApiParamsRepository(TaskTypesEnum.classification)
 
     result = repository.check_and_set_default_params({
-        'sampling_config': {'strategy': 'random', 'candidate_ratios': [0.2, 0.5]},
+        'sampling_config': {'strategy_kind': 'subset', 'strategy': 'random', 'candidate_ratios': [0.2, 0.5]},
     })
 
+    assert result['sampling_config']['strategy_kind'] == 'subset'
     assert result['sampling_config']['strategy'] == 'random'
     assert tuple(result['sampling_config']['candidate_ratios']) == (0.2, 0.5)
 

@@ -1,9 +1,15 @@
+from dataclasses import dataclass
+from typing import Dict, Optional
+
 import numpy as np
 import pytest
+from sklearn.ensemble import RandomForestClassifier
 
 from fedot import Fedot
 from fedot.api.sampling_stage.executor import SamplingStageExecutor, SamplingStageOutput
-from fedot.api.sampling_stage.providers import SamplingProvider, SamplingSubsetResult
+from fedot.api.sampling_stage.providers import SamplingProvider, SamplingSubsetResult, SamplingZooProvider
+from fedot.core.pipelines.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TsForecastingParams
 from test.data.datasets import get_dataset
 
@@ -25,7 +31,7 @@ class StratifiedStubProvider(SamplingProvider):
         target = np.asarray(target).reshape(-1)
         for label in np.unique(target):
             label_idx = np.where(target == label)[0]
-            k = max(1, int(round(len(label_idx) * ratio)))
+            k = max(1, int(round(len(label_idx) * injectable_params['ratio'])))
             picked = rng.choice(label_idx, size=min(k, len(label_idx)), replace=False)
             indices.extend(picked.tolist())
 
@@ -33,6 +39,201 @@ class StratifiedStubProvider(SamplingProvider):
         return SamplingSubsetResult(sample_indices=indices,
                                     sample_scores=None,
                                     meta={'provider': 'stratified_stub'})
+
+
+@dataclass(frozen=True)
+class StrategySpec:
+    name: str
+    kind: str
+    task_type: str
+    strategy_params: Dict[str, object]
+    skip_reason: Optional[str] = None
+
+
+SAMPLING_STRATEGY_SPECS = [
+    StrategySpec(
+        name='random',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={'n_partitions': 10},
+    ),
+    StrategySpec(
+        name='stratified',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={'n_partitions': 10},
+    ),
+    StrategySpec(
+        name='advanced_stratified',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={'n_partitions': 10},
+    ),
+    StrategySpec(
+        name='regression_stratified',
+        kind='chunking',
+        task_type='regression',
+        strategy_params={
+            'n_bins': 5,
+            'encode': 'ordinal',
+            'strategy': 'quantile',
+            'n_partitions': 10,
+            'use_advanced': True,
+        },
+    ),
+    StrategySpec(
+        name='temporal',
+        kind='chunking',
+        task_type='ts_forecasting',
+        strategy_params={},
+        skip_reason='Temporal strategies are not supported by sampling stage yet.',
+    ),
+    StrategySpec(
+        name='difficulty',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'difficulty_threshold': 0.5,
+            'difficulty_metric': 'f1',
+            'n_partitions': 10,
+            'problem': 'classification',
+            'model': RandomForestClassifier(n_estimators=10, random_state=42),
+            'chunks_percent': 50,
+        },
+    ),
+    StrategySpec(
+        name='uncertainty',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'uncertainty_threshold': 0.5,
+            'n_partitions': 10,
+            'problem': 'classification',
+            'model': RandomForestClassifier(n_estimators=10, random_state=42),
+            'chunks_percent': 50,
+        },
+    ),
+    StrategySpec(
+        name='balance',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'n_partitions': 10,
+            'balance_method': 'random',
+            'balancer_kwargs': {},
+        },
+    ),
+    StrategySpec(
+        name='feature_clustering',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'n_partitions': 10,
+            'method': 'kmeans',
+            'feature_engineering': False,
+        },
+    ),
+    StrategySpec(
+        name='tsne_clustering',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'n_components': 2,
+            'perplexity': 5,
+        },
+    ),
+    StrategySpec(
+        name='delaunay',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'n_partitions': 10,
+            'n_clusters': 2,
+            'emptiness_threshold': 0.1,
+            'dim_reduction_method': 'pca',
+            'dim_reduction_target': 2,
+        },
+    ),
+    StrategySpec(
+        name='hdbscan',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'min_cluster_size': 5,
+            'one_cluster': True,
+            'prob_threshold': 0.5,
+            'all_points': True,
+        },
+    ),
+    StrategySpec(
+        name='voronoi',
+        kind='chunking',
+        task_type='classification',
+        strategy_params={
+            'n_partitions': 10,
+            'emptiness_threshold': 0.1,
+        },
+    ),
+    StrategySpec(
+        name='spectral_leverage',
+        kind='subset',
+        task_type='classification',
+        strategy_params={},
+    ),
+    StrategySpec(
+        name='tensor_energy',
+        kind='subset',
+        task_type='classification',
+        strategy_params={},
+    ),
+    StrategySpec(
+        name='kernel',
+        kind='subset',
+        task_type='classification',
+        strategy_params={},
+    ),
+]
+
+
+def _sampling_zoo_available() -> bool:
+    try:
+        SamplingZooProvider().load_factory()
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+@pytest.fixture(scope='session')
+def sampling_zoo_available():
+    if not _sampling_zoo_available():
+        pytest.skip('Sampling Zoo dependency is not available.')
+
+
+@pytest.fixture(scope='session')
+def classification_train_data():
+    train_data, _, _ = get_dataset('classification', n_samples=10000, n_features=6, iris_dataset=False)
+    return train_data
+
+
+@pytest.fixture(scope='session')
+def regression_train_data():
+    train_data, _, _ = get_dataset('regression', n_samples=10000, n_features=6, iris_dataset=False)
+    return train_data
+
+
+def _build_sampling_config(spec: StrategySpec) -> Dict[str, object]:
+    config: Dict[str, object] = {
+        'strategy_kind': spec.kind,
+        'provider': 'sampling_zoo',
+        'strategy': spec.name,
+        'strategy_params': spec.strategy_params,
+    }
+    if spec.kind == 'subset':
+        config.update({
+            'candidate_ratios': [0.5],
+            'delta_metric_threshold': 1.0,
+        })
+    return config
 
 
 def test_fit_with_sampling_config_none_preserves_default_behavior():
@@ -198,6 +399,41 @@ def test_fail_fast_for_multimodal_input_with_sampling_stage():
 
     with pytest.raises(ValueError, match='InputData'):
         model.fit(features=data, target=target)
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+@pytest.mark.parametrize('spec', SAMPLING_STRATEGY_SPECS, ids=lambda spec: f'{spec.kind}:{spec.name}')
+def test_sampling_stage_runs_all_strategies(spec: StrategySpec,
+                                            sampling_zoo_available,
+                                            classification_train_data,
+                                            regression_train_data):
+    if spec.skip_reason:
+        pytest.skip(spec.skip_reason)
+
+    train_data = classification_train_data if spec.task_type == 'classification' else regression_train_data
+    sampling_config = _build_sampling_config(spec)
+
+    model = Fedot(problem=spec.task_type,
+                  timeout=0.2,
+                  preset='fast_train',
+                  max_depth=1,
+                  max_arity=2,
+                  sampling_config=sampling_config)
+
+    try:
+        pipeline = model.fit(features=train_data)
+    except (ModuleNotFoundError, ImportError) as exc:
+        pytest.skip(str(exc))
+
+    assert pipeline is not None
+    assert model.sampling_stage_metadata is not None
+    assert model.sampling_stage_metadata['status'] == 'applied'
+    if spec.kind == 'chunking':
+        assert isinstance(model.current_pipeline, PipelineEnsemble)
+        assert isinstance(model.train_data, list)
+    else:
+        assert isinstance(model.current_pipeline, Pipeline)
 
 
 def test_timeout_restored_after_sampling_stage_real_path(monkeypatch):

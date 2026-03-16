@@ -45,7 +45,7 @@ class SamplingZooProvider(SamplingProvider):
     )
 
     def __init__(self):
-        self._factory_cls = self._load_factory()
+        self._factory_cls = self.load_factory()
 
     def sample(self,
                features: np.ndarray,
@@ -457,7 +457,7 @@ class SamplingZooProvider(SamplingProvider):
 
         return updated_kwargs
 
-    def _load_factory(self):
+    def load_factory(self):
         for module_name in self._SAMPLING_MODULE_CANDIDATES:
             try:
                 module = import_module(module_name)

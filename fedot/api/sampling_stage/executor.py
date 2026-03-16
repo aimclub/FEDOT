@@ -134,7 +134,7 @@ class SamplingStageExecutor:
         timeout_after_stage = self._compute_updated_timeout(elapsed_seconds)
 
         metadata = {
-            'status': 'chunking',
+            'status': 'applied',
             'provider': self.config.provider,
             'strategy': self.config.strategy,
             'rows_before': int(len(train_data.idx)),
