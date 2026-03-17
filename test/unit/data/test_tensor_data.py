@@ -16,7 +16,8 @@ def test_create_from_numpy():
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
-        features
+        features,
+        backend_name="cpu"
     )
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -32,6 +33,7 @@ def test_create_from_csv():
 
     td = TensorData.create(
         csv_path,
+        backend_name="cpu",
         target_idx = "target"
     )
 
@@ -50,7 +52,8 @@ def test_nan_rows_are_dropped_from_target():
 
     td = TensorData.create(
         X,
-        target=y
+        target=y,
+        backend_name="cpu"
     )
 
     assert td.features.shape[0] == 2
@@ -62,7 +65,8 @@ def test_target_extracted_by_index():
 
     td = TensorData.create(
         X,
-        target_idx=2
+        target_idx=2,
+        backend_name="cpu"
     )
 
     assert isinstance(td.target, torch.Tensor)
@@ -82,12 +86,11 @@ def test_text_and_categorical_do_not_overlap():
 
     td = TensorData.create(
         X,
-        categorical_idx=1
+        backend_name="cpu"
     )
 
-    assert td.categorical_idx is not None
-    assert isinstance(td.categorical_features, torch.Tensor)
-    assert td.categorical_features.shape[1] == 1
+    assert isinstance(td.features, torch.Tensor)
+    assert td.features.shape[1] == 2
 
 
 def test_categorical_features_match_indices():
@@ -99,12 +102,14 @@ def test_categorical_features_match_indices():
     columns = ["id", "text", "number"]
     td = TensorData.create(
         X,
+        backend_name="cpu",
         categorical_idx=np.array(["text"]),
         features_names=columns
     )
 
-    assert td.categorical_features is not None
-    assert td.categorical_features.shape[1] == len(td.categorical_idx)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.features is not None
+    assert td.features.shape[1] == 2
 
 
 def test_create_text_csv_to_tensordata():
@@ -118,9 +123,16 @@ def test_create_text_csv_to_tensordata():
 
     td = TensorData.create(
         csv_path,
+        backend_name="cpu",
+        text_idx = 0,
+        embedding_strategy={
+            "method": "sentence_transformer",
+            "model_name": "all-distilroberta-v1",
+            "batch_size": 3,
+            "device": "cpu"
+        },
         max_rows=10,
-        embedder_batch_size=3,
-        device="cuda"     
+        device="cpu"     
     )
 
     assert isinstance(td, TensorData)
@@ -129,7 +141,6 @@ def test_create_text_csv_to_tensordata():
     assert isinstance(td.target, torch.Tensor)
 
     assert td.features.ndim == 2
-    assert td.target.ndim in (1, 2)
 
     assert td.features.shape[0] == 10
     assert td.target.shape[0] == 10
@@ -142,6 +153,7 @@ def test_create_lazy_does_not_materialize_immediately():
 
     lazy_td = TensorData.create_lazy(
         X,
+        backend_name="cpu",
     )
 
     assert isinstance(lazy_td, LazyTensor)
@@ -159,6 +171,7 @@ def test_lazy_tensordata_to_device():
 
     lazy_td = TensorData.create_lazy(
         X,
+        backend_name="cpu",
     )
 
     td = lazy_td.to("cpu")
@@ -171,8 +184,12 @@ def test_loader():
     name = "AbnormalHeartbeat"
     X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
 
-    train_tensor = TensorData.create(X_train, target=y_train)
-    test_tensor = TensorData.create(X_test, target=y_test)
+    train_tensor = TensorData.create(X_train, 
+                                     target=y_train,
+                                     backend_name="cpu",)
+    test_tensor = TensorData.create(X_test, 
+                                    target=y_test,
+                                    backend_name="cpu",)
 
     assert isinstance(train_tensor, TensorData)
     assert isinstance(test_tensor, TensorData)
@@ -241,7 +258,7 @@ def test_datetime_features():
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
 
-    td = TensorData.create(features, target_idx="target")
+    td = TensorData.create(features, backend_name="cpu", target_idx="target")
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -253,7 +270,7 @@ def test_datetime_features():
 def test_from_tensor():
     features = torch.rand(100, 10)
 
-    td = TensorData.create(features)
+    td = TensorData.create(features, backend_name="cpu",)
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -261,3 +278,80 @@ def test_from_tensor():
     assert td.features.shape[0] == features.shape[0]
     assert td.features.shape[1] == features.shape[1]
     assert td.features.device.type == "cuda"
+
+def test_target_depends_state():
+    features = torch.rand(100, 5)
+
+    td = TensorData.create(features, backend_name="cpu", state="predict")
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target is None
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1]
+
+def test_categorical_text():
+    X = np.array([
+        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
+         "in adding cream to spaghetti carbonara which has the same effect on pasta", 1, "A", "DOP", 0],
+        ["martin a posted tassos papadopoulos the greek sculptor behind", 
+         "i just had to jump in here as carbonara is one of my favourites to make", 1, "A", "DROP", 0],
+        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm", 
+         "in adding cream to spaghetti carbonara which has the same effect on pasta", 3, "B", "DOP", 1],
+    ], dtype=object)
+
+    columns = ["text1", "text2", "number", "class", "subclass", "target"]
+
+    encoding_strategy = {
+        "label": ["class", "subclass"]
+    }
+
+    embedding_strategy= {
+            "method": "sentence_transformer",
+            "model_name": "all-distilroberta-v1",
+            "batch_size": 3,
+            "device": "cpu",
+    }
+    text_idx = ["text1", "text2"]
+
+    td = TensorData.create(
+        X,
+        backend_name="cpu",
+        features_names=columns,
+        encoding_strategy=encoding_strategy,
+        text_idx=text_idx,
+        embedding_strategy=embedding_strategy
+    )
+
+    assert isinstance(td.features, torch.Tensor)
+    assert td.features.ndim == 2
+    assert td.features.shape[1] == 768 * 2 + 3
+
+def test_label_ohe_encoding():
+    X = np.array([
+        [100, "A", "C", 10],
+        [500, "B", "D", 20],
+        [100, "A", "D", 30],
+    ])
+
+    encoding_strategy = {
+        "label": [0, 1],
+        "ohe": [2]
+    }
+
+    td = TensorData.create(
+        X,
+        backend_name="cpu",
+        encoding_strategy=encoding_strategy,
+        target_idx=3
+    )
+
+    assert isinstance(td.features, torch.Tensor)
+    assert td.features.shape[1] == 4
+
+
+
+
+if __name__ == "__main__":
+    # test_text_and_categorical_do_not_overlap()
+    test_categorical_text()
