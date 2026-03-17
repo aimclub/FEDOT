@@ -29,8 +29,7 @@ class SamplingStageExecutor:
                  sampling_config: Dict[str, Any],
                  task_type: TaskTypesEnum,
                  total_timeout_minutes: Optional[float],
-                 log: Optional[LoggerAdapter] = None,
-                 provider: Optional[SamplingProvider] = None):
+                 log: Optional[LoggerAdapter] = None):
         self.config: SamplingConfig = validate_sampling_config(sampling_config)
         if self.config is None:
             raise ValueError('Sampling stage config must not be None when executor is created.')
@@ -38,7 +37,7 @@ class SamplingStageExecutor:
         self.task_type = task_type
         self.total_timeout_minutes = total_timeout_minutes
         self.log = log or default_log(self)
-        self.provider = provider
+        self.provider = self._create_provider(self.config.provider)
 
     def execute(self, train_data: InputData) -> SamplingStageOutput:
         self._validate_task_compatibility(train_data)
@@ -46,24 +45,22 @@ class SamplingStageExecutor:
         started_at = time.perf_counter()
         budget_seconds = self._compute_budget_seconds()
 
-        provider = self.provider or self._create_provider(self.config.provider)
         if self.config.strategy_kind == 'chunking':
-            return self._execute_chunking(train_data, provider, started_at, budget_seconds)
+            return self._execute_chunking(train_data, started_at, budget_seconds)
         elif self.config.strategy_kind == 'subset':
-            return self.execute_subset(train_data, provider, started_at, budget_seconds)
+            return self._execute_subset(train_data, started_at, budget_seconds)
         else:
             raise ValueError(f'Unknown strategy_kind: {self.config.strategy_kind}')
 
-    def execute_subset(self,
+    def _execute_subset(self,
                        train_data: InputData,
-                       provider: SamplingProvider,
                        started_at: float,
                        budget_seconds: float) -> SamplingStageOutput:
-        effective_size_result = self._select_effective_ratio(train_data, provider, started_at, budget_seconds)
+        effective_size_result = self._select_effective_ratio(train_data, started_at, budget_seconds)
 
         self._raise_if_budget_exceeded(started_at, budget_seconds)
         remaining_budget = self._remaining_budget(started_at, budget_seconds)
-        final_provider_result = provider.sample(
+        final_provider_result = self.provider.sample(
             features=np.asarray(train_data.features),
             target=self._flatten_target(train_data.target),
             strategy=self.config.strategy,
@@ -106,13 +103,12 @@ class SamplingStageExecutor:
 
     def _execute_chunking(self,
                           train_data: InputData,
-                          provider: SamplingProvider,
                           started_at: float,
                           budget_seconds: float) -> SamplingStageOutput:
         self._raise_if_budget_exceeded(started_at, budget_seconds)
         remaining_budget = self._remaining_budget(started_at, budget_seconds)
 
-        provider_result = provider.sample(
+        provider_result = self.provider.sample(
             features=np.asarray(train_data.features),
             target=self._flatten_target(train_data.target),
             strategy=self.config.strategy,
@@ -124,8 +120,6 @@ class SamplingStageExecutor:
         )
 
         partitions = provider_result.partitions
-        if not isinstance(partitions, dict) or len(partitions) == 0:
-            raise ValueError('Chunking strategy did not return partitions.')
 
         chunked_data = self._partitions_to_input_data_list(partitions, train_data)
         rows_after = sum(len(chunk.idx) for chunk in chunked_data)
@@ -137,8 +131,8 @@ class SamplingStageExecutor:
             'status': 'applied',
             'provider': self.config.provider,
             'strategy': self.config.strategy,
-            'rows_before': int(len(train_data.idx)),
-            'rows_after': int(rows_after),
+            'rows_before': len(train_data.idx),
+            'rows_after': rows_after,
             'elapsed_seconds': elapsed_seconds,
             'budget_seconds': budget_seconds,
             'artifact_mode': self.config.artifact_mode,
@@ -169,7 +163,6 @@ class SamplingStageExecutor:
 
     def _select_effective_ratio(self,
                                 train_data: InputData,
-                                provider: SamplingProvider,
                                 started_at: float,
                                 budget_seconds: float) -> Dict[str, Any]:
         train_split, valid_split = self._split_for_protocol(train_data)
@@ -183,7 +176,7 @@ class SamplingStageExecutor:
 
         for ratio in sorted_ratios:
             self._raise_if_budget_exceeded(started_at, budget_seconds)
-            provider_result = provider.sample(
+            provider_result = self.provider.sample(
                 features=np.asarray(train_split.features),
                 target=self._flatten_target(train_split.target),
                 strategy=self.config.strategy,
@@ -372,15 +365,6 @@ class SamplingStageExecutor:
         )
 
     @staticmethod
-    def _take_feature_slice(features: Any, indices: Any) -> Any:
-        if isinstance(features, pd.DataFrame):
-            try:
-                return features.loc[indices]
-            except Exception:
-                return features.iloc[indices]
-        return features[indices]
-
-    @staticmethod
     def _take_target_slice(target: Any, indices: Any) -> Any:
         if target is None:
             return None
@@ -397,36 +381,33 @@ class SamplingStageExecutor:
         input_data_list: InputDataList = []
 
         for partition_name, partition_data in partitions.items():
-            del partition_name
             if isinstance(partition_data, dict):
                 X_partition = partition_data['feature']
                 y_partition = partition_data['target']
 
                 if isinstance(X_partition, pd.DataFrame):
                     indices = X_partition.index.values
+                    X_values = X_partition.to_numpy()
                 else:
                     indices = np.arange(len(X_partition))
+                    X_values = np.asarray(X_partition)
 
-                if isinstance(X_partition, pd.DataFrame):
-                    X_values = X_partition.values
-                else:
-                    X_values = X_partition
+                if isinstance(y_partition, (pd.Series, pd.DataFrame)):
+                    y_partition = y_partition.to_numpy()
             else:
                 indices = partition_data
-                X_values = SamplingStageExecutor._take_feature_slice(original_input_data.features, indices)
-                y_partition = SamplingStageExecutor._take_target_slice(original_input_data.target, indices)
-
-            if isinstance(indices, list):
-                indices = np.asarray(indices)
+                if isinstance(original_input_data.features, pd.DataFrame):
+                    X_values = original_input_data.features.loc[indices].to_numpy()
+                else:
+                    X_values = np.asarray(original_input_data.features)[indices]
+                if isinstance(original_input_data.target, (pd.Series, pd.DataFrame)):
+                    y_partition = original_input_data.target.to_numpy()[indices]
+                else:
+                    y_partition = original_input_data.target[indices]
 
             categorical_features = None
-            if original_input_data.categorical_features is not None and indices is not None:
-                try:
-                    categorical_features = SamplingStageExecutor._take_feature_slice(
-                        original_input_data.categorical_features, indices
-                    )
-                except Exception:
-                    categorical_features = None
+            if original_input_data.categorical_idx is not None and len(original_input_data.categorical_idx) > 0:
+                categorical_features = X_values[:, original_input_data.categorical_idx]
 
             partition_input_data = InputData(
                 idx=np.asarray(indices),

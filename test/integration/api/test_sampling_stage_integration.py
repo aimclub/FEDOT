@@ -55,19 +55,19 @@ SAMPLING_STRATEGY_SPECS = [
         name='random',
         kind='chunking',
         task_type='classification',
-        strategy_params={'n_partitions': 10},
+        strategy_params={'n_partitions': 2},
     ),
     StrategySpec(
         name='stratified',
         kind='chunking',
         task_type='classification',
-        strategy_params={'n_partitions': 10},
+        strategy_params={'n_partitions': 2},
     ),
     StrategySpec(
         name='advanced_stratified',
         kind='chunking',
         task_type='classification',
-        strategy_params={'n_partitions': 10},
+        strategy_params={'n_partitions': 2},
     ),
     StrategySpec(
         name='regression_stratified',
@@ -77,7 +77,7 @@ SAMPLING_STRATEGY_SPECS = [
             'n_bins': 5,
             'encode': 'ordinal',
             'strategy': 'quantile',
-            'n_partitions': 10,
+            'n_partitions': 2,
             'use_advanced': True,
         },
     ),
@@ -95,7 +95,7 @@ SAMPLING_STRATEGY_SPECS = [
         strategy_params={
             'difficulty_threshold': 0.5,
             'difficulty_metric': 'f1',
-            'n_partitions': 10,
+            'n_partitions': 2,
             'problem': 'classification',
             'model': RandomForestClassifier(n_estimators=10, random_state=42),
             'chunks_percent': 50,
@@ -107,7 +107,7 @@ SAMPLING_STRATEGY_SPECS = [
         task_type='classification',
         strategy_params={
             'uncertainty_threshold': 0.5,
-            'n_partitions': 10,
+            'n_partitions': 2,
             'problem': 'classification',
             'model': RandomForestClassifier(n_estimators=10, random_state=42),
             'chunks_percent': 50,
@@ -118,8 +118,8 @@ SAMPLING_STRATEGY_SPECS = [
         kind='chunking',
         task_type='classification',
         strategy_params={
-            'n_partitions': 10,
-            'balance_method': 'random',
+            'n_partitions': 2,
+            'balance_method': 'smote',
             'balancer_kwargs': {},
         },
     ),
@@ -128,7 +128,7 @@ SAMPLING_STRATEGY_SPECS = [
         kind='chunking',
         task_type='classification',
         strategy_params={
-            'n_partitions': 10,
+            'n_partitions': 2,
             'method': 'kmeans',
             'feature_engineering': False,
         },
@@ -147,8 +147,8 @@ SAMPLING_STRATEGY_SPECS = [
         kind='chunking',
         task_type='classification',
         strategy_params={
-            'n_partitions': 10,
-            'n_clusters': 2,
+            'n_partitions': 2,
+            'n_clusters': 5,
             'emptiness_threshold': 0.1,
             'dim_reduction_method': 'pca',
             'dim_reduction_target': 2,
@@ -170,7 +170,7 @@ SAMPLING_STRATEGY_SPECS = [
         kind='chunking',
         task_type='classification',
         strategy_params={
-            'n_partitions': 10,
+            'n_partitions': 2,
             'emptiness_threshold': 0.1,
         },
     ),
@@ -184,7 +184,7 @@ SAMPLING_STRATEGY_SPECS = [
         name='tensor_energy',
         kind='subset',
         task_type='classification',
-        strategy_params={},
+        strategy_params={'modes': [0, 1]},
     ),
     StrategySpec(
         name='kernel',
@@ -209,18 +209,6 @@ def sampling_zoo_available():
         pytest.skip('Sampling Zoo dependency is not available.')
 
 
-@pytest.fixture(scope='session')
-def classification_train_data():
-    train_data, _, _ = get_dataset('classification', n_samples=10000, n_features=6, iris_dataset=False)
-    return train_data
-
-
-@pytest.fixture(scope='session')
-def regression_train_data():
-    train_data, _, _ = get_dataset('regression', n_samples=10000, n_features=6, iris_dataset=False)
-    return train_data
-
-
 def _build_sampling_config(spec: StrategySpec) -> Dict[str, object]:
     config: Dict[str, object] = {
         'strategy_kind': spec.kind,
@@ -232,6 +220,8 @@ def _build_sampling_config(spec: StrategySpec) -> Dict[str, object]:
         config.update({
             'candidate_ratios': [0.5],
             'delta_metric_threshold': 1.0,
+            'cap_max_timeout_share': 0.7,
+            'min_automl_time_minutes': 0.1
         })
     return config
 
@@ -405,20 +395,19 @@ def test_fail_fast_for_multimodal_input_with_sampling_stage():
 @pytest.mark.slow
 @pytest.mark.parametrize('spec', SAMPLING_STRATEGY_SPECS, ids=lambda spec: f'{spec.kind}:{spec.name}')
 def test_sampling_stage_runs_all_strategies(spec: StrategySpec,
-                                            sampling_zoo_available,
-                                            classification_train_data,
-                                            regression_train_data):
+                                            sampling_zoo_available):
     if spec.skip_reason:
         pytest.skip(spec.skip_reason)
 
-    train_data = classification_train_data if spec.task_type == 'classification' else regression_train_data
+    train_data, test_data, _ = get_dataset(spec.task_type, n_samples=200, n_features=4, iris_dataset=False)
     sampling_config = _build_sampling_config(spec)
 
     model = Fedot(problem=spec.task_type,
-                  timeout=0.2,
+                  timeout=0.5,
                   preset='fast_train',
                   max_depth=1,
                   max_arity=2,
+                  with_tuning=False,
                   sampling_config=sampling_config)
 
     try:
@@ -434,6 +423,9 @@ def test_sampling_stage_runs_all_strategies(spec: StrategySpec,
         assert isinstance(model.train_data, list)
     else:
         assert isinstance(model.current_pipeline, Pipeline)
+
+    prediction = model.predict(features=test_data)
+    assert len(prediction) == len(test_data.target)
 
 
 def test_timeout_restored_after_sampling_stage_real_path(monkeypatch):

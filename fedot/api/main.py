@@ -209,7 +209,7 @@ class Fedot:
                         api_preprocessor=self.data_processor.preprocessor,
                     ).fit()
                 else:
-                    if isinstance(self.train_data, InputDataList):
+                    if isinstance(self.train_data, list) and all(isinstance(x, InputData) for x in self.train_data):
                         self.current_pipeline, self.best_models, self.history = \
                             self.api_composer.obtain_ensemble_model(self.train_data)
                     else:

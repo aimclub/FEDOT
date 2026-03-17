@@ -1,5 +1,6 @@
 ﻿import datetime
 import gc
+import time
 from copy import deepcopy
 from typing import List, Optional, Sequence, Tuple, Union
 
@@ -120,8 +121,16 @@ class ApiComposer:
         pipelines: List[Pipeline] = []
         best_models: List[Sequence[Pipeline]] = []
         histories: List[OptHistory] = []
+        initial_timeout = self.params.timeout
+        started_at = time.perf_counter()
 
         for chunk_data in train_data_list:
+            if initial_timeout is not None:
+                elapsed_minutes = (time.perf_counter() - started_at) / 60.0
+                remaining_minutes = max(0.0, initial_timeout - elapsed_minutes)
+                remaining_chunks = max(1, len(train_data_list) - len(pipelines))
+                self.params.timeout = remaining_minutes / remaining_chunks
+
             pipeline, best_pipeline_candidates, history = self.obtain_model(chunk_data)
             if pipeline is None:
                 raise ValueError('No models were found for one of the chunks')
@@ -129,6 +138,7 @@ class ApiComposer:
             best_models.append(best_pipeline_candidates)
             histories.append(history)
 
+        self.params.timeout = initial_timeout
         ensemble = PipelineEnsemble(pipelines)
         return ensemble, best_models, histories
 

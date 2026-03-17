@@ -139,6 +139,11 @@ class ResampleImplementation(DataOperationImplementation):
             predict = transformed_data[:-1].transpose()
             target = transformed_data[-1]
 
+        if isinstance(target, np.ndarray) and target.dtype == object:
+            coerced = pd.to_numeric(target, errors='coerce')
+            if not np.any(pd.isna(coerced)):
+                target = np.asarray(coerced)
+
         output_data = OutputData(
             idx=np.arange(transformed_data.shape[1]),
             features=input_data.features,

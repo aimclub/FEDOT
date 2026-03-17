@@ -93,7 +93,9 @@ class PipelineEnsemble:
             if output_mode in ('probs', 'full_probs'):
                 return np.mean(prediction_stack, axis=0)
             if output_mode == 'default' and prediction_stack.ndim == 3:
-                return np.mean(prediction_stack, axis=0)
+                if prediction_stack.shape[-1] > 1:
+                    return np.mean(prediction_stack, axis=0)
+                prediction_stack = np.squeeze(prediction_stack, axis=-1)
             if prediction_stack.ndim == 3 and prediction_stack.shape[-1] == 1:
                 prediction_stack = np.squeeze(prediction_stack, axis=-1)
             return self._majority_vote(prediction_stack)
