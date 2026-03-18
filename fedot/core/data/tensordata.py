@@ -12,22 +12,21 @@ import cudf
 from dataclasses import dataclass, field
 from typing import Optional, Union, Dict, Any, Callable, Type, TypeAlias
 
-from golem.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-from fedot.core.data.tools import IndexType, TaskType, DataType
+from fedot.core.data.tools import IndexType, TaskType, DataType, StateEnum, TSOrientationEnum
 
 from fedot.core.data.data_tools import (
     get_device_from_str, is_existed_csv_path, get_values_from_df, 
     convert_idx_to_array, replace_missing_with_nan, get_target_and_features,
-    transform_to_tensor)
+    transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
+    encode_categorical_features)
 
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, ensure_backend
 from fedot.preprocessing.get_embeddings import get_text_embeddings
-from fedot.preprocessing.categorical_encoding import choose_categorical_encoding, encode_categorical_features
 from fedot.core.data.data import (autodetect_data_type)
 
 import logging
@@ -58,15 +57,73 @@ class LazyTensor:
         return f"LazyTensor(initialized={self._data is not None})"
 
 
-TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor, cp.ndarray]]
+TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray, LazyTensor, cp.ndarray]]
 
-class StateEnum(Enum):
-    FIT = 'fit'
-    PREDICT = 'predict'
 
-class TSOrientationEnum(Enum):
-    wide = 'wide'
-    long = 'long'
+@dataclass
+class LoadDataSpec:
+    data: TensorLike
+    backend_name: Union[str]
+
+    task: Optional[Union[Task, str]] = Task(TaskTypesEnum.classification)
+    data_type: Optional[Union[DataTypesEnum, str]] = DataTypesEnum.tabular
+
+    state: Union[str, StateEnum] = StateEnum.FIT
+
+    idx: IndexType = None
+    target: TensorLike = None
+    predict: TensorLike = None
+    target_idx: IndexType = None
+    target_encoder: Any = None
+    categorical_idx: IndexType = None
+    encoding_strategy: Optional[Union[str, Dict]] = None
+    text_idx: IndexType = None
+    embedding_strategy: Optional[Union[Dict]] = field(default_factory=dict)
+    features_names: IndexType = None
+
+    ts_orientation: Union[TSOrientationEnum, str] = None
+    ts_terms_idx: IndexType = None
+    ts_forecast_horizon: Optional[int] = None
+    ts_init_shape: Optional[int] = None
+
+    device: Union[torch.device, str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
+        "batch_size": 32,
+        "shuffle": True,
+        "num_workers": 0,
+        "drop_last": False
+    })
+
+    delimiter: str = ','
+    max_rows: Optional[int] = None
+    columns_to_drop: IndexType = None
+    index_col: IndexType = None
+    possible_idx_keywords: Optional[List[str]] = None
+
+    def to_tensor_data(self, features) -> "TensorData":
+        return TensorData(
+            features=features,
+            target=self.target,
+            task=self.task,
+            data_type=self.data_type,
+            state=self.state,
+            idx=self.idx,
+            predict=self.predict,
+            features_names=self.features_names,
+            target_idx=self.target_idx,
+            target_encoder=self.target_encoder,
+            categorical_idx=self.categorical_idx,
+            encoding_strategy=self.encoding_strategy,
+            text_idx=self.text_idx,
+            embedding_strategy=self.embedding_strategy,
+            ts_orientation=self.ts_orientation,
+            ts_terms_idx=self.ts_terms_idx,
+            ts_forecast_horizon=self.ts_forecast_horizon,
+            ts_init_shape=self.ts_init_shape,
+            device=self.device,
+            dataloader_kwargs=self.dataloader_kwargs,
+        )
 
 
 @dataclass
@@ -74,7 +131,7 @@ class TensorDataSpec:
     task: Union[Task, str]
     data_type: Union[DataTypesEnum, str]
 
-    state: Union[StateEnum, str]
+    state: Union[str, StateEnum] = StateEnum.FIT
 
     idx: IndexType = None
     features: TensorLike = None
@@ -83,6 +140,7 @@ class TensorDataSpec:
 
     features_names: IndexType = None
     target_idx: IndexType = None
+    target_encoder: Any = None
     categorical_idx: IndexType = None
     encoding_strategy: Optional[Union[str, Dict]] = None
     text_idx: IndexType = None
@@ -105,12 +163,13 @@ class TensorData:
     task: Union[Task, str]
     data_type: Union[DataTypesEnum, str]
 
-    state: str = 'fit'
+    state: Union[str, StateEnum] = StateEnum.FIT
     idx: IndexType = None
     features: TensorLike = None
     target: TensorLike = None
     predict: TensorLike = None
     target_idx: IndexType = None
+    target_encoder: Any = None
     categorical_idx: IndexType = None
     encoding_strategy: Optional[Union[str, Dict]] = None
     text_idx: IndexType = None
@@ -135,6 +194,9 @@ class TensorData:
     def __post_init__(self):
         self.device = get_device_from_str(self.device)
 
+        if isinstance(self.state, str):
+            self.state = StateEnum(self.state)
+
         if isinstance(self.task, str):
             self.task = Task(TaskTypesEnum(self.task))
 
@@ -142,11 +204,20 @@ class TensorData:
             self.data_type = DataTypesEnum(self.data_type)
 
         # TODO: if TS and tensors
-        if not isinstance(self.features, torch.Tensor):
+        if isinstance(self.features, torch.Tensor):
+            self.encoding_strategy = encode_torch_tensors(
+                self.features, 
+                self.encoding_strategy,
+                self.categorical_idx, 
+                self.state, 
+                self.features_names
+            )
+        else:
             self._post_init_raw()
         
         
         if self.device.type != Backend.device.type:
+
             self.features = self.features.to(self.device)
 
             if self.target is not None:
@@ -165,12 +236,15 @@ class TensorData:
 
         try:
             self.features = Backend.xp.array(self.features)
-        except:
-            raise ValueError(f"Fedot preprocessing doesn't support categorical data in gpu mode")
+        except Exception as e:
+            raise ValueError(f"Can't convert features to array: {e}")
 
         self.features = replace_missing_with_nan(self.features)
 
         if self.data_type == DataTypesEnum.ts:
+            if isinstance(self.ts_orientation, str):
+                self.ts_orientation = TSOrientationEnum(self.ts_orientation)
+
             self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
                                                         self.target,
                                                         self.features_names,
@@ -180,7 +254,7 @@ class TensorData:
                                                         self.ts_forecast_horizon)
 
         if self.data_type != DataTypesEnum.ts:
-            self.features, self.target = get_target_and_features(self.features,
+            self.features, self.target, self.target_encoder = get_target_and_features(self.features,
                                                                 self.target,
                                                                 self.features_names,
                                                                 self.target_idx,
@@ -194,7 +268,8 @@ class TensorData:
 
         # encoding categorical features
         encoding_decisions, non_cat_features = choose_categorical_encoding(
-            self.features, self.categorical_idx, self.encoding_strategy, self.features_names
+            self.features, self.categorical_idx, self.encoding_strategy, 
+            self.features_names, self.state
         )
         self.features, self.encoding_strategy = encode_categorical_features(
             self.features, encoding_decisions, non_cat_features
@@ -235,9 +310,11 @@ class TensorData:
     def create(cls, source_data, backend_name, **kwargs):
         ensure_backend(backend_name)
 
+        spec = LoadDataSpec(**kwargs)
+
         try:
             creator = cls._resolve_creator(source_data)
-            return creator(source_data, **kwargs)
+            return creator(source_data, spec)
         except Exception as e:
             raise ValueError(f"Error creating TensorData: {e}")
 
@@ -247,8 +324,10 @@ class TensorData:
 
         creator = cls._resolve_creator(source_data)
 
+        spec = LoadDataSpec(**kwargs)
+
         def _create():
-            return creator(source_data, **kwargs)
+            return creator(source_data, spec)
 
         return LazyTensor(_create)
 
@@ -310,15 +389,16 @@ class TensorData:
 def from_torch(features: torch.Tensor,
                target: Optional[torch.Tensor] = None,
                task: TaskType = Task(TaskTypesEnum.classification),
+               categorical_idx: IndexType = None,
+               encoding_strategy: Optional[Dict] = None,
                state: str = 'fit',
                data_type: DataType = None,
                device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-               backend_name: Optional[str] = "cpu",
                dataloader_kwargs = None,) -> TensorData:
 
-    # ensure_backend(backend_name)
-
-    return TensorData(features=features, target=target, task=task, state=state,
+    return TensorData(features=data, target=target, task=task, 
+                      categorical_idx=categorical_idx, 
+                      encoding_strategy=encoding_strategy, state=state,
                       data_type=data_type, device=device,
                       dataloader_kwargs=dataloader_kwargs)
 
@@ -337,9 +417,12 @@ def from_numpy(features: np.ndarray,
                encoding_strategy: Optional[Union[str, Dict]] = None,
                text_idx: IndexType = None,
                embedding_strategy: Dict = {},
+               ts_orientation: Union[TSOrientationEnum, str] = None,
+               ts_terms_idx: IndexType = None,
+               ts_forecast_horizon: int = None,
                device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                dataloader_kwargs = None,
-               backend_name: Optional[str] = "cpu") -> TensorData:
+    ) -> TensorData:
     
     # ensure_backend(backend_name)
 
@@ -350,7 +433,7 @@ def from_numpy(features: np.ndarray,
         target_idx = target.copy()
         target = None
     
-    data = TensorData(
+    return TensorData(
         features=features,
         target=target,
         features_names=features_names,
@@ -359,14 +442,15 @@ def from_numpy(features: np.ndarray,
         encoding_strategy=encoding_strategy,
         text_idx=text_idx,
         embedding_strategy=embedding_strategy,
+        ts_orientation=ts_orientation,
+        ts_terms_idx=ts_terms_idx,
+        ts_forecast_horizon=ts_forecast_horizon,
         task=task,
         state=state,
         data_type=data_type,
         device=device,
         dataloader_kwargs=dataloader_kwargs,
     )
-
-    return data
 
 
 @TensorData.register_creator(
@@ -382,6 +466,9 @@ def from_pandas(
     encoding_strategy: Optional[str] = None,
     text_idx: IndexType = None,
     embedding_strategy: Optional[str] = None,
+    ts_orientation: Union[TSOrientationEnum, str] = None,
+    ts_terms_idx: IndexType = None,
+    ts_forecast_horizon: int = None,
     data_type: DataType = DataTypesEnum.table,
     device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     backend_name: Optional[str] = "cpu",
@@ -407,6 +494,9 @@ def from_pandas(
         encoding_strategy=encoding_strategy,
         text_idx=text_idx,
         embedding_strategy=embedding_strategy,
+        ts_orientation=ts_orientation,
+        ts_terms_idx=ts_terms_idx,
+        ts_forecast_horizon=ts_forecast_horizon,
         data_type=data_type,
         features_names=features_names,
         device=device,
@@ -480,19 +570,12 @@ def from_csv_tsv(
     lambda x: isinstance(x, str) and x.endswith(".arff")
 )
 def from_arff(
-    file_path: str,
-    task: TaskType = TaskTypesEnum.ts_forecasting,
-    state: str = 'fit',
-    data_type: DataType = DataTypesEnum.ts,
-    target_idx: IndexType = None,
-    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-    backend_name: Optional[str] = "cpu",
-    dataloader_kwargs: Optional[Dict[str, Any]] = None
+    source, backend_name: str, load_data_spec: LoadDataSpec
 ) -> TensorData:
     
     # ensure_backend(backend_name)
 
-    features, target = read_arff_file(file_path, target_idx=target_idx)
+    features, target = read_arff_file(source, target_idx=load_data_spec.target_idx)
 
     return TensorData(
         features=features,

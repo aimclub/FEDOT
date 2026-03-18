@@ -4,11 +4,12 @@ import numpy as np
 from typing import Optional, Union, List, Tuple, Dict, Any
 
 from fedot.core.backend.backend import Backend
-from golem.utilities.data_structures import ComparableEnum as Enum
-from dataclasses import dataclass, field
+
+from fedot.core.data.tools import StateEnum
+from fedot.preprocessing.categorical_encoding import (LabelEncoder, 
+    OneHotEncoder, EncodingStrategyEnum, CategoricalEncodingDecision)
 
 import torch
-from torch import Tensor
 
 import logging
 
@@ -162,6 +163,166 @@ def get_idx_from_features_names(idx, features_names):
             return xp.array([xp.where(features_names == name)[0][0] for name in idx])
     except Exception:
         raise ValueError(f"Failed to get index from features names: {idx}")
+    
+
+def encode_target(target):
+    """
+    Encode categorical target values and ensure numeric dtype.
+    """
+
+    if target is None or target.shape[0] == 0:
+        return target, None
+    
+    encoder = LabelEncoder()
+    target = encoder.fit_transform(target, [0])
+
+    return target, encoder
+
+
+def force_categorical_determination(table):
+    """Find string columns using a unified approach for CPU/GPU backends."""
+    pd_backend = Backend.pd
+
+    categorical_ids = []
+
+    for column_id, column in enumerate(table.T):
+        series = pd_backend.Series(column)
+        if str(series.dtype) in ("object", "string"):
+            categorical_ids.append(column_id)
+
+    if len(categorical_ids) == 0:
+        return None
+
+    categorical_ids = convert_idx_to_array(categorical_ids)
+    return categorical_ids
+
+
+def process_user_stratedy_encoding(strategy: Union[Dict, CategoricalEncodingDecision], features_names):
+
+    if isinstance(strategy, CategoricalEncodingDecision):
+        return [strategy]
+
+    strategy_list = []
+
+    for strategy_name, idx in strategy.items():
+        idx = convert_idx_to_array(idx)
+        idx = get_idx_from_features_names(idx, features_names)
+        strategy_list.append(
+            CategoricalEncodingDecision(idx, EncodingStrategyEnum(strategy_name))
+        )
+
+    return strategy_list
+
+
+def choose_categorical_encoding(
+    data,
+    categorical_idx=None,
+    user_strategy=None,
+    features_names=None,
+    state: StateEnum = StateEnum.FIT
+) -> List[CategoricalEncodingDecision]:
+    
+    xp = Backend.xp
+    
+    if state == StateEnum.FIT:
+
+        if isinstance(user_strategy, Dict) or isinstance(user_strategy, CategoricalEncodingDecision):
+            decisions = process_user_stratedy_encoding(user_strategy, features_names)
+            categorical_idx = xp.array(
+                [col for dec in decisions for col in dec.categorical_columns]
+            )
+            non_categorical_idx = xp.setdiff1d(xp.arange(data.shape[1]), categorical_idx)
+            return decisions, non_categorical_idx
+
+        elif user_strategy is not None:
+            raise ValueError(f"User encoding strategy must be Dict or CategoricalEncodingDecision, got {type(user_strategy)}")
+
+        if categorical_idx is not None:
+            categorical_idx = get_idx_from_features_names(categorical_idx, features_names)
+        else:
+            categorical_idx = force_categorical_determination(data)
+
+        if categorical_idx is None:
+            return None, xp.arange(data.shape[1])
+
+        non_categorical_idx = xp.setdiff1d(xp.arange(data.shape[1]), categorical_idx)
+        strategy = (
+            EncodingStrategyEnum(user_strategy)
+            if user_strategy is not None
+            else EncodingStrategyEnum.label
+        )
+
+        decisions = [CategoricalEncodingDecision(categorical_idx, strategy)]
+    
+    else:
+        decisions = user_strategy
+        categorical_idx = xp.array(
+            [col for dec in decisions for col in dec.categorical_columns]
+        )
+
+    non_categorical_idx = xp.setdiff1d(xp.arange(data.shape[1]), categorical_idx)
+    
+    return decisions, non_categorical_idx
+
+
+def apply_categorical_encoding(data, decision):
+
+    if decision.categorical_columns is None:
+        return data, decision
+    
+    if decision.encoder is not None:
+        features = decision.encoder.transform(data)
+        return features, decision
+
+    if decision.strategy == EncodingStrategyEnum.label:
+        decision.encoder = LabelEncoder()
+        features = decision.encoder.fit_transform(data, decision.categorical_columns)
+
+    elif decision.strategy == EncodingStrategyEnum.ohe:
+        decision.encoder = OneHotEncoder()
+        features = decision.encoder.fit_transform(data, decision.categorical_columns)
+
+    return features, decision
+
+
+def encode_categorical_features(data, decisions, non_categorical_idx):
+    xp = Backend.xp
+
+    if decisions is None:
+        return data, None
+
+    result_data = data[:, non_categorical_idx].copy()
+    new_decisions = []
+
+    for dec in decisions:
+        encoded_features, dec_new = apply_categorical_encoding(data, dec)
+        result_data = xp.hstack((result_data, encoded_features))
+        new_decisions.append(dec_new)
+
+    return result_data, new_decisions
+
+
+def encode_torch_tensors(features, user_strategy, categorical_idx, state: StateEnum = StateEnum.FIT, features_names=None):
+
+    if (user_strategy is None) and (categorical_idx is None):
+        return features, None
+
+    xp = Backend.xp
+
+    categorical_idx = convert_idx_to_array(categorical_idx)
+    features_names = convert_idx_to_array(features_names)
+
+    features = xp.asarray(features)
+
+    decisions, non_categorical_idx = choose_categorical_encoding(
+        features, categorical_idx, user_strategy, features_names, state
+    )
+
+    features, decisions = encode_categorical_features(features, decisions, non_categorical_idx)
+
+    features = to_tensor(features, dtype=torch.float32)
+
+    return features, decisions
 
 
 def get_target_and_features(
@@ -169,12 +330,12 @@ def get_target_and_features(
     target,
     features_names,
     target_idx: Optional[Union[int, np.ndarray]],
-    state: Optional[str],
+    state: StateEnum = StateEnum.FIT,
 ):
     """Function for getting target and features from numpy array"""
     xp = Backend.xp
 
-    if state == "fit":
+    if state == StateEnum.FIT:
         if target is not None:
             target = xp.array(target)
         else:
@@ -189,14 +350,14 @@ def get_target_and_features(
 
         # TODO: replece encode target
         target = atleast_n_dimensions(target, 2)
-        target = encode_target(target)
         target = replace_missing_with_nan(target)
+        target, target_encoder = encode_target(target)
 
         features, target = _drop_rows_with_nan_in_target(features, target)
 
-        return features, target
+        return features, target, target_encoder
 
-    return features, None
+    return features, None, None
 
 
 
@@ -231,41 +392,3 @@ def to_tensor(array, dtype=None):
 
     array = array.astype(xp.float64)
     return torch.tensor(array, dtype=dtype, device=device)
-
-
-# TODO: replece it
-def encode_target(target):
-    """
-    Encode categorical target values and ensure numeric dtype.
-    """
-    xp = Backend.xp
-
-    if target is None or target.shape[0] == 0:
-        return target
-
-    target = xp.asarray(target)
-
-    if target.dtype.kind in {"U", "S"}:
-        target_flat = target.flatten()
-        _, codes = xp.unique(target_flat, return_inverse=True)
-        codes = codes.astype(xp.int64)
-        return codes.reshape(-1, 1)
-
-    if target.dtype == object:
-        if isinstance(target.flat[0], str):
-            target_flat = target.flatten()
-            _, codes = xp.unique(target_flat, return_inverse=True)
-            return codes.astype(xp.int64).reshape(-1, 1)
-
-        try:
-            return target.astype(xp.int64)
-        except Exception:
-            return target.astype(xp.float32)
-
-    if target.dtype.kind in {"i", "u"}:
-        return target.astype(xp.int64)
-
-    if target.dtype.kind == "f":
-        return target.astype(xp.float32)
-
-    return target
