@@ -10,12 +10,12 @@ from pathlib import Path
 import pandas as pd
 import cudf
 from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, Callable, Type, TypeAlias
+from typing import Optional, Union, Dict, Any, Callable, TypeAlias
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-from fedot.core.data.tools import IndexType, TaskType, DataType, StateEnum, TSOrientationEnum
+from fedot.core.data.tools import IndexType, StateEnum, TSOrientationEnum
 
 from fedot.core.data.data_tools import (
     get_device_from_str, is_existed_csv_path, get_values_from_df, 
@@ -62,8 +62,6 @@ TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray, Laz
 
 @dataclass
 class LoadDataSpec:
-    data: TensorLike
-    backend_name: Union[str]
 
     task: Optional[Union[Task, str]] = Task(TaskTypesEnum.classification)
     data_type: Optional[Union[DataTypesEnum, str]] = DataTypesEnum.tabular
@@ -124,34 +122,6 @@ class LoadDataSpec:
             device=self.device,
             dataloader_kwargs=self.dataloader_kwargs,
         )
-
-
-@dataclass
-class TensorDataSpec:
-    task: Union[Task, str]
-    data_type: Union[DataTypesEnum, str]
-
-    state: Union[str, StateEnum] = StateEnum.FIT
-
-    idx: IndexType = None
-    features: TensorLike = None
-    target: TensorLike = None
-    predict: TensorLike = None
-
-    features_names: IndexType = None
-    target_idx: IndexType = None
-    target_encoder: Any = None
-    categorical_idx: IndexType = None
-    encoding_strategy: Optional[Union[str, Dict]] = None
-    text_idx: IndexType = None
-    embedding_strategy: Optional[Union[Dict]] = field(default_factory=dict)
-
-    ts_orientation: Union[TSOrientationEnum, str] = None
-    ts_terms_idx: Optional[Union[int, str]] = None
-    ts_forecast_horizon: Optional[int] = None
-    ts_init_shape: Optional[int] = None
-
-    device: Union[torch.device, str] = torch.device("cpu")
 
 
 # TODO: check all types
@@ -386,145 +356,48 @@ class TensorData:
 
 
 @TensorData.register_creator(lambda x: isinstance(x, torch.Tensor))
-def from_torch(features: torch.Tensor,
-               target: Optional[torch.Tensor] = None,
-               task: TaskType = Task(TaskTypesEnum.classification),
-               categorical_idx: IndexType = None,
-               encoding_strategy: Optional[Dict] = None,
-               state: str = 'fit',
-               data_type: DataType = None,
-               device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-               dataloader_kwargs = None,) -> TensorData:
-
-    return TensorData(features=data, target=target, task=task, 
-                      categorical_idx=categorical_idx, 
-                      encoding_strategy=encoding_strategy, state=state,
-                      data_type=data_type, device=device,
-                      dataloader_kwargs=dataloader_kwargs)
+def from_torch(features: torch.Tensor, spec: LoadDataSpec) -> TensorData:
+    
+    return spec.to_tensor_data(features)
 
 
 @TensorData.register_creator(
     lambda x: isinstance(x, np.ndarray) or isinstance(x, cp.ndarray)
 )
-def from_numpy(features: np.ndarray,
-               target: Optional[np.ndarray] = None,
-               task: TaskType = Task(TaskTypesEnum.classification),
-               state: str = 'fit',
-               data_type: DataType = None,
-               features_names: IndexType = None,
-               target_idx: IndexType = None,
-               categorical_idx: IndexType = None,
-               encoding_strategy: Optional[Union[str, Dict]] = None,
-               text_idx: IndexType = None,
-               embedding_strategy: Dict = {},
-               ts_orientation: Union[TSOrientationEnum, str] = None,
-               ts_terms_idx: IndexType = None,
-               ts_forecast_horizon: int = None,
-               device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-               dataloader_kwargs = None,
-    ) -> TensorData:
+def from_numpy(features: np.ndarray, spec: LoadDataSpec) -> TensorData:
     
-    # ensure_backend(backend_name)
+    if spec.data_type is None:
+        spec.data_type = autodetect_data_type(spec.task)
 
-    if data_type is None:
-        data_type = autodetect_data_type(task)
-
-    if isinstance(target, int) and target < features.shape[1]:
-        target_idx = target.copy()
-        target = None
+    if isinstance(spec.target, int) and spec.target < features.shape[1]:
+        spec.target_idx = spec.target.copy()
+        spec.target = None
     
-    return TensorData(
-        features=features,
-        target=target,
-        features_names=features_names,
-        target_idx=target_idx,
-        categorical_idx=categorical_idx,
-        encoding_strategy=encoding_strategy,
-        text_idx=text_idx,
-        embedding_strategy=embedding_strategy,
-        ts_orientation=ts_orientation,
-        ts_terms_idx=ts_terms_idx,
-        ts_forecast_horizon=ts_forecast_horizon,
-        task=task,
-        state=state,
-        data_type=data_type,
-        device=device,
-        dataloader_kwargs=dataloader_kwargs,
-    )
+    return spec.to_tensor_data(features)
 
 
 @TensorData.register_creator(
     lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
-    features: Union[pd.DataFrame, pd.Series],
-    target: Optional[Union[pd.DataFrame, pd.Series]] = None,
-    task: TaskType = Task(TaskTypesEnum.classification),
-    state: str = 'fit',
-    target_idx: IndexType = None,
-    categorical_idx: IndexType = None,
-    encoding_strategy: Optional[str] = None,
-    text_idx: IndexType = None,
-    embedding_strategy: Optional[str] = None,
-    ts_orientation: Union[TSOrientationEnum, str] = None,
-    ts_terms_idx: IndexType = None,
-    ts_forecast_horizon: int = None,
-    data_type: DataType = DataTypesEnum.table,
-    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-    backend_name: Optional[str] = "cpu",
-    dataloader_kwargs = None,
-) -> TensorData:
-    
-    # ensure_backend(backend_name)
+    features: Union[pd.DataFrame, pd.Series, cudf.DataFrame], 
+    spec: LoadDataSpec) -> TensorData:
 
-    features_names = features.columns.to_numpy()
-    
+    spec.features_names = features.columns.to_numpy()
+
     features = get_values_from_df(features)
 
-    if target is not None:
-        target = get_values_from_df(target)
+    if spec.target is not None:
+        spec.target = get_values_from_df(spec.target)
 
-    return TensorData(
-        features=features,
-        target=target,
-        task=task,
-        state=state,
-        target_idx=target_idx,
-        categorical_idx=categorical_idx,
-        encoding_strategy=encoding_strategy,
-        text_idx=text_idx,
-        embedding_strategy=embedding_strategy,
-        ts_orientation=ts_orientation,
-        ts_terms_idx=ts_terms_idx,
-        ts_forecast_horizon=ts_forecast_horizon,
-        data_type=data_type,
-        features_names=features_names,
-        device=device,
-        dataloader_kwargs=dataloader_kwargs
-    )
+    return spec.to_tensor_data(features)
 
 
 @TensorData.register_creator(
     lambda x: isinstance(x, str) and (x.endswith(".csv") or x.endswith(".tsv"))
 )
 def from_csv_tsv(
-    file_path: str,
-    delimiter: str = ',',
-    max_rows: Optional[int] = None,
-    task: TaskType = Task(TaskTypesEnum.classification),
-    state: str = 'fit',
-    data_type: DataType = DataTypesEnum.table,
-    columns_to_drop: IndexType = None,
-    target_idx: IndexType = None,
-    categorical_idx: IndexType = None,
-    encoding_strategy: Optional[Union[str, Dict]] = None,
-    text_idx: IndexType = None,
-    index_col: IndexType = None,
-    possible_idx_keywords: Optional[List[str]] = None,
-    embedding_strategy: Dict = {},
-    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-    backend_name: Optional[str] = "cpu",
-    dataloader_kwargs = None
+    file_path: str, spec: LoadDataSpec
 ) -> TensorData:
 
     # ensure_backend(backend_name)
@@ -533,56 +406,32 @@ def from_csv_tsv(
         raise ValueError(f'File {file_path} does not exist')
 
     possible_idx_keywords = (
-        possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
+        spec.possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
     )
 
     features = get_df_from_csv(
         file_path=file_path,
-        delimiter=delimiter,
-        index_col=index_col,
-        possible_idx_keywords=possible_idx_keywords,
-        columns_to_drop=columns_to_drop,
-        nrows=max_rows
+        delimiter=spec.delimiter,
+        index_col=spec.index_col,
+        possible_idx_keywords=spec.possible_idx_keywords,
+        columns_to_drop=spec.columns_to_drop,
+        nrows=spec.max_rows
     )
 
-    features_names = features.columns.to_numpy()
+    spec.features_names = features.columns.to_numpy()
 
-    # TODO: use cudf for get embeddings/encoding in gpu to resolve this
     features = get_values_from_df(features)
     
-    return TensorData(
-        features=features,
-        task=task,
-        state=state,
-        target_idx=target_idx,
-        data_type=data_type,
-        categorical_idx=categorical_idx,
-        encoding_strategy=encoding_strategy,
-        text_idx=text_idx,
-        embedding_strategy=embedding_strategy,
-        features_names=features_names,
-        device=device,
-        dataloader_kwargs=dataloader_kwargs
-    )
+    return spec.to_tensor_data(features)
 
 
 @TensorData.register_creator(
     lambda x: isinstance(x, str) and x.endswith(".arff")
 )
 def from_arff(
-    source, backend_name: str, load_data_spec: LoadDataSpec
+    source: str, spec: LoadDataSpec
 ) -> TensorData:
     
-    # ensure_backend(backend_name)
+    features, spec.target = read_arff_file(source, target_idx=spec.target_idx)
 
-    features, target = read_arff_file(source, target_idx=load_data_spec.target_idx)
-
-    return TensorData(
-        features=features,
-        target=target,
-        task=task,
-        state=state,
-        data_type=data_type,
-        device=device,
-        dataloader_kwargs=dataloader_kwargs
-    )
+    return spec.to_tensor_data(features)
