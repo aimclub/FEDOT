@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import Callable, List, Optional, Sequence, Union
 
 from fedot.api.time import ApiTime
@@ -10,6 +10,7 @@ class AssumptionFitError:
     code: str
     message: str
     cause: str
+    exception: Optional[Exception] = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ def build_assumption_fit_error(ex: Exception) -> AssumptionFitError:
         code='initial_assumption_fit_failed',
         message=advice_info,
         cause=str(ex),
+        exception=ex,
     )
 
 

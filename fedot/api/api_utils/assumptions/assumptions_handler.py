@@ -1,4 +1,3 @@
-﻿import traceback
 from typing import List, Optional, Union
 
 from golem.core.log import default_log
@@ -75,7 +74,8 @@ class AssumptionsHandler:
             eval_n_jobs=eval_n_jobs,
         )
         if fit_result.is_left():
-            self._raise_evaluating_exception(fit_result.value)
+            fit_error = fit_result.monoid[0] if getattr(fit_result, 'monoid', None) else fit_result.value
+            self._raise_evaluating_exception(fit_error)
         return fit_result.value
 
     def try_fit_assumption(self,
@@ -103,12 +103,13 @@ class AssumptionsHandler:
 
         except Exception as ex:
             fit_error = build_assumption_fit_error(ex)
-            self.log.info(f'Initial pipeline fit was failed due to: {fit_error.cause}.')
-            print(traceback.format_exc())
+            self.log.exception(f'Initial pipeline fit was failed due to: {fit_error.cause}.')
             return Left(fit_error)
 
     def _raise_evaluating_exception(self, fit_error):
-        raise ValueError(fit_error.message)
+        message = getattr(fit_error, 'message', str(fit_error))
+        original_error = getattr(fit_error, 'exception', None)
+        raise ValueError(message) from original_error
 
     def propose_preset(self, preset: Union[str, None], timer: ApiTime, n_jobs: int) -> str:
         """

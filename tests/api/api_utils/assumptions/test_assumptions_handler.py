@@ -1,4 +1,4 @@
-﻿from types import SimpleNamespace
+from types import SimpleNamespace
 
 from pymonad.either import Left, Right
 
@@ -49,6 +49,7 @@ def test_try_fit_assumption_returns_left_for_expected_fit_failure(monkeypatch):
     assert result.is_left()
     assert result.monoid[0].code == 'initial_assumption_fit_failed'
     assert 'fit failed' in result.monoid[0].message
+    assert isinstance(result.monoid[0].exception, RuntimeError)
 
 
 def test_fit_assumption_and_check_correctness_keeps_compatibility_wrapper(monkeypatch):
@@ -66,3 +67,19 @@ def test_fit_assumption_and_check_correctness_keeps_compatibility_wrapper(monkey
         assert str(error) == 'boom'
     else:
         raise AssertionError('Compatibility wrapper should raise ValueError for failed assumption fitting')
+
+
+def test_fit_assumption_and_check_correctness_raises_from_original_exception(monkeypatch):
+    handler = AssumptionsHandler(SimpleNamespace())
+    pipeline = _FakePipeline()
+    original_error = RuntimeError('fit failed')
+    fit_error = SimpleNamespace(message='boom', exception=original_error)
+    monkeypatch.setattr(handler, 'try_fit_assumption', lambda **kwargs: Left(fit_error))
+
+    try:
+        handler.fit_assumption_and_check_correctness(pipeline)
+    except ValueError as error:
+        assert str(error) == 'boom'
+        assert error.__cause__ is original_error
+    else:
+        raise AssertionError('Compatibility wrapper should chain original fit error')
