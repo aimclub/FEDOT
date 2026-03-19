@@ -75,13 +75,13 @@ def parse_preset_spec(preset_name: Optional[str]) -> PresetSpec:
     use_stable = 'stable' in requested_preset
     use_gpu = 'gpu' in requested_preset
 
-    if use_stable:
-        base_preset = BEST_QUALITY_PRESET_NAME
-
     if '*' in base_preset:
         base_name, suffix = base_preset.split('*', 1)
         base_preset = base_name
         modification = f'*{suffix}'
+
+    if use_stable:
+        base_preset = BEST_QUALITY_PRESET_NAME
 
     return PresetSpec(
         requested_preset=requested_preset,
