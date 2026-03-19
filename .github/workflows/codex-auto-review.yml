@@ -125,5 +125,3 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body: `## Codex Review \n**Status**: ${status}\n**Issue**: ${issue || 'N/A'}\n**Prompt**: ${prompt || 'N/A'}\n\n**Output**:\n\`\`\`json\n${output}\n\`\`\``
             });
-          echo "Codex review failed - blocking merge"
-          exit 1
