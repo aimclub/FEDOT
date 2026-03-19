@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [ master ]
     types: [ opened, synchronize, ready_for_review ]
+  workflow_dispatch: 
 
 jobs:
 
@@ -124,9 +125,5 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body: `## Codex Review \n**Status**: ${status}\n**Issue**: ${issue || 'N/A'}\n**Prompt**: ${prompt || 'N/A'}\n\n**Output**:\n\`\`\`json\n${output}\n\`\`\``
             });
-
-      - name: Block merge
-        if: steps.validate.outputs.approved != 'true'
-        run: |
           echo "Codex review failed - blocking merge"
           exit 1
