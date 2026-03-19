@@ -1,7 +1,7 @@
 import inspect
 from typing import Any, Dict, Optional
 
-from pymonad.either import Left
+from pymonad.either import Left, Right
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.extensions.contracts import ExternalModelSpec
@@ -36,7 +36,7 @@ def try_build_extension_strategy_params(operation_name: str,
         return params_resolution
 
     resolved_user_params = params_resolution.value
-    return params_resolution.__class__({
+    return Right({
         **resolved_user_params,
         'model_fit': _build_model_fit(model_spec),
         'model_predict': _build_model_predict(model_spec),
