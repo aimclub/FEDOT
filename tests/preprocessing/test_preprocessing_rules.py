@@ -18,7 +18,6 @@ from fedot.preprocessing.preprocessing_rules import (
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 
 
-
 def _make_input_data(*, is_main_target=True):
     return InputData(
         idx=np.array([0, 1]),
@@ -28,7 +27,6 @@ def _make_input_data(*, is_main_target=True):
         data_type=DataTypesEnum.table,
         supplementary_data=SupplementaryData(is_main_target=is_main_target),
     )
-
 
 
 def test_resolve_source_names_handles_unimodal_and_multimodal():
@@ -42,18 +40,15 @@ def test_resolve_source_names_handles_unimodal_and_multimodal():
     assert multimodal_plan.source_names == ('left', 'right')
 
 
-
 def test_resolve_source_names_rejects_unknown_data_type():
     with pytest.raises(ValueError, match='Unknown type of data'):
         resolve_source_names(object(), DEFAULT_SOURCE_NAME)
-
 
 
 def test_should_initialize_source_helpers_reflects_existing_state():
     assert should_initialize_source_helpers(False, False) is True
     assert should_initialize_source_helpers(True, False) is True
     assert should_initialize_source_helpers(True, True) is False
-
 
 
 def test_resolve_main_target_source_name_prefers_existing_then_detects_main_branch():
@@ -64,7 +59,6 @@ def test_resolve_main_target_source_name_prefers_existing_then_detects_main_bran
 
     assert resolve_main_target_source_name('preset', multi_data) == 'preset'
     assert resolve_main_target_source_name(None, multi_data) == 'main'
-
 
 
 def test_iter_preprocessed_inputs_and_merge_plan_are_deterministic():
@@ -81,7 +75,6 @@ def test_iter_preprocessed_inputs_and_merge_plan_are_deterministic():
     assert auto_plan.take_pipeline_imputers is False
     assert manual_plan.take_pipeline_encoders is True
     assert manual_plan.take_pipeline_imputers is True
-
 
 
 def test_build_optional_preprocessing_plan_and_target_source_resolution_are_explicit():

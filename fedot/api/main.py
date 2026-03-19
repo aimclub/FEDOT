@@ -202,7 +202,8 @@ class Fedot:
                         api_preprocessor=self.data_processor.preprocessor,
                     ).fit()
                 else:
-                    self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)
+                    self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                        self.train_data)
 
                     if self.current_pipeline is None:
                         raise ValueError('No models were found')
@@ -271,7 +272,8 @@ class Fedot:
                 default_metric=self.metrics[0],
             )
             if input_data is not None:
-                tune_input_data = self.data_processor.define_data(features=tune_plan.input_data, target=target, is_predict=False)
+                tune_input_data = self.data_processor.define_data(
+                    features=tune_plan.input_data, target=target, is_predict=False)
             else:
                 tune_input_data = tune_plan.input_data
 

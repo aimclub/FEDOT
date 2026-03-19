@@ -22,7 +22,6 @@ class _StubPipeline:
         )
 
 
-
 def test_main_facade_raises_not_fitted_errors_for_predictive_methods():
     model = Fedot(problem='classification')
 
@@ -39,7 +38,6 @@ def test_main_facade_raises_not_fitted_errors_for_predictive_methods():
         model.return_report()
 
 
-
 def test_main_facade_predict_proba_rejects_non_classification_tasks():
     model = Fedot(problem='regression')
     model.current_pipeline = object()
@@ -48,17 +46,16 @@ def test_main_facade_predict_proba_rejects_non_classification_tasks():
         model.predict_proba(features=np.array([[1.0]]))
 
 
-
 def test_main_facade_uses_service_rule_for_predict_proba_mode_selection():
     model = Fedot(problem='classification')
     model.current_pipeline = _StubPipeline()
     model.target = 'target'
-    model.data_processor.define_data = lambda **kwargs: type('Input', (), {'task': Task(TaskTypesEnum.classification)})()
+    model.data_processor.define_data = lambda **kwargs: type('Input',
+                                                             (), {'task': Task(TaskTypesEnum.classification)})()
 
     model.predict_proba(features=np.array([[1.0], [2.0]]), probs_for_all_classes=True)
 
     assert model.current_pipeline.calls == ['full_probs']
-
 
 
 def test_main_facade_forecast_requires_time_series_task():

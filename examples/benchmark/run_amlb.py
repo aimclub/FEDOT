@@ -1,4 +1,9 @@
 from __future__ import annotations
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
+from sklearn.datasets import fetch_openml
+import pandas as pd
+import numpy as np
 
 import argparse
 import inspect
@@ -14,11 +19,6 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 import matplotlib
 
 matplotlib.use('Agg')
-import numpy as np
-import pandas as pd
-from sklearn.datasets import fetch_openml
-from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, r2_score, roc_auc_score
-from sklearn.model_selection import train_test_split
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
@@ -478,10 +478,10 @@ def _run_fedot_mode(dataset: LoadedDataset,
         'problem': dataset.spec.task_type,
         'timeout': config.timeout_minutes_per_dataset,
         'seed': config.seed,
-        'n_jobs': 1, #config.n_jobs
+        'n_jobs': 1,  # config.n_jobs
         'preset': config.preset,
         'use_input_preprocessing': False,
-        'logging_level':10,
+        'logging_level': 10,
         'with_tuning': config.with_tuning,
         'history_dir': str(history_dir),
         'keep_history': True,

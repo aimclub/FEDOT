@@ -5,7 +5,6 @@ from fedot.extensions.contracts import ExtensionManifest, ExternalModelSpec, Mod
 from fedot.extensions.registry import clear_extension_registry, register_extension
 
 
-
 def _make_manifest():
     return ExtensionManifest(
         name='pipeline_repository_extension',
@@ -22,7 +21,6 @@ def _make_manifest():
             ),
         ),
     )
-
 
 
 def test_from_available_operations_returns_self_and_keeps_registered_extension():

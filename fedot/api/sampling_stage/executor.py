@@ -322,4 +322,3 @@ class SamplingStageExecutor:
     def _remaining_budget(started_at: float, budget_seconds: float) -> float:
         elapsed = time.perf_counter() - started_at
         return max(0.0, budget_seconds - elapsed)
-

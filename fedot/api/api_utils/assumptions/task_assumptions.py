@@ -119,7 +119,7 @@ class ClassificationAssumptions(TaskAssumptions):
             # 'xgboost': PipelineBuilder().add_node('xgboost'),
             # 'lgbm': PipelineBuilder().add_node('lgbm'),
             'rf': PipelineBuilder().add_node('rf'),
-            #'logit': PipelineBuilder().add_node('logit'),
+            # 'logit': PipelineBuilder().add_node('logit'),
         }
 
     def ensemble_operation(self) -> str:

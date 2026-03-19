@@ -227,4 +227,3 @@ def test_timeout_restored_after_sampling_stage_real_path(monkeypatch):
     assert model.sampling_stage_metadata is not None
     assert model.sampling_stage_metadata['status'] == 'applied'
     assert model.params.timeout == pytest.approx(0.2)
-

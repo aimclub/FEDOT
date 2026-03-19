@@ -54,7 +54,11 @@ def should_use_label_encoding(input_data: InputData,
 def build_safe_data_recommendations(input_data: InputData,
                                     safe_mode: bool,
                                     limits: RecommendationLimits,
-                                    categorical_detector: Callable[[Any], tuple[Sequence[int], Sequence[int]]]) -> Dict[str, Dict[str, Any]]:
+                                    categorical_detector: Callable[[Any],
+                                                                   tuple[Sequence[int],
+                                                                         Sequence[int]]]) -> Dict[str,
+                                                                                                  Dict[str,
+                                                                                                       Any]]:
     if not safe_mode or not supports_data_recommendations(input_data):
         return {}
 

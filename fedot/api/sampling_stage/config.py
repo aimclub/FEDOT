@@ -169,4 +169,3 @@ def _validate_strategy_param_guards(config: SamplingConfig) -> None:
             f'"sampling_config.strategy_params.sample_size" exceeds guard_max_sample_size='
             f'{config.guard_max_sample_size}.'
         )
-

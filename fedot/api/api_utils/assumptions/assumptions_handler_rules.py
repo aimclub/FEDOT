@@ -22,7 +22,8 @@ class PresetDecision:
 NormalizedInitialAssumption = Optional[List[Pipeline]]
 
 
-def normalize_initial_assumption(initial_assumption: Union[List[Pipeline], Pipeline, None]) -> NormalizedInitialAssumption:
+def normalize_initial_assumption(
+        initial_assumption: Union[List[Pipeline], Pipeline, None]) -> NormalizedInitialAssumption:
     if initial_assumption is None:
         return None
     if isinstance(initial_assumption, Pipeline):

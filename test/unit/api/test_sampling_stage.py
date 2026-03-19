@@ -188,4 +188,3 @@ def test_sampling_config_rejects_non_dict_value():
 def test_sampling_config_rejects_invalid_validation_size_range():
     with pytest.raises(ValueError, match='validation_size'):
         validate_sampling_config({'validation_size': 1.0})
-

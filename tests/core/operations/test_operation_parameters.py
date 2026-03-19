@@ -1,7 +1,6 @@
 from fedot.core.operations.operation_parameters import OperationParameters, get_default_params
 
 
-
 def test_params_keeper_update():
     params = {'a': 1, 'b': 2, 'c': 3}
     keeper = OperationParameters(**params)
@@ -16,7 +15,6 @@ def test_params_keeper_update():
     assert 'd' in changed_params
 
 
-
 def test_params_keeper_get():
     params = {'a': 1, 'b': 2, 'c': 3}
     keeper = OperationParameters(**params)
@@ -26,7 +24,6 @@ def test_params_keeper_get():
     assert a == 1
     assert b == 2
     assert d == 5
-
 
 
 def test_params_keeper_setdefault_and_defaults_from_repository():

@@ -48,7 +48,6 @@ class _FakePreprocessor(BasePreprocessor):
         return data
 
 
-
 def _make_input_data(*, is_main_target=True):
     return InputData(
         idx=np.array([0, 1]),
@@ -58,7 +57,6 @@ def _make_input_data(*, is_main_target=True):
         data_type=DataTypesEnum.table,
         supplementary_data=SupplementaryData(is_main_target=is_main_target),
     )
-
 
 
 def _make_optional_input_data():
@@ -75,7 +73,6 @@ def _make_optional_input_data():
     return data
 
 
-
 def test_mark_as_preprocessed_marks_unimodal_and_multimodal_inputs():
     input_data = _make_input_data()
     multi_data = MultiModalData({'main': _make_input_data(), 'side': _make_input_data(is_main_target=False)})
@@ -86,7 +83,6 @@ def test_mark_as_preprocessed_marks_unimodal_and_multimodal_inputs():
     assert input_data.supplementary_data.obligatorily_preprocessed is True
     assert multi_data['main'].supplementary_data.optionally_preprocessed is True
     assert multi_data['side'].supplementary_data.optionally_preprocessed is True
-
 
 
 def test_merge_preprocessors_uses_typed_merge_plan():
@@ -105,7 +101,6 @@ def test_merge_preprocessors_uses_typed_merge_plan():
     assert merged.features_imputers == pipeline_preprocessor.features_imputers
 
 
-
 def test_data_preprocessor_initialization_uses_source_and_target_rules():
     preprocessor = DataPreprocessor()
     multi_data = MultiModalData({
@@ -119,7 +114,6 @@ def test_data_preprocessor_initialization_uses_source_and_target_rules():
     assert set(preprocessor.binary_categorical_processors.keys()) == {'main', 'side'}
     assert set(preprocessor.types_correctors.keys()) == {'main', 'side'}
     assert preprocessor.main_target_source_name == 'main'
-
 
 
 def test_prepare_optional_uses_typed_optional_plan_and_target_source_resolution():

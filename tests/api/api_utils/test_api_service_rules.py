@@ -5,7 +5,6 @@ from fedot.api.api_utils.api_service_rules import (
 )
 
 
-
 def test_build_tune_execution_plan_uses_explicit_values_when_provided():
     plan = build_tune_execution_plan(
         input_data='new-data',
@@ -24,7 +23,6 @@ def test_build_tune_execution_plan_uses_explicit_values_when_provided():
     assert plan.metric == 'roc_auc'
 
 
-
 def test_build_tune_execution_plan_uses_defaults_when_values_are_missing():
     plan = build_tune_execution_plan(
         input_data=None,
@@ -41,7 +39,6 @@ def test_build_tune_execution_plan_uses_defaults_when_values_are_missing():
     assert plan.cv_folds == 3
     assert plan.n_jobs == 4
     assert plan.metric == 'f1'
-
 
 
 def test_service_rules_resolve_predict_mode_and_forecast_horizon():

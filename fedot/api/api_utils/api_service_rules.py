@@ -10,7 +10,6 @@ class TuneExecutionPlan:
     metric: Any
 
 
-
 def build_tune_execution_plan(input_data: Any,
                               train_data: Any,
                               requested_cv_folds: Optional[int],
@@ -31,10 +30,8 @@ def build_tune_execution_plan(input_data: Any,
     )
 
 
-
 def resolve_predict_proba_mode(probs_for_all_classes: bool) -> str:
     return 'full_probs' if probs_for_all_classes else 'probs'
-
 
 
 def resolve_forecast_horizon(requested_horizon: Optional[int], forecast_length: int) -> int:

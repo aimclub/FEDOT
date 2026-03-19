@@ -76,7 +76,8 @@ def test_plan_final_fit_respects_history_and_pipeline_fit_state():
     assert history_has_records(_FakeHistory(is_empty_value=False)) is True
 
     assert plan_final_fit(None, pipeline_is_fitted=True).should_train_on_full_dataset is False
-    assert plan_final_fit(_FakeHistory(is_empty_value=False), pipeline_is_fitted=True).should_train_on_full_dataset is True
+    assert plan_final_fit(_FakeHistory(is_empty_value=False),
+                          pipeline_is_fitted=True).should_train_on_full_dataset is True
     assert plan_final_fit(None, pipeline_is_fitted=False).should_train_on_full_dataset is True
 
 

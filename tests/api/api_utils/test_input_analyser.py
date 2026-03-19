@@ -31,7 +31,9 @@ def test_input_analyser_give_recommendations_uses_pure_bundle_rules(monkeypatch)
         captured['input_params'] = kwargs['input_params']
         return type('Bundle', (), {'data': {'cut': {'border': 2}}, 'params': {'preset': 'fast_train'}})()
 
-    monkeypatch.setattr('fedot.api.api_utils.input_analyser.build_recommendation_bundle', fake_build_recommendation_bundle)
+    monkeypatch.setattr(
+        'fedot.api.api_utils.input_analyser.build_recommendation_bundle',
+        fake_build_recommendation_bundle)
 
     analyser = InputAnalyser(safe_mode=True)
     data_recommendations, params_recommendations = analyser.give_recommendations(

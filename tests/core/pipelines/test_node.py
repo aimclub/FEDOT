@@ -11,7 +11,6 @@ class _FittedOperationWithParams:
         return self._params
 
 
-
 def test_pipeline_node_parameters_setter_normalizes_default_and_nested_params():
     default_node = PipelineNode(operation_type='ridge')
     nested_node = PipelineNode(operation_type='ridge')
@@ -21,7 +20,6 @@ def test_pipeline_node_parameters_setter_normalizes_default_and_nested_params():
 
     assert default_node.parameters == {}
     assert nested_node.parameters['alpha'] == 1.0
-
 
 
 def test_pipeline_node_update_params_uses_typed_merge_rule():

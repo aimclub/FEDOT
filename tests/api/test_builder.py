@@ -73,7 +73,6 @@ def test_param_setters_has_all_api_parameters(fedot_builder_methods):
     assert builder_params == fedot_api_all_params
 
 
-
 def test_builder_preserves_previous_values_when_new_setup_uses_default_sentinel():
     builder = FedotBuilder('classification')
 

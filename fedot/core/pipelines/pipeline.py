@@ -202,9 +202,8 @@ class Pipeline(GraphDelegate, Serializable):
         self.replace_n_jobs_in_nodes(n_jobs)
 
         preprocess_plan = build_pipeline_preprocess_plan(
-            is_fit_stage=True,
-            is_input_auto_preprocessed=isinstance(input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed,
-        )
+            is_fit_stage=True, is_input_auto_preprocessed=isinstance(
+                input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed, )
         if preprocess_plan.should_preprocess:
             with fedot_composer_timer.launch_preprocessing():
                 copied_input_data = self._preprocess(input_data)
@@ -317,9 +316,8 @@ class Pipeline(GraphDelegate, Serializable):
             raise ValueError(ex)
 
         preprocess_plan = build_pipeline_preprocess_plan(
-            is_fit_stage=False,
-            is_input_auto_preprocessed=isinstance(input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed,
-        )
+            is_fit_stage=False, is_input_auto_preprocessed=isinstance(
+                input_data, InputData) and input_data.supplementary_data.is_auto_preprocessed, )
         if preprocess_plan.should_preprocess:
             copied_input_data = self._preprocess(input_data, is_fit_stage=False)
         else:

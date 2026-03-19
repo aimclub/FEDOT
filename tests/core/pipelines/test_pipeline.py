@@ -20,7 +20,6 @@ class _StubPreprocessor:
         return prediction + 1
 
 
-
 def _make_ts_output():
     return OutputData(
         idx=np.arange(2),
@@ -29,7 +28,6 @@ def _make_ts_output():
         task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
         data_type=DataTypesEnum.ts,
     )
-
 
 
 def _make_classification_input(is_auto_preprocessed: bool):
@@ -44,7 +42,6 @@ def _make_classification_input(is_auto_preprocessed: bool):
     )
 
 
-
 def test_pipeline_postprocess_uses_typed_postprocess_plan():
     pipeline = Pipeline(use_input_preprocessing=False)
     pipeline.preprocessor = _StubPreprocessor()
@@ -55,10 +52,10 @@ def test_pipeline_postprocess_uses_typed_postprocess_plan():
     assert result.predict.tolist() == [2.0, 3.0]
 
 
-
 def test_pipeline_fit_skips_preprocessing_when_input_is_marked_auto_preprocessed():
     pipeline = Pipeline(use_input_preprocessing=False)
-    pipeline._preprocess = lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError('_preprocess should not be called'))
+    pipeline._preprocess = lambda *args, **kwargs: (_ for _ in ()
+                                                    ).throw(AssertionError('_preprocess should not be called'))
     pipeline._assign_data_to_nodes = lambda data: data
     pipeline._fit = lambda input_data=None, predictions_cache=None, fold_id=None: 'ok'
     input_data = _make_classification_input(is_auto_preprocessed=True)

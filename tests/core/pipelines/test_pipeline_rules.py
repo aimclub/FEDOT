@@ -5,7 +5,6 @@ from fedot.core.pipelines.pipeline_rules import (
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-
 def test_build_pipeline_preprocess_plan_handles_fit_and_predict_stages():
     fit_plan = build_pipeline_preprocess_plan(is_fit_stage=True, is_input_auto_preprocessed=False)
     predict_plan = build_pipeline_preprocess_plan(is_fit_stage=False, is_input_auto_preprocessed=True)
@@ -14,7 +13,6 @@ def test_build_pipeline_preprocess_plan_handles_fit_and_predict_stages():
     assert fit_plan.should_update_time_series_indices is False
     assert predict_plan.should_preprocess is False
     assert predict_plan.should_update_time_series_indices is True
-
 
 
 def test_build_pipeline_postprocess_plan_handles_labels_and_ts_outputs():

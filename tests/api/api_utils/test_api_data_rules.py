@@ -61,7 +61,8 @@ def test_plan_preprocessing_steps_are_explicit_and_stable():
     (TaskTypesEnum.ts_forecasting, False, None, 3, (None, False, True, None)),
     (TaskTypesEnum.regression, False, None, None, (None, False, False, None)),
 ])
-def test_plan_prediction_returns_typed_branching_decision(task_type, in_sample, validation_blocks, forecast_length, expected):
+def test_plan_prediction_returns_typed_branching_decision(
+        task_type, in_sample, validation_blocks, forecast_length, expected):
     plan = plan_prediction(task_type, in_sample, validation_blocks, forecast_length)
     assert (plan.output_mode, plan.use_in_sample_forecast, plan.flatten_prediction, plan.horizon) == expected
 

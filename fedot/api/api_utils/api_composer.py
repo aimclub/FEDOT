@@ -55,7 +55,8 @@ class ApiComposer:
             self.operations_cache = OperationsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.operations_cache.reset()
         if cache_plan.use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
+            self.preprocessing_cache = PreprocessingCache(
+                cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.preprocessing_cache.reset()
         if cache_plan.use_predictions_cache:
             self.predictions_cache = PredictionsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
@@ -98,9 +99,10 @@ class ApiComposer:
             with fedot_composer_timer.launch_tuning('composing'):
                 best_pipeline = self.tune_final_pipeline(train_data, best_pipeline, execution_plan)
         elif with_tuning:
-            self.log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                             f'The remaining {max(0, round(execution_plan.tuning_timeout_minutes, 1))} seconds are not enough '
-                             f'to tune the hyperparameters.')
+            self.log.message(
+                f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
+                f'The remaining {max(0, round(execution_plan.tuning_timeout_minutes, 1))} seconds are not enough '
+                f'to tune the hyperparameters.')
             self.log.message('Composed pipeline returned without tuning.')
             self.was_tuned = False
 

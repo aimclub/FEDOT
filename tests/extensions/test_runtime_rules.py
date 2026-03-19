@@ -30,7 +30,6 @@ class _ExternalEstimator:
         return np.zeros(features.shape[0])
 
 
-
 def _make_manifest():
     return ExtensionManifest(
         name='runtime_extension',
@@ -54,7 +53,6 @@ def _make_manifest():
     )
 
 
-
 def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_params():
     clear_extension_registry()
     register_extension(_make_manifest())
@@ -73,7 +71,6 @@ def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_par
         assert params['beta'] == 0.5
     finally:
         clear_extension_registry()
-
 
 
 def test_runtime_rules_return_left_when_required_extension_params_are_missing():
