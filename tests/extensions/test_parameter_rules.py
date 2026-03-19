@@ -1,5 +1,6 @@
 from pymonad.either import Left, Right
 
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.extensions.contracts import ExternalModelSpec, ModelCapabilities, ModelHyperparamsSchema
 from fedot.extensions.parameter_rules import (
     apply_extension_defaults,
@@ -61,3 +62,17 @@ def test_extension_parameter_rules_return_resolved_params_when_schema_is_satisfi
 
     assert resolution.__class__ is Right
     assert resolution.value == {'beta': 0.5, 'alpha': 1.0}
+
+
+def test_extract_factory_params_accepts_operation_parameters():
+    strategy_params = OperationParameters(
+        alpha=1.0,
+        beta=0.5,
+        _extension_output_mode='labels',
+        model_fit=object(),
+        model_predict=object(),
+    )
+
+    factory_params = extract_factory_params(strategy_params)
+
+    assert factory_params == {'alpha': 1.0, 'beta': 0.5}

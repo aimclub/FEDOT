@@ -1,7 +1,8 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 from pymonad.either import Left, Right
 
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.extensions.contracts import ExtensionError, ExternalModelSpec
 
 
@@ -36,7 +37,9 @@ def resolve_extension_params(model_spec: ExternalModelSpec,
     return Right(resolved_params)
 
 
-def extract_factory_params(strategy_params: Dict[str, Any]) -> Dict[str, Any]:
+def extract_factory_params(strategy_params: Union[Dict[str, Any], OperationParameters]) -> Dict[str, Any]:
+    if isinstance(strategy_params, OperationParameters):
+        strategy_params = strategy_params.to_dict()
     return {
         key: value
         for key, value in strategy_params.items()

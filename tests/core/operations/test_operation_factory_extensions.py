@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 from fedot.core.operations.extension_model import ExtensionModel
 from fedot.core.operations.factory import OperationFactory
@@ -81,7 +81,7 @@ def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
         })())
 
         assert strategy.operation_id == 'custom'
-        assert implementation.was_fitted is True
+        assert implementation.fitted_model.was_fitted is True
         assert implementation.params.get('alpha') == 2.0
         assert implementation.params.get('beta') == 0.5
     finally:
