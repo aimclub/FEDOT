@@ -24,6 +24,7 @@ from fedot.industrial.core.tuning.search_space import get_industrial_search_spac
 
 from fedot.core.context import ExecutionContext
 
+
 class IndustrialExtension:
     """Overrides ExecutionContext with industrial implementations."""
     def __init__(self, backend: str = "default") -> None:
