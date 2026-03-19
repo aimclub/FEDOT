@@ -6,9 +6,10 @@ from fedot.api.api_utils.assumptions.assumptions_handler_rules import (
     normalize_initial_assumption,
     resolve_initial_assumption,
 )
+from fedot.core.pipelines.pipeline import Pipeline
 
 
-class _FakePipeline:
+class _FakePipeline(Pipeline):
     pass
 
 
