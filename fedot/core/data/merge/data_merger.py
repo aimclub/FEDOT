@@ -8,6 +8,7 @@ from golem.utilities.data_structures import are_same_length
 from fedot.core.data.array_utilities import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.context import ExecutionContext
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -23,10 +24,12 @@ class DataMerger:
     :param outputs: list with OutputData from parent nodes for merging
     """
 
-    def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None):
+    def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None,
+                 context: Optional[ExecutionContext] = None):
         self.log = default_log(self)
         self.outputs = outputs
         self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+        self.context = context or ExecutionContext()
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -35,7 +38,8 @@ class DataMerger:
             raise ValueError('There are no common indices for outputs')
 
         # Find first output with the main target & resulting task
-        self.main_output = DataMerger.find_main_output(outputs)
+        # self.main_output = DataMerger.find_main_output(outputs)
+        self.main_output = self.context.merger_find_main_output(outputs)
 
     @staticmethod
     def get(outputs: List['OutputData']) -> 'DataMerger':
@@ -71,7 +75,8 @@ class DataMerger:
 
         common_predicts = self.find_common_predicts()
         mergeable_predicts = self.preprocess_predicts(common_predicts)
-        merged_features = self.merge_predicts(mergeable_predicts)
+        # merged_features = self.merge_predicts(mergeable_predicts)
+        merged_features = self.context.merger_merge_predicts(mergeable_predicts)
         merged_features = self.postprocess_predicts(merged_features)
 
         updated_metadata = SupplementaryDataMerger(self.outputs, self.main_output).merge()

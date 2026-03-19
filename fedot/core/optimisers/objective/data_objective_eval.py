@@ -44,7 +44,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
-                 do_unfit: bool = True):
+                 do_unfit: bool = True,
+                 context: Optional[ExecutionContext] = None):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint

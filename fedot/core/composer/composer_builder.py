@@ -13,6 +13,7 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
+from fedot.core.context import ExecutionContext
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -57,6 +58,12 @@ class ComposerBuilder:
         self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
+
+        self.context: Optional[ExecutionContext] = None
+
+    def with_context(self, context: ExecutionContext):
+        self.context = context or ExecutionContext()
+        return self
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:
@@ -111,7 +118,8 @@ class ComposerBuilder:
     @staticmethod
     def _get_default_composer_params(task: Task) -> PipelineComposerRequirements:
         # Get all available operations for task
-        operations = get_operations_for_task(task=task, mode='all')
+        # operations = get_operations_for_task(task=task, mode='all')
+        operations = self.context.operation_registry.get_operation_for_task(task=task, mode='all')
         return PipelineComposerRequirements(primary=operations, secondary=operations)
 
     def _get_default_graph_generation_params(self) -> GraphGenerationParams:
@@ -161,6 +169,7 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.operations_cache,
                                      self.preprocessing_cache,
-                                     self.predictions_cache)
+                                     self.predictions_cache,
+                                     self.context)
 
         return composer

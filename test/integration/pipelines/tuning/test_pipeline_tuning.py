@@ -232,7 +232,8 @@ def run_pipeline_tuner(train_data,
         else:
             search_space.custom_search_space['lagged'] = ssp
         search_space.replace_default_search_space = True
-        search_space.parameters_per_operation = search_space.get_parameters_dict()
+        # search_space.parameters_per_operation = search_space.get_parameters_dict()
+        search_space.parameters_per_operation = context.search_space_get_parameters_dict(search_space)
 
     # Pipeline tuning
     pipeline_tuner = TunerBuilder(train_data.task) \

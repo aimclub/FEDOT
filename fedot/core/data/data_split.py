@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.context import ExecutionContext
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -173,8 +174,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                           shuffle_flag: bool = False,
                           stratify: bool = True,
                           random_seed: int = 42,
-                          validation_blocks: Optional[int] = None) -> Tuple[Union[InputData, MultiModalData],
-                                                                            Union[InputData, MultiModalData]]:
+                          validation_blocks: Optional[int] = None,
+                          context: Optional[ExecutionContext] = None) -> Tuple[Union[InputData, MultiModalData], Union[InputData, MultiModalData]]:
     """ Function for train and test split for both InputData and MultiModalData
 
     :param data: InputData object to split
@@ -184,9 +185,12 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     :param stratify: make stratified sample or not
     :param random_seed: random_seed for shuffle
     :param validation_blocks: validation blocks are used for test
+    :param context: FEDOT Core or Fedot.Industrial funcs
 
     :return: data for train, data for validation
     """
+
+    context = context or ExecutionContext()
 
     # for backward compatibility
     shuffle |= shuffle_flag
@@ -203,11 +207,17 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                        'random_seed': random_seed,
                        'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
-                           DataTypesEnum.ts: _split_time_series,
-                           DataTypesEnum.table: _split_any,
-                           DataTypesEnum.image: _split_any,
-                           DataTypesEnum.text: _split_any}
+        # split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
+        #                   DataTypesEnum.ts: _split_time_series,
+        #                   DataTypesEnum.table: _split_any,
+        #                   DataTypesEnum.image: _split_any,
+        #                   DataTypesEnum.text: _split_any}
+
+        split_func_dict = {DataTypesEnum.multi_ts: context.data_split__split_time_series,
+                           DataTypesEnum.ts: context.data_split__split_time_series,
+                           DataTypesEnum.table: context.data_split__split_any,
+                           DataTypesEnum.image: context.data_split__split_any,
+                           DataTypesEnum.text: context.data_split__split_any}
 
         if data.data_type not in split_func_dict:
             raise TypeError((f'Unknown data type {type(data)}. Supported data types:'

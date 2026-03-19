@@ -25,10 +25,12 @@ from fedot.industrial.core.tuning.search_space import get_industrial_search_spac
 from fedot.core.context import ExecutionContext
 
 class IndustrialExtension:
+    """Overrides ExecutionContext with industrial implementations."""
     def __init__(self, backend: str = "default") -> None:
         self.backend = backend
 
     def apply(self, context: ExecutionContext) -> None:
+        """Mutates context with industrial implementations."""
         context.optuna_optuna_tuner = DaskOptunaTuner if "dask" in self.backend else OptunaTuner
         context.evaluator_evaluate = industrial_evaluate_pipeline
         context.search_space_get_parameters_dict = get_industrial_search_space
@@ -55,9 +57,20 @@ class IndustrialExtension:
         context.topo_features_fit = fit_topo_extractor_industrial
         context.topo_features_transform = transform_topo_extractor_industrial
         context.ts_smoothing_transform = transform_smoothing_industrial
-        context.optuna_optuna_tuner = DaskOptunaTuner
         context.api_composer_tune_final_pipeline = tune_pipeline_industrial
         context.reproduction_reproduce = reproduce_industrial
         context.reproduction_reproduce_uncontrolled = reproduce_controlled_industrial
         context.class_rules.append(has_no_data_flow_conflicts_in_industrial_pipeline)
         context.ts_rules.append(has_no_lagged_conflicts_in_ts_pipeline)
+
+class IndustrialContext(ExecutionContext):
+    """Fedot.Industrial execution context"""
+    def __init__(self, backend: str = "default") -> None:
+        super().__init__()
+
+        self.operation_registry = OperationTypesRepository()
+        self.operation_registry.load_operations(IND_DATA_OPERATION_PATH, 'data_operation')
+        self.operation_registry.load_operations(IND_MODEL_OPERATION_PATH, 'model')
+
+        self.extension = IndustrialExtension(backend=backend)
+        self.extension.apply(self)

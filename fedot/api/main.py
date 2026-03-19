@@ -38,6 +38,9 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
+from fedot.core.context import ExecutionContext
+from fedot.industrial.industrial_extension import IndustrialContext
+
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
@@ -88,8 +91,11 @@ class Fedot:
                  logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
+                 context: Optional[ExecutionContext] = None,
                  **composer_tuner_params
                  ):
+
+        self.context = context or ExecutionContext()  # fallback
 
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
@@ -101,7 +107,7 @@ class Fedot:
         passed_metrics = self.params.get('metric')
         self.metrics = ensure_wrapped_in_sequence(passed_metrics) if passed_metrics else default_metrics
 
-        self.api_composer = ApiComposer(self.params, self.metrics)
+        self.api_composer = ApiComposer(self.params, self.metrics, self.context)
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.task,

@@ -13,6 +13,7 @@ from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
+from fedot.core.context import ExecutionContext
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
@@ -25,7 +26,10 @@ from fedot.utilities.composer_timer import fedot_composer_timer
 
 class ApiComposer:
 
-    def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
+    def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]], context: Optional[ExecutionContext] = None):
+
+        self.context = context or ExecutionContext()  # fallback
+
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
@@ -86,7 +90,8 @@ class ApiComposer:
 
         if with_tuning:
             with fedot_composer_timer.launch_tuning('composing'):
-                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+                # best_pipeline = self.tune_final_pipeline(train_data, best_pipeline)
+                best_pipeline = self.context.api_composer_tune_final_pipeline(self, train_data, best_pipeline)
 
         if gp_composer.history:
             adapter = self.params.graph_generation_params.adapter
@@ -133,6 +138,7 @@ class ApiComposer:
                          fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
+                                   .with_context(self.context)
                                    .with_requirements(self.params.composer_requirements)
                                    .with_initial_pipelines(initial_assumption)
                                    .with_optimizer(self.params.get('optimizer'))

@@ -11,6 +11,7 @@ from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.context import ExecutionContext
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -20,8 +21,10 @@ from fedot.preprocessing.data_types import TYPE_TO_ID
 
 
 class LaggedImplementation(DataOperationImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters], context: Optional[ExecutionContext] = None):
         super().__init__(params)
+
+        self.context = context or ExecutionContext()
 
         self.window_size_minimum = None
         self.sparse_transform = False
@@ -72,7 +75,8 @@ class LaggedImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
-        self._update_column_types(output_data)
+        # self._update_column_types(output_data)
+        self.context.lagged__update_column_types(self, output_data)
         return output_data
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
@@ -103,7 +107,8 @@ class LaggedImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
-        self._update_column_types(output_data)
+        # self._update_column_types(output_data)
+        self.context.lagged__update_column_types(self, output_data)
         return output_data
 
     def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):

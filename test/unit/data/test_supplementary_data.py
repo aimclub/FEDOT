@@ -5,6 +5,7 @@ from fedot.core.data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.context import ExecutionContext
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -46,12 +47,16 @@ def generate_straight_pipeline():
     return pipeline
 
 
-def test_parent_mask_correct(unequal_outputs_table):  # noqa, fixture
+def test_parent_mask_correct(unequal_outputs_table, context: Optional[ExecutionContext] = None):  # noqa, fixture
     """ Test correctness of function for tables mask generation """
+
+    context = context or ExecutrionContext()
+
     correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
 
     # Calculate parent mask from outputs
-    main_output = DataMerger.find_main_output(unequal_outputs_table)
+    # main_output = DataMerger.find_main_output(unequal_outputs_table)
+    main_output = context.merger_find_main_output(unequal_outputs_table)
     p_mask = SupplementaryDataMerger(unequal_outputs_table, main_output).prepare_parent_mask()
 
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])

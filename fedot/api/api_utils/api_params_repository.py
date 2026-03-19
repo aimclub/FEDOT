@@ -120,7 +120,9 @@ class ApiParamsRepository:
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
-        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        # gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        gp_algorithm_params['mutation_types'] = context.api_params_repository__get_default_mutations(self.task_type,
+                                                                                                     params)
         gp_algorithm_params['seed'] = params['seed']
         return gp_algorithm_params
 
