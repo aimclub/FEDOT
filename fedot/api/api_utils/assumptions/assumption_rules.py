@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import Iterable, Optional, Sequence, Tuple
 
 from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
@@ -32,8 +32,8 @@ _REQUIRED_SOURCE_OPERATIONS = {
 
 def default_repository_name_for_data(data) -> str:
     if data.data_type == DataTypesEnum.multi_ts:
-        return RepositoryKind.ALL.value
-    return RepositoryKind.MODEL.value
+        return RepositoryKind.all.value
+    return RepositoryKind.model.value
 
 
 def required_operations_for_data(data, data_type: DataTypesEnum) -> Tuple[str, ...]:

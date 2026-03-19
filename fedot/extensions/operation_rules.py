@@ -1,4 +1,4 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 from typing import Iterable, Optional, Sequence, Tuple
 
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -16,7 +16,7 @@ class ExtensionOperationView:
 
 
 def should_include_extensions(repository_kind: RepositoryKind) -> bool:
-    return repository_kind in (RepositoryKind.MODEL, RepositoryKind.ALL)
+    return repository_kind in (RepositoryKind.model, RepositoryKind.all)
 
 
 def get_extension_operation_views() -> Tuple[ExtensionOperationView, ...]:

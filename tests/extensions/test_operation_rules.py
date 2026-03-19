@@ -1,4 +1,4 @@
-﻿from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_query import RepositoryKind
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.extensions.contracts import ExtensionManifest, ExternalModelSpec, ModelCapabilities
@@ -33,8 +33,8 @@ def test_extension_operation_rules_filter_registered_models():
     register_extension(_make_manifest())
 
     try:
-        assert should_include_extensions(RepositoryKind.MODEL) is True
-        assert should_include_extensions(RepositoryKind.DATA_OPERATION) is False
+        assert should_include_extensions(RepositoryKind.model) is True
+        assert should_include_extensions(RepositoryKind.data_operation) is False
 
         views = filter_extension_operation_views(
             task_type=TaskTypesEnum.classification,
