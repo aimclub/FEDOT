@@ -1,7 +1,7 @@
 import inspect
 from typing import Any, Dict, Optional
 
-from pymonad.either import Left, Right
+from pymonad.either import Right
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.extensions.contracts import ExternalModelSpec
@@ -32,7 +32,7 @@ def try_build_extension_strategy_params(operation_name: str,
         raise ValueError(f'Extension model "{operation_name}" is not registered.')
 
     params_resolution = resolve_extension_params(model_spec, user_params)
-    if params_resolution.__class__ is Left:
+    if params_resolution.is_left():
         return params_resolution
 
     resolved_user_params = params_resolution.value
@@ -49,8 +49,8 @@ def build_extension_strategy_params(operation_name: str,
                                     user_params: Optional[Dict[str, Any]] = None,
                                     output_mode: str = 'default') -> Dict[str, Any]:
     strategy_params = try_build_extension_strategy_params(operation_name, user_params, output_mode)
-    if strategy_params.__class__ is Left:
-        raise ValueError(strategy_params.value.message)
+    if strategy_params.is_left():
+        raise ValueError(strategy_params.monoid[0].message)
     return strategy_params.value
 
 

@@ -1,6 +1,6 @@
 import importlib
 import inspect
-from typing import Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, Tuple
 
 from pymonad.either import Left, Right
 from pymonad.maybe import Just, Nothing
@@ -15,7 +15,7 @@ from fedot.extensions.contracts import (
 _REGISTERED_EXTENSIONS: Dict[str, ExtensionManifest] = {}
 
 
-def validate_extension_manifest(manifest: ExtensionManifest):
+def validate_extension_manifest(manifest: Any):
     if not isinstance(manifest, ExtensionManifest):
         return Left(ExtensionError(code='invalid_manifest_type',
                                    message='Extension manifest must be an ExtensionManifest instance.'))
@@ -35,7 +35,7 @@ def validate_extension_manifest(manifest: ExtensionManifest):
     seen_names = set()
     for model in manifest.models:
         model_validation = validate_external_model_spec(model)
-        if model_validation.__class__ is Left:
+        if model_validation.is_left():
             return model_validation
         if model.name in seen_names:
             return Left(ExtensionError(code='duplicate_model_name',
@@ -46,7 +46,7 @@ def validate_extension_manifest(manifest: ExtensionManifest):
     return Right(manifest)
 
 
-def validate_external_model_spec(model: ExternalModelSpec):
+def validate_external_model_spec(model: Any):
     if not isinstance(model, ExternalModelSpec):
         return Left(ExtensionError(code='invalid_model_spec_type',
                                    message='External model spec must be an ExternalModelSpec instance.'))
@@ -72,7 +72,7 @@ def validate_external_model_spec(model: ExternalModelSpec):
 
 def register_extension(manifest: ExtensionManifest):
     validation = validate_extension_manifest(manifest)
-    if validation.__class__ is Left:
+    if validation.is_left():
         return validation
 
     if manifest.name in _REGISTERED_EXTENSIONS:
@@ -124,7 +124,7 @@ def discover_extensions(module_names: Iterable[str]):
     manifests = []
     for module_name in module_names:
         loaded = load_extension_manifest(module_name)
-        if loaded.__class__ is Left:
+        if loaded.is_left():
             return loaded
         manifests.append(loaded.value)
     return Right(tuple(manifests))
@@ -132,7 +132,7 @@ def discover_extensions(module_names: Iterable[str]):
 
 def smoke_test_extension(manifest: ExtensionManifest):
     validation = validate_extension_manifest(manifest)
-    if validation.__class__ is Left:
+    if validation.is_left():
         return validation
 
     for model in manifest.models:

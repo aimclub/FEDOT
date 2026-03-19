@@ -1,7 +1,5 @@
 import numpy as np
 
-from pymonad.either import Left
-
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.extensions.contracts import (
@@ -85,8 +83,8 @@ def test_runtime_rules_return_left_when_required_extension_params_are_missing():
     try:
         params = try_build_extension_strategy_params('external_runtime_model', {'beta': 1.5})
 
-        assert params.__class__ is Left
-        assert params.value.code == 'missing_required_hyperparams'
-        assert params.value.details['required'] == ['alpha']
+        assert params.is_left()
+        assert params.monoid[0].code == 'missing_required_hyperparams'
+        assert params.monoid[0].details['required'] == ['alpha']
     finally:
         clear_extension_registry()

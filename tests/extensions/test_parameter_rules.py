@@ -1,5 +1,3 @@
-from pymonad.either import Left, Right
-
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.extensions.contracts import ExternalModelSpec, ModelCapabilities, ModelHyperparamsSchema
 from fedot.extensions.parameter_rules import (
@@ -52,15 +50,15 @@ def test_extension_parameter_rules_detect_missing_required_params():
     resolution = resolve_extension_params(_make_model_spec(), {'beta': 1.5})
 
     assert missing == ('gamma',)
-    assert resolution.__class__ is Left
-    assert resolution.value.details['required'] == ['alpha']
+    assert resolution.is_left()
+    assert resolution.monoid[0].details['required'] == ['alpha']
 
 
 
 def test_extension_parameter_rules_return_resolved_params_when_schema_is_satisfied():
     resolution = resolve_extension_params(_make_model_spec(), {'alpha': 1.0})
 
-    assert resolution.__class__ is Right
+    assert resolution.is_right()
     assert resolution.value == {'beta': 0.5, 'alpha': 1.0}
 
 

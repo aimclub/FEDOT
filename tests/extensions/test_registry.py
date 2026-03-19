@@ -1,9 +1,6 @@
 import sys
 import types
 
-from pymonad.either import Left, Right
-from pymonad.maybe import Just, Nothing
-
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.extensions import (
@@ -55,7 +52,7 @@ def teardown_function():
 def test_validate_extension_manifest_returns_right_for_valid_manifest():
     result = validate_extension_manifest(_build_manifest())
 
-    assert result.__class__ is Right
+    assert result.is_right()
 
 
 def test_register_extension_stores_manifest_and_returns_maybe_lookup():
@@ -63,10 +60,10 @@ def test_register_extension_stores_manifest_and_returns_maybe_lookup():
 
     result = register_extension(manifest)
 
-    assert result.__class__ is Right
+    assert result.is_right()
     assert len(get_registered_extensions()) == 1
-    assert get_registered_extension('demo_extension').__class__ is Just
-    assert get_registered_extension('missing_extension').__class__ is Nothing
+    assert get_registered_extension('demo_extension').is_just()
+    assert get_registered_extension('missing_extension').is_nothing()
 
 
 def test_register_extension_rejects_duplicate_extension_name():
@@ -75,8 +72,8 @@ def test_register_extension_rejects_duplicate_extension_name():
 
     duplicate_result = register_extension(manifest)
 
-    assert duplicate_result.__class__ is Left
-    assert duplicate_result.value.code == 'duplicate_extension'
+    assert duplicate_result.is_left()
+    assert duplicate_result.monoid[0].code == 'duplicate_extension'
 
 
 def test_smoke_test_extension_rejects_factory_returning_none():
@@ -97,8 +94,8 @@ def test_smoke_test_extension_rejects_factory_returning_none():
 
     result = smoke_test_extension(manifest)
 
-    assert result.__class__ is Left
-    assert result.value.code == 'factory_returned_none'
+    assert result.is_left()
+    assert result.monoid[0].code == 'factory_returned_none'
 
 
 def test_discover_extensions_loads_manifest_from_module():
@@ -109,7 +106,7 @@ def test_discover_extensions_loads_manifest_from_module():
 
     try:
         result = discover_extensions((module_name,))
-        assert result.__class__ is Right
+        assert result.is_right()
         assert result.value[0].module == module_name
     finally:
         del sys.modules[module_name]

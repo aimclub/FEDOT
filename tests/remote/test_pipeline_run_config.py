@@ -1,7 +1,6 @@
 import configparser
 
 import pytest
-from pymonad.either import Left, Right
 
 from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams
 from fedot.remote.pipeline_run_config import PipelineRunConfig, parse_pipeline_run_config_dict
@@ -25,7 +24,7 @@ def _base_config(task='Task(TaskTypesEnum.classification)'):
 def test_parse_pipeline_run_config_dict_parses_classification_task():
     result = parse_pipeline_run_config_dict(_base_config())
 
-    assert result.__class__ is Right
+    assert result.is_right()
     assert result.value.task.task_type == TaskTypesEnum.classification
     assert result.value.train_data_idx == [1, 2, 3]
     assert result.value.var_names is None
@@ -36,7 +35,7 @@ def test_parse_pipeline_run_config_dict_parses_forecasting_task_with_params():
         _base_config(task='Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=3))')
     )
 
-    assert result.__class__ is Right
+    assert result.is_right()
     assert result.value.task.task_type == TaskTypesEnum.ts_forecasting
     assert isinstance(result.value.task.task_params, TsForecastingParams)
     assert result.value.task.task_params.forecast_length == 3
@@ -47,8 +46,8 @@ def test_parse_pipeline_run_config_dict_rejects_eval_like_task_payload():
 
     result = parse_pipeline_run_config_dict(config)
 
-    assert result.__class__ is Left
-    assert result.value.code == 'unsupported_task_format'
+    assert result.is_left()
+    assert result.monoid[0].code == 'unsupported_task_format'
 
 
 @pytest.mark.parametrize('raw_value, expected', [('False', False), ('True', True), ('"True"', True), ('None', False)])
@@ -58,7 +57,7 @@ def test_pipeline_run_config_parses_bool_literals_compatibly(raw_value, expected
 
     result = parse_pipeline_run_config_dict(config)
 
-    assert result.__class__ is Right
+    assert result.is_right()
     assert result.value.is_multi_modal is expected
 
 

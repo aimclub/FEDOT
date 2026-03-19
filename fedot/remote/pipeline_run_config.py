@@ -47,42 +47,42 @@ class PipelineRunConfig:
     @classmethod
     def try_from_dict(cls, config_dict: Dict[str, Dict[str, str]]):
         payload_result = parse_pipeline_run_config_dict(config_dict)
-        if payload_result.__class__ is Left:
+        if payload_result.is_left():
             return payload_result
         return Right(cls(payload_result.value))
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Dict[str, str]]):
         result = cls.try_from_dict(config_dict)
-        if result.__class__ is Left:
+        if result.is_left():
             raise ValueError(result.value.message)
         return result.value
 
     @classmethod
     def try_from_parser(cls, config: configparser.ConfigParser):
         sections_result = _config_parser_to_dict(config)
-        if sections_result.__class__ is Left:
+        if sections_result.is_left():
             return sections_result
         return cls.try_from_dict(sections_result.value)
 
     @classmethod
     def from_parser(cls, config: configparser.ConfigParser):
         result = cls.try_from_parser(config)
-        if result.__class__ is Left:
+        if result.is_left():
             raise ValueError(result.value.message)
         return result.value
 
     @classmethod
     def try_from_file(cls, file: Union[str, bytes]):
         parser_result = _read_config_parser(file)
-        if parser_result.__class__ is Left:
+        if parser_result.is_left():
             return parser_result
         return cls.try_from_parser(parser_result.value)
 
     @classmethod
     def from_file(cls, file: Union[str, bytes]):
         result = cls.try_from_file(file)
-        if result.__class__ is Left:
+        if result.is_left():
             raise ValueError(result.value.message)
         return result.value
 
@@ -148,23 +148,23 @@ def parse_pipeline_run_config_dict(config_dict: Dict[str, Dict[str, str]]):
                                field=field))
 
     task_result = _parse_task(default_section['task'])
-    if task_result.__class__ is Left:
+    if task_result.is_left():
         return task_result
 
     train_data_idx_result = _parse_optional_literal(default_section.get('train_data_idx'), 'train_data_idx')
-    if train_data_idx_result.__class__ is Left:
+    if train_data_idx_result.is_left():
         return train_data_idx_result
 
     is_multi_modal_result = _parse_optional_bool(default_section.get('is_multi_modal'), default=False)
-    if is_multi_modal_result.__class__ is Left:
+    if is_multi_modal_result.is_left():
         return is_multi_modal_result
 
     var_names_result = _parse_optional_literal(default_section.get('var_names'), 'var_names')
-    if var_names_result.__class__ is Left:
+    if var_names_result.is_left():
         return var_names_result
 
     target_result = _parse_target(default_section.get('target'))
-    if target_result.__class__ is Left:
+    if target_result.is_left():
         return target_result
 
     input_data = _expand_base_path(default_section['train_data'])
