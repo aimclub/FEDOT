@@ -4,7 +4,7 @@ import os
 from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
-from fedot.core.backend.backend import set_backend
+from fedot.core.backend.backend import backend
 
 import cupy as cp
 import cudf
@@ -67,7 +67,7 @@ def test_from_tensor():
     assert td.target is None
     assert td.features.shape[0] == features.shape[0]
     assert td.features.shape[1] == features.shape[1]
-    assert td.features.device.type == "cuda"
+    assert td.features.device.type == "cpu"
 
 
 def test_loader():
@@ -158,20 +158,18 @@ def test_create_text_csv_to_tensordata():
 
     td = TensorData.create(
         csv_path,
-        backend_name="cpu",
+        backend_name="gpu",
         text_idx = 0,
         embedding_strategy={
             "method": "sentence_transformer",
             "model_name": "all-distilroberta-v1",
             "batch_size": 3,
-            "device": "cpu"
+            "device": "cuda"
         },
-        max_rows=10,
-        device="cpu"     
+        max_rows=10,    
     )
 
     assert isinstance(td, TensorData)
-
     assert isinstance(td.features, torch.Tensor)
     assert isinstance(td.target, torch.Tensor)
 
@@ -352,7 +350,7 @@ def test_lazy_tensordata_to_device():
 # --------------------------------------------------
 
 
-# Test some cases with types, nans. Detecting target.
+# Test some cases with types, nans. Detecting target. Testing counting memory.
 # --------------------------------------------------
 def test_datetime_features():
     """
@@ -426,6 +424,35 @@ def test_target_depends_state():
     assert td.target is None
     assert td.features.shape[0] == features.shape[0]
     assert td.features.shape[1] == features.shape[1]
+
+
+def test_memory_count_cpu():
+    """
+    Test that the memory count of a TensorData instance is correctly calculated,
+    including the size of the features tensor and the target tensor if present.
+    """
+    features = np.random.rand(100, 10)
+
+    td = TensorData.create(features, backend_name="cpu")
+
+    assert td.features.device.type == "cpu"
+    assert td.memory_usage > 0
+
+
+def test_memory_count_gpu():
+    """
+    Test that the memory count of a TensorData instance on the GPU is correctly calculated,
+    including the size of the features tensor and the target tensor if present.
+    """
+    backend.set("gpu")
+    
+    features = np.random.rand(100, 10)
+
+    td = TensorData.create(features, backend_name="gpu")
+
+    assert td.features.device.type == "cuda"
+    assert td.memory_usage > 0
+
 # --------------------------------------------------
 
 
@@ -437,15 +464,14 @@ def test_create_from_numpy_cupy():
     is correctly transferred to CUDA tensors and feature-target separation is preserved.
     """
 
-    set_backend("gpu")
+    backend.set("gpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
         features,
-        backend_name="gpu",
-        device="cuda"
+        backend_name="gpu"
     )
-    
+
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.target.shape[0] == features.shape[0]
@@ -465,7 +491,6 @@ def test_create_from_cupy():
     td = TensorData.create(
         features,
         backend_name="gpu",
-        device="cuda"
     )
     
     assert isinstance(td, TensorData)
@@ -487,7 +512,6 @@ def test_create_from_cudf():
     td = TensorData.create(
         features,
         backend_name="gpu",
-        device="cuda"
     )
     
     assert isinstance(td, TensorData)
@@ -497,6 +521,48 @@ def test_create_from_cudf():
     assert td.features.shape[1] == features.shape[1] - 1
     assert td.features.device.type == "cuda"
     assert td.target.device.type == "cuda"
+
+
+def test_create_from_csv_gpu():
+    """
+    Test creation of TensorData from a CSV file, verifying that data is properly loaded,
+    the specified target column is extracted, and both features and target are converted
+    into torch tensors.
+    """
+
+    csv_path = f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv'
+
+    td = TensorData.create(
+        csv_path,
+        backend_name="gpu",
+        target_idx = "Class"
+    )
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert isinstance(td.target, torch.Tensor)
+    assert td.features.device.type == "cuda"
+
+
+def test_nan_gpu_backend():
+    x = np.array([[1, np.nan, 3], [4, None, 6]])
+    td = TensorData.create(x, backend_name="gpu")
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.features.device.type == "cuda"
+
+
+def test_categorical_encoding_gpu_backend():
+    X = np.array([
+        [100, "A", 10],
+        [500, "B", 20],
+        [100, "A", 30],
+    ])
+
+    td = TensorData.create(X, backend_name="gpu")
+    assert isinstance(td, TensorData)
+    assert td.features.device.type == "cuda"
+
 # --------------------------------------------------
 
 
@@ -507,14 +573,13 @@ def test_create_time_series():
     Test creation of TensorData from a time series dataset, ensuring that features and target
     are correctly separated and converted into torch tensors with expected shapes.
     """
-    set_backend("cpu")
+    backend.set("cpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
         features,
         backend_name="cpu",
         data_type="time_series",
-        device="cpu"
     )
     
     assert isinstance(td, TensorData)
@@ -528,8 +593,6 @@ def test_long_orientation():
     Test that TensorData supports long orientation, ensuring that features
     are correctly separated and converted into torch tensors with expected shapes.
     """
-    categories = np.array([0, 1, 2, 3]).reshape(-1, 1)  # label encoded
-
     X = pd.DataFrame({
         'terms': ["A", "A", "A", "B", "B", "B", "C", "C", "C"],
         'vals': [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -540,8 +603,7 @@ def test_long_orientation():
         backend_name="cpu",
         data_type="time_series",
         ts_orientation="long",
-        ts_terms_idx="terms",
-        device="cpu"
+        ts_terms_idx="terms"
     )
     
     assert isinstance(td, TensorData)
@@ -559,7 +621,6 @@ def test_is_multichannel():
     td = TensorData.create(
         X, 
         backend_name="cpu",
-        device="cpu",
         data_type="time_series"
     )
 

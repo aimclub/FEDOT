@@ -168,7 +168,7 @@ def extract_dataset_name_from_url(url: str) -> str:
 
         parts = path.split('/')
         if not parts:
-            raise ValueError("Invalid URL format")
+            raise ValueError(f"Invalid URL format: {url}")
 
         filename = parts[-1]
 

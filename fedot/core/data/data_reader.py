@@ -1,13 +1,11 @@
 import numpy as np
 import pandas as pd
 import os
-from fedot.core.backend.backend import Backend
+from fedot.core.backend.backend import backend
+from fedot.core.data.complex_types import PathType
 from typing import Optional, Union, List
 from fedot.core.data.data_tools import convert_bytes
 from scipy.io.arff import loadarff
-
-
-PathType = Union[os.PathLike, str]
 
 
 def get_df_from_csv(
@@ -19,8 +17,8 @@ def get_df_from_csv(
     columns_to_drop: Optional[List[Union[str, int]]] = None,
     columns_to_use: Optional[List[Union[str, int]]] = None,
     nrows: Optional[int] = None,
-) -> pd.DataFrame:
-    pd_backend = Backend.pd
+):
+    pd_backend = backend.pd
 
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
@@ -66,9 +64,10 @@ def get_df_from_csv(
     )
 
 
-def read_arff_file(file_path: str, target_idx: Optional[Union[int, str]] = None):
-    xp = Backend.xp
-    backend_name = Backend.name
+def read_arff_file(file_path: PathType, 
+                   target_idx: Optional[Union[int, str]] = None):
+    xp = backend.xp
+    backend_name = backend.name
 
     data, meta = loadarff(file_path)
 

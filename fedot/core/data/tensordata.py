@@ -15,19 +15,19 @@ from typing import Optional, Union, Dict, Any, Callable, TypeAlias
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-from fedot.core.data.tools import IndexType, StateEnum, TSOrientationEnum
+from fedot.core.data.tools import StateEnum, TSOrientationEnum
 
 from fedot.core.data.data_tools import (
     get_device_from_str, is_existed_csv_path, get_values_from_df, 
-    convert_idx_to_array, replace_missing_with_nan, get_target_and_features,
+    convert_idx_to_array, convert_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
-    encode_categorical_features)
+    encode_categorical_features, get_text_embeddings)
 
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
-from fedot.core.backend.backend import Backend, ensure_backend
-from fedot.preprocessing.get_embeddings import get_text_embeddings
+from fedot.core.backend.backend import backend
 from fedot.core.data.data import (autodetect_data_type)
+from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
 
 import logging
 
@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 
 POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
-PathType = Union[os.PathLike, str]
 
 
 class LazyTensor:
@@ -57,7 +56,7 @@ class LazyTensor:
         return f"LazyTensor(initialized={self._data is not None})"
 
 
-TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray, LazyTensor, cp.ndarray]]
+TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor, cp.ndarray]]
 
 
 @dataclass
@@ -83,8 +82,6 @@ class LoadDataSpec:
     ts_terms_idx: IndexType = None
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[int] = None
-
-    device: Union[torch.device, str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
         "batch_size": 32,
@@ -119,12 +116,10 @@ class LoadDataSpec:
             ts_terms_idx=self.ts_terms_idx,
             ts_forecast_horizon=self.ts_forecast_horizon,
             ts_init_shape=self.ts_init_shape,
-            device=self.device,
             dataloader_kwargs=self.dataloader_kwargs,
         )
 
 
-# TODO: check all types
 @dataclass
 class TensorData:
     """
@@ -149,9 +144,7 @@ class TensorData:
     ts_terms_idx: Optional[Union[int, str]] = None
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[int] = None
-    device: Optional[str] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # TODO: test dataloader
     dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
         "batch_size": 32,
         "shuffle": True,
@@ -162,7 +155,6 @@ class TensorData:
     _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
 
     def __post_init__(self):
-        self.device = get_device_from_str(self.device)
 
         if isinstance(self.state, str):
             self.state = StateEnum(self.state)
@@ -183,55 +175,49 @@ class TensorData:
                 self.features_names
             )
         else:
-            self._post_init_raw()
+            try:
+                self.features = backend.xp.array(self.features)
+                self._post_init_raw()
+            except:
+                with backend.override("cpu"):
+                    logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
+                    self.features = backend.xp.array(self.features)
+                    self._post_init_raw()
         
-        
-        if self.device.type != Backend.device.type:
-
-            self.features = self.features.to(self.device)
-
-            if self.target is not None:
-                self.target = self.target.to(self.device)
-
+        if self.features.device.type != backend.device.type:
+            self.to(backend.device)
 
     def _post_init_raw(self):
         """
-        preprocessing for torch export"""
+        preprocessing for torch export
+        """
 
         self.target_idx = convert_idx_to_array(self.target_idx)
         self.categorical_idx = convert_idx_to_array(self.categorical_idx)
         self.text_idx = convert_idx_to_array(self.text_idx)
-        self.features_names = convert_idx_to_array(self.features_names)
+        self.features_names = convert_to_list(self.features_names)
         self.ts_terms_idx = convert_idx_to_array(self.ts_terms_idx)
-
-        try:
-            self.features = Backend.xp.array(self.features)
-        except Exception as e:
-            raise ValueError(f"Can't convert features to array: {e}")
 
         self.features = replace_missing_with_nan(self.features)
 
-        if self.data_type == DataTypesEnum.ts:
-            if isinstance(self.ts_orientation, str):
-                self.ts_orientation = TSOrientationEnum(self.ts_orientation)
+        self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
+                                                    self.target,
+                                                    self.features_names,
+                                                    self.state,
+                                                    self.ts_orientation,
+                                                    self.ts_terms_idx,
+                                                    self.ts_forecast_horizon,
+                                                    self.data_type)
 
-            self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
-                                                        self.target,
-                                                        self.features_names,
-                                                        self.state,
-                                                        self.ts_orientation,
-                                                        self.ts_terms_idx,
-                                                        self.ts_forecast_horizon)
-
-        if self.data_type != DataTypesEnum.ts:
-            self.features, self.target, self.target_encoder = get_target_and_features(self.features,
-                                                                self.target,
-                                                                self.features_names,
-                                                                self.target_idx,
-                                                                self.state)
+        self.features, self.target, self.target_encoder = get_target_and_features(self.features,
+                                                            self.target,
+                                                            self.features_names,
+                                                            self.target_idx,
+                                                            self.state,
+                                                            self.data_type)
 
         # get embeddings
-        text_tensors, self.text_idx = get_text_embeddings(self.features, 
+        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features, 
                                                         self.text_idx, 
                                                         self.embedding_strategy,
                                                         self.features_names)
@@ -278,7 +264,8 @@ class TensorData:
 
     @classmethod
     def create(cls, source_data, backend_name, **kwargs):
-        ensure_backend(backend_name)
+
+        backend.set(backend_name)        
 
         spec = LoadDataSpec(**kwargs)
 
@@ -286,23 +273,24 @@ class TensorData:
             creator = cls._resolve_creator(source_data)
             return creator(source_data, spec)
         except Exception as e:
-            raise ValueError(f"Error creating TensorData: {e}")
+            raise ValueError(f"Error creating TensorData") from e
 
     @classmethod
     def create_lazy(cls, source_data, backend_name, **kwargs):
-        ensure_backend(backend_name)
 
-        creator = cls._resolve_creator(source_data)
+        backend.set(backend_name)
 
         spec = LoadDataSpec(**kwargs)
+
+        creator = cls._resolve_creator(source_data)
 
         def _create():
             return creator(source_data, spec)
 
         return LazyTensor(_create)
 
-    def to(self, device: str):
-        self.device = device
+    def to(self, device: Union[str, torch.device]):
+        device = get_device_from_str(device)
 
         if isinstance(self.features, LazyTensor):
             self.features = self.features.get().to(device)
@@ -313,17 +301,44 @@ class TensorData:
             self.target = self.target.to(device)
 
         return self
-    
+
     def save_predict(self, path_to_save: PathType) -> PathType:
-        prediction = self.predict.tolist()
+        prediction = self.predict.detach().cpu().tolist()
         prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
         try:
             prediction_df.to_csv(path_to_save, index=False)
-        except (FileNotFoundError, PermissionError, OSError):
-            path_to_save = './predictions.csv'
-            prediction_df.to_csv(path_to_save, index=False)
+            logger.info("Predictions saved to %s", path_to_save.resolve())
+            return path_to_save.resolve()
 
-        return Path(path_to_save).resolve()
+        except (FileNotFoundError, PermissionError, OSError) as exc:
+            fallback_path = Path("./predictions.csv")
+
+            logger.warning(
+                "Failed to save predictions to %s: %s. "
+                "Trying fallback path: %s",
+                path_to_save,
+                exc,
+                fallback_path.resolve(),
+            )
+
+            try:
+                prediction_df.to_csv(fallback_path, index=False)
+                logger.info(
+                    "Predictions saved to fallback path %s",
+                    fallback_path.resolve(),
+                )
+                return fallback_path.resolve()
+
+            except (FileNotFoundError, PermissionError, OSError) as fallback_exc:
+                logger.exception(
+                    "Failed to save predictions to both %s and fallback path %s",
+                    path_to_save,
+                    fallback_path,
+                )
+                raise RuntimeError(
+                    f"Could not save predictions to '{path_to_save}' "
+                    f"or fallback path '{fallback_path}'"
+                ) from fallback_exc
     
     def to_csv(self, path_to_save: PathType) -> PathType:
         features = self.features.tolist()
@@ -343,7 +358,6 @@ class TensorData:
         Returns the memory usage of the features in bytes.
 
         For torch.Tensor, this is the element size multiplied by the number of elements.
-        For numpy arrays, this is the sum of the number of bytes for each feature.
 
         Returns:
             int: The memory usage in bytes.
@@ -351,8 +365,8 @@ class TensorData:
         if isinstance(self.features, torch.Tensor):
             return self.features.element_size() * self.features.nelement()
         else:
-            # for numpy
-            return sum([feature.nbytes for feature in self.features.T])
+            logger.warning("Memory usage is not available for non-torch tensors.")
+            return 0
 
 
 @TensorData.register_creator(lambda x: isinstance(x, torch.Tensor))
@@ -364,7 +378,7 @@ def from_torch(features: torch.Tensor, spec: LoadDataSpec) -> TensorData:
 @TensorData.register_creator(
     lambda x: isinstance(x, np.ndarray) or isinstance(x, cp.ndarray)
 )
-def from_numpy(features: np.ndarray, spec: LoadDataSpec) -> TensorData:
+def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
     
     if spec.data_type is None:
         spec.data_type = autodetect_data_type(spec.task)
@@ -380,7 +394,7 @@ def from_numpy(features: np.ndarray, spec: LoadDataSpec) -> TensorData:
     lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
-    features: Union[pd.DataFrame, pd.Series, cudf.DataFrame], 
+    features: PandasType, 
     spec: LoadDataSpec) -> TensorData:
 
     spec.features_names = features.columns.to_numpy()
@@ -400,12 +414,10 @@ def from_csv_tsv(
     file_path: str, spec: LoadDataSpec
 ) -> TensorData:
 
-    # ensure_backend(backend_name)
-
     if not is_existed_csv_path(file_path):
         raise ValueError(f'File {file_path} does not exist')
 
-    possible_idx_keywords = (
+    spec.possible_idx_keywords = (
         spec.possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
     )
 

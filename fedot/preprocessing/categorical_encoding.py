@@ -1,20 +1,9 @@
 from golem.utilities.data_structures import ComparableEnum as Enum
 from dataclasses import dataclass
-from fedot.core.backend.backend import Backend
+from fedot.core.backend.backend import backend
 from typing import Optional, Any
-from fedot.core.data.tensordata import IndexType
+from fedot.core.data.complex_types import ArrayType, IndexType
 
-
-class EncodingStrategyEnum(Enum):
-    label = "label"
-    ohe = "ohe"
-
-
-@dataclass
-class CategoricalEncodingDecision:
-    categorical_columns: IndexType
-    strategy: Optional[EncodingStrategyEnum] = None
-    encoder: Any = None
 
 
 class LabelEncoder:
@@ -22,8 +11,8 @@ class LabelEncoder:
     categories_ = {}
     categorical_idx_ = None
 
-    def fit(self, data, categorical_idx):
-        xp = Backend.xp
+    def fit(self, data: ArrayType, categorical_idx: IndexType):
+        xp = backend.xp
 
         self.categorical_idx_ = list(categorical_idx)
         self.categories_ = {}
@@ -39,8 +28,8 @@ class LabelEncoder:
 
         return self
 
-    def transform(self, data):
-        xp = Backend.xp
+    def transform(self, data: ArrayType):
+        xp = backend.xp
 
         n_rows = data.shape[0]
         n_cat = len(self.categorical_idx_)
@@ -64,7 +53,7 @@ class LabelEncoder:
 
         return encoded
 
-    def fit_transform(self, data, categorical_idx):
+    def fit_transform(self, data: ArrayType, categorical_idx: IndexType):
         return self.fit(data, categorical_idx).transform(data)
 
 
@@ -75,8 +64,8 @@ class OneHotEncoder:
     feature_slices_ = None
     n_output_features_ = None
 
-    def fit(self, data, categorical_idx):
-        xp = Backend.xp
+    def fit(self, data: ArrayType, categorical_idx: IndexType):
+        xp = backend.xp
 
         self.categorical_idx_ = list(categorical_idx)
         self.categories_ = {}
@@ -99,8 +88,8 @@ class OneHotEncoder:
         self.n_output_features_ = start
         return self
 
-    def transform(self, data):
-        xp = Backend.xp
+    def transform(self, data: ArrayType):
+        xp = backend.xp
 
         n_rows = data.shape[0]
         encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)
@@ -122,35 +111,5 @@ class OneHotEncoder:
 
         return encoded
 
-    def fit_transform(self, data, categorical_idx):
+    def fit_transform(self, data: ArrayType, categorical_idx: IndexType):
         return self.fit(data, categorical_idx).transform(data)
-
-
-
-
-    # target = xp.asarray(target)
-
-    # if target.dtype.kind in {"U", "S"}:
-    #     target_flat = target.flatten()
-    #     _, codes = xp.unique(target_flat, return_inverse=True)
-    #     codes = codes.astype(xp.int64)
-    #     return codes.reshape(-1, 1)
-
-    # if target.dtype == object:
-    #     if isinstance(target.flat[0], str):
-    #         target_flat = target.flatten()
-    #         _, codes = xp.unique(target_flat, return_inverse=True)
-    #         return codes.astype(xp.int64).reshape(-1, 1)
-
-    #     try:
-    #         return target.astype(xp.int64)
-    #     except Exception:
-    #         return target.astype(xp.float32)
-
-    # if target.dtype.kind in {"i", "u"}:
-    #     return target.astype(xp.int64)
-
-    # if target.dtype.kind == "f":
-    #     return target.astype(xp.float32)
-
-    # return target

@@ -1,14 +1,18 @@
 from dataclasses import dataclass
-from fedot.core.backend.backend import Backend
-from typing import Optional
+from fedot.core.backend.backend import backend
+from typing import Optional, List
 
 from fedot.core.data.data_tools import get_idx_from_features_names
-from fedot.core.data.tensordata import IndexType
+from fedot.core.data.complex_types import ArrayType, IndexType
 
 from fedot.core.data.tools import TSOrientationEnum, StateEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 
-def long_to_wide(features, features_names=None, terms_idx=None):
-    xp = Backend.xp
+
+def long_to_wide(features: ArrayType, 
+                 features_names: Optional[List[str]] = None, 
+                 terms_idx: IndexType = None):
+    xp = backend.xp
 
     if terms_idx is None:
         terms_idx = 0
@@ -35,8 +39,8 @@ def long_to_wide(features, features_names=None, terms_idx=None):
     return wide, unique_labels
 
 
-def check_multichannel_ts(features):
-    xp = Backend.xp
+def check_multichannel_ts(features: ArrayType):
+    xp = backend.xp
 
     if features.ndim == 1:
         features = xp.expand_dims(features, axis=0)
@@ -55,15 +59,22 @@ def check_multichannel_ts(features):
 
 
 def process_ts_data(
-    features,
-    target=None,
-    features_names=None,
+    features: ArrayType,
+    target: ArrayType = None,
+    features_names: Optional[List[str]] = None,
     state: StateEnum = StateEnum.FIT,
     ts_orientation: Optional[TSOrientationEnum] = None,
     terms_idx: int = None,
     forecast_horizon: int = None,
+    data_type: DataTypesEnum = DataTypesEnum.ts
 ):
+    if data_type == DataTypesEnum.tabular:
+        return features, target, None, None
+
     features, init_shape = check_multichannel_ts(features)
+
+    if isinstance(ts_orientation, str):
+        ts_orientation = TSOrientationEnum(ts_orientation)
 
     if ts_orientation is None:
         ts_orientation = TSOrientationEnum.wide

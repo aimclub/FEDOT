@@ -14,9 +14,12 @@ import logging
 
 from fedot.core.utils import fedot_project_root, extract_dataset_name_from_url
 from fedot.core.data.data_tools import convert_bytes
+from fedot.core.data.complex_types import PathType
+
 
 PROJECT_PATH = fedot_project_root()
 DEFAULT_URL = 'http://www.timeseriesclassification.com/aeon-toolkit/'
+
 
 class TSLoader:
     """
@@ -25,7 +28,7 @@ class TSLoader:
     logger = logging.getLogger('DataLoader')
 
     @staticmethod
-    def read_tsv_or_csv(dataset_name: str, data_path: str, mode: str = 'tsv') -> tuple:
+    def read_tsv_or_csv(dataset_name: str, data_path: PathType, mode: str = 'tsv') -> tuple:
         """Read ``tsv`` or ``csv`` file that contains data for classification experiment.
         Data must be placed in ``data`` folder with ``.tsv``/``csv`` extension.
 
@@ -36,7 +39,7 @@ class TSLoader:
         Returns:
             tuple: (x_train, x_test) and (y_train, y_test)
         """
-        def load_process_data(path_to_dataset, sep):
+        def load_process_data(path_to_dataset: PathType, sep: str):
             data = pd.read_csv(path_to_dataset, sep=sep, header=None)
             features = data.iloc[:, 1:].values
             target = data[0].values
@@ -72,7 +75,8 @@ class TSLoader:
 
 
     @staticmethod
-    def read_arff_files(dataset_name: str, data_path: str) -> tuple[pd.DataFrame, np.array, pd.DataFrame, np.array]:
+    def read_arff_files(dataset_name: str, 
+                        data_path: PathType) -> tuple[pd.DataFrame, np.array, pd.DataFrame, np.array]:
         """
         Reads multivariate data from ``.arff`` file
 
@@ -102,7 +106,7 @@ class TSLoader:
 
 
     def read_train_test_files(self,
-                              data_path: Union[Path, str],
+                              data_path: PathType,
                               dataset_name: str
             ) -> tuple[bool, tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
         dataset_dir_path = os.path.join(data_path, dataset_name)
@@ -124,7 +128,7 @@ class TSLoader:
 
         return x_train, y_train, x_test, y_test
 
-    def extract_data(self, dataset_name: str, data_path: str):
+    def extract_data(self, dataset_name: str, data_path: PathType):
         """Unpacks data from downloaded file and saves it into Data folder with ``.tsv`` extension.
 
         Args:
