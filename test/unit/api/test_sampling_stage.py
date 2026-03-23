@@ -76,16 +76,15 @@ def test_dynamic_cap_budget_and_timeout_update():
         'cap_max_timeout_share': 0.4,
         'min_automl_time_minutes': 2.0,
     }
-    executor = SamplingStageExecutor(sampling_config=config,
-                                     task_type=TaskTypesEnum.classification,
-                                     total_timeout_minutes=10.0,
-                                     provider=FirstKProvider())
+    validated = validate_sampling_config(config)
 
-    budget = executor._compute_budget_seconds()
+    budget = SamplingStageExecutor._compute_budget_seconds(validated, total_timeout_minutes=10.0)
     # min(10m * 0.4, 10m - 2m) = min(240s, 480s)
     assert budget == pytest.approx(240.0)
 
-    updated_timeout = executor._compute_updated_timeout(elapsed_seconds=120.0)
+    updated_timeout = SamplingStageExecutor._compute_updated_timeout(elapsed_seconds=120.0,
+                                                                     total_timeout_minutes=10.0,
+                                                                     min_automl_time_minutes=2.0)
     assert updated_timeout == pytest.approx(8.0)
 
 
@@ -119,8 +118,8 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
                                      total_timeout_minutes=5.0,
                                      provider=FirstKProvider())
 
-    def fake_score(self, train_data, valid_data):
-        del valid_data
+    def fake_score(train_data, valid_data, task_type, random_state):
+        del valid_data, task_type, random_state
         size = len(train_data.idx)
         if size >= 70:
             return 1.0
@@ -128,7 +127,7 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
             return 0.97
         return 0.8
 
-    monkeypatch.setattr(SamplingStageExecutor, '_score_light_model', fake_score)
+    monkeypatch.setattr(SamplingStageExecutor, '_score_light_model', staticmethod(fake_score))
 
     result = executor.execute(data)
     assert result.metadata['selected_ratio'] == pytest.approx(0.5)
@@ -136,7 +135,6 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
 
 
 def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
-    data = _classification_input()
     config = {
         'strategy_kind': 'subset',
         'provider': 'sampling_zoo',
@@ -144,9 +142,6 @@ def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
         'candidate_ratios': [0.5],
         'delta_metric_threshold': 1.0,
     }
-    executor = SamplingStageExecutor(sampling_config=config,
-                                     task_type=TaskTypesEnum.classification,
-                                     total_timeout_minutes=5.0)
 
     def missing_provider(*args, **kwargs):
         raise ModuleNotFoundError('sampling zoo not installed')
@@ -154,7 +149,9 @@ def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
     monkeypatch.setattr(SamplingStageExecutor, '_create_provider', missing_provider)
 
     with pytest.raises(ModuleNotFoundError):
-        executor.execute(data)
+        SamplingStageExecutor(sampling_config=config,
+                              task_type=TaskTypesEnum.classification,
+                              total_timeout_minutes=5.0)
 
 
 def test_sampling_config_respects_heavy_parameter_guards():
@@ -172,20 +169,15 @@ def test_sampling_config_rejects_unsorted_candidate_ratios():
 
 
 def test_dynamic_cap_for_infinite_timeout_uses_absolute_stage_cap():
-    executor = SamplingStageExecutor(
-        sampling_config={
-            'strategy_kind': 'subset',
-            'strategy': 'random',
-            'candidate_ratios': [0.5],
-            'delta_metric_threshold': 1.0,
-            'infinite_timeout_cap_minutes': 7.0,
-        },
-        task_type=TaskTypesEnum.classification,
-        total_timeout_minutes=None,
-        provider=FirstKProvider(),
-    )
+    config = validate_sampling_config({
+        'strategy_kind': 'subset',
+        'strategy': 'random',
+        'candidate_ratios': [0.5],
+        'delta_metric_threshold': 1.0,
+        'infinite_timeout_cap_minutes': 7.0,
+    })
 
-    assert executor._compute_budget_seconds() == pytest.approx(420.0)
+    assert SamplingStageExecutor._compute_budget_seconds(config, total_timeout_minutes=None) == pytest.approx(420.0)
 
 
 def test_sampling_config_rejects_non_dict_value():

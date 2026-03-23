@@ -200,21 +200,21 @@ class Fedot:
                 elif fit_plan.should_run_sampling_stage:
                     self._run_sampling_stage_if_necessary()
 
-            with fedot_composer_timer.launch_fitting():
-                if predefined_model is not None:
-                    # Fit predefined model and return it without composing
-                    self.current_pipeline = PredefinedModel(
-                        predefined_model, self.train_data, self.log,
-                        use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                        api_preprocessor=self.data_processor.preprocessor,
-                    ).fit()
-                else:
-                    if isinstance(self.train_data, list) and all(isinstance(x, InputData) for x in self.train_data):
-                        self.current_pipeline, self.best_models, self.history = \
-                            self.api_composer.obtain_ensemble_model(self.train_data)
+                with fedot_composer_timer.launch_fitting():
+                    if predefined_model is not None:
+                        # Fit predefined model and return it without composing
+                        self.current_pipeline = PredefinedModel(
+                            predefined_model, self.train_data, self.log,
+                            use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                            api_preprocessor=self.data_processor.preprocessor,
+                        ).fit()
                     else:
-                        self.current_pipeline, self.best_models, self.history = \
-                            self.api_composer.obtain_model(self.train_data)
+                        if isinstance(self.train_data, list) and all(isinstance(x, InputData) for x in self.train_data):
+                            self.current_pipeline, self.best_models, self.history = \
+                                self.api_composer.obtain_ensemble_model(self.train_data)
+                        else:
+                            self.current_pipeline, self.best_models, self.history = \
+                                self.api_composer.obtain_model(self.train_data)
 
                         if self.current_pipeline is None:
                             raise ValueError('No models were found')
@@ -231,23 +231,23 @@ class Fedot:
                             else:
                                 self.log.message('Already fitted initial pipeline is used')
 
-            # Merge API & pipelines encoders if it is required
-            merged_preprocessor = BasePreprocessor.merge_preprocessors(
-                api_preprocessor=self.data_processor.preprocessor,
-                pipeline_preprocessor=self.current_pipeline.preprocessor,
-                use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-            )
-            self.current_pipeline.preprocessor = merged_preprocessor
-            if isinstance(self.current_pipeline, PipelineEnsemble):
-                for pipeline in self.current_pipeline.pipelines:
-                    pipeline.preprocessor = merged_preprocessor
+                # Merge API & pipelines encoders if it is required
+                merged_preprocessor = BasePreprocessor.merge_preprocessors(
+                    api_preprocessor=self.data_processor.preprocessor,
+                    pipeline_preprocessor=self.current_pipeline.preprocessor,
+                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+                )
+                self.current_pipeline.preprocessor = merged_preprocessor
+                if isinstance(self.current_pipeline, PipelineEnsemble):
+                    for pipeline in self.current_pipeline.pipelines:
+                        pipeline.preprocessor = merged_preprocessor
 
-            if isinstance(self.current_pipeline, Pipeline):
-                self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
-            else:
-                self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
+                if isinstance(self.current_pipeline, Pipeline):
+                    self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+                else:
+                    self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
 
-            return self.current_pipeline
+                return self.current_pipeline
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()

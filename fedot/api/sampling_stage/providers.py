@@ -41,7 +41,6 @@ class SamplingZooProvider(SamplingProvider):
     _SAMPLING_MODULE_CANDIDATES = (
         'sampling_zoo.core.api.api_main',
         'sampling_zoo.api.api_main',
-        'core.api.api_main',
     )
 
     def __init__(self):
@@ -60,17 +59,16 @@ class SamplingZooProvider(SamplingProvider):
         if strategy_kind is None:
             strategy_kind = self._resolve_strategy_kind(factory, strategy)
 
-        if strategy_kind == 'chunking':
-            return self._sample_chunking(
+        available_methods = {
+            'chunking': lambda: SamplingZooProvider._sample_chunking(
                 factory=factory,
                 features=features,
                 target=target,
                 strategy=strategy,
                 strategy_params=strategy_params,
                 random_state=random_state
-            )
-        elif strategy_kind == 'subset':
-            return self._sample_subset(
+            ),
+            'subset': lambda: SamplingZooProvider._sample_subset(
                 factory=factory,
                 features=features,
                 target=target,
@@ -78,12 +76,15 @@ class SamplingZooProvider(SamplingProvider):
                 strategy_params=strategy_params,
                 random_state=random_state,
                 injectable_params=injectable_params
-            )
-        else:
+            ),
+        }
+        sample_method = available_methods.get(strategy_kind)
+        if sample_method is None:
             raise ValueError(f'Unsupported sampling strategy kind: {strategy_kind}')
+        return sample_method()
 
-    def _sample_subset(self,
-                       factory: Any,
+    @staticmethod
+    def _sample_subset(factory: Any,
                        features: np.ndarray,
                        target: np.ndarray,
                        strategy: str,
@@ -96,7 +97,7 @@ class SamplingZooProvider(SamplingProvider):
         if random_state is not None and 'random_state' not in strategy_kwargs:
             strategy_kwargs['random_state'] = random_state
 
-        strategy_kwargs = self._inject_required_kwargs(
+        strategy_kwargs = SamplingZooProvider._inject_required_kwargs(
             factory=factory,
             strategy_name=strategy,
             strategy_kwargs=strategy_kwargs,
@@ -105,7 +106,7 @@ class SamplingZooProvider(SamplingProvider):
         )
 
         sample_size = strategy_kwargs.get('sample_size') or n_rows
-        strategy_obj, indices = self._apply_strategy(
+        strategy_obj, indices = SamplingZooProvider._apply_strategy(
             factory=factory,
             strategy=strategy,
             data_frame=pd.DataFrame(features),
@@ -125,7 +126,7 @@ class SamplingZooProvider(SamplingProvider):
         sampled = rng.choice(indices, size=sample_size, replace=False)
         sampled = np.asarray(sampled, dtype=int)
 
-        sample_scores = self._extract_scores(strategy_obj, sampled)
+        sample_scores = SamplingZooProvider._extract_scores(strategy_obj, sampled)
         meta = {
             'provider': 'sampling_zoo',
             'strategy': strategy,
@@ -138,8 +139,8 @@ class SamplingZooProvider(SamplingProvider):
                                     sample_scores=sample_scores,
                                     meta=meta)
 
-    def _sample_chunking(self,
-                         factory: Any,
+    @staticmethod
+    def _sample_chunking(factory: Any,
                          features: np.ndarray,
                          target: np.ndarray,
                          strategy: str,
@@ -150,7 +151,7 @@ class SamplingZooProvider(SamplingProvider):
             strategy_kwargs['random_state'] = random_state
 
         data_frame = pd.DataFrame(features)
-        strategy_obj, partitions = self._apply_strategy(
+        strategy_obj, partitions = SamplingZooProvider._apply_strategy(
             factory=factory,
             strategy=strategy,
             data_frame=data_frame,
