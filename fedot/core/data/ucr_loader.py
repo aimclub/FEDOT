@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 
 import urllib.request as request
 import zipfile
@@ -23,7 +23,11 @@ DEFAULT_URL = 'http://www.timeseriesclassification.com/aeon-toolkit/'
 
 class TSLoader:
     """
-    Class for downloading UCR datasets
+    Class for downloading UCR datasets.
+
+    e.g.
+        name = "AbnormalHeartbeat"
+        X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
     """
     logger = logging.getLogger('DataLoader')
 
@@ -109,6 +113,16 @@ class TSLoader:
                               data_path: PathType,
                               dataset_name: str
             ) -> tuple[bool, tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+        '''
+        Reads train and test data from files.
+
+        Args:
+            data_path: path to folder with data
+            dataset_name: name of dataset
+
+        Returns:
+            tuple: train and test data
+        '''
         dataset_dir_path = os.path.join(data_path, dataset_name)
         file_path = dataset_dir_path + f'/{dataset_name}_TRAIN'
         self.logger.info(f'Reading data from {dataset_dir_path}')
@@ -149,8 +163,17 @@ class TSLoader:
 
         return x_train, y_train, x_test, y_test
 
-    def download_by_url(self, dataset_name: str = None, url: str = DEFAULT_URL) -> None:
-        # Create temporary folder for downloaded data
+    def download_by_url(self, dataset_name: str = None, url: str = DEFAULT_URL) -> Tuple:
+        '''
+        Downloads dataset from UCR archive by URL and extracts it into temporary folder.
+
+        Args:
+            dataset_name: name of dataset
+            url: URL of the dataset
+
+        Returns:
+            tuple: train and test data
+        '''
         cache_path = os.path.join(PROJECT_PATH, 'temp_cache/')
         os.makedirs(cache_path, exist_ok=True)
         download_path = cache_path + 'downloads/'

@@ -1,9 +1,10 @@
-import os
-import numpy as np
-import numbers
-import torch
 import logging
+import numbers
+import os
 from typing import Optional, Union, List, Tuple, Dict, Iterable, Any
+
+import numpy as np
+import torch
 
 from fedot.core.backend.backend import backend
 from fedot.core.data.complex_types import PathType, PandasType, ArrayType, IndexType
@@ -21,18 +22,51 @@ logger = logging.getLogger(__name__)
 
 
 def is_existed_csv_path(path: PathType) -> bool:
+    """
+    Check whether the provided path points to an existing CSV file.
+
+    Args:
+        path (PathType): Path to check.
+
+    Returns:
+        bool: True if the file exists and has a `.csv` extension, otherwise False.
+    """
     if os.path.isfile(path) and path.lower().endswith('.csv'):
         return True
     return False
 
 
 def get_device_from_str(device: Union[str, torch.device]) -> torch.device:
+    """
+    Convert a device representation to `torch.device`.
+
+    Args:
+        device (Union[str, torch.device]): Either an already created `torch.device`
+            or a string like `"cpu"` / `"cuda"`.
+
+    Returns:
+        torch.device: Parsed torch device.
+    """
     if isinstance(device, torch.device):
         return device
     return torch.device(device)
 
 
 def convert_bytes(x: np.ndarray) -> np.ndarray:
+    """
+    Convert decoded byte/string data to numeric values when possible.
+
+    The function attempts to:
+    1) Decode UTF-8 byte strings into Python strings.
+    2) Cast to float.
+    3) If float conversion fails, cast to `str`.
+
+    Args:
+        x (np.ndarray): Input array that may contain byte strings.
+
+    Returns:
+        np.ndarray: Converted array with dtype float or str.
+    """
     # Conversion of target values to float or str
     try:
         x = np.char.decode(x, encoding='utf-8')
@@ -46,6 +80,18 @@ def convert_bytes(x: np.ndarray) -> np.ndarray:
 
 
 def get_values_from_df(df: PandasType) -> ArrayType:
+    """
+    Extract values from a dataframe-like object.
+
+    Tries `df.values` first. If it fails (e.g., for some cuDF cases),
+    falls back to `df.to_pandas().values`.
+
+    Args:
+        df (PandasType): Input dataframe (CPU pandas or GPU cuDF).
+
+    Returns:
+        ArrayType: Underlying values as a numpy-like array.
+    """
     try:
         features = df.values
         return features
@@ -56,6 +102,21 @@ def get_values_from_df(df: PandasType) -> ArrayType:
 
 
 def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
+    """
+    Replace missing values with `NaN` and normalize dtype for CPU backends.
+
+    For GPU backend (`backend.name == "gpu"`) this function returns `arr` unchanged.
+    For CPU it attempts to:
+    - Cast numeric dtypes to float32.
+    - For object dtype, treat `None` and pandas/cudf missing values as `xp.nan`.
+    - Convert non-missing values to float when possible; keep strings as-is.
+
+    Args:
+        arr (ArrayType): Input array.
+
+    Returns:
+        ArrayType: Array with missing values replaced by `NaN` (or `xp.nan`).
+    """
     xp = backend.xp
     pd_backend = backend.pd
     backend_name = backend.name
@@ -100,8 +161,18 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
 def _drop_rows_with_nan_in_target(features: ArrayType,
                                   target: ArrayType) -> Tuple[ArrayType, ArrayType]:
     """
-    Drop rows where target contains NaN in any target column.
-    Works for both numpy and cupy backends.
+    Drop rows where `target` contains NaN in any target column.
+
+    Works for both numpy (CPU) and cupy (GPU) backends.
+
+    Args:
+        features (ArrayType): Feature matrix with shape `(n_samples, n_features)`.
+        target (ArrayType): Target matrix with shape `(n_samples, n_targets)` or
+            a compatible 2D representation.
+
+    Returns:
+        Tuple[ArrayType, ArrayType]: `(features_filtered, target_filtered)` with
+            rows containing NaNs removed. If `target is None`, returns the inputs unchanged.
     """
     xp = backend.xp
 
@@ -125,12 +196,17 @@ def _drop_rows_with_nan_in_target(features: ArrayType,
 
 def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
     """
-    Returns a view of the ``data`` with at least ``ndim`` dimensions
+    Expand `data` until it has at least `ndim` dimensions.
 
-    :param data: ndarray which dimensional size should be set to at least ``ndim``
-    :param ndim: number of required axes to have in ``data``
+    This is done by repeatedly adding axes at the end of the array shape using
+    `xp.expand_dims`.
 
-    :return: ``data`` expanded from the last axis to the provided ``ndim`` size if it doesn't satisfy it
+    Args:
+        data (ArrayType): Input array.
+        ndim (int): Minimum number of dimensions required.
+
+    Returns:
+        ArrayType: Expanded array view/copy with `data.ndim >= ndim`.
     """
     xp = backend.xp
 
@@ -141,6 +217,21 @@ def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
 
 
 def convert_idx_to_array(idx: IndexType) -> IndexType:
+    """
+    Normalize an index-like value to a backend array (NumPy/CuPy) when possible.
+
+    Rules:
+    - If `idx` is already a backend array (or `None`), it is returned as-is.
+    - If `idx` is an `int` or `str`, it becomes a 1D array: `xp.array([idx])`.
+    - Otherwise it is converted via `xp.array(idx)`.
+    - On conversion error it falls back to returning Python lists.
+
+    Args:
+        idx (IndexType): Index input to normalize.
+
+    Returns:
+        IndexType: Normalized index representation.
+    """
     xp = backend.xp
 
     if isinstance(idx, xp.ndarray) or idx is None:
@@ -159,6 +250,17 @@ def convert_idx_to_array(idx: IndexType) -> IndexType:
 
 
 def convert_to_list(idx: IndexType) -> List:
+    """
+    Convert index-like input to a Python `list` when appropriate.
+
+    Args:
+        idx (IndexType): Value to convert.
+
+    Returns:
+        List: Converted list. If `idx` is already a list or `None`, returns it unchanged.
+            If `idx` is a numpy/CuPy array, returns `idx.tolist()`. Otherwise wraps
+            the value into a single-element list.
+    """
     if isinstance(idx, list) or idx is None:
         return idx
     elif isinstance(idx, np.ndarray) or isinstance(idx, backend.xp.ndarray):
@@ -170,6 +272,20 @@ def convert_to_list(idx: IndexType) -> List:
 
 def get_idx_from_features_names(idx: IndexType, 
                                 features_names: Optional[List[str]]) -> IndexType:
+    """
+    Convert feature names (strings) to feature indices.
+
+    If `idx` already contains integers, it is returned unchanged.
+    If `idx` contains strings, `features_names` must be provided and is used to map
+    each name to its integer position.
+
+    Args:
+        idx (IndexType): Indices or feature names.
+        features_names (Optional[List[str]]): List of all feature names in order.
+
+    Returns:
+        IndexType: Indices as an array/module-compatible representation.
+    """
     xp = backend.xp
 
     if idx is None or len(idx) == 0:
@@ -203,6 +319,21 @@ def get_idx_from_features_names(idx: IndexType,
 
 
 def get_embedder_parameters(parameters: Union[EmbedderParameters, Dict]) -> EmbedderParameters:
+    """
+    Normalize embedder configuration into an `EmbedderParameters` instance.
+
+    Args:
+        parameters (Union[EmbedderParameters, Dict]): Either an already created
+            `EmbedderParameters` object or a dictionary with keys:
+            `model_name`, `batch_size`, `device`, `method`.
+
+            If an empty dict is provided, default parameters are used:
+            model=`all-distilroberta-v1`, batch_size=`32`, device determined by CUDA availability,
+            method=`transformer`.
+
+    Returns:
+        EmbedderParameters: Parsed/constructed embedder parameters.
+    """
     if isinstance(parameters, Dict):
         if not parameters:
             parameters = EmbedderParameters(
@@ -233,6 +364,28 @@ def get_text_embeddings(features: ArrayType,
                         text_idx: IndexType,
                         strategy: Union[EmbedderParameters, Dict], 
                         features_names: Optional[List[str]] = None):
+    """
+    Compute text embeddings for selected text feature columns and zero-out them in `features`.
+
+    If `text_idx` is `None`, returns `(None, None, features)` without modification.
+    Otherwise:
+    - `text_idx` can contain integers or feature names (strings), depending on input type.
+    - `strategy` is normalized into `EmbedderParameters` via `get_embedder_parameters`.
+    - A corresponding embedder function is selected from `EMBEDDING_METHOD_MAPPING`.
+    - The selected text columns are replaced with zeros in the returned `features`.
+
+    Args:
+        features (ArrayType): Feature matrix `(n_samples, n_features)`.
+        text_idx (IndexType): Indices or names of text columns to embed.
+        strategy (Union[EmbedderParameters, Dict]): Embedding configuration.
+        features_names (Optional[List[str]]): Required when `text_idx` contains names.
+
+    Returns:
+        Tuple[Any, Any, ArrayType]: `(embeddings, text_idx_resolved, features_updated)`.
+            `embeddings` is the result returned by the selected embedding function
+            (often a torch tensor), and `features_updated` is a copy of `features`
+            with text columns set to zeros.
+    """
     xp = backend.xp
     device = backend.device
 
@@ -265,7 +418,18 @@ def get_text_embeddings(features: ArrayType,
 
 def encode_target(target: ArrayType) -> Tuple[ArrayType, Any]:
     """
-    Encode categorical target values and ensure numeric dtype.
+    Encode categorical target values into numeric representation.
+
+    The function uses an encoder from `ENCODER_MAPPING` with
+    `EncodingStrategyEnum.label` strategy.
+
+    Args:
+        target (ArrayType): Target array.
+
+    Returns:
+        Tuple[ArrayType, Any]:
+            - encoded_target (ArrayType): Encoded target values.
+            - target_encoder (Any): Fitted encoder instance, or `None` if `target` is empty.
     """
 
     if target is None or target.shape[0] == 0:
@@ -278,7 +442,16 @@ def encode_target(target: ArrayType) -> Tuple[ArrayType, Any]:
 
 
 def force_categorical_determination(table: ArrayType) -> IndexType:
-    """Find string columns using a unified approach for CPU/GPU backends."""
+    """
+    Detect categorical feature columns by checking for string/object dtypes.
+
+    Args:
+        table (ArrayType): Feature matrix `(n_samples, n_features)`.
+
+    Returns:
+        IndexType: Indices of detected categorical columns, or `None` if no categorical
+            columns are found.
+    """
     pd_backend = backend.pd
 
     categorical_ids = []
@@ -297,6 +470,17 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
 
 def process_user_stratedy_encoding(strategy: EncodingStrategyType, 
                                    features_names: List[str]) -> List[CategoricalEncodingDecision]:
+    """
+    Convert user-provided categorical encoding strategy into a list of decisions.
+
+    Args:
+        strategy (EncodingStrategyType): Either a single `CategoricalEncodingDecision`
+            or a dict mapping encoding strategy name to indices/names of categorical columns.
+        features_names (List[str]): Feature names used when the strategy specifies columns by name.
+
+    Returns:
+        List[CategoricalEncodingDecision]: A list of resolved encoding decisions.
+    """
 
     if isinstance(strategy, CategoricalEncodingDecision):
         return [strategy]
@@ -320,6 +504,28 @@ def choose_categorical_encoding(
     features_names: Optional[List[str]] = None,
     state: StateEnum = StateEnum.FIT
 ) -> tuple[Optional[List[CategoricalEncodingDecision]], IndexType]:
+    """
+    Determine categorical feature columns and produce encoding decisions.
+
+    In `FIT` mode the function either:
+    - Uses `user_strategy` if it is provided (dict or `CategoricalEncodingDecision`), or
+    - Infers `categorical_idx` automatically from dtypes (string/object columns),
+      or converts it from provided indices/names.
+
+    In non-`FIT` mode it expects `user_strategy` to already be a list of decisions.
+
+    Args:
+        data (ArrayType): Feature matrix `(n_samples, n_features)`.
+        categorical_idx (IndexType): Categorical column indices or names (optional).
+        user_strategy (EncodingStrategyType): User strategy (optional).
+        features_names (Optional[List[str]]): Feature names for name-to-index conversion.
+        state (StateEnum): Whether we are in fitting or transformation stage.
+
+    Returns:
+        tuple[Optional[List[CategoricalEncodingDecision]], IndexType]:
+            - decisions: Resolved list of encoding decisions, or `None` if no categorical columns exist.
+            - non_categorical_idx: Indices of columns that are not categorical.
+    """
     
     xp = backend.xp
     
@@ -367,6 +573,19 @@ def choose_categorical_encoding(
 
 def apply_categorical_encoding(data: ArrayType, 
                                decision: CategoricalEncodingDecision) -> Tuple[ArrayType, CategoricalEncodingDecision]:
+    """
+    Apply one categorical encoding decision to the provided dataset.
+
+    If the decision already has an `encoder`, it will use it to `transform`.
+    Otherwise, it creates the encoder from `ENCODER_MAPPING` and performs `fit_transform`.
+
+    Args:
+        data (ArrayType): Feature matrix.
+        decision (CategoricalEncodingDecision): Encoding decision containing categorical column indices and strategy.
+
+    Returns:
+        Tuple[ArrayType, CategoricalEncodingDecision]: `(encoded_features, updated_decision)`.
+    """
 
     if decision.categorical_columns is None:
         return data, decision
@@ -390,6 +609,19 @@ def encode_categorical_features(data: ArrayType,
                                 decisions: Optional[List[CategoricalEncodingDecision]], 
                                 non_categorical_idx: IndexType
     ) -> Tuple[ArrayType, Optional[List[CategoricalEncodingDecision]]]:
+    """
+    Encode all categorical columns and concatenate them with non-categorical features.
+
+    Args:
+        data (ArrayType): Feature matrix `(n_samples, n_features)`.
+        decisions (Optional[List[CategoricalEncodingDecision]]): List of categorical encoding decisions.
+        non_categorical_idx (IndexType): Indices of non-categorical feature columns.
+
+    Returns:
+        Tuple[ArrayType, Optional[List[CategoricalEncodingDecision]]]:
+            - result_data: Concatenated features `(n_samples, n_new_features)`.
+            - new_decisions: Updated decisions with fitted encoders, or `None` if `decisions` is `None`.
+    """
     xp = backend.xp
 
     if decisions is None:
@@ -412,6 +644,25 @@ def encode_torch_tensors(features: torch.Tensor,
                          state: StateEnum = StateEnum.FIT, 
                          features_names: Optional[List[str]] = None
         ) -> Tuple[torch.Tensor, Optional[List[CategoricalEncodingDecision]]]:
+    """
+    Perform categorical encoding and return encoded torch tensor features.
+
+    This function converts the input `features` tensor to backend array format (NumPy/CuPy),
+    selects categorical columns/decisions with `choose_categorical_encoding`, applies encoders,
+    and converts the result back into a `torch.Tensor`.
+
+    Args:
+        features (torch.Tensor): Input feature tensor.
+        user_strategy (EncodingStrategyType): Categorical encoding strategy (optional).
+        categorical_idx (IndexType): Categorical column indices or names (optional).
+        state (StateEnum): Whether we are in FIT or transform stage.
+        features_names (Optional[List[str]]): Feature names for name-to-index conversion.
+
+    Returns:
+        Tuple[torch.Tensor, Optional[List[CategoricalEncodingDecision]]]:
+            - encoded_features (torch.Tensor): Encoded float32 tensor.
+            - decisions: Updated encoding decisions (with fitted encoders) or `None`.
+    """
 
     if (user_strategy is None) and (categorical_idx is None):
         return features, None
@@ -442,7 +693,34 @@ def get_target_and_features(
     state: StateEnum = StateEnum.FIT,
     data_type: DataTypesEnum = DataTypesEnum.tabular
 ) -> Tuple[ArrayType, ArrayType, Any]:
-    """Function for getting target and features from numpy array"""
+    """
+    Split and preprocess `(features, target)` from raw array-like inputs.
+
+    In `FIT` mode (when `state == StateEnum.FIT`) this function:
+    - Determines the target either from `target` argument or from `target_idx` (or defaults
+      to the last feature column),
+    - Removes the target column(s) from `features`,
+    - Replaces missing values in `target` with `NaN`,
+    - Encodes the target via `encode_target`,
+    - Drops rows where the target contains NaNs.
+
+    In non-`FIT` mode it returns `(features, None, None)`.
+
+    Args:
+        features (ArrayType): Feature matrix `(n_samples, n_features)`.
+        target (ArrayType): Optional target array. If provided, it is used as-is.
+        features_names (Optional[List[str]]): Feature names for name-to-index conversion.
+        target_idx (IndexType): Target column index or name (optional).
+        state (StateEnum): Fit or transform mode.
+        data_type (DataTypesEnum): Dataset type. For `DataTypesEnum.ts` the function returns
+            inputs unchanged except that `target_encoder` is `None`.
+
+    Returns:
+        Tuple[ArrayType, ArrayType, Any]:
+            - features_processed (ArrayType)
+            - target_processed (ArrayType) or `None`
+            - target_encoder (Any) or `None`
+    """
 
     if data_type == DataTypesEnum.ts:
         return features, target, None
@@ -479,6 +757,24 @@ def transform_to_tensor(features: ArrayType,
                         text_tensors: Optional[torch.Tensor] = None, 
                         text_idx: Optional[IndexType] = None, 
                         ts_init_shape: Any = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Convert features and target arrays to torch tensors (float32 by default).
+
+    If `text_idx` is provided, the corresponding columns are removed from `features`.
+    When `features` becomes empty, it uses `text_tensors` as the features tensor.
+    Optionally reshapes features to `ts_init_shape` (useful for time series layouts).
+
+    Args:
+        features (ArrayType): Input feature matrix.
+        target (ArrayType): Target array.
+        text_tensors (Optional[torch.Tensor]): Precomputed text embeddings to append
+            when `text_idx` columns are removed.
+        text_idx (Optional[IndexType]): Indices of text columns to remove from `features`.
+        ts_init_shape (Any): Optional target shape for reshaping the features tensor.
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: `(features_tensor, target_tensor)`.
+    """
     xp = backend.xp
 
     if text_idx is not None:
@@ -500,6 +796,19 @@ def transform_to_tensor(features: ArrayType,
 
 
 def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
+    """
+    Convert an array-like object to a torch tensor on the active backend device.
+
+    The function casts the input to `xp.float64` before creating the tensor, and
+    places it on `backend.device`.
+
+    Args:
+        array (ArrayType): Input array. If `None`, returns `None`.
+        dtype: Optional torch dtype passed to `torch.tensor`.
+
+    Returns:
+        torch.Tensor: Tensor placed on `backend.device` (or `None` if `array is None`).
+    """
     xp = backend.xp
     device = backend.device
 

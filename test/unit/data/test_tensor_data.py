@@ -339,7 +339,7 @@ def test_lazy_tensordata_to_device():
 
     lazy_td = TensorData.create_lazy(
         X,
-        backend_name="cpu",
+        backend_name="gpu",
     )
 
     td = lazy_td.to("cpu")

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from fedot.core.backend.backend import backend
 from typing import Optional, List
 
+from fedot.core.backend.backend import backend
 from fedot.core.data.data_tools import get_idx_from_features_names
 from fedot.core.data.complex_types import ArrayType, IndexType
 
@@ -12,6 +12,28 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 def long_to_wide(features: ArrayType, 
                  features_names: Optional[List[str]] = None, 
                  terms_idx: IndexType = None):
+    """
+    Convert time series from `long` format to `wide` format.
+
+    Expected `features` in `long` format is a 2D array where:
+    - one column (`terms_idx`) stores a time/term label for each observation,
+    - another column (`value_idx`) stores the observed value,
+    - rows correspond to samples/observations that share the same labels.
+
+    The function groups rows by unique labels in `terms_idx` and stacks the values
+    so that the output has a wide layout where the term dimension becomes the second axis.
+
+    Args:
+        features (ArrayType): Input features in long format (typically 2D).
+        features_names (Optional[List[str]]): Feature names, used when `terms_idx` is a name.
+        terms_idx (IndexType): Index (or name) of the column that contains term labels.
+            If `None`, the function uses `terms_idx = 0`.
+
+    Returns:
+        Tuple[ArrayType, ArrayType]: `(wide, unique_labels)` where:
+            - wide is the converted 3D/stacked wide array (dtype float32),
+            - unique_labels are the unique term labels from the input (dtype depends on backend).
+    """
     xp = backend.xp
 
     if terms_idx is None:
@@ -40,6 +62,22 @@ def long_to_wide(features: ArrayType,
 
 
 def check_multichannel_ts(features: ArrayType):
+    """
+    Normalize input time series with potentially multiple channels.
+
+    The function ensures that multi-channel time series do not exceed 3 dimensions:
+    - If `features.ndim == 1`, it is expanded to shape `(1, T)`.
+    - If `features.ndim == 2`, it keeps `(B, T)` and returns `init_shape = None`.
+    - If `features.ndim == 3`, it reshapes `(B, C, T)` into `(B*C, T)` and
+      returns `init_shape = (B, C, T)` for potential later reshaping.
+
+    Args:
+        features (ArrayType): Time-series array.
+
+    Returns:
+        Tuple[ArrayType, Optional[tuple]]: `(features_normalized, init_shape)` where
+            `init_shape` is `None` unless the input was 3D.
+    """
     xp = backend.xp
 
     if features.ndim == 1:
@@ -68,6 +106,39 @@ def process_ts_data(
     forecast_horizon: int = None,
     data_type: DataTypesEnum = DataTypesEnum.ts
 ):
+    """
+    Apply time-series preprocessing and optional forecasting split.
+
+    For non-time-series datasets (`data_type == DataTypesEnum.tabular`), the function
+    returns inputs unchanged.
+
+    For time-series datasets it:
+    1. Normalizes multi-channel inputs via :func:`check_multichannel_ts`.
+    2. Optionally converts from `long` to `wide` representation depending on
+       `ts_orientation`.
+    3. In `FIT` mode and when `forecast_horizon` is provided, splits the array into:
+       - new `target` containing the last `forecast_horizon` steps,
+       - new `features` containing the remaining prefix steps.
+
+    Args:
+        features (ArrayType): Input feature array (tabular or time-series).
+        target (ArrayType): Optional target array.
+        features_names (Optional[List[str]]): Feature names for resolving `terms_idx` by name.
+        state (StateEnum): Pipeline state (`FIT` or `PREDICT`).
+        ts_orientation (Optional[TSOrientationEnum]): Time-series orientation (`wide` or `long`).
+        terms_idx (int): Column index (or name, depending on `get_idx_from_features_names`)
+            that defines the term label in `long` format.
+        forecast_horizon (int): If set and `state == StateEnum.FIT`, splits target/features
+            using the last `forecast_horizon` time steps.
+        data_type (DataTypesEnum): Dataset type.
+
+    Returns:
+        Tuple[ArrayType, ArrayType, Optional[tuple], int]:
+            - processed_features (ArrayType)
+            - processed_target (ArrayType or None)
+            - init_shape (Optional[tuple]): original `(B, C, T)` when input was 3D.
+            - terms_idx (int): resolved term index used for long->wide conversion.
+    """
     if data_type == DataTypesEnum.tabular:
         return features, target, None, None
 

@@ -1,11 +1,39 @@
-import torch
+from contextlib import contextmanager
+import threading
 from typing import Any, Optional
 
-import threading
-from contextlib import contextmanager
+import torch
 
 
 class Backend:
+    """
+Singleton object for managing the compute backend (CPU/GPU).
+
+This class is intended for centralized selection of the libraries/frameworks
+used during data processing:
+- CPU: `numpy` / `pandas` and a `torch.device("cpu")` device
+- GPU: `cupy` / `cudf` and a `torch.device("cuda")` device (when CUDA is available)
+
+Backend state is stored on the instance via:
+- `xp`: an array module (NumPy-like for CPU, CuPy-like for GPU)
+- `pd`: a dataframe module (Pandas-like for CPU, cuDF-like for GPU)
+- `device`: the current PyTorch device
+- `name`: the backend name (`"cpu"` or `"gpu"`), default is `"cpu"`
+
+Thread-safety is provided: backend switching is synchronized with locks, and
+temporary overrides are available through the :meth:`override` context manager.
+
+Examples
+--------
+Example backend installation (switching):
+    backend_name = "gpu"
+    backend.set(backend_name)
+
+Example temporary override:
+    with backend.override("cpu"):
+        # inside this block the backend uses CPU libraries and `torch.device("cpu")`
+        ...
+    """
     _instance = None
     _instance_lock = threading.Lock()
 

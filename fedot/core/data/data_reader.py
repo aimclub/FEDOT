@@ -1,11 +1,14 @@
+import os
+from typing import Optional, Union, List
+
 import numpy as np
 import pandas as pd
-import os
+from scipy.io.arff import loadarff
+
+from fedot.core.data.data_tools import convert_bytes
+
 from fedot.core.backend.backend import backend
 from fedot.core.data.complex_types import PathType
-from typing import Optional, Union, List
-from fedot.core.data.data_tools import convert_bytes
-from scipy.io.arff import loadarff
 
 
 def get_df_from_csv(
@@ -18,6 +21,31 @@ def get_df_from_csv(
     columns_to_use: Optional[List[Union[str, int]]] = None,
     nrows: Optional[int] = None,
 ):
+    """
+    Load a CSV file into a dataframe with optional column selection and index handling.
+
+    The function supports:
+    - Automatic `index_col` detection when `index_col` is not provided.
+    - Either `columns_to_drop` or `columns_to_use` (mutually exclusive).
+    - Limiting the number of read rows via `nrows`.
+
+    Args:
+        file_path (PathType): Path to the input CSV file.
+        delimiter (str): CSV delimiter (passed as `sep` to `read_csv`).
+        index_col (Optional[Union[str, int]]): Column to use as an index.
+            If `None`, the function may try to infer the index column using
+            `possible_idx_keywords`.
+        possible_idx_keywords (Optional[List[str]]): Keywords used to decide whether
+            a column name is suitable for the index (case-insensitive substring match).
+        columns_to_drop (Optional[List[Union[str, int]]]): Columns to exclude from the
+            resulting dataframe. Cannot be used together with `columns_to_use`.
+        columns_to_use (Optional[List[Union[str, int]]]): Columns to keep in the
+            resulting dataframe. Cannot be used together with `columns_to_drop`.
+        nrows (Optional[int]): Maximum number of rows to read.
+
+    Returns:
+        pandas.DataFrame: Loaded dataframe (CPU/GPU dependent on `backend.pd`).
+    """
     pd_backend = backend.pd
 
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
@@ -66,6 +94,27 @@ def get_df_from_csv(
 
 def read_arff_file(file_path: PathType, 
                    target_idx: Optional[Union[int, str]] = None):
+    """
+    Read an ARFF file and return `(features, target)` arrays.
+
+    The function uses the current global `backend` to decide whether to return
+    NumPy arrays (CPU) or CuPy arrays (GPU). Target column detection can be
+    provided explicitly via `target_idx` or inferred automatically:
+    - If `target_idx` is `None`, it tries to detect whether the last or the first
+      column contains string values (byte strings after reading).
+    - If `target_idx` is a `str`, it is treated as a target column name.
+
+    Args:
+        file_path (PathType): Path to the input `.arff` file.
+        target_idx (Optional[Union[int, str]]): Target column index or name.
+            If `None`, the target is inferred automatically. If a string is provided,
+            it is resolved against `meta.names()`.
+
+    Returns:
+        Tuple[Any, Optional[Any]]:
+            - features: array of predictors (shape depends on the dataset).
+            - target: target array or `None` if no target column is detected.
+    """
     xp = backend.xp
     backend_name = backend.name
 

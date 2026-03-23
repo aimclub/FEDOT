@@ -6,7 +6,7 @@ class DataTypesEnum(Enum):
 
     Args:
         tabular: table with columns as features for predictions, by default == ``table``
-        ts: one dimensional and multivariate time series, by default == ``time_series``
+        ts: one dimensional and multivariate time series, images, by default == ``time_series``
     """
 
     ts = 'time_series'  # any time series and images(like in industrial)
