@@ -24,9 +24,8 @@ class PresetSpec:
 
 
 _REQUIRED_SOURCE_OPERATIONS = {
-    DataTypesEnum.image: ('data_source_img',),
-    DataTypesEnum.text: ('data_source_text',),
-    DataTypesEnum.table: ('data_source_table',),
+    DataTypesEnum.ts: ('data_source_time_series',),
+    DataTypesEnum.tabular: ('data_source_table',),
 }
 
 

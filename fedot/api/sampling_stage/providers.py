@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any, Dict, Optional
-from sampling_zoo.core.api.api_main import SamplingStrategyFactory
+from fedot.sampling_zoo.core.api.api_main import SamplingStrategyFactory
 import numpy as np
 import pandas as pd
 

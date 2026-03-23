@@ -149,85 +149,89 @@ class Fedot:
 
         MemoryAnalytics.start()
 
-        self.target = target
-        # here the main preprocessing
-        with fedot_composer_timer.launch_data_definition('fit'):
-            self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
+        initial_timeout = self.params.timeout
 
+        try:
+
+            self.target = target
+            # here the main preprocessing
             with fedot_composer_timer.launch_data_definition('fit'):
                 self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
-            self.params.update_available_operations_by_preset(self.train_data)
+                with fedot_composer_timer.launch_data_definition('fit'):
+                    self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
-            if self.params.get('use_input_preprocessing'):
-                # Launch data analyser - it gives recommendations for data preprocessing
-                recommendations_for_data, recommendations_for_params = \
-                    self.data_analyser.give_recommendations(input_data=self.train_data,
-                                                            input_params=self.params)
-                self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                     recommendations=recommendations_for_data)
-                self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                             recommendations=recommendations_for_params)
-            else:
-                recommendations_for_data = None
+                self.params.update_available_operations_by_preset(self.train_data)
 
-            self._init_remote_if_necessary()
-
-            if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
-                with fedot_composer_timer.launch_preprocessing():
-                    self.train_data = self.data_processor.fit_transform(self.train_data)
-
-            fit_plan = plan_sampling_stage(
-                requested_predefined_model=predefined_model,
-                initial_assumption=self.params.data.get('initial_assumption'),
-                sampling_config_present=self.params.get('sampling_config') is not None,
-            )
-            predefined_model = fit_plan.resolved_predefined_model
-            if fit_plan.skip_metadata is not None:
-                self.sampling_stage_metadata = fit_plan.skip_metadata
-                if fit_plan.skip_metadata['reason'] == 'predefined_model':
-                    self.log.message('Sampling stage skipped because predefined_model is specified.')
-                elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
-                    self.log.message('Composition for AtomizedModel currently unavailable')
-            elif fit_plan.should_run_sampling_stage:
-                self._run_sampling_stage_if_necessary()
-
-            with fedot_composer_timer.launch_fitting():
-                if predefined_model is not None:
-                    # Fit predefined model and return it without composing
-                    self.current_pipeline = PredefinedModel(
-                        predefined_model, self.train_data, self.log,
-                        use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                        api_preprocessor=self.data_processor.preprocessor,
-                    ).fit()
+                if self.params.get('use_input_preprocessing'):
+                    # Launch data analyser - it gives recommendations for data preprocessing
+                    recommendations_for_data, recommendations_for_params = \
+                        self.data_analyser.give_recommendations(input_data=self.train_data,
+                                                                input_params=self.params)
+                    self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                        recommendations=recommendations_for_data)
+                    self.params.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                recommendations=recommendations_for_params)
                 else:
-                    self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
-                        self.train_data)
+                    recommendations_for_data = None
 
-                    if self.current_pipeline is None:
-                        raise ValueError('No models were found')
+                self._init_remote_if_necessary()
 
-                    full_train_not_preprocessed = deepcopy(self.train_data)
-                    # Final fit for obtained pipeline on full dataset
+                if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
+                    with fedot_composer_timer.launch_preprocessing():
+                        self.train_data = self.data_processor.fit_transform(self.train_data)
 
-                    with fedot_composer_timer.launch_train_inference():
-                        final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
-                        if final_fit_plan.should_train_on_full_dataset:
-                            self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
-                            self.log.message('Final pipeline was fitted')
-                        else:
-                            self.log.message('Already fitted initial pipeline is used')
+                fit_plan = plan_sampling_stage(
+                    requested_predefined_model=predefined_model,
+                    initial_assumption=self.params.data.get('initial_assumption'),
+                    sampling_config_present=self.params.get('sampling_config') is not None,
+                )
+                predefined_model = fit_plan.resolved_predefined_model
+                if fit_plan.skip_metadata is not None:
+                    self.sampling_stage_metadata = fit_plan.skip_metadata
+                    if fit_plan.skip_metadata['reason'] == 'predefined_model':
+                        self.log.message('Sampling stage skipped because predefined_model is specified.')
+                    elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
+                        self.log.message('Composition for AtomizedModel currently unavailable')
+                elif fit_plan.should_run_sampling_stage:
+                    self._run_sampling_stage_if_necessary()
 
-            # Merge API & pipelines encoders if it is required
-            self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-                api_preprocessor=self.data_processor.preprocessor,
-                pipeline_preprocessor=self.current_pipeline.preprocessor,
-                use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-            )
+                with fedot_composer_timer.launch_fitting():
+                    if predefined_model is not None:
+                        # Fit predefined model and return it without composing
+                        self.current_pipeline = PredefinedModel(
+                            predefined_model, self.train_data, self.log,
+                            use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                            api_preprocessor=self.data_processor.preprocessor,
+                        ).fit()
+                    else:
+                        self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                            self.train_data)
 
-            self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+                        if self.current_pipeline is None:
+                            raise ValueError('No models were found')
 
-            return self.current_pipeline
+                        full_train_not_preprocessed = deepcopy(self.train_data)
+                        # Final fit for obtained pipeline on full dataset
+
+                        with fedot_composer_timer.launch_train_inference():
+                            final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
+                            if final_fit_plan.should_train_on_full_dataset:
+                                self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
+                                self.log.message('Final pipeline was fitted')
+                            else:
+                                self.log.message('Already fitted initial pipeline is used')
+
+                # Merge API & pipelines encoders if it is required
+                self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+                    api_preprocessor=self.data_processor.preprocessor,
+                    pipeline_preprocessor=self.current_pipeline.preprocessor,
+                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+                )
+
+                self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+
+                return self.current_pipeline
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
