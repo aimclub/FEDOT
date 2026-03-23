@@ -1,7 +1,3 @@
-from dataclasses import dataclass
-from typing import Optional, Any
-
-from golem.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.backend.backend import backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 

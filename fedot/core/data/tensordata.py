@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, ClassVar, List, Tuple
 
 import logging
-import os
 
 from pathlib import Path
 
@@ -190,11 +189,8 @@ class LoadDataSpec:
             task=self.task,
             data_type=self.data_type,
             state=self.state,
-            idx=self.idx,
-            predict=self.predict,
             features_names=self.features_names,
             target_idx=self.target_idx,
-            target_encoder=self.target_encoder,
             categorical_idx=self.categorical_idx,
             encoding_strategy=self.encoding_strategy,
             text_idx=self.text_idx,
@@ -202,7 +198,6 @@ class LoadDataSpec:
             ts_orientation=self.ts_orientation,
             ts_terms_idx=self.ts_terms_idx,
             ts_forecast_horizon=self.ts_forecast_horizon,
-            ts_init_shape=self.ts_init_shape,
             dataloader_kwargs=self.dataloader_kwargs,
         )
 

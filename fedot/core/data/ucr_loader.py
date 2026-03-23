@@ -2,12 +2,10 @@ from scipy.io.arff import loadarff
 import numpy as np
 import pandas as pd
 import os
-from pathlib import Path
-from typing import Union, Tuple
+from typing import Tuple
 
 import urllib.request as request
 import zipfile
-from pathlib import Path
 import shutil
 
 import logging

@@ -2,7 +2,6 @@ import os
 from typing import Optional, Union, List
 
 import numpy as np
-import pandas as pd
 from scipy.io.arff import loadarff
 
 from fedot.core.data.data_tools import convert_bytes

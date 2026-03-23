@@ -1,11 +1,7 @@
-from dataclasses import dataclass
-from typing import Dict, Optional, Union, List
-
-from golem.utilities.data_structures import ComparableEnum as Enum
+from typing import Optional
 import torch
 from sentence_transformers import SentenceTransformer
 
-from fedot.core.backend.backend import backend
 from fedot.preprocessing.preprocessor_types import EmbedderParameters
 from fedot.core.data.complex_types import ArrayType
 

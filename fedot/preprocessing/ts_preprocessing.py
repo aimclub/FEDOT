@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Optional, List
 
 from fedot.core.backend.backend import backend
