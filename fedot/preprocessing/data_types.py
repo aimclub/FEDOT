@@ -74,6 +74,7 @@ class TableTypesCorrector:
         """ If column contain several data types - perform correction procedure """
         # Convert features to have an ability to insert str into float table or vice versa
         data.features = data.features.astype(object)
+        data.target = self._ensure_2d_target_table(data.target)
 
         # Determine types for each column in features and target if it is necessary
         self.features_columns_info = define_column_types(data.features)
@@ -117,6 +118,7 @@ class TableTypesCorrector:
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
         data.features = apply_type_transformation(data.features, self.feature_type_ids, self.log)
         if data.target is not None:
+            data.target = self._ensure_2d_target_table(data.target)
             data.target = apply_type_transformation(data.target, self.target_type_ids, self.log)
         data.supplementary_data.col_type_ids = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
@@ -156,6 +158,7 @@ class TableTypesCorrector:
         :param target: tabular target array
         :param task: task to solve
         """
+        target = self._ensure_2d_target_table(target)
         mixed_types_columns = _find_mixed_types_columns(self.target_columns_info)
         cols_with_strings = _select_from_rows_if_any(mixed_types_columns, [_STR_NUMBER])
         cols_with_strings.apply(self._convert_target_into_one_type, target=target, task=task)
@@ -172,6 +175,7 @@ class TableTypesCorrector:
             self.features_columns_info = define_column_types(predictors)
             predictors = self.feature_types_converting(features=predictors)
         if self.target_columns_info.empty and task.task_type is not TaskTypesEnum.ts_forecasting:
+            target = self._ensure_2d_target_table(target)
             self.target_columns_info = define_column_types(target)
             target = self.target_types_converting(target=target, task=task)
 
@@ -201,11 +205,29 @@ class TableTypesCorrector:
             )
 
     def _check_columns_vs_types_number(self, table: np.ndarray, col_type_ids: Sequence):
-        # Check if columns number correct
-        _, n_cols = table.shape
+        # Check if columns number is correct. Some branches may pass 1D tables for single-column data.
+        table_array = np.asarray(table)
+        if table_array.ndim <= 1:
+            n_cols = 1
+        else:
+            n_cols = table_array.shape[1]
+
         if n_cols != len(col_type_ids):
             # There is an incorrect types calculation
             self.log.warning('Columns number and types numbers do not match.')
+
+    @staticmethod
+    def _ensure_2d_target_table(target: Optional[np.ndarray]) -> Optional[np.ndarray]:
+        """Ensure target has shape (n_samples, n_targets) to avoid 1D indexing issues."""
+        if target is None:
+            return None
+
+        target_array = np.asarray(target)
+        if target_array.ndim == 0:
+            return target_array.reshape(1, 1)
+        if target_array.ndim == 1:
+            return target_array.reshape(-1, 1)
+        return target_array
 
     @staticmethod
     def _remove_pseudo_str_values_from_str_column(data: InputData, columns: pd.Index):
