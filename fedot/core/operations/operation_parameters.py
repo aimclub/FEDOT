@@ -1,6 +1,11 @@
 from copy import deepcopy
 from typing import Iterable
 
+from fedot.core.operations.operation_parameter_rules import (
+    collect_changed_keys,
+    merge_operation_default_params,
+    resolve_setdefault_value,
+)
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 
@@ -28,23 +33,21 @@ class OperationParameters:
     @staticmethod
     def from_operation_type(operation_type: str, **parameters):
         default_parameters = get_default_params(operation_type)
-        parameters = {**default_parameters, **parameters}
+        parameters = merge_operation_default_params(default_parameters, parameters)
         return OperationParameters(**parameters)
 
     def update(self, **params):
-        for key, value in params.items():
-            if key not in self._changed_keys:
-                if self._parameters.get(key) != value:
-                    self._changed_keys.append(key)
-            self._parameters.update({key: value})
+        self._changed_keys = list(collect_changed_keys(self._parameters, params, self._changed_keys))
+        self._parameters.update(params)
 
     def get(self, key, default_value=None):
         return self._parameters.get(key, default_value)
 
     def setdefault(self, key, value):
-        if key not in self._parameters.keys():
-            self.update(**{key: value})
-        return self.get(key)
+        resolved_value, should_update = resolve_setdefault_value(self._parameters, key, value)
+        if should_update:
+            self.update(**{key: resolved_value})
+        return resolved_value
 
     def to_dict(self) -> dict:
         return deepcopy(self._parameters)

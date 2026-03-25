@@ -5,14 +5,21 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
-import numpy as np
 from golem.core.log import default_log
-from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
+from fedot.core.repository.operation_query import (
+    OperationQuery,
+    RepositoryKind,
+    contains_preset,
+    contains_tags,
+    filter_operation_infos,
+    normalize_preset_name,
+    parse_repository_kind,
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.extensions.operation_rules import get_extension_operation_names, should_include_extensions
 
 EXTRA_TS_INSTALLED = True
 try:
@@ -24,7 +31,7 @@ except ModuleNotFoundError:
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
-AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
+AVAILABLE_REPO_NAMES = [kind.value for kind in RepositoryKind]
 
 
 @dataclass
@@ -293,36 +300,31 @@ class OperationTypesRepository:
             preset: return operations from desired preset
         """
 
-        if not forbidden_tags:
-            forbidden_tags = []
+        query = OperationQuery(
+            repository_kind=parse_repository_kind(self.operation_type),
+            task_type=task_type,
+            data_type=data_type,
+            tags=tuple(tags or ()),
+            forbidden_tags=tuple(forbidden_tags or ()),
+            preset=preset,
+            is_full_match=is_full_match,
+            default_excluded_tags=tuple(self._tags_excluded_by_default),
+            extra_ts_installed=EXTRA_TS_INSTALLED,
+        )
+        operations_info = filter_operation_infos(self._repo, query)
+        operation_names = [m.id for m in operations_info]
 
-        if not tags:
-            for excluded_default_tag in self._tags_excluded_by_default:
-                # Forbidden tags by default
-                forbidden_tags.append(excluded_default_tag)
+        if should_include_extensions(query.repository_kind):
+            operation_names.extend(
+                get_extension_operation_names(
+                    task_type=task_type,
+                    data_type=data_type,
+                    tags=tags,
+                    forbidden_tags=forbidden_tags,
+                )
+            )
 
-        no_task = task_type is None
-        operations_info = []
-        for o in self._repo:
-            is_desired_task = task_type in o.task_type or no_task
-            tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-            tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-            is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-            if is_desired_task and tags_good and tags_bad and is_desired_preset:
-                operations_info.append(o)
-
-        if data_type:
-            # ignore text and image data types: there are no operations with these `input_type`
-            ignore_data_type = data_type in [DataTypesEnum.text, DataTypesEnum.image]
-            if data_type == DataTypesEnum.ts:
-                valid_data_types = [DataTypesEnum.ts, DataTypesEnum.table]
-            else:
-                valid_data_types = ensure_wrapped_in_sequence(data_type)
-            if not ignore_data_type:
-                operations_info = [o for o in operations_info if
-                                   np.any([data_type in o.input_types for data_type in valid_data_types])]
-
-        return [m.id for m in operations_info]
+        return sorted(set(operation_names))
 
     @property
     def operations(self):
@@ -385,22 +387,14 @@ def _is_operation_contains_tag(candidate_tags: List[str],
         bool: is there a match on the tags
     """
 
-    matches = (tag in operation_tags for tag in candidate_tags)
-    if is_full_match:
-        return all(matches)
-    else:
-        return any(matches)
+    return contains_tags(candidate_tags, operation_tags, is_full_match)
 
 
 def _is_operation_contains_preset(operation_presets: List[str], preset: str) -> bool:
     """Checking whether the operation is suitable for current preset
     """
 
-    if preset is None:
-        # None means that best_quality preset are using so return all operations
-        return True
-
-    return preset in operation_presets
+    return contains_preset(operation_presets, preset)
 
 
 def atomized_model_type():
@@ -434,26 +428,21 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         list:  operation aliases
     """
 
-    # Preset None means that all operations will be returned
-    if preset is not None:
-        if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
-            preset = None
+    normalized_preset = normalize_preset_name(preset)
+    task_type = task.task_type if task else None
 
     if task is not None and task.task_type is TaskTypesEnum.ts_forecasting and not EXTRA_TS_INSTALLED:
-        if not forbidden_tags:
-            forbidden_tags = []
         logging.log(100,
                     "Extra dependencies for time series forecasting are not installed. It can infuence the "
                     "performance. Please install it by 'pip install fedot[extra]'")
-        forbidden_tags.append('ts-extra')
-    task_type = task.task_type if task else None
-    if mode in AVAILABLE_REPO_NAMES:
-        repo = OperationTypesRepository(mode)
-        model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
-                                              preset=preset)
-        return model_types
-    else:
+
+    if mode not in AVAILABLE_REPO_NAMES:
         raise ValueError(f'Such mode "{mode}" is not supported')
+
+    repo = OperationTypesRepository(mode)
+    model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
+                                          preset=normalized_preset)
+    return model_types
 
 
 def get_operation_type_from_id(operation_id):

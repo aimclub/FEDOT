@@ -12,11 +12,18 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
+from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
+from fedot.api.api_utils.api_service_rules import (
+    build_tune_execution_plan,
+    resolve_forecast_horizon,
+    resolve_predict_proba_mode,
+)
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
+from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData, OutputData, PathType
 from fedot.core.data.multi_modal import MultiModalData
@@ -118,6 +125,7 @@ class Fedot:
         self.current_pipeline: Optional[Pipeline] = None
         self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
+        self.sampling_stage_metadata: Optional[dict] = None
 
         fedot_composer_timer.reset_timer()
 
@@ -141,74 +149,89 @@ class Fedot:
 
         MemoryAnalytics.start()
 
-        self.target = target
+        self.sampling_stage_metadata = None
+        initial_timeout = self.params.timeout
 
-        with fedot_composer_timer.launch_data_definition('fit'):
-            self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
+        try:
+            self.target = target
 
-        self.params.update_available_operations_by_preset(self.train_data)
+            with fedot_composer_timer.launch_data_definition('fit'):
+                self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
-        if self.params.get('use_input_preprocessing'):
-            # Launch data analyser - it gives recommendations for data preprocessing
-            recommendations_for_data, recommendations_for_params = \
-                self.data_analyser.give_recommendations(input_data=self.train_data,
-                                                        input_params=self.params)
-            self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                 recommendations=recommendations_for_data)
-            self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                         recommendations=recommendations_for_params)
-        else:
-            recommendations_for_data = None
+            self.params.update_available_operations_by_preset(self.train_data)
 
-        self._init_remote_if_necessary()
-
-        if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
-            with fedot_composer_timer.launch_preprocessing():
-                self.train_data = self.data_processor.fit_transform(self.train_data)
-
-        # TODO: Workaround for AtomizedModel
-        init_asm = self.params.data.get('initial_assumption')
-        if predefined_model is None:
-            if isinstance(init_asm, Pipeline) and ("atomized" in init_asm.descriptive_id):
-                self.log.message('Composition for AtomizedModel currently unavailable')
-                predefined_model = init_asm
-
-        with fedot_composer_timer.launch_fitting():
-            if predefined_model is not None:
-                # Fit predefined model and return it without composing
-                self.current_pipeline = PredefinedModel(
-                    predefined_model, self.train_data, self.log,
-                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                    api_preprocessor=self.data_processor.preprocessor,
-                ).fit()
+            if self.params.get('use_input_preprocessing'):
+                # Launch data analyser - it gives recommendations for data preprocessing
+                recommendations_for_data, recommendations_for_params = \
+                    self.data_analyser.give_recommendations(input_data=self.train_data,
+                                                            input_params=self.params)
+                self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
+                                                                     recommendations=recommendations_for_data)
+                self.params.accept_and_apply_recommendations(input_data=self.train_data,
+                                                             recommendations=recommendations_for_params)
             else:
-                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(self.train_data)
+                recommendations_for_data = None
 
-                if self.current_pipeline is None:
-                    raise ValueError('No models were found')
+            self._init_remote_if_necessary()
 
-                full_train_not_preprocessed = deepcopy(self.train_data)
-                # Final fit for obtained pipeline on full dataset
+            if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
+                with fedot_composer_timer.launch_preprocessing():
+                    self.train_data = self.data_processor.fit_transform(self.train_data)
 
-                with fedot_composer_timer.launch_train_inference():
-                    if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-                        self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
-                        self.log.message('Final pipeline was fitted')
-                    else:
-                        self.log.message('Already fitted initial pipeline is used')
+            fit_plan = plan_sampling_stage(
+                requested_predefined_model=predefined_model,
+                initial_assumption=self.params.data.get('initial_assumption'),
+                sampling_config_present=self.params.get('sampling_config') is not None,
+            )
+            predefined_model = fit_plan.resolved_predefined_model
+            if fit_plan.skip_metadata is not None:
+                self.sampling_stage_metadata = fit_plan.skip_metadata
+                if fit_plan.skip_metadata['reason'] == 'predefined_model':
+                    self.log.message('Sampling stage skipped because predefined_model is specified.')
+                elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
+                    self.log.message('Composition for AtomizedModel currently unavailable')
+            elif fit_plan.should_run_sampling_stage:
+                self._run_sampling_stage_if_necessary()
 
-        # Merge API & pipelines encoders if it is required
-        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            api_preprocessor=self.data_processor.preprocessor,
-            pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-        )
+            with fedot_composer_timer.launch_fitting():
+                if predefined_model is not None:
+                    # Fit predefined model and return it without composing
+                    self.current_pipeline = PredefinedModel(
+                        predefined_model, self.train_data, self.log,
+                        use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                        api_preprocessor=self.data_processor.preprocessor,
+                    ).fit()
+                else:
+                    self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                        self.train_data)
 
-        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+                    if self.current_pipeline is None:
+                        raise ValueError('No models were found')
 
-        MemoryAnalytics.finish()
+                    full_train_not_preprocessed = deepcopy(self.train_data)
+                    # Final fit for obtained pipeline on full dataset
 
-        return self.current_pipeline
+                    with fedot_composer_timer.launch_train_inference():
+                        final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
+                        if final_fit_plan.should_train_on_full_dataset:
+                            self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
+                            self.log.message('Final pipeline was fitted')
+                        else:
+                            self.log.message('Already fitted initial pipeline is used')
+
+            # Merge API & pipelines encoders if it is required
+            self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+                api_preprocessor=self.data_processor.preprocessor,
+                pipeline_preprocessor=self.current_pipeline.preprocessor,
+                use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+            )
+
+            self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+
+            return self.current_pipeline
+        finally:
+            self.params.timeout = initial_timeout
+            MemoryAnalytics.finish()
 
     def tune(self,
              input_data: Optional[FeaturesType] = None,
@@ -238,23 +261,30 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         with fedot_composer_timer.launch_tuning('post'):
-            if input_data is None:
-                input_data = self.train_data
+            tune_plan = build_tune_execution_plan(
+                input_data=input_data,
+                train_data=self.train_data,
+                requested_cv_folds=cv_folds,
+                default_cv_folds=self.params.get('cv_folds'),
+                requested_n_jobs=n_jobs,
+                default_n_jobs=self.params.n_jobs,
+                requested_metric=metric_name,
+                default_metric=self.metrics[0],
+            )
+            if input_data is not None:
+                tune_input_data = self.data_processor.define_data(
+                    features=tune_plan.input_data, target=target, is_predict=False)
             else:
-                input_data = self.data_processor.define_data(features=input_data, target=target, is_predict=False)
-            cv_folds = cv_folds or self.params.get('cv_folds')
-            n_jobs = n_jobs or self.params.n_jobs
-
-            metric = metric_name if metric_name else self.metrics[0]
+                tune_input_data = tune_plan.input_data
 
             pipeline_tuner = (TunerBuilder(self.params.task)
                               .with_tuner(SimultaneousTuner)
-                              .with_cv_folds(cv_folds)
-                              .with_n_jobs(n_jobs)
-                              .with_metric(metric)
+                              .with_cv_folds(tune_plan.cv_folds)
+                              .with_n_jobs(tune_plan.n_jobs)
+                              .with_metric(tune_plan.metric)
                               .with_iterations(iterations)
                               .with_timeout(timeout)
-                              .build(input_data))
+                              .build(tune_input_data))
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
@@ -329,7 +359,7 @@ class Fedot:
                 self.test_data = self.data_processor.define_data(target=self.target,
                                                                  features=features, is_predict=True)
 
-                mode = 'full_probs' if probs_for_all_classes else 'probs'
+                mode = resolve_predict_proba_mode(probs_for_all_classes)
 
                 self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
 
@@ -358,7 +388,7 @@ class Fedot:
         self._check_forecast_applicable()
 
         forecast_length = self.train_data.task.task_params.forecast_length
-        horizon = horizon or forecast_length
+        horizon = resolve_forecast_horizon(horizon, forecast_length)
         if pre_history is None:
             pre_history = self.train_data
             pre_history.target = None
@@ -562,6 +592,32 @@ class Fedot:
 
             if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target
+
+    def _run_sampling_stage_if_necessary(self):
+        sampling_config = self.params.get('sampling_config')
+        if sampling_config is None:
+            return
+
+        if not isinstance(self.train_data, InputData):
+            raise ValueError('Sampling stage supports only InputData in V1.')
+
+        self.log.message('Sampling stage started')
+        executor = SamplingStageExecutor(sampling_config=sampling_config,
+                                         task_type=self.params.task.task_type,
+                                         total_timeout_minutes=self.params.timeout,
+                                         log=self.log)
+        stage_result = executor.execute(self.train_data)
+        self.train_data = stage_result.train_data
+        self.sampling_stage_metadata = stage_result.metadata
+
+        if self.params.timeout is not None:
+            self.params.timeout = stage_result.updated_timeout_minutes
+
+        self.log.message(
+            f'Sampling stage finished. Rows: {stage_result.metadata["rows_before"]} -> '
+            f'{stage_result.metadata["rows_after"]}. '
+            f'Updated timeout: {self.params.timeout} min.'
+        )
 
     def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
                                         full_train_not_preprocessed: Union[InputData, MultiModalData]):
