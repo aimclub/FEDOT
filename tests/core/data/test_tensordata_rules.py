@@ -2,15 +2,19 @@ import pytest
 
 from fedot.core.data.tensordata_rules import (
     TensorDataCreatorNotFoundError,
+    DEFAULT_DATALOADER_KWARGS,
     TensorDataCreatorResolutionError,
     build_backend_plan,
     build_creation_failure,
     build_creation_request,
     build_device_sync_plan,
+    build_load_data_spec_normalization,
     build_raw_conversion_plan,
     build_tabular_file_load_plan,
     normalize_array_target_reference,
     normalize_backend_name,
+    normalize_dataloader_kwargs,
+    normalize_optional_ts_orientation,
     normalize_possible_idx_keywords,
     normalize_tabular_file_delimiter,
     normalize_optional_data_type,
@@ -18,7 +22,7 @@ from fedot.core.data.tensordata_rules import (
     resolve_registered_creator,
     validate_creator_predicate_result,
 )
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -201,3 +205,59 @@ def test_build_tabular_file_load_plan_rejects_missing_file(tmp_path):
             possible_idx_keywords=None,
             default_keywords=['idx'],
         )
+
+
+@pytest.mark.unit
+def test_normalize_optional_ts_orientation_converts_string_to_enum():
+    assert normalize_optional_ts_orientation('long') == TSOrientationEnum.long
+    assert normalize_optional_ts_orientation(TSOrientationEnum.wide) == TSOrientationEnum.wide
+
+
+@pytest.mark.unit
+def test_normalize_dataloader_kwargs_merges_defaults_without_mutating_input():
+    user_kwargs = {'batch_size': 64}
+
+    normalized_kwargs = normalize_dataloader_kwargs(user_kwargs)
+
+    assert normalized_kwargs == {**DEFAULT_DATALOADER_KWARGS, 'batch_size': 64}
+    assert user_kwargs == {'batch_size': 64}
+
+
+@pytest.mark.unit
+def test_build_load_data_spec_normalization_is_idempotent_for_normalized_values():
+    first = build_load_data_spec_normalization(
+        task='classification',
+        data_type='table',
+        state='predict',
+        ts_orientation='long',
+        embedding_strategy={'model_name': 'demo'},
+        dataloader_kwargs={'batch_size': 64},
+    )
+
+    second = build_load_data_spec_normalization(
+        task=first.task,
+        data_type=first.data_type,
+        state=first.state,
+        ts_orientation=first.ts_orientation,
+        embedding_strategy=first.embedding_strategy,
+        dataloader_kwargs=first.dataloader_kwargs,
+    )
+
+    assert second == first
+    assert second.embedding_strategy is not first.embedding_strategy
+    assert second.dataloader_kwargs is not first.dataloader_kwargs
+
+
+@pytest.mark.unit
+def test_build_load_data_spec_normalization_keeps_empty_embedding_strategy_deterministic():
+    normalization = build_load_data_spec_normalization(
+        task='classification',
+        data_type='table',
+        state='fit',
+        ts_orientation=None,
+        embedding_strategy=None,
+        dataloader_kwargs=None,
+    )
+
+    assert normalization.embedding_strategy == {}
+    assert normalization.dataloader_kwargs == DEFAULT_DATALOADER_KWARGS

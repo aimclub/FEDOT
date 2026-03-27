@@ -1,11 +1,19 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Iterable, Optional, Union
 
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 SUPPORTED_BACKEND_NAMES = ('cpu', 'gpu')
+
+DEFAULT_DATALOADER_KWARGS = {
+    'batch_size': 32,
+    'shuffle': True,
+    'num_workers': 0,
+    'drop_last': False,
+}
 
 LEGACY_DATA_TYPE_MAPPING = {
     DataTypesEnum.tabular: DataTypesEnum.tabular,
@@ -35,6 +43,16 @@ class TensorDataIdentity:
 @dataclass(frozen=True)
 class TensorDataBackendPlan:
     backend_name: str
+
+
+@dataclass(frozen=True)
+class LoadDataSpecNormalization:
+    task: Task
+    data_type: Optional[DataTypesEnum]
+    state: StateEnum
+    ts_orientation: Optional[TSOrientationEnum]
+    embedding_strategy: dict
+    dataloader_kwargs: dict
 
 
 @dataclass(frozen=True)
@@ -127,6 +145,58 @@ def normalize_data_type(data_type: Union[DataTypesEnum, str]) -> DataTypesEnum:
     if normalized_data_type is None:
         raise ValueError('data_type must not be None for TensorData runtime instances')
     return normalized_data_type
+
+
+def normalize_optional_ts_orientation(
+    ts_orientation: Optional[Union[TSOrientationEnum, str]],
+) -> Optional[TSOrientationEnum]:
+    if ts_orientation is None:
+        return None
+    if isinstance(ts_orientation, TSOrientationEnum):
+        return ts_orientation
+    if isinstance(ts_orientation, str):
+        return TSOrientationEnum(ts_orientation)
+    raise TypeError(
+        f'ts_orientation must be TSOrientationEnum, str, or None, got {type(ts_orientation)}'
+    )
+
+
+def normalize_embedding_strategy(embedding_strategy: Optional[dict]) -> dict:
+    if embedding_strategy is None:
+        return {}
+    if not isinstance(embedding_strategy, dict):
+        raise TypeError(
+            f'embedding_strategy must be dict or None, got {type(embedding_strategy)}'
+        )
+    return dict(embedding_strategy)
+
+
+def normalize_dataloader_kwargs(dataloader_kwargs: Optional[dict]) -> dict:
+    if dataloader_kwargs is None:
+        return dict(DEFAULT_DATALOADER_KWARGS)
+    if not isinstance(dataloader_kwargs, dict):
+        raise TypeError(
+            f'dataloader_kwargs must be dict or None, got {type(dataloader_kwargs)}'
+        )
+    return {**DEFAULT_DATALOADER_KWARGS, **dataloader_kwargs}
+
+
+def build_load_data_spec_normalization(
+    task: Union[Task, str],
+    data_type: Optional[Union[DataTypesEnum, str]],
+    state: Union[StateEnum, str],
+    ts_orientation: Optional[Union[TSOrientationEnum, str]],
+    embedding_strategy: Optional[dict],
+    dataloader_kwargs: Optional[dict],
+) -> LoadDataSpecNormalization:
+    return LoadDataSpecNormalization(
+        task=normalize_task(task),
+        data_type=normalize_optional_data_type(data_type),
+        state=normalize_state(state),
+        ts_orientation=normalize_optional_ts_orientation(ts_orientation),
+        embedding_strategy=normalize_embedding_strategy(embedding_strategy),
+        dataloader_kwargs=normalize_dataloader_kwargs(dataloader_kwargs),
+    )
 
 
 def normalize_tensordata_identity(

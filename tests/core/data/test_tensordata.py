@@ -123,3 +123,57 @@ def test_from_csv_tsv_uses_file_load_plan_defaults(monkeypatch, tmp_path):
     assert captured['file_path'] == str(csv_path)
     assert captured['delimiter'] == '\t'
     assert captured['possible_idx_keywords'] == ['idx', 'index', 'id', 'unnamed: 0']
+
+
+@pytest.mark.unit
+def test_load_data_spec_applies_typed_normalization_and_default_merges():
+    spec = LoadDataSpec(
+        task='classification',
+        data_type='image',
+        state='predict',
+        ts_orientation='long',
+        embedding_strategy=None,
+        dataloader_kwargs={'batch_size': 16},
+    )
+
+    assert spec.task.task_type.value == 'classification'
+    assert spec.data_type.value == 'time_series'
+    assert spec.state.value == 'predict'
+    assert spec.ts_orientation.value == 'long'
+    assert spec.embedding_strategy == {}
+    assert spec.dataloader_kwargs == {
+        'batch_size': 16,
+        'shuffle': True,
+        'num_workers': 0,
+        'drop_last': False,
+    }
+
+
+@pytest.mark.unit
+def test_load_data_spec_normalization_is_deterministic_on_recreation():
+    first = LoadDataSpec(
+        task='classification',
+        data_type='table',
+        state='fit',
+        ts_orientation=None,
+        embedding_strategy={'method': 'demo'},
+        dataloader_kwargs={'shuffle': False},
+    )
+
+    second = LoadDataSpec(
+        task=first.task,
+        data_type=first.data_type,
+        state=first.state,
+        ts_orientation=first.ts_orientation,
+        embedding_strategy=first.embedding_strategy,
+        dataloader_kwargs=first.dataloader_kwargs,
+    )
+
+    assert second.task.task_type == first.task.task_type
+    assert second.data_type == first.data_type
+    assert second.state == first.state
+    assert second.ts_orientation == first.ts_orientation
+    assert second.embedding_strategy == first.embedding_strategy
+    assert second.dataloader_kwargs == first.dataloader_kwargs
+    assert second.embedding_strategy is not first.embedding_strategy
+    assert second.dataloader_kwargs is not first.dataloader_kwargs

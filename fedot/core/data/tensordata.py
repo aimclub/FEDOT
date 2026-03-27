@@ -18,16 +18,15 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.data.tensordata_rules import (
+    DEFAULT_DATALOADER_KWARGS,
     build_creation_failure,
     build_creation_request,
     build_device_sync_plan,
+    build_load_data_spec_normalization,
     build_raw_conversion_plan,
     build_tabular_file_load_plan,
     normalize_array_target_reference,
-    normalize_optional_data_type,
     normalize_tensordata_identity,
-    normalize_task,
-    normalize_state,
     resolve_registered_creator,
 )
 
@@ -173,12 +172,7 @@ class LoadDataSpec:
     ts_terms_idx: IndexType = None
     ts_forecast_horizon: Optional[int] = None
 
-    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
-        "batch_size": 32,
-        "shuffle": True,
-        "num_workers": 0,
-        "drop_last": False
-    })
+    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
     delimiter: str = ','
     max_rows: Optional[int] = None
@@ -187,9 +181,20 @@ class LoadDataSpec:
     possible_idx_keywords: Optional[List[str]] = None
 
     def __post_init__(self):
-        self.task = normalize_task(self.task)
-        self.state = normalize_state(self.state)
-        self.data_type = normalize_optional_data_type(self.data_type)
+        normalization = build_load_data_spec_normalization(
+            task=self.task,
+            data_type=self.data_type,
+            state=self.state,
+            ts_orientation=self.ts_orientation,
+            embedding_strategy=self.embedding_strategy,
+            dataloader_kwargs=self.dataloader_kwargs,
+        )
+        self.task = normalization.task
+        self.state = normalization.state
+        self.data_type = normalization.data_type
+        self.ts_orientation = normalization.ts_orientation
+        self.embedding_strategy = normalization.embedding_strategy
+        self.dataloader_kwargs = normalization.dataloader_kwargs
 
     def to_tensor_data(self, features) -> "TensorData":
         """
@@ -267,12 +272,7 @@ class TensorData:
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[int] = None
 
-    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
-        "batch_size": 32,
-        "shuffle": True,
-        "num_workers": 0,
-        "drop_last": False
-    })
+    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
     _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
 
