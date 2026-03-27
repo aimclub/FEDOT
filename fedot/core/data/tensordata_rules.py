@@ -57,6 +57,13 @@ class TensorDataCreationFailure:
 
 
 @dataclass(frozen=True)
+class TensorDataTabularFileLoadPlan:
+    file_path: str
+    delimiter: str
+    possible_idx_keywords: list[str]
+
+
+@dataclass(frozen=True)
 class TensorDataDeviceSyncPlan:
     should_move_to_backend: bool
 
@@ -174,6 +181,51 @@ def normalize_array_target_reference(
         return None, target
 
     return target, target_idx
+
+
+def normalize_tabular_file_delimiter(file_path: str, delimiter: str) -> str:
+    if file_path.lower().endswith('.tsv') and delimiter == ',':
+        return '\t'
+    return delimiter
+
+
+def normalize_possible_idx_keywords(
+    possible_idx_keywords: Optional[list[str]],
+    default_keywords: list[str],
+) -> list[str]:
+    if possible_idx_keywords is None:
+        return list(default_keywords)
+    return list(possible_idx_keywords)
+
+
+def validate_tabular_file_path(file_path: str) -> str:
+    normalized_path = str(file_path)
+    supported_suffixes = ('.csv', '.tsv')
+
+    if not normalized_path.lower().endswith(supported_suffixes):
+        raise ValueError(f'Unsupported tabular file format: {normalized_path}')
+
+    if not Path(normalized_path).is_file():
+        raise ValueError(f'File {normalized_path} does not exist')
+
+    return normalized_path
+
+
+def build_tabular_file_load_plan(
+    file_path: str,
+    delimiter: str,
+    possible_idx_keywords: Optional[list[str]],
+    default_keywords: list[str],
+) -> TensorDataTabularFileLoadPlan:
+    normalized_path = validate_tabular_file_path(file_path)
+    return TensorDataTabularFileLoadPlan(
+        file_path=normalized_path,
+        delimiter=normalize_tabular_file_delimiter(normalized_path, delimiter),
+        possible_idx_keywords=normalize_possible_idx_keywords(
+            possible_idx_keywords=possible_idx_keywords,
+            default_keywords=default_keywords,
+        ),
+    )
 
 
 def build_device_sync_plan(features_device_type: str, backend_device_type: str) -> TensorDataDeviceSyncPlan:

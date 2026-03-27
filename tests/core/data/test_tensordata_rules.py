@@ -8,8 +8,11 @@ from fedot.core.data.tensordata_rules import (
     build_creation_request,
     build_device_sync_plan,
     build_raw_conversion_plan,
+    build_tabular_file_load_plan,
     normalize_array_target_reference,
     normalize_backend_name,
+    normalize_possible_idx_keywords,
+    normalize_tabular_file_delimiter,
     normalize_optional_data_type,
     normalize_tensordata_identity,
     resolve_registered_creator,
@@ -156,3 +159,45 @@ def test_normalize_array_target_reference_keeps_explicit_target_idx_priority():
 
     assert target == 2
     assert target_idx == 1
+
+
+@pytest.mark.unit
+def test_normalize_tabular_file_delimiter_infers_tsv_separator_from_suffix():
+    assert normalize_tabular_file_delimiter('sample.tsv', ',') == '\t'
+    assert normalize_tabular_file_delimiter('sample.csv', ',') == ','
+
+
+@pytest.mark.unit
+def test_normalize_possible_idx_keywords_uses_defaults_when_not_provided():
+    assert normalize_possible_idx_keywords(None, ['idx', 'id']) == ['idx', 'id']
+    assert normalize_possible_idx_keywords(['custom'], ['idx']) == ['custom']
+
+
+@pytest.mark.unit
+def test_build_tabular_file_load_plan_normalizes_defaults_for_tsv(tmp_path):
+    file_path = tmp_path / 'data.tsv'
+    file_path.write_text('idx\tvalue\n1\t2\n')
+
+    plan = build_tabular_file_load_plan(
+        file_path=str(file_path),
+        delimiter=',',
+        possible_idx_keywords=None,
+        default_keywords=['idx', 'id'],
+    )
+
+    assert plan.file_path == str(file_path)
+    assert plan.delimiter == '\t'
+    assert plan.possible_idx_keywords == ['idx', 'id']
+
+
+@pytest.mark.unit
+def test_build_tabular_file_load_plan_rejects_missing_file(tmp_path):
+    missing_path = tmp_path / 'missing.csv'
+
+    with pytest.raises(ValueError, match='does not exist'):
+        build_tabular_file_load_plan(
+            file_path=str(missing_path),
+            delimiter=',',
+            possible_idx_keywords=None,
+            default_keywords=['idx'],
+        )

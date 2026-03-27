@@ -22,6 +22,7 @@ from fedot.core.data.tensordata_rules import (
     build_creation_request,
     build_device_sync_plan,
     build_raw_conversion_plan,
+    build_tabular_file_load_plan,
     normalize_array_target_reference,
     normalize_optional_data_type,
     normalize_tensordata_identity,
@@ -31,7 +32,7 @@ from fedot.core.data.tensordata_rules import (
 )
 
 from fedot.core.data.data_tools import (
-    get_device_from_str, is_existed_csv_path, get_values_from_df, 
+    get_device_from_str, get_values_from_df, 
     convert_idx_to_array, convert_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
     encode_categorical_features, get_text_embeddings)
@@ -666,18 +667,19 @@ def from_csv_tsv(
         TensorData: TensorData created from values loaded from the file.
     """
 
-    if not is_existed_csv_path(file_path):
-        raise ValueError(f'File {file_path} does not exist')
-
-    spec.possible_idx_keywords = (
-        spec.possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
-    )
-
-    features = get_df_from_csv(
+    file_load_plan = build_tabular_file_load_plan(
         file_path=file_path,
         delimiter=spec.delimiter,
-        index_col=spec.index_col,
         possible_idx_keywords=spec.possible_idx_keywords,
+        default_keywords=POSSIBLE_TABULAR_IDX_KEYWORDS,
+    )
+    spec.possible_idx_keywords = file_load_plan.possible_idx_keywords
+
+    features = get_df_from_csv(
+        file_path=file_load_plan.file_path,
+        delimiter=file_load_plan.delimiter,
+        index_col=spec.index_col,
+        possible_idx_keywords=file_load_plan.possible_idx_keywords,
         columns_to_drop=spec.columns_to_drop,
         nrows=spec.max_rows
     )

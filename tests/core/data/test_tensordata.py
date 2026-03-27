@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from fedot.core.backend.backend import backend
-from fedot.core.data.tensordata import LoadDataSpec, TensorData, from_numpy
+from fedot.core.data.tensordata import LoadDataSpec, TensorData, from_csv_tsv, from_numpy
 from fedot.core.data.tensordata_rules import TensorDataCreatorNotFoundError
 
 
@@ -91,3 +91,35 @@ def test_from_numpy_treats_integer_target_as_target_idx_without_copy_bug():
     assert captured['features_shape'] == (2, 3)
     assert captured['target'] is None
     assert captured['target_idx'] == 1
+
+
+@pytest.mark.unit
+def test_from_csv_tsv_uses_file_load_plan_defaults(monkeypatch, tmp_path):
+    csv_path = tmp_path / 'sample.tsv'
+    csv_path.write_text('idx\tvalue\n1\t2\n')
+
+    captured = {}
+
+    def fake_get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop, nrows):
+        captured['file_path'] = file_path
+        captured['delimiter'] = delimiter
+        captured['possible_idx_keywords'] = possible_idx_keywords
+
+        class _Frame:
+            columns = np.array(['value'])
+            values = np.array([[2]])
+
+        return _Frame()
+
+    monkeypatch.setattr('fedot.core.data.tensordata.get_df_from_csv', fake_get_df_from_csv)
+    monkeypatch.setattr('fedot.core.data.tensordata.get_values_from_df', lambda frame: frame.values)
+
+    spec = LoadDataSpec()
+    spec.to_tensor_data = lambda features: features
+
+    result = from_csv_tsv(str(csv_path), spec)
+
+    assert result.shape == (1, 1)
+    assert captured['file_path'] == str(csv_path)
+    assert captured['delimiter'] == '\t'
+    assert captured['possible_idx_keywords'] == ['idx', 'index', 'id', 'unnamed: 0']
