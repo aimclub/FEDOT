@@ -3,6 +3,7 @@ import pytest
 
 from fedot.core.backend.backend import backend
 from fedot.core.data.tensordata import LoadDataSpec, TensorData, from_csv_tsv, from_numpy
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.tensordata_rules import TensorDataCreatorNotFoundError
 
 
@@ -177,3 +178,39 @@ def test_load_data_spec_normalization_is_deterministic_on_recreation():
     assert second.dataloader_kwargs == first.dataloader_kwargs
     assert second.embedding_strategy is not first.embedding_strategy
     assert second.dataloader_kwargs is not first.dataloader_kwargs
+
+
+@pytest.mark.unit
+def test_from_numpy_autodetects_tensor_canonical_tabular_when_data_type_missing():
+    spec = LoadDataSpec(data_type=None, task='classification')
+
+    captured = {}
+
+    def fake_to_tensor_data(features):
+        captured['data_type'] = spec.data_type
+        return features
+
+    spec.to_tensor_data = fake_to_tensor_data
+
+    from_numpy(features=np.array([[1, 2], [3, 4]]), spec=spec)
+
+    assert captured['data_type'].value == 'table'
+    assert captured['data_type'] == captured['data_type'].tabular
+
+
+@pytest.mark.unit
+def test_from_numpy_autodetects_tensor_canonical_ts_for_forecasting_when_data_type_missing():
+    spec = LoadDataSpec(data_type=None, task=Task(TaskTypesEnum.ts_forecasting))
+
+    captured = {}
+
+    def fake_to_tensor_data(features):
+        captured['data_type'] = spec.data_type
+        return features
+
+    spec.to_tensor_data = fake_to_tensor_data
+
+    from_numpy(features=np.array([[1, 2], [3, 4]]), spec=spec)
+
+    assert captured['data_type'].value == 'time_series'
+    assert captured['data_type'] == captured['data_type'].ts

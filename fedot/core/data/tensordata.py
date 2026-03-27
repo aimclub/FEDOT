@@ -39,7 +39,7 @@ from fedot.core.data.data_tools import (
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import backend
-from fedot.core.data.data import (autodetect_data_type)
+from fedot.core.data.data_compatibility_rules import autodetect_tensor_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
 
 
@@ -612,7 +612,7 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
         TensorData: TensorData created from the provided array.
     """
     if spec.data_type is None:
-        spec.data_type = autodetect_data_type(spec.task)
+        spec.data_type = autodetect_tensor_data_type(spec.task)
 
     spec.target, spec.target_idx = normalize_array_target_reference(
         target=spec.target,
