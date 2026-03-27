@@ -79,6 +79,7 @@ class ApiDataProcessor:
                              f'Exception: {ex}')
 
         # Perform obligatory steps of data preprocessing
+        # preprocessing
         if is_predict:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
