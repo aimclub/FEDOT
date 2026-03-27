@@ -38,6 +38,25 @@ class TensorDataBackendPlan:
 
 
 @dataclass(frozen=True)
+class TensorDataCreationRequest:
+    backend_name: str
+
+
+@dataclass(frozen=True)
+class TensorDataCreationFailure:
+    source_type_name: str
+    backend_name: str
+    error_type_name: str
+
+    @property
+    def message(self) -> str:
+        return (
+            f"Error creating TensorData for source_type={self.source_type_name} "
+            f"on backend={self.backend_name}: {self.error_type_name}"
+        )
+
+
+@dataclass(frozen=True)
 class TensorDataDeviceSyncPlan:
     should_move_to_backend: bool
 
@@ -125,6 +144,36 @@ def validate_creator_predicate_result(predicate: Callable[[Any], bool], result: 
 
 def build_backend_plan(backend_name: str) -> TensorDataBackendPlan:
     return TensorDataBackendPlan(backend_name=normalize_backend_name(backend_name))
+
+
+def build_creation_request(backend_name: str) -> TensorDataCreationRequest:
+    return TensorDataCreationRequest(backend_name=normalize_backend_name(backend_name))
+
+
+def build_creation_failure(
+    source_data: Any,
+    backend_name: str,
+    error: Exception,
+) -> TensorDataCreationFailure:
+    return TensorDataCreationFailure(
+        source_type_name=type(source_data).__name__,
+        backend_name=normalize_backend_name(backend_name),
+        error_type_name=type(error).__name__,
+    )
+
+
+def normalize_array_target_reference(
+    target: Any,
+    target_idx: Any,
+    feature_width: int,
+) -> tuple[Any, Any]:
+    if target_idx is not None:
+        return target, target_idx
+
+    if isinstance(target, int) and 0 <= target < feature_width:
+        return None, target
+
+    return target, target_idx
 
 
 def build_device_sync_plan(features_device_type: str, backend_device_type: str) -> TensorDataDeviceSyncPlan:

@@ -4,8 +4,11 @@ from fedot.core.data.tensordata_rules import (
     TensorDataCreatorNotFoundError,
     TensorDataCreatorResolutionError,
     build_backend_plan,
+    build_creation_failure,
+    build_creation_request,
     build_device_sync_plan,
     build_raw_conversion_plan,
+    normalize_array_target_reference,
     normalize_backend_name,
     normalize_optional_data_type,
     normalize_tensordata_identity,
@@ -120,3 +123,36 @@ def test_resolve_registered_creator_rejects_missing_creator():
 
     with pytest.raises(TensorDataCreatorNotFoundError, match='No creator registered'):
         resolve_registered_creator(creators, source_data={'x': 1})
+
+
+@pytest.mark.unit
+def test_build_creation_request_normalizes_backend_name():
+    request = build_creation_request(' GPU ')
+
+    assert request.backend_name == 'gpu'
+
+
+@pytest.mark.unit
+def test_build_creation_failure_keeps_source_type_and_error_type():
+    failure = build_creation_failure({'x': 1}, 'cpu', RuntimeError('boom'))
+
+    assert failure.source_type_name == 'dict'
+    assert failure.backend_name == 'cpu'
+    assert failure.error_type_name == 'RuntimeError'
+    assert 'source_type=dict' in failure.message
+
+
+@pytest.mark.unit
+def test_normalize_array_target_reference_moves_integer_target_to_target_idx():
+    target, target_idx = normalize_array_target_reference(2, None, feature_width=5)
+
+    assert target is None
+    assert target_idx == 2
+
+
+@pytest.mark.unit
+def test_normalize_array_target_reference_keeps_explicit_target_idx_priority():
+    target, target_idx = normalize_array_target_reference(2, 1, feature_width=5)
+
+    assert target == 2
+    assert target_idx == 1

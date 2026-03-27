@@ -18,12 +18,16 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.data.tensordata_rules import (
-    normalize_backend_name,
+    build_creation_failure,
+    build_creation_request,
+    build_device_sync_plan,
+    build_raw_conversion_plan,
+    normalize_array_target_reference,
     normalize_optional_data_type,
     normalize_tensordata_identity,
     normalize_task,
     normalize_state,
-    validate_creator_predicate_result,
+    resolve_registered_creator,
 )
 
 from fedot.core.data.data_tools import (
@@ -305,16 +309,23 @@ class TensorData:
                 self.features_names
             )
         else:
+            raw_conversion_plan = build_raw_conversion_plan(backend.name)
             try:
                 self.features = backend.xp.array(self.features)
                 self._post_init_raw()
-            except:
+            except Exception:
+                if not raw_conversion_plan.should_try_cpu_fallback:
+                    raise
                 with backend.override("cpu"):
                     logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
                     self.features = backend.xp.array(self.features)
                     self._post_init_raw()
-        
-        if self.features.device.type != backend.device.type:
+
+        device_sync_plan = build_device_sync_plan(
+            features_device_type=self.features.device.type,
+            backend_device_type=backend.device.type,
+        )
+        if device_sync_plan.should_move_to_backend:
             self.to(backend.device)
 
     def _post_init_raw(self):
@@ -392,16 +403,7 @@ class TensorData:
             ValueError: If no creator matches the input.
             TypeError: If a predicate returns a non-boolean value.
         """
-        for predicate, creator in cls._creators:
-            result = validate_creator_predicate_result(
-                predicate=predicate,
-                result=predicate(source_data),
-            )
-
-            if result:
-                return creator
-
-        raise ValueError(f"No creator registered for input: {type(source_data)}")
+        return resolve_registered_creator(cls._creators, source_data)
     
     @classmethod
     def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
@@ -434,7 +436,8 @@ class TensorData:
             TensorData: Materialized tensor data object.
         """
 
-        backend.set(normalize_backend_name(backend_name))
+        creation_request = build_creation_request(backend_name)
+        backend.set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 
@@ -442,7 +445,8 @@ class TensorData:
             creator = cls._resolve_creator(source_data)
             return creator(source_data, spec)
         except Exception as e:
-            raise ValueError(f"Error creating TensorData") from e
+            failure = build_creation_failure(source_data, creation_request.backend_name, e)
+            raise ValueError(failure.message) from e
 
     @classmethod
     def create_lazy(cls, source_data, backend_name, **kwargs):
@@ -458,7 +462,8 @@ class TensorData:
             LazyTensor: Lazy wrapper that builds `TensorData` on demand.
         """
 
-        backend.set(normalize_backend_name(backend_name))
+        creation_request = build_creation_request(backend_name)
+        backend.set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 
@@ -608,10 +613,12 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
     if spec.data_type is None:
         spec.data_type = autodetect_data_type(spec.task)
 
-    if isinstance(spec.target, int) and spec.target < features.shape[1]:
-        spec.target_idx = spec.target.copy()
-        spec.target = None
-    
+    spec.target, spec.target_idx = normalize_array_target_reference(
+        target=spec.target,
+        target_idx=spec.target_idx,
+        feature_width=features.shape[1],
+    )
+
     return spec.to_tensor_data(features)
 
 
