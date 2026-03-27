@@ -17,6 +17,14 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
+from fedot.core.data.tensordata_rules import (
+    normalize_backend_name,
+    normalize_optional_data_type,
+    normalize_tensordata_identity,
+    normalize_task,
+    normalize_state,
+    validate_creator_predicate_result,
+)
 
 from fedot.core.data.data_tools import (
     get_device_from_str, is_existed_csv_path, get_values_from_df, 
@@ -173,6 +181,11 @@ class LoadDataSpec:
     index_col: IndexType = None
     possible_idx_keywords: Optional[List[str]] = None
 
+    def __post_init__(self):
+        self.task = normalize_task(self.task)
+        self.state = normalize_state(self.state)
+        self.data_type = normalize_optional_data_type(self.data_type)
+
     def to_tensor_data(self, features) -> "TensorData":
         """
         Build a :class:`TensorData` instance from preprocessed `features`.
@@ -274,14 +287,14 @@ class TensorData:
             will be moved to GPU.
         """
 
-        if isinstance(self.state, str):
-            self.state = StateEnum(self.state)
-
-        if isinstance(self.task, str):
-            self.task = Task(TaskTypesEnum(self.task))
-
-        if isinstance(self.data_type, str):
-            self.data_type = DataTypesEnum(self.data_type)
+        identity = normalize_tensordata_identity(
+            task=self.task,
+            data_type=self.data_type,
+            state=self.state,
+        )
+        self.task = identity.task
+        self.data_type = identity.data_type
+        self.state = identity.state
 
         if isinstance(self.features, torch.Tensor):
             self.encoding_strategy = encode_torch_tensors(
@@ -380,12 +393,10 @@ class TensorData:
             TypeError: If a predicate returns a non-boolean value.
         """
         for predicate, creator in cls._creators:
-            result = predicate(source_data)
-
-            if not isinstance(result, bool):
-                raise TypeError(
-                    f"Predicate {predicate.__name__} must return bool, got {type(result)}"
-                )
+            result = validate_creator_predicate_result(
+                predicate=predicate,
+                result=predicate(source_data),
+            )
 
             if result:
                 return creator
@@ -423,7 +434,7 @@ class TensorData:
             TensorData: Materialized tensor data object.
         """
 
-        backend.set(backend_name)        
+        backend.set(normalize_backend_name(backend_name))
 
         spec = LoadDataSpec(**kwargs)
 
@@ -447,7 +458,7 @@ class TensorData:
             LazyTensor: Lazy wrapper that builds `TensorData` on demand.
         """
 
-        backend.set(backend_name)
+        backend.set(normalize_backend_name(backend_name))
 
         spec = LoadDataSpec(**kwargs)
 

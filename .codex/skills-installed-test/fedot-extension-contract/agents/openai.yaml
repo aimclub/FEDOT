@@ -1,0 +1,4 @@
+interface:
+  display_name: "FEDOT Extension Contract"
+  short_description: "Design FEDOT extension manifests and runtime flow"
+  default_prompt: "Use $fedot-extension-contract to add or refactor FEDOT extension manifests, registry logic, and runtime integration."

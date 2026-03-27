@@ -1,0 +1,4 @@
+interface:
+  display_name: "FEDOT Safe Configs"
+  short_description: "Implement safe typed FEDOT config flows"
+  default_prompt: "Use $fedot-safe-configs to replace unsafe config parsing with typed validation and normalization in FEDOT."

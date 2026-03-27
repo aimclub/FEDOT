@@ -1,0 +1,65 @@
+{
+  "run_id": "20260306_152555",
+  "started_utc": "2026-03-06T15:25:55",
+  "timeout_minutes_per_dataset": 10.0,
+  "dataset_count": 20,
+  "datasets": [
+    "amlb_adult",
+    "amlb_covertype",
+    "amlb_optdigits",
+    "amlb_vehicle",
+    "amlb_mfeat_factors",
+    "amlb_segment",
+    "amlb_credit_g",
+    "amlb_kr_vs_kp",
+    "amlb_sick",
+    "amlb_spambase",
+    "amlb_letter",
+    "amlb_satimage",
+    "amlb_waveform",
+    "amlb_phoneme",
+    "amlb_page_blocks",
+    "amlb_ionosphere",
+    "amlb_banknote_authentication",
+    "amlb_wine_quality_red",
+    "amlb_wine_quality_white",
+    "amlb_magic_telescope"
+  ],
+  "config": {
+    "timeout_minutes_per_dataset": 10.0,
+    "output_root": "examples\\benchmark\\results",
+    "seed": 42,
+    "n_jobs": -1,
+    "preset": "best_quality",
+    "with_tuning": true,
+    "dataset_names": [],
+    "amlb_categories": [
+      "amlb_top20_mix"
+    ],
+    "test_size": 0.2,
+    "max_rows_per_dataset": 25000,
+    "include_baseline": true,
+    "include_sampling": true,
+    "sampling_config": {
+      "provider": "sampling_zoo",
+      "strategy": "random",
+      "strategy_params": {},
+      "candidate_ratios": [
+        0.15,
+        0.2,
+        0.3,
+        0.5
+      ],
+      "delta_metric_threshold": 0.03,
+      "delta_type": "relative",
+      "validation_size": 0.2,
+      "budget_policy": "dynamic_cap",
+      "cap_max_timeout_share": 0.35,
+      "min_automl_time_minutes": 0.1,
+      "infinite_timeout_cap_minutes": 5.0,
+      "error_policy": "fail_fast",
+      "artifact_mode": "minimal",
+      "random_state": 42
+    }
+  }
+}

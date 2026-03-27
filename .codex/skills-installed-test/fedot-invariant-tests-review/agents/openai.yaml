@@ -1,0 +1,4 @@
+interface:
+  display_name: "FEDOT Invariant Tests Review"
+  short_description: "Add FEDOT invariant tests and PR review"
+  default_prompt: "Use $fedot-invariant-tests-review to add or review FEDOT tests for pure collaborators, facades, and invariants."

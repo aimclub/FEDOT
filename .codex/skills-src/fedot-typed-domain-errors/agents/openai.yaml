@@ -1,0 +1,4 @@
+interface:
+  display_name: "FEDOT Typed Domain Errors"
+  short_description: "Model FEDOT states and errors explicitly"
+  default_prompt: "Use $fedot-typed-domain-errors to replace stringly typed states and implicit errors with explicit FEDOT domain models."
