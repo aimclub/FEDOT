@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, ClassVar, List, Tuple
+from typing import Optional, Union, Dict, Any, Callable, TypeAlias, ClassVar, List, Tuple
 
 import logging
 
@@ -10,8 +10,6 @@ import numpy as np
 import cupy as cp
 import pandas as pd
 import cudf
-from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, Callable, TypeAlias
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -282,6 +280,9 @@ class TensorData:
 
         if isinstance(self.data_type, str):
             self.data_type = DataTypesEnum(self.data_type)
+
+        # TODO: here obligatory plan building, applying and saving states
+        # all _post_init_raw to obligatory
 
         if isinstance(self.features, torch.Tensor):
             self.encoding_strategy = encode_torch_tensors(
