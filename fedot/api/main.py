@@ -160,10 +160,6 @@ class Fedot:
             # here the main preprocessing
             with fedot_composer_timer.launch_data_definition('fit'):
                 self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-
-                with fedot_composer_timer.launch_data_definition('fit'):
-                    self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-
                 self.params.update_available_operations_by_preset(self.train_data)
 
                 if self.params.get('use_input_preprocessing'):

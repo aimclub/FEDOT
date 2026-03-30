@@ -1,17 +1,13 @@
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, ClassVar, List, Tuple
-
 import logging
-
-from pathlib import Path
-
-import torch
-import numpy as np
-import cupy as cp
-import pandas as pd
-import cudf
 from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, Callable, TypeAlias
+from pathlib import Path
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, TypeAlias, Union
+
+import cupy as cp
+import cudf
+import numpy as np
+import pandas as pd
+import torch
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
