@@ -14,6 +14,7 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_fit_plan,
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
     build_tune_execution_plan,
@@ -237,6 +238,24 @@ class Fedot:
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
+
+    def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
+        fit_plan = build_tensordata_fit_plan(predefined_model)
+
+        with fedot_composer_timer.launch_fitting():
+            self.current_pipeline = getattr(
+                PredefinedModel(
+                    predefined_model,
+                    tensor_data,
+                    self.log,
+                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                    api_preprocessor=self.data_processor.preprocessor,
+                ),
+                fit_plan.fit_method_name,
+            )()
+
+        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+        return self.current_pipeline
 
     def tune(self,
              input_data: Optional[FeaturesType] = None,

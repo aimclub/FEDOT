@@ -1,4 +1,5 @@
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_fit_plan,
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
     build_tune_execution_plan,
@@ -56,3 +57,19 @@ def test_service_rules_build_tensor_predict_execution_plans():
 
     assert predict_plan.output_mode == 'labels'
     assert predict_proba_plan.output_mode == 'full_probs'
+
+
+def test_service_rules_build_tensordata_fit_plan_for_predefined_runtime_path():
+    plan = build_tensordata_fit_plan('logit')
+
+    assert plan.fit_method_name == 'fit_tensordata'
+
+
+def test_service_rules_reject_unsupported_tensordata_fit_paths():
+    import pytest
+
+    with pytest.raises(ValueError, match='supports only predefined models or pipelines'):
+        build_tensordata_fit_plan(None)
+
+    with pytest.raises(ValueError, match='does not support auto assumption generation yet'):
+        build_tensordata_fit_plan('auto')

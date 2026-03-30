@@ -94,3 +94,28 @@ def test_main_facade_predict_proba_tensordata_uses_service_rule_mode_selection()
 
     assert prediction.shape == (2, 2)
     assert model.current_pipeline.calls == [('predict_tensordata', 'full_probs')]
+
+
+def test_main_facade_fit_tensordata_uses_predefined_runtime_path(monkeypatch):
+    model = Fedot(problem='classification')
+
+    class FakePredefinedModel:
+        def __init__(self, predefined_model, data, log, use_input_preprocessing=True, api_preprocessor=None):
+            assert predefined_model == 'logit'
+            assert data == 'tensor-data'
+
+        def fit_tensordata(self):
+            return _StubPipeline()
+
+    monkeypatch.setattr('fedot.api.main.PredefinedModel', FakePredefinedModel)
+
+    pipeline = model.fit_tensordata(tensor_data='tensor-data', predefined_model='logit')
+
+    assert isinstance(pipeline, _StubPipeline)
+
+
+def test_main_facade_fit_tensordata_rejects_composition_path():
+    model = Fedot(problem='classification')
+
+    with pytest.raises(ValueError, match='supports only predefined models or pipelines'):
+        model.fit_tensordata(tensor_data='tensor-data', predefined_model=None)
