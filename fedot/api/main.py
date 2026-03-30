@@ -250,8 +250,29 @@ class Fedot:
                 fit_plan.fit_method_name,
             )()
 
+        self.train_data = self.data_processor.to_input_data(tensor_data)
+        self.target = self.train_data.target
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
         return self.current_pipeline
+
+    def tune_tensordata(self,
+                        tensor_data: Optional[Any] = None,
+                        metric_name: Optional[Union[str, MetricCallable]] = None,
+                        iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
+                        timeout: Optional[float] = None,
+                        cv_folds: Optional[int] = None,
+                        n_jobs: Optional[int] = None,
+                        show_progress: bool = False) -> Pipeline:
+        tune_input_data = None if tensor_data is None else self.data_processor.to_input_data(tensor_data)
+        return self.tune(
+            input_data=tune_input_data,
+            metric_name=metric_name,
+            iterations=iterations,
+            timeout=timeout,
+            cv_folds=cv_folds,
+            n_jobs=n_jobs,
+            show_progress=show_progress,
+        )
 
     def tune(self,
              input_data: Optional[FeaturesType] = None,
@@ -361,6 +382,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
+        self.test_data = self.data_processor.to_input_data(tensor_data)
         with fedot_composer_timer.launch_predicting():
             predict_plan = build_tensordata_predict_plan(output_mode=output_mode)
             self.prediction = self.current_pipeline.predict_tensordata(
@@ -379,6 +401,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
+        self.test_data = self.data_processor.to_input_data(tensor_data)
         with fedot_composer_timer.launch_predicting():
             if self.params.task.task_type == TaskTypesEnum.classification:
                 predict_plan = build_tensordata_predict_proba_plan(probs_for_all_classes)
@@ -466,6 +489,30 @@ class Fedot:
 
         if self.params.task.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
+
+    def get_metrics_tensordata(self,
+                               tensor_data,
+                               target: Union[np.ndarray, pd.Series] = None,
+                               metric_names: Union[str, List[str]] = None,
+                               rounding_order: int = 3) -> dict:
+        if self.current_pipeline is None:
+            raise ValueError(NOT_FITTED_ERR_MSG)
+
+        self.test_data = self.data_processor.to_input_data(tensor_data)
+        self.prediction = self.current_pipeline.predict_tensordata(tensor_data, output_mode='default')
+        self._is_in_sample_prediction = False
+        return self.get_metrics(target=target, metric_names=metric_names, rounding_order=rounding_order)
+
+    def explain_tensordata(self, tensor_data,
+                           method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
+        data = self.data_processor.to_input_data(tensor_data)
+        return explain_pipeline(
+            pipeline=self.current_pipeline,
+            data=data,
+            method=method,
+            visualization=visualization,
+            **kwargs,
+        )
 
     def load(self, path):
         """Loads saved graph from disk
