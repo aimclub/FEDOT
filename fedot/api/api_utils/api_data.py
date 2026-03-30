@@ -14,6 +14,9 @@ from fedot.api.api_utils.api_data_rules import (
 )
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.input_data_bridge import input_data_to_tensordata
+from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.tools import StateEnum
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -121,6 +124,13 @@ class ApiDataProcessor:
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(np.array(real.target))
+
+    def to_tensordata(self, input_data: InputData, backend_name: str = 'cpu', is_predict: bool = False):
+        state = StateEnum.PREDICT if is_predict else StateEnum.FIT
+        return input_data_to_tensordata(input_data, backend_name=backend_name, state=state)
+
+    def to_input_data(self, tensor_data):
+        return tensordata_to_input_data(tensor_data)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """

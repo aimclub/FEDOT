@@ -4,6 +4,9 @@ import numpy as np
 
 import fedot.api.api_utils.api_data as api_data_module
 from fedot.api.api_utils.api_data import ApiDataProcessor
+from fedot.core.data.data import InputData
+from fedot.core.data.tools import StateEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
@@ -76,3 +79,93 @@ def test_define_predictions_uses_in_sample_forecasting_plan(monkeypatch):
     assert captured['horizon'] == 4
     assert np.array_equal(captured['idx'], np.array([1, 2, 3, 4]))
     assert len(prediction.predict) == 4
+
+
+def test_to_tensordata_uses_bridge_adapter_for_fit(monkeypatch):
+    captured = {}
+
+    def fake_input_data_to_tensordata(input_data, backend_name, state):
+        captured['input_data'] = input_data
+        captured['backend_name'] = backend_name
+        captured['state'] = state
+        return 'tensor-data'
+
+    monkeypatch.setattr(api_data_module, 'input_data_to_tensordata', fake_input_data_to_tensordata)
+
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+    input_data = InputData(
+        idx=np.array([0, 1]),
+        features=np.array([[1], [2]]),
+        target=np.array([0, 1]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    result = processor.to_tensordata(input_data, backend_name='gpu', is_predict=False)
+
+    assert result == 'tensor-data'
+    assert captured['input_data'] is input_data
+    assert captured['backend_name'] == 'gpu'
+    assert captured['state'] == StateEnum.FIT
+
+
+def test_to_tensordata_uses_predict_state_for_inference(monkeypatch):
+    captured = {}
+
+    def fake_input_data_to_tensordata(input_data, backend_name, state):
+        captured['state'] = state
+        return 'tensor-data'
+
+    monkeypatch.setattr(api_data_module, 'input_data_to_tensordata', fake_input_data_to_tensordata)
+
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+    input_data = InputData(
+        idx=np.array([0]),
+        features=np.array([[1]]),
+        target=None,
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    processor.to_tensordata(input_data, backend_name='cpu', is_predict=True)
+
+    assert captured['state'] == StateEnum.PREDICT
+
+
+def test_to_input_data_uses_reverse_bridge_adapter(monkeypatch):
+    captured = {}
+
+    def fake_tensordata_to_input_data(tensor_data):
+        captured['tensor_data'] = tensor_data
+        return 'input-data'
+
+    monkeypatch.setattr(api_data_module, 'tensordata_to_input_data', fake_tensordata_to_input_data)
+
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+    tensor_data = SimpleNamespace(features=np.array([[1]]))
+
+    result = processor.to_input_data(tensor_data)
+
+    assert result == 'input-data'
+    assert captured['tensor_data'] is tensor_data
+
+
+def test_to_input_data_returns_legacy_inputdata_from_tensor_boundary(monkeypatch):
+    input_data = InputData(
+        idx=np.array([0, 1]),
+        features=np.array([[1], [2]]),
+        target=np.array([0, 1]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    def fake_tensordata_to_input_data(tensor_data):
+        return input_data
+
+    monkeypatch.setattr(api_data_module, 'tensordata_to_input_data', fake_tensordata_to_input_data)
+
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+
+    result = processor.to_input_data(SimpleNamespace(features=np.array([[1]])))
+
+    assert result is input_data

@@ -4,11 +4,13 @@ import pytest
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.tools import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing_rules import (
     build_optional_preprocessing_plan,
     build_preprocessor_merge_plan,
+    build_tensordata_preprocessing_bridge_plan,
     iter_preprocessed_inputs,
     resolve_main_target_source_name,
     resolve_source_names,
@@ -89,3 +91,13 @@ def test_build_optional_preprocessing_plan_and_target_source_resolution_are_expl
     assert optional_plan.apply_encoding is False
     assert resolve_target_encoder_source_name(None, DEFAULT_SOURCE_NAME) == DEFAULT_SOURCE_NAME
     assert resolve_target_encoder_source_name('main', DEFAULT_SOURCE_NAME) == 'main'
+
+
+def test_build_tensordata_preprocessing_bridge_plan_is_explicit_for_stage_and_mode():
+    fit_plan = build_tensordata_preprocessing_bridge_plan(is_fit_stage=True, is_optional=False)
+    predict_optional_plan = build_tensordata_preprocessing_bridge_plan(is_fit_stage=False, is_optional=True)
+
+    assert fit_plan.state == StateEnum.FIT
+    assert fit_plan.prepare_method_name == 'obligatory_prepare_for_fit'
+    assert predict_optional_plan.state == StateEnum.PREDICT
+    assert predict_optional_plan.prepare_method_name == 'optional_prepare_for_predict'
