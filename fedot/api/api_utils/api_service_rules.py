@@ -2,12 +2,31 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 
+
 @dataclass(frozen=True)
 class TuneExecutionPlan:
     input_data: Any
     cv_folds: Optional[int]
     n_jobs: int
     metric: Any
+
+
+@dataclass(frozen=True)
+class TensorPredictExecutionPlan:
+    output_mode: str
+
+
+@dataclass(frozen=True)
+class TensorPredictProbaExecutionPlan:
+    output_mode: str
+
+
+def build_tensordata_predict_plan(output_mode: str = 'default') -> TensorPredictExecutionPlan:
+    return TensorPredictExecutionPlan(output_mode=output_mode)
+
+
+def build_tensordata_predict_proba_plan(probs_for_all_classes: bool) -> TensorPredictProbaExecutionPlan:
+    return TensorPredictProbaExecutionPlan(output_mode=resolve_predict_proba_mode(probs_for_all_classes))
 
 
 def build_tune_execution_plan(input_data: Any,

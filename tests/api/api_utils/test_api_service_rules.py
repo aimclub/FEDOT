@@ -1,4 +1,6 @@
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_predict_plan,
+    build_tensordata_predict_proba_plan,
     build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
@@ -46,3 +48,11 @@ def test_service_rules_resolve_predict_mode_and_forecast_horizon():
     assert resolve_predict_proba_mode(True) == 'full_probs'
     assert resolve_forecast_horizon(None, 12) == 12
     assert resolve_forecast_horizon(5, 12) == 5
+
+
+def test_service_rules_build_tensor_predict_execution_plans():
+    predict_plan = build_tensordata_predict_plan(output_mode='labels')
+    predict_proba_plan = build_tensordata_predict_proba_plan(probs_for_all_classes=True)
+
+    assert predict_plan.output_mode == 'labels'
+    assert predict_proba_plan.output_mode == 'full_probs'

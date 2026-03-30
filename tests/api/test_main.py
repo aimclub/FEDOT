@@ -12,7 +12,17 @@ class _StubPipeline:
         self.calls = []
 
     def predict(self, test_data, output_mode='default'):
-        self.calls.append(output_mode)
+        self.calls.append(('predict', output_mode))
+        return OutputData(
+            idx=np.arange(2),
+            predict=np.array([[0.2, 0.8], [0.7, 0.3]]),
+            target=None,
+            task=Task(TaskTypesEnum.classification),
+            data_type=DataTypesEnum.table,
+        )
+
+    def predict_tensordata(self, tensor_data, output_mode='default'):
+        self.calls.append(('predict_tensordata', output_mode))
         return OutputData(
             idx=np.arange(2),
             predict=np.array([[0.2, 0.8], [0.7, 0.3]]),
@@ -55,7 +65,7 @@ def test_main_facade_uses_service_rule_for_predict_proba_mode_selection():
 
     model.predict_proba(features=np.array([[1.0], [2.0]]), probs_for_all_classes=True)
 
-    assert model.current_pipeline.calls == ['full_probs']
+    assert model.current_pipeline.calls == [('predict', 'full_probs')]
 
 
 def test_main_facade_forecast_requires_time_series_task():
@@ -64,3 +74,23 @@ def test_main_facade_forecast_requires_time_series_task():
 
     with pytest.raises(ValueError, match='Forecasting can be used only for the time series'):
         model.forecast()
+
+
+def test_main_facade_predict_tensordata_uses_tensor_pipeline_entrypoint():
+    model = Fedot(problem='classification')
+    model.current_pipeline = _StubPipeline()
+
+    prediction = model.predict_tensordata(tensor_data=object(), output_mode='labels')
+
+    assert prediction.shape == (2, 2)
+    assert model.current_pipeline.calls == [('predict_tensordata', 'labels')]
+
+
+def test_main_facade_predict_proba_tensordata_uses_service_rule_mode_selection():
+    model = Fedot(problem='classification')
+    model.current_pipeline = _StubPipeline()
+
+    prediction = model.predict_proba_tensordata(tensor_data=object(), probs_for_all_classes=True)
+
+    assert prediction.shape == (2, 2)
+    assert model.current_pipeline.calls == [('predict_tensordata', 'full_probs')]

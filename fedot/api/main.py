@@ -14,6 +14,8 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_predict_plan,
+    build_tensordata_predict_proba_plan,
     build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
@@ -336,6 +338,44 @@ class Fedot:
 
         if path_to_save is not None:
             self.save_predict(self.prediction, path_to_save)
+
+        return self.prediction.predict
+
+    def predict_tensordata(self, tensor_data, output_mode: str = 'default',
+                           path_to_save: Optional[PathType] = None) -> np.ndarray:
+        if self.current_pipeline is None:
+            raise ValueError(NOT_FITTED_ERR_MSG)
+
+        with fedot_composer_timer.launch_predicting():
+            predict_plan = build_tensordata_predict_plan(output_mode=output_mode)
+            self.prediction = self.current_pipeline.predict_tensordata(
+                tensor_data,
+                output_mode=predict_plan.output_mode,
+            )
+
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
+
+        return self.prediction.predict
+
+    def predict_proba_tensordata(self, tensor_data,
+                                 probs_for_all_classes: bool = False,
+                                 path_to_save: Optional[PathType] = None) -> np.ndarray:
+        if self.current_pipeline is None:
+            raise ValueError(NOT_FITTED_ERR_MSG)
+
+        with fedot_composer_timer.launch_predicting():
+            if self.params.task.task_type == TaskTypesEnum.classification:
+                predict_plan = build_tensordata_predict_proba_plan(probs_for_all_classes)
+                self.prediction = self.current_pipeline.predict_tensordata(
+                    tensor_data,
+                    output_mode=predict_plan.output_mode,
+                )
+
+                if path_to_save is not None:
+                    self.save_predict(self.prediction, path_to_save)
+            else:
+                raise ValueError('Probabilities of predictions are available only for classification')
 
         return self.prediction.predict
 
