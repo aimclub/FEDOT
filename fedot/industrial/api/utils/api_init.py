@@ -6,6 +6,8 @@ from fedot.core.repository.tasks import TsForecastingParams
 from joblib import cpu_count
 from fedot.industrial.api.utils.api_init_rules import (
     build_api_manager_state_plan,
+    build_automl_config_plan,
+    build_computational_config_plan,
     build_industrial_context_plan,
     build_learning_loss_plan,
     resolve_initial_assumption_problem,
@@ -152,6 +154,30 @@ class ComputationalConfig(ConfigTemplate):
         self.automl_folder = automl_folder
         return self.automl_folder
 
+    def build(self, config: dict = None):
+        config = config or {}
+        plan = build_computational_config_plan(
+            backend=config.get('backend', 'cpu'),
+            distributed=config.get('distributed'),
+            output_folder=config.get('output_folder'),
+            cache_dict=config.get('use_cache'),
+            automl_folder=config.get('automl_folder'),
+            default_dask_params=self.default_dask_params,
+        )
+        self.backend = plan.backend
+        self.distributed = plan.distributed
+        self.output_folder = plan.output_folder
+        self.cache = plan.cache
+        self.automl_folder = plan.automl_folder
+        self.config.update({
+            'backend': self.backend,
+            'distributed': self.distributed,
+            'output_folder': self.output_folder,
+            'use_cache': self.cache,
+            'automl_folder': self.automl_folder,
+        })
+        return self
+
 
 class AutomlConfig(ConfigTemplate):
     def __init__(self):
@@ -188,6 +214,33 @@ class AutomlConfig(ConfigTemplate):
     def with_optimisation_strategy(self, optimisation_strategy: dict = None):
         self.optimisation_strategy = optimisation_strategy
         return self.optimisation_strategy
+
+    def build(self, config: dict = None):
+        config = config or {}
+        plan = build_automl_config_plan(
+            task=config.get('task'),
+            task_params=config.get('task_params'),
+            initial_assumption=config.get('initial_assumption'),
+            use_automl=config.get('use_automl', False),
+            available_operations=config.get('available_operations'),
+            optimisation_strategy=config.get('optimisation_strategy'),
+            default_available_operations_factory=default_industrial_availiable_operation,
+        )
+        self.task = plan.task
+        self.task_params = plan.task_params
+        self.initial_assumption = plan.initial_assumption
+        self.use_automl = plan.use_automl
+        self.available_operations = plan.available_operations
+        self.optimisation_strategy = plan.optimisation_strategy
+        self.config.update({
+            'task': self.task,
+            'task_params': self.task_params,
+            'initial_assumption': self.initial_assumption,
+            'use_automl': self.use_automl,
+            'available_operations': self.available_operations,
+            'optimisation_strategy': self.optimisation_strategy,
+        })
+        return self
 
 
 class LearningConfig(ConfigTemplate):
@@ -259,6 +312,7 @@ class ApiManager(ConfigTemplate):
         return self.compute_config
 
     def build(self, config: dict = None):
+        config = config or {}
         for key, method in self.keys.items():
             if key in config.keys():
                 method(config[key])

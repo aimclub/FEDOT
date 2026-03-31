@@ -1,4 +1,4 @@
-from fedot.industrial.api.utils.api_init import ApiManager, IndustrialConfig, LearningConfig
+from fedot.industrial.api.utils.api_init import ApiManager, AutomlConfig, ComputationalConfig, IndustrialConfig, LearningConfig
 
 
 def test_industrial_config_uses_rule_based_context_and_initial_problem(monkeypatch):
@@ -29,6 +29,28 @@ def test_learning_config_with_loss_uses_rule_based_loss_plan():
     assert config.quality_loss == 'f1'
     assert config.structural_loss == 'size'
     assert config.computational_loss is None
+
+
+def test_computational_config_build_uses_rule_based_defaults_without_shared_mutation():
+    config_a = ComputationalConfig().build({})
+    config_b = ComputationalConfig().build({})
+
+    config_a.distributed['n_workers'] = 99
+
+    assert config_b.distributed['n_workers'] == 1
+
+
+def test_automl_config_build_uses_rule_based_default_operations(monkeypatch):
+    monkeypatch.setattr(
+        'fedot.industrial.api.utils.api_init.default_industrial_availiable_operation',
+        lambda task: ['industrial-op', task],
+    )
+
+    config = AutomlConfig().build({'task': 'classification'})
+
+    assert config.task == 'classification'
+    assert config.available_operations == ['industrial-op', 'classification']
+    assert config.use_automl is False
 
 
 def test_api_manager_null_state_object_uses_state_plan_defaults():

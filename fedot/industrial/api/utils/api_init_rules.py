@@ -32,6 +32,25 @@ class ApiManagerStatePlan:
     is_finetuned: bool = False
 
 
+@dataclass(frozen=True)
+class ComputationalConfigPlan:
+    backend: str
+    distributed: dict
+    output_folder: Optional[str]
+    cache: Optional[dict]
+    automl_folder: Optional[str]
+
+
+@dataclass(frozen=True)
+class AutomlConfigPlan:
+    task: Optional[str]
+    task_params: Optional[dict]
+    initial_assumption: object
+    use_automl: bool
+    available_operations: list
+    optimisation_strategy: Optional[dict]
+
+
 def build_industrial_context_plan(problem: str,
                                   strategy: Optional[str] = None,
                                   task_params: Optional[dict] = None,
@@ -72,3 +91,42 @@ def build_learning_loss_plan(loss: Union[Callable, str, dict, None]) -> Learning
 
 def build_api_manager_state_plan() -> ApiManagerStatePlan:
     return ApiManagerStatePlan()
+
+
+def build_computational_config_plan(backend: str = 'cpu',
+                                    distributed: Optional[dict] = None,
+                                    output_folder: Optional[str] = None,
+                                    cache_dict: Optional[dict] = None,
+                                    automl_folder: Optional[str] = None,
+                                    default_dask_params: Optional[dict] = None) -> ComputationalConfigPlan:
+    normalized_default_dask = dict(default_dask_params or {})
+    normalized_distributed = dict(distributed) if distributed is not None else normalized_default_dask
+    normalized_cache = dict(cache_dict) if cache_dict is not None else None
+    return ComputationalConfigPlan(
+        backend=backend,
+        distributed=normalized_distributed,
+        output_folder=output_folder,
+        cache=normalized_cache,
+        automl_folder=automl_folder,
+    )
+
+
+def build_automl_config_plan(task: Optional[str] = None,
+                             task_params: Optional[dict] = None,
+                             initial_assumption=None,
+                             use_automl: bool = False,
+                             available_operations=None,
+                             optimisation_strategy: Optional[dict] = None,
+                             default_available_operations_factory: Optional[Callable[[str], list]] = None) -> AutomlConfigPlan:
+    normalized_task_params = dict(task_params) if task_params is not None else None
+    normalized_available_operations = list(available_operations) if available_operations is not None else None
+    if normalized_available_operations is None and task is not None and default_available_operations_factory is not None:
+        normalized_available_operations = list(default_available_operations_factory(task))
+    return AutomlConfigPlan(
+        task=task,
+        task_params=normalized_task_params,
+        initial_assumption=initial_assumption,
+        use_automl=use_automl,
+        available_operations=normalized_available_operations,
+        optimisation_strategy=optimisation_strategy,
+    )
