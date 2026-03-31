@@ -6,6 +6,7 @@ import numpy as np
 from golem.core.log import default_log
 
 from fedot.api.api_utils.api_data_rules import (
+    build_tensordata_definition_plan,
     iter_shared_index_assignments,
     normalize_features_for_definition,
     plan_fit_preprocessing,
@@ -88,6 +89,21 @@ class ApiDataProcessor:
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
+
+    def define_tensordata(self,
+                          features: FeaturesType,
+                          target: Optional[TargetType] = None,
+                          is_predict: bool = False,
+                          backend_name: str = 'cpu'):
+        definition_plan = build_tensordata_definition_plan(backend_name=backend_name, is_predict=is_predict)
+        input_data = self.define_data(features=features, target=target, is_predict=is_predict)
+        if not isinstance(input_data, InputData):
+            raise ValueError('TensorData path currently supports only InputData. MultiModalData is not supported yet.')
+        return self.to_tensordata(
+            input_data,
+            backend_name=definition_plan.backend_name,
+            is_predict=definition_plan.state is StateEnum.PREDICT,
+        )
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
                            in_sample: bool = False, validation_blocks: int = None) -> OutputData:

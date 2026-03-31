@@ -11,7 +11,9 @@ from fedot.extensions.contracts import (
 from fedot.extensions.registry import clear_extension_registry, register_extension
 from fedot.extensions.runtime_rules import (
     build_extension_strategy_params,
+    get_extension_data_types,
     get_extension_model_spec,
+    get_extension_tensor_data_types,
     is_extension_operation_name,
     try_build_extension_strategy_params,
 )
@@ -69,6 +71,8 @@ def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_par
         assert params['_extension_output_mode'] == 'labels'
         assert params['alpha'] == 1.0
         assert params['beta'] == 0.5
+        assert get_extension_data_types('external_runtime_model') == (DataTypesEnum.table,)
+        assert get_extension_tensor_data_types('external_runtime_model') == (DataTypesEnum.tabular,)
     finally:
         clear_extension_registry()
 

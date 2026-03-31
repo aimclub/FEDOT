@@ -5,6 +5,7 @@ import numpy as np
 import fedot.api.api_utils.api_data as api_data_module
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.tools import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -169,3 +170,53 @@ def test_to_input_data_returns_legacy_inputdata_from_tensor_boundary(monkeypatch
     result = processor.to_input_data(SimpleNamespace(features=np.array([[1]])))
 
     assert result is input_data
+
+
+def test_define_tensordata_uses_explicit_input_and_tensor_boundaries(monkeypatch):
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+    input_data = InputData(
+        idx=np.array([0, 1]),
+        features=np.array([[1], [2]]),
+        target=np.array([0, 1]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+    captured = {}
+
+    processor.define_data = lambda features, target=None, is_predict=False: input_data
+
+    def fake_to_tensordata(input_data_arg, backend_name='cpu', is_predict=False):
+        captured['input_data'] = input_data_arg
+        captured['backend_name'] = backend_name
+        captured['is_predict'] = is_predict
+        return 'tensor-data'
+
+    processor.to_tensordata = fake_to_tensordata
+
+    result = processor.define_tensordata(
+        features=np.array([[1], [2]]),
+        target=np.array([0, 1]),
+        is_predict=True,
+        backend_name='gpu',
+    )
+
+    assert result == 'tensor-data'
+    assert captured['input_data'] is input_data
+    assert captured['backend_name'] == 'gpu'
+    assert captured['is_predict'] is True
+
+
+def test_define_tensordata_rejects_multimodal_legacy_path():
+    processor = ApiDataProcessor(Task(TaskTypesEnum.classification), use_input_preprocessing=False)
+    input_data = InputData(
+        idx=np.array([0, 1]),
+        features=np.array([[1], [2]]),
+        target=np.array([0, 1]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+    multimodal = MultiModalData({'main': input_data})
+    processor.define_data = lambda features, target=None, is_predict=False: multimodal
+
+    with pytest.raises(ValueError, match='supports only InputData'):
+        processor.define_tensordata(features={'main': np.array([[1], [2]])})
