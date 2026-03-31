@@ -4,8 +4,12 @@ from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.api.main_rules import (
+    build_industrial_explain_plan,
+    build_industrial_history_visualization_plan,
+    build_industrial_load_plan,
     build_industrial_metrics_plan,
     build_industrial_predict_plan,
+    build_industrial_save_plan,
     normalize_industrial_prediction,
     trim_industrial_forecast,
 )
@@ -50,3 +54,21 @@ def test_normalize_industrial_prediction_unwraps_outputdata_and_trim_forecast_is
     assert np.array_equal(normalized, np.array([1, 2, 3, 4]))
     assert np.array_equal(trim_industrial_forecast(normalized, None), normalized)
     assert np.array_equal(trim_industrial_forecast(normalized, 2), np.array([3, 4]))
+
+
+
+def test_build_industrial_save_load_explain_and_history_plans():
+    save_plan = build_industrial_save_plan(mode='all', is_fedot_solver=False)
+    load_plan = build_industrial_load_plan(path='root', dir_list=['pipeline_saved_1', 'fitted_operations'])
+    explain_plan = build_industrial_explain_plan({'method': 'recurrence', 'samples': 3})
+    history_plan = build_industrial_history_visualization_plan('models')
+
+    assert save_plan.save_all is True
+    assert save_plan.include_opt_hist is False
+    assert load_plan.resolved_path == 'root/pipeline_saved_1'
+    assert load_plan.load_multiple_pipelines is True
+    assert explain_plan.method == 'recurrence'
+    assert explain_plan.samples == 3
+    assert explain_plan.metric == 'rmse'
+    assert history_plan.selected_mode == 'models'
+    assert history_plan.visualize_all is False

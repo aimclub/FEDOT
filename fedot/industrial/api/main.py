@@ -17,8 +17,12 @@ from sklearn import model_selection as skms
 from sklearn.calibration import CalibratedClassifierCV
 
 from fedot.industrial.api.main_rules import (
+    build_industrial_explain_plan,
+    build_industrial_history_visualization_plan,
+    build_industrial_load_plan,
     build_industrial_metrics_plan,
     build_industrial_predict_plan,
+    build_industrial_save_plan,
     normalize_industrial_prediction,
     trim_industrial_forecast,
 )
@@ -406,7 +410,10 @@ class FedotIndustrial(Fedot):
         return self.metric_dict
 
     def save(self, mode: str = 'all', **kwargs):
-        is_fedot_solver = self.manager.condition_check.solver_is_fedot_class(self.manager.solver)
+        save_plan = build_industrial_save_plan(
+            mode=mode,
+            is_fedot_solver=self.manager.condition_check.solver_is_fedot_class(self.manager.solver),
+        )
 
         def save_model(api_manager):
             return Either(value=api_manager.solver,
@@ -435,7 +442,7 @@ class FedotIndustrial(Fedot):
         method_dict = {'metrics': save_metrics, 'model': save_model, 'opt_hist': save_opt_hist,
                        'prediction': save_preds}
         self.manager.create_folder(self.manager.compute_config.output_folder)
-        if not is_fedot_solver:
+        if not save_plan.include_opt_hist:
             del method_dict['opt_hist']
 
         def save_all(api_manager):
@@ -445,8 +452,8 @@ class FedotIndustrial(Fedot):
                 except Exception as ex:
                     self.manager.logger.info(f'Error during saving. Exception - {ex}')
 
-        Either(value=self.manager, monoid=[self.manager, mode.__contains__('all')]). \
-            either(left_function=lambda api_manager: method_dict[mode](self.manager),
+        Either(value=self.manager, monoid=[self.manager, save_plan.save_all]). \
+            either(left_function=lambda api_manager: method_dict[save_plan.selected_mode](self.manager),
                    right_function=lambda api_manager: save_all(api_manager))
 
     def load(self, path):
@@ -458,14 +465,12 @@ class FedotIndustrial(Fedot):
         """
         self.repo = IndustrialModels().setup_repository()
         dir_list = os.listdir(path)
-        if not path.__contains__('pipeline_saved'):
-            saved_pipe = [x for x in dir_list if x.__contains__('pipeline_saved')][0]
-            path = f'{path}/{saved_pipe}'
-        pipeline = Either(value=path,
-                          monoid=[dir_list, 'fitted_operations' in dir_list]).either(
-            left_function=lambda directory_list: [Pipeline().load(f'{path}/{p}/0_pipeline_saved') for p in
+        load_plan = build_industrial_load_plan(path=path, dir_list=dir_list)
+        pipeline = Either(value=load_plan.resolved_path,
+                          monoid=[dir_list, load_plan.load_multiple_pipelines]).either(
+            left_function=lambda directory_list: [Pipeline().load(f'{load_plan.resolved_path}/{p}/0_pipeline_saved') for p in
                                                   directory_list],
-            right_function=lambda path: Pipeline().load(path))
+            right_function=lambda resolved_path: Pipeline().load(resolved_path))
         return pipeline
 
     def explain(self, explaing_config: dict = {}):
@@ -477,21 +482,16 @@ class FedotIndustrial(Fedot):
                          See the function implementation for detailed information on
                          supported arguments.
         """
-        metric = explaing_config.get('metric', 'rmse')
-        window = explaing_config.get('window', 5)
-        samples = explaing_config.get('samples', 1)
-        threshold = explaing_config.get('threshold', 90)
-        name = explaing_config.get('name', 'test')
-        method = explaing_config.get('method', 'point')
+        explain_plan = build_industrial_explain_plan(explaing_config)
 
-        explainer = self.manager.industrial_config.explain_methods[method](
+        explainer = self.manager.industrial_config.explain_methods[explain_plan.method](
             model=self,
             features=self.manager.predict_data.features.squeeze(),
             target=self.manager.predict_data.target
         )
 
-        explainer.explain(n_samples=samples, window=window, method=metric)
-        explainer.visual(metric=metric, threshold=threshold, name=name)
+        explainer.explain(n_samples=explain_plan.samples, window=explain_plan.window, method=explain_plan.metric)
+        explainer.visual(metric=explain_plan.metric, threshold=explain_plan.threshold, name=explain_plan.name)
 
     def return_report(self) -> pd.DataFrame:
         return self.manager.solver.return_report() if isinstance(self.manager.solver, Fedot) else None
@@ -500,8 +500,6 @@ class FedotIndustrial(Fedot):
                                  mode: str = 'all',
                                  return_history: bool = False):
         """ The function runs visualization of the composing history and the best pipeline. """
-        # Gather pipeline and history.
-        # matplotlib.use('TkAgg')
         history = OptHistory.load(opt_history_path + 'optimization_history.json') \
             if isinstance(opt_history_path, str) else opt_history_path
         history_visualizer = PipelineHistoryVisualizer(history)
@@ -515,14 +513,15 @@ class FedotIndustrial(Fedot):
             'diversity': (
                 history_visualizer.diversity_population, dict(
                     save_path='diversity_population.gif', fps=1))}
+        history_plan = build_industrial_history_visualization_plan(mode)
 
-        def plot_func(mode):
-            return vis_func[mode][0](**vis_func[mode][1])
+        def plot_func(selected_mode):
+            return vis_func[selected_mode][0](**vis_func[selected_mode][1])
 
         Either(value=vis_func,
-               monoid=[mode, mode == 'all']).either(
-            left_function=plot_func,
-            right_function=lambda vis_func: [func(**params) for func, params in vis_func.values()]
+               monoid=[history_plan.selected_mode, history_plan.visualize_all]).either(
+            left_function=lambda _vis_func: plot_func(history_plan.selected_mode),
+            right_function=lambda _vis_func: [func(**params) for func, params in vis_func.values()]
         )
         return history_visualizer.history if return_history else None
 

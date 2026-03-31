@@ -52,3 +52,70 @@ def build_industrial_metrics_plan(target, predicted_labels, has_target_encoder: 
         prediction_is_mapping=isinstance(predicted_labels, dict),
         use_target_encoder=has_target_encoder and not isinstance(predicted_labels, dict),
     )
+
+
+
+@dataclass(frozen=True)
+class IndustrialSavePlan:
+    selected_mode: str
+    save_all: bool
+    include_opt_hist: bool
+
+
+@dataclass(frozen=True)
+class IndustrialLoadPlan:
+    resolved_path: str
+    load_multiple_pipelines: bool
+
+
+@dataclass(frozen=True)
+class IndustrialExplainPlan:
+    metric: str
+    window: int
+    samples: int
+    threshold: int
+    name: str
+    method: str
+
+
+@dataclass(frozen=True)
+class IndustrialHistoryVisualizationPlan:
+    selected_mode: str
+    visualize_all: bool
+
+
+def build_industrial_save_plan(mode: str, is_fedot_solver: bool) -> IndustrialSavePlan:
+    return IndustrialSavePlan(
+        selected_mode=mode,
+        save_all='all' in mode,
+        include_opt_hist=is_fedot_solver,
+    )
+
+
+def build_industrial_load_plan(path: str, dir_list) -> IndustrialLoadPlan:
+    resolved_path = path
+    if 'pipeline_saved' not in path:
+        saved_pipe = [entry for entry in dir_list if 'pipeline_saved' in entry][0]
+        resolved_path = f'{path}/{saved_pipe}'
+    return IndustrialLoadPlan(
+        resolved_path=resolved_path,
+        load_multiple_pipelines='fitted_operations' in dir_list,
+    )
+
+
+def build_industrial_explain_plan(explaining_config: dict) -> IndustrialExplainPlan:
+    return IndustrialExplainPlan(
+        metric=explaining_config.get('metric', 'rmse'),
+        window=explaining_config.get('window', 5),
+        samples=explaining_config.get('samples', 1),
+        threshold=explaining_config.get('threshold', 90),
+        name=explaining_config.get('name', 'test'),
+        method=explaining_config.get('method', 'point'),
+    )
+
+
+def build_industrial_history_visualization_plan(mode: str) -> IndustrialHistoryVisualizationPlan:
+    return IndustrialHistoryVisualizationPlan(
+        selected_mode=mode,
+        visualize_all=mode == 'all',
+    )

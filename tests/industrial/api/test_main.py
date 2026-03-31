@@ -74,3 +74,98 @@ def test_industrial_main_metric_evaluation_loop_uses_rule_based_shape_and_encode
     assert np.array_equal(captured['labels'], np.array([[2], [1]]))
     assert captured['metric_names'] == ('f1',)
     assert captured['train_data'] == 'train-data'
+
+
+
+def test_industrial_main_explain_uses_rule_based_config():
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = {}
+
+    class FakeExplainer:
+        def __init__(self, model, features, target):
+            captured['features'] = features
+            captured['target'] = target
+
+        def explain(self, n_samples, window, method):
+            captured['explain'] = (n_samples, window, method)
+
+        def visual(self, metric, threshold, name):
+            captured['visual'] = (metric, threshold, name)
+
+    industrial.manager = SimpleNamespace(
+        industrial_config=SimpleNamespace(explain_methods={'recurrence': FakeExplainer}),
+        predict_data=SimpleNamespace(features=np.arange(6).reshape(1, 2, 3), target=np.array([1, 2])),
+    )
+
+    industrial.explain({'method': 'recurrence', 'samples': 3, 'window': 7, 'metric': 'f1', 'threshold': 80, 'name': 'demo'})
+
+    assert captured['features'].shape == (2, 3)
+    assert np.array_equal(captured['target'], np.array([1, 2]))
+    assert captured['explain'] == (3, 7, 'f1')
+    assert captured['visual'] == ('f1', 80, 'demo')
+
+
+def test_industrial_main_load_uses_rule_based_path_resolution(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    industrial.manager = SimpleNamespace()
+
+    monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels', lambda: SimpleNamespace(setup_repository=lambda backend=None: 'repo'))
+    monkeypatch.setattr('fedot.industrial.api.main.os.listdir', lambda path: ['pipeline_saved_1', 'fitted_operations'])
+    monkeypatch.setattr('fedot.industrial.api.main.Pipeline', lambda: SimpleNamespace(load=lambda path: f'loaded:{path}'))
+
+    result = industrial.load('root')
+
+    assert result == ['loaded:root/pipeline_saved_1/pipeline_saved_1/0_pipeline_saved',
+                      'loaded:root/pipeline_saved_1/fitted_operations/0_pipeline_saved']
+
+
+def test_industrial_main_save_uses_rule_based_mode_selection(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = []
+
+    class FakeManager:
+        def __init__(self):
+            self.solver = SimpleNamespace(current_pipeline=SimpleNamespace(save=lambda **kwargs: captured.append(('model', kwargs))))
+            self.compute_config = SimpleNamespace(output_folder='out')
+            self.condition_check = SimpleNamespace(solver_is_fedot_class=lambda solver: False)
+            self.logger = SimpleNamespace(info=lambda msg: captured.append(('log', msg)))
+            self.predicted_labels = np.array([1, 0])
+
+        def create_folder(self, output_folder):
+            captured.append(('folder', output_folder))
+
+    industrial.manager = FakeManager()
+    industrial.metric_dict = SimpleNamespace(to_csv=lambda path: captured.append(('metrics', path)))
+
+    monkeypatch.setattr('fedot.industrial.api.main.pd.DataFrame', lambda values: SimpleNamespace(to_csv=lambda path: captured.append(('prediction', path))))
+
+    industrial.save(mode='prediction')
+
+    assert ('folder', 'out') in captured
+    assert ('prediction', 'out/labels.csv') in captured
+
+
+def test_industrial_main_vis_history_uses_rule_based_mode(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = []
+
+    class FakeHistoryVisualizer:
+        def __init__(self, history):
+            self.history = 'history-object'
+
+        def fitness_box(self, **kwargs):
+            captured.append(('fitness', kwargs))
+
+        def operations_animated_bar(self, **kwargs):
+            captured.append(('models', kwargs))
+
+        def diversity_population(self, **kwargs):
+            captured.append(('diversity', kwargs))
+
+    monkeypatch.setattr('fedot.industrial.api.main.OptHistory.load', lambda path: 'loaded-history')
+    monkeypatch.setattr('fedot.industrial.api.main.PipelineHistoryVisualizer', FakeHistoryVisualizer)
+
+    result = industrial.vis_optimisation_history(opt_history_path='history', mode='models', return_history=True)
+
+    assert result == 'history-object'
+    assert captured == [('models', {'save_path': 'operations_animated_bar.gif', 'show_fitness': True})]
