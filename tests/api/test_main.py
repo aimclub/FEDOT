@@ -4,7 +4,7 @@ import pytest
 from fedot import Fedot
 from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 class _StubPipeline:
@@ -244,3 +244,91 @@ def test_main_facade_explain_tensordata_uses_legacy_conversion_boundary(monkeypa
     assert captured['method'] == 'surrogate_dt'
     assert captured['visualization'] is False
     assert captured['kwargs'] == {'max_depth': 3}
+
+
+def test_main_facade_forecast_tensordata_uses_legacy_conversion_boundary(monkeypatch):
+    model = Fedot(problem='ts_forecasting', task_params=TsForecastingParams(forecast_length=2))
+    model.current_pipeline = object()
+    model.train_data = type('TrainData', (), {
+        'task': Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2))
+    })()
+    stored_test_data = type('TestData', (), {'target': np.array([1.0, 2.0])})()
+    model.data_processor.to_input_data = lambda tensor_data: stored_test_data
+    captured = {}
+
+    def fake_out_of_sample_ts_forecast(pipeline, test_data, horizon):
+        captured['pipeline'] = pipeline
+        captured['test_data'] = test_data
+        captured['horizon'] = horizon
+        return np.array([10.0, 11.0, 12.0])
+
+    def fake_convert_forecast_to_output(test_data, predict):
+        captured['converted_test_data'] = test_data
+        captured['predict'] = predict
+        return OutputData(
+            idx=np.arange(len(predict)),
+            predict=predict,
+            target=None,
+            task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+            data_type=DataTypesEnum.ts,
+        )
+
+    monkeypatch.setattr('fedot.api.main.out_of_sample_ts_forecast', fake_out_of_sample_ts_forecast)
+    monkeypatch.setattr('fedot.api.main.convert_forecast_to_output', fake_convert_forecast_to_output)
+
+    result = model.forecast_tensordata(tensor_data='tensor-data', horizon=3)
+
+    assert np.array_equal(result, np.array([10.0, 11.0, 12.0]))
+    assert model.test_data is stored_test_data
+    assert model.test_data.target is None
+    assert captured['pipeline'] is model.current_pipeline
+    assert captured['test_data'] is stored_test_data
+    assert captured['converted_test_data'] is stored_test_data
+    assert captured['horizon'] == 3
+    assert np.array_equal(captured['predict'], np.array([10.0, 11.0, 12.0]))
+
+
+def test_main_facade_forecast_tensordata_reuses_forecast_validation():
+    model = Fedot(problem='classification')
+    model.current_pipeline = object()
+
+    with pytest.raises(ValueError, match='Forecasting can be used only for the time series'):
+        model.forecast_tensordata(tensor_data='tensor-data')
+
+
+def test_main_facade_fit_tensordata_merges_api_and_pipeline_preprocessors(monkeypatch):
+    model = Fedot(problem='classification')
+    stored_train_data = type('StoredTrainData', (), {'target': 'stored-target'})()
+    model.data_processor.to_input_data = lambda tensor_data: stored_train_data
+    merged_preprocessor = object()
+    captured = {}
+
+    class FakePipeline(_StubPipeline):
+        def __init__(self):
+            super().__init__()
+            self.preprocessor = 'pipeline-preprocessor'
+
+    class FakePredefinedModel:
+        def __init__(self, predefined_model, data, log, use_input_preprocessing=True, api_preprocessor=None):
+            pass
+
+        def fit_tensordata(self):
+            return FakePipeline()
+
+    def fake_merge_preprocessors(api_preprocessor, pipeline_preprocessor, use_auto_preprocessing):
+        captured['api_preprocessor'] = api_preprocessor
+        captured['pipeline_preprocessor'] = pipeline_preprocessor
+        captured['use_auto_preprocessing'] = use_auto_preprocessing
+        return merged_preprocessor
+
+    monkeypatch.setattr('fedot.api.main.PredefinedModel', FakePredefinedModel)
+    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', fake_merge_preprocessors)
+    monkeypatch.setattr('fedot.api.main.graph_structure', lambda pipeline: 'pipeline-structure')
+
+    pipeline = model.fit_tensordata(tensor_data='tensor-data', predefined_model='logit')
+
+    assert isinstance(pipeline, FakePipeline)
+    assert captured['api_preprocessor'] is model.data_processor.preprocessor
+    assert captured['pipeline_preprocessor'] == 'pipeline-preprocessor'
+    assert captured['use_auto_preprocessing'] == model.params.get('use_auto_preprocessing')
+    assert model.current_pipeline.preprocessor is merged_preprocessor

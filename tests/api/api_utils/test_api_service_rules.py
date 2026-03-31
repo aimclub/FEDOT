@@ -1,7 +1,11 @@
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_explain_plan,
     build_tensordata_fit_plan,
+    build_tensordata_forecast_plan,
+    build_tensordata_metrics_plan,
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
+    build_tensordata_tune_plan,
     build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
@@ -63,6 +67,20 @@ def test_service_rules_build_tensordata_fit_plan_for_predefined_runtime_path():
     plan = build_tensordata_fit_plan('logit')
 
     assert plan.fit_method_name == 'fit_tensordata'
+
+
+def test_service_rules_build_tensordata_tune_forecast_metrics_and_explain_plans():
+    tune_plan = build_tensordata_tune_plan(converted_input_data='converted-input')
+    forecast_plan = build_tensordata_forecast_plan(requested_horizon=None, forecast_length=12)
+    metrics_plan = build_tensordata_metrics_plan()
+    explain_plan = build_tensordata_explain_plan(method='surrogate_dt', visualization=False)
+
+    assert tune_plan.input_data == 'converted-input'
+    assert forecast_plan.horizon == 12
+    assert forecast_plan.clear_target is True
+    assert metrics_plan.output_mode == 'default'
+    assert explain_plan.method == 'surrogate_dt'
+    assert explain_plan.visualization is False
 
 
 def test_service_rules_reject_unsupported_tensordata_fit_paths():

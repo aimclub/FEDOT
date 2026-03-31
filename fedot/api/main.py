@@ -14,9 +14,13 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
 from fedot.api.api_utils.api_service_rules import (
+    build_tensordata_explain_plan,
     build_tensordata_fit_plan,
+    build_tensordata_forecast_plan,
+    build_tensordata_metrics_plan,
     build_tensordata_predict_plan,
     build_tensordata_predict_proba_plan,
+    build_tensordata_tune_plan,
     build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
@@ -252,6 +256,11 @@ class Fedot:
 
         self.train_data = self.data_processor.to_input_data(tensor_data)
         self.target = self.train_data.target
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
+        )
         self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
         return self.current_pipeline
 
@@ -263,9 +272,11 @@ class Fedot:
                         cv_folds: Optional[int] = None,
                         n_jobs: Optional[int] = None,
                         show_progress: bool = False) -> Pipeline:
-        tune_input_data = None if tensor_data is None else self.data_processor.to_input_data(tensor_data)
+        tune_plan = build_tensordata_tune_plan(
+            converted_input_data=None if tensor_data is None else self.data_processor.to_input_data(tensor_data)
+        )
         return self.tune(
-            input_data=tune_input_data,
+            input_data=tune_plan.input_data,
             metric_name=metric_name,
             iterations=iterations,
             timeout=timeout,
@@ -483,6 +494,26 @@ class Fedot:
             self.save_predict(self.prediction, path_to_save)
         return self.prediction.predict
 
+    def forecast_tensordata(self,
+                            tensor_data,
+                            horizon: Optional[int] = None,
+                            path_to_save: Optional[PathType] = None) -> np.ndarray:
+        self._check_forecast_applicable()
+
+        forecast_plan = build_tensordata_forecast_plan(
+            requested_horizon=horizon,
+            forecast_length=self.train_data.task.task_params.forecast_length,
+        )
+        self.test_data = self.data_processor.to_input_data(tensor_data)
+        if forecast_plan.clear_target:
+            self.test_data.target = None
+        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, forecast_plan.horizon)
+        self.prediction = convert_forecast_to_output(self.test_data, predict)
+        self._is_in_sample_prediction = False
+        if path_to_save is not None:
+            self.save_predict(self.prediction, path_to_save)
+        return self.prediction.predict
+
     def _check_forecast_applicable(self):
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -498,19 +529,24 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
+        metrics_plan = build_tensordata_metrics_plan()
         self.test_data = self.data_processor.to_input_data(tensor_data)
-        self.prediction = self.current_pipeline.predict_tensordata(tensor_data, output_mode='default')
+        self.prediction = self.current_pipeline.predict_tensordata(
+            tensor_data,
+            output_mode=metrics_plan.output_mode,
+        )
         self._is_in_sample_prediction = False
         return self.get_metrics(target=target, metric_names=metric_names, rounding_order=rounding_order)
 
     def explain_tensordata(self, tensor_data,
                            method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
+        explain_plan = build_tensordata_explain_plan(method=method, visualization=visualization)
         data = self.data_processor.to_input_data(tensor_data)
         return explain_pipeline(
             pipeline=self.current_pipeline,
             data=data,
-            method=method,
-            visualization=visualization,
+            method=explain_plan.method,
+            visualization=explain_plan.visualization,
             **kwargs,
         )
 
