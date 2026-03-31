@@ -16,6 +16,12 @@ from pymonad.tools import curry
 from sklearn import model_selection as skms
 from sklearn.calibration import CalibratedClassifierCV
 
+from fedot.industrial.api.main_rules import (
+    build_industrial_metrics_plan,
+    build_industrial_predict_plan,
+    normalize_industrial_prediction,
+    trim_industrial_forecast,
+)
 from fedot.industrial.api.utils.api_init import ApiManager
 from fedot.industrial.api.utils.checkers_collections import DataCheck
 from fedot.industrial.core.architecture.abstraction.decorators import DaskServer, exception_handler
@@ -172,9 +178,16 @@ class FedotIndustrial(Fedot):
         return predict
 
     def __abstract_predict(self, predict_data, predict_mode):
+        solver_is_fedot = self.manager.condition_check.solver_is_fedot_class(self.manager.solver)
+        solver_is_pipeline = self.manager.condition_check.solver_is_pipeline_class(self.manager.solver)
         have_encoder = self.manager.condition_check.solver_have_target_encoder(self.target_encoder)
-        custom_predict = all([not self.manager.condition_check.solver_is_fedot_class(self.manager.solver),
-                              not self.manager.condition_check.solver_is_pipeline_class(self.manager.solver)])
+        predict_plan = build_industrial_predict_plan(
+            predict_mode=predict_mode,
+            solver_is_fedot_class=solver_is_fedot,
+            solver_is_pipeline_class=solver_is_pipeline,
+            has_target_encoder=have_encoder,
+            predict_task=predict_data.task,
+        )
 
         def _inverse_encoder_transform(predict):
             predicted_labels = self.target_encoder.inverse_transform(predict)
@@ -182,25 +195,20 @@ class FedotIndustrial(Fedot):
             return predicted_labels
 
         def predict_func(predict_from_solver):
-            is_labels_output = predict_mode in ['labels']
-            if self.manager.condition_check.solver_is_pipeline_class(self.manager.solver):
-                predict = self.manager.solver.predict(predict_from_solver, predict_mode)
-            else:
-                if is_labels_output:
-                    predict = self.manager.solver.predict(predict_from_solver)
-                else:
-                    predict = self.manager.solver.predict_proba(predict_from_solver)
-            return predict
+            if predict_plan.use_pipeline_predict_mode:
+                return self.manager.solver.predict(predict_from_solver, predict_mode)
+            if predict_plan.labels_output:
+                return self.manager.solver.predict(predict_from_solver)
+            return self.manager.solver.predict_proba(predict_from_solver)
 
-        predict = Either(value=predict_data,
-                         monoid=[predict_data, custom_predict]).either(
+        raw_predict = Either(value=predict_data,
+                             monoid=[predict_data, predict_plan.custom_predict]).either(
             left_function=lambda predict_from_solver: predict_func(predict_from_solver),
             right_function=lambda predict_from_custom: self.manager.solver.predict(predict_from_custom))
-        predict = Either.insert(predict).then(lambda x: _inverse_encoder_transform(x) if have_encoder else x). \
-            then(lambda x: x.predict if isinstance(predict, OutputData) else x).value
-        if predict_data.task.task_type.value.__contains__('forecasting'):
-            predict = predict[-predict_data.task.task_params.forecast_length:]
-        return predict
+        normalized_predict = normalize_industrial_prediction(raw_predict)
+        if have_encoder:
+            normalized_predict = _inverse_encoder_transform(normalized_predict)
+        return trim_industrial_forecast(normalized_predict, predict_plan.forecast_length)
 
     def _metric_evaluation_loop(self,
                                 target,
@@ -211,8 +219,12 @@ class FedotIndustrial(Fedot):
                                 rounding_order,
                                 train_data,
                                 seasonality):
-        valid_shape = target.shape
-        if isinstance(predicted_labels, dict):
+        metrics_plan = build_industrial_metrics_plan(
+            target=target,
+            predicted_labels=predicted_labels,
+            has_target_encoder=self.manager.condition_check.solver_have_target_encoder(self.target_encoder),
+        )
+        if metrics_plan.prediction_is_mapping:
             metric_dict = {model_name: FEDOT_GET_METRICS[problem](target=target,
                                                                   metric_names=metric_names,
                                                                   rounding_order=rounding_order,
@@ -220,21 +232,21 @@ class FedotIndustrial(Fedot):
                                                                   probs=predicted_probs) for model_name, model_result
                            in predicted_labels.items()}
             return metric_dict
-        else:
-            if self.manager.condition_check.solver_have_target_encoder(self.target_encoder):
-                new_target = self.target_encoder.transform(target.flatten())
-                labels = self.target_encoder.transform(predicted_labels).reshape(valid_shape)
-            else:
-                new_target = target.flatten()
-                labels = predicted_labels.reshape(valid_shape)
 
-            return FEDOT_GET_METRICS[problem](target=new_target,
-                                              metric_names=metric_names,
-                                              rounding_order=rounding_order,
-                                              labels=labels,
-                                              probs=predicted_probs,
-                                              train_data=train_data,
-                                              seasonality=seasonality)
+        if metrics_plan.use_target_encoder:
+            new_target = self.target_encoder.transform(target.flatten())
+            labels = self.target_encoder.transform(predicted_labels).reshape(metrics_plan.valid_shape)
+        else:
+            new_target = target.flatten()
+            labels = predicted_labels.reshape(metrics_plan.valid_shape)
+
+        return FEDOT_GET_METRICS[problem](target=new_target,
+                                          metric_names=metric_names,
+                                          rounding_order=rounding_order,
+                                          labels=labels,
+                                          probs=predicted_probs,
+                                          train_data=train_data,
+                                          seasonality=seasonality)
 
     def fit(self,
             input_data: tuple,
