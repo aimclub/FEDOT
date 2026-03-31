@@ -1,7 +1,12 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from fedot.core.data.data import OutputData
+from fedot.industrial.core.repository.constanst_repository import (
+    FEDOT_TUNER_STRATEGY,
+    FEDOT_TUNING_METRICS,
+)
 
 
 @dataclass(frozen=True)
@@ -17,6 +22,27 @@ class IndustrialMetricsPlan:
     valid_shape: Tuple[int, ...]
     prediction_is_mapping: bool
     use_target_encoder: bool
+
+
+@dataclass(frozen=True)
+class IndustrialFitPlan:
+    use_solver_fit: bool
+
+
+@dataclass(frozen=True)
+class IndustrialPredictProbaPlan:
+    normalized_mode: str
+
+
+@dataclass(frozen=True)
+class IndustrialFinetunePlan:
+    should_process_input: bool
+    normalized_tuning_params: dict
+
+
+@dataclass(frozen=True)
+class IndustrialMetricsRequestPlan:
+    warn_missing_probabilities: bool
 
 
 def build_industrial_predict_plan(predict_mode: str,
@@ -53,6 +79,40 @@ def build_industrial_metrics_plan(target, predicted_labels, has_target_encoder: 
         use_target_encoder=has_target_encoder and not isinstance(predicted_labels, dict),
     )
 
+
+def build_industrial_fit_plan(strategy) -> IndustrialFitPlan:
+    return IndustrialFitPlan(use_solver_fit=not isinstance(strategy, Callable))
+
+
+def build_industrial_predict_proba_plan(predict_mode: str,
+                                        is_regression_task_context: bool) -> IndustrialPredictProbaPlan:
+    normalized_mode = 'labels' if is_regression_task_context else predict_mode
+    return IndustrialPredictProbaPlan(normalized_mode=normalized_mode)
+
+
+def build_industrial_finetune_plan(is_fedot_datatype: bool,
+                                   task_name: str,
+                                   tuning_params: Optional[dict]) -> IndustrialFinetunePlan:
+    normalized_tuning_params = dict(tuning_params or {})
+    tuner_name = normalized_tuning_params.get('tuner', 'sequential')
+    normalized_tuning_params['metric'] = FEDOT_TUNING_METRICS[task_name]
+    normalized_tuning_params['tuner'] = FEDOT_TUNER_STRATEGY[tuner_name]
+    return IndustrialFinetunePlan(
+        should_process_input=not is_fedot_datatype,
+        normalized_tuning_params=normalized_tuning_params,
+    )
+
+
+def build_industrial_metrics_request_plan(problem: str,
+                                          probs,
+                                          metric_names: Optional[tuple]) -> IndustrialMetricsRequestPlan:
+    warn_missing_probabilities = all([
+        problem == 'classification',
+        probs is None,
+        metric_names is not None,
+        'roc_auc' in metric_names,
+    ])
+    return IndustrialMetricsRequestPlan(warn_missing_probabilities=warn_missing_probabilities)
 
 
 @dataclass(frozen=True)

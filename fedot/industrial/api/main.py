@@ -2,7 +2,7 @@ import os
 import warnings
 from copy import deepcopy
 from functools import partial
-from typing import Union, Callable, Optional
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -12,16 +12,19 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 from pymonad.either import Either
-from pymonad.tools import curry
 from sklearn import model_selection as skms
 from sklearn.calibration import CalibratedClassifierCV
 
 from fedot.industrial.api.main_rules import (
     build_industrial_explain_plan,
+    build_industrial_finetune_plan,
+    build_industrial_fit_plan,
     build_industrial_history_visualization_plan,
     build_industrial_load_plan,
     build_industrial_metrics_plan,
+    build_industrial_metrics_request_plan,
     build_industrial_predict_plan,
+    build_industrial_predict_proba_plan,
     build_industrial_save_plan,
     normalize_industrial_prediction,
     trim_industrial_forecast,
@@ -32,11 +35,7 @@ from fedot.industrial.core.architecture.abstraction.decorators import DaskServer
 from fedot.industrial.core.architecture.pipelines.classification import (
     SklearnCompatibleClassifier,
 )
-from fedot.industrial.core.repository.constanst_repository import (
-    FEDOT_GET_METRICS,
-    FEDOT_TUNER_STRATEGY,
-    FEDOT_TUNING_METRICS
-)
+from fedot.industrial.core.repository.constanst_repository import FEDOT_GET_METRICS
 from fedot.industrial.core.repository.industrial_implementations.abstract import build_tuner
 from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
 
@@ -263,19 +262,16 @@ class FedotIndustrial(Fedot):
             **kwargs: additional parameters
 
         """
-
-        def fit_function(train_data): return \
-            Either(value=train_data, monoid=[train_data,
-
-                                             not isinstance(self.manager.industrial_config.strategy, Callable)]). \
-            either(left_function=lambda data: self.manager.industrial_config.strategy.fit(data),
-                   right_function=lambda data: self.manager.solver.fit(data))
+        fit_plan = build_industrial_fit_plan(self.manager.industrial_config.strategy)
 
         with exception_handler(Exception, on_exception=self.shutdown, suppress=False):
-            Either.insert(self._process_input_data(input_data)). \
-                then(lambda data: self.__init_industrial_backend(data)). \
-                then(lambda data: self.__init_solver(data)). \
-                then(fit_function)
+            train_data = self._process_input_data(input_data)
+            train_data = self.__init_industrial_backend(train_data)
+            train_data = self.__init_solver(train_data)
+            if fit_plan.use_solver_fit:
+                self.manager.solver.fit(train_data)
+            else:
+                self.manager.industrial_config.strategy.fit(train_data)
 
     def predict(self,
                 predict_data: tuple,
@@ -292,11 +288,10 @@ class FedotIndustrial(Fedot):
             the array with prediction values
 
         """
-        predict_func = curry(2)(lambda predict_mode, predict_data: self.__abstract_predict(predict_data, predict_mode))
         self.repo = IndustrialModels().setup_repository(backend=self.manager.compute_config.backend)
         processed_input = self._process_input_data(predict_data)
         self.manager.predict_data = processed_input
-        self.manager.predicted_labels = Either.insert(processed_input).then(predict_func(predict_mode)).value
+        self.manager.predicted_labels = self.__abstract_predict(processed_input, predict_mode)
 
         return self.manager.predicted_labels
 
@@ -318,15 +313,12 @@ class FedotIndustrial(Fedot):
 
         """
         self.repo = IndustrialModels().setup_repository(backend=self.manager.compute_config.backend)
-        predict_mode = predict_mode if not self.manager.industrial_config.is_regression_task_context else 'labels'
-        predict_func = curry(2)(lambda predict_mode, predict_data: self.__abstract_predict(predict_data, predict_mode))
-        calibrate_func = curry(3)(lambda prob_model, data_for_calib, labels:
-                                  self.__calibrate_probs(prob_model, data_for_calib) if predict_mode.__contains__(
-                                      'probs') else labels)
-        self.manager.predicted_probs = Either. \
-            insert(self._process_input_data(predict_data)). \
-            then(predict_func(predict_mode)).value
-        # then(calibrate_func(self.manager.solver, predict_data)).value
+        predict_proba_plan = build_industrial_predict_proba_plan(
+            predict_mode=predict_mode,
+            is_regression_task_context=self.manager.industrial_config.is_regression_task_context,
+        )
+        processed_input = self._process_input_data(predict_data)
+        self.manager.predicted_probs = self.__abstract_predict(processed_input, predict_proba_plan.normalized_mode)
 
         return self.manager.predicted_probs
 
@@ -350,21 +342,27 @@ class FedotIndustrial(Fedot):
             return data_dict
 
         is_fedot_datatype = self.manager.condition_check.input_data_is_fedot_type(train_data)
-        tuning_params['metric'] = FEDOT_TUNING_METRICS[self.manager.automl_config.config['task']]
-        tuning_params['tuner'] = FEDOT_TUNER_STRATEGY[tuning_params.get('tuner', 'sequential')]
+        finetune_plan = build_industrial_finetune_plan(
+            is_fedot_datatype=is_fedot_datatype,
+            task_name=self.manager.automl_config.config['task'],
+            tuning_params=tuning_params,
+        )
 
         with exception_handler(Exception, on_exception=self.shutdown, suppress=False):
-            model_to_tune = Either.insert(train_data). \
-                then(lambda data: self._process_input_data(data) if not is_fedot_datatype else data). \
-                then(lambda data: self.__init_industrial_backend(data)). \
-                then(lambda processed_data: {'train_data': processed_data} |
-                                            {'model_to_tune': model_to_tune.build()} |
-                                            {'tuning_params': tuning_params}). \
-                then(lambda dict_for_tune: _fit_pipeline(dict_for_tune)['model_to_tune'] if return_only_fitted
-                     else build_tuner(self, **dict_for_tune)).value
+            processed_train_data = train_data
+            if finetune_plan.should_process_input:
+                processed_train_data = self._process_input_data(processed_train_data)
+            processed_train_data = self.__init_industrial_backend(processed_train_data)
+            tuning_context = {
+                'train_data': processed_train_data,
+                'model_to_tune': model_to_tune.build(),
+                'tuning_params': finetune_plan.normalized_tuning_params,
+            }
+            tuned_model = _fit_pipeline(tuning_context)['model_to_tune'] if return_only_fitted else build_tuner(
+                self, **tuning_context)
 
         self.manager.is_finetuned = True
-        self.manager.solver = model_to_tune
+        self.manager.solver = tuned_model
 
     def get_metrics(self,
                     labels: np.ndarray,
@@ -392,10 +390,12 @@ class FedotIndustrial(Fedot):
 
         """
         problem = self.manager.automl_config.task
-        warning_about_probs = all([problem == 'classification',
-                                   probs is None,
-                                   'roc_auc' in metric_names])
-        if warning_about_probs:
+        metrics_request_plan = build_industrial_metrics_request_plan(
+            problem=problem,
+            probs=probs,
+            metric_names=metric_names,
+        )
+        if metrics_request_plan.warn_missing_probabilities:
             self.logger.info('Predicted probabilities are not available. Use `predict_proba()` method first')
 
         self.metric_dict = self._metric_evaluation_loop(

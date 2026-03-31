@@ -5,14 +5,19 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.api.main_rules import (
     build_industrial_explain_plan,
+    build_industrial_finetune_plan,
+    build_industrial_fit_plan,
     build_industrial_history_visualization_plan,
     build_industrial_load_plan,
     build_industrial_metrics_plan,
+    build_industrial_metrics_request_plan,
     build_industrial_predict_plan,
+    build_industrial_predict_proba_plan,
     build_industrial_save_plan,
     normalize_industrial_prediction,
     trim_industrial_forecast,
 )
+from fedot.industrial.core.repository.constanst_repository import FEDOT_TUNER_STRATEGY, FEDOT_TUNING_METRICS
 
 
 def test_build_industrial_predict_plan_tracks_solver_mode_and_forecast_tail():
@@ -55,6 +60,38 @@ def test_normalize_industrial_prediction_unwraps_outputdata_and_trim_forecast_is
     assert np.array_equal(trim_industrial_forecast(normalized, None), normalized)
     assert np.array_equal(trim_industrial_forecast(normalized, 2), np.array([3, 4]))
 
+
+def test_build_industrial_fit_predict_proba_and_metrics_request_plans():
+    class _CallableStrategy:
+        def __call__(self):
+            return None
+
+    fit_plan = build_industrial_fit_plan(object())
+    callable_fit_plan = build_industrial_fit_plan(_CallableStrategy())
+    proba_plan = build_industrial_predict_proba_plan('probs', is_regression_task_context=True)
+    metrics_request_plan = build_industrial_metrics_request_plan(
+        problem='classification',
+        probs=None,
+        metric_names=('roc_auc',),
+    )
+
+    assert fit_plan.use_solver_fit is True
+    assert callable_fit_plan.use_solver_fit is False
+    assert proba_plan.normalized_mode == 'labels'
+    assert metrics_request_plan.warn_missing_probabilities is True
+
+
+def test_build_industrial_finetune_plan_normalizes_metric_and_tuner():
+    plan = build_industrial_finetune_plan(
+        is_fedot_datatype=False,
+        task_name='classification',
+        tuning_params={'tuner': 'sequential', 'iterations': 5},
+    )
+
+    assert plan.should_process_input is True
+    assert plan.normalized_tuning_params['iterations'] == 5
+    assert plan.normalized_tuning_params['metric'] == FEDOT_TUNING_METRICS['classification']
+    assert plan.normalized_tuning_params['tuner'] == FEDOT_TUNER_STRATEGY['sequential']
 
 
 def test_build_industrial_save_load_explain_and_history_plans():

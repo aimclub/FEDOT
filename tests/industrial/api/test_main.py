@@ -6,6 +6,7 @@ from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.api.main import FedotIndustrial
+from fedot.industrial.core.repository.constanst_repository import FEDOT_TUNER_STRATEGY, FEDOT_TUNING_METRICS
 
 
 class _DummyEncoder:
@@ -75,6 +76,122 @@ def test_industrial_main_metric_evaluation_loop_uses_rule_based_shape_and_encode
     assert captured['metric_names'] == ('f1',)
     assert captured['train_data'] == 'train-data'
 
+
+def test_industrial_main_fit_uses_rule_based_solver_path(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = {}
+    industrial.manager = SimpleNamespace(
+        industrial_config=SimpleNamespace(strategy=object()),
+        solver=SimpleNamespace(fit=lambda data: captured.update(path='solver', data=data)),
+    )
+    industrial._process_input_data = lambda data: 'processed-train'
+    industrial._FedotIndustrial__init_industrial_backend = lambda data: data
+    industrial._FedotIndustrial__init_solver = lambda data: data
+
+    industrial.fit(('features', 'target'))
+
+    assert captured == {'path': 'solver', 'data': 'processed-train'}
+
+
+def test_industrial_main_fit_uses_rule_based_strategy_path(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = {}
+
+    class _CallableStrategy:
+        def __call__(self):
+            return None
+
+        def fit(self, data):
+            captured.update(path='strategy', data=data)
+
+    industrial.manager = SimpleNamespace(
+        industrial_config=SimpleNamespace(strategy=_CallableStrategy()),
+        solver=SimpleNamespace(fit=lambda data: captured.update(path='solver', data=data)),
+    )
+    industrial._process_input_data = lambda data: 'processed-train'
+    industrial._FedotIndustrial__init_industrial_backend = lambda data: data
+    industrial._FedotIndustrial__init_solver = lambda data: data
+
+    industrial.fit(('features', 'target'))
+
+    assert captured == {'path': 'strategy', 'data': 'processed-train'}
+
+
+def test_industrial_main_predict_proba_uses_rule_based_mode_normalization(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = {}
+    industrial.manager = SimpleNamespace(
+        compute_config=SimpleNamespace(backend='cpu'),
+        industrial_config=SimpleNamespace(is_regression_task_context=True),
+    )
+    industrial._process_input_data = lambda data: 'processed-predict'
+    industrial._FedotIndustrial__abstract_predict = lambda data, mode: captured.update(data=data, mode=mode) or 'predicted-probs'
+
+    monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels', lambda: SimpleNamespace(setup_repository=lambda backend=None: f'repo:{backend}'))
+
+    result = industrial.predict_proba(('features', 'target'), predict_mode='probs')
+
+    assert result == 'predicted-probs'
+    assert captured == {'data': 'processed-predict', 'mode': 'labels'}
+    assert industrial.manager.predicted_probs == 'predicted-probs'
+
+
+def test_industrial_main_finetune_uses_rule_based_tuning_plan(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    captured = {}
+
+    class _BuiltModel:
+        def fit(self, data):
+            captured['fitted_data'] = data
+
+    class _ModelToTune:
+        def build(self):
+            return _BuiltModel()
+
+    industrial.manager = SimpleNamespace(
+        condition_check=SimpleNamespace(input_data_is_fedot_type=lambda data: False),
+        automl_config=SimpleNamespace(config={'task': 'classification'}),
+        is_finetuned=False,
+        solver=None,
+    )
+    industrial._process_input_data = lambda data: 'processed-train'
+    industrial._FedotIndustrial__init_industrial_backend = lambda data: data
+
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.build_tuner',
+        lambda api, **kwargs: captured.update(kwargs) or 'tuned-model',
+    )
+
+    industrial.finetune(
+        train_data=('features', 'target'),
+        tuning_params={'tuner': 'sequential', 'iterations': 3},
+        model_to_tune=_ModelToTune(),
+    )
+
+    assert captured['train_data'] == 'processed-train'
+    assert captured['tuning_params']['iterations'] == 3
+    assert captured['tuning_params']['metric'] == FEDOT_TUNING_METRICS['classification']
+    assert captured['tuning_params']['tuner'] == FEDOT_TUNER_STRATEGY['sequential']
+    assert industrial.manager.is_finetuned is True
+    assert industrial.manager.solver == 'tuned-model'
+
+
+def test_industrial_main_get_metrics_warns_when_roc_auc_has_no_probabilities(monkeypatch):
+    industrial = FedotIndustrial.__new__(FedotIndustrial)
+    logs = []
+    industrial.logger = SimpleNamespace(info=lambda message: logs.append(message))
+    industrial.manager = SimpleNamespace(automl_config=SimpleNamespace(task='classification'))
+    industrial._metric_evaluation_loop = lambda **kwargs: {'roc_auc': 0.7}
+
+    result = industrial.get_metrics(
+        labels=np.array([1, 0]),
+        probs=None,
+        target=np.array([1, 0]),
+        metric_names=('roc_auc',),
+    )
+
+    assert result == {'roc_auc': 0.7}
+    assert logs == ['Predicted probabilities are not available. Use `predict_proba()` method first']
 
 
 def test_industrial_main_explain_uses_rule_based_config():
