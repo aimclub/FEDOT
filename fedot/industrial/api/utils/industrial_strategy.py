@@ -17,11 +17,12 @@ from fedot.industrial.core.ensemble.random_automl_forest import RAFEnsembler
 from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_impl.column_sampling_decomposition import \
     CURDecomposition
 from fedot.industrial.core.repository.constanst_repository import BATCH_SIZE_FOR_FEDOT_WORKER, FEDOT_WORKER_NUM, \
-    FEDOT_WORKER_TIMEOUT_PARTITION, FEDOT_TUNING_METRICS, FEDOT_TUNER_STRATEGY, FEDOT_TS_FORECASTING_ASSUMPTIONS, \
-    FEDOT_TASK
+    FEDOT_WORKER_TIMEOUT_PARTITION, FEDOT_TS_FORECASTING_ASSUMPTIONS, FEDOT_TASK
 from fedot.industrial.core.repository.industrial_implementations.abstract import build_tuner
 from fedot.industrial.api.utils.industrial_strategy_rules import (
     build_federated_runtime_plan,
+    build_industrial_kernel_finetune_plan,
+    build_sampling_iteration_plans,
     build_sampling_predict_plan,
     resolve_industrial_strategy_dispatch,
 )
@@ -139,20 +140,30 @@ class IndustrialStrategy:
         self.solver = {}
         self.sampler = {}
         algorithm = self.industrial_strategy_params['sampling_algorithm']
-        for sampling_rate in self.industrial_strategy_params['sampling_range']:
-            decomposer, input_data.features, input_data.target = \
-                self.sampling_algorithm[algorithm](tensor=input_data.features,
-                                                   target=input_data.target,
-                                                   sampling_rate=sampling_rate)
-            input_data.idx = np.arange(len(input_data.features))
+        sampling_plans = build_sampling_iteration_plans(
+            sampling_algorithm=algorithm,
+            sampling_range=self.industrial_strategy_params['sampling_range'],
+        )
+        base_features = deepcopy(input_data.features)
+        base_target = deepcopy(input_data.target)
+        for sampling_plan in sampling_plans:
+            decomposer, sampled_features, sampled_target = self.sampling_algorithm[algorithm](
+                tensor=base_features,
+                target=base_target,
+                sampling_rate=sampling_plan.sampling_rate,
+            )
+            sampled_input = deepcopy(input_data)
+            sampled_input.features = sampled_features
+            sampled_input.target = sampled_target
+            sampled_input.idx = np.arange(len(sampled_input.features))
             industrial = Fedot(**self.config)
             Maybe(
-                value=industrial.fit(input_data),
+                value=industrial.fit(sampled_input),
                 monoid=True).maybe(
                 default_value=self.logger.info(f'Failed during fit stage - {algorithm}'),
                 extraction_function=lambda fitted_model: self.solver.update(
-                    {f'{algorithm}_sampling_rate_{sampling_rate}': industrial}))
-            self.sampler.update({f'{algorithm}_sampling_rate_{sampling_rate}': decomposer})
+                    {sampling_plan.result_key: industrial}))
+            self.sampler.update({sampling_plan.result_key: decomposer})
 
     def _forecasting_exogenous_strategy(self, input_data):
         self.logger.info('TS exogenous forecasting algorithm was applied')
@@ -189,12 +200,11 @@ class IndustrialStrategy:
                        kernel_data: dict,
                        tuning_params: dict = {}):
         tuned_models = {}
-        tuning_params['metric'] = FEDOT_TUNING_METRICS[self.config['problem']]
+        finetune_plan = build_industrial_kernel_finetune_plan(self.config['problem'], tuning_params)
         for generator, kernel_model in kernel_ensemble.items():
-            tuning_params['tuner'] = FEDOT_TUNER_STRATEGY['simultaneous']
             model_to_tune = deepcopy(kernel_model)
             pipeline_tuner, solver = build_tuner(
-                self, model_to_tune, tuning_params, kernel_data[generator], 'head')
+                self, model_to_tune, finetune_plan.normalized_tuning_params, kernel_data[generator], 'head')
             tuned_models.update({generator: solver})
         return tuned_models
 

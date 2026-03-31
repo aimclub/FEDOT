@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from fedot.industrial.core.repository.constanst_repository import (
+    FEDOT_TUNER_STRATEGY,
+    FEDOT_TUNING_METRICS,
+)
+
 
 FIT_METHOD_NAMES = {
     'federated_automl': '_federated_strategy',
@@ -40,6 +45,17 @@ class FederatedRuntimePlan:
 class SamplingPredictPlan:
     labels_output: bool
     use_cur_feature_space: bool
+
+
+@dataclass(frozen=True)
+class IndustrialKernelFinetunePlan:
+    normalized_tuning_params: dict
+
+
+@dataclass(frozen=True)
+class IndustrialSamplingIterationPlan:
+    sampling_rate: float
+    result_key: str
 
 
 def resolve_industrial_strategy_dispatch(strategy_name: str) -> IndustrialStrategyDispatchPlan:
@@ -85,3 +101,20 @@ def build_sampling_predict_plan(mode: str, sampling_algorithm: str) -> SamplingP
         labels_output=mode in ['labels', 'default'],
         use_cur_feature_space=sampling_algorithm == 'CUR',
     )
+
+
+def build_industrial_kernel_finetune_plan(problem: str, tuning_params: Optional[dict]) -> IndustrialKernelFinetunePlan:
+    normalized_tuning_params = dict(tuning_params or {})
+    normalized_tuning_params['metric'] = FEDOT_TUNING_METRICS[problem]
+    normalized_tuning_params['tuner'] = FEDOT_TUNER_STRATEGY['simultaneous']
+    return IndustrialKernelFinetunePlan(normalized_tuning_params=normalized_tuning_params)
+
+
+def build_sampling_iteration_plans(sampling_algorithm: str, sampling_range) -> list[IndustrialSamplingIterationPlan]:
+    return [
+        IndustrialSamplingIterationPlan(
+            sampling_rate=sampling_rate,
+            result_key=f'{sampling_algorithm}_sampling_rate_{sampling_rate}',
+        )
+        for sampling_rate in sampling_range
+    ]
