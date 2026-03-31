@@ -23,7 +23,8 @@
 - parity-логика для merge API/pipeline preprocessors после `fit_tensordata(...)`
 - tensor-aware objective boundary через `DataSourceSplitter.build_tensordata(...)`
 - нормализация extension data types для legacy runtime view и TensorData canonical view
-- mirrored tests в `tests/core/data/...`, `tests/preprocessing/...`, `tests/core/pipelines/...`, `tests/core/optimisers/objective/...`, `tests/extensions/...`, `tests/api/...`
+- mirrored tests в `tests/core/data/...`, `tests/preprocessing/...`, `tests/core/pipelines/...`, 
+- `tests/core/optimisers/objective/...`, `tests/extensions/...`, `tests/api/...`
 
 ## Чего здесь нет
 
