@@ -154,17 +154,71 @@ def test_main_facade_predict_tensordata_stores_legacy_test_data():
     assert model.test_data is stored_test_data
 
 
-def test_main_facade_tune_tensordata_delegates_to_regular_tune():
+def test_main_facade_tune_tensordata_uses_tensor_tuner_runtime_path(monkeypatch):
     model = Fedot(problem='classification')
-    converted_input = object()
+    model.current_pipeline = _StubPipeline()
+    model.train_data = type('TrainData', (), {'target': 'train-target'})()
+    converted_input = type('ConvertedInput', (), {'target': 'converted-target'})()
     model.data_processor.to_input_data = lambda tensor_data: converted_input
+    merged_preprocessor = object()
     captured = {}
 
-    def fake_tune(**kwargs):
-        captured.update(kwargs)
-        return 'tuned-pipeline'
+    class FakeTunedPipeline(_StubPipeline):
+        def __init__(self):
+            super().__init__()
+            self.preprocessor = 'pipeline-preprocessor'
 
-    model.tune = fake_tune
+        def fit_tensordata(self, tensor_data):
+            captured['refit_tensor_data'] = tensor_data
+
+    class FakeTuner:
+        was_tuned = True
+
+        def tune(self, pipeline, show_progress=False):
+            captured['tune_pipeline'] = pipeline
+            captured['show_progress'] = show_progress
+            return FakeTunedPipeline()
+
+    class FakeBuilder:
+        def __init__(self, task):
+            captured['task'] = task
+
+        def with_tuner(self, tuner):
+            captured['tuner_class'] = tuner
+            return self
+
+        def with_cv_folds(self, cv_folds):
+            captured['cv_folds'] = cv_folds
+            return self
+
+        def with_n_jobs(self, n_jobs):
+            captured['n_jobs'] = n_jobs
+            return self
+
+        def with_metric(self, metric):
+            captured['metric'] = metric
+            return self
+
+        def with_iterations(self, iterations):
+            captured['iterations'] = iterations
+            return self
+
+        def with_timeout(self, timeout):
+            captured['timeout'] = timeout
+            return self
+
+        def build_tensordata(self, tensor_data):
+            captured['tensor_data'] = tensor_data
+            return FakeTuner()
+
+    def fake_merge_preprocessors(api_preprocessor, pipeline_preprocessor, use_auto_preprocessing):
+        captured['api_preprocessor'] = api_preprocessor
+        captured['pipeline_preprocessor'] = pipeline_preprocessor
+        captured['use_auto_preprocessing'] = use_auto_preprocessing
+        return merged_preprocessor
+
+    monkeypatch.setattr('fedot.api.main.TunerBuilder', FakeBuilder)
+    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', fake_merge_preprocessors)
 
     result = model.tune_tensordata(
         tensor_data='tensor-data',
@@ -176,14 +230,23 @@ def test_main_facade_tune_tensordata_delegates_to_regular_tune():
         show_progress=True,
     )
 
-    assert result == 'tuned-pipeline'
-    assert captured['input_data'] is converted_input
-    assert captured['metric_name'] == 'roc_auc'
-    assert captured['iterations'] == 5
-    assert captured['timeout'] == 2.5
+    assert isinstance(result, FakeTunedPipeline)
+    assert captured['tensor_data'] == 'tensor-data'
     assert captured['cv_folds'] == 3
     assert captured['n_jobs'] == 4
+    assert captured['metric'] == ('roc_auc',)
+    assert captured['iterations'] == 5
+    assert captured['timeout'] == 2.5
     assert captured['show_progress'] is True
+    assert captured['tune_pipeline'].__class__ is _StubPipeline
+    assert captured['refit_tensor_data'] == 'tensor-data'
+    assert captured['api_preprocessor'] is model.data_processor.preprocessor
+    assert captured['pipeline_preprocessor'] == 'pipeline-preprocessor'
+    assert captured['use_auto_preprocessing'] == model.params.get('use_auto_preprocessing')
+    assert model.api_composer.was_tuned is True
+    assert model.train_data is converted_input
+    assert model.target == 'converted-target'
+    assert model.current_pipeline.preprocessor is merged_preprocessor
 
 
 def test_main_facade_get_metrics_tensordata_uses_tensor_prediction_and_legacy_metrics_flow():

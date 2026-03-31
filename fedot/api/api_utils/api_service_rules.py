@@ -27,6 +27,9 @@ class TensorFitExecutionPlan:
 @dataclass(frozen=True)
 class TensorTuneExecutionPlan:
     input_data: Any
+    use_tensor_runtime: bool
+    builder_method_name: str
+    refit_method_name: str
 
 
 @dataclass(frozen=True)
@@ -65,8 +68,13 @@ def build_tensordata_predict_proba_plan(probs_for_all_classes: bool) -> TensorPr
     return TensorPredictProbaExecutionPlan(output_mode=resolve_predict_proba_mode(probs_for_all_classes))
 
 
-def build_tensordata_tune_plan(converted_input_data: Optional[Any]) -> TensorTuneExecutionPlan:
-    return TensorTuneExecutionPlan(input_data=converted_input_data)
+def build_tensordata_tune_plan(converted_input_data: Optional[Any], has_tensor_data: bool) -> TensorTuneExecutionPlan:
+    return TensorTuneExecutionPlan(
+        input_data=converted_input_data,
+        use_tensor_runtime=has_tensor_data,
+        builder_method_name='build_tensordata' if has_tensor_data else 'build',
+        refit_method_name='fit_tensordata' if has_tensor_data else 'fit',
+    )
 
 
 def build_tensordata_forecast_plan(requested_horizon: Optional[int], forecast_length: int) -> TensorForecastExecutionPlan:

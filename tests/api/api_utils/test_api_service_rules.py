@@ -70,12 +70,19 @@ def test_service_rules_build_tensordata_fit_plan_for_predefined_runtime_path():
 
 
 def test_service_rules_build_tensordata_tune_forecast_metrics_and_explain_plans():
-    tune_plan = build_tensordata_tune_plan(converted_input_data='converted-input')
+    tune_plan = build_tensordata_tune_plan(converted_input_data='converted-input', has_tensor_data=True)
+    legacy_tune_plan = build_tensordata_tune_plan(converted_input_data=None, has_tensor_data=False)
     forecast_plan = build_tensordata_forecast_plan(requested_horizon=None, forecast_length=12)
     metrics_plan = build_tensordata_metrics_plan()
     explain_plan = build_tensordata_explain_plan(method='surrogate_dt', visualization=False)
 
     assert tune_plan.input_data == 'converted-input'
+    assert tune_plan.use_tensor_runtime is True
+    assert tune_plan.builder_method_name == 'build_tensordata'
+    assert tune_plan.refit_method_name == 'fit_tensordata'
+    assert legacy_tune_plan.use_tensor_runtime is False
+    assert legacy_tune_plan.builder_method_name == 'build'
+    assert legacy_tune_plan.refit_method_name == 'fit'
     assert forecast_plan.horizon == 12
     assert forecast_plan.clear_target is True
     assert metrics_plan.output_mode == 'default'
