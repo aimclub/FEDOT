@@ -1,6 +1,7 @@
 import traceback
 from datetime import timedelta
-from typing import Callable, Iterable, Optional, Tuple
+from time import perf_counter
+from typing import Any, Callable, Iterable, Optional, Tuple
 
 import numpy as np
 from golem.core.log import default_log, is_test_session
@@ -13,10 +14,16 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
+from fedot.core.optimisers.objective.runtime_data_rules import (
+    RuntimeEvaluationRecord,
+    RuntimeEvaluationTelemetry,
+    build_runtime_fit_plan,
+    ensure_runtime_fold_data,
+)
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
 
-DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
+DataSource = Callable[[], Iterable[Tuple[Any, Any]]]
 
 
 class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
@@ -54,6 +61,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._predictions_cache = predictions_cache
         self._log = default_log(self)
         self._do_unfit = do_unfit
+        self.evaluation_records: list[RuntimeEvaluationRecord] = []
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
@@ -65,31 +73,68 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
+            runtime_train_data = ensure_runtime_fold_data(train_data)
+            runtime_test_data = ensure_runtime_fold_data(test_data, runtime_mode=runtime_train_data.runtime_mode)
+            telemetry = RuntimeEvaluationTelemetry()
             try:
-                train_data.supplementary_data.is_auto_preprocessed = True
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                runtime_train_data.input_data.supplementary_data.is_auto_preprocessed = True
+                fit_started_at = perf_counter()
+                prepared_pipeline = self.prepare_graph(runtime_train_data, graph, fold_id, self._eval_n_jobs)
+                telemetry.fit_time_sec = perf_counter() - fit_started_at
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+                self.evaluation_records.append(
+                    RuntimeEvaluationRecord(
+                        pipeline_id=graph_id,
+                        runtime_mode=runtime_train_data.runtime_mode,
+                        fold_id=fold_id,
+                        n_nodes=graph.length,
+                        n_model_nodes=sum(1 for node in graph.nodes if isinstance(node.operation, Model)),
+                        fit_time_sec=telemetry.fit_time_sec,
+                        predict_time_sec=telemetry.predict_time_sec,
+                        objective_values=tuple(),
+                        success=False,
+                    )
+                )
                 if is_test_session() and not isinstance(ex, TimeoutError):
                     stack_trace = traceback.format_exc()
-                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                    save_debug_info_for_pipeline(
+                        graph,
+                        runtime_train_data.input_data,
+                        runtime_test_data.input_data,
+                        ex,
+                        stack_trace,
+                    )
                     if not is_recording_mode() and 'catboost' not in graph.descriptive_id:
                         raise ex
                 break  # if even one fold fails, the evaluation stops
 
             evaluated_fitness = self._objective(prepared_pipeline,
-                                                reference_data=test_data,
+                                                reference_data=runtime_test_data,
                                                 validation_blocks=self._validation_blocks,
                                                 predictions_cache=self._predictions_cache,
-                                                fold_id=fold_id)
+                                                fold_id=fold_id,
+                                                runtime_telemetry=telemetry)
 
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
                 self._log.log_or_raise('warning', ValueError(f'Invalid fitness after objective evaluation. '
                                                              f'Skipping the graph: {graph_id}'))
+            self.evaluation_records.append(
+                RuntimeEvaluationRecord(
+                    pipeline_id=graph_id,
+                    runtime_mode=runtime_train_data.runtime_mode,
+                    fold_id=fold_id,
+                    n_nodes=graph.length,
+                    n_model_nodes=sum(1 for node in graph.nodes if isinstance(node.operation, Model)),
+                    fit_time_sec=telemetry.fit_time_sec,
+                    predict_time_sec=telemetry.predict_time_sec,
+                    objective_values=tuple(evaluated_fitness.values) if evaluated_fitness.valid else tuple(),
+                    success=evaluated_fitness.valid,
+                )
+            )
             if self._do_unfit:
                 graph.unfit()
         if folds_metrics:
@@ -104,12 +149,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
-    def prepare_graph(self, graph: Pipeline, train_data: InputData,
+    def prepare_graph(self, train_data: Any, graph: Pipeline,
                       fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
+        :param train_data: runtime fold data or InputData for training pipeline
         :param graph: pipeline for train & validation
-        :param train_data: InputData for training pipeline
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
@@ -118,15 +163,16 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             return graph
 
         graph.unfit()
+        fit_plan = build_runtime_fit_plan(train_data)
 
         # load preprocessing
         graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
-        graph.fit(
-            train_data,
+        getattr(graph, fit_plan.fit_method_name)(
+            fit_plan.fit_data,
             n_jobs=n_jobs,
             time_constraint=self._time_constraint,
             predictions_cache=self._predictions_cache,
-            fold_id=fold_id
+            fold_id=fold_id,
         )
 
         if self._operations_cache is not None:
@@ -145,22 +191,28 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
+        runtime_train_data = ensure_runtime_fold_data(train_data)
+        runtime_test_data = ensure_runtime_fold_data(test_data, runtime_mode=runtime_train_data.runtime_mode)
         graph.try_load_from_cache(self._operations_cache, self._preprocessing_cache, fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node, use_input_preprocessing=graph.use_input_preprocessing)
-            intermediate_graph.fit(
-                train_data,
+            fit_plan = build_runtime_fit_plan(runtime_train_data)
+            getattr(intermediate_graph, fit_plan.fit_method_name)(
+                fit_plan.fit_data,
                 time_constraint=self._time_constraint,
                 n_jobs=self._eval_n_jobs,
             )
             intermediate_fitness = self._objective(intermediate_graph,
-                                                   reference_data=test_data,
+                                                   reference_data=runtime_test_data,
                                                    validation_blocks=self._validation_blocks)
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
 
     @property
     def input_data(self):
-        return self._data_producer.args[0]
+        producer_arg = self._data_producer.args[0]
+        if callable(producer_arg) and hasattr(producer_arg, 'args') and producer_arg.args:
+            producer_arg = producer_arg.args[0]
+        return ensure_runtime_fold_data(producer_arg).input_data

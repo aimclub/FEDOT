@@ -6,9 +6,16 @@ from golem.core.log import default_log
 from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed
+from fedot.core.data.input_data_bridge import input_data_to_tensordata
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.tools import StateEnum
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
+from fedot.core.optimisers.objective.runtime_data_rules import (
+    build_benchmark_runtime_plan,
+    with_input_runtime,
+    with_tensor_runtime,
+)
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from fedot.core.data.cv_folds import cv_generator
@@ -48,11 +55,26 @@ class DataSourceSplitter:
         self.random_seed = random_seed
         self.log = default_log(self)
 
-    def build_tensordata(self, tensor_data) -> DataSource:
+    def build_tensordata(self, tensor_data, runtime_mode: Optional[str] = None,
+                         tensor_backend_name: Optional[str] = None) -> DataSource:
         input_data = tensordata_to_input_data(tensor_data)
-        return self.build(input_data)
+        return self.build(input_data, runtime_mode=runtime_mode, tensor_backend_name=tensor_backend_name)
 
-    def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
+    def build(self,
+              data: Union[InputData, MultiModalData],
+              runtime_mode: Optional[str] = None,
+              tensor_backend_name: Optional[str] = None) -> DataSource:
+        data_producer = self._build_input_data_source(data)
+        if runtime_mode is None:
+            return data_producer
+
+        runtime_plan = build_benchmark_runtime_plan(
+            runtime_mode=runtime_mode,
+            tensor_backend_name=tensor_backend_name,
+        )
+        return partial(self._runtime_data_producer, data_producer, runtime_plan)
+
+    def _build_input_data_source(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio
         self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
 
@@ -105,6 +127,28 @@ class DataSourceSplitter:
             data_producer = self._build_holdout_producer(data)
 
         return data_producer
+
+    def _runtime_data_producer(self, data_producer: DataSource, runtime_plan):
+        for train_data, test_data in data_producer():
+            yield (
+                self._wrap_runtime_fold(train_data, runtime_plan, state=StateEnum.FIT),
+                self._wrap_runtime_fold(test_data, runtime_plan, state=StateEnum.PREDICT),
+            )
+
+    @staticmethod
+    def _wrap_runtime_fold(data: InputData, runtime_plan, state: StateEnum):
+        if runtime_plan.use_tensor_train or runtime_plan.use_tensor_predict:
+            tensor_data = input_data_to_tensordata(
+                data,
+                backend_name=runtime_plan.tensor_backend_name,
+                state=state,
+            )
+            return with_tensor_runtime(
+                input_data=data,
+                tensor_data=tensor_data,
+                runtime_mode=runtime_plan.mode,
+            )
+        return with_input_runtime(input_data=data, runtime_mode=runtime_plan.mode)
 
     @staticmethod
     def _data_producer(train_data: InputData, test_data: InputData):

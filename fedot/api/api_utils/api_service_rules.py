@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
+
+
 @dataclass(frozen=True)
 class TuneExecutionPlan:
     input_data: Any
@@ -21,7 +25,8 @@ class TensorPredictProbaExecutionPlan:
 
 @dataclass(frozen=True)
 class TensorFitExecutionPlan:
-    fit_method_name: str
+    fit_method_name: Optional[str]
+    use_auto_composition: bool
 
 
 @dataclass(frozen=True)
@@ -53,11 +58,14 @@ def build_tensordata_fit_plan(predefined_model: Any) -> TensorFitExecutionPlan:
     if predefined_model is None:
         raise ValueError('TensorData fit currently supports only predefined models or pipelines.')
     if predefined_model == 'auto':
-        raise ValueError(
-            'TensorData fit does not support auto assumption generation yet. '
-            'Pass a model name or Pipeline.'
+        return TensorFitExecutionPlan(
+            fit_method_name=None,
+            use_auto_composition=True,
         )
-    return TensorFitExecutionPlan(fit_method_name='fit_tensordata')
+    return TensorFitExecutionPlan(
+        fit_method_name='fit_tensordata',
+        use_auto_composition=False,
+    )
 
 
 def build_tensordata_predict_plan(output_mode: str = 'default') -> TensorPredictExecutionPlan:
@@ -90,6 +98,18 @@ def build_tensordata_metrics_plan() -> TensorMetricsExecutionPlan:
 
 def build_tensordata_explain_plan(method: str, visualization: bool) -> TensorExplainExecutionPlan:
     return TensorExplainExecutionPlan(method=method, visualization=visualization)
+
+
+def validate_tensordata_auto_composition(task_type: TaskTypesEnum, data_type: DataTypesEnum) -> None:
+    if task_type not in (TaskTypesEnum.classification, TaskTypesEnum.regression):
+        raise ValueError(
+            'TensorData auto composition benchmark path currently supports only '
+            'classification and regression tasks.'
+        )
+    if data_type is not DataTypesEnum.table:
+        raise ValueError(
+            'TensorData auto composition benchmark path currently supports only tabular data.'
+        )
 
 
 def build_tune_execution_plan(input_data: Any,

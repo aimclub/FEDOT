@@ -184,6 +184,22 @@
       ],
       "tasks": "[TaskTypesEnum.ts_forecasting]"
     },
+    "industrial_nn_model": {
+      "description": "Opt-in industrial neural bridge implementations for benchmark scenarios",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.industrial_nn_bridge",
+        "IndustrialNNBridgeStrategy"
+      ],
+      "tags": [
+        "neural",
+        "non_linear",
+        "gpu_bridge",
+        "non-default"
+      ],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]"
+    },
     "custom_model": {
       "description": "Implementations of the models specified by user with external code source",
       "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
@@ -556,6 +572,22 @@
           "non-default"
         ]
 	},
+    "industrial_inception_nn": {
+      "meta": "industrial_nn_model",
+      "tags": [
+        "benchmark_only",
+        "gpu_bridge",
+        "non-default"
+      ]
+    },
+    "industrial_resnet_nn": {
+      "meta": "industrial_nn_model",
+      "tags": [
+        "benchmark_only",
+        "gpu_bridge",
+        "non-default"
+      ]
+    },
     "tabpfn": {
       "meta": "tabpfn_class",
       "tags": ["non_auto"]

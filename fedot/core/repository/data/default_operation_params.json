@@ -288,5 +288,16 @@
     "enable_categorical": true,
     "max_samples": 10000,
     "max_features": 500
+  },
+  "industrial_inception_nn": {
+    "epochs": 5,
+    "batch_size": 32,
+    "learning_rate": 0.001
+  },
+  "industrial_resnet_nn": {
+    "epochs": 5,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "model_name": "ResNet18"
   }
 }

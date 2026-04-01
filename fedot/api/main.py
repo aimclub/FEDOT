@@ -24,6 +24,7 @@ from fedot.api.api_utils.api_service_rules import (
     build_tune_execution_plan,
     resolve_forecast_horizon,
     resolve_predict_proba_mode,
+    validate_tensordata_auto_composition,
 )
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.data_definition import FeaturesType, TargetType
@@ -209,7 +210,10 @@ class Fedot:
                         ).fit()
                     else:
                         self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
-                            self.train_data)
+                            self.train_data,
+                            runtime_mode=self.params.get('benchmark_runtime_mode'),
+                            tensor_backend_name=self.params.get('benchmark_tensor_backend_name'),
+                        )
 
                         if self.current_pipeline is None:
                             raise ValueError('No models were found')
@@ -241,6 +245,8 @@ class Fedot:
 
     def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
         fit_plan = build_tensordata_fit_plan(predefined_model)
+        if fit_plan.use_auto_composition:
+            return self._fit_tensordata_auto_composition(tensor_data)
 
         with fedot_composer_timer.launch_fitting():
             self.current_pipeline = getattr(
@@ -810,3 +816,48 @@ class Fedot:
             full_train_not_preprocessed,
             n_jobs=self.params.n_jobs
         )
+
+    def _fit_tensordata_auto_composition(self, tensor_data) -> Pipeline:
+        self.train_data = self.data_processor.to_input_data(tensor_data)
+        self.target = self.train_data.target
+        validate_tensordata_auto_composition(
+            task_type=self.train_data.task.task_type,
+            data_type=self.train_data.data_type,
+        )
+
+        self.params.update_available_operations_by_preset(self.train_data)
+
+        requested_with_tuning = self.params.get('with_tuning')
+        runtime_mode = self.params.get('benchmark_runtime_mode') or 'tensor_cpu'
+        tensor_backend_name = self.params.get('benchmark_tensor_backend_name') or 'cpu'
+
+        if requested_with_tuning:
+            self.log.message(
+                'TensorData auto composition benchmark path runs without post-composition tuning in V1.'
+            )
+            self.params.update(with_tuning=False)
+
+        try:
+            with fedot_composer_timer.launch_fitting():
+                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                    self.train_data,
+                    runtime_mode=runtime_mode,
+                    tensor_backend_name=tensor_backend_name,
+                )
+        finally:
+            self.params.update(with_tuning=requested_with_tuning)
+
+        if self.current_pipeline is None:
+            raise ValueError('No models were found')
+
+        with fedot_composer_timer.launch_train_inference():
+            self.current_pipeline.unfit(unfit_preprocessor=False)
+            self.current_pipeline.fit_tensordata(tensor_data, n_jobs=self.params.n_jobs)
+
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
+        )
+        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+        return self.current_pipeline

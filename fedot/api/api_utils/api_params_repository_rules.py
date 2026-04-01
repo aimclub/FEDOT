@@ -44,6 +44,8 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         keep_history=True,
         history_dir=default_data_dir,
         with_tuning=True,
+        benchmark_runtime_mode=None,
+        benchmark_tensor_backend_name=None,
         seed=None,
         sampling_config=None,
     )

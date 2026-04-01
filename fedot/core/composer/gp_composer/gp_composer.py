@@ -48,12 +48,21 @@ class GPComposer(Composer):
         self.predictions_cache: Optional[PredictionsCache] = predictions_cache
 
         self.best_models: Collection[Pipeline] = ()
+        self.evaluation_records = []
+        self.last_objective_evaluator: Optional[PipelineObjectiveEvaluate] = None
 
-    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
+    def compose_pipeline(self,
+                         data: Union[InputData, MultiModalData],
+                         runtime_mode: Optional[str] = None,
+                         tensor_backend_name: Optional[str] = None) -> Union[Pipeline, Sequence[Pipeline]]:
         # Define data source
         data_splitter = DataSourceSplitter(self.composer_requirements.cv_folds,
                                            shuffle=True)
-        data_producer = data_splitter.build(data)
+        data_producer = data_splitter.build(
+            data,
+            runtime_mode=runtime_mode,
+            tensor_backend_name=tensor_backend_name,
+        )
 
         parallelization_mode = self.composer_requirements.parallelization_mode
         if parallelization_mode == 'populational':
@@ -72,6 +81,7 @@ class GPComposer(Composer):
                                                         predictions_cache=self.predictions_cache,
                                                         validation_blocks=data_splitter.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
+        self.last_objective_evaluator = objective_evaluator
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
@@ -82,6 +92,7 @@ class GPComposer(Composer):
         opt_result = self.optimizer.optimise(objective_function)
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
+        self.evaluation_records = list(objective_evaluator.evaluation_records)
         self.log.info('GP composition finished')
 
         if is_test_session() and self.predictions_cache is not None:

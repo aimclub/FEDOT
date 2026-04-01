@@ -39,6 +39,7 @@ class ApiComposer:
         self.was_optimised = False
         # status flag indicating that tuner step was applied`
         self.was_tuned = False
+        self.last_evaluation_records = []
         self.init_cache()
 
     def init_cache(self):
@@ -62,7 +63,10 @@ class ApiComposer:
             self.predictions_cache = PredictionsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.predictions_cache.reset()
 
-    def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def obtain_model(self,
+                     train_data: InputData,
+                     runtime_mode: Optional[str] = None,
+                     tensor_backend_name: Optional[str] = None) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
 
         with fedot_composer_timer.launch_composing():
@@ -84,7 +88,9 @@ class ApiComposer:
             best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(
                 train_data,
                 initial_assumption,
-                fitted_assumption
+                fitted_assumption,
+                runtime_mode=runtime_mode,
+                tensor_backend_name=tensor_backend_name,
             )
 
         timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
@@ -112,6 +118,7 @@ class ApiComposer:
         gc.collect()
 
         self.log.message('Model generation finished')
+        self.last_evaluation_records = list(gp_composer.evaluation_records)
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
     def propose_and_fit_initial_assumption(self, train_data: InputData) -> Tuple[Sequence[Pipeline], Pipeline]:
@@ -146,8 +153,12 @@ class ApiComposer:
 
         return initial_assumption, fitted_assumption
 
-    def compose_pipeline(self, train_data: InputData, initial_assumption: Sequence[Pipeline],
-                         fitted_assumption: Pipeline) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+    def compose_pipeline(self,
+                         train_data: InputData,
+                         initial_assumption: Sequence[Pipeline],
+                         fitted_assumption: Pipeline,
+                         runtime_mode: Optional[str] = None,
+                         tensor_backend_name: Optional[str] = None) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         gp_composer: GPComposer = (ComposerBuilder(task=self.params.task)
                                    .with_requirements(self.params.composer_requirements)
@@ -171,7 +182,11 @@ class ApiComposer:
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
                 self.was_optimised = False
-                best_pipelines = gp_composer.compose_pipeline(data=train_data)
+                best_pipelines = gp_composer.compose_pipeline(
+                    data=train_data,
+                    runtime_mode=runtime_mode,
+                    tensor_backend_name=tensor_backend_name,
+                )
                 best_pipeline_candidates = gp_composer.best_models
                 self.was_optimised = True
         else:

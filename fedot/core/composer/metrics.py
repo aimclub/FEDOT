@@ -6,7 +6,8 @@ import sys
 from abc import abstractmethod
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Tuple
+from time import perf_counter
+from typing import Any, Optional, Tuple
 from uuid import uuid4
 
 import numpy as np
@@ -17,6 +18,11 @@ from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.optimisers.objective.runtime_data_rules import (
+    RuntimeEvaluationTelemetry,
+    build_runtime_predict_plan,
+    ensure_runtime_fold_data,
+)
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -64,14 +70,15 @@ class QualityMetric(Metric):
     @classmethod
     def get_value(cls,
                   pipeline: Pipeline,
-                  reference_data: InputData,
+                  reference_data: Any,
                   validation_blocks: Optional[int] = None,
                   predictions_cache: Optional[PredictionsCache] = None,
-                  fold_id: Optional[int] = None) -> float:
+                  fold_id: Optional[int] = None,
+                  runtime_telemetry: Optional[RuntimeEvaluationTelemetry] = None) -> float:
         """ Get metric value based on pipeline, reference data, and number of validation blocks.
         Args:
             pipeline: a :class:`Pipeline` instance for evaluation.
-            reference_data: :class:`InputData` for evaluation.
+            reference_data: runtime fold data or :class:`InputData` for evaluation.
             validation_blocks: number of validation blocks. Used only for time series forecasting.
                 If ``None``, data separation is not performed.
         """
@@ -80,11 +87,23 @@ class QualityMetric(Metric):
             # if results is None:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                reference_data, results = cls._simple_prediction(pipeline, reference_data, predictions_cache, fold_id)
+                reference_data, results = cls._simple_prediction(
+                    pipeline,
+                    reference_data,
+                    predictions_cache,
+                    fold_id,
+                    runtime_telemetry=runtime_telemetry,
+                )
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(
-                    pipeline, reference_data, validation_blocks, predictions_cache=predictions_cache, fold_id=fold_id)
+                    pipeline,
+                    reference_data,
+                    validation_blocks,
+                    predictions_cache=predictions_cache,
+                    fold_id=fold_id,
+                    runtime_telemetry=runtime_telemetry,
+                )
             metric = cls.metric(reference_data, results)
 
             if is_analytic_mode():
@@ -107,12 +126,22 @@ class QualityMetric(Metric):
     @classmethod
     def _simple_prediction(cls,
                            pipeline: Pipeline,
-                           reference_data: InputData,
+                           reference_data: Any,
                            predictions_cache: Optional[PredictionsCache] = None,
-                           fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
+                           fold_id: Optional[int] = None,
+                           runtime_telemetry: Optional[RuntimeEvaluationTelemetry] = None) -> Tuple[InputData, OutputData]:
         """ Method calls pipeline.predict() and returns the result. """
-        return reference_data, pipeline.predict(
-            reference_data, output_mode=cls.output_mode, predictions_cache=predictions_cache, fold_id=fold_id)
+        predict_plan = build_runtime_predict_plan(reference_data)
+        predict_started_at = perf_counter()
+        prediction = getattr(pipeline, predict_plan.predict_method_name)(
+            predict_plan.predict_data,
+            output_mode=cls.output_mode,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        if runtime_telemetry is not None and runtime_telemetry.predict_time_sec == 0.0:
+            runtime_telemetry.predict_time_sec = perf_counter() - predict_started_at
+        return predict_plan.reference_input_data, prediction
 
     @classmethod
     def get_value_with_penalty(cls,
@@ -135,28 +164,34 @@ class QualityMetric(Metric):
 
     @staticmethod
     def _in_sample_prediction(pipeline: Pipeline,
-                              data: InputData,
+                              data: Any,
                               validation_blocks: int,
                               predictions_cache: Optional[PredictionsCache] = None,
-                              fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
+                              fold_id: Optional[int] = None,
+                              runtime_telemetry: Optional[RuntimeEvaluationTelemetry] = None) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
+        runtime_data = ensure_runtime_fold_data(data)
+        input_data = runtime_data.input_data
 
-        horizon = int(validation_blocks * data.task.task_params.forecast_length)
+        horizon = int(validation_blocks * input_data.task.task_params.forecast_length)
 
-        actual_values = data.target[-horizon:]
+        actual_values = input_data.target[-horizon:]
 
+        predict_started_at = perf_counter()
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
-                                                 input_data=data,
+                                                 input_data=input_data,
                                                  horizon=horizon,
                                                  predictions_cache=predictions_cache,
                                                  fold_id=fold_id)
+        if runtime_telemetry is not None and runtime_telemetry.predict_time_sec == 0.0:
+            runtime_telemetry.predict_time_sec = perf_counter() - predict_started_at
 
         # Wrap target and prediction arrays into OutputData and InputData
         results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,
-                             predict=predicted_values, task=data.task, target=predicted_values,
+                             predict=predicted_values, task=input_data.task, target=predicted_values,
                              data_type=DataTypesEnum.ts)
         reference_data = InputData(idx=np.arange(0, len(actual_values)), features=actual_values,
-                                   task=data.task, target=actual_values, data_type=DataTypesEnum.ts)
+                                   task=input_data.task, target=actual_values, data_type=DataTypesEnum.ts)
 
         return reference_data, results
 
