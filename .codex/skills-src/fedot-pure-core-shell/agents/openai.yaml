@@ -1,4 +1,0 @@
-interface:
-  display_name: "FEDOT Pure Core Shell"
-  short_description: "Extract pure core from FEDOT OOP shells"
-  default_prompt: "Use $fedot-pure-core-shell to extract pure planning and validation logic while preserving FEDOT public APIs."

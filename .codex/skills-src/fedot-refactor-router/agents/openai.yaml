@@ -1,4 +1,0 @@
-interface:
-  display_name: "FEDOT Refactor Router"
-  short_description: "Route FEDOT changes to the right skill"
-  default_prompt: "Use $fedot-refactor-router to classify a FEDOT change and choose the best specialized skill before implementation."

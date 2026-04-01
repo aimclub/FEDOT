@@ -1,4 +1,0 @@
-interface:
-  display_name: "FEDOT Skillset Guide"
-  short_description: "Choose and combine FEDOT team skills"
-  default_prompt: "Use $fedot-skillset-guide to choose the right FEDOT skills and sequence them for a repository task."
