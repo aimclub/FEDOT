@@ -7,7 +7,7 @@ class CacheInitPlan:
     use_operations_cache: bool
     use_preprocessing_cache: bool
     use_predictions_cache: bool
-    cache_dir: str | None
+    cache_dir: str
     use_stats: bool
 
 

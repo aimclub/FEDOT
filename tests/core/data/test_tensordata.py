@@ -214,3 +214,58 @@ def test_from_numpy_autodetects_tensor_canonical_ts_for_forecasting_when_data_ty
 
     assert captured['data_type'].value == 'time_series'
     assert captured['data_type'] == captured['data_type'].ts
+
+
+@pytest.mark.unit
+def test_post_init_raw_builds_default_idx_from_sample_axis(monkeypatch):
+    tensor_data = TensorData.__new__(TensorData)
+    tensor_data.task = Task(TaskTypesEnum.classification)
+    tensor_data.data_type = None
+    tensor_data.state = 'fit'
+    tensor_data.idx = None
+    tensor_data.features = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    tensor_data.target = np.array([0, 1])
+    tensor_data.predict = None
+    tensor_data.target_idx = None
+    tensor_data.target_encoder = None
+    tensor_data.categorical_idx = None
+    tensor_data.encoding_strategy = None
+    tensor_data.text_idx = None
+    tensor_data.embedding_strategy = {}
+    tensor_data.features_names = None
+    tensor_data.ts_orientation = None
+    tensor_data.ts_terms_idx = None
+    tensor_data.ts_forecast_horizon = None
+    tensor_data.ts_init_shape = None
+    tensor_data.dataloader_kwargs = {}
+
+    monkeypatch.setattr('fedot.core.data.tensordata.replace_missing_with_nan', lambda features: features)
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.process_ts_data',
+        lambda features, target, features_names, state, ts_orientation, ts_terms_idx, ts_forecast_horizon, data_type: (features, target, None, ts_terms_idx),
+    )
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.get_target_and_features',
+        lambda features, target, features_names, target_idx, state, data_type: (features, target, None),
+    )
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.get_text_embeddings',
+        lambda features, text_idx, embedding_strategy, features_names: (None, text_idx, features),
+    )
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.choose_categorical_encoding',
+        lambda features, categorical_idx, encoding_strategy, features_names, state: ({}, None),
+    )
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.encode_categorical_features',
+        lambda features, encoding_decisions, non_cat_features: (features, None),
+    )
+    monkeypatch.setattr(
+        'fedot.core.data.tensordata.transform_to_tensor',
+        lambda features, target, text_tensors, text_idx, ts_init_shape: (features, target),
+    )
+
+    tensor_data._post_init_raw()
+
+    assert np.array_equal(tensor_data.idx, np.array([0, 1]))
+

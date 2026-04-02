@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict, TypeAlias, Union
+from typing import Optional, Any, Dict, Union
 
 from dataclasses import dataclass
 from golem.utilities.data_structures import ComparableEnum as Enum
@@ -29,4 +29,4 @@ class CategoricalEncodingDecision:
     encoder: Any = None
 
 
-EncodingStrategyType: TypeAlias = Optional[Union[Dict, CategoricalEncodingDecision]]
+EncodingStrategyType = Optional[Union[Dict, CategoricalEncodingDecision]]

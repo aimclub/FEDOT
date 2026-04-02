@@ -22,6 +22,16 @@ class ExecutorKind(str, Enum):
     DASK_EXPERIMENTAL = 'dask_experimental'
 
 
+class BenchmarkStage(str, Enum):
+    LOAD = 'load'
+    SPLIT = 'split'
+    VALIDATE = 'validate'
+    FIT = 'fit'
+    EVALUATE = 'evaluate'
+    PERSIST = 'persist'
+    REPORT = 'report'
+
+
 @dataclass(frozen=True)
 class TabularDatasetSpec:
     name: str
@@ -55,6 +65,7 @@ class TensorBenchmarkConfig:
     output_dir: str = 'benchmark_results/tabular_tensor_suite'
     timeout_minutes: float = 5.0
     cv_folds: int | None = None
+    show_progress: bool = True
 
 
 @dataclass(frozen=True)
@@ -84,8 +95,9 @@ class IndividualBenchmarkRecord:
     objective_value: float | None
     success: bool
     failure_reason: str
-    device: str
-    data_mode: str
+    failure_stage: str | None = None
+    device: str = 'cpu'
+    data_mode: str = 'input'
     cpu_mem_mb: float | None = None
     gpu_mem_mb_peak: float | None = None
 
@@ -100,6 +112,7 @@ class GenerationBenchmarkRecord:
     executor: str
     status: str
     skip_reason: str
+    failure_stage: str | None
     device: str
     data_mode: str
     quality_metric_name: str
@@ -212,3 +225,4 @@ def safe_percentile(values: Iterable[float], percentile: float) -> float | None:
     if not normalized:
         return None
     return float(np.percentile(normalized, percentile))
+

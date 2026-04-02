@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Iterable
 
-from .core import GenerationBenchmarkRecord, SuiteCapabilities, TensorBenchmarkConfig, TensorBenchmarkSuiteResult
-
+from .core import GenerationBenchmarkRecord, SuiteCapabilities, TensorBenchmarkSuiteResult
 
 CPU_MODE_PAIR = ('input_cpu', 'tensor_cpu')
 GPU_MODE_PAIR = ('input_gpu_bridge', 'tensor_gpu_bridge')
+
 
 
 def render_markdown_report(result: TensorBenchmarkSuiteResult) -> str:
@@ -17,8 +17,8 @@ def render_markdown_report(result: TensorBenchmarkSuiteResult) -> str:
         '## Сводка',
         '',
         f'- Run ID: `{result.run_id}`',
-        f'- Datasets: {", ".join(result.config.datasets)}',
-        f'- Modes: {", ".join(result.config.modes)}',
+        f'- Датасеты: {", ".join(result.config.datasets)}',
+        f'- Режимы: {", ".join(result.config.modes)}',
         f'- Executor: `{result.config.executor.value}`',
         f'- Seeds: {", ".join(str(seed) for seed in result.config.seeds)}',
         f'- FEDOT runtime available: `{result.capabilities.fedot_runtime_available}`',
@@ -34,6 +34,13 @@ def render_markdown_report(result: TensorBenchmarkSuiteResult) -> str:
         ])
 
     lines.extend([
+        '## Статусы прогонов',
+        '',
+    ])
+    lines.extend(_render_status_summary(result.generation_records))
+
+    lines.extend([
+        '',
         '## Гипотеза 1. Ускорение fit одного индивида',
         '',
     ])
@@ -55,6 +62,27 @@ def render_markdown_report(result: TensorBenchmarkSuiteResult) -> str:
     lines.extend(_render_dask_hypothesis(result.generation_records, result.capabilities))
 
     return '\n'.join(lines).strip() + '\n'
+
+
+
+def _render_status_summary(records: Iterable[GenerationBenchmarkRecord]) -> list[str]:
+    records = tuple(records)
+    if not records:
+        return ['- Прогонов пока нет.']
+
+    status_counter = Counter(record.status for record in records)
+    lines = [
+        f'- success={status_counter.get("success", 0)}, failed={status_counter.get("failed", 0)}, skipped={status_counter.get("skipped", 0)}.'
+    ]
+    failed_or_skipped = [record for record in records if record.status != 'success']
+    for record in failed_or_skipped[:10]:
+        reason = record.skip_reason or 'причина не указана'
+        stage = record.failure_stage or '-'
+        lines.append(
+            f'- `{record.dataset_name}` / `{record.mode}` / seed={record.seed}: status={record.status}, stage={stage}, reason={reason}'
+        )
+    return lines
+
 
 
 def _render_fit_hypothesis(records: Iterable[GenerationBenchmarkRecord], mode_pair: tuple[str, str], title: str):
@@ -82,6 +110,7 @@ def _render_fit_hypothesis(records: Iterable[GenerationBenchmarkRecord], mode_pa
         lines.append('- Недостаточно успешных прогонов для сравнения по этой паре режимов.')
     lines.append('')
     return lines
+
 
 
 def _render_generation_hypothesis(records: Iterable[GenerationBenchmarkRecord]):
@@ -116,6 +145,7 @@ def _render_generation_hypothesis(records: Iterable[GenerationBenchmarkRecord]):
     return lines
 
 
+
 def _render_dask_hypothesis(records: Iterable[GenerationBenchmarkRecord], capabilities: SuiteCapabilities):
     if not capabilities.dask_available:
         return [f'- Dask недоступен: {capabilities.dask_reason or "не найден пакет distributed/dask"}.']
@@ -144,8 +174,9 @@ def _render_dask_hypothesis(records: Iterable[GenerationBenchmarkRecord], capabi
         rendered = True
 
     if not rendered:
-        lines.append('- Dask режим не запускался параллельно с sequential GPU runs, поэтому сравнение пока пустое.')
+        lines.append('- Dask режим пока не дал парных успешных GPU прогонов для сравнения с sequential.')
     return lines
+
 
 
 def _group_success_records(records: Iterable[GenerationBenchmarkRecord]):
@@ -158,12 +189,14 @@ def _group_success_records(records: Iterable[GenerationBenchmarkRecord]):
     return grouped
 
 
+
 def _relative_improvement(baseline: float, candidate: float, lower_is_better: bool) -> float:
     if baseline == 0:
         return 0.0
     if lower_is_better:
         return ((baseline - candidate) / abs(baseline)) * 100.0
     return ((candidate - baseline) / abs(baseline)) * 100.0
+
 
 
 def _format_quality_delta(baseline: GenerationBenchmarkRecord, candidate: GenerationBenchmarkRecord) -> str:
@@ -184,5 +217,7 @@ def _format_quality_delta(baseline: GenerationBenchmarkRecord, candidate: Genera
     )
 
 
+
 def _ensure_terminal_period(message: str) -> str:
     return message.rstrip('.') + '.'
+

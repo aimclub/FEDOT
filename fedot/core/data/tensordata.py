@@ -1,10 +1,10 @@
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, TypeAlias, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
 
 import cupy as cp
-import cudf
+#import cudf
 import numpy as np
 import pandas as pd
 import torch
@@ -98,7 +98,7 @@ class LazyTensor:
         return f"LazyTensor(initialized={self._data is not None})"
 
 
-TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor, cp.ndarray]]
+TensorLike = Optional[Union[torch.Tensor, np.ndarray, LazyTensor, cp.ndarray]]
 
 
 @dataclass
@@ -156,6 +156,7 @@ class LoadDataSpec:
 
     state: Union[str, StateEnum] = StateEnum.FIT
 
+    idx: IndexType = None
     target: TensorLike = None
     target_idx: IndexType = None
     categorical_idx: IndexType = None
@@ -208,6 +209,7 @@ class LoadDataSpec:
             task=self.task,
             data_type=self.data_type,
             state=self.state,
+            idx=self.idx,
             features_names=self.features_names,
             target_idx=self.target_idx,
             categorical_idx=self.categorical_idx,
@@ -335,6 +337,7 @@ class TensorData:
         converts arrays to torch tensors (`transform_to_tensor`).
         """
 
+        self.idx = convert_idx_to_array(self.idx)
         self.target_idx = convert_idx_to_array(self.target_idx)
         self.categorical_idx = convert_idx_to_array(self.categorical_idx)
         self.text_idx = convert_idx_to_array(self.text_idx)
@@ -379,8 +382,9 @@ class TensorData:
                                                          text_tensors,
                                                          self.text_idx,
                                                          self.ts_init_shape)
-        
-        self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
+
+        if self.idx is None:
+            self.idx = np.arange(int(self.features.shape[0]), dtype=np.int32)
 
 
     @classmethod
@@ -620,7 +624,7 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
 
 
 @TensorData.register_creator(
-    lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
+    lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) #or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
     features: PandasType, 
@@ -707,3 +711,5 @@ def from_arff(
     features, spec.target = read_arff_file(source, target_idx=spec.target_idx)
 
     return spec.to_tensor_data(features)
+
+

@@ -395,3 +395,19 @@ def test_main_facade_fit_tensordata_merges_api_and_pipeline_preprocessors(monkey
     assert captured['pipeline_preprocessor'] == 'pipeline-preprocessor'
     assert captured['use_auto_preprocessing'] == model.params.get('use_auto_preprocessing')
     assert model.current_pipeline.preprocessor is merged_preprocessor
+
+
+def test_main_facade_fit_tensordata_routes_auto_to_auto_composition(monkeypatch):
+    model = Fedot(problem='classification')
+    captured = {}
+
+    def fake_auto(self, tensor_data):
+        captured['tensor_data'] = tensor_data
+        return 'auto-pipeline'
+
+    monkeypatch.setattr(Fedot, '_fit_tensordata_auto_composition', fake_auto)
+
+    result = model.fit_tensordata(tensor_data='tensor-data', predefined_model='auto')
+
+    assert result == 'auto-pipeline'
+    assert captured['tensor_data'] == 'tensor-data'

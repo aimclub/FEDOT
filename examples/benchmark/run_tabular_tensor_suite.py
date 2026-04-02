@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import sys
@@ -17,6 +17,7 @@ from fedot.industrial.benchmark.tabular_tensor_suite import (  # noqa: E402
 from fedot.industrial.benchmark.tabular_tensor_suite.core import parse_csv_tuple  # noqa: E402
 
 
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Run tabular TensorData benchmark suite.')
     parser.add_argument('--datasets', default=','.join(DEFAULT_DATASETS))
@@ -26,7 +27,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--generations', type=int, default=1)
     parser.add_argument('--pop-size', type=int, default=15)
     parser.add_argument('--output-dir', default='benchmark_results/tabular_tensor_suite')
+    parser.add_argument('--no-progress', action='store_true', help='Disable nested tqdm progress bars.')
     return parser
+
 
 
 def main() -> int:
@@ -41,6 +44,7 @@ def main() -> int:
         generations=args.generations,
         pop_size=args.pop_size,
         output_dir=args.output_dir,
+        show_progress=not args.no_progress,
     )
     result = run_tabular_tensor_suite(config)
     print(f'Run ID: {result.run_id}')

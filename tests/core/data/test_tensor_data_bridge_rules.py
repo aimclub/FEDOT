@@ -57,12 +57,12 @@ def test_build_tensordata_input_bridge_plan_drops_target_for_predict_state():
 
 
 @pytest.mark.unit
-def test_resolve_input_idx_infers_range_from_features_length():
-    features = np.array([[1], [2], [3]])
+def test_resolve_input_idx_infers_range_from_sample_axis_not_feature_axis():
+    features = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
 
     result = resolve_input_idx(idx=None, features=features)
 
-    assert np.array_equal(result, np.array([0, 1, 2]))
+    assert np.array_equal(result, np.array([0, 1]))
 
 
 @pytest.mark.unit
@@ -73,3 +73,4 @@ def test_normalize_input_bridge_target_returns_copy():
 
     assert np.array_equal(normalized, target)
     assert normalized is not target
+

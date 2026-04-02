@@ -4,6 +4,7 @@ from fedot.core.data.tensordata import TensorData
 from fedot.core.data.tools import StateEnum
 
 
+
 def input_data_to_tensordata(input_data, backend_name: str, state=StateEnum.FIT):
     descriptor = build_input_data_descriptor(input_data)
     plan = build_input_data_tensor_bridge_plan(
@@ -18,7 +19,9 @@ def input_data_to_tensordata(input_data, backend_name: str, state=StateEnum.FIT)
         task=plan.task,
         data_type=plan.data_type,
         state=plan.state,
+        idx=input_data.idx,
         target=plan.target,
         features_names=plan.features_names,
         categorical_idx=plan.categorical_idx,
     )
+
