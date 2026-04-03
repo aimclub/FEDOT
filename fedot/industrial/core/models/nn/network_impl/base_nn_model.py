@@ -23,6 +23,10 @@ from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     resolve_stage_hooks,
     should_stop_training,
 )
+from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
+    build_initialized_hooks,
+    resolve_hook_groups,
+)
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
 
@@ -69,7 +73,7 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
         self.device = self.params.get('device', default_device())
         self.model_params = self.params.get('model_params', {})
         self._hooks = [LoggingHooks, ModelLearningHooks]
-        self._additional_hooks = additional_hooks or []
+        self.register_additional_hooks(additional_hooks or [])
         self._clear_each = self.learning_params.get('clear_each', 10)
 
     def _init_custom_criterions(self, custom_criterions: dict):
@@ -108,15 +112,9 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
         pass
 
     def _init_hooks(self):
-        for hook_elem in chain(*self._hooks):
-            hook: BaseHook = hook_elem.value
-            if not hook.check_init(self.params):
-                continue
-            hook = hook(self.params, self.model)
+        hook_groups = resolve_hook_groups(self._hooks, self._additional_hooks)
+        for hook in build_initialized_hooks(hook_groups, self.params, self.model):
             self.hooks.append(hook)
-
-    def register_additional_hooks(self, hooks: Iterable[Enum]):
-        self._hooks.extend(hooks)
 
     def __get_criterion(self):
         key = self.params.get('loss', None) or self.params.get('criterion', None)

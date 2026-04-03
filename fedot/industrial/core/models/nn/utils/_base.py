@@ -47,7 +47,9 @@ class BaseTrainer(ITrainer, IHookable):
         self.device = default_device()
 
     def register_additional_hooks(self, hooks: Iterable[Enum]) -> None:
-        self._additional_hooks.extend(hooks)
+        for hook in hooks:
+            if hook not in self._additional_hooks:
+                self._additional_hooks.append(hook)
 
     def _init_hooks(self) -> None:
         raise NotImplementedError("Subclasses must implement _init_hooks")
