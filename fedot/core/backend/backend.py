@@ -5,36 +5,6 @@ from typing import Any
 import torch
 
 
-def torch_to_xp(tensor: torch.Tensor, xp):
-    """
-    Convert torch.Tensor to xp array (numpy or cupy).
-
-    Parameters
-    ----------
-    tensor : torch.Tensor
-    xp : module (numpy or cupy)
-
-    Returns
-    -------
-    xp.ndarray
-    """
-    if tensor is None:
-        return None
-
-    if not isinstance(tensor, torch.Tensor):
-        raise TypeError(f"Expected torch.Tensor, got {type(tensor)}")
-
-    # numpy backend
-    if xp.__name__ == "numpy":
-        return tensor.detach().cpu().numpy()
-
-    # cupy backend
-    if xp.__name__ == "cupy":
-        return xp.fromDlpack(torch.utils.dlpack.to_dlpack(tensor))
-
-    raise ValueError(f"Unsupported xp backend: {xp}")
-
-
 class Backend:
     """
 Singleton object for managing the compute backend (CPU/GPU).

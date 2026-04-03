@@ -1,8 +1,6 @@
 from fedot.core.backend.backend import backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 
-from fedot.preprocessing.preprocessor_types import PreprocessingStep
-
 
 """
 How to add a new categorical encoder
@@ -91,16 +89,10 @@ class LabelEncoder:
                 encoded[matched_rows, j] = matches.argmax(axis=1)[matched_rows].astype(float)
 
             encoded[nan_mask, j] = xp.nan
-        
-        data[:, self.categorical_idx_] = xp.zeros(
-            (data.shape[0], len(self.categorical_idx_)),
-            dtype=float
-        )
-        data = xp.hstack((data, encoded))
 
-        return data
+        return encoded
 
-    def fit_transform(self, data: ArrayType, step: PreprocessingStep):
+    def fit_transform(self, data: ArrayType, categorical_idx: IndexType):
         """
         Fit the encoder and immediately transform the data.
 
@@ -111,7 +103,7 @@ class LabelEncoder:
         Returns:
             ArrayType: Encoded output.
         """
-        return self.fit(data, step.features_idx).transform(data)
+        return self.fit(data, categorical_idx).transform(data)
 
 
 class OneHotEncoder:
@@ -194,16 +186,10 @@ class OneHotEncoder:
             block[nan_mask, :] = xp.nan
 
             encoded[:, feature_slice] = block
-        
-        data[:, self.categorical_idx_] = xp.zeros(
-            (data.shape[0], len(self.categorical_idx_)),
-            dtype=float
-        )
-        data = xp.hstack((data, encoded))
 
-        return data
+        return encoded
 
-    def fit_transform(self, data: ArrayType, step: PreprocessingStep):
+    def fit_transform(self, data: ArrayType, categorical_idx: IndexType):
         """
         Fit the encoder and immediately transform the data.
 
@@ -214,4 +200,4 @@ class OneHotEncoder:
         Returns:
             ArrayType: One-hot encoded output.
         """
-        return self.fit(data, step.features_idx).transform(data)
+        return self.fit(data, categorical_idx).transform(data)
