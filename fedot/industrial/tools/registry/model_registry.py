@@ -15,6 +15,12 @@ except ImportError:
 from .checkpoint_manager import CheckpointManager
 from .registry_storage import RegistryStorage
 from .metrics_tracker import MetricsTracker
+from .model_registry_cleanup_rules import (
+    build_compressor_cleanup_plan,
+    build_dynamic_model_cleanup_plan,
+    build_registry_storage_cleanup_plan,
+    build_trainer_cleanup_plan,
+)
 from .model_registry_rules import (
     RegistryRecordPlan,
     RegistryStageModePlan,
@@ -283,13 +289,19 @@ class ModelRegistry:
         return None
 
     def _clean_compressor_models(self, compressor_object):
-        for attr in _MODEL_ATTRS_TO_CLEAN:
+        plan = build_compressor_cleanup_plan(
+            compressor_object,
+            model_attrs_to_clean=_MODEL_ATTRS_TO_CLEAN,
+            module_type=torch.nn.Module,
+        )
+
+        for attr in plan.model_attrs:
             model = getattr(compressor_object, attr, None)
             if model is not None:
                 self._delete_model_from_memory(model)
                 setattr(compressor_object, attr, None)
 
-        if hasattr(compressor_object, 'trainer') and compressor_object.trainer is not None:
+        if plan.has_trainer:
             self._clean_trainer(compressor_object.trainer)
             del compressor_object.trainer
             compressor_object.trainer = None
@@ -298,44 +310,69 @@ class ModelRegistry:
         self._clean_dynamic_models(compressor_object)
 
     def _clean_trainer(self, trainer):
-        for attr_name in ['model', '_trainer']:
+        plan = build_trainer_cleanup_plan(trainer)
+
+        for attr_name in plan.direct_model_attrs:
             trainer_obj = getattr(trainer, attr_name, None)
             if trainer_obj is not None:
-                if attr_name == '_trainer' and hasattr(trainer_obj, 'model'):
-                    model = getattr(trainer_obj, 'model', None)
-                    if model is not None:
-                        self._delete_model_from_memory(model)
-                        trainer_obj.model = None
-                    del trainer._trainer
-                    trainer._trainer = None
-                elif attr_name == 'model':
-                    self._delete_model_from_memory(trainer_obj)
-                    trainer.model = None
+                self._delete_model_from_memory(trainer_obj)
+                setattr(trainer, attr_name, None)
 
-    def _clean_dynamic_models(self, obj):
-        for attr_name in dir(obj):
-            if attr_name.startswith('__'):
+        for target in plan.nested_targets:
+            trainer_obj = getattr(trainer, target.trainer_attr, None)
+            if trainer_obj is None:
                 continue
 
+            if target.model_attr is not None:
+                model = getattr(trainer_obj, target.model_attr, None)
+                if model is not None:
+                    self._delete_model_from_memory(model)
+                    setattr(trainer_obj, target.model_attr, None)
+
+            setattr(trainer, target.trainer_attr, None)
+
+    def _clean_dynamic_models(self, obj):
+        plan = build_dynamic_model_cleanup_plan(obj, module_type=torch.nn.Module)
+
+        for attr_name in plan.attr_names:
             attr = getattr(obj, attr_name, None)
-            if isinstance(attr, torch.nn.Module):
+            if attr is not None:
                 self._delete_model_from_memory(attr)
                 setattr(obj, attr_name, None)
-            elif isinstance(attr, (list, tuple)):
-                for i, item in enumerate(attr):
-                    if isinstance(item, torch.nn.Module):
-                        self._delete_model_from_memory(item)
-                        attr[i] = None
-            elif isinstance(attr, dict):
-                for key, value in list(attr.items()):
-                    if isinstance(value, torch.nn.Module):
-                        self._delete_model_from_memory(value)
-                        attr[key] = None
+
+        for target in plan.sequence_targets:
+            sequence = getattr(obj, target.attr_name, None)
+            if sequence is None:
+                continue
+
+            if target.mutable:
+                for index in target.indices:
+                    model = sequence[index]
+                    self._delete_model_from_memory(model)
+                    sequence[index] = None
+            else:
+                updated_items = list(sequence)
+                for index in target.indices:
+                    model = updated_items[index]
+                    self._delete_model_from_memory(model)
+                    updated_items[index] = None
+                setattr(obj, target.attr_name, tuple(updated_items))
+
+        for target in plan.mapping_targets:
+            mapping = getattr(obj, target.attr_name, None)
+            if mapping is None:
+                continue
+
+            for key in target.keys:
+                model = mapping.get(key)
+                self._delete_model_from_memory(model)
+                mapping[key] = None
 
     def _clean_registry_storage(self, fedcore_id: str):
         df = self.storage.load(fedcore_id)
-        if not df.empty and 'checkpoint_bytes' in df.columns:
-            df['checkpoint_bytes'] = None
+        plan = build_registry_storage_cleanup_plan(df.columns)
+        if not df.empty and plan.clear_checkpoint_bytes and plan.target_column is not None:
+            df[plan.target_column] = None
             self.storage.save(fedcore_id, df)
 
     def _cleanup_gpu_memory(self):
