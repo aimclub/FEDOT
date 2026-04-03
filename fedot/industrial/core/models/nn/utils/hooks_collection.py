@@ -51,26 +51,19 @@ class HooksCollection:
 
     def extend(self, hooks: Iterable[BaseHook]):
         for hook in hooks:
-            hook_place = self._resolve_hook_place(hook)
-            if hook_place > 0:
-                self._on_epoch_end.append(hook)
-            elif hook_place < 0:
-                self._on_epoch_start.append(hook)
-            else:
-                self._on_epoch_end.append(hook)
-                self._on_epoch_start.append(hook)
-        self._sort_end()
-        self._sort_start()
+            self.append(hook)
 
     def clear(self):
         self._on_epoch_end.clear()
         self._on_epoch_start.clear()
 
     def check(self, additional_hooks):
-        self._check_specific(additional_hooks)
+        return self._check_specific(additional_hooks)
         # and other checks
 
     def _check_specific(self, hooks):
+        if not hooks:
+            return False
         iterable_hooks = chain(*hooks)
         hook_classes = tuple(hook.__class__ for hook in self.all_hooks())
         for specific_hook in iterable_hooks:

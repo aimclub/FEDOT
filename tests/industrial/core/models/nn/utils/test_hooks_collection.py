@@ -1,5 +1,6 @@
 import sys
 import types
+from enum import Enum
 
 try:
     import pytest
@@ -107,6 +108,19 @@ if torch is not None:
             def action(self, epoch, kws):
                 return None
 
+        class _SpecificHook(BaseHook):
+            _SUMMON_KEY = 'specific_hook'
+            _hook_place = 5
+
+            def trigger(self, epoch, kws):
+                return False
+
+            def action(self, epoch, kws):
+                return None
+
+        class _SpecificHookGroup(Enum):
+            specific = _SpecificHook
+
         class _SchedulerStub:
             def __init__(self, optimizer, learning_rate, epochs):
                 self.optimizer = optimizer
@@ -158,6 +172,22 @@ if torch is not None:
                 assert 'BaseHook' in str(exc)
             else:
                 raise AssertionError('Expected TypeError for non-hook object')
+
+        def test_hooks_collection_extend_reuses_append_validation(self):
+            collection = HooksCollection()
+
+            try:
+                collection.extend([object()])
+            except TypeError as exc:
+                assert 'BaseHook' in str(exc)
+            else:
+                raise AssertionError('Expected TypeError for non-hook object in extend')
+
+        def test_hooks_collection_check_returns_presence_of_specific_group(self):
+            collection = HooksCollection([self._SpecificHook(params={}, model=None)])
+
+            assert collection.check([self._SpecificHookGroup]) is True
+            assert collection.check([]) is False
 
         def test_early_stopping_uses_plateau_angle_without_linear_solve_failure(self):
             hook = EarlyStopping(

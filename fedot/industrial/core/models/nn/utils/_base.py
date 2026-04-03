@@ -17,7 +17,7 @@ from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollecti
 from fedot.industrial.core.models.nn.utils.interfaces import (ITrainer, IHookable)
 from fedot.industrial.core.repository.constanst_repository import ModelLearningHooks,LoggingHooks,TorchLossesConstant
 
-HookType = Literal['start', 'end', 'batch_start', 'batch_end', 'validation']
+HookType = Literal['start', 'end']
 
 
 class BaseTrainer(ITrainer, IHookable):
@@ -55,9 +55,6 @@ class BaseTrainer(ITrainer, IHookable):
         raise NotImplementedError("Subclasses must implement _init_hooks")
 
     def execute_hooks(self, hook_type: HookType, epoch: int, **kwargs) -> None:
-        if hook_type not in ('start', 'end'):
-            return
-
         payload = build_hook_runtime_payload(
             trainer_objects=self.trainer_objects,
             history=self.history,
