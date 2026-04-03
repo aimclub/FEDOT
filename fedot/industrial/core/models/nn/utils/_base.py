@@ -13,6 +13,10 @@ from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     build_hook_runtime_payload,
     execute_stage_hooks,
 )
+from fedot.industrial.core.models.nn.utils.runtime_metadata_rules import (
+    RegistryCheckpointContext,
+    build_registry_checkpoint_context,
+)
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils.interfaces import (ITrainer, IHookable)
 from fedot.industrial.core.repository.constanst_repository import ModelLearningHooks,LoggingHooks,TorchLossesConstant
@@ -232,7 +236,7 @@ class BaseTrainer(ITrainer, IHookable):
         return extracted
 
     def _register_model_checkpoint(self, model: Any, fedcore_id: str = None,
-                                   stage: Optional[str] = None) -> Dict[str, Optional[str]]:
+                                   stage: Optional[str] = None) -> RegistryCheckpointContext:
         """Register model in ModelRegistry and return checkpoint information.
 
         Args:
@@ -241,7 +245,7 @@ class BaseTrainer(ITrainer, IHookable):
             stage: Stage name (e.g., 'before', 'after') (optional)
 
         Returns:
-            Dictionary with 'model_id', 'checkpoint_path', and 'fedcore_id'
+            Typed checkpoint context with model/checkpoint identifiers.
         """
         try:
             from fedot.industrial.tools.registry.model_registry import (ModelRegistry)
@@ -255,11 +259,7 @@ class BaseTrainer(ITrainer, IHookable):
                     fedcore_id = getattr(_registry_context, 'fedcore_id', None)
 
             if fedcore_id is None or model is None:
-                return {
-                    'model_id': None,
-                    'checkpoint_path': None,
-                    'fedcore_id': fedcore_id
-                }
+                return build_registry_checkpoint_context(fedcore_id=fedcore_id)
 
             model_id = registry.register_model(
                 fedcore_id=fedcore_id,
@@ -270,17 +270,13 @@ class BaseTrainer(ITrainer, IHookable):
 
             checkpoint_path = registry.get_checkpoint_path(fedcore_id, model_id)
 
-            return {
-                'model_id': model_id,
-                'checkpoint_path': checkpoint_path,
-                'fedcore_id': fedcore_id
-            }
+            return build_registry_checkpoint_context(
+                model_id=model_id,
+                checkpoint_path=checkpoint_path,
+                fedcore_id=fedcore_id,
+            )
         except Exception as e:
             import logging
             logger = logging.getLogger(__name__)
             logger.debug(f"ModelRegistry registration failed: {e}")
-            return {
-                'model_id': None,
-                'checkpoint_path': None,
-                'fedcore_id': fedcore_id
-            }
+            return build_registry_checkpoint_context(fedcore_id=fedcore_id)

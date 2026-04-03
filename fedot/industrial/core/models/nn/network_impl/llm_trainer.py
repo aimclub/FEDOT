@@ -35,6 +35,10 @@ from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
 )
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils.hooks import LoggingHooks, ModelLearningHooks
+from fedot.industrial.core.models.nn.utils.runtime_metadata_rules import (
+    attach_output_runtime_context,
+    build_output_runtime_attachment_plan,
+)
 
 
 class FedCoreTransformersTrainer(TrainerCallback):
@@ -556,17 +560,17 @@ class LLMTrainer(BaseTrainer):
             features=extracted_fields['features'],
             task=self.task_type,
             predict=pred_values,
-            num_classes=extracted_fields['num_classes'],
-            train_dataloader=extracted_fields['train_dataloader'],
-            val_dataloader=extracted_fields['val_dataloader'],
             data_type=DataTypesEnum.table,
-            model=self.model,
-            checkpoint_path=checkpoint_info['checkpoint_path'],
-            model_id=checkpoint_info['model_id'],
-            fedcore_id=checkpoint_info['fedcore_id'],
         )
 
-        return predict
+        return attach_output_runtime_context(
+            predict,
+            build_output_runtime_attachment_plan(
+                extracted_fields=extracted_fields,
+                checkpoint_context=checkpoint_info,
+                model=self.model,
+            ),
+        )
 
     @property
     def scheduler(self) -> Any:
