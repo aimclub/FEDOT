@@ -24,6 +24,11 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.industrial.api.utils.checker_rules import DataLoaderHandler
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
+from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
+    build_hook_runtime_payload,
+    resolve_stage_hooks,
+    should_stop_training,
+)
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils.hooks import LoggingHooks, ModelLearningHooks, OptimizerGen, SchedulerRenewal
 
@@ -87,10 +92,12 @@ class FedCoreTransformersTrainer(TrainerCallback):
             if hasattr(trainer, 'lr_scheduler') and trainer.lr_scheduler:
                 self.trainer_objects['scheduler'] = trainer.lr_scheduler
 
-        for hook in self.hooks_collection.start:
-            hook(epoch,
-                 trainer_objects=self.trainer_objects,
-                 history=self.history)
+        start_payload = build_hook_runtime_payload(
+            trainer_objects=self.trainer_objects,
+            history=self.history,
+        )
+        for hook in resolve_stage_hooks(self.hooks_collection, 'start'):
+            hook(epoch=epoch, **start_payload)
 
         if trainer:
             if self.trainer_objects.get('optimizer'):
@@ -98,7 +105,7 @@ class FedCoreTransformersTrainer(TrainerCallback):
             if self.trainer_objects.get('scheduler'):
                 trainer.lr_scheduler = self.trainer_objects['scheduler']
 
-        if self.trainer_objects.get('stop', False):
+        if should_stop_training(self.trainer_objects):
             control.should_training_stop = True
 
         return control
@@ -129,12 +136,14 @@ class FedCoreTransformersTrainer(TrainerCallback):
             if hasattr(trainer, 'compute_loss'):
                 criterion = trainer.compute_loss
 
-        for hook in self.hooks_collection.end:
-            hook(epoch,
-                 trainer_objects=self.trainer_objects,
-                 history=self.history,
-                 val_loader=val_loader,
-                 criterion=criterion)
+        end_payload = build_hook_runtime_payload(
+            trainer_objects=self.trainer_objects,
+            history=self.history,
+            val_loader=val_loader,
+            criterion=criterion,
+        )
+        for hook in resolve_stage_hooks(self.hooks_collection, 'end'):
+            hook(epoch=epoch, **end_payload)
 
         if trainer:
             if self.trainer_objects.get('optimizer'):
@@ -142,7 +151,7 @@ class FedCoreTransformersTrainer(TrainerCallback):
             if self.trainer_objects.get('scheduler'):
                 trainer.lr_scheduler = self.trainer_objects['scheduler']
 
-        if self.trainer_objects.get('stop', False):
+        if should_stop_training(self.trainer_objects):
             control.should_training_stop = True
 
         return control

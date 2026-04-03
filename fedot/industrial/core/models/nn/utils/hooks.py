@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.industrial.core.architecture.abstraction.accessor import (Accessor)
-from fedcore.api.utils.data import DataLoaderHandler
+from fedot.industrial.api.utils.checker_rules import DataLoaderHandler
 
 try:
     import bitsandbytes as bnb

@@ -18,6 +18,11 @@ from fedot.industrial.core.architecture.settings.computational import default_de
 from fedot.industrial.core.repository.constanst_repository import (ModelLearningHooks, LoggingHooks,TorchLossesConstant)
 
 from fedot.industrial.core.models.nn.utils.hooks import BaseHook
+from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
+    build_hook_runtime_payload,
+    resolve_stage_hooks,
+    should_stop_training,
+)
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
 
@@ -173,17 +178,30 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
                                                        max_batches=self.batch_limit,
                                                        enumerate=False)
         for epoch in range(1, self.epochs + 1):
-            for hook in self.hooks.start:
-                hook(epoch=epoch, trainer_objects=self.trainer_objects,
-                     learning_rate=self.learning_rate)
+            start_payload = build_hook_runtime_payload(
+                trainer_objects=self.trainer_objects,
+                history=self.history,
+                learning_rate=self.learning_rate,
+            )
+            for hook in resolve_stage_hooks(self.hooks, 'start'):
+                hook(epoch=epoch, **start_payload)
+            if should_stop_training(self.trainer_objects):
+                break
             self._run_one_epoch(epoch=epoch,
                                 dataloader=train_loader,
                                 loss_fn=loss_fn,
                                 optimizer=self.optimizer)
-            for hook in self.hooks.end:
-                hook(epoch=epoch, val_loader=val_loader,
-                     criterion=partial(self._compute_loss, criterion=loss_fn),
-                     history=self.history)
+            end_payload = build_hook_runtime_payload(
+                trainer_objects=self.trainer_objects,
+                history=self.history,
+                learning_rate=self.learning_rate,
+                val_loader=val_loader,
+                criterion=partial(self._compute_loss, criterion=loss_fn),
+            )
+            for hook in resolve_stage_hooks(self.hooks, 'end'):
+                hook(epoch=epoch, **end_payload)
+            if should_stop_training(self.trainer_objects):
+                break
         return self
 
     def predict(self, input_data, output_mode: str = "default"):

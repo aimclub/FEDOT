@@ -34,7 +34,8 @@ class BaseTrainer(ITrainer, IHookable):
         self.trainer_objects = {
             'optimizer': None,
             'scheduler': None,
-            'trainer': None
+            'trainer': None,
+            'stop': False,
         }
         self.history = {
             'train_loss': [],
