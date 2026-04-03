@@ -3,7 +3,12 @@ from .datasets import DATASET_REGISTRY, load_dataset, resolve_dataset_specs
 from .report import render_markdown_report
 
 DEFAULT_DATASETS = tuple(DATASET_REGISTRY.keys())
-DEFAULT_MODES = ('input_cpu', 'tensor_cpu', 'input_gpu_bridge', 'tensor_gpu_bridge')
+DEFAULT_MODES = (
+    # 'input_cpu',
+    # 'tensor_cpu',
+    'input_gpu_bridge',
+    'tensor_gpu_bridge'
+)
 
 
 def build_config(*args, **kwargs):

@@ -1,9 +1,12 @@
 from types import SimpleNamespace
 
+import numpy as np
 from pymonad.either import Left, Right
 
 import fedot.api.api_utils.assumptions.assumptions_handler as handler_module
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
+from fedot.core.data.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class _FakePipeline:
@@ -83,3 +86,29 @@ def test_fit_assumption_and_check_correctness_raises_from_original_exception(mon
         assert error.__cause__ is original_error
     else:
         raise AssertionError('Compatibility wrapper should chain original fit error')
+
+
+def test_propose_assumptions_preserves_explicit_gpu_bridge_operations():
+    input_data = InputData.from_numpy(
+        features_array=np.array([
+            [0.1, 1.0],
+            [0.3, 0.5],
+            [0.2, 0.8],
+            [0.9, 0.4],
+        ]),
+        target_array=np.array([0, 1, 0, 1]),
+        task='classification',
+        data_type=DataTypesEnum.table,
+    )
+
+    assumptions = AssumptionsHandler(input_data).propose_assumptions(
+        initial_assumption=None,
+        available_operations=['industrial_inception_nn', 'industrial_resnet_nn'],
+    )
+
+    pipeline = assumptions[0]
+    operation_types = {node.operation.operation_type for node in pipeline.nodes}
+
+    assert pipeline.root_node.operation.operation_type in {'industrial_inception_nn', 'industrial_resnet_nn'}
+    assert 'rf' not in operation_types
+    assert 'rfr' not in operation_types

@@ -88,7 +88,7 @@ def test_tabular_tensor_suite_report_mentions_missing_dask():
 
     assert 'Dask' in report
     assert 'distributed missing' in report
-    assert 'Гипотеза 1' in report
+    assert 'Р“РёРїРѕС‚РµР·Р° 1' in report
     assert 'stage=validate' in report
 
 
@@ -347,3 +347,14 @@ def test_resolve_dask_worker_count_limits_gpu_workers_to_visible_devices():
 
     assert worker_count == 1
 
+
+
+def test_gpu_bridge_modes_share_gpu_only_operation_bundle():
+    from fedot.industrial.benchmark.tabular_tensor_suite.runner import _resolve_operation_bundle
+
+    expected_bundle = ('industrial_inception_nn', 'industrial_resnet_nn')
+
+    assert _resolve_operation_bundle('classification', 'input_gpu_bridge') == expected_bundle
+    assert _resolve_operation_bundle('classification', 'tensor_gpu_bridge') == expected_bundle
+    assert _resolve_operation_bundle('regression', 'input_gpu_bridge') == expected_bundle
+    assert _resolve_operation_bundle('regression', 'tensor_gpu_bridge') == expected_bundle

@@ -493,6 +493,10 @@ class Fedot:
                 self.test_data = self.data_processor.define_data(target=self.target,
                                                                  features=features, is_predict=True)
 
+                if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
+                    with fedot_composer_timer.launch_preprocessing():
+                        self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
+
                 mode = resolve_predict_proba_mode(probs_for_all_classes)
 
                 self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)

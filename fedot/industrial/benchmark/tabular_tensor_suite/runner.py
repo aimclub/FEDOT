@@ -539,9 +539,7 @@ def _build_fedot_model(problem: str, mode: str, seed: int, config: TensorBenchma
 
 def _resolve_operation_bundle(problem: str, mode: str) -> tuple[str, ...]:
     if mode.endswith('gpu_bridge'):
-        if problem == 'classification':
-            return ('logit', 'rf', 'industrial_inception_nn', 'industrial_resnet_nn')
-        return ('ridge', 'dtreg', 'industrial_inception_nn', 'industrial_resnet_nn')
+        return ('industrial_inception_nn', 'industrial_resnet_nn')
 
     if problem == 'classification':
         return ('logit', 'rf', 'dt', 'scaling')
@@ -550,9 +548,9 @@ def _resolve_operation_bundle(problem: str, mode: str) -> tuple[str, ...]:
 
 def _resolve_skip_reason(mode: str, executor: ExecutorKind, capabilities: SuiteCapabilities) -> str | None:
     if mode.endswith('gpu_bridge') and not capabilities.gpu_available:
-        return capabilities.gpu_reason or 'GPU режим недоступен.'
+        return capabilities.gpu_reason or 'GPU СЂРµР¶РёРј РЅРµРґРѕСЃС‚СѓРїРµРЅ.'
     if executor is ExecutorKind.DASK_EXPERIMENTAL and not capabilities.dask_available:
-        return capabilities.dask_reason or 'Dask experimental executor недоступен.'
+        return capabilities.dask_reason or 'Dask experimental executor РЅРµРґРѕСЃС‚СѓРїРµРЅ.'
     return None
 
 

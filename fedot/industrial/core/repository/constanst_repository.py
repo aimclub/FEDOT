@@ -1,21 +1,16 @@
 import math
 import pathlib
-from enum import Enum
 from multiprocessing import cpu_count
 
 import numpy as np
 import pywt
 import spectrum
-import torch
 from MKLpy.algorithms import FHeuristic, RMKL, MEMO, CKA, PWMK
 from dask_ml.decomposition import TruncatedSVD as DaskSVD
 from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
     FedotCatBoostRegressionImplementation, FedotCatBoostClassificationImplementation
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from golem.core.tuning.optuna_tuner import OptunaTuner
 from golem.core.tuning.sequential import SequentialTuner
 from golem.core.tuning.simultaneous import SimultaneousTuner
 from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
@@ -31,30 +26,204 @@ from sklearn.linear_model import (LinearRegression as linreg,
                                   )
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from torch import nn
 from xgboost import XGBRegressor
 
-from fedot.industrial.core.metrics.metrics_implementation import calculate_classification_metric, calculate_regression_metric, \
+from fedot.industrial.core.metrics.metrics_implementation import calculate_classification_metric, \
+    calculate_regression_metric, \
     calculate_forecasting_metric, calculate_detection_metric
-from fedot.industrial.core.models.nn.network_modules.losses import CenterLoss, CenterPlusLoss, ExpWeightedLoss, FocalLoss, \
-    HuberLoss, LogCoshLoss, MaskedLossWrapper, RMSELoss, SMAPELoss, TweedieLoss
 from fedot.industrial.core.operation.transformation.data.hankel import HankelMatrix
-from fedot.industrial.core.operation.transformation.representation.statistical.stat_features import autocorrelation, ben_corr, \
+from fedot.industrial.core.operation.transformation.representation.statistical.stat_features import autocorrelation, \
+    ben_corr, \
     crest_factor, energy, \
     hjorth_complexity, hjorth_mobility, hurst_exponent, interquartile_range, kurtosis, mean_ema, mean_moving_median, \
     mean_ptp_distance, n_peaks, pfd, ptp_amp, q25, q5, q75, q95, shannon_entropy, skewness, slope, zero_crossing_rate
-from fedot.industrial.core.operation.transformation.torch_backend.statistical.stat_features import mean_torch, median_torch, max_torch, min_torch, \
+from fedot.industrial.core.operation.transformation.torch_backend.statistical.stat_features import mean_torch, \
+    median_torch, max_torch, min_torch, \
     autocorrelation_torch, ben_corr_torch, std_torch, \
     crest_factor_torch, energy_torch, \
-    hjorth_complexity_torch, hjorth_mobility_torch, hurst_exponent_torch, interquantile_range_torch, kurtosis_torch, mean_ema_torch, mean_moving_median_torch, \
-    mean_ptp_distance_torch, n_peaks_torch, pfd_torch, ptp_amp_torch, q5_torch, q25_torch, q75_torch, q95_torch, shannon_entropy_torch, skewness_torch, slope_torch, zero_crossing_rate_torch
+    hjorth_complexity_torch, hjorth_mobility_torch, hurst_exponent_torch, interquantile_range_torch, kurtosis_torch, \
+    mean_ema_torch, mean_moving_median_torch, \
+    mean_ptp_distance_torch, n_peaks_torch, pfd_torch, ptp_amp_torch, q5_torch, q25_torch, q75_torch, q95_torch, \
+    shannon_entropy_torch, skewness_torch, slope_torch, zero_crossing_rate_torch
 from fedot.industrial.core.operation.transformation.torch_specter.eigen import pev_torch
 from fedot.industrial.core.operation.transformation.torch_specter.speriodogram import speriodogram_torch
-from fedot.industrial.core.operation.transformation.representation.topological.topofeatures import AverageHoleLifetimeFeature, \
+from fedot.industrial.core.operation.transformation.representation.topological.topofeatures import \
+    AverageHoleLifetimeFeature, \
     AveragePersistenceLandscapeFeature, BettiNumbersSumFeature, HolesNumberFeature, MaxHoleLifeTimeFeature, \
     PersistenceDiagramsExtractor, PersistenceEntropyFeature, RadiusAtMaxBNFeature, RelevantHolesNumber, \
     SimultaneousAliveHolesFeature, SumHoleLifetimeFeature
 from fedot.industrial.tools.serialisation.path_lib import PROJECT_PATH
+from enum import Enum, auto
+from functools import partial
+
+import torch
+import torchvision
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+from fedot.core.pipelines.verification_rules import (
+    has_primary_nodes,
+)
+from fedot.core.repository.metrics_repository import QualityMetricsEnum
+from fedot.core.repository.tasks import (
+    Task,
+    TaskTypesEnum,
+    TsForecastingParams,
+)
+from golem.core.dag.verification_rules import (
+    has_no_cycle,
+    has_no_isolated_nodes,
+    has_one_root,
+)
+from golem.core.optimisers.genetic.operators.inheritance import GeneticSchemeTypesEnum
+from golem.core.optimisers.genetic.operators.selection import SelectionTypesEnum
+from golem.core.tuning.optuna_tuner import OptunaTuner
+from torch import nn
+
+from fedot.industrial.core.models.nn.network_modules.losses import (CenterLoss,
+                                                                    CenterPlusLoss,
+                                                                    ExpWeightedLoss,
+                                                                    FocalLoss,
+                                                                    HuberLoss,
+                                                                    LogCoshLoss,
+                                                                    MaskedLossWrapper,
+                                                                    RMSELoss,
+                                                                    SMAPELoss,
+                                                                    TweedieLoss)
+
+from fedot.industrial.core.models.nn.utils.hooks import (LoggingHooks, ModelLearningHooks)  # don't del
+
+from fedot.industrial.core.models.nn.utils.hooks import (Optimizers, Schedulers, ModelLearningHooks, LoggingHooks,
+)  # don't del
+
+# from fedcore.metrics.quality import COMPUTATIONAL_METRICS # noqa
+
+default_param_values_dict = dict(
+    problem=None,
+    task_params=None,
+    timeout=None,
+    n_jobs=-1,
+    logging_level=50,
+    seed=42,
+    parallelization_mode="populational",
+    show_progress=True,
+    max_depth=6,
+    max_arity=3,
+    pop_size=20,
+    num_of_generations=None,
+    keep_n_best=1,
+    available_operations=None,
+    metric=None,
+    cv_folds=2,
+    genetic_scheme=None,
+    early_stopping_iterations=None,
+    early_stopping_timeout=10,
+    optimizer=None,
+    collect_intermediate_metric=False,
+    max_pipeline_fit_time=None,
+    initial_assumption=None,
+    preset=None,
+    use_pipelines_cache=True,
+    use_preprocessing_cache=True,
+    use_input_preprocessing=True,
+    use_auto_preprocessing=False,
+    use_meta_rules=False,
+    cache_dir=None,
+    keep_history=True,
+    history_dir=None,
+    with_tuning=True,
+)
+
+DEFAULT_METRICS_BY_TASK = {
+    TaskTypesEnum.regression: 'MeanSquaredError',
+    TaskTypesEnum.classification: 'MulticlassAUROC',
+    TaskTypesEnum.clustering: 'MutualInfoScore',
+    TaskTypesEnum.ts_forecasting: 'MeanSquaredError',
+}
+
+
+class FedotTunerStrategy(Enum):  # FEDOT_TUNER_STRATEGY = {"optuna": OptunaTuner}
+    optuna = OptunaTuner
+
+
+class FedotEvoMultiStrategy(Enum):
+    spea2 = SelectionTypesEnum.spea2
+    tournament = SelectionTypesEnum.tournament
+
+
+class FedotMutationStrategy(Enum):
+    params_mutation_strategy = [0.8, 0.2]
+    growth_mutation_strategy = [0.3, 0.7]
+    initial_population_diversity_strategy = [1.0, 0.0]
+
+
+class FedotGeneticMultiStrategy(Enum):
+    steady_state = GeneticSchemeTypesEnum.steady_state
+    generational = GeneticSchemeTypesEnum.generational
+    parameter_free = GeneticSchemeTypesEnum.parameter_free
+
+
+class FedotOperationConstant(Enum):
+    # FEDOT_GET_METRICS = {
+    #     "regression": calculate_regression_metric,
+    #     "ts_forecasting": calculate_forecasting_metric,
+    #     "classification": calculate_classification_metric,
+    #     "computational_fedcore": calculate_computational_metric,
+    #     "computational_original": calculate_computational_metric
+    # }
+
+    FEDOT_API_PARAMS = default_param_values_dict
+
+    # FEDOT_TUNER_STRATEGY = EnumNoValue(FedotTunerStrategy)
+    #
+    # FEDOT_EVO_MULTI_STRATEGY = EnumNoValue(FedotEvoMultiStrategy)
+    #
+    # FEDOT_GENETIC_MULTI_STRATEGY = EnumNoValue(FedotGeneticMultiStrategy)
+
+    AVAILABLE_CLS_OPERATIONS = tuple()
+
+    AVAILABLE_REG_OPERATIONS = tuple()
+
+    FEDCORE_GRAPH_VALIDATION = (
+        has_one_root,  # model have root node and it is a GraphNode
+        has_no_cycle,  # model dont contain cycle (lead to infinity eval loop)
+        has_no_isolated_nodes,  # model dont have isolated operation (impossible to get final predict)
+        has_primary_nodes,  # model must contain primary node (root of computational tree)
+        # has_final_operation_as_model,
+        # has_no_conflicts_with_data_flow,
+        # has_correct_data_connections,
+        # has_no_conflicts_during_multitask,
+        # has_correct_data_sources
+    )
+
+    # FEDOT_ASSUMPTIONS = {
+    #     "pruning": partial(PipelineBuilder().add_node, operation_type="pruning_model"),
+    #     "low_rank": partial(PipelineBuilder().add_node, operation_type="low_rank_model"),
+    #     "quantization": partial(PipelineBuilder().add_node, operation_type="quantization_model"),
+    #     "distilation": PipelineBuilder().add_node("distilation_model"),
+    #     "detection": PipelineBuilder().add_node(
+    #         "detection_model", params={"pretrained": True}
+    #     ),
+    #     "training": PipelineBuilder().add_node("training_model"),
+    # }
+
+    FEDOT_ENSEMBLE_ASSUMPTIONS = {}
+
+
+class TorchLossesConstant(Enum):
+    cross_entropy = nn.CrossEntropyLoss
+    binary_cross_entropy = nn.BCEWithLogitsLoss
+    mse = nn.MSELoss
+    kl = nn.KLDivLoss  #
+    rmse = RMSELoss
+    smape = SMAPELoss
+    tweedy = TweedieLoss
+    focal = FocalLoss
+    center_plus = CenterPlusLoss
+    center = CenterLoss
+    masked = MaskedLossWrapper
+    log_cosh = LogCoshLoss
+    huber = HuberLoss
+    exp_weighted = ExpWeightedLoss
+
 
 industrial_model_params_dict = dict(quantile_extractor={'window_size': 10,
                                                         'stride': 1,
@@ -1163,6 +1332,20 @@ VALID_LINEAR_CLF_PIPELINE = UnitTestConstant.VALID_LINEAR_CLF_PIPELINE.value
 VALID_LINEAR_REG_PIPELINE = UnitTestConstant.VALID_LINEAR_REG_PIPELINE.value
 VALID_LINEAR_TSF_PIPELINE = UnitTestConstant.VALID_LINEAR_TSF_PIPELINE.value
 VALID_LINEAR_DETECTION_PIPELINE = UnitTestConstant.VALID_LINEAR_DETECTION_PIPELINE.value
+
+
+DEFAULT_TORCH_DATASET = {
+    "CIFAR10": torchvision.datasets.CIFAR10,
+    "CIFAR100": torchvision.datasets.CIFAR100,
+    'FasnionMNIST': torchvision.datasets.FashionMNIST,
+    'EuroSAT': torchvision.datasets.EuroSAT,
+    "MNIST": torchvision.datasets.MNIST,
+    'COCO': torchvision.datasets.CocoDetection,
+    'ImageNet': torchvision.datasets.ImageNet,
+    'Imagenette': torchvision.datasets.Imagenette,
+    'VOCSegmentation': torchvision.datasets.VOCSegmentation,
+    'VOCDetection': torchvision.datasets.VOCDetection
+}
 
 
 def fedot_init_assumptions(problem):

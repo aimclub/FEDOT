@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pymonad.either import Either
 from typing import Optional
 import torch

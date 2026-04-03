@@ -1,4 +1,4 @@
-﻿from abc import abstractmethod
+from abc import abstractmethod
 from typing import List, Union, Optional, Tuple
 
 from golem.core.log import default_log
@@ -6,6 +6,7 @@ from golem.core.log import default_log
 from fedot.api.api_utils.assumptions.assumption_rules import (
     build_operations_filter_decision,
     default_repository_name_for_data,
+    resolve_explicit_suitable_operations,
 )
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
@@ -73,12 +74,18 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
         if available_operations:
-            operations_for_task_and_data = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
+            explicit_suitable_operations = resolve_explicit_suitable_operations(
+                repository_kind=self.repo.operation_type,
+                operations_metadata=self.repo.operations,
+                task_type=self.data.task.task_type,
+                data_type=self.data_type,
+                available_operations=available_operations,
+            )
             filter_decision = build_operations_filter_decision(
                 data=self.data,
                 data_type=self.data_type,
                 available_operations=available_operations,
-                suitable_operations=operations_for_task_and_data,
+                suitable_operations=explicit_suitable_operations,
             )
             if filter_decision.allow_filtering:
                 self.ops_filter = WhitelistOperationsFilter(

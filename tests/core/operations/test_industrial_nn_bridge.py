@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.industrial_nn_bridge import IndustrialNNBridgeStrategy
@@ -54,3 +54,15 @@ def test_industrial_nn_bridge_strategy_uses_resolved_model_and_normalizes_labels
     assert captured['params']['batch_size'] == 32
     assert np.array_equal(prediction.predict, np.array([1, 0, 1, 0]))
 
+from pathlib import Path
+
+
+def test_industrial_bridge_transitive_torch_modules_defer_annotations_for_py39():
+    files = [
+        Path('fedot/industrial/core/operation/transformation/torch_backend/statistical/stat_features.py'),
+        Path('fedot/industrial/core/operation/transformation/basis/eigen_basis_torch.py'),
+    ]
+
+    for path in files:
+        source = path.read_text(encoding='utf-8').splitlines()
+        assert 'from __future__ import annotations' in source[:3]

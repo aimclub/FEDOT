@@ -411,3 +411,33 @@ def test_main_facade_fit_tensordata_routes_auto_to_auto_composition(monkeypatch)
 
     assert result == 'auto-pipeline'
     assert captured['tensor_data'] == 'tensor-data'
+
+
+def test_main_facade_predict_proba_applies_api_preprocessing_before_pipeline_predict():
+    model = Fedot(problem='classification')
+    captured = {}
+    raw_input = type('Input', (), {'task': Task(TaskTypesEnum.classification)})()
+    transformed_input = type('Input', (), {'task': Task(TaskTypesEnum.classification)})()
+
+    class PipelineStub:
+        def predict(self, test_data, output_mode='default'):
+            captured['test_data'] = test_data
+            captured['output_mode'] = output_mode
+            return OutputData(
+                idx=np.arange(2),
+                predict=np.array([[0.2, 0.8], [0.7, 0.3]]),
+                target=None,
+                task=Task(TaskTypesEnum.classification),
+                data_type=DataTypesEnum.table,
+            )
+
+    model.current_pipeline = PipelineStub()
+    model.target = 'target'
+    model.data_processor.define_data = lambda **kwargs: raw_input
+    model.data_processor.transform = lambda test_data, current_pipeline: transformed_input
+
+    model.predict_proba(features=np.array([[1.0], [2.0]]), probs_for_all_classes=True)
+
+    assert model.test_data is transformed_input
+    assert captured['test_data'] is transformed_input
+    assert captured['output_mode'] == 'full_probs'

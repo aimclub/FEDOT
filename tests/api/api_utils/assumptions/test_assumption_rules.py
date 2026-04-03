@@ -1,4 +1,6 @@
-﻿from fedot.api.api_utils.assumptions.assumption_rules import (
+from types import SimpleNamespace
+
+from fedot.api.api_utils.assumptions.assumption_rules import (
     build_operations_filter_decision,
     default_repository_name_for_data,
     exclude_operations,
@@ -6,8 +8,10 @@
     merge_preset_operations,
     parse_preset_spec,
     required_operations_for_data,
+    resolve_explicit_suitable_operations,
 )
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class _FakeData:
@@ -57,6 +61,42 @@ def test_build_operations_filter_decision_keeps_required_image_operations():
 
     assert decision.allow_filtering is True
     assert decision.sampling_choices == ('rf', 'data_source_img', 'cnn')
+
+
+def test_resolve_explicit_suitable_operations_keeps_non_default_if_explicitly_requested():
+    operations_metadata = [
+        SimpleNamespace(
+            id='industrial_inception_nn',
+            tags=('non-default', 'gpu_bridge'),
+            task_type=(TaskTypesEnum.classification,),
+            input_types=(DataTypesEnum.table,),
+            presets=(),
+        ),
+        SimpleNamespace(
+            id='rf',
+            tags=('tree',),
+            task_type=(TaskTypesEnum.classification,),
+            input_types=(DataTypesEnum.table,),
+            presets=(),
+        ),
+        SimpleNamespace(
+            id='ridge',
+            tags=('linear',),
+            task_type=(TaskTypesEnum.regression,),
+            input_types=(DataTypesEnum.table,),
+            presets=(),
+        ),
+    ]
+
+    suitable = resolve_explicit_suitable_operations(
+        repository_kind='model',
+        operations_metadata=operations_metadata,
+        task_type=TaskTypesEnum.classification,
+        data_type=DataTypesEnum.table,
+        available_operations=['industrial_inception_nn', 'ridge'],
+    )
+
+    assert suitable == ('industrial_inception_nn',)
 
 
 def test_parse_preset_spec_extracts_stable_and_modification_flags():

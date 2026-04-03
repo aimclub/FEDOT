@@ -60,7 +60,10 @@ Example temporary override:
     def _set_backend(self, name: str):
         if name == "gpu":
             import cupy as xp
-            import cudf as pd
+            try:
+                import cudf as pd
+            except Exception:
+                import pandas as pd
 
             self.xp = xp
             self.pd = pd

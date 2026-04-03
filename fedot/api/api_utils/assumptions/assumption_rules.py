@@ -1,9 +1,15 @@
 from dataclasses import dataclass
-from typing import Iterable, Optional, Sequence, Tuple
+from typing import Any, Iterable, Optional, Sequence, Tuple
 
 from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_query import RepositoryKind
+from fedot.core.repository.operation_query import (
+    OperationQuery,
+    RepositoryKind,
+    filter_operation_infos,
+    parse_repository_kind,
+)
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 @dataclass(frozen=True)
@@ -64,6 +70,30 @@ def build_operations_filter_decision(data,
         whitelist=whitelist,
         sampling_choices=tuple(sampling_choices),
     )
+
+
+def resolve_explicit_suitable_operations(repository_kind: str,
+                                         operations_metadata: Sequence[Any],
+                                         task_type: TaskTypesEnum,
+                                         data_type: DataTypesEnum,
+                                         available_operations: Optional[Sequence[str]]) -> Tuple[str, ...]:
+    whitelist = tuple(dict.fromkeys(available_operations or ()))
+    if not whitelist:
+        return ()
+
+    suitable_operation_ids = {
+        operation.id
+        for operation in filter_operation_infos(
+            operations_metadata,
+            OperationQuery(
+                repository_kind=parse_repository_kind(repository_kind),
+                task_type=task_type,
+                data_type=data_type,
+                default_excluded_tags=(),
+            ),
+        )
+    }
+    return tuple(operation for operation in whitelist if operation in suitable_operation_ids)
 
 
 def parse_preset_spec(preset_name: Optional[str]) -> PresetSpec:

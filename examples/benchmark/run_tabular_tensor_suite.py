@@ -23,7 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('--datasets', default=','.join(DEFAULT_DATASETS))
     parser.add_argument('--modes', default=','.join(DEFAULT_MODES))
     parser.add_argument('--executor', default='sequential', choices=('sequential', 'dask_experimental'))
-    parser.add_argument('--seeds', default='42,43,44')
+    parser.add_argument('--seeds', default='42')
     parser.add_argument('--generations', type=int, default=1)
     parser.add_argument('--pop-size', type=int, default=15)
     parser.add_argument('--output-dir', default='benchmark_results/tabular_tensor_suite')
