@@ -45,7 +45,14 @@ def _install_fedcore_data_stub():
 _install_fedcore_data_stub()
 
 if torch is not None:
-    from fedot.industrial.core.models.nn.utils.hooks import BaseHook, EarlyStopping, Freezer
+    from fedot.industrial.core.models.nn.utils.hooks import (
+        BaseHook,
+        EarlyStopping,
+        Evaluator,
+        Freezer,
+        OptimizerGen,
+        SchedulerRenewal,
+    )
     from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 
     @pytest.mark.skipif(torch is None, reason='torch is required for industrial hook tests')
@@ -99,6 +106,20 @@ if torch is not None:
 
             def action(self, epoch, kws):
                 return None
+
+        class _SchedulerStub:
+            def __init__(self, optimizer, learning_rate, epochs):
+                self.optimizer = optimizer
+                self.learning_rate = learning_rate
+                self.epochs = epochs
+                self.step_calls = 0
+
+            def step(self):
+                self.step_calls += 1
+
+        class _ParamlessModel(torch.nn.Module):
+            def forward(self, x):
+                return x
 
         def test_base_hook_exposes_backward_compatible_hook_place_alias(self):
             hook = self._StartHook(params={}, model=None)
@@ -161,6 +182,43 @@ if torch is not None:
             hook.action(epoch=3, kws={})
 
             assert all(parameter.requires_grad for parameter in hook.model.parameters())
+
+        def test_optimizer_gen_uses_learning_rate_from_params(self):
+            hook = OptimizerGen(
+                params={'optimizer': 'sgd', 'learning_rate': 0.123},
+                model=torch.nn.Linear(2, 1),
+            )
+            trainer_objects = {'optimizer': None}
+
+            hook.action(epoch=1, kws={'trainer_objects': trainer_objects})
+
+            optimizer = trainer_objects['optimizer']
+            assert optimizer is not None
+            assert optimizer.param_groups[0]['lr'] == pytest.approx(0.123)
+
+        def test_scheduler_renewal_does_not_replace_scheduler_when_optimizer_is_unchanged(self):
+            optimizer = torch.optim.SGD(torch.nn.Linear(2, 1).parameters(), lr=0.1)
+            scheduler = self._SchedulerStub(optimizer, 0.1, 5)
+            hook = SchedulerRenewal(
+                params={'scheduler': 'enabled', 'scheduler_step_each': 1, 'sch_type': self._SchedulerStub},
+                model=torch.nn.Linear(2, 1),
+            )
+            trainer_objects = {'optimizer': optimizer, 'scheduler': scheduler}
+
+            assert hook.trigger(epoch=2, kws={'trainer_objects': trainer_objects}) is True
+            hook.action(epoch=2, kws={'trainer_objects': trainer_objects})
+
+            assert trainer_objects['scheduler'] is scheduler
+            assert scheduler.step_calls == 1
+
+        def test_evaluator_falls_back_to_cpu_for_model_without_parameters(self):
+            hook = Evaluator(
+                params={'eval_each': 1},
+                model=self._ParamlessModel(),
+            )
+
+            assert hook.device.type == 'cpu'
+            assert hook.trigger(epoch=1, kws={'val_loader': None, 'criterion': None}) is False
 else:
     @pytest.mark.skipif(True, reason='torch is required for industrial hook tests')
     class TestHooksCollection:

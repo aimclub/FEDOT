@@ -201,10 +201,22 @@ class Evaluator(BaseHook):
     def __init__(self, params, model):
         super().__init__(params, model)
         self.eval_each = params.get('eval_each', 1)
-        self.device = next(iter(self.model.parameters())).device
+        self.device = self._resolve_device()
+
+    def _resolve_device(self):
+        if self.model is None or not hasattr(self.model, 'parameters'):
+            return torch.device('cpu')
+        try:
+            return next(iter(self.model.parameters())).device
+        except StopIteration:
+            return torch.device('cpu')
 
     def trigger(self, epoch, kws):
-        return epoch % self.eval_each == 0 and kws['val_loader'] is not None
+        return (
+            epoch % self.eval_each == 0
+            and kws.get('val_loader') is not None
+            and kws.get('criterion') is not None
+        )
 
     @torch.no_grad()
     def action(self, epoch, kws):
@@ -250,15 +262,16 @@ class OptimizerGen(BaseHook):
             delattr(self.model, self._check_field)
 
     def __get_optimizer_gen(self, opt_type, **kws):
+        learning_rate = self.params.get('learning_rate', 1e-3)
         if isinstance(opt_type, partial):
-            return partial(opt_type, lr=self.learning_rate, **kws)
+            return partial(opt_type, lr=learning_rate, **kws)
         if isinstance(opt_type, str):
             opt_constructor = Optimizers[opt_type].value
         elif isclass(opt_type):
             opt_constructor = opt_type
         else:
             raise TypeError('Unknown type for optimizer is passed! Required: constructor, partial, or str')
-        optimizer_gen = partial(opt_constructor, lr=self.params.get('learning_rate', 1e-3), **kws)
+        optimizer_gen = partial(opt_constructor, lr=learning_rate, **kws)
         return optimizer_gen
 
 
@@ -296,7 +309,7 @@ class SchedulerRenewal(BaseHook):
         if kws['trainer_objects']['scheduler'] is None and kws['trainer_objects']['optimizer'] is not None:
             kws['trainer_objects']['scheduler'] = self.__renew(kws)
         if kws['trainer_objects']['scheduler'] is not None:
-            opt_changed = kws['trainer_objects']['scheduler'].optimizer is kws['trainer_objects']['optimizer']
+            opt_changed = kws['trainer_objects']['scheduler'].optimizer is not kws['trainer_objects']['optimizer']
             if epoch == 1 or opt_changed:
                 self._mode.append('renew')
         if epoch % self.params.get('scheduler_step_each', 1) == 0:
@@ -325,7 +338,7 @@ class Freezer(BaseHook):
         }
         self.criterion = self.__criterions[self.approach]
 
-    def __uniform_mask(self):
+    def __uniform_mask(self, *args):
         prob = np.random.random(1)[0]
         return prob < self.frozen_prop
 
