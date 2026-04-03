@@ -2,8 +2,6 @@ import os
 from abc import abstractmethod, ABC
 from datetime import datetime
 from enum import Enum
-from functools import partial
-from inspect import isclass
 import numpy as np
 from pathlib import Path
 import torch
@@ -14,6 +12,13 @@ from tqdm import tqdm
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.industrial.core.architecture.abstraction.accessor import (Accessor)
 from fedot.industrial.api.utils.checker_rules import DataLoaderHandler
+from fedot.industrial.core.models.nn.utils.optimizer_scheduler_rules import (
+    build_optimizer_factory_plan,
+    build_scheduler_action_plan,
+    build_scheduler_factory_plan,
+    instantiate_optimizer_factory,
+    instantiate_scheduler_factory,
+)
 
 try:
     import bitsandbytes as bnb
@@ -245,9 +250,12 @@ class OptimizerGen(BaseHook):
 
     def __init__(self, params, model):
         super().__init__(params, model)
-        self.__gen = self.__get_optimizer_gen(
-            self.params.get('optimizer', 'adam')
+        plan = build_optimizer_factory_plan(
+            self.params.get('optimizer', 'adam'),
+            self.params.get('learning_rate', 1e-3),
+            Optimizers,
         )
+        self.__gen = instantiate_optimizer_factory(plan)
 
     @classmethod
     def check_init(cls, d: dict):
@@ -261,19 +269,6 @@ class OptimizerGen(BaseHook):
         if hasattr(self.model, self._check_field):
             delattr(self.model, self._check_field)
 
-    def __get_optimizer_gen(self, opt_type, **kws):
-        learning_rate = self.params.get('learning_rate', 1e-3)
-        if isinstance(opt_type, partial):
-            return partial(opt_type, lr=learning_rate, **kws)
-        if isinstance(opt_type, str):
-            opt_constructor = Optimizers[opt_type].value
-        elif isclass(opt_type):
-            opt_constructor = opt_type
-        else:
-            raise TypeError('Unknown type for optimizer is passed! Required: constructor, partial, or str')
-        optimizer_gen = partial(opt_constructor, lr=learning_rate, **kws)
-        return optimizer_gen
-
 
 class SchedulerRenewal(BaseHook):
     _hook_place = -90
@@ -281,24 +276,12 @@ class SchedulerRenewal(BaseHook):
 
     def __init__(self, params, model):
         super().__init__(params, model)
-        self.__gen = self.__get_scheduler_gen(
-            self.params.get('sch_type', 'one_cycle')
+        plan = build_scheduler_factory_plan(
+            self.params.get('sch_type', 'one_cycle'),
+            Schedulers,
         )
-        self._mode = []
-
-    def __get_scheduler_gen(self, sch_type, **kws):
-        if isinstance(sch_type, partial):
-            return partial(sch_type, **kws)
-        if isinstance(sch_type, str):
-            sch_constructor, remapping = Schedulers[sch_type].value
-        elif isclass(sch_type):
-            sch_constructor = sch_type
-        else:
-            raise TypeError('Unknown type for scheduler is passed! Required: constructor, partial, or str')
-        # kws = {remapping[k]: v for k, v in self.params.to_dict().items() if k in remapping}
-        # print(kws)
-        scheduler_gen = partial(sch_constructor, **kws)
-        return scheduler_gen
+        self.__gen = instantiate_scheduler_factory(plan)
+        self._action_plan = None
 
     def __renew(self, kws):
         return self.__gen(kws['trainer_objects']['optimizer'],
@@ -308,20 +291,28 @@ class SchedulerRenewal(BaseHook):
     def trigger(self, epoch, kws):
         if kws['trainer_objects']['scheduler'] is None and kws['trainer_objects']['optimizer'] is not None:
             kws['trainer_objects']['scheduler'] = self.__renew(kws)
-        if kws['trainer_objects']['scheduler'] is not None:
-            opt_changed = kws['trainer_objects']['scheduler'].optimizer is not kws['trainer_objects']['optimizer']
-            if epoch == 1 or opt_changed:
-                self._mode.append('renew')
-        if epoch % self.params.get('scheduler_step_each', 1) == 0:
-            self._mode.append('step')
-        return bool(self._mode)
+        scheduler = kws['trainer_objects']['scheduler']
+        optimizer = kws['trainer_objects']['optimizer']
+        if scheduler is None:
+            self._action_plan = None
+            return False
+
+        self._action_plan = build_scheduler_action_plan(
+            epoch=epoch,
+            scheduler=scheduler,
+            optimizer=optimizer,
+            scheduler_step_each=self.params.get('scheduler_step_each', 1),
+        )
+        return self._action_plan.renew or self._action_plan.step
 
     def action(self, epoch, kws):
-        if 'renew' in self._mode and kws['trainer_objects']['optimizer'] is not None:
+        if self._action_plan is None:
+            return
+        if self._action_plan.renew and kws['trainer_objects']['optimizer'] is not None:
             kws['trainer_objects']['scheduler'] = self.__renew(kws)
-        if 'step' in self._mode and kws['trainer_objects']['scheduler'] is not None:
+        if self._action_plan.step and kws['trainer_objects']['scheduler'] is not None:
             kws['trainer_objects']['scheduler'].step()
-        self._mode.clear()
+        self._action_plan = None
 
 
 class Freezer(BaseHook):
