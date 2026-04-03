@@ -6,6 +6,8 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from .model_registry_rules import build_registry_record_update_plan
+
 
 class RegistryStorage:
     """Manages persistent storage of model registry data."""
@@ -58,21 +60,25 @@ class RegistryStorage:
             return
 
         latest_idx = records["created_at"].idxmax() if "created_at" in records else records.index[-1]
-
-        if stage is not None:
-            stage_lower = stage.lower()
-            df.at[latest_idx, "stage"] = "before" if any(x in stage_lower for x in ["before", "initial"]) else "after"
-
-        if mode is None and trainer is not None:
-            mode = trainer.__class__.__name__
-            logging.info(f"Using trainer class name as mode: {mode}")
-
-        if mode is not None:
-            df.at[latest_idx, "mode"] = mode
-
         current_metrics = df.at[latest_idx, "metrics"]
-        df.at[latest_idx, "metrics"] = ({**(current_metrics if isinstance(current_metrics, dict) else {}), **metrics}
-                                        if isinstance(metrics, dict) else metrics)
+        plan = build_registry_record_update_plan(
+            current_metrics=current_metrics,
+            new_metrics=metrics,
+            stage=stage,
+            mode=mode,
+            trainer=trainer,
+        )
+
+        if plan.stage is not None:
+            df.at[latest_idx, "stage"] = plan.stage
+
+        if mode is None and trainer is not None and plan.mode is not None:
+            logging.info(f"Using trainer class name as mode: {plan.mode}")
+
+        if plan.mode is not None:
+            df.at[latest_idx, "mode"] = plan.mode
+
+        df.at[latest_idx, "metrics"] = plan.metrics
         self.save(fedcore_id, df)
 
     def list_model_ids(self, fedcore_id: str) -> list:

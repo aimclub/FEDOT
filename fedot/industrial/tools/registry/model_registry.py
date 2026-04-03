@@ -1,6 +1,7 @@
 import os
 import gc
 import logging
+from dataclasses import asdict
 from typing import Optional, Tuple, Dict, Any
 from threading import Lock, local
 
@@ -14,13 +15,14 @@ except ImportError:
 from .checkpoint_manager import CheckpointManager
 from .registry_storage import RegistryStorage
 from .metrics_tracker import MetricsTracker
+from .model_registry_rules import (
+    RegistryRecordPlan,
+    RegistryStageModePlan,
+    build_registry_record_plan,
+    build_registry_stage_mode_plan,
+)
 
 _registry_context = local()
-
-_STAGE_NORMALIZATION = {
-    'before': ['before', 'initial'],
-    'after': ['after']
-}
 
 _MODEL_ATTRS_TO_CLEAN = ['model_before', '_model_before_cached', 'model_after',
                          '_model_after_cached', 'model', 'model_for_inference']
@@ -74,22 +76,14 @@ class ModelRegistry:
                 delattr(_registry_context, attr)
 
     def _normalize_stage(self, stage: Optional[str]) -> Optional[str]:
-        if stage is None:
-            return None
-        stage_lower = stage.lower()
-        for normalized, keywords in _STAGE_NORMALIZATION.items():
-            if any(kw in stage_lower for kw in keywords):
-                return normalized
-        return "after"
+        return build_registry_stage_mode_plan(stage, None).stage
 
     def _inherit_mode(self, fedcore_id: str, model_id: str, mode: Optional[str]) -> Optional[str]:
-        if mode is not None:
-            return mode
-        if existing := self.storage.get_latest_record(fedcore_id, model_id):
-            if inherited_mode := existing.get('mode'):
-                self.logger.info(f"Inherited mode={inherited_mode} from previous record for model_id={model_id}")
-                return inherited_mode
-        return None
+        latest_record = self.storage.get_latest_record(fedcore_id, model_id)
+        plan = build_registry_stage_mode_plan(None, mode, latest_record=latest_record)
+        if plan.mode_source == 'inherited' and plan.mode is not None:
+            self.logger.info(f"Inherited mode={plan.mode} from previous record for model_id={model_id}")
+        return plan.mode
 
     def _log_memory_stats(self, context: str) -> Optional[Dict[str, float]]:
         if not (self.auto_cleanup and torch.cuda.is_available()):
@@ -101,23 +95,25 @@ class ModelRegistry:
     def _create_record(self, fedcore_id: str, model_id: str, version: str,
                        checkpoint_path: str, model_path: Optional[str] = None,
                        stage: Optional[str] = None, mode: Optional[str] = None) -> Dict[str, Any]:
-        return {
-            "record": str(self.metrics_tracker.generate_model_id()),
-            "fedcore": fedcore_id,
-            "model": model_id,
-            "created_at": version,
-            "model_path": model_path,
-            "checkpoint_path": checkpoint_path,
-            "stage": stage,
-            "mode": mode,
-            "metrics": {},
-        }
+        plan: RegistryRecordPlan = build_registry_record_plan(
+            record_id=self.metrics_tracker.generate_model_id(),
+            fedcore_id=fedcore_id,
+            model_id=model_id,
+            version=version,
+            checkpoint_path=checkpoint_path,
+            model_path=model_path,
+            stage=stage,
+            mode=mode,
+        )
+        return asdict(plan)
 
     def _resolve_stage_mode(self, fedcore_id: str, model_id: str, stage: Optional[str], mode: Optional[str]) -> Tuple[
         Optional[str], Optional[str]]:
-        stage = self._normalize_stage(stage)
-        mode = self._inherit_mode(fedcore_id, model_id, mode)
-        return stage, mode
+        latest_record = self.storage.get_latest_record(fedcore_id, model_id)
+        plan: RegistryStageModePlan = build_registry_stage_mode_plan(stage, mode, latest_record=latest_record)
+        if plan.mode_source == 'inherited' and plan.mode is not None:
+            self.logger.info(f"Inherited mode={plan.mode} from previous record for model_id={model_id}")
+        return plan.stage, plan.mode
 
     def _save_checkpoint_and_record(self, fedcore_id: str, model_id: str, model=None,
                                     model_path: Optional[str] = None,
