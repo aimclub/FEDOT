@@ -21,6 +21,13 @@ from .model_registry_cleanup_rules import (
     build_registry_storage_cleanup_plan,
     build_trainer_cleanup_plan,
 )
+from .model_registry_memory_policy_rules import (
+    MemoryCleanupPlan,
+    build_checkpoint_save_cleanup_plan,
+    build_cleanup_efficiency_plan,
+    build_memory_cleanup_plan,
+    build_memory_stats_plan,
+)
 from .model_registry_rules import (
     RegistryRecordPlan,
     RegistryStageModePlan,
@@ -92,10 +99,11 @@ class ModelRegistry:
         return plan.mode
 
     def _log_memory_stats(self, context: str) -> Optional[Dict[str, float]]:
-        if not (self.auto_cleanup and torch.cuda.is_available()):
+        plan = build_memory_stats_plan(self.auto_cleanup, torch.cuda.is_available(), context)
+        if not plan.enabled:
             return None
         stats = self.checkpoint_manager.get_gpu_memory_stats()
-        self.logger.info(f"GPU memory {context}: {stats.get('allocated_gb', 0):.4f} GB")
+        self.logger.info(f"GPU memory {plan.context}: {stats.get('allocated_gb', 0):.4f} GB")
         return stats
 
     def _create_record(self, fedcore_id: str, model_id: str, version: str,
@@ -127,15 +135,25 @@ class ModelRegistry:
                                     stage: Optional[str] = None, mode: Optional[str] = None) -> str:
         version = self.metrics_tracker.generate_version()
         safe_timestamp = self.metrics_tracker.sanitize_timestamp(version)
+        save_cleanup_plan = build_checkpoint_save_cleanup_plan(
+            auto_cleanup=self.auto_cleanup,
+            cuda_available=torch.cuda.is_available(),
+            delete_model_after_save=delete_model_after_save,
+        )
 
-        self._log_memory_stats("before saving")
+        if save_cleanup_plan.should_log_before_save:
+            self._log_memory_stats("before saving")
         checkpoint_bytes = self.checkpoint_manager.serialize_to_bytes(model, model_path)
 
         checkpoint_path = (model_path if model_path and os.path.isfile(model_path) else
                            self.checkpoint_manager.generate_checkpoint_path(fedcore_id, model_id, safe_timestamp))
 
         if checkpoint_path != model_path:
-            self.checkpoint_manager.save_to_file(checkpoint_bytes, checkpoint_path)
+            self.checkpoint_manager.save_to_file(
+                checkpoint_bytes,
+                checkpoint_path,
+                cleanup_after_save=save_cleanup_plan.cleanup_after_save,
+            )
 
         record = self._create_record(fedcore_id, model_id, version, checkpoint_path,
                                      model_path, stage, mode)
@@ -146,7 +164,8 @@ class ModelRegistry:
             self._delete_model_from_memory(model)
             self.logger.info("Model deleted from memory")
 
-        self._log_memory_stats("after cleanup")
+        if save_cleanup_plan.should_log_after_save:
+            self._log_memory_stats("after cleanup")
         return model_id
 
     def register_model(self, fedcore_id: str, model=None, model_path: str = None,
@@ -255,7 +274,14 @@ class ModelRegistry:
         return self.checkpoint_manager.get_gpu_memory_stats()
 
     def force_cleanup(self) -> None:
-        self.checkpoint_manager._cleanup_gpu_memory()
+        self._apply_memory_cleanup_plan(
+            build_memory_cleanup_plan(
+                auto_cleanup=self.auto_cleanup,
+                cuda_available=torch.cuda.is_available(),
+                cleanup_iterations=_CLEANUP_ITERATIONS,
+                force=True,
+            )
+        )
         self.logger.info("Forced GPU memory cleanup executed")
 
     def cleanup_fedcore_instance(self, fedcore_id: str, compressor_object=None) -> None:
@@ -272,10 +298,12 @@ class ModelRegistry:
         self._cleanup_gpu_memory()
 
         mem_after = self.get_memory_stats()
-        memory_freed = mem_before.get('allocated_gb', 0) - mem_after.get('allocated_gb', 0)
-        if mem_before.get('allocated_gb', 0) > 0:
-            efficiency = (memory_freed / mem_before.get('allocated_gb', 0)) * 100
-            self.logger.info(f"Cleanup efficiency: {efficiency:.1f}%")
+        efficiency_plan = build_cleanup_efficiency_plan(
+            mem_before.get('allocated_gb', 0),
+            mem_after.get('allocated_gb', 0),
+        )
+        if efficiency_plan.efficiency_percent is not None:
+            self.logger.info(f"Cleanup efficiency: {efficiency_plan.efficiency_percent:.1f}%")
 
         self.logger.info("Comprehensive cleanup completed")
 
@@ -376,10 +404,23 @@ class ModelRegistry:
             self.storage.save(fedcore_id, df)
 
     def _cleanup_gpu_memory(self):
-        self.checkpoint_manager._cleanup_gpu_memory()
+        self._apply_memory_cleanup_plan(
+            build_memory_cleanup_plan(
+                auto_cleanup=self.auto_cleanup,
+                cuda_available=torch.cuda.is_available(),
+                cleanup_iterations=_CLEANUP_ITERATIONS,
+                comprehensive=True,
+            )
+        )
+
+    def _apply_memory_cleanup_plan(self, plan: MemoryCleanupPlan) -> None:
+        if plan.run_checkpoint_manager_cleanup:
+            self.checkpoint_manager._cleanup_gpu_memory()
+
         if torch.cuda.is_available():
-            for _ in range(_CLEANUP_ITERATIONS):
+            for _ in range(plan.extra_cuda_cleanup_iterations):
                 torch.cuda.empty_cache()
                 torch.cuda.synchronize()
-        for _ in range(_CLEANUP_ITERATIONS):
+
+        for _ in range(plan.extra_gc_iterations):
             gc.collect()
