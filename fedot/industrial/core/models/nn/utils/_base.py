@@ -9,6 +9,11 @@ from functools import reduce
 import numpy as np
 
 from fedot.industrial.core.architecture.settings.computational import default_device
+from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
+    build_hook_runtime_payload,
+    execute_stage_hooks,
+)
+from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils.interfaces import (ITrainer, IHookable)
 from fedot.industrial.core.repository.constanst_repository import ModelLearningHooks,LoggingHooks,TorchLossesConstant
 
@@ -23,13 +28,8 @@ class BaseTrainer(ITrainer, IHookable):
 
         self._hooks = []
         self._additional_hooks = []
-        self.hooks_collection = {
-            'start': [],
-            'end': [],
-            'batch_start': [],
-            'batch_end': [],
-            'validation': []
-        }
+        self.hooks_collection = HooksCollection()
+        self.hooks = self.hooks_collection
 
         self.trainer_objects = {
             'optimizer': None,
@@ -53,9 +53,15 @@ class BaseTrainer(ITrainer, IHookable):
         raise NotImplementedError("Subclasses must implement _init_hooks")
 
     def execute_hooks(self, hook_type: HookType, epoch: int, **kwargs) -> None:
-        for hook in self.hooks_collection[hook_type]:
-            hook(epoch=epoch, trainer_objects=self.trainer_objects,
-                 history=self.history, **kwargs)
+        if hook_type not in ('start', 'end'):
+            return
+
+        payload = build_hook_runtime_payload(
+            trainer_objects=self.trainer_objects,
+            history=self.history,
+            extra=kwargs,
+        )
+        execute_stage_hooks(self.hooks_collection, hook_type, epoch, payload)
 
     @abstractmethod
     def fit(self, input_data: Any, supplementary_data: Optional[Dict] = None, loader_type: str = 'train') -> Any:

@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     build_hook_runtime_payload,
+    execute_stage_hooks,
     resolve_stage_hooks,
     should_stop_training,
 )
@@ -58,6 +59,23 @@ def test_resolve_stage_hooks_rejects_unknown_stage():
         assert 'Unsupported hook stage' in str(exc)
     else:
         raise AssertionError('Expected ValueError for unsupported stage')
+
+
+def test_execute_stage_hooks_calls_hooks_in_stage_order():
+    calls = []
+
+    def hook_a(**kwargs):
+        calls.append(('a', kwargs['epoch'], kwargs['marker']))
+
+    def hook_b(**kwargs):
+        calls.append(('b', kwargs['epoch'], kwargs['marker']))
+
+    collection = SimpleNamespace(start=[hook_a, hook_b], end=[])
+    payload = {'marker': 'start-stage'}
+
+    execute_stage_hooks(collection, 'start', epoch=3, payload=payload)
+
+    assert calls == [('a', 3, 'start-stage'), ('b', 3, 'start-stage')]
 
 
 def test_should_stop_training_reads_stop_flag():

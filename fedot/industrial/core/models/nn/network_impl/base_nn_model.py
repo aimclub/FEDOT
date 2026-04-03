@@ -98,8 +98,8 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
             'train_loss': [],
             'val_loss': []
         }
-        # add hooks
-        self.hooks = HooksCollection()
+        # keep one source of truth for hook lifecycle state
+        self.hooks = self.hooks_collection = HooksCollection()
 
     def __repr__(self):
         return self.__class__.__name__ + '\n' + repr(self.hooks)

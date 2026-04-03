@@ -36,5 +36,13 @@ def build_hook_runtime_payload(*,
     return payload
 
 
+def execute_stage_hooks(hooks_collection: Any,
+                        stage: HookStage,
+                        epoch: int,
+                        payload: dict[str, Any]) -> None:
+    for hook in resolve_stage_hooks(hooks_collection, stage):
+        hook(epoch=epoch, **payload)
+
+
 def should_stop_training(trainer_objects: dict[str, Any]) -> bool:
     return bool(trainer_objects.get('stop', False))
