@@ -636,7 +636,8 @@ def from_pandas(
         TensorData: TensorData created from extracted values.
     """
 
-    spec.features_names = features.columns.to_numpy()
+    cols = features.columns
+    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
     features = get_values_from_df(features)
 
@@ -680,7 +681,8 @@ def from_csv_tsv(
         nrows=spec.max_rows
     )
 
-    spec.features_names = features.columns.to_numpy()
+    cols = features.columns
+    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
     features = get_values_from_df(features)
     

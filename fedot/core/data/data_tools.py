@@ -562,6 +562,8 @@ def choose_categorical_encoding(
     
     else:
         decisions = user_strategy
+        if decisions is None:
+            return None, xp.arange(data.shape[1])
         categorical_idx = xp.array(
             [col for dec in decisions for col in dec.categorical_columns]
         )

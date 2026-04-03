@@ -29,6 +29,13 @@ _REQUIRED_SOURCE_OPERATIONS = {
 }
 
 
+def normalize_assumption_data_type(data_type: DataTypesEnum) -> DataTypesEnum:
+    """Legacy ``image`` uses the same assumption and sampling rules as time series tensors."""
+    if data_type is DataTypesEnum.image:
+        return DataTypesEnum.ts
+    return data_type
+
+
 def default_repository_name_for_data(data) -> str:
     if data.data_type == DataTypesEnum.multi_ts:
         return RepositoryKind.all.value
@@ -37,12 +44,10 @@ def default_repository_name_for_data(data) -> str:
 
 def required_operations_for_data(data, data_type: DataTypesEnum) -> Tuple[str, ...]:
     required_operations = []
+    data_type = normalize_assumption_data_type(data_type)
 
     if hasattr(data, 'items'):
         required_operations.extend(_REQUIRED_SOURCE_OPERATIONS.get(data_type, ()))
-
-    if data_type is DataTypesEnum.image:
-        required_operations.append('cnn')
 
     return tuple(dict.fromkeys(required_operations))
 
@@ -51,6 +56,7 @@ def build_operations_filter_decision(data,
                                      data_type: DataTypesEnum,
                                      available_operations: Optional[Sequence[str]],
                                      suitable_operations: Iterable[str]) -> AssumptionsFilterDecision:
+    data_type = normalize_assumption_data_type(data_type)
     whitelist = tuple(dict.fromkeys(available_operations or ()))
     suitable_set = set(suitable_operations)
     sampling_choices = [operation for operation in whitelist if operation in suitable_set]
