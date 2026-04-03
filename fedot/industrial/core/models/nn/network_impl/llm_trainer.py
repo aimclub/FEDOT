@@ -30,11 +30,11 @@ from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     should_stop_training,
 )
 from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
-    build_initialized_hooks,
-    resolve_hook_groups,
+    build_hook_registration_plan,
+    instantiate_hook_plan,
 )
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
-from fedot.industrial.core.models.nn.utils.hooks import LoggingHooks, ModelLearningHooks, OptimizerGen, SchedulerRenewal
+from fedot.industrial.core.models.nn.utils.hooks import LoggingHooks, ModelLearningHooks
 
 
 class FedCoreTransformersTrainer(TrainerCallback):
@@ -77,8 +77,8 @@ class FedCoreTransformersTrainer(TrainerCallback):
 
     def _init_hooks(self):
         """Initialize FedCore hooks based on parameters"""
-        hook_groups = resolve_hook_groups(self._hooks, self._additional_hooks)
-        for hook_instance in build_initialized_hooks(hook_groups, self.hooks_params, self.model):
+        hook_plan = build_hook_registration_plan(self._hooks, self._additional_hooks, self.hooks_params)
+        for hook_instance in instantiate_hook_plan(hook_plan, self.hooks_params, self.model):
             self.hooks_collection.append(hook_instance)
 
     def on_epoch_begin(self, args: TrainingArguments, state, control, **kwargs):

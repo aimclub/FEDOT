@@ -1,7 +1,10 @@
 from enum import Enum
 
 from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
+    HookRegistrationPlan,
+    build_hook_registration_plan,
     build_initialized_hooks,
+    instantiate_hook_plan,
     iter_enabled_hook_classes,
     resolve_hook_groups,
 )
@@ -79,4 +82,33 @@ def test_build_initialized_hooks_creates_instances_from_enabled_groups():
     assert len(hooks) == 2
     assert isinstance(hooks[0], _EnabledHook)
     assert isinstance(hooks[1], _AnotherEnabledHook)
+    assert _EnabledHook.initialized_with == [(params, model)]
+
+
+def test_build_hook_registration_plan_is_ordered_and_filtered():
+    plan = build_hook_registration_plan(
+        default_hook_groups=[_DefaultHookGroup],
+        additional_hook_groups=[_AdditionalHookGroup],
+        params={'allow_second': True},
+    )
+
+    assert plan == HookRegistrationPlan(
+        hook_groups=(_DefaultHookGroup, _AdditionalHookGroup),
+        hook_classes=(_EnabledHook, _AnotherEnabledHook),
+    )
+
+
+def test_instantiate_hook_plan_uses_precomputed_hook_classes():
+    _EnabledHook.initialized_with.clear()
+    model = object()
+    params = {'allow_second': False}
+    plan = HookRegistrationPlan(
+        hook_groups=(_DefaultHookGroup,),
+        hook_classes=(_EnabledHook,),
+    )
+
+    hooks = instantiate_hook_plan(plan, params, model)
+
+    assert len(hooks) == 1
+    assert isinstance(hooks[0], _EnabledHook)
     assert _EnabledHook.initialized_with == [(params, model)]

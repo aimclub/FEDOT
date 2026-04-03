@@ -1,6 +1,5 @@
 from enum import Enum
 from functools import partial
-from itertools import chain
 from typing import Iterable, Optional, Callable
 from pymonad.maybe import Maybe
 import numpy as np
@@ -17,15 +16,14 @@ from fedot.industrial.api.utils.checker_rules import DataLoaderHandler
 from fedot.industrial.core.architecture.settings.computational import default_device
 from fedot.industrial.core.repository.constanst_repository import (ModelLearningHooks, LoggingHooks,TorchLossesConstant)
 
-from fedot.industrial.core.models.nn.utils.hooks import BaseHook
 from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     build_hook_runtime_payload,
     resolve_stage_hooks,
     should_stop_training,
 )
 from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
-    build_initialized_hooks,
-    resolve_hook_groups,
+    build_hook_registration_plan,
+    instantiate_hook_plan,
 )
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
@@ -112,8 +110,8 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
         pass
 
     def _init_hooks(self):
-        hook_groups = resolve_hook_groups(self._hooks, self._additional_hooks)
-        for hook in build_initialized_hooks(hook_groups, self.params, self.model):
+        hook_plan = build_hook_registration_plan(self._hooks, self._additional_hooks, self.params)
+        for hook in instantiate_hook_plan(hook_plan, self.params, self.model):
             self.hooks.append(hook)
 
     def __get_criterion(self):
