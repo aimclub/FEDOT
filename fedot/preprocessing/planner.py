@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, List
 
-from fedot.preprocessing.preprocessor_types import PreprocessingStep
+from fedot.preprocessing.preprocessor_types import PreprocessingStep, PreprocessingStepEnum, ImputationMethodEnum
 from fedot.core.data.tensordata import TensorData
 
 from fedot.preprocessing.planner_tools import get_optional_step
@@ -18,13 +18,6 @@ class PreprocessingPlan:
                 self.steps.extend(step)
             else:
                 self.steps.append(step)
-
-
-def build_obligatory_plan(data: TensorData, pipline=None) -> PreprocessingPlan:
-
-    obligatory_plan = PreprocessingPlan()
-
-    # TODO: here post_init_raw
 
 
 def build_optional_plan(data: TensorData, pipeline=None, optional_steps=None) -> PreprocessingPlan:
