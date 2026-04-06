@@ -6,7 +6,7 @@ from typing import Optional, Union, List, Tuple, Iterable, Any
 import numpy as np
 import torch
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import PathType, PandasType, ArrayType, IndexType
 from fedot.core.data.tools import StateEnum
 
@@ -112,9 +112,9 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
     Returns:
         ArrayType: Array with missing values replaced by `NaN` (or `xp.nan`).
     """
-    xp = backend.xp
-    pd_backend = backend.pd
-    backend_name = backend.name
+    xp = Backend().xp
+    pd_backend = Backend().pd
+    backend_name = Backend().name
 
     if backend_name == "gpu":
         return arr
@@ -169,7 +169,7 @@ def _drop_rows_with_nan_in_target(features: ArrayType,
         Tuple[ArrayType, ArrayType]: `(features_filtered, target_filtered)` with
             rows containing NaNs removed. If `target is None`, returns the inputs unchanged.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if target is None:
         return features, target
@@ -203,7 +203,7 @@ def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
     Returns:
         ArrayType: Expanded array view/copy with `data.ndim >= ndim`.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     while data.ndim < ndim:
         data = xp.expand_dims(data, axis=-1)
@@ -227,7 +227,7 @@ def convert_idx_to_array(idx: IndexType) -> IndexType:
     Returns:
         IndexType: Normalized index representation.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if isinstance(idx, xp.ndarray) or idx is None:
         return idx
@@ -258,7 +258,7 @@ def convert_to_list(idx: IndexType) -> List:
     """
     if isinstance(idx, list) or idx is None:
         return idx
-    elif isinstance(idx, np.ndarray) or isinstance(idx, backend.xp.ndarray):
+    elif isinstance(idx, np.ndarray) or isinstance(idx, Backend().xp.ndarray):
         return idx.tolist()
     else:
         return [idx]
@@ -281,7 +281,7 @@ def get_idx_from_features_names(idx: IndexType,
     Returns:
         IndexType: Indices as an array/module-compatible representation.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if idx is None or len(idx) == 0:
         return idx
@@ -353,7 +353,7 @@ def get_target_and_features(
     if data_type == DataTypesEnum.ts:
         return features, target, #None
 
-    xp = backend.xp
+    xp = Backend().xp
 
     if state == StateEnum.FIT:
         if target is not None:
@@ -408,7 +408,7 @@ def transform_to_tensor(features: ArrayType,
     Returns:
         Tuple[torch.Tensor, torch.Tensor]: `(features_tensor, target_tensor)`.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     # if text_idx is not None:
     #     features = xp.delete(features, text_idx, axis=1)
@@ -431,7 +431,7 @@ def transform_to_tensor(features: ArrayType,
 
 
 def delete_zero_features(features: ArrayType) -> ArrayType:
-    xp = backend.xp
+    xp = Backend().xp
 
     non_zero_mask = xp.any(features != 0, axis=0)
 
@@ -452,8 +452,8 @@ def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
     Returns:
         torch.Tensor: Tensor placed on `backend.device` (or `None` if `array is None`).
     """
-    xp = backend.xp
-    device = backend.device
+    xp = Backend().xp
+    device = Backend().device
 
     if array is None:
         return None

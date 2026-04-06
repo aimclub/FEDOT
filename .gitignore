@@ -82,3 +82,5 @@ test/unit/catboost_info
 
 local/
 sampling_zoo
+
+requirements-gpu.txt

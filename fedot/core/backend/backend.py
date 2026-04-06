@@ -131,6 +131,3 @@ Example temporary override:
             self.device = None
             self.name = None
             self._initialized = False
-
-
-backend = Backend()

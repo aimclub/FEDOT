@@ -1,4 +1,4 @@
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 
 from fedot.preprocessing.preprocessor_types import PreprocessingStep
@@ -44,7 +44,7 @@ class LabelEncoder:
         Returns:
             LabelEncoder: Fitted encoder instance.
         """
-        xp = backend.xp
+        xp = Backend().xp
 
         self.categorical_idx_ = list(categorical_idx)
         self.categories_ = {}
@@ -70,7 +70,7 @@ class LabelEncoder:
         Returns:
             ArrayType: Encoded array of shape `(n_samples, n_categorical_columns)`.
         """
-        xp = backend.xp
+        xp = Backend().xp
 
         n_rows = data.shape[0]
         n_cat = len(self.categorical_idx_)
@@ -141,7 +141,7 @@ class OneHotEncoder:
         Returns:
             OneHotEncoder: Fitted encoder instance.
         """
-        xp = backend.xp
+        xp = Backend().xp
 
         self.categorical_idx_ = list(categorical_idx)
         self.categories_ = {}
@@ -175,7 +175,7 @@ class OneHotEncoder:
             ArrayType: One-hot encoded array of shape
                 `(n_samples, self.n_output_features_)`.
         """
-        xp = backend.xp
+        xp = Backend().xp
 
         n_rows = data.shape[0]
         encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)

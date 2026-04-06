@@ -5,7 +5,7 @@ import cupy as cp
 import cudf
 import os
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.preprocessing.planner import build_optional_plan, PreprocessingPlan
 from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.preprocessing.preprocessor_types import PreprocessingStepEnum, ImputationMethodEnum
@@ -469,7 +469,7 @@ def test_create_from_numpy_cupy():
     is correctly transferred to CUDA tensors and feature-target separation is preserved.
     """
 
-    backend.set("gpu")
+    Backend().set("gpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
@@ -574,7 +574,7 @@ def test_create_time_series():
     Test creation of TensorData from a time series dataset, ensuring that features and target
     are correctly separated and converted into torch tensors with expected shapes.
     """
-    backend.set("cpu")
+    Backend().set("cpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
@@ -632,9 +632,9 @@ def test_is_multichannel():
     assert td.features.shape[2] == X.shape[2]
 
 
-if __name__ == "__main__":
-    # test_build_optional_plan()
-    # test_create_from_numpy()
-    # test_categorical_features_match_indices()
-    # test_loader()
-    test_create_text_csv_to_tensordata()
+# if __name__ == "__main__":
+#     # test_build_optional_plan()
+#     # test_create_from_numpy()
+#     # test_categorical_features_match_indices()
+#     # test_loader()
+#     test_create_text_csv_to_tensordata()

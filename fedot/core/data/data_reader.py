@@ -6,7 +6,7 @@ from scipy.io.arff import loadarff
 
 from fedot.core.data.data_tools import convert_bytes
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import PathType
 
 
@@ -45,7 +45,7 @@ def get_df_from_csv(
     Returns:
         pandas.DataFrame: Loaded dataframe (CPU/GPU dependent on `backend.pd`).
     """
-    pd_backend = backend.pd
+    pd_backend = Backend().pd
 
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:

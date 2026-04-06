@@ -23,7 +23,7 @@ from fedot.core.data.data_tools import (
 
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
-from fedot.core.backend.backend import backend, torch_to_xp
+from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.data import (autodetect_data_type)
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
 from fedot.preprocessing.planner_tools import get_embedding_step, get_encoding_steps, get_target_encoding_step
@@ -297,22 +297,22 @@ class TensorData:
             # if encoding_steps[0] is not None:
             #     self.features, encoding_steps = apply_obligatory_steps(self.features, encoding_steps)
 
-            self.features = torch_to_xp(self.features, backend.xp)
-            self.target = torch_to_xp(self.target, backend.xp)
+            self.features = torch_to_xp(self.features, Backend().xp)
+            self.target = torch_to_xp(self.target, Backend().xp)
             self._post_init_raw()
 
         else:
             try:
-                self.features = backend.xp.array(self.features)
+                self.features = Backend().xp.array(self.features)
                 self._post_init_raw()
             except:
-                with backend.override("cpu"):
+                with Backend().override("cpu"):
                     logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
-                    self.features = backend.xp.array(self.features)
+                    self.features = Backend().xp.array(self.features)
                     self._post_init_raw()
         
-        if self.features.device.type != backend.device.type:
-            self.to(backend.device)
+        if self.features.device.type != Backend().device.type:
+            self.to(Backend().device)
 
     def _post_init_raw(self):
         """
@@ -463,7 +463,7 @@ class TensorData:
             TensorData: Materialized tensor data object.
         """
 
-        backend.set(backend_name)        
+        Backend().set(backend_name)        
 
         spec = LoadDataSpec(**kwargs)
 
@@ -487,7 +487,7 @@ class TensorData:
             LazyTensor: Lazy wrapper that builds `TensorData` on demand.
         """
 
-        backend.set(backend_name)
+        Backend().set(backend_name)
 
         spec = LoadDataSpec(**kwargs)
 

@@ -46,7 +46,6 @@ pymonad @ git+https://github.com/jasondelaat/pymonad.git
 pytest>=6.2.0
 testfixtures>=6.18.0
 
-#Torch
-cupy-cuda12x==13.5.1
-cudf-cu12==25.8.0
-sentence-transformers==3.0.1
+# cupy-cuda12x==13.5.1
+# cudf-cu12==25.8.0
+# sentence-transformers==3.0.1

@@ -3,7 +3,7 @@ from typing import Optional, Dict, List, Union
 
 from golem.core.dag.convert import graph_structure_as_nx_graph
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 # from fedot.core.data.tensordata import TensorData
 from fedot.core.data.tools import StateEnum
@@ -200,7 +200,7 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
         IndexType: Indices of detected categorical columns, or None if no
             categorical columns are found.
     """
-    pd_backend = backend.pd
+    pd_backend = Backend().pd
 
     categorical_ids = []
 
@@ -299,7 +299,7 @@ def get_encoding_steps(parameters: Dict, features: ArrayType, features_names: Op
 
     steps = []
 
-    xp = backend.xp
+    xp = Backend().xp
 
     # if isinstance(features, torch.Tensor):
     #     features = xp.asnumpy(features)
@@ -319,7 +319,7 @@ def target_has_strings(target) -> bool:
     """
     """
 
-    xp = backend.xp
+    xp = Backend().xp
 
     if xp.issubdtype(target.dtype, xp.number):
         return False
@@ -357,7 +357,7 @@ def get_target_encoding_step(target):
 
 
 def get_constant_idx(features, steps):
-    xp = backend.xp
+    xp = Backend().xp
 
     changeable_idx = []
 

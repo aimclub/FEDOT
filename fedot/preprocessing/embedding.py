@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 
 from fedot.core.data.complex_types import ArrayType
 from fedot.preprocessing.preprocessor_types import PreprocessingStep
-from fedot.core.backend.backend import backend, torch_to_xp
+from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.tools import StateEnum
 
 
@@ -68,8 +68,8 @@ class TransformerEmbedder:
         return self
 
     def transform(self, features: ArrayType, step: PreprocessingStep):
-        xp = backend.xp
-        device = backend.device
+        xp = Backend().xp
+        device = Backend().device
 
         X = features[:, step.features_idx]
 

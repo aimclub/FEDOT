@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.data_tools import get_idx_from_features_names
 from fedot.core.data.complex_types import ArrayType, IndexType
 
@@ -33,7 +33,7 @@ def long_to_wide(features: ArrayType,
             - wide is the converted 3D/stacked wide array (dtype float32),
             - unique_labels are the unique term labels from the input (dtype depends on backend).
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if terms_idx is None:
         terms_idx = 0
@@ -77,7 +77,7 @@ def check_multichannel_ts(features: ArrayType):
         Tuple[ArrayType, Optional[tuple]]: `(features_normalized, init_shape)` where
             `init_shape` is `None` unless the input was 3D.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if features.ndim == 1:
         features = xp.expand_dims(features, axis=0)

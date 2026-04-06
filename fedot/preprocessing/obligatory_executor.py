@@ -1,4 +1,4 @@
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType
 from fedot.preprocessing.mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.preprocessing.preprocessor_types import (PreprocessingStep)
@@ -36,7 +36,7 @@ def apply_obligatory_steps(data: ArrayType,
     if not isinstance(steps, List):
         steps = [steps]
 
-    xp = backend.xp
+    xp = Backend().xp
 
     # if isinstance(features, torch.Tensor):
     #     features = xp.asnumpy(features)

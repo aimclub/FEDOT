@@ -4,7 +4,7 @@ import os
 from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 
 import cupy as cp
 import cudf
@@ -444,7 +444,7 @@ def test_memory_count_gpu():
     Test that the memory count of a TensorData instance on the GPU is correctly calculated,
     including the size of the features tensor and the target tensor if present.
     """
-    backend.set("gpu")
+    Backend().set("gpu")
     
     features = np.random.rand(100, 10)
 
@@ -464,7 +464,7 @@ def test_create_from_numpy_cupy():
     is correctly transferred to CUDA tensors and feature-target separation is preserved.
     """
 
-    backend.set("gpu")
+    Backend().set("gpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
@@ -573,7 +573,7 @@ def test_create_time_series():
     Test creation of TensorData from a time series dataset, ensuring that features and target
     are correctly separated and converted into torch tensors with expected shapes.
     """
-    backend.set("cpu")
+    Backend().set("cpu")
     features = np.random.rand(100, 10)
 
     td = TensorData.create(
