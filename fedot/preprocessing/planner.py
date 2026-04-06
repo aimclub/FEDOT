@@ -4,7 +4,7 @@ from typing import Optional, Tuple, List
 from fedot.preprocessing.preprocessor_types import PreprocessingStep, PreprocessingStepEnum, ImputationMethodEnum
 from fedot.core.data.tensordata import TensorData
 
-from fedot.preprocessing.planner_tools import get_optional_step
+from fedot.preprocessing.optional_steps import get_optional_steps
 
 
 @dataclass
@@ -25,7 +25,7 @@ def build_optional_plan(data: TensorData, pipeline=None, optional_steps=None) ->
     optional_plan = PreprocessingPlan()
 
     for step_name in optional_steps.keys():
-        step = get_optional_step(step_name, data.features, pipeline, optional_steps[step_name])
+        step = get_optional_steps(step_name, data, pipeline, optional_steps[step_name])
         optional_plan.add_step(step)
 
     return optional_plan

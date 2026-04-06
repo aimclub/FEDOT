@@ -3,22 +3,24 @@ from fedot.preprocessing.preprocessor_types import (PreprocessingStepEnum,
                                                     ScalingMethodEnum, 
                                                     EmbeddingMethodEnum,
                                                     EncodingMethodEnum)
-from fedot.preprocessing.imputation import SimpleImputationHandler
+from fedot.preprocessing.imputation import (MeanImputation, MedianImputation,
+                                            ModeImputation, ConstantImputation,
+                                            DeleteRawImputation)
 from fedot.preprocessing.embedding import TransformerEmbedder
 from fedot.preprocessing.categorical_encoding import LabelEncoder, OneHotEncoder
 
 
 PREPROCESSING_OPTIONAL_MAPPING = {
     PreprocessingStepEnum.imputation: {
-        ImputationMethodEnum.simple: SimpleImputationHandler(),
-        # ImputationMethodEnum.moda: ModaImputationHandler(),
+        ImputationMethodEnum.mean: MeanImputation,
+        ImputationMethodEnum.median: MedianImputation,
+        ImputationMethodEnum.mode: ModeImputation,
+        ImputationMethodEnum.constant: ConstantImputation,
+        ImputationMethodEnum.delete_raw: DeleteRawImputation
     },
     PreprocessingStepEnum.scaling: {
         # ScalingMethodEnum.min_max: MinMaxScalingHandler(),
         # ScalingMethodEnum.standard: StandardScalingHandler(),
-    },
-    PreprocessingStepEnum.encoding: {
-        ...
     },
 }
 

@@ -1,6 +1,6 @@
 from typing import Optional, Any, Dict, TypeAlias, Union
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from golem.utilities.data_structures import ComparableEnum as Enum
 import torch
 from fedot.core.data.complex_types import IndexType
@@ -47,9 +47,11 @@ class EncodingMethodEnum(Enum):
 
 
 class ImputationMethodEnum(Enum):
-    simple = "simple"
-    moda = "moda"
-    float_nan = "float_nan"
+    mean = "mean"
+    median = "median"
+    mode = "mode"
+    constant = "constant"
+    delete_raw = "delete_raw"
 
 
 class ScalingMethodEnum(Enum):
@@ -63,6 +65,7 @@ class PreprocessingStep:
     method: Union[EmbeddingMethodEnum, ImputationMethodEnum, ScalingMethodEnum]
     features_idx: IndexType
     state: StateEnum = StateEnum.FIT
+    step_args: dict[str, Any] = field(default_factory=dict)
     model_name: Optional[str] = None 
     batch_size: Optional[int] = None
     device: torch.device = torch.device("cpu")

@@ -630,11 +630,3 @@ def test_is_multichannel():
     assert td.features.shape[0] == X.shape[0]
     assert td.features.shape[1] == X.shape[1]
     assert td.features.shape[2] == X.shape[2]
-
-
-# if __name__ == "__main__":
-#     # test_build_optional_plan()
-#     # test_create_from_numpy()
-#     # test_categorical_features_match_indices()
-#     # test_loader()
-#     test_create_text_csv_to_tensordata()

@@ -239,6 +239,7 @@ class TensorData:
     target_idx: IndexType = None
     target_encoder: Any = None
     categorical_idx: IndexType = None
+    numerical_idx: IndexType = None
     encoding_strategy: Optional[Union[str, Dict]] = None
     text_idx: IndexType = None
     embedding_strategy: Optional[Union[Dict]] = None #field(default_factory=dict)
@@ -367,8 +368,10 @@ class TensorData:
             #     self.features, embedding_step
             # )
             self.features, embedding_step = apply_obligatory_steps(self.features, embedding_step)
+            self.text_idx = embedding_step.features_idx
         else:
             embedding_step = None
+            self.text_idx = []
             # TODO: how to save steps?
 
 
@@ -378,8 +381,10 @@ class TensorData:
             #     self.features, encoding_steps
             # )
             self.features, encoding_steps = apply_obligatory_steps(self.features, encoding_steps)
+            self.categorical_idx = encoding_steps.features_idx
         else:
             encoding_steps = None
+            self.categorical_idx = []
             # TODO: how to save steps?      
 
         # encoding categorical features
@@ -400,6 +405,7 @@ class TensorData:
                                                          self.ts_init_shape)
         
         self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
+        self.numerical_idx = list(set(range(self.features.shape[1])) - set(self.categorical_idx) - set(self.text_idx))
 
 
     @classmethod

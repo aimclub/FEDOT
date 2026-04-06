@@ -5,7 +5,6 @@ from golem.core.dag.convert import graph_structure_as_nx_graph
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
-# from fedot.core.data.tensordata import TensorData
 from fedot.core.data.tools import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
@@ -100,14 +99,6 @@ def preprocess_optional_params(step_name: PreprocessingStepEnum, features: torch
 
     return steps
 
-
-def get_optional_step(step_name: PreprocessingStepEnum, features: torch.Tensor, pipeline=None, params=None) -> PreprocessingStep:
-    if step_name == PreprocessingStepEnum.imputation:
-        return get_imputation_step(features, pipeline, params)
-    
-    steps = preprocess_optional_params(step_name,features, params)
-
-    return steps
 
 
 def get_embedding_step(parameters: Union[Dict], features_names: Optional[List[str]] = None) -> PreprocessingStep:
