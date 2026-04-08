@@ -155,11 +155,14 @@ def build_industrial_save_plan(mode: str, is_fedot_solver: bool) -> IndustrialSa
 def build_industrial_load_plan(path: str, dir_list) -> IndustrialLoadPlan:
     resolved_path = path
     if 'pipeline_saved' not in path:
-        saved_pipe = [entry for entry in dir_list if 'pipeline_saved' in entry][0]
-        resolved_path = f'{path}/{saved_pipe}'
+        saved_pipes = [entry for entry in dir_list if 'pipeline_saved' in entry]
+        if saved_pipes:
+            resolved_path = f'{path}/{saved_pipes[0]}'
     return IndustrialLoadPlan(
         resolved_path=resolved_path,
-        load_multiple_pipelines='fitted_operations' in dir_list,
+        load_multiple_pipelines=('fitted_operations' in dir_list and any(
+            'pipeline_saved' in entry for entry in dir_list
+        )),
     )
 
 

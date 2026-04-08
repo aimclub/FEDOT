@@ -466,12 +466,9 @@ class FedotIndustrial(Fedot):
         self.repo = IndustrialModels().setup_repository()
         dir_list = os.listdir(path)
         load_plan = build_industrial_load_plan(path=path, dir_list=dir_list)
-        pipeline = Either(value=load_plan.resolved_path,
-                          monoid=[dir_list, load_plan.load_multiple_pipelines]).either(
-            left_function=lambda directory_list: [Pipeline().load(f'{load_plan.resolved_path}/{p}/0_pipeline_saved') for p in
-                                                  directory_list],
-            right_function=lambda resolved_path: Pipeline().load(resolved_path))
-        return pipeline
+        if load_plan.load_multiple_pipelines:
+            return [Pipeline().load(f'{load_plan.resolved_path}/{p}/0_pipeline_saved') for p in dir_list]
+        return Pipeline().load(load_plan.resolved_path)
 
     def explain(self, explaing_config: dict = {}):
         """Explain model's prediction via time series points perturbation
