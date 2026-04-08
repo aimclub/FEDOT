@@ -6,32 +6,10 @@ import cudf
 import os
 
 from fedot.core.backend.backend import Backend
-from fedot.preprocessing.planner import build_optional_plan, PreprocessingPlan
 from fedot.core.data.tensordata import TensorData, LazyTensor
-from fedot.preprocessing.preprocessor_types import PreprocessingStepEnum, ImputationMethodEnum
 from fedot.preprocessing.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
 from fedot.core.data.ucr_loader import TSLoader
-
-
 from fedot.core.utils import fedot_project_root
-
-def test_build_optional_plan():
-    tensor = torch.Tensor([[1, float('nan'), 3], [4, 5, 6]])
-    data = TensorData.create(tensor, "cpu")
-    pipeline = None
-
-    optional_steps ={
-        PreprocessingStepEnum.imputation: [
-            {
-                'method': ImputationMethodEnum.simple, 
-            }
-        ]
-    }
-
-    optional_plan = build_optional_plan(data, pipeline, optional_steps)
-    
-    assert isinstance(optional_plan, PreprocessingPlan)
-    assert len(optional_plan.steps) == 1
 
 
 def test_create_from_numpy():
@@ -236,7 +214,6 @@ def test_create_text_csv_to_tensordata():
     td = TensorData.create(
         csv_path,
         backend_name="gpu",
-        text_idx = 0,
         embedding_strategy=embedding_strategy,
         max_rows=10,    
     )
@@ -630,3 +607,85 @@ def test_is_multichannel():
     assert td.features.shape[0] == X.shape[0]
     assert td.features.shape[1] == X.shape[1]
     assert td.features.shape[2] == X.shape[2]
+
+
+def test_update_idx_emb_enc():
+    """
+    Test combined processing of text, numerical, and categorical features, ensuring that text columns
+    are embedded, categorical columns are encoded, and all transformed features are concatenated correctly.
+    """
+    X = np.array([
+        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 1, "A", "DOP", 0, 1],
+        ["martin a posted tassos papadopoulos the greek sculptor behind",  1, "A", "DROP", 0, 1],
+        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm", 3, "B", "DOP", 1, 1],
+    ], dtype=object)
+
+    columns = ["text1", "number", "class", "subclass", "some","target"]
+
+    encoding_strategy = {
+        "method": EncodingMethodEnum.ohe,
+        "features_idx": ["class", "subclass"]
+    }
+
+    embedding_strategy = {
+            "method": EmbeddingMethodEnum.transformer,
+            "model_name": "all-distilroberta-v1",
+            "batch_size": 3,
+            "device": torch.device("cpu"),
+            "features_idx": ["text1"]
+    }
+
+    td = TensorData.create(
+        X,
+        backend_name="cpu",
+        features_names=columns,
+        encoding_strategy=encoding_strategy,
+        embedding_strategy=embedding_strategy
+    )
+
+    # unchanged features
+    assert td.features[0, 0] == 1
+    assert td.features[0, 1] == 0
+    # ohe
+    assert td.features[0, -4] == 1 #A
+    assert td.features[0, -3] == 0 #A
+    assert td.features[0, -2] == 1 #DOP
+    assert td.features[0, -1] == 0 #DOP
+    assert td.features[1, -4] == 1 #A
+    assert td.features[1, -3] == 0 #A
+    assert td.features[1, -2] == 0 #DROP
+    assert td.features[1, -1] == 1 #DROP
+
+
+def test_update_idx_enc():
+    X = np.array([
+        [100, "A", "C", 10],
+        [500, "B", "D", 20],
+        [100, "A", "C", 30],
+    ])
+
+    features_names = ["A", "B", "C", "target"]
+
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.ohe,
+        "features_idx": ["B"]
+    },
+    {
+        "method": EncodingMethodEnum.label,
+        "features_idx": ["C"]
+    }]
+
+    td = TensorData.create(X, backend_name="cpu", 
+                           features_names=features_names, 
+                           encoding_strategy=encoding_strategy)
+    assert isinstance(td, TensorData)
+    assert td.features.shape[1] == 4
+    assert td.features[0, 0] == 100
+    assert td.features[0, 1] == 0
+    assert td.features[0, 2] == 1
+    assert td.features[0, 3] == 0
+
+    assert td.features[1, 0] == 500
+    assert td.features[1, 1] == 1
+    assert td.features[1, 2] == 0
+    assert td.features[1, 3] == 1

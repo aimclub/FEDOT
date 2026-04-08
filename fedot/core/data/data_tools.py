@@ -1,7 +1,7 @@
 import logging
 import numbers
 import os
-from typing import Optional, Union, List, Tuple, Iterable, Any
+from typing import Optional, Union, List, Tuple, Any, Dict
 
 import numpy as np
 import torch
@@ -11,6 +11,7 @@ from fedot.core.data.complex_types import PathType, PandasType, ArrayType, Index
 from fedot.core.data.tools import StateEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.preprocessing_tools import update_index_mapping
 
 
 logger = logging.getLogger(__name__)
@@ -211,58 +212,25 @@ def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
 
 
 
-def convert_idx_to_array(idx: IndexType) -> IndexType:
+def convert_idx_to_list(idx: IndexType) -> IndexType:
     """
-    Normalize an index-like value to a backend array (NumPy/CuPy) when possible.
-
-    Rules:
-    - If `idx` is already a backend array (or `None`), it is returned as-is.
-    - If `idx` is an `int` or `str`, it becomes a 1D array: `xp.array([idx])`.
-    - Otherwise it is converted via `xp.array(idx)`.
-    - On conversion error it falls back to returning Python lists.
+    Normalize an index-like value to list.
 
     Args:
         idx (IndexType): Index input to normalize.
 
     Returns:
-        IndexType: Normalized index representation.
+        List: Normalized index representation.
     """
-    xp = Backend().xp
 
-    if isinstance(idx, xp.ndarray) or idx is None:
-        return idx
-    try:
-        if isinstance(idx, int) or isinstance(idx, str):
-            return xp.array([idx])
-        else:
-            return xp.array(idx)
-    except Exception:
-        if isinstance(idx, (int, str)):
-            return [idx]
-
-        if isinstance(idx, Iterable):
-            return list(idx)
-
-
-def convert_to_list(idx: IndexType) -> List:
-    """
-    Convert index-like input to a Python `list` when appropriate.
-
-    Args:
-        idx (IndexType): Value to convert.
-
-    Returns:
-        List: Converted list. If `idx` is already a list or `None`, returns it unchanged.
-            If `idx` is a numpy/CuPy array, returns `idx.tolist()`. Otherwise wraps
-            the value into a single-element list.
-    """
     if isinstance(idx, list) or idx is None:
         return idx
-    elif isinstance(idx, np.ndarray) or isinstance(idx, Backend().xp.ndarray):
+    if isinstance(idx, (int, str)):
+        return [idx]
+    if isinstance(idx, np.ndarray) or isinstance(idx, Backend().xp.ndarray):
         return idx.tolist()
     else:
-        return [idx]
-
+        return list(idx)
 
 
 def get_idx_from_features_names(idx: IndexType, 
@@ -281,7 +249,6 @@ def get_idx_from_features_names(idx: IndexType,
     Returns:
         IndexType: Indices as an array/module-compatible representation.
     """
-    xp = Backend().xp
 
     if idx is None or len(idx) == 0:
         return idx
@@ -299,7 +266,7 @@ def get_idx_from_features_names(idx: IndexType,
     try:
         if isinstance(first, str):
             name_to_index = {name: i for i, name in enumerate(features_names)}
-            return xp.array([name_to_index[name] for name in idx])
+            return [name_to_index[name] for name in idx]
 
     except KeyError as e:
         raise ValueError(
@@ -319,7 +286,8 @@ def get_target_and_features(
     features_names: Optional[List[str]] = None,
     target_idx: IndexType = None,
     state: StateEnum = StateEnum.FIT,
-    data_type: DataTypesEnum = DataTypesEnum.tabular
+    data_type: DataTypesEnum = DataTypesEnum.tabular,
+    idx_mapping: Optional[Dict[int, int]] = None
 ) -> Tuple[ArrayType, ArrayType, Any]:
     """
     Split and preprocess `(features, target)` from raw array-like inputs.
@@ -351,13 +319,12 @@ def get_target_and_features(
     """
 
     if data_type == DataTypesEnum.ts:
-        return features, target, #None
+        return features, target, idx_mapping
 
     xp = Backend().xp
 
     if state == StateEnum.FIT:
         if target is not None:
-            print(target)
             target = xp.array(target)
         else:
             if target_idx is not None:
@@ -365,24 +332,22 @@ def get_target_and_features(
                 target = features[:, target_idx].copy()
             else:
                 target = features[:, -1].copy()
-                target_idx = xp.array([-1])
+                target_idx = [-1]
 
             features = xp.delete(features, target_idx, axis=1)
+        
+            idx_mapping = update_index_mapping(idx_mapping, target_idx, features)
 
-        # TODO: replece encode target
         target = atleast_n_dimensions(target, 2)
         target = replace_missing_with_nan(target)
         try:
             target = xp.asarray(target, dtype=xp.float32)
         except:
             pass
-        # target, target_encoder = encode_target(target)
 
-        # features, target = _drop_rows_with_nan_in_target(features, target)
+        return features, target, idx_mapping
 
-        return features, target, #target_encoder
-
-    return features, None, #None
+    return features, None, idx_mapping
 
 
 def transform_to_tensor(features: ArrayType, 
@@ -408,19 +373,8 @@ def transform_to_tensor(features: ArrayType,
     Returns:
         Tuple[torch.Tensor, torch.Tensor]: `(features_tensor, target_tensor)`.
     """
-    xp = Backend().xp
-
-    # if text_idx is not None:
-    #     features = xp.delete(features, text_idx, axis=1)
 
     features = to_tensor(features, dtype=torch.float32)
-
-    # if features.shape[1] != 0:
-    #     features = to_tensor(features, dtype=torch.float32)
-    #     if text_tensors is not None:
-    #         features = torch.cat((features, text_tensors), dim=1)
-    # else:
-    #     features = text_tensors
 
     if ts_init_shape is not None:
         features = features.reshape(ts_init_shape)

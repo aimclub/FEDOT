@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from fedot.core.data.complex_types import ArrayType
 from fedot.preprocessing.preprocessor_types import PreprocessingStep
 from fedot.core.backend.backend import Backend, torch_to_xp
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.prepared_data import PreparedData
 
 
 """
@@ -64,6 +64,9 @@ class TextToEmbedding:
 
 class TransformerEmbedder:
 
+    def __init__(self):
+        pass
+
     def fit(self):
         return self
 
@@ -102,15 +105,11 @@ class TransformerEmbedder:
         
         embeddings_all = torch_to_xp(embeddings_all, xp)
         
-        features[:, step.features_idx] = xp.zeros(
-            (features.shape[0], len(step.features_idx)),
-            dtype=float
-        )
-
+        features = xp.delete(features, step.features_idx, axis=1)
         features = xp.hstack((features, embeddings_all))
 
         return features
     
-    def fit_transform(self, features: ArrayType, step: PreprocessingStep):
-        features = self.fit().transform(features, step)
-        return features
+    def fit_transform(self, data: PreparedData, step: PreprocessingStep):
+        data.features = self.fit().transform(data.features, step)
+        return data

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+from dataclasses import dataclass, field
+from typing import Any, Optional, Dict
 import torch
 
 
@@ -7,4 +7,5 @@ import torch
 class PreparedData:
     features: torch.Tensor
     target: Optional[torch.Tensor] = None
-    meta: Any = None # some tag to find PreprocessingPlan
+    idx_mapping: Dict[int, int] = field(default_factory=dict)
+    new_cols_dict: Optional[dict[int, int]] = None

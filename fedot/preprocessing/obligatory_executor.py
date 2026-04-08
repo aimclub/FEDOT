@@ -1,21 +1,31 @@
-from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType
+from fedot.core.data.prepared_data import PreparedData
 from fedot.preprocessing.mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.preprocessing.preprocessor_types import (PreprocessingStep)
+from fedot.preprocessing.preprocessing_tools import update_index_mapping, update_indices
 from fedot.core.data.tools import StateEnum
 
-
-from typing import List, Optional
-
+from typing import List, Optional, Dict
 
 
-def apply_step(data: ArrayType, 
-                               step: PreprocessingStep):
-    
+def apply_step(data: PreparedData, 
+               step: PreprocessingStep):
+
+    step.features_idx = update_indices(data.idx_mapping, step.features_idx)
+    old_mapping = data.idx_mapping
+    data.new_cols_dict = None
 
     if step.state == StateEnum.FIT:
         method = PREPROCESSING_OBLIGATORY_MAPPING[step.step][step.method]()
-        features = method.fit_transform(data, step)
+        result_data = method.fit_transform(data, step)
+
+        result_data.idx_mapping = update_index_mapping(
+            old_mapping,
+            step.features_idx,
+            result_data.features,
+            result_data.new_cols_dict
+        )
+
         step.state = StateEnum.PREDICT
         # TODO: save model
     
@@ -24,31 +34,26 @@ def apply_step(data: ArrayType,
         method = ...
         features = method.transform(data)
 
-    return features, step
+    return result_data, step
 
 
-def apply_obligatory_steps(data: ArrayType, 
-                           steps: Optional[List[PreprocessingStep]] = None):
+def apply_obligatory_steps(features: ArrayType, 
+                           steps: Optional[List[PreprocessingStep]] = None,
+                           idx_mapping: Optional[Dict[int, int]] = None):
 
     if steps is None:
-        return data, None
+        return features, None, idx_mapping
     
     if not isinstance(steps, List):
         steps = [steps]
 
-    xp = Backend().xp
-
-    # if isinstance(features, torch.Tensor):
-    #     features = xp.asnumpy(features)
-    # constant_idx = get_constant_idx(data, steps)
-
-    # result_data = data[:, constant_idx].copy()
-
     new_steps = [] # TODO: remove copy and make caching steps
 
+    prepared_data = PreparedData(features=features)
+    prepared_data.features = features
+    prepared_data.idx_mapping = idx_mapping
+
     for step in steps:
-        data, new_step = apply_step(data, step)
-        # result_data = xp.hstack((result_data, prepared_features))
+        prepared_data, new_step = apply_step(prepared_data, step)
         new_steps.append(new_step)
-    return data, new_steps
-    # return result_data, new_steps
+    return prepared_data.features, new_steps, prepared_data.idx_mapping

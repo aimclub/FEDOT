@@ -1,5 +1,6 @@
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
+from fedot.core.data.prepared_data import PreparedData
 
 from fedot.preprocessing.preprocessor_types import PreprocessingStep
 
@@ -30,10 +31,11 @@ class LabelEncoder:
     The encoded output shape is `(n_samples, n_categorical_columns)`.
     """
 
-    categories_ = {}
-    categorical_idx_ = None
+    def __init__(self):
+        self.categories_ = {}
+        self.categorical_idx_ = None
 
-    def fit(self, data: ArrayType, categorical_idx: IndexType):
+    def fit(self, features: ArrayType, categorical_idx: IndexType):
         """
         Learn category sets for each categorical column.
 
@@ -50,7 +52,7 @@ class LabelEncoder:
         self.categories_ = {}
 
         for idx in self.categorical_idx_:
-            column = data[:, idx]
+            column = features[:, idx]
 
             nan_mask = column != column
             valid_values = column[~nan_mask]
@@ -60,7 +62,7 @@ class LabelEncoder:
 
         return self
 
-    def transform(self, data: ArrayType):
+    def transform(self, features: ArrayType):
         """
         Transform categorical values to label-encoded numeric IDs.
 
@@ -72,13 +74,13 @@ class LabelEncoder:
         """
         xp = Backend().xp
 
-        n_rows = data.shape[0]
+        n_rows = features.shape[0]
         n_cat = len(self.categorical_idx_)
 
         encoded = xp.full((n_rows, n_cat), xp.nan, dtype=float)
 
         for j, idx in enumerate(self.categorical_idx_):
-            column = data[:, idx]
+            column = features[:, idx]
             categories = self.categories_[idx]
 
             nan_mask = column != column
@@ -92,15 +94,11 @@ class LabelEncoder:
 
             encoded[nan_mask, j] = xp.nan
         
-        data[:, self.categorical_idx_] = xp.zeros(
-            (data.shape[0], len(self.categorical_idx_)),
-            dtype=float
-        )
-        data = xp.hstack((data, encoded))
+        features[:, self.categorical_idx_] = encoded
 
-        return data
+        return features
 
-    def fit_transform(self, data: ArrayType, step: PreprocessingStep):
+    def fit_transform(self, data: PreparedData, step: PreprocessingStep):
         """
         Fit the encoder and immediately transform the data.
 
@@ -111,7 +109,8 @@ class LabelEncoder:
         Returns:
             ArrayType: Encoded output.
         """
-        return self.fit(data, step.features_idx).transform(data)
+        data.features = self.fit(data.features, step.features_idx).transform(data.features)
+        return data
 
 
 class OneHotEncoder:
@@ -125,12 +124,14 @@ class OneHotEncoder:
     The encoded output shape is `(n_samples, n_output_features_)`.
     """
 
-    categories_ = {}
-    categorical_idx_ = None
-    feature_slices_ = None
-    n_output_features_ = None
+    def __init__(self):
+        self.categories_ = {}
+        self.categorical_idx_ = None
+        self.feature_slices_ = None
+        self.n_output_features_ = None
+        self.new_cols_dict = {}
 
-    def fit(self, data: ArrayType, categorical_idx: IndexType):
+    def fit(self, features: ArrayType, categorical_idx: IndexType):
         """
         Learn categories and output slices for each categorical column.
 
@@ -141,6 +142,7 @@ class OneHotEncoder:
         Returns:
             OneHotEncoder: Fitted encoder instance.
         """
+
         xp = Backend().xp
 
         self.categorical_idx_ = list(categorical_idx)
@@ -149,13 +151,15 @@ class OneHotEncoder:
 
         start = 0
         for idx in self.categorical_idx_:
-            column = data[:, idx]
+            column = features[:, idx]
 
             nan_mask = column != column
             valid_values = column[~nan_mask]
 
             categories = xp.unique(valid_values)
             self.categories_[idx] = categories
+
+            self.new_cols_dict[idx] = int(categories.size)
 
             end = start + int(categories.size)
             self.feature_slices_[idx] = slice(start, end)
@@ -164,7 +168,7 @@ class OneHotEncoder:
         self.n_output_features_ = start
         return self
 
-    def transform(self, data: ArrayType):
+    def transform(self, features: ArrayType):
         """
         Transform categorical values to one-hot encoded features.
 
@@ -177,11 +181,11 @@ class OneHotEncoder:
         """
         xp = Backend().xp
 
-        n_rows = data.shape[0]
+        n_rows = features.shape[0]
         encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)
 
         for idx in self.categorical_idx_:
-            column = data[:, idx]
+            column = features[:, idx]
             categories = self.categories_[idx]
             feature_slice = self.feature_slices_[idx]
 
@@ -195,15 +199,12 @@ class OneHotEncoder:
 
             encoded[:, feature_slice] = block
         
-        data[:, self.categorical_idx_] = xp.zeros(
-            (data.shape[0], len(self.categorical_idx_)),
-            dtype=float
-        )
-        data = xp.hstack((data, encoded))
+        features = xp.delete(features, self.categorical_idx_, axis=1)
+        features = xp.hstack((features, encoded))
 
-        return data
+        return features
 
-    def fit_transform(self, data: ArrayType, step: PreprocessingStep):
+    def fit_transform(self, data: PreparedData, step: PreprocessingStep):
         """
         Fit the encoder and immediately transform the data.
 
@@ -214,4 +215,6 @@ class OneHotEncoder:
         Returns:
             ArrayType: One-hot encoded output.
         """
-        return self.fit(data, step.features_idx).transform(data)
+        data.features = self.fit(data.features, step.features_idx).transform(data.features)
+        data.new_cols_dict = self.new_cols_dict
+        return data

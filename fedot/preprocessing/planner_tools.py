@@ -1,21 +1,14 @@
 import torch
 from typing import Optional, Dict, List, Union
 
-from golem.core.dag.convert import graph_structure_as_nx_graph
-
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 from fedot.core.data.tools import StateEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
+from fedot.preprocessing.structure import PipelineStructureExplorer
 from fedot.preprocessing.preprocessor_types import (PreprocessingStep, ImputationMethodEnum, 
                                                     PreprocessingStepEnum, EmbeddingMethodEnum, 
                                                     EncodingMethodEnum)
-from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_array
-
-
-# def data_type_is_tabular(data: TensorData) -> bool:
-#     return data.data_type is DataTypesEnum.tabular
+from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
 
 
 def has_nan_func(features: torch.Tensor) -> bool:
@@ -101,7 +94,9 @@ def preprocess_optional_params(step_name: PreprocessingStepEnum, features: torch
 
 
 
-def get_embedding_step(parameters: Union[Dict], features_names: Optional[List[str]] = None) -> PreprocessingStep:
+def get_embedding_step(parameters: Union[Dict], 
+                       features_names: Optional[List[str]] = None, 
+                       idx_mapping: Optional[Dict[int, int]] = None) -> PreprocessingStep:
     """
     """
 
@@ -120,7 +115,7 @@ def get_embedding_step(parameters: Union[Dict], features_names: Optional[List[st
         params = {**DEFAULT_PARAMS, **parameters}
 
         features_idx = get_idx_from_features_names(parameters["features_idx"], features_names)
-        features_idx = convert_idx_to_array(features_idx)
+        features_idx = convert_idx_to_list(features_idx)
 
         if "model_hash" in params.keys():
             params["state"] = StateEnum.PREDICT
@@ -134,43 +129,17 @@ def get_embedding_step(parameters: Union[Dict], features_names: Optional[List[st
             batch_size=params["batch_size"],
             device=params["device"]
         )
-            
-        return step
+
+        return [step]
     
-    elif isinstance(parameters, PreprocessingStep):
-        if parameters.state == StateEnum.PREDICT and parameters.model_hash is None:
-            raise ValueError("Model hash is required for prediction")
+    elif isinstance(parameters, List):
+        # TODO: add check for state predict
+        # if parameters.state == StateEnum.PREDICT and parameters.model_hash is None:
+        #     raise ValueError("Model hash is required for prediction")
         return parameters
     
     else:
         raise ValueError(f"Unsupported parameters type: {type(parameters)}")
-
-
-# def force_categorical_determination(table: ArrayType) -> IndexType:
-#     """
-#     Detect categorical feature columns by checking for string/object dtypes.
-
-#     Args:
-#         table (ArrayType): Feature matrix `(n_samples, n_features)`.
-
-#     Returns:
-#         IndexType: Indices of detected categorical columns, or `None` if no categorical
-#             columns are found.
-#     """
-#     pd_backend = backend.pd
-
-#     categorical_ids = []
-
-#     for column_id, column in enumerate(table.T):
-#         series = pd_backend.Series(column)
-#         if str(series.dtype) in ("object", "string"):
-#             categorical_ids.append(column_id)
-
-#     if len(categorical_ids) == 0:
-#         return None
-
-#     categorical_ids = convert_idx_to_array(categorical_ids)
-#     return categorical_ids
 
 
 def force_categorical_determination(table: ArrayType) -> IndexType:
@@ -227,10 +196,13 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     if not categorical_ids:
         return None
 
-    return convert_idx_to_array(categorical_ids)
+    return convert_idx_to_list(categorical_ids)
 
 
-def preprocess_encoding_params(params: Dict, features: ArrayType, features_names: Optional[List[str]]) -> PreprocessingStep:
+def preprocess_encoding_params(params: Dict, 
+                               features: ArrayType, 
+                               features_names: Optional[List[str]],
+                               idx_mapping: Optional[Dict[int, int]]) -> PreprocessingStep:
     
     if isinstance(params, Dict):
         if "method" in params.keys():
@@ -240,7 +212,8 @@ def preprocess_encoding_params(params: Dict, features: ArrayType, features_names
 
         if "features_idx" in params.keys():
             features_idx = get_idx_from_features_names(params["features_idx"], features_names)
-            features_idx = convert_idx_to_array(features_idx)
+            features_idx = convert_idx_to_list(features_idx)
+            # features_idx = update_indices(idx_mapping, features_idx)
         else:
             features_idx = force_categorical_determination(features)
 
@@ -267,6 +240,7 @@ def preprocess_encoding_params(params: Dict, features: ArrayType, features_names
     elif isinstance(params, PreprocessingStep):
         if params.state == StateEnum.PREDICT and params.model_hash is None:
             raise ValueError("Model hash is required for prediction")
+        # params.features_idx = update_indices(idx_mapping, params.features_idx)
         return params
     elif params is None:
         method = EncodingMethodEnum.label
@@ -284,7 +258,10 @@ def preprocess_encoding_params(params: Dict, features: ArrayType, features_names
         raise ValueError(f"Unsupported parameters type: {type(params)}")
 
 
-def get_encoding_steps(parameters: Dict, features: ArrayType, features_names: Optional[List[str]] = None) -> List[PreprocessingStep]:
+def get_encoding_steps(parameters: Optional[Union[List,Dict]], 
+                       features: ArrayType, 
+                       features_names: Optional[List[str]] = None,
+                       idx_mapping: Optional[Dict[int, int]] = None) -> List[PreprocessingStep]:
     """
     """
 
@@ -292,16 +269,17 @@ def get_encoding_steps(parameters: Dict, features: ArrayType, features_names: Op
 
     xp = Backend().xp
 
-    # if isinstance(features, torch.Tensor):
-    #     features = xp.asnumpy(features)
-
     if isinstance(parameters, List):
         for param in parameters:
-            step = preprocess_encoding_params(param, features, features_names)
+            step = preprocess_encoding_params(param, features, features_names, idx_mapping)
             steps.append(step)
     else:
-        step = preprocess_encoding_params(parameters, features,features_names)
+        step = preprocess_encoding_params(parameters, features,features_names, idx_mapping)
         steps.append(step)
+    
+    steps = [step for step in steps if step is not None]
+    if len(steps) == 0:
+        return None
 
     return steps
 

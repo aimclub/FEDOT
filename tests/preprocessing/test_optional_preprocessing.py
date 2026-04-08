@@ -1,10 +1,34 @@
 import numpy as np
+import torch
 
 from fedot.preprocessing.mapping import PREPROCESSING_OPTIONAL_MAPPING
 from fedot.preprocessing.preprocessor_types import PreprocessingStepEnum, ImputationMethodEnum
 from fedot.preprocessing.service import OtionalPreprocessingService
 from fedot.core.data.prepared_data import PreparedData
 from fedot.core.data.tensordata import TensorData
+from fedot.preprocessing.planner import build_optional_plan, PreprocessingPlan
+from fedot.preprocessing.preprocessor_types import PreprocessingStepEnum, ImputationMethodEnum
+
+
+def test_build_optional_plan():
+    tensor = torch.Tensor([[1, float('nan'), 3], [4, 5, 6]])
+    data = TensorData.create(tensor, "cpu")
+    pipeline = None
+
+    optional_steps ={
+        PreprocessingStepEnum.imputation: [
+            {
+                'method': ImputationMethodEnum.mean, 
+                'features_idx': [0],
+                'step_args': None
+            }
+        ]
+    }
+
+    optional_plan = build_optional_plan(data, pipeline, optional_steps)
+    
+    assert isinstance(optional_plan, PreprocessingPlan)
+    assert len(optional_plan.steps) == 1
 
 
 def test_mean_imputation():
@@ -16,8 +40,8 @@ def test_mean_imputation():
 
     td = TensorData.create(X, backend_name="cpu")
     preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation][ImputationMethodEnum.mean]()
-    preprocessed_data = preprocessor.fit_transform(td.features, [1])
-    assert preprocessed_data[1, 1] == 5
+    preprocessed_data = preprocessor.fit_transform(td, [1])
+    assert preprocessed_data.features[1, 1] == 5
 
 
 def test_preprocessing_plan_imputation():

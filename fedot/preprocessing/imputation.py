@@ -169,5 +169,3 @@ class DeleteRawImputation:
     
     def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
         return self.fit(data.features, features_idx).transform(data)
-
-
