@@ -1,5 +1,5 @@
-﻿from types import SimpleNamespace
-
+from types import SimpleNamespace
+import pytest
 import numpy as np
 
 import fedot.api.api_utils.api_data as api_data_module
