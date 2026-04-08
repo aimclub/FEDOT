@@ -172,9 +172,9 @@ class Fedot:
                         self.data_analyser.give_recommendations(input_data=self.train_data,
                                                                 input_params=self.params)
                     self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                        recommendations=recommendations_for_data)
+                                                                         recommendations=recommendations_for_data)
                     self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                recommendations=recommendations_for_params)
+                                                                 recommendations=recommendations_for_params)
                 else:
                     recommendations_for_data = None
 
@@ -220,7 +220,8 @@ class Fedot:
                         with fedot_composer_timer.launch_train_inference():
                             final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
                             if final_fit_plan.should_train_on_full_dataset:
-                                self._train_pipeline_on_full_dataset(recommendations_for_data, full_train_not_preprocessed)
+                                self._train_pipeline_on_full_dataset(
+                                    recommendations_for_data, full_train_not_preprocessed)
                                 self.log.message('Final pipeline was fitted')
                             else:
                                 self.log.message('Already fitted initial pipeline is used')

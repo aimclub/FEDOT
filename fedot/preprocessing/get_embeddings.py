@@ -27,6 +27,7 @@ class TextToEmbedding:
     Internally it uses `SentenceTransformer` and returns embeddings as a
     `torch.Tensor`.
     """
+
     def __init__(self, model_name: str, device: Optional[torch.device] = None):
         """
         Args:
@@ -50,7 +51,7 @@ class TextToEmbedding:
         Returns:
             torch.Tensor: Embeddings tensor returned by `SentenceTransformer`.
         """
-        
+
         embeddings = self.model.encode(
             sentences,
             convert_to_numpy=False,
@@ -63,7 +64,7 @@ class TextToEmbedding:
 def encode_text_features(
     X: ArrayType,
     parameters: EmbedderParameters,
-    ) -> torch.Tensor:
+) -> torch.Tensor:
     """
     Encode text features from a 2D feature matrix.
 
@@ -81,7 +82,7 @@ def encode_text_features(
         torch.Tensor: Concatenated embeddings tensor of shape
             `(n_samples, n_text_columns * embedding_dim)` (embedding_dim depends on the model).
     """
-    
+
     text_embedder = TextToEmbedding(parameters.model_name, parameters.device)
 
     n_samples = X.shape[0]
@@ -92,7 +93,7 @@ def encode_text_features(
         texts = X[:, col_idx].astype(str)
         all_embeddings = []
         for i in range(0, n_samples, parameters.batch_size):
-            batch = texts[i : i + parameters.batch_size].tolist()
+            batch = texts[i: i + parameters.batch_size].tolist()
             embeddings = text_embedder(batch)
             all_embeddings.append(embeddings)
 
@@ -103,6 +104,6 @@ def encode_text_features(
         embeddings_all = torch.cat(embedding_parts, dim=1)
     except Exception as e:
         raise ValueError(f"Failed to get embeddings") from e
-    
+
     embeddings_all = embeddings_all.to(torch.float32)
     return embeddings_all

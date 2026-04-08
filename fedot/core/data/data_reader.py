@@ -91,7 +91,7 @@ def get_df_from_csv(
     )
 
 
-def read_arff_file(file_path: PathType, 
+def read_arff_file(file_path: PathType,
                    target_idx: Optional[Union[int, str]] = None):
     """
     Read an ARFF file and return `(features, target)` arrays.

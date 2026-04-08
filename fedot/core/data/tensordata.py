@@ -27,7 +27,7 @@ from fedot.core.data.tensordata_rules import (
 )
 
 from fedot.core.data.data_tools import (
-    get_device_from_str, get_values_from_df, 
+    get_device_from_str, get_values_from_df,
     convert_idx_to_array, convert_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
     encode_categorical_features, get_text_embeddings)
@@ -52,12 +52,13 @@ class LazyTensor:
     It stores a callable used to build :class:`TensorData` only when needed via :meth:`get`,
     which can delay expensive preprocessing until consumption.
 
-    e.g. 
+    e.g.
         lazy_td = TensorData.create_lazy(X, backend_name="cpu")
         ...
         # and then we can materialize the tensor data
         td = lazy_td.get()
     """
+
     def __init__(self, create_fn):
         """
         Args:
@@ -113,7 +114,7 @@ class LoadDataSpec:
             ("table" vs "time_series").
         state (Union[str, StateEnum]): Preprocessing state, typically `fit` or `predict`.
 
-        target (TensorLike): Optional target data (already extracted by the creator or will be 
+        target (TensorLike): Optional target data (already extracted by the creator or will be
         extracted automatically).
         predict (TensorLike): Optional prediction tensor provided externally.
 
@@ -134,7 +135,7 @@ class LoadDataSpec:
                         "batch_size": 3,
                         "device": "cpu",
                     }
-        features_names (IndexType): Names of all feature columns (used to resolve indices from strings). 
+        features_names (IndexType): Names of all feature columns (used to resolve indices from strings).
             May be automatically extracted by the creator.
 
         ts_orientation (Union[TSOrientationEnum, str]): Time-series orientation. ("long" or "wide").
@@ -274,7 +275,7 @@ class TensorData:
 
     def __post_init__(self):
         """
-        Post-initialization pipeline. 
+        Post-initialization pipeline.
 
         This method:
         - converts `state`, `task`, and `data_type` from strings to enums,
@@ -282,8 +283,8 @@ class TensorData:
         - converts `features` to the active backend (CPU/GPU) when needed,
         - runs the raw preprocessing steps required for converting everything to torch tensors,
         - ensures the final tensors are on `backend.device`.
-        
-        Attention: if backend was chosen to be GPU, but features contain str/object values, 
+
+        Attention: if backend was chosen to be GPU, but features contain str/object values,
             it will be preprocessed for tensors creation on CPU. But finally, all tensors
             will be moved to GPU.
         """
@@ -299,10 +300,10 @@ class TensorData:
 
         if isinstance(self.features, torch.Tensor):
             self.encoding_strategy = encode_torch_tensors(
-                self.features, 
+                self.features,
                 self.encoding_strategy,
-                self.categorical_idx, 
-                self.state, 
+                self.categorical_idx,
+                self.state,
                 self.features_names
             )
         else:
@@ -344,44 +345,43 @@ class TensorData:
         self.features = replace_missing_with_nan(self.features)
 
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
-                                                    self.target,
-                                                    self.features_names,
-                                                    self.state,
-                                                    self.ts_orientation,
-                                                    self.ts_terms_idx,
-                                                    self.ts_forecast_horizon,
-                                                    self.data_type)
+                                                                                            self.target,
+                                                                                            self.features_names,
+                                                                                            self.state,
+                                                                                            self.ts_orientation,
+                                                                                            self.ts_terms_idx,
+                                                                                            self.ts_forecast_horizon,
+                                                                                            self.data_type)
 
         self.features, self.target, self.target_encoder = get_target_and_features(self.features,
-                                                            self.target,
-                                                            self.features_names,
-                                                            self.target_idx,
-                                                            self.state,
-                                                            self.data_type)
+                                                                                  self.target,
+                                                                                  self.features_names,
+                                                                                  self.target_idx,
+                                                                                  self.state,
+                                                                                  self.data_type)
 
         # get embeddings
-        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features, 
-                                                        self.text_idx, 
-                                                        self.embedding_strategy,
-                                                        self.features_names)
+        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features,
+                                                                         self.text_idx,
+                                                                         self.embedding_strategy,
+                                                                         self.features_names)
 
         # encoding categorical features
         encoding_decisions, non_cat_features = choose_categorical_encoding(
-            self.features, self.categorical_idx, self.encoding_strategy, 
+            self.features, self.categorical_idx, self.encoding_strategy,
             self.features_names, self.state
         )
         self.features, self.encoding_strategy = encode_categorical_features(
             self.features, encoding_decisions, non_cat_features
         )
 
-        self.features, self.target = transform_to_tensor(self.features, 
+        self.features, self.target = transform_to_tensor(self.features,
                                                          self.target,
                                                          text_tensors,
                                                          self.text_idx,
                                                          self.ts_init_shape)
-        
-        self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
+        self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
     @classmethod
     def _resolve_creator(cls, source_data: Any) -> Callable:
@@ -401,7 +401,7 @@ class TensorData:
             TypeError: If a predicate returns a non-boolean value.
         """
         return resolve_registered_creator(cls._creators, source_data)
-    
+
     @classmethod
     def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
         """
@@ -539,7 +539,7 @@ class TensorData:
                     f"Could not save predictions to '{path_to_save}' "
                     f"or fallback path '{fallback_path}'"
                 ) from fallback_exc
-    
+
     def to_csv(self, path_to_save: PathType) -> PathType:
         """
         Save features (and optionally target) to a CSV file.
@@ -560,7 +560,7 @@ class TensorData:
             path_to_save = './features.csv'
             features_df.to_csv(path_to_save, index=False)
         return Path(path_to_save).resolve()
-    
+
     @property
     def memory_usage(self):
         """
@@ -623,8 +623,8 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
     lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
-    features: PandasType, 
-    spec: LoadDataSpec) -> TensorData:
+        features: PandasType,
+        spec: LoadDataSpec) -> TensorData:
     """
     Creator for :class:`TensorData` when the input is a pandas/cudf dataframe or series.
 
@@ -685,7 +685,7 @@ def from_csv_tsv(
     spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
     features = get_values_from_df(features)
-    
+
     return spec.to_tensor_data(features)
 
 
@@ -705,7 +705,7 @@ def from_arff(
     Returns:
         TensorData: TensorData created from extracted ARFF features and target.
     """
-    
+
     features, spec.target = read_arff_file(source, target_idx=spec.target_idx)
 
     return spec.to_tensor_data(features)

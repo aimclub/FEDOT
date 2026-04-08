@@ -125,9 +125,13 @@ def test_industrial_main_predict_proba_uses_rule_based_mode_normalization(monkey
         industrial_config=SimpleNamespace(is_regression_task_context=True),
     )
     industrial._process_input_data = lambda data: 'processed-predict'
-    industrial._FedotIndustrial__abstract_predict = lambda data, mode: captured.update(data=data, mode=mode) or 'predicted-probs'
+    industrial._FedotIndustrial__abstract_predict = lambda data, mode: captured.update(
+        data=data, mode=mode) or 'predicted-probs'
 
-    monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels', lambda: SimpleNamespace(setup_repository=lambda backend=None: f'repo:{backend}'))
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.IndustrialModels',
+        lambda: SimpleNamespace(
+            setup_repository=lambda backend=None: f'repo:{backend}'))
 
     result = industrial.predict_proba(('features', 'target'), predict_mode='probs')
 
@@ -214,7 +218,8 @@ def test_industrial_main_explain_uses_rule_based_config():
         predict_data=SimpleNamespace(features=np.arange(6).reshape(1, 2, 3), target=np.array([1, 2])),
     )
 
-    industrial.explain({'method': 'recurrence', 'samples': 3, 'window': 7, 'metric': 'f1', 'threshold': 80, 'name': 'demo'})
+    industrial.explain({'method': 'recurrence', 'samples': 3, 'window': 7,
+                       'metric': 'f1', 'threshold': 80, 'name': 'demo'})
 
     assert captured['features'].shape == (2, 3)
     assert np.array_equal(captured['target'], np.array([1, 2]))
@@ -226,9 +231,13 @@ def test_industrial_main_load_uses_rule_based_path_resolution(monkeypatch):
     industrial = FedotIndustrial.__new__(FedotIndustrial)
     industrial.manager = SimpleNamespace()
 
-    monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels', lambda: SimpleNamespace(setup_repository=lambda backend=None: 'repo'))
+    monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels',
+                        lambda: SimpleNamespace(setup_repository=lambda backend=None: 'repo'))
     monkeypatch.setattr('fedot.industrial.api.main.os.listdir', lambda path: ['pipeline_saved_1', 'fitted_operations'])
-    monkeypatch.setattr('fedot.industrial.api.main.Pipeline', lambda: SimpleNamespace(load=lambda path: f'loaded:{path}'))
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.Pipeline',
+        lambda: SimpleNamespace(
+            load=lambda path: f'loaded:{path}'))
 
     result = industrial.load('root')
 
@@ -242,7 +251,8 @@ def test_industrial_main_save_uses_rule_based_mode_selection(monkeypatch):
 
     class FakeManager:
         def __init__(self):
-            self.solver = SimpleNamespace(current_pipeline=SimpleNamespace(save=lambda **kwargs: captured.append(('model', kwargs))))
+            self.solver = SimpleNamespace(current_pipeline=SimpleNamespace(
+                save=lambda **kwargs: captured.append(('model', kwargs))))
             self.compute_config = SimpleNamespace(output_folder='out')
             self.condition_check = SimpleNamespace(solver_is_fedot_class=lambda solver: False)
             self.logger = SimpleNamespace(info=lambda msg: captured.append(('log', msg)))
@@ -254,7 +264,10 @@ def test_industrial_main_save_uses_rule_based_mode_selection(monkeypatch):
     industrial.manager = FakeManager()
     industrial.metric_dict = SimpleNamespace(to_csv=lambda path: captured.append(('metrics', path)))
 
-    monkeypatch.setattr('fedot.industrial.api.main.pd.DataFrame', lambda values: SimpleNamespace(to_csv=lambda path: captured.append(('prediction', path))))
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.pd.DataFrame', lambda values: SimpleNamespace(
+            to_csv=lambda path: captured.append(
+                ('prediction', path))))
 
     industrial.save(mode='prediction')
 

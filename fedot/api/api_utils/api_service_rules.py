@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
+
 @dataclass(frozen=True)
 class TuneExecutionPlan:
     input_data: Any
@@ -77,7 +78,9 @@ def build_tensordata_tune_plan(converted_input_data: Optional[Any], has_tensor_d
     )
 
 
-def build_tensordata_forecast_plan(requested_horizon: Optional[int], forecast_length: int) -> TensorForecastExecutionPlan:
+def build_tensordata_forecast_plan(
+        requested_horizon: Optional[int],
+        forecast_length: int) -> TensorForecastExecutionPlan:
     return TensorForecastExecutionPlan(
         horizon=resolve_forecast_horizon(requested_horizon, forecast_length),
         clear_target=True,

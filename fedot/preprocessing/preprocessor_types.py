@@ -5,6 +5,7 @@ from golem.utilities.data_structures import ComparableEnum as Enum
 import torch
 from fedot.core.data.complex_types import IndexType
 
+
 class EmbeddingMethodEnum(Enum):
     transformer = "sentence_transformer"
 

@@ -131,7 +131,7 @@ def test_main_facade_predict_proba_tensordata_uses_service_rule_mode_selection()
     model.current_pipeline = _StubPipeline()
 
     prediction = model.predict_proba_tensordata(tensor_data=_minimal_tensordata_for_predict(),
-                                                 probs_for_all_classes=True)
+                                                probs_for_all_classes=True)
 
     assert prediction.shape == (2, 2)
     assert model.current_pipeline.calls == [('predict_tensordata', 'full_probs')]

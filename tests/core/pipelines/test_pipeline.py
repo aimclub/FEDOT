@@ -82,7 +82,11 @@ def test_pipeline_fit_tensordata_uses_tensor_runtime_preprocess_path():
     pipeline._assign_data_to_nodes = lambda data: data
     pipeline._fit = lambda input_data=None, predictions_cache=None, fold_id=None: input_data
 
-    original_bridge = getattr(__import__('fedot.core.pipelines.pipeline', fromlist=['tensordata_to_input_data']), 'tensordata_to_input_data')
+    original_bridge = getattr(
+        __import__(
+            'fedot.core.pipelines.pipeline',
+            fromlist=['tensordata_to_input_data']),
+        'tensordata_to_input_data')
     import fedot.core.pipelines.pipeline as pipeline_module
     pipeline_module.tensordata_to_input_data = lambda tensor_data: ('input', tensor_data)
 
@@ -109,9 +113,14 @@ def test_pipeline_predict_tensordata_uses_tensor_runtime_preprocess_path():
     pipeline.preprocessor.update_indices_for_time_series = lambda data: ('ts-updated', data)
     pipeline.preprocessor.reduce_memory_size = lambda data: ('reduced', data)
     pipeline._assign_data_to_nodes = lambda data: data
-    pipeline._postprocess = lambda copied_input_data, result, output_mode: ('postprocessed', copied_input_data, result, output_mode)
+    pipeline._postprocess = lambda copied_input_data, result, output_mode: (
+        'postprocessed', copied_input_data, result, output_mode)
 
-    original_bridge = getattr(__import__('fedot.core.pipelines.pipeline', fromlist=['tensordata_to_input_data']), 'tensordata_to_input_data')
+    original_bridge = getattr(
+        __import__(
+            'fedot.core.pipelines.pipeline',
+            fromlist=['tensordata_to_input_data']),
+        'tensordata_to_input_data')
     import fedot.core.pipelines.pipeline as pipeline_module
     pipeline_module.tensordata_to_input_data = lambda tensor_data: ('input', tensor_data)
 

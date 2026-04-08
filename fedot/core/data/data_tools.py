@@ -13,8 +13,8 @@ from fedot.core.data.tools import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.preprocessor_mapping import EMBEDDING_METHOD_MAPPING, ENCODER_MAPPING
 
-from fedot.preprocessing.preprocessor_types import (EmbedderParameters, EmbeddingMethodEnum, 
-                                                    EncodingStrategyType, CategoricalEncodingDecision, 
+from fedot.preprocessing.preprocessor_types import (EmbedderParameters, EmbeddingMethodEnum,
+                                                    EncodingStrategyType, CategoricalEncodingDecision,
                                                     EncodingStrategyEnum)
 
 
@@ -70,7 +70,7 @@ def convert_bytes(x: np.ndarray) -> np.ndarray:
     # Conversion of target values to float or str
     try:
         x = np.char.decode(x, encoding='utf-8')
-    except:
+    except BaseException:
         pass
     try:
         x = x.astype('float')
@@ -215,7 +215,6 @@ def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
     return data
 
 
-
 def convert_idx_to_array(idx: IndexType) -> IndexType:
     """
     Normalize an index-like value to a backend array (NumPy/CuPy) when possible.
@@ -269,8 +268,7 @@ def convert_to_list(idx: IndexType) -> List:
         return [idx]
 
 
-
-def get_idx_from_features_names(idx: IndexType, 
+def get_idx_from_features_names(idx: IndexType,
                                 features_names: Optional[List[str]]) -> IndexType:
     """
     Convert feature names (strings) to feature indices.
@@ -342,27 +340,27 @@ def get_embedder_parameters(parameters: Union[EmbedderParameters, Dict]) -> Embe
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                 method=EmbeddingMethodEnum.transformer
             )
-        
+
         else:
             try:
                 parameters = EmbedderParameters(model_name=parameters['model_name'],
-                                        batch_size=parameters['batch_size'],
-                                        device=torch.device(parameters['device']),
-                                        method=EmbeddingMethodEnum(parameters['method']))
+                                                batch_size=parameters['batch_size'],
+                                                device=torch.device(parameters['device']),
+                                                method=EmbeddingMethodEnum(parameters['method']))
                 return parameters
             except Exception as e:
                 raise ValueError(f"Failed to get embedder parameters: {parameters}") from e
 
     elif isinstance(parameters, EmbedderParameters):
         return parameters
-    
+
     else:
         raise ValueError(f"Invalid embedderparameters type: {type(parameters)}")
-    
 
-def get_text_embeddings(features: ArrayType, 
+
+def get_text_embeddings(features: ArrayType,
                         text_idx: IndexType,
-                        strategy: Union[EmbedderParameters, Dict], 
+                        strategy: Union[EmbedderParameters, Dict],
                         features_names: Optional[List[str]] = None):
     """
     Compute text embeddings for selected text feature columns and zero-out them in `features`.
@@ -402,12 +400,12 @@ def get_text_embeddings(features: ArrayType,
         embedder_fn = EMBEDDING_METHOD_MAPPING[strategy.method]
     except KeyError:
         raise ValueError(f"Unknown embedding method: {strategy.method}")
-    
+
     embeddings = embedder_fn(text_features, strategy)
 
     if strategy.device.type != device.type:
         embeddings = embeddings.to(device)
-    
+
     features[:, text_idx] = xp.zeros(
         (features.shape[0], len(text_idx)),
         dtype=float
@@ -434,7 +432,7 @@ def encode_target(target: ArrayType) -> Tuple[ArrayType, Any]:
 
     if target is None or target.shape[0] == 0:
         return target, None
-    
+
     encoder = ENCODER_MAPPING[EncodingStrategyEnum.label]()
     target = encoder.fit_transform(target, [0])
 
@@ -468,7 +466,7 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     return categorical_ids
 
 
-def process_user_stratedy_encoding(strategy: EncodingStrategyType, 
+def process_user_stratedy_encoding(strategy: EncodingStrategyType,
                                    features_names: List[str]) -> List[CategoricalEncodingDecision]:
     """
     Convert user-provided categorical encoding strategy into a list of decisions.
@@ -526,12 +524,12 @@ def choose_categorical_encoding(
             - decisions: Resolved list of encoding decisions, or `None` if no categorical columns exist.
             - non_categorical_idx: Indices of columns that are not categorical.
     """
-    
+
     xp = backend.xp
-    
+
     if state == StateEnum.FIT:
 
-        if isinstance(user_strategy, Dict) or isinstance(user_strategy, 
+        if isinstance(user_strategy, Dict) or isinstance(user_strategy,
                                                          CategoricalEncodingDecision):
             decisions = process_user_stratedy_encoding(user_strategy, features_names)
             categorical_idx = xp.array(
@@ -541,7 +539,8 @@ def choose_categorical_encoding(
             return decisions, non_categorical_idx
 
         elif user_strategy is not None:
-            raise ValueError(f"User encoding strategy must be Dict or CategoricalEncodingDecision, got {type(user_strategy)}")
+            raise ValueError(
+                f"User encoding strategy must be Dict or CategoricalEncodingDecision, got {type(user_strategy)}")
 
         if categorical_idx is not None:
             categorical_idx = get_idx_from_features_names(categorical_idx, features_names)
@@ -559,7 +558,7 @@ def choose_categorical_encoding(
         )
 
         decisions = [CategoricalEncodingDecision(categorical_idx, strategy)]
-    
+
     else:
         decisions = user_strategy
         if decisions is None:
@@ -569,11 +568,11 @@ def choose_categorical_encoding(
         )
 
     non_categorical_idx = xp.setdiff1d(xp.arange(data.shape[1]), categorical_idx)
-    
+
     return decisions, non_categorical_idx
 
 
-def apply_categorical_encoding(data: ArrayType, 
+def apply_categorical_encoding(data: ArrayType,
                                decision: CategoricalEncodingDecision) -> Tuple[ArrayType, CategoricalEncodingDecision]:
     """
     Apply one categorical encoding decision to the provided dataset.
@@ -591,26 +590,26 @@ def apply_categorical_encoding(data: ArrayType,
 
     if decision.categorical_columns is None:
         return data, decision
-    
+
     if decision.encoder is not None:
         features = decision.encoder.transform(data)
         return features, decision
-    
+
     try:
         decision.encoder = ENCODER_MAPPING[decision.strategy]()
     except KeyError:
         raise ValueError(f"Unknown encoding strategy: {decision.strategy}")
-    
-    features = decision.encoder.fit_transform(data, 
+
+    features = decision.encoder.fit_transform(data,
                                               decision.categorical_columns)
 
     return features, decision
 
 
-def encode_categorical_features(data: ArrayType, 
-                                decisions: Optional[List[CategoricalEncodingDecision]], 
+def encode_categorical_features(data: ArrayType,
+                                decisions: Optional[List[CategoricalEncodingDecision]],
                                 non_categorical_idx: IndexType
-    ) -> Tuple[ArrayType, Optional[List[CategoricalEncodingDecision]]]:
+                                ) -> Tuple[ArrayType, Optional[List[CategoricalEncodingDecision]]]:
     """
     Encode all categorical columns and concatenate them with non-categorical features.
 
@@ -640,12 +639,12 @@ def encode_categorical_features(data: ArrayType,
     return result_data, new_decisions
 
 
-def encode_torch_tensors(features: torch.Tensor, 
-                         user_strategy: EncodingStrategyType, 
-                         categorical_idx: IndexType, 
-                         state: StateEnum = StateEnum.FIT, 
+def encode_torch_tensors(features: torch.Tensor,
+                         user_strategy: EncodingStrategyType,
+                         categorical_idx: IndexType,
+                         state: StateEnum = StateEnum.FIT,
                          features_names: Optional[List[str]] = None
-        ) -> Tuple[torch.Tensor, Optional[List[CategoricalEncodingDecision]]]:
+                         ) -> Tuple[torch.Tensor, Optional[List[CategoricalEncodingDecision]]]:
     """
     Perform categorical encoding and return encoded torch tensor features.
 
@@ -754,10 +753,10 @@ def get_target_and_features(
     return features, None, None
 
 
-def transform_to_tensor(features: ArrayType, 
-                        target: ArrayType, 
-                        text_tensors: Optional[torch.Tensor] = None, 
-                        text_idx: Optional[IndexType] = None, 
+def transform_to_tensor(features: ArrayType,
+                        target: ArrayType,
+                        text_tensors: Optional[torch.Tensor] = None,
+                        text_idx: Optional[IndexType] = None,
                         ts_init_shape: Any = None) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Convert features and target arrays to torch tensors (float32 by default).

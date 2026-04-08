@@ -2,7 +2,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.tensor_data_bridge_rules import build_tensordata_input_bridge_plan
 
 
-
 def tensordata_to_input_data(tensor_data) -> InputData:
     plan = build_tensordata_input_bridge_plan(tensor_data)
 

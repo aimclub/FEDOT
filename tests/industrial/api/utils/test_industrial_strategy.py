@@ -18,7 +18,8 @@ def test_industrial_strategy_fit_and_predict_use_rule_based_dispatch(monkeypatch
         ),
     )
 
-    strategy._fit_rule_method = lambda input_data: captured.update({'fit_input': input_data, 'solver': 'solver'}) or setattr(strategy, 'solver', 'solver')
+    strategy._fit_rule_method = lambda input_data: captured.update(
+        {'fit_input': input_data, 'solver': 'solver'}) or setattr(strategy, 'solver', 'solver')
     strategy._predict_rule_method = lambda input_data, mode: {'input_data': input_data, 'mode': mode}
 
     fit_result = strategy.fit('train-data')
@@ -30,7 +31,8 @@ def test_industrial_strategy_fit_and_predict_use_rule_based_dispatch(monkeypatch
 
 
 def test_industrial_strategy_sampling_predict_keeps_full_feature_space_for_non_cur():
-    strategy = IndustrialStrategy({'sampling_algorithm': 'Random'}, 'sampling_strategy', {'timeout': 10, 'problem': 'classification'})
+    strategy = IndustrialStrategy({'sampling_algorithm': 'Random'}, 'sampling_strategy',
+                                  {'timeout': 10, 'problem': 'classification'})
     captured = {}
 
     class FakeSolver:
@@ -93,7 +95,16 @@ def test_industrial_strategy_finetune_loop_uses_normalized_tuning_plan(monkeypat
 
     monkeypatch.setattr(
         'fedot.industrial.api.utils.industrial_strategy.build_tuner',
-        lambda api, model_to_tune, tuning_params, train_data, mode: captured.append((tuning_params, train_data, mode)) or ('pipeline_tuner', f'solver:{train_data}'),
+        lambda api,
+        model_to_tune,
+        tuning_params,
+        train_data,
+        mode: captured.append(
+            (tuning_params,
+             train_data,
+             mode)) or (
+            'pipeline_tuner',
+            f'solver:{train_data}'),
     )
 
     result = strategy._finetune_loop(

@@ -117,7 +117,8 @@ def build_automl_config_plan(task: Optional[str] = None,
                              use_automl: bool = False,
                              available_operations=None,
                              optimisation_strategy: Optional[dict] = None,
-                             default_available_operations_factory: Optional[Callable[[str], list]] = None) -> AutomlConfigPlan:
+                             default_available_operations_factory: Optional[Callable[[str],
+                                                                                     list]] = None) -> AutomlConfigPlan:
     normalized_task_params = dict(task_params) if task_params is not None else None
     normalized_available_operations = list(available_operations) if available_operations is not None else None
     if normalized_available_operations is None and task is not None and default_available_operations_factory is not None:

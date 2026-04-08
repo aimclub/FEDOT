@@ -13,7 +13,12 @@ def test_predefined_model_fit_tensordata_uses_pipeline_tensor_runtime(monkeypatc
         def fit_tensordata(self, data):
             captured['data'] = data
 
-    monkeypatch.setattr(PredefinedModel, '_get_pipeline', lambda self, use_input_preprocessing=True, api_preprocessor=None: FakePipeline())
+    monkeypatch.setattr(
+        PredefinedModel,
+        '_get_pipeline',
+        lambda self,
+        use_input_preprocessing=True,
+        api_preprocessor=None: FakePipeline())
 
     model = PredefinedModel(
         predefined_model='logit',
