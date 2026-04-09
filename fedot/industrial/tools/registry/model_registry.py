@@ -39,6 +39,10 @@ from .registry_persistence_rules import (
     build_registry_persistence_request,
     execute_registry_persistence,
 )
+from .registry_update_rules import (
+    build_evaluator_metrics_update_plan,
+    build_register_changes_plan,
+)
 
 _registry_context = local()
 
@@ -201,13 +205,19 @@ class ModelRegistry:
             f"register_changes called: fedcore_id={fedcore_id}, model_id={model_id}, stage={stage}, mode={mode}")
 
         existing = self.storage.get_latest_record(fedcore_id, model_id)
-        if existing is None:
+        register_changes_plan = build_register_changes_plan(existing, stage, mode)
+        if register_changes_plan.should_register_new:
             self.logger.warning("No existing record found, calling register_model instead")
             self.register_model(fedcore_id, model, None, pipeline_params, note,
                                 params_format, delete_model_after_save, stage, mode)
             return
 
-        stage, mode = self._resolve_stage_mode(fedcore_id, model_id, stage, mode)
+        stage, mode = self._resolve_stage_mode(
+            fedcore_id,
+            model_id,
+            register_changes_plan.stage,
+            register_changes_plan.mode,
+        )
 
         self._save_checkpoint_and_record(fedcore_id, model_id, model, None,
                                          delete_model_after_save, stage, mode)
@@ -218,14 +228,11 @@ class ModelRegistry:
 
     def save_metrics_from_evaluator(self, solver, fedcore_id: str, model_id: str):
         metrics_df = self.metrics_tracker.collect_metrics_from_history(solver=solver)
+        metrics_plan = build_evaluator_metrics_update_plan(metrics_df)
 
-        if not metrics_df.empty and len(metrics_df) > 0:
-            last_gen_metrics = metrics_df.iloc[-1].to_dict()
-            last_gen_metrics.pop('generation', None)
-
-            if last_gen_metrics:
-                self.update_metrics(fedcore_id, model_id, last_gen_metrics)
-                self.logger.info("Saved optimization metrics from evaluator to registry")
+        if metrics_plan.should_update:
+            self.update_metrics(fedcore_id, model_id, metrics_plan.metrics)
+            self.logger.info("Saved optimization metrics from evaluator to registry")
 
     def get_latest_record(self, fedcore_id: str, model_id: str) -> Optional[dict]:
         return self.storage.get_latest_record(fedcore_id, model_id)

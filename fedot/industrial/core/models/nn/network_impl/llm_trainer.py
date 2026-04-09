@@ -39,6 +39,10 @@ from fedot.industrial.core.models.nn.utils.output_assembly_rules import (
     assemble_output_container,
     build_output_container_request,
 )
+from fedot.industrial.core.models.nn.utils.trainer_output_rules import (
+    TrainerOutputAssemblyRequest,
+    assemble_registered_trainer_output,
+)
 
 
 class FedCoreTransformersTrainer(TrainerCallback):
@@ -542,8 +546,6 @@ class LLMTrainer(BaseTrainer):
                 raise TypeError(
                     f"Prediction conversion failed: cannot convert {type(pred).__name__} to Tensor. Error: {e}")
 
-        output_context = self._extract_output_fields(input_data)
-
         if self.task_type is None and input_data is not None:
             if hasattr(input_data, 'task'):
                 self.task_type = input_data.task.task_type if hasattr(input_data.task, 'task_type') else input_data.task
@@ -551,23 +553,44 @@ class LLMTrainer(BaseTrainer):
                 task_obj = input_data.features.task
                 self.task_type = task_obj.task_type if hasattr(task_obj, 'task_type') else task_obj
 
-        checkpoint_info = self._register_model_checkpoint(
-            model=self.model,
-            stage='after'
-        )
+        try:
+            from fedot.industrial.tools.registry.model_registry import ModelRegistry
 
-        return assemble_output_container(
-            factory=CompressionOutputData,
-            request=build_output_container_request(
-                features=output_context.features,
-                task=self.task_type,
-                predict=pred_values,
-                data_type=DataTypesEnum.table,
-            ),
-            compatibility_context=output_context,
-            checkpoint_context=checkpoint_info,
-            model=self.model,
-        )
+            registry = ModelRegistry()
+            return assemble_registered_trainer_output(
+                output_factory=CompressionOutputData,
+                input_data=input_data,
+                request=TrainerOutputAssemblyRequest(
+                    task=self.task_type,
+                    predict=pred_values,
+                    data_type=DataTypesEnum.table,
+                    stage='after',
+                    trainer_fedcore_id=getattr(self, '_fedcore_id', None),
+                ),
+                model=self.model,
+                register_model=registry.register_model,
+                get_checkpoint_path=registry.get_checkpoint_path,
+                thread_local_context=registry.get_registry_context(),
+            )
+        except Exception:
+            output_context = self._extract_output_fields(input_data)
+            checkpoint_info = self._register_model_checkpoint(
+                model=self.model,
+                stage='after'
+            )
+
+            return assemble_output_container(
+                factory=CompressionOutputData,
+                request=build_output_container_request(
+                    features=output_context.features,
+                    task=self.task_type,
+                    predict=pred_values,
+                    data_type=DataTypesEnum.table,
+                ),
+                compatibility_context=output_context,
+                checkpoint_context=checkpoint_info,
+                model=self.model,
+            )
 
     @property
     def scheduler(self) -> Any:

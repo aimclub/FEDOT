@@ -1,3 +1,5 @@
+import pandas as pd
+
 from fedot.industrial.tools.registry.model_registry_cleanup_rules import (
     build_registry_storage_cleanup_plan,
 )
@@ -9,6 +11,10 @@ from fedot.industrial.tools.registry.model_registry_memory_policy_rules import (
 from fedot.industrial.tools.registry.model_registry_rules import (
     build_registry_record_plan,
     build_registry_stage_mode_plan,
+)
+from fedot.industrial.tools.registry.registry_update_rules import (
+    build_evaluator_metrics_update_plan,
+    build_register_changes_plan,
 )
 
 
@@ -42,6 +48,7 @@ def test_registry_save_planning_flow_preserves_stage_mode_and_checkpoint_policy(
     assert record_plan.mode == 'tensor_gpu_bridge'
 
 
+
 def test_registry_cleanup_planning_flow_preserves_storage_and_memory_intent():
     storage_plan = build_registry_storage_cleanup_plan(['record', 'checkpoint_bytes', 'metrics'])
     memory_plan = build_memory_cleanup_plan(
@@ -58,3 +65,23 @@ def test_registry_cleanup_planning_flow_preserves_storage_and_memory_intent():
     assert memory_plan.extra_cuda_cleanup_iterations == 3
     assert abs(efficiency_plan.memory_freed_gb - 3.5) < 1e-9
     assert abs(efficiency_plan.efficiency_percent - 70.0) < 1e-9
+
+
+
+def test_registry_update_planning_flow_routes_existing_and_extracts_last_generation_metrics():
+    register_changes_plan = build_register_changes_plan(
+        existing_record={'model': 'model_1'},
+        stage='after_fit',
+        mode='input_cpu',
+    )
+    metrics_plan = build_evaluator_metrics_update_plan(
+        pd.DataFrame([
+            {'generation': 0, 'metric_0': 0.1},
+            {'generation': 1, 'metric_0': 0.4, 'metric_1': 0.8},
+        ])
+    )
+
+    assert register_changes_plan.should_register_new is False
+    assert register_changes_plan.should_save_changes is True
+    assert metrics_plan.should_update is True
+    assert metrics_plan.metrics == {'metric_0': 0.4, 'metric_1': 0.8}
