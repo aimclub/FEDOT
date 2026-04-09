@@ -34,6 +34,11 @@ from .model_registry_rules import (
     build_registry_record_plan,
     build_registry_stage_mode_plan,
 )
+from .registry_persistence_rules import (
+    build_registry_checkpoint_target_plan,
+    build_registry_persistence_request,
+    execute_registry_persistence,
+)
 
 _registry_context = local()
 
@@ -143,21 +148,28 @@ class ModelRegistry:
 
         if save_cleanup_plan.should_log_before_save:
             self._log_memory_stats("before saving")
-        checkpoint_bytes = self.checkpoint_manager.serialize_to_bytes(model, model_path)
 
-        checkpoint_path = (model_path if model_path and os.path.isfile(model_path) else
-                           self.checkpoint_manager.generate_checkpoint_path(fedcore_id, model_id, safe_timestamp))
+        checkpoint_target_plan = build_registry_checkpoint_target_plan(
+            model_path=model_path,
+            generated_checkpoint_path=self.checkpoint_manager.generate_checkpoint_path(fedcore_id, model_id, safe_timestamp),
+            model_path_exists=bool(model_path and os.path.isfile(model_path)),
+        )
 
-        if checkpoint_path != model_path:
-            self.checkpoint_manager.save_to_file(
-                checkpoint_bytes,
-                checkpoint_path,
-                cleanup_after_save=save_cleanup_plan.cleanup_after_save,
-            )
-
-        record = self._create_record(fedcore_id, model_id, version, checkpoint_path,
+        record = self._create_record(fedcore_id, model_id, version, checkpoint_target_plan.checkpoint_path,
                                      model_path, stage, mode)
-        self.storage.append_record(fedcore_id, record)
+        persistence_request = build_registry_persistence_request(
+            fedcore_id=fedcore_id,
+            checkpoint_path=checkpoint_target_plan.checkpoint_path,
+            cleanup_after_save=save_cleanup_plan.cleanup_after_save,
+            should_save_file=checkpoint_target_plan.should_save_file,
+            record=record,
+        )
+        execute_registry_persistence(
+            request=persistence_request,
+            serialize_checkpoint=lambda: self.checkpoint_manager.serialize_to_bytes(model, model_path),
+            save_checkpoint=self.checkpoint_manager.save_to_file,
+            append_record=self.storage.append_record,
+        )
 
         if delete_model_after_save and model is not None:
             self.logger.info(f"Deleting model {model_id} from memory")
