@@ -6,15 +6,19 @@ from typing import Literal, Union
 from transformers import PreTrainedModel
 from torch.nn import Module
 from functools import reduce
-import numpy as np
 
 from fedot.industrial.core.architecture.settings.computational import default_device
 from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     build_hook_runtime_payload,
     execute_stage_hooks,
 )
+from fedot.industrial.core.models.nn.utils.registry_context_rules import (
+    build_resolved_registry_context,
+)
 from fedot.industrial.core.models.nn.utils.runtime_metadata_rules import (
+    OutputCompatibilityContext,
     RegistryCheckpointContext,
+    build_output_compatibility_context,
     build_registry_checkpoint_context,
 )
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
@@ -173,7 +177,7 @@ class BaseTrainer(ITrainer, IHookable):
 
         return normalized
 
-    def _extract_output_fields(self, input_data: Any) -> Dict[str, Any]:
+    def _extract_output_fields(self, input_data: Any) -> OutputCompatibilityContext:
         """Extract common fields from input_data for CompressionOutputData creation.
 
         Uses a mapping approach similar to _normalize_kwargs for consistent field extraction.
@@ -182,58 +186,9 @@ class BaseTrainer(ITrainer, IHookable):
             input_data: InputData or CompressionInputData instance
 
         Returns:
-            Dictionary with train_dataloader, val_dataloader, num_classes, and features
+            Typed compatibility context with features and loader metadata.
         """
-        if input_data is None:
-            return {
-                'train_dataloader': None,
-                'val_dataloader': None,
-                'num_classes': None,
-                'features': None
-            }
-
-        field_path_mapping = {
-            'train_dataloader': ['train_dataloader', ('features', 'train_dataloader')],
-            'val_dataloader': ['val_dataloader', ('features', 'val_dataloader')],
-            'num_classes': ['num_classes', ('features', 'num_classes')],
-            'features': ['features', ('features', 'features')]
-        }
-
-        def _get_value_by_path(obj: Any, path) -> Any:
-            """Extract value by attribute path, similar to normalization logic."""
-            if isinstance(path, str):
-                path = (path,)
-
-            try:
-                result = obj
-                for attr in path:
-                    result = getattr(result, attr) if hasattr(result, attr) else None
-                    if result is None:
-                        return None
-                return result
-            except (AttributeError, TypeError):
-                return None
-
-        extracted = {}
-
-        for field_name, paths in field_path_mapping.items():
-            value = None
-            for path in paths:
-                value = _get_value_by_path(input_data, path)
-
-                if value is not None:
-                    if field_name == 'features':
-                        if isinstance(value, np.ndarray):
-                            break
-                        elif hasattr(value, 'features'):
-                            value = value.features
-                            break
-                    else:
-                        break
-
-            extracted[field_name] = value
-
-        return extracted
+        return build_output_compatibility_context(input_data)
 
     def _register_model_checkpoint(self, model: Any, fedcore_id: str = None,
                                    stage: Optional[str] = None) -> RegistryCheckpointContext:
@@ -251,12 +206,12 @@ class BaseTrainer(ITrainer, IHookable):
             from fedot.industrial.tools.registry.model_registry import (ModelRegistry)
 
             registry = ModelRegistry()
-
-            if fedcore_id is None:
-                fedcore_id = getattr(self, '_fedcore_id', None)
-                if fedcore_id is None:
-                    from fedot.industrial.tools.registry.model_registry import _registry_context
-                    fedcore_id = getattr(_registry_context, 'fedcore_id', None)
+            resolved_context = build_resolved_registry_context(
+                explicit_fedcore_id=fedcore_id,
+                trainer_fedcore_id=getattr(self, '_fedcore_id', None),
+                thread_local_context=registry.get_registry_context(),
+            )
+            fedcore_id = resolved_context.fedcore_id
 
             if fedcore_id is None or model is None:
                 return build_registry_checkpoint_context(fedcore_id=fedcore_id)

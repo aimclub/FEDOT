@@ -542,7 +542,7 @@ class LLMTrainer(BaseTrainer):
                 raise TypeError(
                     f"Prediction conversion failed: cannot convert {type(pred).__name__} to Tensor. Error: {e}")
 
-        extracted_fields = self._extract_output_fields(input_data)
+        output_context = self._extract_output_fields(input_data)
 
         if self.task_type is None and input_data is not None:
             if hasattr(input_data, 'task'):
@@ -557,7 +557,7 @@ class LLMTrainer(BaseTrainer):
         )
 
         predict = CompressionOutputData(
-            features=extracted_fields['features'],
+            features=output_context.features,
             task=self.task_type,
             predict=pred_values,
             data_type=DataTypesEnum.table,
@@ -566,7 +566,7 @@ class LLMTrainer(BaseTrainer):
         return attach_output_runtime_context(
             predict,
             build_output_runtime_attachment_plan(
-                extracted_fields=extracted_fields,
+                compatibility_context=output_context,
                 checkpoint_context=checkpoint_info,
                 model=self.model,
             ),

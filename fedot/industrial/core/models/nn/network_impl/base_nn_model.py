@@ -257,7 +257,7 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
             then(lambda predict: self.label_encoder.inverse_transform(predict) if have_encoder else predict). \
             maybe(None, lambda output: output)
 
-        extracted_fields = self._extract_output_fields(input_data)
+        output_context = self._extract_output_fields(input_data)
 
         checkpoint_info = self._register_model_checkpoint(
             model=self.model,
@@ -265,7 +265,7 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
         )
 
         predict = TensorData(
-            features=extracted_fields['features'],
+            features=output_context.features,
             task=self.task_type,
             predict=pred,
             data_type=DataTypesEnum.table,
@@ -273,7 +273,7 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
         return attach_output_runtime_context(
             predict,
             build_output_runtime_attachment_plan(
-                extracted_fields=extracted_fields,
+                compatibility_context=output_context,
                 checkpoint_context=checkpoint_info,
                 model=self.model,
             ),
