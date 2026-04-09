@@ -25,13 +25,10 @@ from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
     build_hook_registration_plan,
     instantiate_hook_plan,
 )
-from fedot.industrial.core.models.nn.utils.output_assembly_rules import (
-    assemble_output_container,
-    build_output_container_request,
-)
 from fedot.industrial.core.models.nn.utils.trainer_output_rules import (
     TrainerOutputAssemblyRequest,
-    assemble_registered_trainer_output,
+    assemble_trainer_output_with_registry_fallback,
+    TrainerRegistryBindings,
 )
 from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
@@ -261,44 +258,30 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
             then(lambda predict: self.label_encoder.inverse_transform(predict) if have_encoder else predict). \
             maybe(None, lambda output: output)
 
-        try:
-            from fedot.industrial.tools.registry.model_registry import ModelRegistry
+        return assemble_trainer_output_with_registry_fallback(
+            output_factory=TensorData,
+            input_data=input_data,
+            request=TrainerOutputAssemblyRequest(
+                task=self.task_type,
+                predict=pred,
+                data_type=DataTypesEnum.table,
+                stage='after',
+                trainer_fedcore_id=getattr(self, '_fedcore_id', None),
+            ),
+            model=self.model,
+            registry_provider=lambda: _build_model_registry_bindings(),
+        )
 
-            registry = ModelRegistry()
-            return assemble_registered_trainer_output(
-                output_factory=TensorData,
-                input_data=input_data,
-                request=TrainerOutputAssemblyRequest(
-                    task=self.task_type,
-                    predict=pred,
-                    data_type=DataTypesEnum.table,
-                    stage='after',
-                    trainer_fedcore_id=getattr(self, '_fedcore_id', None),
-                ),
-                model=self.model,
-                register_model=registry.register_model,
-                get_checkpoint_path=registry.get_checkpoint_path,
-                thread_local_context=registry.get_registry_context(),
-            )
-        except Exception:
-            output_context = self._extract_output_fields(input_data)
-            checkpoint_info = self._register_model_checkpoint(
-                model=self.model,
-                stage='after'
-            )
 
-            return assemble_output_container(
-                factory=TensorData,
-                request=build_output_container_request(
-                    features=output_context.features,
-                    task=self.task_type,
-                    predict=pred,
-                    data_type=DataTypesEnum.table,
-                ),
-                compatibility_context=output_context,
-                checkpoint_context=checkpoint_info,
-                model=self.model,
-            )
+def _build_model_registry_bindings() -> TrainerRegistryBindings:
+    from fedot.industrial.tools.registry.model_registry import ModelRegistry
+
+    registry = ModelRegistry()
+    return TrainerRegistryBindings(
+        register_model=registry.register_model,
+        get_checkpoint_path=registry.get_checkpoint_path,
+        thread_local_context=registry.get_registry_context(),
+    )
 
     # def _clear_cache(self):
     #     """Clear CUDA cache - shared by BaseNeuralModel and LLMTrainer"""

@@ -1,6 +1,7 @@
 from fedot.industrial.core.models.nn.utils.trainer_output_rules import (
     TrainerOutputAssemblyRequest,
     assemble_registered_trainer_output,
+    assemble_trainer_output_with_registry_fallback,
 )
 
 
@@ -67,7 +68,6 @@ def test_assemble_registered_trainer_output_runs_full_fake_registry_flow():
     assert output.fedcore_id == 'fedcore_explicit'
 
 
-
 def test_assemble_registered_trainer_output_skips_registration_without_model():
     calls = {'registers': 0, 'paths': 0}
 
@@ -96,5 +96,28 @@ def test_assemble_registered_trainer_output_skips_registration_without_model():
 
     assert calls == {'registers': 0, 'paths': 0}
     assert output.fedcore_id == 'fedcore_only'
+    assert not hasattr(output, 'model_id')
+    assert not hasattr(output, 'checkpoint_path')
+
+
+def test_assemble_trainer_output_with_registry_fallback_preserves_trainer_context():
+    output = assemble_trainer_output_with_registry_fallback(
+        output_factory=_OutputData,
+        input_data=_InputData(),
+        request=TrainerOutputAssemblyRequest(
+            task='task',
+            predict='predict',
+            data_type='table',
+            stage='after',
+            trainer_fedcore_id='trainer_fedcore',
+        ),
+        model='model_object',
+        registry_provider=lambda: (_ for _ in ()).throw(RuntimeError('registry unavailable')),
+    )
+
+    assert output.features == 'nested_features'
+    assert output.num_classes == 4
+    assert output.model == 'model_object'
+    assert output.fedcore_id == 'trainer_fedcore'
     assert not hasattr(output, 'model_id')
     assert not hasattr(output, 'checkpoint_path')
