@@ -25,11 +25,11 @@ from fedot.industrial.core.models.nn.utils.hook_registration_rules import (
     build_hook_registration_plan,
     instantiate_hook_plan,
 )
-from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
-from fedot.industrial.core.models.nn.utils.runtime_metadata_rules import (
-    attach_output_runtime_context,
-    build_output_runtime_attachment_plan,
+from fedot.industrial.core.models.nn.utils.output_assembly_rules import (
+    assemble_output_container,
+    build_output_container_request,
 )
+from fedot.industrial.core.models.nn.utils.hooks_collection import HooksCollection
 from fedot.industrial.core.models.nn.utils._base import BaseTrainer
 
 BASE_REGRESSION_DTYPE = torch.float32
@@ -264,19 +264,17 @@ class BaseNeuralModel(torch.nn.Module, BaseTrainer):
             stage='after'
         )
 
-        predict = TensorData(
-            features=output_context.features,
-            task=self.task_type,
-            predict=pred,
-            data_type=DataTypesEnum.table,
-        )
-        return attach_output_runtime_context(
-            predict,
-            build_output_runtime_attachment_plan(
-                compatibility_context=output_context,
-                checkpoint_context=checkpoint_info,
-                model=self.model,
+        return assemble_output_container(
+            factory=TensorData,
+            request=build_output_container_request(
+                features=output_context.features,
+                task=self.task_type,
+                predict=pred,
+                data_type=DataTypesEnum.table,
             ),
+            compatibility_context=output_context,
+            checkpoint_context=checkpoint_info,
+            model=self.model,
         )
 
     # def _clear_cache(self):

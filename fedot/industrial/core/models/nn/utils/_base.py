@@ -8,12 +8,13 @@ from torch.nn import Module
 from functools import reduce
 
 from fedot.industrial.core.architecture.settings.computational import default_device
+from fedot.industrial.core.models.nn.utils.checkpoint_registration_rules import (
+    build_checkpoint_registration_request,
+    execute_checkpoint_registration,
+)
 from fedot.industrial.core.models.nn.utils.hook_runtime_rules import (
     build_hook_runtime_payload,
     execute_stage_hooks,
-)
-from fedot.industrial.core.models.nn.utils.registry_context_rules import (
-    build_resolved_registry_context,
 )
 from fedot.industrial.core.models.nn.utils.runtime_metadata_rules import (
     OutputCompatibilityContext,
@@ -206,29 +207,18 @@ class BaseTrainer(ITrainer, IHookable):
             from fedot.industrial.tools.registry.model_registry import (ModelRegistry)
 
             registry = ModelRegistry()
-            resolved_context = build_resolved_registry_context(
+            request = build_checkpoint_registration_request(
+                model_present=model is not None,
+                stage=stage,
                 explicit_fedcore_id=fedcore_id,
                 trainer_fedcore_id=getattr(self, '_fedcore_id', None),
                 thread_local_context=registry.get_registry_context(),
             )
-            fedcore_id = resolved_context.fedcore_id
-
-            if fedcore_id is None or model is None:
-                return build_registry_checkpoint_context(fedcore_id=fedcore_id)
-
-            model_id = registry.register_model(
-                fedcore_id=fedcore_id,
+            return execute_checkpoint_registration(
+                request=request,
                 model=model,
-                stage=stage,
-                delete_model_after_save=False
-            )
-
-            checkpoint_path = registry.get_checkpoint_path(fedcore_id, model_id)
-
-            return build_registry_checkpoint_context(
-                model_id=model_id,
-                checkpoint_path=checkpoint_path,
-                fedcore_id=fedcore_id,
+                register_model=registry.register_model,
+                get_checkpoint_path=registry.get_checkpoint_path,
             )
         except Exception as e:
             import logging
