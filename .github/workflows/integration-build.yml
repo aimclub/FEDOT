@@ -1,4 +1,4 @@
-name: Integration
+name: Integration (Core)
 
 on:
   schedule:
@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 95
     strategy:
       matrix:
-        python-version: [ 3.9, '3.10' ]
+        python-version: [ '3.10' ]
 
     steps:
       - name: Free disk space
@@ -23,24 +23,27 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
+
       - name: Checkout branch
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python pin ${{ matrix.python-version }}
+
+      - name: Sync FEDOT dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          pip install .[extra]
-          pip install .[examples]
-          pip install .[profilers]
-          pip install pytest-cov
-      - name: Test with pytest
+          uv sync --group extra --group examples --group profilers --dev
+
+      - name: FEDOT Integration tests
         run: |
-          pytest --cov=fedot -s test/integration
-      - name: Notify telegram bot
+          uv run pytest --cov=fedot -s test/integration
+
+      - name: Notify telegram bot (schedule failure only)
         uses: appleboy/telegram-action@master
         if: ${{ failure() && github.event_name == 'schedule' }}
         with:
