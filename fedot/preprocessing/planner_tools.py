@@ -148,17 +148,9 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
 
     A column is treated as categorical if:
     1. it has object/string-like dtype or contains python string objects, and
-    2. it cannot be safely converted to numeric values.
+    2. among non-missing values, it cannot be safely converted to numeric values.
 
-    This handles the case when the whole numpy array has dtype=object because
-    at least one column contains strings.
-
-    Args:
-        table (ArrayType): Feature matrix of shape (n_samples, n_features).
-
-    Returns:
-        IndexType: Indices of detected categorical columns, or None if no
-            categorical columns are found.
+    Missing values (None, np.nan, pd.NA, etc.) do not make a column categorical.
     """
     pd_backend = Backend().pd
 
@@ -167,28 +159,28 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     for column_id, column in enumerate(table.T):
         series = pd_backend.Series(column)
 
-        # Fast path for explicitly numeric pandas dtypes
         if pd_backend.api.types.is_numeric_dtype(series):
             continue
 
-        # Try to coerce the whole column to numeric.
-        # If it succeeds, this is not a categorical column even if the source
-        # numpy array had dtype=object.
-        numeric_series = pd_backend.to_numeric(series, errors='coerce')
-        is_fully_numeric = numeric_series.notna().all()
+        numeric_series = pd_backend.to_numeric(series, errors="coerce")
+
+        original_notna = ~pd_backend.isna(series)
+        converted_notna = ~pd_backend.isna(numeric_series)
+
+        is_fully_numeric = converted_notna[original_notna].all()
 
         if is_fully_numeric:
             continue
 
-        # If conversion to numeric failed, mark as categorical only when the
-        # source data is actually object/string-like.
         has_object_or_string_dtype = (
             str(series.dtype) in ("object", "string")
             or pd_backend.api.types.is_object_dtype(series)
             or pd_backend.api.types.is_string_dtype(series)
         )
 
-        has_string_values = series.map(lambda x: isinstance(x, str)).any()
+        has_string_values = series.map(
+            lambda x: isinstance(x, str) and x.strip().lower() not in {"nan", "none", "null", "na", "n/a", ""}
+        ).any()
 
         if has_object_or_string_dtype or has_string_values:
             categorical_ids.append(column_id)

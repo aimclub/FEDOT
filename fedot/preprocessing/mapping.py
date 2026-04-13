@@ -2,10 +2,17 @@ from fedot.preprocessing.preprocessor_types import (PreprocessingStepEnum,
                                                     ImputationMethodEnum, 
                                                     ScalingMethodEnum, 
                                                     EmbeddingMethodEnum,
-                                                    EncodingMethodEnum)
+                                                    EncodingMethodEnum,
+                                                    FilteringMethodEnum)
 from fedot.preprocessing.imputation import (MeanImputation, MedianImputation,
                                             ModeImputation, ConstantImputation,
                                             DeleteRawImputation)
+from fedot.preprocessing.scaling_normalization import (StandartScaling, 
+                                                       MinMaxNormalization,
+                                                       RobustScaling,
+                                                       SeasonalNormalization,
+                                                       RollingNormalization)
+from fedot.preprocessing.filtering import QuantileClipping
 from fedot.preprocessing.embedding import TransformerEmbedder
 from fedot.preprocessing.categorical_encoding import LabelEncoder, OneHotEncoder
 
@@ -19,9 +26,15 @@ PREPROCESSING_OPTIONAL_MAPPING = {
         ImputationMethodEnum.delete_raw: DeleteRawImputation
     },
     PreprocessingStepEnum.scaling: {
-        # ScalingMethodEnum.min_max: MinMaxScalingHandler(),
-        # ScalingMethodEnum.standard: StandardScalingHandler(),
+        ScalingMethodEnum.min_max: MinMaxNormalization,
+        ScalingMethodEnum.standard: StandartScaling,
+        ScalingMethodEnum.robust: RobustScaling,
+        ScalingMethodEnum.seasonal: SeasonalNormalization,
+        ScalingMethodEnum.rolling: RollingNormalization
     },
+    PreprocessingStepEnum.filtering: {
+        FilteringMethodEnum.quantile: QuantileClipping,
+    }
 }
 
 
@@ -34,3 +47,4 @@ PREPROCESSING_OBLIGATORY_MAPPING = {
         EncodingMethodEnum.ohe: OneHotEncoder,
     }
 }
+

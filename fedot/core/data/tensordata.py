@@ -301,7 +301,7 @@ class TensorData:
                 logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
                 ctx = Backend().override("cpu")
                 with Backend().override("cpu"):
-                    self.features = Backend().xp.array(self.features)
+                    self.features = Backend().xp.array(self.features, dtype=object)
             
             with ctx:
                 self._post_init_raw()

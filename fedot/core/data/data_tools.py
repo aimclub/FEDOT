@@ -128,8 +128,9 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
         pass
 
     arr_obj = xp.asarray(arr, dtype=object)
-
     has_string = False
+
+    missing_strings = {"", "nan", "none", "null", "na", "n/a"}
 
     def _normalize(x: object):
         nonlocal has_string
@@ -138,6 +139,10 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
             return xp.nan
 
         if isinstance(x, str):
+            stripped = x.strip().lower()
+            if stripped in missing_strings:
+                return xp.nan
+
             has_string = True
             return x
 

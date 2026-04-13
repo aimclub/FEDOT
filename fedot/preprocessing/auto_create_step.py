@@ -1,6 +1,10 @@
 import torch
 
-from fedot.preprocessing.preprocessor_types import PreprocessingStep, PreprocessingStepEnum, ImputationMethodEnum
+from fedot.preprocessing.preprocessor_types import (PreprocessingStep, 
+                                                    PreprocessingStepEnum,
+                                                    ImputationMethodEnum,
+                                                    ScalingMethodEnum,
+                                                    FilteringMethodEnum)
 from fedot.core.data.tensordata import TensorData
 
 
@@ -39,6 +43,32 @@ def auto_imputation_steps(data: TensorData):
     return steps
 
 
+def auto_scaling_steps(data: TensorData):
+    steps = []
+    if len(data.numerical_idx) > 0:
+        step = PreprocessingStep(PreprocessingStepEnum.scaling,
+                                 ScalingMethodEnum.min_max,
+                                 data.numerical_idx)
+        steps.append(step)
+    else:
+        step = None
+    return steps
+
+
+def auto_clipping_step(data: TensorData):
+    steps = []
+    if len(data.numerical_idx) > 0:
+        step = PreprocessingStep(PreprocessingStepEnum.filtering,
+                                 FilteringMethodEnum.quantile,
+                                 data.numerical_idx)
+        steps.append(step)
+    else:
+        step = None
+    return steps
+
+
 AUTO_CREATE_STEP_MAPPING = {
     PreprocessingStepEnum.imputation: auto_imputation_steps,
+    PreprocessingStepEnum.scaling: auto_scaling_steps,
+    PreprocessingStepEnum.filtering: auto_clipping_step
 }

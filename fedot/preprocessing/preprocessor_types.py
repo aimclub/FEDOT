@@ -38,6 +38,7 @@ class PreprocessingStepEnum(Enum):
     embedding = "embedding"
     imputation = "imputation"
     scaling = "scaling"
+    filtering = "filtering"
 
 
 class EncodingMethodEnum(Enum):
@@ -57,6 +58,13 @@ class ImputationMethodEnum(Enum):
 class ScalingMethodEnum(Enum):
     min_max = "min_max"
     standard = "standard"
+    robust = "robust"
+    seasonal = "seasonal"
+    rolling = "rolling"
+
+
+class FilteringMethodEnum(Enum):
+    quantile = "quantile"
 
 
 @dataclass
@@ -66,6 +74,7 @@ class PreprocessingStep:
     features_idx: IndexType
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)
+    # TODO: to args all model_name...
     model_name: Optional[str] = None 
     batch_size: Optional[int] = None
     device: torch.device = torch.device("cpu")
