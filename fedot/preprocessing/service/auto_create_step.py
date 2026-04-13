@@ -1,6 +1,6 @@
 import torch
 
-from fedot.preprocessing.preprocessor_types import (PreprocessingStep, 
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep, 
                                                     PreprocessingStepEnum,
                                                     ImputationMethodEnum,
                                                     ScalingMethodEnum,

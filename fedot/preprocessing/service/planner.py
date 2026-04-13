@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, List
 
-from fedot.preprocessing.preprocessor_types import PreprocessingStep, PreprocessingStepEnum, ImputationMethodEnum
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum, ImputationMethodEnum
 from fedot.core.data.tensordata import TensorData
 
-from fedot.preprocessing.optional_steps import get_optional_steps
+from fedot.preprocessing.service.optional_steps import get_optional_steps
 
 
 @dataclass

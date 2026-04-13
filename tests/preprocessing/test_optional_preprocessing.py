@@ -1,15 +1,15 @@
 import numpy as np
 import torch
 
-from fedot.preprocessing.mapping import PREPROCESSING_OPTIONAL_MAPPING
-from fedot.preprocessing.preprocessor_types import (PreprocessingStepEnum, 
+from fedot.preprocessing.service.mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
                                                     ImputationMethodEnum, 
                                                     ScalingMethodEnum,
                                                     FilteringMethodEnum)
-from fedot.preprocessing.service import OtionalPreprocessingService
+from fedot.preprocessing.service.service import OtionalPreprocessingService
 from fedot.core.data.prepared_data import PreparedData
 from fedot.core.data.tensordata import TensorData
-from fedot.preprocessing.planner import build_optional_plan, PreprocessingPlan
+from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
 
 
 def test_build_optional_plan():
@@ -505,6 +505,6 @@ def test_preprocessing_clipping():
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # test_encoding_autoscaling_imputation()
     # test_preprocessing_clipping()

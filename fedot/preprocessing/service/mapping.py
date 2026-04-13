@@ -1,20 +1,20 @@
-from fedot.preprocessing.preprocessor_types import (PreprocessingStepEnum, 
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
                                                     ImputationMethodEnum, 
                                                     ScalingMethodEnum, 
                                                     EmbeddingMethodEnum,
                                                     EncodingMethodEnum,
                                                     FilteringMethodEnum)
-from fedot.preprocessing.imputation import (MeanImputation, MedianImputation,
+from fedot.preprocessing.methods.imputation import (MeanImputation, MedianImputation,
                                             ModeImputation, ConstantImputation,
                                             DeleteRawImputation)
-from fedot.preprocessing.scaling_normalization import (StandartScaling, 
+from fedot.preprocessing.methods.scaling_normalization import (StandartScaling, 
                                                        MinMaxNormalization,
                                                        RobustScaling,
                                                        SeasonalNormalization,
                                                        RollingNormalization)
-from fedot.preprocessing.filtering import QuantileClipping
-from fedot.preprocessing.embedding import TransformerEmbedder
-from fedot.preprocessing.categorical_encoding import LabelEncoder, OneHotEncoder
+from fedot.preprocessing.methods.filtering import QuantileClipping
+from fedot.preprocessing.methods.embedding import TransformerEmbedder
+from fedot.preprocessing.methods.categorical_encoding import LabelEncoder, OneHotEncoder
 
 
 PREPROCESSING_OPTIONAL_MAPPING = {

@@ -7,7 +7,7 @@ import os
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensordata import TensorData, LazyTensor
-from fedot.preprocessing.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
+from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 

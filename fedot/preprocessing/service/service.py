@@ -2,10 +2,10 @@ from typing import Optional
 
 from fedot.core.data.prepared_data import PreparedData
 #  TODO: add step type in preprocessing_types
-from fedot.preprocessing.preprocessing_tools import update_index_mapping, update_indices
+from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping, update_indices
 from fedot.core.data.tensordata import TensorData
-from fedot.preprocessing.planner import build_optional_plan, PreprocessingPlan
-from fedot.preprocessing.mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
+from fedot.preprocessing.service.mapping import PREPROCESSING_OPTIONAL_MAPPING
 
 class OtionalPreprocessingService:
 

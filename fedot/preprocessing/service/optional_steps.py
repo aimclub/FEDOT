@@ -1,9 +1,9 @@
 import torch
 import logging
 
-from fedot.preprocessing.auto_create_step import AUTO_CREATE_STEP_MAPPING
+from fedot.preprocessing.service.auto_create_step import AUTO_CREATE_STEP_MAPPING
 from fedot.core.data.tensordata import TensorData
-from fedot.preprocessing.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
 from fedot.preprocessing.structure import PipelineStructureExplorer
 
 

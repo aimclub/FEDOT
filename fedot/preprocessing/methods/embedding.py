@@ -3,7 +3,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 
 from fedot.core.data.complex_types import ArrayType
-from fedot.preprocessing.preprocessor_types import PreprocessingStep
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep
 from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.prepared_data import PreparedData
 

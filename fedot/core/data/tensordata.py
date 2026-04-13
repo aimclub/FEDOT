@@ -26,12 +26,12 @@ from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.data import autodetect_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
-from fedot.preprocessing.planner_tools import (get_embedding_step, 
+from fedot.preprocessing.tools.planner_tools import (get_embedding_step, 
                                                get_encoding_steps, 
                                                get_target_encoding_step)
 
-from fedot.preprocessing.obligatory_executor import apply_obligatory_steps
-from fedot.preprocessing.preprocessing_tools import (create_index_mapping, 
+from fedot.preprocessing.service.obligatory_executor import apply_obligatory_steps
+from fedot.preprocessing.tools.preprocessing_tools import (create_index_mapping, 
                                                      update_indices,
                                                      agregate_idx_from_step)
 

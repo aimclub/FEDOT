@@ -2,7 +2,7 @@ from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 from fedot.core.data.prepared_data import PreparedData
 
-from fedot.preprocessing.preprocessor_types import PreprocessingStep
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep
 
 
 """

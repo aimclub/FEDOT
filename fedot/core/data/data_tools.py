@@ -11,7 +11,7 @@ from fedot.core.data.complex_types import PathType, PandasType, ArrayType, Index
 from fedot.core.data.tools import StateEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.preprocessing_tools import update_index_mapping
+from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping
 
 
 logger = logging.getLogger(__name__)
