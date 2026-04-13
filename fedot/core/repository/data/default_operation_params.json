@@ -256,6 +256,24 @@
     "max_samples": 1000,
     "max_features": 500
   },
+  "tabicl": {
+    "n_estimators": 8,
+    "softmax_temperature": 0.9,
+    "average_logits": true,
+    "outlier_threshold": 4.0,
+    "device": "cpu",
+    "max_samples": 5000,
+    "max_features": 500
+  },
+  "tabiclreg": {
+    "n_estimators": 8,
+    "softmax_temperature": 0.9,
+    "average_logits": true,
+    "outlier_threshold": 4.0,
+    "device": "cpu",
+    "max_samples": 5000,
+    "max_features": 500
+  },
   "tabpfn_gpu": {
     "n_jobs": 1,
     "n_estimators": 4,
@@ -287,6 +305,24 @@
     "inference_config": null,
     "enable_categorical": true,
     "max_samples": 10000,
+    "max_features": 500
+  },
+  "tabicl_gpu": {
+    "n_estimators": 8,
+    "softmax_temperature": 0.9,
+    "average_logits": true,
+    "outlier_threshold": 4.0,
+    "device": "cuda",
+    "max_samples": 30000,
+    "max_features": 500
+  },
+  "tabiclreg_gpu": {
+    "n_estimators": 8,
+    "softmax_temperature": 0.9,
+    "average_logits": true,
+    "outlier_threshold": 4.0,
+    "device": "cuda",
+    "max_samples": 30000,
     "max_features": 500
   }
 }

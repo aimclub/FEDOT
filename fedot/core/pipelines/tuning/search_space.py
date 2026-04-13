@@ -969,6 +969,50 @@ class PipelineSearchSpace(SearchSpace):
                     'sampling-scope': [[True, False]],
                     'type': 'categorical'
                 },
+            },
+            'tabicl': {
+                'n_estimators': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 16],
+                    'type': 'discrete'
+                },
+                'softmax_temperature': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.0, 1.0],
+                    'type': 'continuous'
+                },
+                'average_logits': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'outlier_threshold': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [2.0, 6.0],
+                    'type': 'continuous'
+                },
+            },
+            'tabiclreg': {
+                'n_estimators': {
+                    'hyperopt-dist': hp.uniformint,
+                    'sampling-scope': [1, 16],
+                    'type': 'discrete'
+                },
+                'softmax_temperature': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [0.0, 1.0],
+                    'type': 'continuous'
+                },
+                'average_logits': {
+                    'hyperopt-dist': hp.choice,
+                    'sampling-scope': [[True, False]],
+                    'type': 'categorical'
+                },
+                'outlier_threshold': {
+                    'hyperopt-dist': hp.uniform,
+                    'sampling-scope': [2.0, 6.0],
+                    'type': 'continuous'
+                },
             }
         }
 
