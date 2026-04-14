@@ -46,12 +46,21 @@ def auto_imputation_steps(data: TensorData):
 def auto_scaling_steps(data: TensorData):
     steps = []
     if len(data.numerical_idx) > 0:
-        step = PreprocessingStep(PreprocessingStepEnum.scaling,
-                                 ScalingMethodEnum.min_max,
-                                 data.numerical_idx)
+        if data.ts_init_shape is None or len(data.ts_init_shape) == 2:
+            step = PreprocessingStep(PreprocessingStepEnum.scaling,
+                                    ScalingMethodEnum.min_max,
+                                    data.numerical_idx)
+        else:
+            step = PreprocessingStep(PreprocessingStepEnum.scaling,
+                                    ScalingMethodEnum.standart_per_channel,
+                                    step_args={
+                                        'with_centering': True,
+                                        'with_scaling': True,
+                                        'channels_idx': list(range(data.ts_init_shape[2]))
+                                    })
         steps.append(step)
     else:
-        step = None
+        steps = None
     return steps
 
 

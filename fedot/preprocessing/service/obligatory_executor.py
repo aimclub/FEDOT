@@ -1,6 +1,6 @@
 from fedot.core.data.complex_types import ArrayType
 from fedot.core.data.prepared_data import PreparedData
-from fedot.preprocessing.service.mapping import PREPROCESSING_OBLIGATORY_MAPPING
+from fedot.preprocessing.tools.mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep)
 from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping, update_indices
 from fedot.core.data.tools import StateEnum

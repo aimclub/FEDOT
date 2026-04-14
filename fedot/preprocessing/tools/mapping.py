@@ -3,7 +3,8 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                     ScalingMethodEnum, 
                                                     EmbeddingMethodEnum,
                                                     EncodingMethodEnum,
-                                                    FilteringMethodEnum)
+                                                    FilteringMethodEnum,
+                                                    ImagePreprocessingMethodEnum)
 from fedot.preprocessing.methods.imputation import (MeanImputation, MedianImputation,
                                             ModeImputation, ConstantImputation,
                                             DeleteRawImputation)
@@ -11,7 +12,12 @@ from fedot.preprocessing.methods.scaling_normalization import (StandartScaling,
                                                        MinMaxNormalization,
                                                        RobustScaling,
                                                        SeasonalNormalization,
-                                                       RollingNormalization)
+                                                       RollingNormalization,
+                                                       PerChannelNormalization)
+from fedot.preprocessing.multi_channel_methods.image_preprocessing import (ContrastEqualization,
+                                                                        ContrastStretching,
+                                                                        GammaCorrection,
+                                                                        LogTransform)
 from fedot.preprocessing.methods.filtering import QuantileClipping
 from fedot.preprocessing.methods.embedding import TransformerEmbedder
 from fedot.preprocessing.methods.categorical_encoding import LabelEncoder, OneHotEncoder
@@ -30,10 +36,17 @@ PREPROCESSING_OPTIONAL_MAPPING = {
         ScalingMethodEnum.standard: StandartScaling,
         ScalingMethodEnum.robust: RobustScaling,
         ScalingMethodEnum.seasonal: SeasonalNormalization,
-        ScalingMethodEnum.rolling: RollingNormalization
+        ScalingMethodEnum.rolling: RollingNormalization,
+        ScalingMethodEnum.standart_per_channel: PerChannelNormalization,
     },
     PreprocessingStepEnum.filtering: {
         FilteringMethodEnum.quantile: QuantileClipping,
+    },
+    PreprocessingStepEnum.image_preprocessing: {
+        ImagePreprocessingMethodEnum.contrast_equalization: ContrastEqualization,
+        ImagePreprocessingMethodEnum.contrast_stretching: ContrastStretching,
+        ImagePreprocessingMethodEnum.gamma_correction: GammaCorrection,
+        ImagePreprocessingMethodEnum.log_transformation: LogTransform
     }
 }
 

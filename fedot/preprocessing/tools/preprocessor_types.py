@@ -39,6 +39,7 @@ class PreprocessingStepEnum(Enum):
     imputation = "imputation"
     scaling = "scaling"
     filtering = "filtering"
+    image_preprocessing = "image_preprocessing"
 
 
 class EncodingMethodEnum(Enum):
@@ -61,6 +62,14 @@ class ScalingMethodEnum(Enum):
     robust = "robust"
     seasonal = "seasonal"
     rolling = "rolling"
+    standart_per_channel = "standart_per_channel"
+
+
+class ImagePreprocessingMethodEnum(Enum):
+    contrast_equalization = "contrast_equalization"
+    contrast_stretching = "contrast_stretching"
+    gamma_correction = "gamma_correction"
+    log_transformation = "log_transformation"
 
 
 class FilteringMethodEnum(Enum):

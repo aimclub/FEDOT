@@ -252,7 +252,7 @@ class TensorData:
     ts_orientation: Optional[str] = None
     ts_terms_idx: Optional[Union[int, str]] = None
     ts_forecast_horizon: Optional[int] = None
-    ts_init_shape: Optional[int] = None
+    ts_init_shape: Optional[Tuple[int]] = None
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
         "batch_size": 32,
@@ -327,8 +327,6 @@ class TensorData:
 
         self.features = replace_missing_with_nan(self.features)
 
-        self.idx_mapping = create_index_mapping(self.features)
-
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
                                                     self.target,
                                                     self.features_names,
@@ -337,6 +335,8 @@ class TensorData:
                                                     self.ts_terms_idx,
                                                     self.ts_forecast_horizon,
                                                     self.data_type)
+        
+        self.idx_mapping = create_index_mapping(self.features, self.ts_init_shape)
 
         self.features, self.target, self.idx_mapping = get_target_and_features(self.features,
                                                             self.target,
@@ -355,7 +355,7 @@ class TensorData:
         self.features, self.target = _drop_rows_with_nan_in_target(self.features, self.target)
 
         # get embeddings
-        embedding_step = get_embedding_step(self.embedding_strategy, self.features_names, self.idx_mapping)
+        embedding_step = get_embedding_step(self.embedding_strategy, self.features_names, self.idx_mapping, self.data_type)
         if embedding_step is not None:
             self.text_idx = agregate_idx_from_step(embedding_step)
             self.features, embedding_step, self.idx_mapping = apply_obligatory_steps(self.features, embedding_step, self.idx_mapping)

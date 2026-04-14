@@ -9,6 +9,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep, Imp
                                                     PreprocessingStepEnum, EmbeddingMethodEnum, 
                                                     EncodingMethodEnum)
 from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def has_nan_func(features: torch.Tensor) -> bool:
@@ -96,9 +97,12 @@ def preprocess_optional_params(step_name: PreprocessingStepEnum, features: torch
 
 def get_embedding_step(parameters: Union[Dict], 
                        features_names: Optional[List[str]] = None, 
-                       idx_mapping: Optional[Dict[int, int]] = None) -> PreprocessingStep:
+                       idx_mapping: Optional[Dict[int, int]] = None,
+                       feature_type: Optional[DataTypesEnum] = None) -> PreprocessingStep:
     """
     """
+    if feature_type == DataTypesEnum.ts:
+        return None
 
     if parameters is None:
         return None
@@ -253,9 +257,13 @@ def preprocess_encoding_params(params: Dict,
 def get_encoding_steps(parameters: Optional[Union[List,Dict]], 
                        features: ArrayType, 
                        features_names: Optional[List[str]] = None,
-                       idx_mapping: Optional[Dict[int, int]] = None) -> List[PreprocessingStep]:
+                       idx_mapping: Optional[Dict[int, int]] = None,
+                       feature_type: Optional[DataTypesEnum] = None) -> List[PreprocessingStep]:
     """
     """
+
+    if feature_type == DataTypesEnum.ts:
+        return None
 
     steps = []
 

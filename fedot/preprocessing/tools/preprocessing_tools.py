@@ -1,10 +1,13 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 
 from fedot.core.data.complex_types import ArrayType, IndexType
 
 
-def create_index_mapping(features: ArrayType) -> Dict[int, int]:
-    return {idx: idx for idx in range(features.shape[1])}
+def create_index_mapping(features: ArrayType, init_shape: Optional[Tuple[int]] = None) -> Dict[int, int]:
+    if init_shape is None or len(init_shape) == 2: # for 2-dimensional
+        return {idx: idx for idx in range(features.shape[1])}
+    else: # for 3-dimensional, only for ts type
+        return {idx: idx for idx in range(features.shape[1] // init_shape[2])}
 
 
 def update_index_mapping(
@@ -15,6 +18,9 @@ def update_index_mapping(
 ) -> Dict[int, int]:
     if index_mapping is None:
         return None
+    
+    if changed_idx is None:
+        return index_mapping
 
     changed_idx = sorted(set(changed_idx))
     old_n_cols = max(index_mapping.keys()) + 1

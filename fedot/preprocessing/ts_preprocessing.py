@@ -60,7 +60,7 @@ def long_to_wide(features: ArrayType,
     return wide, unique_labels
 
 
-def check_multichannel_ts(features: ArrayType):
+def reshape_and_get_init_shape(features: ArrayType):
     """
     Normalize input time series with potentially multiple channels.
 
@@ -81,14 +81,13 @@ def check_multichannel_ts(features: ArrayType):
 
     if features.ndim == 1:
         features = xp.expand_dims(features, axis=0)
-        init_shape = None
+        init_shape = features.shape
     elif features.ndim == 2:
-        B, T = features.shape
-        init_shape = None
+        init_shape = features.shape
     elif features.ndim == 3:
+        init_shape = features.shape
         B, C, T = features.shape
         features = features.reshape(B * C, T)
-        init_shape = (B, C, T)
     elif features.ndim > 3:
         raise ValueError("Multichannel time series must not have more than 3 dimensions")
 
@@ -141,7 +140,7 @@ def process_ts_data(
     if data_type == DataTypesEnum.tabular:
         return features, target, None, None
 
-    features, init_shape = check_multichannel_ts(features)
+    features, init_shape = reshape_and_get_init_shape(features)
 
     if isinstance(ts_orientation, str):
         ts_orientation = TSOrientationEnum(ts_orientation)

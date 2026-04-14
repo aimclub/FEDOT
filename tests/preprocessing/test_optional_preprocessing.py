@@ -1,11 +1,12 @@
 import numpy as np
 import torch
 
-from fedot.preprocessing.service.mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.tools.mapping import PREPROCESSING_OPTIONAL_MAPPING
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
                                                     ImputationMethodEnum, 
                                                     ScalingMethodEnum,
-                                                    FilteringMethodEnum)
+                                                    FilteringMethodEnum,
+                                                    ImagePreprocessingMethodEnum)
 from fedot.preprocessing.service.service import OtionalPreprocessingService
 from fedot.core.data.prepared_data import PreparedData
 from fedot.core.data.tensordata import TensorData
@@ -503,6 +504,290 @@ def test_preprocessing_clipping():
 
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
+
+def test_preprocessing_per_channel_normalization():
+    X = np.array([
+        [
+            [1, 10],
+            [2, 20],
+            [3, 30],
+        ],
+        [
+            [4, 40],
+            [5, np.nan],
+            [6, 60],
+        ],
+    ], dtype=np.float32)
+
+    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+
+    service = OtionalPreprocessingService()
+    preprocessed_data = service.fit_transform(
+        td,
+        None,
+        {
+            PreprocessingStepEnum.scaling: [{
+                "method": ScalingMethodEnum.standart_per_channel,
+                "features_idx": None,
+                "step_args": {"channels_idx": [1]},
+            }]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+
+    channel_values = X[:, :, 1].reshape(-1)
+    valid = channel_values[~np.isnan(channel_values)]
+
+    mean = valid.mean()
+    std = valid.std()
+    if std == 0:
+        std = 1.0
+
+    expected_channel = np.array([
+        [
+            (10 - mean) / std,
+            (20 - mean) / std,
+            (30 - mean) / std,
+        ],
+        [
+            (40 - mean) / std,
+            np.nan,
+            (60 - mean) / std,
+        ],
+    ], dtype=np.float32)
+
+    valid_mask = ~np.isnan(expected_channel)
+    assert np.allclose(result[:, :, 1][valid_mask], expected_channel[valid_mask], atol=1e-6)
+    assert np.isnan(result[1, 1, 1])
+
+    assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
+
+
+def test_preprocessing_contrast_equalization():
+    X = np.array([
+        [
+            [1, 10],
+            [2, 20],
+            [3, 30],
+        ],
+        [
+            [4, 40],
+            [5, np.nan],
+            [6, 60],
+        ],
+    ], dtype=np.float32)
+
+    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+
+    service = OtionalPreprocessingService()
+    preprocessed_data = service.fit_transform(
+        td,
+        None,
+        {
+            PreprocessingStepEnum.image_preprocessing: [{
+                "method": ImagePreprocessingMethodEnum.contrast_equalization,
+                "features_idx": None,
+                "step_args": {"channels_idx": [1]},
+            }]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+
+    expected = np.full_like(X[:, :, 1], np.nan, dtype=np.float32)
+
+    # sample 0
+    vals = X[0, :, 1]  # [10, 20, 30]
+    order = np.argsort(vals)
+    ranks = np.empty_like(vals, dtype=np.float32)
+    ranks[order] = np.arange(len(vals), dtype=np.float32)
+    expected[0] = ranks / (len(vals) - 1)
+
+    # sample 1
+    vals = X[1, :, 1]  # [40, nan, 60]
+    mask = ~np.isnan(vals)
+    valid = vals[mask]  # [40, 60]
+
+    order = np.argsort(valid)
+    ranks = np.empty_like(valid, dtype=np.float32)
+    ranks[order] = np.arange(len(valid), dtype=np.float32)
+
+    scaled = ranks / (len(valid) - 1)
+
+    tmp = np.full_like(vals, np.nan, dtype=np.float32)
+    tmp[mask] = scaled
+    expected[1] = tmp
+
+    valid_mask = ~np.isnan(expected)
+    assert np.allclose(result[:, :, 1][valid_mask], expected[valid_mask], atol=1e-6)
+
+    # keep NaN
+    assert np.isnan(result[1, 1, 1])
+
+    # channel is not changed
+    assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
+
+
+import numpy as np
+
+
+def test_preprocessing_contrast_stretching():
+    X = np.array([
+        [
+            [1, 10],
+            [2, 20],
+            [3, 30],
+            [4, 100],
+        ],
+        [
+            [5, 40],
+            [6, np.nan],
+            [7, 60],
+            [8, 80],
+        ],
+    ], dtype=np.float32)
+
+    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+
+    service = OtionalPreprocessingService()
+    preprocessed_data = service.fit_transform(
+        td,
+        None,
+        {
+            PreprocessingStepEnum.image_preprocessing: [{
+                "method": ImagePreprocessingMethodEnum.contrast_stretching,
+                "features_idx": None,
+                "step_args": {
+                    "channels_idx": [1],
+                    "quantile_range": (25.0, 75.0),
+                    "output_range": (0.0, 1.0),
+                },
+            }]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+    expected = np.full_like(X[:, :, 1], np.nan, dtype=np.float32)
+
+    for s in range(X.shape[0]):
+        values = X[s, :, 1]
+        mask = ~np.isnan(values)
+        valid = values[mask]
+
+        low = np.quantile(valid, 0.25)
+        high = np.quantile(valid, 0.75)
+
+        scale = high - low
+        if scale == 0:
+            scale = 1.0
+
+        out = (valid - low) / scale
+        out = np.clip(out, 0.0, 1.0)
+
+        expected[s, mask] = out
+
+    valid_mask = ~np.isnan(expected)
+    assert np.allclose(result[:, :, 1][valid_mask], expected[valid_mask], atol=1e-6)
+    assert np.isnan(result[1, 1, 1])
+
+    assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
+
+
+def test_preprocessing_gamma_correction():
+    X = np.array([
+        [
+            [1, 0.0],
+            [2, 0.25],
+            [3, 0.5],
+            [4, 1.0],
+        ],
+        [
+            [5, 0.75],
+            [6, np.nan],
+            [7, 0.04],
+            [8, 0.81],
+        ],
+    ], dtype=np.float32)
+
+    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+
+    service = OtionalPreprocessingService()
+    preprocessed_data = service.fit_transform(
+        td,
+        None,
+        {
+            PreprocessingStepEnum.image_preprocessing: [{
+                "method": ImagePreprocessingMethodEnum.gamma_correction,
+                "features_idx": None,
+                "step_args": {
+                    "channels_idx": [1],
+                    "gamma": 2.0,
+                },
+            }]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+
+    expected = np.array([
+        [0.0**2, 0.25**2, 0.5**2, 1.0**2],
+        [0.75**2, np.nan, 0.04**2, 0.81**2],
+    ], dtype=np.float32)
+
+    valid_mask = ~np.isnan(expected)
+    assert np.allclose(result[:, :, 1][valid_mask], expected[valid_mask], atol=1e-6)
+    assert np.isnan(result[1, 1, 1])
+
+    assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
+
+
+def test_preprocessing_log_transform():
+    X = np.array([
+        [
+            [1, 0.0],
+            [2, 1.0],
+            [3, 3.0],
+            [4, 7.0],
+        ],
+        [
+            [5, 15.0],
+            [6, np.nan],
+            [7, 31.0],
+            [8, 63.0],
+        ],
+    ], dtype=np.float32)
+
+    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+
+    service = OtionalPreprocessingService()
+    preprocessed_data = service.fit_transform(
+        td,
+        None,
+        {
+            PreprocessingStepEnum.image_preprocessing: [{
+                "method": ImagePreprocessingMethodEnum.log_transformation,
+                "features_idx": None,
+                "step_args": {
+                    "channels_idx": [1],
+                    "eps": 1e-6,
+                },
+            }]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+
+    expected = np.array([
+        [np.log(0.0 + 1e-6), np.log(1.0 + 1e-6), np.log(3.0 + 1e-6), np.log(7.0 + 1e-6)],
+        [np.log(15.0 + 1e-6), np.nan, np.log(31.0 + 1e-6), np.log(63.0 + 1e-6)],
+    ], dtype=np.float32)
+
+    valid_mask = ~np.isnan(expected)
+    assert np.allclose(result[:, :, 1][valid_mask], expected[valid_mask], atol=1e-6)
+    assert np.isnan(result[1, 1, 1])
+
+    assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
 
 
 # if __name__ == "__main__":

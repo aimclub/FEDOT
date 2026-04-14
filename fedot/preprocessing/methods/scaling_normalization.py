@@ -371,3 +371,81 @@ class RollingNormalization:
 
     def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
         return self.fit(data.features, features_idx).transform(data)
+
+
+# TODO: in ts preprocessing make dependency on PreparedData.ts_shape
+class PerChannelNormalization:
+    # as StandartScaler, but for multiple channels
+    def __init__(
+        self,
+        with_centering: bool = True,
+        with_scaling: bool = True,
+        channels_idx: Optional[Sequence[int]] = None,
+    ):
+        self.with_centering = with_centering
+        self.with_scaling = with_scaling
+        self.channels_idx = channels_idx
+
+        self.mean_values: Optional[torch.Tensor] = None
+        self.scale_values: Optional[torch.Tensor] = None
+
+    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+        """
+        Compute mean and std for selected channels.
+
+        Args:
+            data: torch.Tensor of shape (n_samples, n_features, n_channels)
+            channels_idx: indices of channels to normalize
+
+        Returns:
+            self
+        """
+        if self.channels_idx is None:
+            self.channels_idx = list(range(data.ts_init_shape[2]))
+
+        selected = data[:, :, self.channels_idx]
+
+        mask = ~torch.isnan(selected)
+        count = mask.sum(dim=(0, 1)).clamp(min=1)
+
+        safe_selected = torch.where(mask, selected, torch.zeros_like(selected))
+
+        if self.with_centering or self.with_scaling:
+            sum_values = safe_selected.sum(dim=(0, 1))
+            mean = sum_values / count.to(selected.dtype)
+        else:
+            mean = None
+
+        if self.with_centering:
+            self.mean_values = mean
+        else:
+            self.mean_values = None
+
+        if self.with_scaling:
+            centered = torch.where(mask, selected - mean, torch.zeros_like(selected))
+            var = (centered ** 2).sum(dim=(0, 1)) / count.to(selected.dtype)
+            std = torch.sqrt(var)
+            std = torch.where(std == 0, torch.ones_like(std), std)
+            self.scale_values = std
+        else:
+            self.scale_values = None
+
+        return self
+
+    def transform(self, data: PreparedData):
+        if (self.mean_values is None) and (self.scale_values is None):
+            raise RuntimeError("PerChannelNormalization is not fitted yet.")
+
+        selected = data.features[:, :, self.channels_idx]
+
+        if self.with_centering and self.mean_values is not None:
+            selected = selected - self.mean_values.view(1, 1, -1)
+
+        if self.with_scaling and self.scale_values is not None:
+            selected = selected / self.scale_values.view(1, 1, -1)
+
+        data.features[:, :, self.channels_idx] = selected
+        return data
+
+    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
+        return self.fit(data.features, features_idx).transform(data)

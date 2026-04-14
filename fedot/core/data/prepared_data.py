@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Tuple
 import torch
 
 
@@ -9,3 +9,4 @@ class PreparedData:
     target: Optional[torch.Tensor] = None
     idx_mapping: Dict[int, int] = field(default_factory=dict)
     new_cols_dict: Optional[dict[int, int]] = None
+    ts_shape: Optional[Tuple[int, int]] = None

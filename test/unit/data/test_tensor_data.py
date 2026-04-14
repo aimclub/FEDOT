@@ -626,6 +626,7 @@ def test_is_multichannel():
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
+    assert td.target is None
     assert td.features.shape[0] == X.shape[0]
     assert td.features.shape[1] == X.shape[1]
     assert td.features.shape[2] == X.shape[2]

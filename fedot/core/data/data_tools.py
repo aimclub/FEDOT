@@ -322,8 +322,8 @@ def get_target_and_features(
             - target_processed (ArrayType) or `None`
             - target_encoder (Any) or `None`
     """
-
-    if data_type == DataTypesEnum.ts:
+    # For ts type if target_idx is not provided, do nothing
+    if data_type == DataTypesEnum.ts and target_idx is None:
         return features, target, idx_mapping
 
     xp = Backend().xp
@@ -336,6 +336,9 @@ def get_target_and_features(
                 target_idx = get_idx_from_features_names(target_idx, features_names)
                 target = features[:, target_idx].copy()
             else:
+                if data_type == DataTypesEnum.ts:
+                    raise ValueError("Target is not provided and target_idx is not provided." \
+                    "Change your task, or provide target or target_idx explicitly.")
                 target = features[:, -1].copy()
                 target_idx = [-1]
 

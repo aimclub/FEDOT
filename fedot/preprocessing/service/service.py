@@ -5,7 +5,7 @@ from fedot.core.data.prepared_data import PreparedData
 from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping, update_indices
 from fedot.core.data.tensordata import TensorData
 from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
-from fedot.preprocessing.service.mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.tools.mapping import PREPROCESSING_OPTIONAL_MAPPING
 
 class OtionalPreprocessingService:
 
@@ -18,7 +18,8 @@ class OtionalPreprocessingService:
         if len(self.plan.steps) > 0:
             prepared_data = PreparedData(features=data.features, 
                                          target=data.target, 
-                                         idx_mapping=data.idx_mapping)
+                                         idx_mapping=data.idx_mapping, 
+                                         ts_shape=data.ts_init_shape)
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping
                 prepared_data.new_cols_dict = None
