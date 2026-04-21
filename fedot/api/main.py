@@ -38,8 +38,7 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
-from fedot.core.context import ExecutionContext
-from fedot.industrial.industrial_extension import IndustrialContext
+from fedot.core.context.context import resolve_context
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -91,14 +90,14 @@ class Fedot:
                  logging_level: int = logging.ERROR,
                  safe_mode: bool = False,
                  n_jobs: int = -1,
-                 context: Optional[ExecutionContext] = None,
+                 context: Optional[str] = None,
                  **composer_tuner_params
                  ):
 
-        self.context = context or ExecutionContext()  # fallback
-
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
+
+        self.context = resolve_context(context)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
