@@ -2,9 +2,10 @@ from typing import Optional, Sequence
 import torch
 
 from fedot.core.data.prepared_data import PreparedData
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
-class QuantileClipping:
+class QuantileClipping(AbstractPreprocessingHandler):
     def __init__(
         self,
         quantile_range: tuple[float, float] = (1.0, 99.0),
@@ -16,19 +17,19 @@ class QuantileClipping:
         self.upper_bounds: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """
         Compute clipping bounds based on quantiles (ignoring NaNs).
         """
         self.features_idx = features_idx
-        selected = data[:, self.features_idx]
+        selected = data.features[:, self.features_idx]
 
         self.lower_bounds = torch.nanquantile(selected, self.q_min, dim=0)
         self.upper_bounds = torch.nanquantile(selected, self.q_max, dim=0)
 
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
         if self.features_idx is None:
             raise RuntimeError("Clipping is not fitted yet.")
 
@@ -37,11 +38,8 @@ class QuantileClipping:
         data.features[:, self.features_idx] = selected
         return data
 
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)
 
-
-class VarianceThreshold:
+class VarianceThreshold(AbstractPreprocessingHandler):
     def __init__(self, threshold: float = 0.0):
         self.threshold = threshold
 
@@ -49,7 +47,7 @@ class VarianceThreshold:
         self.variances: Optional[torch.Tensor] = None
         self.support_mask: Optional[torch.Tensor] = None
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """
         Compute variances for selected columns (ignoring NaNs) and mark
         columns with variance > threshold to keep.
@@ -62,7 +60,9 @@ class VarianceThreshold:
             self
         """
         self.features_idx = features_idx
-        selected = data[:, self.features_idx]
+
+        features = data.features
+        selected = features[:, self.features_idx]
 
         mask = ~torch.isnan(selected)
         count = mask.sum(dim=0)
@@ -81,19 +81,16 @@ class VarianceThreshold:
         self.variances = var
         selected_support = var > self.threshold
 
-        n_features = data.shape[1]
-        support_mask = torch.ones(n_features, dtype=torch.bool, device=data.device)
+        n_features = features.shape[1]
+        support_mask = torch.ones(n_features, dtype=torch.bool, device=features.device)
         support_mask[list(self.features_idx)] = selected_support
 
         self.support_mask = support_mask
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
         if self.support_mask is None:
             raise RuntimeError("VarianceThreshold is not fitted yet.")
 
         data.features = data.features[:, self.support_mask]
         return data
-
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)

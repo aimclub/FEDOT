@@ -20,12 +20,11 @@ class PreprocessingPlan:
                 self.steps.append(step)
 
 
-def build_optional_plan(data: TensorData, pipeline=None, optional_steps=None) -> PreprocessingPlan:
+def build_optional_plan(data: TensorData, optional_steps=None) -> PreprocessingPlan:
 
     optional_plan = PreprocessingPlan()
 
     for step_name in optional_steps.keys():
-        step = get_optional_steps(step_name, data, pipeline, optional_steps[step_name])
+        step = get_optional_steps(step_name, data, optional_steps[step_name])
         optional_plan.add_step(step)
     return optional_plan
-

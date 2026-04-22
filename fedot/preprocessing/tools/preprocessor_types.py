@@ -54,6 +54,15 @@ class ImputationMethodEnum(Enum):
     mode = "mode"
     constant = "constant"
     delete_raw = "delete_raw"
+    ts_mean = "ts_mean"
+    ts_median = "ts_median"
+    ts_constant = "ts_constant"
+    ts_fill = "ts_fill"
+    ts_rolling = "ts_rolling"
+    ts_kalman = "ts_kalman"
+    ts_linear_inter = "ts_linear_interpolation"
+    ts_polynomial_inter = "ts_polynomial_interpolation"
+    ts_spline_inter = "ts_spline_interpolation"
 
 
 class ScalingMethodEnum(Enum):
@@ -83,8 +92,4 @@ class PreprocessingStep:
     features_idx: IndexType
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)
-    # TODO: to args all model_name...
-    model_name: Optional[str] = None 
-    batch_size: Optional[int] = None
-    device: torch.device = torch.device("cpu")
     model_hash: Optional[str] = None

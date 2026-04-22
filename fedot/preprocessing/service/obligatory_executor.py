@@ -1,8 +1,8 @@
 from fedot.core.data.complex_types import ArrayType
 from fedot.core.data.prepared_data import PreparedData
-from fedot.preprocessing.tools.mapping import PREPROCESSING_OBLIGATORY_MAPPING
+from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep)
-from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping, update_indices
+from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.core.data.tools import StateEnum
 
 from typing import List, Optional, Dict
@@ -16,8 +16,8 @@ def apply_step(data: PreparedData,
     data.new_cols_dict = None
 
     if step.state == StateEnum.FIT:
-        method = PREPROCESSING_OBLIGATORY_MAPPING[step.step][step.method]()
-        result_data = method.fit_transform(data, step)
+        method = PREPROCESSING_OBLIGATORY_MAPPING[step.step][step.method](**step.step_args)
+        result_data = method.fit_transform(data, step.features_idx)
 
         result_data.idx_mapping = update_index_mapping(
             old_mapping,

@@ -2,10 +2,10 @@ from typing import Optional, Sequence, Tuple
 import torch
 
 from fedot.core.data.prepared_data import PreparedData
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
-# TODO: in ts preprocessing make dependency on PreparedData.ts_shape
-class ContrastEqualization:
+class ContrastEqualization(AbstractPreprocessingHandler):
     def __init__(
         self,
         output_range: tuple[float, float] = (0.0, 1.0),
@@ -15,7 +15,7 @@ class ContrastEqualization:
         self.max_range = output_range[1]
         self.channels_idx = channels_idx
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """
         Contrast equalization does not learn global statistics.
         It only stores selected channel indices.
@@ -24,7 +24,7 @@ class ContrastEqualization:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
 
         if self.channels_idx is None:
             raise RuntimeError("ContrastEqualization is not fitted yet.")
@@ -65,15 +65,8 @@ class ContrastEqualization:
         data.features[:, :, self.channels_idx] = result
         return data
 
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)
 
-
-from typing import Optional, Sequence, Tuple
-import torch
-
-
-class ContrastStretching:
+class ContrastStretching(AbstractPreprocessingHandler):
     def __init__(
         self,
         quantile_range: tuple[float, float] = (2.0, 98.0),
@@ -88,12 +81,12 @@ class ContrastStretching:
 
         self.channels_idx = channels_idx
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
         if self.channels_idx is None:
             raise RuntimeError("ContrastStretching is not fitted yet.")
 
@@ -130,11 +123,8 @@ class ContrastStretching:
         data.features[:, :, self.channels_idx] = result
         return data
 
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)
 
-
-class GammaCorrection:
+class GammaCorrection(AbstractPreprocessingHandler):
     def __init__(
         self,
         gamma: float = 1.0,
@@ -143,12 +133,12 @@ class GammaCorrection:
         self.gamma = gamma
         self.channels_idx = channels_idx
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
         if self.channels_idx is None:
             raise RuntimeError("GammaCorrection is not fitted yet.")
 
@@ -165,11 +155,8 @@ class GammaCorrection:
         data.features[:, :, self.channels_idx] = result
         return data
 
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)
 
-
-class LogTransform:
+class LogTransform(AbstractPreprocessingHandler):
     def __init__(
         self,
         eps: float = 1e-6,
@@ -178,12 +165,12 @@ class LogTransform:
         self.eps = eps
         self.channels_idx = channels_idx
 
-    def fit(self, data: torch.Tensor, features_idx: Sequence[int]):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
-    def transform(self, data: PreparedData):
+    def transform(self, data: PreparedData) -> PreparedData:
         if self.channels_idx is None:
             raise RuntimeError("LogTransform is not fitted yet.")
 
@@ -201,6 +188,3 @@ class LogTransform:
 
         data.features[:, :, self.channels_idx] = result
         return data
-
-    def fit_transform(self, data: PreparedData, features_idx: Sequence[int]):
-        return self.fit(data.features, features_idx).transform(data)

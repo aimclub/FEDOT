@@ -67,8 +67,8 @@ def reshape_and_get_init_shape(features: ArrayType):
     The function ensures that multi-channel time series do not exceed 3 dimensions:
     - If `features.ndim == 1`, it is expanded to shape `(1, T)`.
     - If `features.ndim == 2`, it keeps `(B, T)` and returns `init_shape = None`.
-    - If `features.ndim == 3`, it reshapes `(B, C, T)` into `(B*C, T)` and
-      returns `init_shape = (B, C, T)` for potential later reshaping.
+    - If `features.ndim == 3`, it reshapes `(T, B, C)` into `(T, B * C)` and
+      returns `init_shape = (T, B, C)` for potential later reshaping.
 
     Args:
         features (ArrayType): Time-series array.
@@ -86,8 +86,8 @@ def reshape_and_get_init_shape(features: ArrayType):
         init_shape = features.shape
     elif features.ndim == 3:
         init_shape = features.shape
-        B, C, T = features.shape
-        features = features.reshape(B * C, T)
+        T, B, C = features.shape
+        features = features.reshape(T, B * C)
     elif features.ndim > 3:
         raise ValueError("Multichannel time series must not have more than 3 dimensions")
 

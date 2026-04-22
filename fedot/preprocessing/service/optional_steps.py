@@ -4,7 +4,6 @@ import logging
 from fedot.preprocessing.service.auto_create_step import AUTO_CREATE_STEP_MAPPING
 from fedot.core.data.tensordata import TensorData
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
-from fedot.preprocessing.structure import PipelineStructureExplorer
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,7 @@ def get_steps_from_params(step_name: PreprocessingStepEnum, params):
     return steps
 
 
-def has_nan_func(features: torch.Tensor) -> bool:
+def is_imputation_needed(features: torch.Tensor) -> bool:
     """
     Check whether a torch.Tensor contains any NaN values.
 
@@ -36,17 +35,8 @@ def has_nan_func(features: torch.Tensor) -> bool:
     return torch.isnan(features).any().item()
 
 
-def is_imputation_needed(features: torch.Tensor, pipeline) -> bool:
-    has_nan = has_nan_func(features)
-    if pipeline is None:
-        return has_nan
-    has_imputation_operation = PipelineStructureExplorer.check_structure_by_tag(
-            pipeline, tag_to_check='imputation')
-    return has_nan and not has_imputation_operation
-
-
-def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, pipeline=None, params=None) -> PreprocessingStep:
-    if is_imputation_needed(data.features, pipeline):
+def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, params=None) -> PreprocessingStep:
+    if is_imputation_needed(data.features):
         if params is None:
             logger.info(f'Getting default params for step {step_name}')
             return AUTO_CREATE_STEP_MAPPING[step_name](data)
@@ -57,7 +47,7 @@ def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, pipe
         return None
 
 
-def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, pipeline=None, params=None) -> PreprocessingStep:
+def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, params=None) -> PreprocessingStep:
     if len(data.numerical_idx) == 0:
         logger.debug('No numerical features for scaling')
         return None
@@ -69,7 +59,7 @@ def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, pipelin
         return steps
 
 
-def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, pipeline=None, params=None) -> PreprocessingStep:
+def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, params=None) -> PreprocessingStep:
     if params is None:
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
@@ -86,12 +76,11 @@ RESOLVE_STEP_MAPPING = {
 
 def get_optional_steps(step_name: PreprocessingStepEnum,
                        data: TensorData,
-                       pipeline=None,
                        params=None) -> PreprocessingStep:
     logger.info(f'Creating optional step {step_name}')
     if step_name in RESOLVE_STEP_MAPPING:
-        step = RESOLVE_STEP_MAPPING[step_name](step_name, data, pipeline, params)
+        step = RESOLVE_STEP_MAPPING[step_name](step_name, data, params)
     else:
-        step = universal_step_creating(step_name, data, pipeline, params)
+        step = universal_step_creating(step_name, data, params)
     return step
     

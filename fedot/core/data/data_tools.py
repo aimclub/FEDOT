@@ -11,7 +11,7 @@ from fedot.core.data.complex_types import PathType, PandasType, ArrayType, Index
 from fedot.core.data.tools import StateEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping
+from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping
 
 
 logger = logging.getLogger(__name__)
@@ -384,7 +384,7 @@ def transform_to_tensor(features: ArrayType,
 
     features = to_tensor(features, dtype=torch.float32)
 
-    if ts_init_shape is not None:
+    if ts_init_shape is not None and len(ts_init_shape) == 3:
         features = features.reshape(ts_init_shape)
 
     target = to_tensor(target, dtype=torch.float32)

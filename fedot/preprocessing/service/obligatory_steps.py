@@ -4,95 +4,11 @@ from typing import Optional, Dict, List, Union
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 from fedot.core.data.tools import StateEnum
-from fedot.preprocessing.structure import PipelineStructureExplorer
-from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep, ImputationMethodEnum, 
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                     PreprocessingStepEnum, EmbeddingMethodEnum, 
                                                     EncodingMethodEnum)
 from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
-
-
-def has_nan_func(features: torch.Tensor) -> bool:
-    """
-    Check whether a torch.Tensor contains any NaN values.
-
-    Parameters
-    ----------
-    tensor : torch.Tensor
-        Input tensor.
-
-    Returns
-    -------
-    bool
-        True if tensor contains at least one NaN, False otherwise.
-    """
-    return torch.isnan(features).any().item()
-
-
-def is_imputation_needed(features: torch.Tensor, pipeline) -> bool:
-    has_nan = has_nan_func(features)
-    if pipeline is None:
-        return has_nan
-    has_imputation_operation = PipelineStructureExplorer.check_structure_by_tag(
-            pipeline, tag_to_check='imputation')
-    return has_nan and not has_imputation_operation
-
-
-def get_nan_columns(features: torch.Tensor):
-    """
-    """
-    nan_mask = torch.isnan(features)
-    cols_with_nan = nan_mask.any(dim=0)
-    indices = torch.where(cols_with_nan)[0]
-    return indices
-
-
-def preprocess_imputation_params(features: torch.Tensor, params: Optional[List]=None) -> PreprocessingStep:
-
-    method = None
-
-    if params is not None:
-        steps = []
-        for param in params:
-                    
-            method = param["method"]
-            
-            if "features_idx" in param.keys():
-                features_idx = param["features_idx"]
-                step = PreprocessingStep(PreprocessingStepEnum.imputation, method, features_idx)
-            else:
-                break
-
-            steps.append(step)
-
-        if len(steps) > 0:
-            return steps
-        
-    # TODO: default method is simple
-    method = ImputationMethodEnum.moda if method is None else method
-    features_idx = get_nan_columns(features)
-    step = PreprocessingStep(PreprocessingStepEnum.imputation, method, features_idx)
-
-    return step
-
-
-def get_imputation_step(features: torch.Tensor, pipeline=None, params=None) -> PreprocessingStep:
-    if not is_imputation_needed(features, pipeline):
-        return None
-    
-    imputation_step = preprocess_imputation_params(features, params)
-    return imputation_step
-
-
-def preprocess_optional_params(step_name: PreprocessingStepEnum, features: torch.Tensor, params: List) -> List[PreprocessingStep]:
-    steps = []
-
-    for param in params:
-        step = PreprocessingStep(step_name, param['method'], param['features_idx'])
-        steps.append(step)
-
-    return steps
-
 
 
 def get_embedding_step(parameters: Union[Dict], 
@@ -129,9 +45,11 @@ def get_embedding_step(parameters: Union[Dict],
             method=params["method"],
             features_idx=features_idx,
             state=params["state"],
-            model_name=params["model_name"],
-            batch_size=params["batch_size"],
-            device=params["device"]
+            step_args={
+                "model_name": params["model_name"],
+                "batch_size": params["batch_size"],
+                "device": params["device"]
+            }
         )
 
         return [step]
@@ -209,7 +127,6 @@ def preprocess_encoding_params(params: Dict,
         if "features_idx" in params.keys():
             features_idx = get_idx_from_features_names(params["features_idx"], features_names)
             features_idx = convert_idx_to_list(features_idx)
-            # features_idx = update_indices(idx_mapping, features_idx)
         else:
             features_idx = force_categorical_determination(features)
 

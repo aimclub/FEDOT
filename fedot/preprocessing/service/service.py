@@ -1,18 +1,18 @@
 from typing import Optional
 
 from fedot.core.data.prepared_data import PreparedData
-#  TODO: add step type in preprocessing_types
-from fedot.preprocessing.tools.preprocessing_tools import update_index_mapping, update_indices
+from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.core.data.tensordata import TensorData
 from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
-from fedot.preprocessing.tools.mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
 
-class OtionalPreprocessingService:
 
+class OptionalPreprocessingService:
+    handler_mapping = PREPROCESSING_OPTIONAL_MAPPING
     plan: Optional[PreprocessingPlan] = None
 
-    def fit_transform(self, data: TensorData, pipline, optional_steps) -> PreparedData:
-        self.plan = build_optional_plan(data, pipline, optional_steps)
+    def fit_transform(self, data: TensorData, optional_steps) -> PreparedData:
+        self.plan = build_optional_plan(data, optional_steps)
         prepared_data = None
 
         if len(self.plan.steps) > 0:
@@ -25,7 +25,7 @@ class OtionalPreprocessingService:
                 prepared_data.new_cols_dict = None
                 step.features_idx = update_indices(actual_mapping, step.features_idx)
 
-                handler_cls = PREPROCESSING_OPTIONAL_MAPPING[step.step][step.method]
+                handler_cls = self.handler_mapping[step.step][step.method]
                 handler = handler_cls(**step.step_args)
                 prepared_data = handler.fit_transform(
                     prepared_data,

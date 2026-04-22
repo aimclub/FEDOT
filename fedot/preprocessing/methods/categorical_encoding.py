@@ -1,8 +1,9 @@
-from fedot.core.backend.backend import Backend
-from fedot.core.data.complex_types import ArrayType, IndexType
-from fedot.core.data.prepared_data import PreparedData
+from typing import Sequence
 
-from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep
+from fedot.core.backend.backend import Backend
+from fedot.core.data.prepared_data import PreparedData
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+
 
 
 """
@@ -20,7 +21,7 @@ How to add a new categorical encoder
 """
 
 
-class LabelEncoder:
+class LabelEncoder(AbstractPreprocessingHandler):
     """
     Label-encode categorical feature columns.
 
@@ -35,7 +36,7 @@ class LabelEncoder:
         self.categories_ = {}
         self.categorical_idx_ = None
 
-    def fit(self, features: ArrayType, categorical_idx: IndexType):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """
         Learn category sets for each categorical column.
 
@@ -48,7 +49,9 @@ class LabelEncoder:
         """
         xp = Backend().xp
 
-        self.categorical_idx_ = list(categorical_idx)
+        features = data.features
+
+        self.categorical_idx_ = list(features_idx)
         self.categories_ = {}
 
         for idx in self.categorical_idx_:
@@ -62,7 +65,7 @@ class LabelEncoder:
 
         return self
 
-    def transform(self, features: ArrayType):
+    def transform(self, data: PreparedData) -> PreparedData:
         """
         Transform categorical values to label-encoded numeric IDs.
 
@@ -73,6 +76,8 @@ class LabelEncoder:
             ArrayType: Encoded array of shape `(n_samples, n_categorical_columns)`.
         """
         xp = Backend().xp
+
+        features = data.features
 
         n_rows = features.shape[0]
         n_cat = len(self.categorical_idx_)
@@ -96,24 +101,12 @@ class LabelEncoder:
         
         features[:, self.categorical_idx_] = encoded
 
-        return features
+        data.features = features
 
-    def fit_transform(self, data: PreparedData, step: PreprocessingStep):
-        """
-        Fit the encoder and immediately transform the data.
-
-        Args:
-            data (ArrayType): Feature matrix.
-            categorical_idx (IndexType): Indices of categorical columns.
-
-        Returns:
-            ArrayType: Encoded output.
-        """
-        data.features = self.fit(data.features, step.features_idx).transform(data.features)
         return data
 
 
-class OneHotEncoder:
+class OneHotEncoder(AbstractPreprocessingHandler):
     """
     One-hot encode categorical feature columns.
 
@@ -131,7 +124,7 @@ class OneHotEncoder:
         self.n_output_features_ = None
         self.new_cols_dict = {}
 
-    def fit(self, features: ArrayType, categorical_idx: IndexType):
+    def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """
         Learn categories and output slices for each categorical column.
 
@@ -145,7 +138,9 @@ class OneHotEncoder:
 
         xp = Backend().xp
 
-        self.categorical_idx_ = list(categorical_idx)
+        features = data.features
+
+        self.categorical_idx_ = list(features_idx)
         self.categories_ = {}
         self.feature_slices_ = {}
 
@@ -168,7 +163,7 @@ class OneHotEncoder:
         self.n_output_features_ = start
         return self
 
-    def transform(self, features: ArrayType):
+    def transform(self, data: PreparedData) -> PreparedData:
         """
         Transform categorical values to one-hot encoded features.
 
@@ -180,7 +175,8 @@ class OneHotEncoder:
                 `(n_samples, self.n_output_features_)`.
         """
         xp = Backend().xp
-
+        
+        features = data.features
         n_rows = features.shape[0]
         encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)
 
@@ -202,19 +198,7 @@ class OneHotEncoder:
         features = xp.delete(features, self.categorical_idx_, axis=1)
         features = xp.hstack((features, encoded))
 
-        return features
-
-    def fit_transform(self, data: PreparedData, step: PreprocessingStep):
-        """
-        Fit the encoder and immediately transform the data.
-
-        Args:
-            data (ArrayType): Feature matrix.
-            categorical_idx (IndexType): Indices of categorical columns.
-
-        Returns:
-            ArrayType: One-hot encoded output.
-        """
-        data.features = self.fit(data.features, step.features_idx).transform(data.features)
+        data.features = features
         data.new_cols_dict = self.new_cols_dict
+
         return data
