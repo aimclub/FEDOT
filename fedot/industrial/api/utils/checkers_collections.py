@@ -15,7 +15,11 @@ from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_i
 from fedot.industrial.core.operation.dummy.dummy_operation import check_multivariate_data
 from fedot.industrial.core.operation.transformation.representation.tabular.tabular_extractor import TabularExtractor
 from fedot.industrial.core.repository.config_repository import TASK_MAPPING
-from fedot.industrial.core.repository.constanst_repository import FEDOT_DATA_TYPE, fedot_task
+from fedot.industrial.api.utils.checker_rules import (
+    build_industrial_task_plan,
+    resolve_industrial_data_type_plan,
+    resolve_learning_strategy_flags,
+)
 from fedot.industrial.core.repository.initializer_industrial_models import IndustrialModels
 
 
@@ -48,8 +52,8 @@ class DataCheck:
         if hasattr(industrial_task_params, 'strategy_params'):
             self.strategy_params = industrial_task_params.strategy_params
             self.manager = industrial_task_params
-        self.data_type = FEDOT_DATA_TYPE[self.strategy_params['data_type']] \
-            if self.strategy_params is not None else FEDOT_DATA_TYPE['tensor']
+        self.data_type_plan = resolve_industrial_data_type_plan(self.strategy_params)
+        self.data_type = self.data_type_plan.fedot_data_type
 
         self.input_data = input_data
         self.data_convertor = DataConverter(data=self.input_data)
@@ -116,26 +120,14 @@ class DataCheck:
             right_function=lambda dict: dict | {'idx': np.arange(dict['features'].shape[0])},
             left_function=lambda dict: dict | {'idx': np.arange(len(dict['features'][0]))})
 
-        def define_horizon(dict_with_idx): return Either(value=dict_with_idx,
-                                                         monoid=[dict_with_idx, self.strategy_params is None]).either(
-            left_function=lambda dict: dict | {'have_predict_horizon':
-                                               all([self.strategy_params['data_type'] == 'time_series',
-                                                    'detection_window' in self.strategy_params.keys()])},
-            right_function=lambda dict: dict | {'have_predict_horizon': False})
-
-        def define_task(dict_with_horizon): return Either(value=dict_with_horizon,
-                                                          monoid=[dict_with_horizon,
-                                                                  dict_with_horizon['have_predict_horizon']]).either(
-            right_function=lambda dict: dict |
-            {'task': fedot_task('ts_forecasting',
-                                self.strategy_params['detection_window'])},
-            left_function=lambda dict: dict | {'task': fedot_task(self.task)})
+        def define_horizon(dict_with_idx):
+            task_plan = build_industrial_task_plan(self.task, self.strategy_params)
+            return dict_with_idx | {'have_predict_horizon': task_plan.have_predict_horizon, 'task': task_plan.task}
 
         encoded_dict = Either.insert(data_dict). \
             then(lambda data: encode_target(data)). \
             then(lambda data_with_target: encode_idx(data_with_target)). \
-            then(lambda data_with_idx: define_horizon(data_with_idx)). \
-            then(lambda data_with_horizon: define_task(data_with_horizon)).value
+            then(lambda data_with_idx: define_horizon(data_with_idx)).value
 
         return InputData(idx=encoded_dict['idx'],
                          features=encoded_dict['features'],
@@ -199,16 +191,14 @@ class DataCheck:
     def _check_fedot_context(self):
         if self.strategy_params is not None:
             IndustrialModels().setup_repository()
-            strategy = self.strategy_params.get('learning_strategy')
-            is_big_data = strategy.__contains__('big') if strategy else False
-            is_default_fedot = strategy.__contains__('tabular') if strategy else False
-            output_data = Either(value=self.strategy_params.get('learning_strategy', None),
-                                 monoid=[self.input_data, is_default_fedot]).either(
+            strategy_flags = resolve_learning_strategy_flags(self.strategy_params)
+            output_data = Either(value=strategy_flags.strategy_name,
+                                 monoid=[self.input_data, strategy_flags.is_default_fedot_context]).either(
                 left_function=lambda x: x.features,
                 right_function=lambda strategy: self.convert_ts_method[strategy]
                 (self.input_data, self.strategy_params.get('sampling_strategy', None)))
             self.input_data.features = output_data.predict if hasattr(output_data, 'predict') else output_data
-            if is_big_data and hasattr(output_data, 'target'):
+            if strategy_flags.is_big_data and hasattr(output_data, 'target'):
                 self.input_data.target = output_data.target
 
     def _convert_ts2tabular(self, input_data, sampling_strategy):

@@ -67,10 +67,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
+                train_data.supplementary_data.is_auto_preprocessed = True
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
                 self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                                   f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
                 if is_test_session() and not isinstance(ex, TimeoutError):
                     stack_trace = traceback.format_exc()
                     save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)

@@ -17,9 +17,15 @@ from fedot.industrial.core.ensemble.random_automl_forest import RAFEnsembler
 from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_impl.column_sampling_decomposition import \
     CURDecomposition
 from fedot.industrial.core.repository.constanst_repository import BATCH_SIZE_FOR_FEDOT_WORKER, FEDOT_WORKER_NUM, \
-    FEDOT_WORKER_TIMEOUT_PARTITION, FEDOT_TUNING_METRICS, FEDOT_TUNER_STRATEGY, FEDOT_TS_FORECASTING_ASSUMPTIONS, \
-    FEDOT_TASK
+    FEDOT_WORKER_TIMEOUT_PARTITION, FEDOT_TS_FORECASTING_ASSUMPTIONS, FEDOT_TASK
 from fedot.industrial.core.repository.industrial_implementations.abstract import build_tuner
+from fedot.industrial.api.utils.industrial_strategy_rules import (
+    build_federated_runtime_plan,
+    build_industrial_kernel_finetune_plan,
+    build_sampling_iteration_plans,
+    build_sampling_predict_plan,
+    resolve_industrial_strategy_dispatch,
+)
 
 
 class IndustrialStrategy:
@@ -41,23 +47,6 @@ class IndustrialStrategy:
         self.finetune_params = self.industrial_strategy_params.get('tuning_params', {})
         self.industrial_strategy = industrial_strategy
 
-        self.industrial_strategy_fit = {
-            'federated_automl': self._federated_strategy,
-            'kernel_automl': self._kernel_strategy,
-            'forecasting_assumptions': self._forecasting_strategy,
-            'forecasting_exogenous': self._forecasting_exogenous_strategy,
-            'lora_strategy': self._lora_strategy,
-            'sampling_strategy': self._sampling_strategy
-        }
-
-        self.industrial_strategy_predict = {
-            'federated_automl': self._federated_predict,
-            'kernel_automl': self._kernel_predict,
-            'forecasting_assumptions': self._forecasting_predict,
-            'forecasting_exogenous': self._forecasting_predict,
-            'lora_strategy': self._lora_predict,
-            'sampling_strategy': self._sampling_predict
-        }
         self.sampling_algorithm = {'CUR': self.__cur_sampling,
                                    'Random': self.__random_sampling}
         self.ensemble_strategy_dict = {'MeanEnsemble': np.mean,
@@ -88,32 +77,37 @@ class IndustrialStrategy:
         return selected_rows, sampled_tensor, sampled_target
 
     def fit(self, input_data):
-        self.industrial_strategy_fit[self.industrial_strategy](input_data)
+        dispatch_plan = resolve_industrial_strategy_dispatch(self.industrial_strategy)
+        getattr(self, dispatch_plan.fit_method_name)(input_data)
         return self.solver
 
     def predict(self, input_data, predict_mode):
-        return self.industrial_strategy_predict[self.industrial_strategy](
-            input_data, predict_mode)
+        dispatch_plan = resolve_industrial_strategy_dispatch(self.industrial_strategy)
+        return getattr(self, dispatch_plan.predict_method_name)(input_data, predict_mode)
 
     def _federated_strategy(self, input_data):
 
         n_samples = input_data.features.shape[0]
-        if n_samples > BATCH_SIZE_FOR_FEDOT_WORKER:
+        runtime_plan = build_federated_runtime_plan(
+            n_samples=n_samples,
+            batch_size_threshold=BATCH_SIZE_FOR_FEDOT_WORKER,
+            requested_workers=self.RAF_workers,
+            timeout=self.config['timeout'],
+            timeout_partition=FEDOT_WORKER_TIMEOUT_PARTITION,
+            default_workers=FEDOT_WORKER_NUM,
+        )
+        if runtime_plan.use_raf:
             self.logger.info('RAF algorithm was applied')
+            self.RAF_workers = runtime_plan.raf_workers
+            self.config['timeout'] = runtime_plan.timeout
 
-            if self.RAF_workers is None:
-                self.RAF_workers = FEDOT_WORKER_NUM
-            batch_size = round(input_data.features.shape[0] / self.RAF_workers)
-
-            min_timeout = 0.5
-            selected_timeout = round(self.config['timeout'] / FEDOT_WORKER_TIMEOUT_PARTITION)
-            self.config['timeout'] = max(min_timeout, selected_timeout)
-
-            self.logger.info(f'Batch_size - {batch_size}. Number of batches - {self.RAF_workers}')
+            self.logger.info(
+                f'Batch_size - {runtime_plan.batch_size}. Number of batches - {self.RAF_workers}'
+            )
 
             self.solver = RAFEnsembler(composing_params=self.config,
                                        n_splits=self.RAF_workers,
-                                       batch_size=batch_size)
+                                       batch_size=runtime_plan.batch_size)
             self.logger.info(
                 f'Number of AutoMl models in ensemble - {self.solver.n_splits}')
 
@@ -146,20 +140,30 @@ class IndustrialStrategy:
         self.solver = {}
         self.sampler = {}
         algorithm = self.industrial_strategy_params['sampling_algorithm']
-        for sampling_rate in self.industrial_strategy_params['sampling_range']:
-            decomposer, input_data.features, input_data.target = \
-                self.sampling_algorithm[algorithm](tensor=input_data.features,
-                                                   target=input_data.target,
-                                                   sampling_rate=sampling_rate)
-            input_data.idx = np.arange(len(input_data.features))
+        sampling_plans = build_sampling_iteration_plans(
+            sampling_algorithm=algorithm,
+            sampling_range=self.industrial_strategy_params['sampling_range'],
+        )
+        base_features = deepcopy(input_data.features)
+        base_target = deepcopy(input_data.target)
+        for sampling_plan in sampling_plans:
+            decomposer, sampled_features, sampled_target = self.sampling_algorithm[algorithm](
+                tensor=base_features,
+                target=base_target,
+                sampling_rate=sampling_plan.sampling_rate,
+            )
+            sampled_input = deepcopy(input_data)
+            sampled_input.features = sampled_features
+            sampled_input.target = sampled_target
+            sampled_input.idx = np.arange(len(sampled_input.features))
             industrial = Fedot(**self.config)
             Maybe(
-                value=industrial.fit(input_data),
+                value=industrial.fit(sampled_input),
                 monoid=True).maybe(
                 default_value=self.logger.info(f'Failed during fit stage - {algorithm}'),
                 extraction_function=lambda fitted_model: self.solver.update(
-                    {f'{algorithm}_sampling_rate_{sampling_rate}': industrial}))
-            self.sampler.update({f'{algorithm}_sampling_rate_{sampling_rate}': decomposer})
+                    {sampling_plan.result_key: industrial}))
+            self.sampler.update({sampling_plan.result_key: decomposer})
 
     def _forecasting_exogenous_strategy(self, input_data):
         self.logger.info('TS exogenous forecasting algorithm was applied')
@@ -196,12 +200,11 @@ class IndustrialStrategy:
                        kernel_data: dict,
                        tuning_params: dict = {}):
         tuned_models = {}
-        tuning_params['metric'] = FEDOT_TUNING_METRICS[self.config['problem']]
+        finetune_plan = build_industrial_kernel_finetune_plan(self.config['problem'], tuning_params)
         for generator, kernel_model in kernel_ensemble.items():
-            tuning_params['tuner'] = FEDOT_TUNER_STRATEGY['simultaneous']
             model_to_tune = deepcopy(kernel_model)
             pipeline_tuner, solver = build_tuner(
-                self, model_to_tune, tuning_params, kernel_data[generator], 'head')
+                self, model_to_tune, finetune_plan.normalized_tuning_params, kernel_data[generator], 'head')
             tuned_models.update({generator: solver})
         return tuned_models
 
@@ -283,13 +286,16 @@ class IndustrialStrategy:
                           input_data,
                           mode: str = 'labels'):
         labels_dict = {}
-        labels_output = mode in ['labels', 'default']
+        predict_plan = build_sampling_predict_plan(
+            mode=mode,
+            sampling_algorithm=self.industrial_strategy_params['sampling_algorithm'],
+        )
         for sampling_rate, solver in self.solver.items():
             copy_input = deepcopy(input_data)
-            feature_space = self.sampler[sampling_rate].column_indices \
-                if self.industrial_strategy_params['sampling_algorithm'] == 'CUR' else None
-            copy_input.features = input_data.features.squeeze()[:, feature_space]
-            labels_dict.update({sampling_rate: solver.predict(copy_input, mode) if labels_output
+            feature_space = self.sampler[sampling_rate].column_indices if predict_plan.use_cur_feature_space else None
+            squeezed_features = input_data.features.squeeze()
+            copy_input.features = squeezed_features if feature_space is None else squeezed_features[:, feature_space]
+            labels_dict.update({sampling_rate: solver.predict(copy_input, mode) if predict_plan.labels_output
                                 else solver.predict_proba(copy_input)})
             del copy_input
         return labels_dict

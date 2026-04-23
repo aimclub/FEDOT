@@ -92,3 +92,21 @@ def test_filter_params_correctly(input_params, case, correct_keys):
     assert output_params.keys() <= correct_keys
     # check all correct parameter in input params are in output params
     assert (input_params.keys() & correct_keys) <= output_params.keys()
+
+
+def test_sampling_config_is_accepted_and_preserved():
+    params_repository = get_api_params_repository(TaskTypesEnum.classification)
+    params = {'sampling_config': {'strategy': 'random', 'candidate_ratios': [0.2, 0.5], 'delta_metric_threshold': 0.05}}
+
+    output_params = params_repository.check_and_set_default_params(params)
+
+    assert 'sampling_config' in output_params
+    assert output_params['sampling_config']['strategy'] == 'random'
+    assert tuple(output_params['sampling_config']['candidate_ratios']) == (0.2, 0.5)
+
+
+def test_sampling_config_rejects_invalid_schema_in_api_params_repository():
+    params_repository = get_api_params_repository(TaskTypesEnum.classification)
+
+    with pytest.raises(ValueError, match='Unknown keys'):
+        params_repository.check_and_set_default_params({'sampling_config': {'unknown': 1}})

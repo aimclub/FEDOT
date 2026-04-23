@@ -109,7 +109,7 @@ class EvaluationStrategy:
 
     @staticmethod
     def _convert_to_output(prediction, predict_data: InputData,
-                           output_data_type: DataTypesEnum = DataTypesEnum.table) -> OutputData:
+                           output_data_type: DataTypesEnum = DataTypesEnum.tabular) -> OutputData:
         """Method convert prediction into :obj:`OutputData` if it is not this type yet
 
         Args:

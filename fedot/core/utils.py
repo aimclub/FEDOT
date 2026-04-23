@@ -2,9 +2,11 @@ import math
 import os
 import platform
 import random
+import re
 import tempfile
 from pathlib import Path
 from typing import Optional, Union
+from urllib.parse import urlparse, unquote
 
 import numpy as np
 import pandas as pd
@@ -147,3 +149,29 @@ def is_multi_output_target(train_data: InputData) -> bool:
 def is_multi_output_model(operation_impl) -> bool:
     """Check if operation is configured for multi-output target."""
     return getattr(operation_impl, 'is_multi_target', False)
+
+
+def extract_dataset_name_from_url(url: str) -> str:
+    """
+    Extracts dataset name from URL.
+
+    Args:
+        url (str): URL of the dataset
+
+    Examples:
+        "http://www.timeseriesclassification.com/aeon-toolkit/dataset_name.zip" -> "dataset_name"
+        "http://example.com/data/dataset.csv.zip" -> "dataset"
+        "http://example.com/data/dataset_name.tar.gz" -> "dataset_name"
+    """
+    parsed_url = urlparse(url)
+    path = unquote(parsed_url.path)
+
+    parts = path.split('/')
+    if not parts:
+        raise ValueError(f"Invalid URL format: {url}")
+
+    filename = parts[-1]
+
+    dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$', '', filename, flags=re.IGNORECASE)
+
+    return dataset_name

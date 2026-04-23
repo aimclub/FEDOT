@@ -55,7 +55,7 @@ class DataOperationImplementation(ABC):
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.ndarray,
-                           data_type: DataTypesEnum = DataTypesEnum.table) -> OutputData:
+                           data_type: DataTypesEnum = DataTypesEnum.tabular) -> OutputData:
         """ Method prepare prediction of operation as OutputData object """
 
         converted = _convert_to_output_function(input_data, predict, data_type)
@@ -241,7 +241,7 @@ class ModelImplementation(ABC):
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.array,
-                           data_type: DataTypesEnum = DataTypesEnum.table):
+                           data_type: DataTypesEnum = DataTypesEnum.tabular):
         """ Method prepare prediction of operation as OutputData object """
 
         converted = _convert_to_output_function(input_data, predict, data_type)
@@ -249,7 +249,7 @@ class ModelImplementation(ABC):
 
 
 def _convert_to_output_function(input_data: InputData, transformed_features: np.ndarray,
-                                data_type: DataTypesEnum = DataTypesEnum.table):
+                                data_type: DataTypesEnum = DataTypesEnum.tabular):
     """ Function prepare prediction of operation as OutputData object
 
     :param input_data: data with features, target and ids to process

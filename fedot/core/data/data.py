@@ -60,7 +60,7 @@ class Data:
                    target_array: Optional[np.ndarray] = None,
                    idx: Optional[np.ndarray] = None,
                    task: Union[Task, str] = 'classification',
-                   data_type: Optional[DataTypesEnum] = DataTypesEnum.table,
+                   data_type: Optional[DataTypesEnum] = DataTypesEnum.tabular,
                    features_names: np.ndarray[str] = None,
                    categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None) -> InputData:
         """Import data from numpy array.
@@ -123,7 +123,7 @@ class Data:
                        target_df: Optional[Union[pd.DataFrame, pd.Series]] = None,
                        categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
                        task: Union[Task, str] = 'classification',
-                       data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
+                       data_type: DataTypesEnum = DataTypesEnum.tabular) -> InputData:
         """Import data from pandas DataFrame.
 
         Args:
@@ -191,7 +191,7 @@ class Data:
                  file_path: PathType,
                  delimiter: str = ',',
                  task: Union[Task, str] = 'classification',
-                 data_type: DataTypesEnum = DataTypesEnum.table,
+                 data_type: DataTypesEnum = DataTypesEnum.tabular,
                  columns_to_drop: Optional[List[Union[str, int]]] = None,
                  target_columns: Union[str, List[Union[str, int]], None] = '',
                  categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
@@ -443,7 +443,7 @@ class Data:
     def from_text_meta_file(meta_file_path: str = None,
                             label: str = 'label',
                             task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
+                            data_type: DataTypesEnum = DataTypesEnum.tabular) -> InputData:
 
         if os.path.isdir(meta_file_path):
             raise ValueError("""CSV file expected but got directory""")
@@ -463,7 +463,7 @@ class Data:
     def from_text_files(files_path: str,
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.text) -> InputData:
+                        data_type: DataTypesEnum = DataTypesEnum.tabular) -> InputData:
 
         if os.path.isfile(files_path):
             raise ValueError("""Path to the directory expected but got file""")
@@ -482,7 +482,7 @@ class Data:
                         fields_to_use: List,
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.table,
+                        data_type: DataTypesEnum = DataTypesEnum.tabular,
                         export_to_meta=False, is_multilabel=False, shuffle=True) -> InputData:
         """Generates InputData from the set of ``JSON`` files with different fields
 
@@ -928,7 +928,8 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
 def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Union[str, int]] = None,
                     possible_idx_keywords: Optional[List[str]] = None, *,
                     columns_to_drop: Optional[List[Union[str, int]]] = None,
-                    columns_to_use: Optional[List[Union[str, int]]] = None):
+                    columns_to_use: Optional[List[Union[str, int]]] = None,
+                    nrows: Optional[int] = None) -> pd.DataFrame:
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
             if is_column_name_suitable_for_index(column_name):
@@ -964,4 +965,4 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
     if (index_col is not None) and (index_col not in columns_to_use):
         columns_to_use.append(index_col)
 
-    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use)
+    return pd.read_csv(file_path, sep=delimiter, index_col=index_col, usecols=columns_to_use, nrows=nrows)

@@ -592,8 +592,9 @@ class DataConverter(TensorConverter, NumpyConverter):
         super().__init__(data)
         self.data = data
         self.numpy_data = self.convert_to_array(data)
+        _features = getattr(data, 'features', None)
         self.is_torch = (isinstance(data, torch.Tensor) or
-                         isinstance(data.features, torch.Tensor))
+                         (_features is not None and isinstance(_features, torch.Tensor)))
 
     @property
     def is_nparray(self):
