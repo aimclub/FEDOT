@@ -20,12 +20,14 @@ from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline_rules import (
     build_pipeline_postprocess_plan,
     build_pipeline_preprocess_plan,
+    build_pipeline_tensordata_runtime_plan,
 )
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -161,6 +163,29 @@ class Pipeline(GraphDelegate, Serializable):
 
         return copied_input_data
 
+    def _preprocess_tensordata(self, tensor_data, *, is_fit_stage: bool = True) -> InputData:
+        runtime_plan = build_pipeline_tensordata_runtime_plan(is_fit_stage=is_fit_stage)
+
+        prepared_tensordata = self.preprocessor.prepare_tensordata(
+            tensor_data,
+            is_fit_stage=is_fit_stage,
+            is_optional=False,
+        )
+        prepared_tensordata = self.preprocessor.prepare_tensordata(
+            prepared_tensordata,
+            is_fit_stage=is_fit_stage,
+            is_optional=True,
+            pipeline=self,
+        )
+
+        copied_input_data = tensordata_to_input_data(prepared_tensordata)
+        index_method = getattr(self.preprocessor, runtime_plan.index_method_name)
+        copied_input_data = index_method(pipeline=self, data=copied_input_data)
+        if runtime_plan.should_update_time_series_indices:
+            copied_input_data = self.preprocessor.update_indices_for_time_series(copied_input_data)
+        copied_input_data = self.preprocessor.reduce_memory_size(data=copied_input_data)
+        return copied_input_data
+
     def _postprocess(self, copied_input_data: Optional[InputData], result: OutputData,
                      output_mode: str = 'default') -> OutputData:
         """
@@ -221,6 +246,27 @@ class Pipeline(GraphDelegate, Serializable):
                 fold_id=fold_id)
 
         return train_predicted
+
+    def fit_tensordata(self,
+                       tensor_data,
+                       time_constraint: Optional[timedelta] = None,
+                       n_jobs: int = 1,
+                       predictions_cache: Optional[PredictionsCache] = None,
+                       fold_id: Optional[int] = None) -> OutputData:
+        self.replace_n_jobs_in_nodes(n_jobs)
+        with fedot_composer_timer.launch_preprocessing():
+            copied_input_data = self._preprocess_tensordata(tensor_data, is_fit_stage=True)
+
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
+
+        if time_constraint is None:
+            return self._fit(input_data=copied_input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+        return self._fit_with_time_limit(
+            input_data=copied_input_data,
+            time=time_constraint,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
 
     @property
     def is_fitted(self) -> bool:
@@ -329,6 +375,26 @@ class Pipeline(GraphDelegate, Serializable):
 
         result = self._postprocess(copied_input_data, result, output_mode)
         return result
+
+    def predict_tensordata(self,
+                           tensor_data,
+                           output_mode: str = 'default',
+                           predictions_cache: Optional[PredictionsCache] = None,
+                           fold_id: Optional[int] = None) -> OutputData:
+        if not self.is_fitted:
+            ex = 'Pipeline is not fitted yet'
+            self.log.error(ex)
+            raise ValueError(ex)
+
+        copied_input_data = self._preprocess_tensordata(tensor_data, is_fit_stage=False)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
+        result = self.root_node.predict(
+            input_data=copied_input_data,
+            output_mode=output_mode,
+            predictions_cache=predictions_cache,
+            fold_id=fold_id,
+        )
+        return self._postprocess(copied_input_data, result, output_mode)
 
     def save(self, path: str = None, create_subdir: bool = True, is_datetime_in_path: bool = False) -> Tuple[str, dict]:
         """

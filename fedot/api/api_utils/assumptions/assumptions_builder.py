@@ -1,4 +1,4 @@
-﻿from abc import abstractmethod
+from abc import abstractmethod
 from typing import List, Union, Optional, Tuple
 
 from golem.core.log import default_log
@@ -6,6 +6,7 @@ from golem.core.log import default_log
 from fedot.api.api_utils.assumptions.assumption_rules import (
     build_operations_filter_decision,
     default_repository_name_for_data,
+    normalize_assumption_data_type,
 )
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
@@ -117,10 +118,10 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
         for _, subbuilder in self._subbuilders:
-            # Performs specific filter on image data operations
-            if subbuilder.data_type is DataTypesEnum.image:
-                available_img_operations = ['data_source_img', 'cnn']
-                subbuilder.from_operations(available_img_operations)
+            # TS tensor modalities (incl. legacy ``image``) use time-series data source + conv models
+            if normalize_assumption_data_type(subbuilder.data_type) is DataTypesEnum.ts:
+                available_ts_tensor_operations = ['data_source_time_series', 'cnn']
+                subbuilder.from_operations(available_ts_tensor_operations)
         return self
 
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
@@ -137,8 +138,8 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         # TODO: fix this workaround during the improvement of multi-modality
         for i, subpipeline in enumerate(subpipelines):
             if (len(subpipeline) == 1 and len(subpipeline[0].nodes) == 1 and
-                    str(subpipeline[0].nodes[0]) in ['cnn', 'data_source_img']):
-                subpipelines[i] = [Pipeline(PipelineNode('cnn', nodes_from=[PipelineNode('data_source_img')]))]
+                    str(subpipeline[0].nodes[0]) in ['cnn', 'data_source_time_series', 'data_source_img']):
+                subpipelines[i] = [Pipeline(PipelineNode('cnn', nodes_from=[PipelineNode('data_source_time_series')]))]
 
         # Then zip these alternatives together and add final node to get ensembles.
         ensemble_builders: List[PipelineBuilder] = []

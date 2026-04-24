@@ -1,25 +1,33 @@
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, ClassVar, List, Tuple
-
 import logging
-
-from pathlib import Path
-
-import torch
-import numpy as np
-import cupy as cp
-import pandas as pd
-import cudf
 from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, Callable, TypeAlias
+from pathlib import Path
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, TypeAlias, Union
+
+import cupy as cp
+import cudf
+import numpy as np
+import pandas as pd
+import torch
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
+from fedot.core.data.tensordata_rules import (
+    DEFAULT_DATALOADER_KWARGS,
+    build_creation_failure,
+    build_creation_request,
+    build_device_sync_plan,
+    build_load_data_spec_normalization,
+    build_raw_conversion_plan,
+    build_tabular_file_load_plan,
+    normalize_array_target_reference,
+    normalize_tensordata_identity,
+    resolve_registered_creator,
+)
 
 from fedot.core.data.data_tools import (
-    get_device_from_str, is_existed_csv_path, get_values_from_df, 
+    get_device_from_str, get_values_from_df,
     convert_idx_to_array, convert_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
     encode_categorical_features, get_text_embeddings)
@@ -27,7 +35,7 @@ from fedot.core.data.data_tools import (
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import backend
-from fedot.core.data.data import (autodetect_data_type)
+from fedot.core.data.data_compatibility_rules import autodetect_tensor_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
 
 
@@ -44,12 +52,13 @@ class LazyTensor:
     It stores a callable used to build :class:`TensorData` only when needed via :meth:`get`,
     which can delay expensive preprocessing until consumption.
 
-    e.g. 
+    e.g.
         lazy_td = TensorData.create_lazy(X, backend_name="cpu")
         ...
         # and then we can materialize the tensor data
         td = lazy_td.get()
     """
+
     def __init__(self, create_fn):
         """
         Args:
@@ -105,7 +114,7 @@ class LoadDataSpec:
             ("table" vs "time_series").
         state (Union[str, StateEnum]): Preprocessing state, typically `fit` or `predict`.
 
-        target (TensorLike): Optional target data (already extracted by the creator or will be 
+        target (TensorLike): Optional target data (already extracted by the creator or will be
         extracted automatically).
         predict (TensorLike): Optional prediction tensor provided externally.
 
@@ -126,7 +135,7 @@ class LoadDataSpec:
                         "batch_size": 3,
                         "device": "cpu",
                     }
-        features_names (IndexType): Names of all feature columns (used to resolve indices from strings). 
+        features_names (IndexType): Names of all feature columns (used to resolve indices from strings).
             May be automatically extracted by the creator.
 
         ts_orientation (Union[TSOrientationEnum, str]): Time-series orientation. ("long" or "wide").
@@ -160,18 +169,29 @@ class LoadDataSpec:
     ts_terms_idx: IndexType = None
     ts_forecast_horizon: Optional[int] = None
 
-    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
-        "batch_size": 32,
-        "shuffle": True,
-        "num_workers": 0,
-        "drop_last": False
-    })
+    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
     delimiter: str = ','
     max_rows: Optional[int] = None
     columns_to_drop: IndexType = None
     index_col: IndexType = None
     possible_idx_keywords: Optional[List[str]] = None
+
+    def __post_init__(self):
+        normalization = build_load_data_spec_normalization(
+            task=self.task,
+            data_type=self.data_type,
+            state=self.state,
+            ts_orientation=self.ts_orientation,
+            embedding_strategy=self.embedding_strategy,
+            dataloader_kwargs=self.dataloader_kwargs,
+        )
+        self.task = normalization.task
+        self.state = normalization.state
+        self.data_type = normalization.data_type
+        self.ts_orientation = normalization.ts_orientation
+        self.embedding_strategy = normalization.embedding_strategy
+        self.dataloader_kwargs = normalization.dataloader_kwargs
 
     def to_tensor_data(self, features) -> "TensorData":
         """
@@ -249,18 +269,13 @@ class TensorData:
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[int] = None
 
-    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: {
-        "batch_size": 32,
-        "shuffle": True,
-        "num_workers": 0,
-        "drop_last": False
-    })
+    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
     _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
 
     def __post_init__(self):
         """
-        Post-initialization pipeline. 
+        Post-initialization pipeline.
 
         This method:
         - converts `state`, `task`, and `data_type` from strings to enums,
@@ -268,40 +283,47 @@ class TensorData:
         - converts `features` to the active backend (CPU/GPU) when needed,
         - runs the raw preprocessing steps required for converting everything to torch tensors,
         - ensures the final tensors are on `backend.device`.
-        
-        Attention: if backend was chosen to be GPU, but features contain str/object values, 
+
+        Attention: if backend was chosen to be GPU, but features contain str/object values,
             it will be preprocessed for tensors creation on CPU. But finally, all tensors
             will be moved to GPU.
         """
 
-        if isinstance(self.state, str):
-            self.state = StateEnum(self.state)
-
-        if isinstance(self.task, str):
-            self.task = Task(TaskTypesEnum(self.task))
-
-        if isinstance(self.data_type, str):
-            self.data_type = DataTypesEnum(self.data_type)
+        identity = normalize_tensordata_identity(
+            task=self.task,
+            data_type=self.data_type,
+            state=self.state,
+        )
+        self.task = identity.task
+        self.data_type = identity.data_type
+        self.state = identity.state
 
         if isinstance(self.features, torch.Tensor):
             self.encoding_strategy = encode_torch_tensors(
-                self.features, 
+                self.features,
                 self.encoding_strategy,
-                self.categorical_idx, 
-                self.state, 
+                self.categorical_idx,
+                self.state,
                 self.features_names
             )
         else:
+            raw_conversion_plan = build_raw_conversion_plan(backend.name)
             try:
                 self.features = backend.xp.array(self.features)
                 self._post_init_raw()
-            except:
+            except Exception:
+                if not raw_conversion_plan.should_try_cpu_fallback:
+                    raise
                 with backend.override("cpu"):
                     logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
                     self.features = backend.xp.array(self.features)
                     self._post_init_raw()
-        
-        if self.features.device.type != backend.device.type:
+
+        device_sync_plan = build_device_sync_plan(
+            features_device_type=self.features.device.type,
+            backend_device_type=backend.device.type,
+        )
+        if device_sync_plan.should_move_to_backend:
             self.to(backend.device)
 
     def _post_init_raw(self):
@@ -323,44 +345,43 @@ class TensorData:
         self.features = replace_missing_with_nan(self.features)
 
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
-                                                    self.target,
-                                                    self.features_names,
-                                                    self.state,
-                                                    self.ts_orientation,
-                                                    self.ts_terms_idx,
-                                                    self.ts_forecast_horizon,
-                                                    self.data_type)
+                                                                                            self.target,
+                                                                                            self.features_names,
+                                                                                            self.state,
+                                                                                            self.ts_orientation,
+                                                                                            self.ts_terms_idx,
+                                                                                            self.ts_forecast_horizon,
+                                                                                            self.data_type)
 
         self.features, self.target, self.target_encoder = get_target_and_features(self.features,
-                                                            self.target,
-                                                            self.features_names,
-                                                            self.target_idx,
-                                                            self.state,
-                                                            self.data_type)
+                                                                                  self.target,
+                                                                                  self.features_names,
+                                                                                  self.target_idx,
+                                                                                  self.state,
+                                                                                  self.data_type)
 
         # get embeddings
-        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features, 
-                                                        self.text_idx, 
-                                                        self.embedding_strategy,
-                                                        self.features_names)
+        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features,
+                                                                         self.text_idx,
+                                                                         self.embedding_strategy,
+                                                                         self.features_names)
 
         # encoding categorical features
         encoding_decisions, non_cat_features = choose_categorical_encoding(
-            self.features, self.categorical_idx, self.encoding_strategy, 
+            self.features, self.categorical_idx, self.encoding_strategy,
             self.features_names, self.state
         )
         self.features, self.encoding_strategy = encode_categorical_features(
             self.features, encoding_decisions, non_cat_features
         )
 
-        self.features, self.target = transform_to_tensor(self.features, 
+        self.features, self.target = transform_to_tensor(self.features,
                                                          self.target,
                                                          text_tensors,
                                                          self.text_idx,
                                                          self.ts_init_shape)
-        
-        self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
+        self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
     @classmethod
     def _resolve_creator(cls, source_data: Any) -> Callable:
@@ -379,19 +400,8 @@ class TensorData:
             ValueError: If no creator matches the input.
             TypeError: If a predicate returns a non-boolean value.
         """
-        for predicate, creator in cls._creators:
-            result = predicate(source_data)
+        return resolve_registered_creator(cls._creators, source_data)
 
-            if not isinstance(result, bool):
-                raise TypeError(
-                    f"Predicate {predicate.__name__} must return bool, got {type(result)}"
-                )
-
-            if result:
-                return creator
-
-        raise ValueError(f"No creator registered for input: {type(source_data)}")
-    
     @classmethod
     def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
         """
@@ -423,7 +433,8 @@ class TensorData:
             TensorData: Materialized tensor data object.
         """
 
-        backend.set(backend_name)        
+        creation_request = build_creation_request(backend_name)
+        backend.set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 
@@ -431,7 +442,8 @@ class TensorData:
             creator = cls._resolve_creator(source_data)
             return creator(source_data, spec)
         except Exception as e:
-            raise ValueError(f"Error creating TensorData") from e
+            failure = build_creation_failure(source_data, creation_request.backend_name, e)
+            raise ValueError(failure.message) from e
 
     @classmethod
     def create_lazy(cls, source_data, backend_name, **kwargs):
@@ -447,7 +459,8 @@ class TensorData:
             LazyTensor: Lazy wrapper that builds `TensorData` on demand.
         """
 
-        backend.set(backend_name)
+        creation_request = build_creation_request(backend_name)
+        backend.set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 
@@ -526,7 +539,7 @@ class TensorData:
                     f"Could not save predictions to '{path_to_save}' "
                     f"or fallback path '{fallback_path}'"
                 ) from fallback_exc
-    
+
     def to_csv(self, path_to_save: PathType) -> PathType:
         """
         Save features (and optionally target) to a CSV file.
@@ -547,7 +560,7 @@ class TensorData:
             path_to_save = './features.csv'
             features_df.to_csv(path_to_save, index=False)
         return Path(path_to_save).resolve()
-    
+
     @property
     def memory_usage(self):
         """
@@ -595,12 +608,14 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
         TensorData: TensorData created from the provided array.
     """
     if spec.data_type is None:
-        spec.data_type = autodetect_data_type(spec.task)
+        spec.data_type = autodetect_tensor_data_type(spec.task)
 
-    if isinstance(spec.target, int) and spec.target < features.shape[1]:
-        spec.target_idx = spec.target.copy()
-        spec.target = None
-    
+    spec.target, spec.target_idx = normalize_array_target_reference(
+        target=spec.target,
+        target_idx=spec.target_idx,
+        feature_width=features.shape[1],
+    )
+
     return spec.to_tensor_data(features)
 
 
@@ -608,8 +623,8 @@ def from_numpy(features: ArrayType, spec: LoadDataSpec) -> TensorData:
     lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
 )
 def from_pandas(
-    features: PandasType, 
-    spec: LoadDataSpec) -> TensorData:
+        features: PandasType,
+        spec: LoadDataSpec) -> TensorData:
     """
     Creator for :class:`TensorData` when the input is a pandas/cudf dataframe or series.
 
@@ -621,7 +636,8 @@ def from_pandas(
         TensorData: TensorData created from extracted values.
     """
 
-    spec.features_names = features.columns.to_numpy()
+    cols = features.columns
+    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
     features = get_values_from_df(features)
 
@@ -648,26 +664,28 @@ def from_csv_tsv(
         TensorData: TensorData created from values loaded from the file.
     """
 
-    if not is_existed_csv_path(file_path):
-        raise ValueError(f'File {file_path} does not exist')
-
-    spec.possible_idx_keywords = (
-        spec.possible_idx_keywords or POSSIBLE_TABULAR_IDX_KEYWORDS
-    )
-
-    features = get_df_from_csv(
+    file_load_plan = build_tabular_file_load_plan(
         file_path=file_path,
         delimiter=spec.delimiter,
-        index_col=spec.index_col,
         possible_idx_keywords=spec.possible_idx_keywords,
+        default_keywords=POSSIBLE_TABULAR_IDX_KEYWORDS,
+    )
+    spec.possible_idx_keywords = file_load_plan.possible_idx_keywords
+
+    features = get_df_from_csv(
+        file_path=file_load_plan.file_path,
+        delimiter=file_load_plan.delimiter,
+        index_col=spec.index_col,
+        possible_idx_keywords=file_load_plan.possible_idx_keywords,
         columns_to_drop=spec.columns_to_drop,
         nrows=spec.max_rows
     )
 
-    spec.features_names = features.columns.to_numpy()
+    cols = features.columns
+    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
     features = get_values_from_df(features)
-    
+
     return spec.to_tensor_data(features)
 
 
@@ -687,7 +705,7 @@ def from_arff(
     Returns:
         TensorData: TensorData created from extracted ARFF features and target.
     """
-    
+
     features, spec.target = read_arff_file(source, target_idx=spec.target_idx)
 
     return spec.to_tensor_data(features)

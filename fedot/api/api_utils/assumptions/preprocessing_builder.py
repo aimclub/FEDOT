@@ -40,7 +40,7 @@ class PreprocessingBuilder:
         return preprocessing_builder.to_builder()
 
     def with_scaling(self):
-        if self.task_type is not TaskTypesEnum.ts_forecasting and self.data_type is not DataTypesEnum.image:
+        if self.task_type is not TaskTypesEnum.ts_forecasting:
             self._builder.add_node('scaling')
         return self
 

@@ -12,5 +12,5 @@ PandasType: TypeAlias = Union[pd.DataFrame, pd.Series, cudf.DataFrame, cudf.Seri
 
 ArrayType: TypeAlias = Optional[Union[np.ndarray, cp.ndarray]]
 
-IndexType: TypeAlias = Optional[Union[int, str, np.ndarray, 
+IndexType: TypeAlias = Optional[Union[int, str, np.ndarray,
                                       cp.ndarray, List[int], List[str]]]

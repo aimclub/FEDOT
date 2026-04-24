@@ -152,26 +152,26 @@ def is_multi_output_model(operation_impl) -> bool:
 
 
 def extract_dataset_name_from_url(url: str) -> str:
-        """
-        Extracts dataset name from URL.
+    """
+    Extracts dataset name from URL.
 
-        Args:
-            url (str): URL of the dataset
+    Args:
+        url (str): URL of the dataset
 
-        Examples:
-            "http://www.timeseriesclassification.com/aeon-toolkit/dataset_name.zip" -> "dataset_name"
-            "http://example.com/data/dataset.csv.zip" -> "dataset"
-            "http://example.com/data/dataset_name.tar.gz" -> "dataset_name"
-        """
-        parsed_url = urlparse(url)
-        path = unquote(parsed_url.path)
+    Examples:
+        "http://www.timeseriesclassification.com/aeon-toolkit/dataset_name.zip" -> "dataset_name"
+        "http://example.com/data/dataset.csv.zip" -> "dataset"
+        "http://example.com/data/dataset_name.tar.gz" -> "dataset_name"
+    """
+    parsed_url = urlparse(url)
+    path = unquote(parsed_url.path)
 
-        parts = path.split('/')
-        if not parts:
-            raise ValueError(f"Invalid URL format: {url}")
+    parts = path.split('/')
+    if not parts:
+        raise ValueError(f"Invalid URL format: {url}")
 
-        filename = parts[-1]
+    filename = parts[-1]
 
-        dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$', '', filename, flags=re.IGNORECASE)
+    dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$', '', filename, flags=re.IGNORECASE)
 
-        return dataset_name
+    return dataset_name

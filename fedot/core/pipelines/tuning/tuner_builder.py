@@ -97,19 +97,20 @@ class TunerBuilder:
         self.additional_params.update(parameters)
         return self
 
-    def build(self, data: InputData) -> BaseTuner:
+    def _build_tuner(self, data_producer, validation_blocks: int) -> BaseTuner:
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
                 self.additional_params.update({'objectives_number': len(self.metric)})
             else:
                 raise ValueError('Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
         objective = MetricsObjective(self.metric, is_multi_objective=len(self.metric) > 1)
-        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
-        data_producer = data_splitter.build(data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
-                                                       time_constraint=self.eval_time_constraint,
-                                                       eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
-                                                       validation_blocks=data_splitter.validation_blocks)
+        objective_evaluate = PipelineObjectiveEvaluate(
+            objective,
+            data_producer,
+            time_constraint=self.eval_time_constraint,
+            eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
+            validation_blocks=validation_blocks,
+        )
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  adapter=self.adapter,
                                  iterations=self.iterations,
@@ -119,3 +120,13 @@ class TunerBuilder:
                                  n_jobs=self.n_jobs,
                                  **self.additional_params)
         return tuner
+
+    def build(self, data: InputData) -> BaseTuner:
+        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
+        data_producer = data_splitter.build(data)
+        return self._build_tuner(data_producer, data_splitter.validation_blocks)
+
+    def build_tensordata(self, tensor_data) -> BaseTuner:
+        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
+        data_producer = data_splitter.build_tensordata(tensor_data)
+        return self._build_tuner(data_producer, data_splitter.validation_blocks)

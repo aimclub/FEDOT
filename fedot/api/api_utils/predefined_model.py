@@ -1,5 +1,5 @@
 import traceback
-from typing import Union
+from typing import Any, Union
 
 from golem.core.log import LoggerAdapter
 
@@ -12,7 +12,7 @@ from fedot.preprocessing.base_preprocessing import BasePreprocessor
 
 
 class PredefinedModel:
-    def __init__(self, predefined_model: Union[str, Pipeline], data: InputData, log: LoggerAdapter,
+    def __init__(self, predefined_model: Union[str, Pipeline], data: Any, log: LoggerAdapter,
                  use_input_preprocessing: bool = True, api_preprocessor: BasePreprocessor = None):
         self.predefined_model = predefined_model
         self.data = data
@@ -50,13 +50,19 @@ class PredefinedModel:
 
         return pipelines
 
-    def fit(self):
+    def _fit_pipeline(self, method_name: str, failure_prefix: str):
         try:
-            self.pipeline.fit(self.data)
+            getattr(self.pipeline, method_name)(self.data)
         except Exception as ex:
-            fit_failed_info = f'Predefined model fit was failed due to: {ex}.'
+            fit_failed_info = f'{failure_prefix} due to: {ex}.'
             advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
             self.log.message(fit_failed_info)
             print(traceback.format_exc())
             raise ValueError(advice_info)
         return self.pipeline
+
+    def fit(self):
+        return self._fit_pipeline('fit', 'Predefined model fit was failed')
+
+    def fit_tensordata(self):
+        return self._fit_pipeline('fit_tensordata', 'Predefined TensorData model fit was failed')

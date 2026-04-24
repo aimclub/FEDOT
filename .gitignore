@@ -81,4 +81,13 @@ test/unit/test_log.log
 test/unit/catboost_info
 
 local/
-sampling_zoo
+
+# Sampling zoo folder
+sampling_zoo/
+
+# Codex
+.codex/
+
+# Result for AMLB experiments
+**/results/
+**/*.json

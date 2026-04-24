@@ -18,7 +18,7 @@ class TsForecastingParams(TaskParams):
             raise ValueError('Forecast length should be more then 0')
 
 
-# TODO: delete clustering and all examples or develop it. Check tasks and add more if necessary from industrial. 
+# TODO: delete clustering and all examples or develop it. Check tasks and add more if necessary from industrial.
 class TaskTypesEnum(Enum):
     classification = 'classification'
     regression = 'regression'
