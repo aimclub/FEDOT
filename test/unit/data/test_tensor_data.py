@@ -43,7 +43,7 @@ def test_create_from_csv():
     td = TensorData.create(
         csv_path,
         backend_name="cpu",
-        target_idx = "target"
+        target_idx="target"
     )
 
     assert isinstance(td, TensorData)
@@ -76,10 +76,10 @@ def test_loader():
     name = "AbnormalHeartbeat"
     X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
 
-    train_tensor = TensorData.create(X_train, 
+    train_tensor = TensorData.create(X_train,
                                      target=y_train,
                                      backend_name="cpu",)
-    test_tensor = TensorData.create(X_test, 
+    test_tensor = TensorData.create(X_test,
                                     target=y_test,
                                     backend_name="cpu",)
 
@@ -143,7 +143,7 @@ def test_datetime_features():
     Test that datetime columns are handled correctly during TensorData creation,
     with the target column excluded from features and all data converted into valid tensors.
     """
-    features = pd.DataFrame({"date": pd.date_range("2022-01-01", periods=10, freq="D"), 
+    features = pd.DataFrame({"date": pd.date_range("2022-01-01", periods=10, freq="D"),
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
 
@@ -279,7 +279,7 @@ def test_create_from_cupy():
         features,
         backend_name="gpu",
     )
-    
+
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.target.shape[0] == features.shape[0]
@@ -300,7 +300,7 @@ def test_create_from_cudf():
         features,
         backend_name="gpu",
     )
-    
+
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.target.shape[0] == features.shape[0]
@@ -347,7 +347,7 @@ def test_create_time_series():
         backend_name="cpu",
         data_type="time_series",
     )
-    
+
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.shape[0] == features.shape[0]
@@ -371,7 +371,7 @@ def test_long_orientation():
         ts_orientation="long",
         ts_terms_idx="terms"
     )
-    
+
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.shape[0] == 3
@@ -385,7 +385,7 @@ def test_is_multichannel():
     X = np.random.rand(100, 10, 3)
 
     td = TensorData.create(
-        X, 
+        X,
         backend_name="cpu",
         data_type="time_series"
     )

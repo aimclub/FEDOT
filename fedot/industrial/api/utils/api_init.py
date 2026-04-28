@@ -4,8 +4,14 @@ from typing import Union, Callable, List
 
 from fedot.core.repository.tasks import TsForecastingParams
 from joblib import cpu_count
-from pymonad.either import Either
-
+from fedot.industrial.api.utils.api_init_rules import (
+    build_api_manager_state_plan,
+    build_automl_config_plan,
+    build_computational_config_plan,
+    build_industrial_context_plan,
+    build_learning_loss_plan,
+    resolve_initial_assumption_problem,
+)
 from fedot.industrial.api.utils.industrial_strategy import IndustrialStrategy
 from fedot.industrial.core.architecture.preprocessing.data_convertor import ApiConverter
 from fedot.industrial.core.optimizer.FedotEvoOptimizer import FedotEvoOptimizer
@@ -48,12 +54,24 @@ class IndustrialConfig(ConfigTemplate):
         self.custom_industrial_strategy = FEDOT_INDUSTRIAL_STRATEGY
 
     def with_default_fedot_context(self, kwargs):
-        self.strategy = kwargs.get('strategy', 'default')
-        self.is_default_fedot_context = self.strategy.__contains__('tabular')
+        context_plan = build_industrial_context_plan(
+            problem=kwargs['problem'],
+            strategy=kwargs.get('strategy', 'default'),
+            task_params=kwargs.get('task_params', {}),
+            regression_tasks=self.regression_tasks,
+        )
+        self.strategy = context_plan.strategy_name
+        self.is_default_fedot_context = context_plan.is_default_fedot_context
         return self.is_default_fedot_context
 
     def with_regression_context(self, kwargs):
-        self.is_regression_task_context = kwargs['problem'] in self.regression_tasks
+        context_plan = build_industrial_context_plan(
+            problem=kwargs['problem'],
+            strategy=kwargs.get('strategy', 'default'),
+            task_params=kwargs.get('task_params', {}),
+            regression_tasks=self.regression_tasks,
+        )
+        self.is_regression_task_context = context_plan.is_regression_task_context
         return self.is_regression_task_context
 
     def with_industrial_strategy_params(self, kwargs):
@@ -61,23 +79,25 @@ class IndustrialConfig(ConfigTemplate):
         return self.strategy_params
 
     def with_forecasting_context(self, kwargs):
-        self.task_params = kwargs.get('task_params', {})
-        is_empty_params = any([self.task_params is None, len(self.task_params) == 0])
-        self.is_forecasting_context = all([not is_empty_params, kwargs['problem'] == 'ts_forecasting'])
-        if self.is_forecasting_context:
-            self.task_params = TsForecastingParams(forecast_length=self.task_params['forecast_length'])
+        context_plan = build_industrial_context_plan(
+            problem=kwargs['problem'],
+            strategy=kwargs.get('strategy', 'default'),
+            task_params=kwargs.get('task_params', {}),
+            regression_tasks=self.regression_tasks,
+        )
+        self.task_params = context_plan.normalized_task_params or kwargs.get('task_params', {})
+        self.is_forecasting_context = context_plan.is_forecasting_context
         return self.is_forecasting_context
 
     def with_industrial_initial_assumption(self, kwargs):
         self.initial_assumption = kwargs.get('initial_assumption', None)
-        problem = kwargs['problem']
-        problem = problem if not self.is_default_fedot_context else f'{problem}_{self.strategy}'
+        problem = resolve_initial_assumption_problem(
+            problem=kwargs['problem'],
+            strategy_name=self.strategy,
+            is_default_fedot_context=self.is_default_fedot_context,
+        )
         if self.initial_assumption is None:
-            self.initial_assumption = Either(value=problem,
-                                             monoid=[problem,
-                                                     problem == 'anomaly_detection']). \
-                either(left_function=fedot_init_assumptions,
-                       right_function=fedot_init_assumptions)
+            self.initial_assumption = fedot_init_assumptions(problem)
 
         return self.initial_assumption
 
@@ -134,6 +154,30 @@ class ComputationalConfig(ConfigTemplate):
         self.automl_folder = automl_folder
         return self.automl_folder
 
+    def build(self, config: dict = None):
+        config = config or {}
+        plan = build_computational_config_plan(
+            backend=config.get('backend', 'cpu'),
+            distributed=config.get('distributed'),
+            output_folder=config.get('output_folder'),
+            cache_dict=config.get('use_cache'),
+            automl_folder=config.get('automl_folder'),
+            default_dask_params=self.default_dask_params,
+        )
+        self.backend = plan.backend
+        self.distributed = plan.distributed
+        self.output_folder = plan.output_folder
+        self.cache = plan.cache
+        self.automl_folder = plan.automl_folder
+        self.config.update({
+            'backend': self.backend,
+            'distributed': self.distributed,
+            'output_folder': self.output_folder,
+            'use_cache': self.cache,
+            'automl_folder': self.automl_folder,
+        })
+        return self
+
 
 class AutomlConfig(ConfigTemplate):
     def __init__(self):
@@ -171,6 +215,33 @@ class AutomlConfig(ConfigTemplate):
         self.optimisation_strategy = optimisation_strategy
         return self.optimisation_strategy
 
+    def build(self, config: dict = None):
+        config = config or {}
+        plan = build_automl_config_plan(
+            task=config.get('task'),
+            task_params=config.get('task_params'),
+            initial_assumption=config.get('initial_assumption'),
+            use_automl=config.get('use_automl', False),
+            available_operations=config.get('available_operations'),
+            optimisation_strategy=config.get('optimisation_strategy'),
+            default_available_operations_factory=default_industrial_availiable_operation,
+        )
+        self.task = plan.task
+        self.task_params = plan.task_params
+        self.initial_assumption = plan.initial_assumption
+        self.use_automl = plan.use_automl
+        self.available_operations = plan.available_operations
+        self.optimisation_strategy = plan.optimisation_strategy
+        self.config.update({
+            'task': self.task,
+            'task_params': self.task_params,
+            'initial_assumption': self.initial_assumption,
+            'use_automl': self.use_automl,
+            'available_operations': self.available_operations,
+            'optimisation_strategy': self.optimisation_strategy,
+        })
+        return self
+
 
 class LearningConfig(ConfigTemplate):
     def __init__(self):
@@ -188,15 +259,10 @@ class LearningConfig(ConfigTemplate):
         return self.learning_strategy_params
 
     def with_loss(self, loss: Union[Callable, str, dict] = None):
-        self.quality_loss = None
-        self.computational_loss = None
-        self.structural_loss = None
-        if isinstance(loss, dict):
-            self.quality_loss = loss.get('quality_loss')
-            self.computational_loss = loss.get('computational_loss')
-            self.structural_loss = loss.get('structural_loss')
-        elif isinstance(loss, Callable):
-            self.quality_loss = loss
+        loss_plan = build_learning_loss_plan(loss)
+        self.quality_loss = loss_plan.quality_loss
+        self.computational_loss = loss_plan.computational_loss
+        self.structural_loss = loss_plan.structural_loss
         return self.quality_loss
 
 
@@ -214,14 +280,15 @@ class ApiManager(ConfigTemplate):
         self.condition_check = ApiConverter()
 
     def null_state_object(self):
-        self.solver = None
-        self.predicted_labels = None
-        self.predicted_probs = None
-        self.predict_data = None
-        self.dask_client = None
-        self.dask_cluster = None
-        self.target_encoder = None
-        self.is_finetuned = False
+        state_plan = build_api_manager_state_plan()
+        self.solver = state_plan.solver
+        self.predicted_labels = state_plan.predicted_labels
+        self.predicted_probs = state_plan.predicted_probs
+        self.predict_data = state_plan.predict_data
+        self.dask_client = state_plan.dask_client
+        self.dask_cluster = state_plan.dask_cluster
+        self.target_encoder = state_plan.target_encoder
+        self.is_finetuned = state_plan.is_finetuned
 
     def create_folder(self, output_folder):
         # create dirs with results
@@ -245,6 +312,7 @@ class ApiManager(ConfigTemplate):
         return self.compute_config
 
     def build(self, config: dict = None):
+        config = config or {}
         for key, method in self.keys.items():
             if key in config.keys():
                 method(config[key])

@@ -7,6 +7,7 @@ from fedot.core.constants import default_data_split_ratio_by_task
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
@@ -46,6 +47,10 @@ class DataSourceSplitter:
         self.stratify = stratify
         self.random_seed = random_seed
         self.log = default_log(self)
+
+    def build_tensordata(self, tensor_data) -> DataSource:
+        input_data = tensordata_to_input_data(tensor_data)
+        return self.build(input_data)
 
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio

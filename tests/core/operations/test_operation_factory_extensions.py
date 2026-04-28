@@ -80,9 +80,13 @@ def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
             'data_type': DataTypesEnum.table,
         })())
 
+        metadata = model.metadata
+
         assert strategy.operation_id == 'custom'
         assert implementation.fitted_model.was_fitted is True
         assert implementation.params.get('alpha') == 2.0
         assert implementation.params.get('beta') == 0.5
+        assert metadata.input_types == [DataTypesEnum.table]
+        assert metadata.output_types == [DataTypesEnum.table]
     finally:
         clear_extension_registry()

@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Dict, Union
 from typing import Optional
 
@@ -6,6 +6,7 @@ import numpy as np
 from golem.core.log import default_log
 
 from fedot.api.api_utils.api_data_rules import (
+    build_tensordata_definition_plan,
     iter_shared_index_assignments,
     normalize_features_for_definition,
     plan_fit_preprocessing,
@@ -14,6 +15,9 @@ from fedot.api.api_utils.api_data_rules import (
 )
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.input_data_bridge import input_data_to_tensordata
+from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.tools import StateEnum
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
@@ -86,6 +90,21 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
+    def define_tensordata(self,
+                          features: FeaturesType,
+                          target: Optional[TargetType] = None,
+                          is_predict: bool = False,
+                          backend_name: str = 'cpu'):
+        definition_plan = build_tensordata_definition_plan(backend_name=backend_name, is_predict=is_predict)
+        input_data = self.define_data(features=features, target=target, is_predict=is_predict)
+        if not isinstance(input_data, InputData):
+            raise ValueError('TensorData path currently supports only InputData. MultiModalData is not supported yet.')
+        return self.to_tensordata(
+            input_data,
+            backend_name=definition_plan.backend_name,
+            is_predict=definition_plan.state is StateEnum.PREDICT,
+        )
+
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
                            in_sample: bool = False, validation_blocks: int = None) -> OutputData:
         """ Prepare predictions """
@@ -121,6 +140,13 @@ class ApiDataProcessor:
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(np.array(real.target))
+
+    def to_tensordata(self, input_data: InputData, backend_name: str = 'cpu', is_predict: bool = False):
+        state = StateEnum.PREDICT if is_predict else StateEnum.FIT
+        return input_data_to_tensordata(input_data, backend_name=backend_name, state=state)
+
+    def to_input_data(self, tensor_data):
+        return tensordata_to_input_data(tensor_data)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """

@@ -1,4 +1,4 @@
-﻿from fedot.api.api_utils.assumptions.assumption_rules import (
+from fedot.api.api_utils.assumptions.assumption_rules import (
     build_operations_filter_decision,
     default_repository_name_for_data,
     exclude_operations,
@@ -29,9 +29,14 @@ def test_default_repository_name_for_regular_data():
     assert default_repository_name_for_data(_FakeData(DataTypesEnum.table)) == 'model'
 
 
-def test_required_operations_for_multimodal_image_include_sources_and_cnn():
+def test_required_operations_for_multimodal_ts_tensor_include_time_series_source():
+    required = required_operations_for_data(_FakeMultiModalData(DataTypesEnum.ts), DataTypesEnum.ts)
+    assert required == ('data_source_time_series',)
+
+
+def test_required_operations_normalize_legacy_image_to_ts():
     required = required_operations_for_data(_FakeMultiModalData(DataTypesEnum.image), DataTypesEnum.image)
-    assert required == ('data_source_img', 'cnn')
+    assert required == ('data_source_time_series',)
 
 
 def test_build_operations_filter_decision_intersects_with_suitable_operations():
@@ -47,16 +52,16 @@ def test_build_operations_filter_decision_intersects_with_suitable_operations():
     assert decision.sampling_choices == ('rf', 'xgboost')
 
 
-def test_build_operations_filter_decision_keeps_required_image_operations():
+def test_build_operations_filter_decision_keeps_required_ts_tensor_operations():
     decision = build_operations_filter_decision(
-        data=_FakeMultiModalData(DataTypesEnum.image),
-        data_type=DataTypesEnum.image,
+        data=_FakeMultiModalData(DataTypesEnum.ts),
+        data_type=DataTypesEnum.ts,
         available_operations=['rf'],
         suitable_operations=['rf'],
     )
 
     assert decision.allow_filtering is True
-    assert decision.sampling_choices == ('rf', 'data_source_img', 'cnn')
+    assert decision.sampling_choices == ('rf', 'data_source_time_series')
 
 
 def test_parse_preset_spec_extracts_stable_and_modification_flags():

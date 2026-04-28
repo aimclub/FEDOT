@@ -75,9 +75,8 @@ class TSLoader:
         x_test, y_test = data_test[:, 1:], data_test[:, 0]
         return x_train, y_train, x_test, y_test
 
-
     @staticmethod
-    def read_arff_files(dataset_name: str, 
+    def read_arff_files(dataset_name: str,
                         data_path: PathType) -> tuple[pd.DataFrame, np.array, pd.DataFrame, np.array]:
         """
         Reads multivariate data from ``.arff`` file
@@ -106,11 +105,10 @@ class TSLoader:
 
         return x_train, y_train, x_test, y_test
 
-
     def read_train_test_files(self,
                               data_path: PathType,
                               dataset_name: str
-            ) -> tuple[bool, tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+                              ) -> tuple[bool, tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
         '''
         Reads train and test data from files.
 
@@ -136,7 +134,6 @@ class TSLoader:
         else:
             self.logger.error(f'Data not found in {dataset_dir_path}')
             return None, None, None
-
 
         return x_train, y_train, x_test, y_test
 
@@ -189,7 +186,7 @@ class TSLoader:
             zipfile.ZipFile(download_path + f'temp_data_{dataset_name}').extractall(temp_data_path + dataset_name)
         except zipfile.BadZipFile:
             raise FileNotFoundError(f'Cannot extract data: {dataset_name} dataset not found in {url}')
-        
+
         X_train, y_train, X_test, y_test = self.extract_data(dataset_name, temp_data_path)
 
         shutil.rmtree(cache_path)

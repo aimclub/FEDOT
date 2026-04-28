@@ -3,6 +3,7 @@ from typing import Any, Iterable, Tuple
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.tools import StateEnum
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,23 @@ class PreprocessorMergePlan:
 class OptionalPreprocessingPlan:
     apply_imputation: bool
     apply_encoding: bool
+
+
+@dataclass(frozen=True)
+class TensorDataPreprocessingBridgePlan:
+    state: StateEnum
+    prepare_method_name: str
+
+
+def build_tensordata_preprocessing_bridge_plan(is_fit_stage: bool, is_optional: bool = False
+                                               ) -> TensorDataPreprocessingBridgePlan:
+    state = StateEnum.FIT if is_fit_stage else StateEnum.PREDICT
+    stage_suffix = 'fit' if is_fit_stage else 'predict'
+    prefix = 'optional_prepare' if is_optional else 'obligatory_prepare'
+    return TensorDataPreprocessingBridgePlan(
+        state=state,
+        prepare_method_name=f'{prefix}_for_{stage_suffix}',
+    )
 
 
 def resolve_source_names(data: Any, default_source_name: str) -> PreprocessingSourcePlan:

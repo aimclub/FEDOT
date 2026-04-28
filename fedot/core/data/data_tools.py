@@ -66,7 +66,7 @@ def convert_bytes(x: np.ndarray) -> np.ndarray:
     # Conversion of target values to float or str
     try:
         x = np.char.decode(x, encoding='utf-8')
-    except:
+    except BaseException:
         pass
     try:
         x = x.astype('float')
@@ -223,7 +223,6 @@ def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
     return data
 
 
-
 def convert_idx_to_list(idx: IndexType) -> IndexType:
     """
     Normalize an index-like value to list.
@@ -245,7 +244,7 @@ def convert_idx_to_list(idx: IndexType) -> IndexType:
         return list(idx)
 
 
-def get_idx_from_features_names(idx: IndexType, 
+def get_idx_from_features_names(idx: IndexType,
                                 features_names: Optional[List[str]]) -> IndexType:
     """
     Convert feature names (strings) to feature indices.
@@ -367,8 +366,6 @@ def get_target_and_features(
 
 def transform_to_tensor(features: ArrayType, 
                         target: ArrayType, 
-                        # text_tensors: Optional[torch.Tensor] = None, 
-                        # text_idx: Optional[IndexType] = None, 
                         ts_init_shape: Any = None) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Convert features and target arrays to torch tensors (float32 by default).

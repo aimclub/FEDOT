@@ -10,6 +10,91 @@ class TuneExecutionPlan:
     metric: Any
 
 
+@dataclass(frozen=True)
+class TensorPredictExecutionPlan:
+    output_mode: str
+
+
+@dataclass(frozen=True)
+class TensorPredictProbaExecutionPlan:
+    output_mode: str
+
+
+@dataclass(frozen=True)
+class TensorFitExecutionPlan:
+    fit_method_name: str
+
+
+@dataclass(frozen=True)
+class TensorTuneExecutionPlan:
+    input_data: Any
+    use_tensor_runtime: bool
+    builder_method_name: str
+    refit_method_name: str
+
+
+@dataclass(frozen=True)
+class TensorForecastExecutionPlan:
+    horizon: int
+    clear_target: bool
+
+
+@dataclass(frozen=True)
+class TensorMetricsExecutionPlan:
+    output_mode: str
+
+
+@dataclass(frozen=True)
+class TensorExplainExecutionPlan:
+    method: str
+    visualization: bool
+
+
+def build_tensordata_fit_plan(predefined_model: Any) -> TensorFitExecutionPlan:
+    if predefined_model is None:
+        raise ValueError('TensorData fit currently supports only predefined models or pipelines.')
+    if predefined_model == 'auto':
+        raise ValueError(
+            'TensorData fit does not support auto assumption generation yet. '
+            'Pass a model name or Pipeline.'
+        )
+    return TensorFitExecutionPlan(fit_method_name='fit_tensordata')
+
+
+def build_tensordata_predict_plan(output_mode: str = 'default') -> TensorPredictExecutionPlan:
+    return TensorPredictExecutionPlan(output_mode=output_mode)
+
+
+def build_tensordata_predict_proba_plan(probs_for_all_classes: bool) -> TensorPredictProbaExecutionPlan:
+    return TensorPredictProbaExecutionPlan(output_mode=resolve_predict_proba_mode(probs_for_all_classes))
+
+
+def build_tensordata_tune_plan(converted_input_data: Optional[Any], has_tensor_data: bool) -> TensorTuneExecutionPlan:
+    return TensorTuneExecutionPlan(
+        input_data=converted_input_data,
+        use_tensor_runtime=has_tensor_data,
+        builder_method_name='build_tensordata' if has_tensor_data else 'build',
+        refit_method_name='fit_tensordata' if has_tensor_data else 'fit',
+    )
+
+
+def build_tensordata_forecast_plan(
+        requested_horizon: Optional[int],
+        forecast_length: int) -> TensorForecastExecutionPlan:
+    return TensorForecastExecutionPlan(
+        horizon=resolve_forecast_horizon(requested_horizon, forecast_length),
+        clear_target=True,
+    )
+
+
+def build_tensordata_metrics_plan() -> TensorMetricsExecutionPlan:
+    return TensorMetricsExecutionPlan(output_mode='default')
+
+
+def build_tensordata_explain_plan(method: str, visualization: bool) -> TensorExplainExecutionPlan:
+    return TensorExplainExecutionPlan(method=method, visualization=visualization)
+
+
 def build_tune_execution_plan(input_data: Any,
                               train_data: Any,
                               requested_cv_folds: Optional[int],

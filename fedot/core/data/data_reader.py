@@ -4,7 +4,7 @@ from typing import Optional, Union, List
 import numpy as np
 from scipy.io.arff import loadarff
 
-from fedot.core.data.data_tools import convert_bytes
+from fedot.core.data.data_reader_rules import resolve_arff_target_idx, split_arff_features_and_target
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import PathType
@@ -91,7 +91,7 @@ def get_df_from_csv(
     )
 
 
-def read_arff_file(file_path: PathType, 
+def read_arff_file(file_path: PathType,
                    target_idx: Optional[Union[int, str]] = None):
     """
     Read an ARFF file and return `(features, target)` arrays.
@@ -121,26 +121,16 @@ def read_arff_file(file_path: PathType,
 
     data_array = np.asarray([data[name] for name in meta.names()])
 
-    if target_idx is not None:
-        if isinstance(target_idx, str):
-            target_idx = meta.names().index(target_idx)
-    else:
-        if isinstance(convert_bytes(data_array[-1])[0], str):
-            target_idx = -1
-        elif isinstance(convert_bytes(data_array[0])[0], str):
-            target_idx = 0
-        else:
-            target_idx = None
+    target_resolution = resolve_arff_target_idx(
+        target_idx=target_idx,
+        field_names=meta.names(),
+        data_array=data_array,
+    )
 
-    if target_idx is not None:
-        target = data_array[target_idx]
-        features = np.delete(data_array, target_idx, axis=0)
-        target = convert_bytes(target)
-    else:
-        target = None
-        features = data_array
-
-    features = convert_bytes(features)
+    features, target = split_arff_features_and_target(
+        data_array=data_array,
+        target_idx=target_resolution.target_idx,
+    )
 
     if backend_name == "gpu":
         features = xp.asarray(features)

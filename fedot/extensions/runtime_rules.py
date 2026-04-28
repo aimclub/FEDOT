@@ -5,6 +5,7 @@ from pymonad.either import Right
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.extensions.contracts import ExternalModelSpec
+from fedot.extensions.data_type_rules import build_extension_data_type_view
 from fedot.extensions.parameter_rules import extract_factory_params, resolve_extension_params
 from fedot.extensions.registry import get_registered_extensions
 
@@ -61,7 +62,14 @@ def get_extension_data_types(operation_name: str):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
         raise ValueError(f'Extension model "{operation_name}" is not registered.')
-    return model_spec.capabilities.data_types
+    return build_extension_data_type_view(model_spec.capabilities.data_types).input_types
+
+
+def get_extension_tensor_data_types(operation_name: str):
+    model_spec = get_extension_model_spec(operation_name)
+    if model_spec is None:
+        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+    return build_extension_data_type_view(model_spec.capabilities.data_types).tensor_types
 
 
 def _build_model_fit(model_spec: ExternalModelSpec):
@@ -145,5 +153,4 @@ def _call_with_supported_signature(method, *candidate_args):
 
 
 def _infer_output_type_name(model_spec: ExternalModelSpec) -> str:
-    preferred_data_type = model_spec.capabilities.data_types[0] if model_spec.capabilities.data_types else DataTypesEnum.table
-    return preferred_data_type.name
+    return build_extension_data_type_view(model_spec.capabilities.data_types).preferred_output_type_name

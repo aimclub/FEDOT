@@ -32,7 +32,8 @@ pyvis==0.2.1
 seaborn>=0.9.0
 
 # Misc
-setuptools<81  # hyperopt imports pkg_resources removed in setuptools>=81
+# hyperopt imports pkg_resources removed in setuptools>=81
+setuptools<81
 func_timeout==4.3.5
 joblib>=0.17.0
 requests>=2.0
@@ -40,7 +41,8 @@ typing>=3.7.0
 psutil>=5.9.2
 fsspec>=2024; python_version > '3.8'
 fsspec>=2024,<=2025.3.0; python_version <= '3.8'
-pymonad @ git+https://github.com/jasondelaat/pymonad.git
+# PyPI release; git main requires Python 3.12+ (PEP 695 in monoid.py).
+pymonad==2.4.0
 
 # Tests
 pytest>=6.2.0

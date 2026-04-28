@@ -7,6 +7,7 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
+from fedot.core.backend.backend import Backend
 from fedot.core.data.data import InputData, np_datetime_to_numeric
 from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
@@ -16,7 +17,9 @@ from fedot.core.data.data_preprocessing import (
     replace_inf_with_nans,
     replace_nans_with_empty_strings
 )
+from fedot.core.data.input_data_bridge import input_data_to_tensordata
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation
@@ -29,6 +32,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.base_preprocessing import BasePreprocessor
 from fedot.preprocessing.preprocessing_rules import (
     build_optional_preprocessing_plan,
+    build_tensordata_preprocessing_bridge_plan,
     resolve_main_target_source_name,
     resolve_source_names,
     resolve_target_encoder_source_name,
@@ -157,6 +161,26 @@ class DataPreprocessor(BasePreprocessor):
 
         BasePreprocessor.mark_as_preprocessed(data, is_obligatory=False)
         return data
+
+    def prepare_tensordata(self, tensor_data, *, is_fit_stage: bool = True,
+                           is_optional: bool = False, pipeline=None):
+        bridge_plan = build_tensordata_preprocessing_bridge_plan(
+            is_fit_stage=is_fit_stage,
+            is_optional=is_optional,
+        )
+        input_data = tensordata_to_input_data(tensor_data)
+        prepare_method = getattr(self, bridge_plan.prepare_method_name)
+
+        if is_optional:
+            processed_input_data = prepare_method(pipeline, input_data)
+        else:
+            processed_input_data = prepare_method(input_data)
+
+        return input_data_to_tensordata(
+            processed_input_data,
+            backend_name=Backend().name,
+            state=bridge_plan.state,
+        )
 
     def _take_only_correct_features(self, data: InputData, source_name: str):
         """

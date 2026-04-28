@@ -9,8 +9,8 @@ from fedot.core.data.tools import TSOrientationEnum, StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-def long_to_wide(features: ArrayType, 
-                 features_names: Optional[List[str]] = None, 
+def long_to_wide(features: ArrayType,
+                 features_names: Optional[List[str]] = None,
                  terms_idx: IndexType = None):
     """
     Convert time series from `long` format to `wide` format.
@@ -152,7 +152,7 @@ def process_ts_data(
         features, terms_idx = long_to_wide(features, features_names, terms_idx)
 
     if state == StateEnum.FIT and forecast_horizon is not None:
-        target = features[features.shape[1] - forecast_horizon :, :]
+        target = features[features.shape[1] - forecast_horizon:, :]
         features = features[:-forecast_horizon, :]
 
     return features, target, init_shape, terms_idx
