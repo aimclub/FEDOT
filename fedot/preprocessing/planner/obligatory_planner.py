@@ -1,21 +1,21 @@
 import torch
-from typing import Optional, Dict, List, Union
+from typing import Optional, Dict, List
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import ArrayType, IndexType
 from fedot.core.data.tools import StateEnum
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
-                                                    PreprocessingStepEnum, EmbeddingMethodEnum, 
-                                                    EncodingMethodEnum)
+                                                          PreprocessingStepEnum, EmbeddingMethodEnum,
+                                                          EncodingMethodEnum)
 from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 
 
-def get_embedding_steps(parameters: Optional[List], 
-                       features_names: Optional[List[str]] = None,
-                       feature_type: Optional[DataTypesEnum] = None) -> PreprocessingStep:
+def get_embedding_steps(parameters: Optional[List],
+                        features_names: Optional[List[str]] = None,
+                        feature_type: Optional[DataTypesEnum] = None) -> PreprocessingStep:
     """Build embedding preprocessing steps from embedding strategy config.
 
     Args:
@@ -33,7 +33,7 @@ def get_embedding_steps(parameters: Optional[List],
 
     if parameters is None:
         return None
-    
+
     features_idx_detected = all(param.get("features_idx") is not None for param in parameters)
     if not features_idx_detected or features_idx_detected is None:
         raise ValueError("Features indexes is required for embedding strategy")
@@ -126,10 +126,10 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     return convert_idx_to_list(categorical_ids)
 
 
-def preprocess_encoding_params(params: Dict, 
-                               features: ArrayType, 
+def preprocess_encoding_params(params: Dict,
+                               features: ArrayType,
                                features_names: Optional[List[str]]
-                            ) -> PreprocessingStep:
+                               ) -> PreprocessingStep:
     """Normalize encoding config and convert feature selectors to indices.
 
     Args:
@@ -171,7 +171,7 @@ def preprocess_encoding_params(params: Dict,
     return step
 
 
-def get_encoding_steps(features: ArrayType, 
+def get_encoding_steps(features: ArrayType,
                        parameters: Optional[List],
                        features_names: Optional[List[str]] = None,
                        feature_type: Optional[DataTypesEnum] = None,
@@ -192,7 +192,7 @@ def get_encoding_steps(features: ArrayType,
     """
     if feature_type == DataTypesEnum.ts:
         return None
-    
+
     if parameters is None:
         parameters = list()
     parameters.append(None)
@@ -279,7 +279,7 @@ def get_target_encoding_step(target):
     """
     if target is None:
         return None
-    
+
     if target_has_strings(target):
         step = PreprocessingStep(
             step=PreprocessingStepEnum.target_encoding,
@@ -332,7 +332,7 @@ def check_idx(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
         ValueError: If any feature index is reused across steps.
     """
     old_idx = [idx for step in steps for idx in step.features_idx]
-    
+
     new_idx = set()
     for step in new_steps:
         if len(new_idx.intersection(set(step.features_idx))) != 0:
@@ -359,10 +359,10 @@ def add_steps(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
     new_steps = [step for step in new_steps if step is not None]
     if len(new_steps) == 0:
         return steps
-    
+
     if (steps is None) or len(steps) == 0:
         return new_steps
-    
+
     check_idx(steps, new_steps)
 
     steps.extend(new_steps)
@@ -389,12 +389,12 @@ def get_custom_steps(parameters: List, features_names: Optional[List[str]] = Non
         features_idx = param.get("features_idx")
         if features_idx is None:
             raise ValueError("Features indexes is required for custom strategy")
-        
+
         features_idx = get_idx_from_features_names(features_idx, features_names)
         features_idx = convert_idx_to_list(features_idx)
 
-        step = PreprocessingStep(PreprocessingStepEnum.custom, 
-                                 param['method'], 
+        step = PreprocessingStep(PreprocessingStepEnum.custom,
+                                 param['method'],
                                  features_idx,
                                  param['implementation'])
         if param['step_args'] is not None:
@@ -403,7 +403,7 @@ def get_custom_steps(parameters: List, features_names: Optional[List[str]] = Non
     return steps
 
 
-def build_obligatory_plan(features: ArrayType, 
+def build_obligatory_plan(features: ArrayType,
                           target: ArrayType,
                           params: dict) -> PreprocessingPlan:
     """Build obligatory preprocessing plan from all mandatory strategies.
@@ -429,9 +429,9 @@ def build_obligatory_plan(features: ArrayType,
     steps = add_steps(steps, custom_steps)
 
     embedding_steps = get_embedding_steps(
-                    params['embedding_strategy'],
-                    params['features_names'],
-                    params['data_type'])
+        params['embedding_strategy'],
+        params['features_names'],
+        params['data_type'])
     steps = add_steps(steps, embedding_steps)
 
     used_idx = [idx for step in steps for idx in step.features_idx]

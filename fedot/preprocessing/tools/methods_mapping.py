@@ -1,16 +1,16 @@
-from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
-                                                    ImputationMethodEnum, 
-                                                    ScalingMethodEnum, 
-                                                    EmbeddingMethodEnum,
-                                                    EncodingMethodEnum,
-                                                    FilteringMethodEnum,
-                                                    ImagePreprocessingMethodEnum)
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
+                                                          ImputationMethodEnum,
+                                                          ScalingMethodEnum,
+                                                          EmbeddingMethodEnum,
+                                                          EncodingMethodEnum,
+                                                          FilteringMethodEnum,
+                                                          ImagePreprocessingMethodEnum)
 from fedot.preprocessing.methods.imputation import (MeanImputation, MedianImputation,
-                                            ModeImputation, ConstantImputation,
-                                            DeleteRawImputation)
-from fedot.preprocessing.methods.scaling_normalization import (StandartScaling, 
-                                                       MinMaxNormalization,
-                                                       RobustScaling)
+                                                    ModeImputation, ConstantImputation,
+                                                    DeleteRawImputation)
+from fedot.preprocessing.methods.scaling_normalization import (StandartScaling,
+                                                               MinMaxNormalization,
+                                                               RobustScaling)
 from fedot.industrial.core.architecture.preprocessing.ts_methods.scaling_normalization import (
     SeasonalNormalization,
     RollingNormalization,
@@ -28,9 +28,9 @@ from fedot.industrial.core.architecture.preprocessing.ts_methods.imputation impo
     TSSplineInterpolation
 )
 from fedot.industrial.core.architecture.preprocessing.ts_methods.image_preprocessing import (ContrastEqualization,
-                                                                        ContrastStretching,
-                                                                        GammaCorrection,
-                                                                        LogTransform)
+                                                                                             ContrastStretching,
+                                                                                             GammaCorrection,
+                                                                                             LogTransform)
 from fedot.preprocessing.methods.filtering import QuantileClipping
 from fedot.preprocessing.methods.embedding import TransformerEmbedder
 from fedot.preprocessing.methods.categorical_encoding import LabelEncoder, OneHotEncoder

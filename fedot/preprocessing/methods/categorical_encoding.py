@@ -5,7 +5,6 @@ from fedot.core.data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
-
 """
 How to add a new categorical encoder
 --------------------------------------
@@ -105,7 +104,7 @@ class LabelEncoder(AbstractPreprocessingHandler):
                 encoded[matched_rows, j] = matches.argmax(axis=1)[matched_rows].astype(float)
 
             encoded[nan_mask, j] = xp.nan
-        
+
         features[:, self.categorical_idx_] = encoded
 
         data.features = features
@@ -191,7 +190,7 @@ class OneHotEncoder(AbstractPreprocessingHandler):
                 `(n_samples, self.n_output_features_)`.
         """
         xp = Backend().xp
-        
+
         features = data.features
         n_rows = features.shape[0]
         encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)
@@ -210,7 +209,7 @@ class OneHotEncoder(AbstractPreprocessingHandler):
             block[nan_mask, :] = xp.nan
 
             encoded[:, feature_slice] = block
-        
+
         features = xp.delete(features, self.categorical_idx_, axis=1)
         features = xp.hstack((features, encoded))
 

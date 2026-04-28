@@ -343,20 +343,20 @@ def get_target_and_features(
                 target = features[:, target_idx].copy()
             else:
                 if data_type == DataTypesEnum.ts:
-                    raise ValueError("Target is not provided and target_idx is not provided." \
-                    "Change your task, or provide target or target_idx explicitly.")
+                    raise ValueError("Target is not provided and target_idx is not provided."
+                                     "Change your task, or provide target or target_idx explicitly.")
                 target = features[:, -1].copy()
                 target_idx = [-1]
 
             features = xp.delete(features, target_idx, axis=1)
-        
+
             idx_mapping = update_index_mapping(idx_mapping, target_idx, features)
 
         target = atleast_n_dimensions(target, 2)
         target = replace_missing_with_nan(target)
         try:
             target = xp.asarray(target, dtype=xp.float32)
-        except:
+        except BaseException:
             pass
 
         return features, target, idx_mapping
@@ -364,8 +364,8 @@ def get_target_and_features(
     return features, None, idx_mapping
 
 
-def transform_to_tensor(features: ArrayType, 
-                        target: ArrayType, 
+def transform_to_tensor(features: ArrayType,
+                        target: ArrayType,
                         ts_init_shape: Any = None) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Convert features and target arrays to torch tensors (float32 by default).

@@ -26,7 +26,7 @@ def get_steps_from_params(step_name: PreprocessingStepEnum, params):
         step = PreprocessingStep(step_name, step_params['method'], step_params['features_idx'])
         if step_params['step_args'] is not None:
             step.step_args = step_params['step_args']
-        
+
         implementation = step_params.get('implementation')
         if implementation is not None:
             step.implementation = step_params['implementation']

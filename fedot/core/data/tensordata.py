@@ -29,14 +29,13 @@ from fedot.core.data.tensordata_rules import (
 )
 
 from fedot.core.data.data_tools import (
-    get_device_from_str, is_existed_csv_path, get_values_from_df, 
+    get_device_from_str, get_values_from_df,
     convert_idx_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, _drop_rows_with_nan_in_target)
 
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, torch_to_xp
-from fedot.core.data.data import autodetect_data_type
 from fedot.core.data.data_compatibility_rules import autodetect_tensor_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
 
@@ -351,26 +350,25 @@ class TensorData:
 
         # TODO romankuklo: think how to add it to obligatory ts preprocessing
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
-                                                    self.target,
-                                                    self.features_names,
-                                                    self.state,
-                                                    self.ts_orientation,
-                                                    self.ts_terms_idx,
-                                                    self.ts_forecast_horizon,
-                                                    self.data_type)
-        
+                                                                                            self.target,
+                                                                                            self.features_names,
+                                                                                            self.state,
+                                                                                            self.ts_orientation,
+                                                                                            self.ts_terms_idx,
+                                                                                            self.ts_forecast_horizon,
+                                                                                            self.data_type)
+
         self.idx_mapping = create_index_mapping(self.features, self.ts_init_shape)
 
         self.features, self.target, self.idx_mapping = get_target_and_features(self.features,
-                                                            self.target,
-                                                            self.features_names,
-                                                            self.target_idx,
-                                                            self.state,
-                                                            self.data_type,
-                                                            self.idx_mapping)
-        
-        self.features, self.target = _drop_rows_with_nan_in_target(self.features, self.target)
+                                                                               self.target,
+                                                                               self.features_names,
+                                                                               self.target_idx,
+                                                                               self.state,
+                                                                               self.data_type,
+                                                                               self.idx_mapping)
 
+        self.features, self.target = _drop_rows_with_nan_in_target(self.features, self.target)
 
         service = ObligatoryTabularService()
 
@@ -400,20 +398,19 @@ class TensorData:
         self.target = prepared_data.target
         self.idx_mapping = prepared_data.idx_mapping
 
-        #     # TODO romankuklo: how to save steps?      
-        self.features, self.target = transform_to_tensor(self.features, 
+        #     # TODO romankuklo: how to save steps?
+        self.features, self.target = transform_to_tensor(self.features,
                                                          self.target,
                                                          self.ts_init_shape)
 
         self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
-        
         preprocessed_idx = get_used_idx_from_plan(service.plan)
         self.categorical_idx = list(set(self.categorical_idx) | set(preprocessed_idx))
         self.numerical_idx = list(set(range(self.features.shape[1])) - set(self.categorical_idx))
 
-
     # TODO romankuklo: create TensorData fabric and transfer all registry functions, preprocessing, create
+
     @classmethod
     def _resolve_creator(cls, source_data: Any) -> Callable:
         """

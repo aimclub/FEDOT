@@ -18,9 +18,9 @@ def create_index_mapping(features: ArrayType, init_shape: Optional[Tuple[int]] =
         Initial index mapping where each current column points to its source
         column index.
     """
-    if init_shape is None or len(init_shape) == 2: # for 2-dimensional
+    if init_shape is None or len(init_shape) == 2:  # for 2-dimensional
         return {idx: idx for idx in range(features.shape[1])}
-    else: # for 3-dimensional, only for ts type
+    else:  # for 3-dimensional, only for ts type
         return {idx: idx for idx in range(features.shape[1] // init_shape[2])}
 
 
@@ -50,7 +50,7 @@ def update_index_mapping(
     """
     if index_mapping is None:
         return None
-    
+
     if changed_idx is None:
         return index_mapping
 

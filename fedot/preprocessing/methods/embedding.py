@@ -33,6 +33,7 @@ class TextToEmbedding:
     The class is backend-agnostic at interface level and is used as the core
     embedding primitive by text preprocessing handlers in this module.
     """
+
     def __init__(self, model_name: str, device: Optional[torch.device] = None):
         """
         Args:
@@ -56,7 +57,7 @@ class TextToEmbedding:
         Returns:
             torch.Tensor: Embeddings tensor returned by `SentenceTransformer`.
         """
-        
+
         embeddings = self.model.encode(
             sentences,
             convert_to_numpy=False,
@@ -83,9 +84,10 @@ class TransformerEmbedder(AbstractPreprocessingHandler):
     features must be converted into dense numerical representations suitable for
     downstream models.
     """
-    def __init__(self, 
-                 model_name: str, 
-                 batch_size: int = 4, 
+
+    def __init__(self,
+                 model_name: str,
+                 batch_size: int = 4,
                  device: Optional[torch.device] = Backend().device):
         """Initialize `TransformerEmbedder`."""
         self.model_name = model_name
@@ -111,7 +113,7 @@ class TransformerEmbedder(AbstractPreprocessingHandler):
 
         X = features[:, self.features_idx]
 
-        text_embedder = TextToEmbedding(self.model_name, 
+        text_embedder = TextToEmbedding(self.model_name,
                                         self.device)
 
         n_samples = X.shape[0]
@@ -122,7 +124,7 @@ class TransformerEmbedder(AbstractPreprocessingHandler):
             texts = X[:, col_idx].astype(str)
             all_embeddings = []
             for i in range(0, n_samples, self.batch_size):
-                batch = texts[i : i + self.batch_size].tolist()
+                batch = texts[i: i + self.batch_size].tolist()
                 embeddings = text_embedder(batch)
                 all_embeddings.append(embeddings)
 
@@ -133,14 +135,14 @@ class TransformerEmbedder(AbstractPreprocessingHandler):
             embeddings_all = torch.cat(embedding_parts, dim=1)
         except Exception as e:
             raise ValueError(f"Failed to get embeddings") from e
-        
+
         embeddings_all = embeddings_all.to(torch.float32)
 
         if self.device.type != device.type:
             embeddings_all = embeddings_all.to(device)
-        
+
         embeddings_all = torch_to_xp(embeddings_all, xp)
-        
+
         features = xp.delete(features, self.features_idx, axis=1)
         features = xp.hstack((features, embeddings_all))
 

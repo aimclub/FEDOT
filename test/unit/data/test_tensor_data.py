@@ -232,7 +232,7 @@ def test_memory_count_gpu():
     including the size of the features tensor and the target tensor if present.
     """
     Backend().set("gpu")
-    
+
     features = np.random.rand(100, 10)
 
     td = TensorData.create(features, backend_name="gpu")

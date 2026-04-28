@@ -25,6 +25,7 @@ from fedot.industrial.core.operation.dummy.dummy_operation import check_multivar
 
 class CustomDatasetTS:
     """CustomDatasetTS implementation."""
+
     def __init__(self, ts):
         """Initialize class instance."""
         self.x = torch.from_numpy(DataConverter(
@@ -43,6 +44,7 @@ class CustomDatasetTS:
 
 class CustomDatasetCLF:
     """CustomDatasetCLF implementation."""
+
     def __init__(self, ts):
         """Initialize class instance."""
         self.x = torch.from_numpy(ts.features).to(default_device()).float()
@@ -93,6 +95,7 @@ class CustomDatasetCLF:
 
 class FedotConverter:
     """FedotConverter implementation."""
+
     def __init__(self, data):
         """Initialize class instance."""
         self.input_data = self.convert_to_input_data(data)
@@ -242,6 +245,7 @@ class FedotConverter:
 
 class TensorConverter:
     """TensorConverter implementation."""
+
     def __init__(self, data):
         """Initialize class instance."""
         self.tensor_data = self.convert_to_tensor(data)
@@ -305,6 +309,7 @@ class TensorConverter:
 
 class NumpyConverter:
     """NumpyConverter implementation."""
+
     def __init__(self, data, to_numpy_array=True):
         """Initialize class instance."""
         if not to_numpy_array or isinstance(data, torch.Tensor):
@@ -431,6 +436,7 @@ class NumpyConverter:
 
 class ConditionConverter:
     """ConditionConverter implementation."""
+
     def __init__(self, train_data, operation_implementation, mode):
         """Initialize class instance."""
         self.train_data = train_data
@@ -624,6 +630,7 @@ class ApiConverter:
 
 class DataConverter(TensorConverter, NumpyConverter):
     """DataConverter implementation."""
+
     def __init__(self, data):
         """Initialize class instance."""
         super().__init__(data)
@@ -806,6 +813,7 @@ class DataConverter(TensorConverter, NumpyConverter):
 
 class NeuralNetworkConverter:
     """NeuralNetworkConverter implementation."""
+
     def __init__(self, layer):
         """Initialize class instance."""
         self.layer = layer

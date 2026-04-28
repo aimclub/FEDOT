@@ -5,7 +5,7 @@ from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_M
 class ObligatoryTabularService(ObligatoryService):
     """Service for mandatory preprocessing steps on tabular data.
 
-    The service runs obligatory transformations required for TensorData creation 
+    The service runs obligatory transformations required for TensorData creation
     (categorical encoding and embedding).
 
     Example of usage and creating custom steps in tests/preprocessing/test_obligatory_preprocessing.py.

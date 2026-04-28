@@ -15,6 +15,7 @@ class QuantileClipping(AbstractPreprocessingHandler):
 
     NaN values are preserved and are not replaced during clipping.
     """
+
     def __init__(
         self,
         quantile_range: tuple[float, float] = (1.0, 99.0),
@@ -60,6 +61,7 @@ class VarianceThreshold(AbstractPreprocessingHandler):
 
     This is useful for removing near-constant features before model training.
     """
+
     def __init__(self, threshold: float = 0.0):
         """Initialize `VarianceThreshold`."""
         self.threshold = threshold

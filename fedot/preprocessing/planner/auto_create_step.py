@@ -1,10 +1,10 @@
 import torch
 
-from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep, 
-                                                    PreprocessingStepEnum,
-                                                    ImputationMethodEnum,
-                                                    ScalingMethodEnum,
-                                                    FilteringMethodEnum)
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
+                                                          PreprocessingStepEnum,
+                                                          ImputationMethodEnum,
+                                                          ScalingMethodEnum,
+                                                          FilteringMethodEnum)
 from fedot.core.data.tensordata import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -97,14 +97,14 @@ def auto_scaling_steps(data: TensorData):
     if len(data.numerical_idx) > 0:
         if data.data_type == DataTypesEnum.tabular:
             step = PreprocessingStep(PreprocessingStepEnum.scaling,
-                                    ScalingMethodEnum.min_max,
-                                    data.numerical_idx)
+                                     ScalingMethodEnum.min_max,
+                                     data.numerical_idx)
         else:
             step = PreprocessingStep(PreprocessingStepEnum.scaling,
-                                    ScalingMethodEnum.seasonal,
-                                    step_args={
-                                        'period': 5
-                                    })
+                                     ScalingMethodEnum.seasonal,
+                                     step_args={
+                                         'period': 5
+                                     })
         steps.append(step)
     else:
         steps = None

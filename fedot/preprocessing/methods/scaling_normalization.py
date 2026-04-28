@@ -16,8 +16,8 @@ class StandartScaling(AbstractPreprocessingHandler):
     Configuration flags allow disabling centering and/or scaling to mirror
     standard scaler behavior in different preprocessing scenarios.
     """
-    def __init__(self, with_mean: bool = True, with_std: bool = True):
 
+    def __init__(self, with_mean: bool = True, with_std: bool = True):
         """Initialize `StandartScaling`."""
         self.with_mean = with_mean
         self.with_std = with_std
@@ -94,6 +94,7 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
     Columns with zero data range are handled safely by replacing zero divisors
     with ones.
     """
+
     def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0)):
         """Initialize `MinMaxNormalization`."""
         self.min_range = feature_range[0]
@@ -155,6 +156,7 @@ class RobustScaling(AbstractPreprocessingHandler):
     Designed for tabular data where heavy tails or extreme values can distort
     mean/std-based normalization.
     """
+
     def __init__(
         self,
         quantile_range: tuple[float, float] = (25.0, 75.0),

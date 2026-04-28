@@ -47,9 +47,9 @@ class ObligatoryService:
 
         self.plan = build_obligatory_plan(features, target, params)
 
-        prepared_data = PreparedData(features=features, 
-                                     target=target, 
-                                     idx_mapping=params['idx_mapping'], 
+        prepared_data = PreparedData(features=features,
+                                     target=target,
+                                     idx_mapping=params['idx_mapping'],
                                      ts_shape=features.shape)
 
         if len(self.plan.steps) > 0:

@@ -4,8 +4,8 @@ import torch
 from fedot.core.data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.industrial.core.architecture.preprocessing.ts_methods.tools import (
-    flatten_if_needed, 
-    restore_if_needed, 
+    flatten_if_needed,
+    restore_if_needed,
     expand_features_idx_for_flatten
 )
 
@@ -17,6 +17,7 @@ class TSMeanImputation(AbstractPreprocessingHandler):
     axes are temporarily flattened, means are computed on selected columns while
     ignoring NaNs, then data is restored to original shape.
     """
+
     def __init__(self):
         """Initialize class instance."""
         self.mean_values: Optional[torch.Tensor] = None
@@ -63,6 +64,7 @@ class TSMedianImputation(AbstractPreprocessingHandler):
     NaN-aware median estimation on selected columns and keeps tensor layout
     unchanged after restore from flattened representation.
     """
+
     def __init__(self):
         """Initialize class instance."""
         self.median_values: Optional[torch.Tensor] = None
@@ -109,6 +111,7 @@ class TSConstantImputation(AbstractPreprocessingHandler):
     imputation). Selected features are processed after flattening when needed,
     then restored back to the original tensor shape.
     """
+
     def __init__(self, constant: float = 0.0):
         """Initialize class instance."""
         self.constant = constant
@@ -157,6 +160,7 @@ class TSFillImputation(AbstractPreprocessingHandler):
     missing values are propagated from nearest valid observations along the time
     axis, preserving existing non-missing values.
     """
+
     def __init__(self, direction: str = "forward"):
         """Initialize class instance."""
         if direction not in {"forward", "backward"}:
@@ -233,6 +237,7 @@ class TSRollingImputation(AbstractPreprocessingHandler):
     window (`mean` or `median`). The window can be centered or causal, which
     makes the method suitable for both offline and streaming-like scenarios.
     """
+
     def __init__(
         self,
         window_size: int = 5,
@@ -316,6 +321,7 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
     performs prediction-update steps over time. Missing observations are filled
     with filtered state estimates, while observed values are preserved.
     """
+
     def __init__(self):
         """Initialize class instance."""
         self.features_idx: Optional[Sequence[int]] = None
@@ -469,6 +475,7 @@ class TSLinearInterpolation(AbstractPreprocessingHandler):
     valid observations. Edge gaps are handled via one-sided propagation when one
     of the neighbors is absent.
     """
+
     def __init__(self):
         """Initialize class instance."""
         self.features_idx: Optional[Sequence[int]] = None
@@ -546,6 +553,7 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
     degree on valid points and predicts missing ones. If valid points are
     insufficient, it falls back to linear interpolation.
     """
+
     def __init__(self, degree: int = 2, window_size: int = 64):
         """Initialize class instance."""
         self.degree = degree
@@ -671,6 +679,7 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
     enough valid points are available; otherwise it falls back to linear
     interpolation. This provides smoother trajectories than linear filling.
     """
+
     def __init__(self, window_size: int = 64):
         """Initialize class instance."""
         self.window_size = window_size

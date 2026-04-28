@@ -2,10 +2,10 @@ import numpy as np
 import torch
 
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
-from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
-                                                    ImputationMethodEnum, 
-                                                    ScalingMethodEnum,
-                                                    FilteringMethodEnum)
+from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
+                                                          ImputationMethodEnum,
+                                                          ScalingMethodEnum,
+                                                          FilteringMethodEnum)
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.core.data.prepared_data import PreparedData
@@ -16,17 +16,17 @@ from fedot.preprocessing.planner.optional_planner import build_optional_plan
 
 def test_build_optional_plan():
     """Test optional plan construction from explicit imputation params.
-    
+
     Checks that `build_optional_plan` returns a PreprocessingPlan containing exactly
     one mean-imputation step for the configured feature index."""
     tensor = torch.Tensor([[1, float('nan'), 3], [4, 5, 6]])
     data = TensorData.create(tensor, "cpu")
     pipeline = None
 
-    optional_steps ={
+    optional_steps = {
         PreprocessingStepEnum.imputation: [
             {
-                'method': ImputationMethodEnum.mean, 
+                'method': ImputationMethodEnum.mean,
                 'features_idx': [0],
                 'step_args': None
             }
@@ -34,14 +34,14 @@ def test_build_optional_plan():
     }
 
     optional_plan = build_optional_plan(data, optional_steps)
-    
+
     assert isinstance(optional_plan, PreprocessingPlan)
     assert len(optional_plan.steps) == 1
 
 
 def test_mean_imputation():
     """Test direct mean imputation handler behavior.
-    
+
     Checks that NaN in column 1 is replaced with the mean of valid values `2` and
     `8`, producing value `5`."""
     X = np.array([
@@ -58,7 +58,7 @@ def test_mean_imputation():
 
 def test_preprocessing_plan_imputation():
     """Test default optional imputation through `OptionalTabularService`.
-    
+
     Checks that automatic imputation returns PreparedData and fills the missing value
     in column 1 with the inferred mean/median value `5`."""
     X = np.array([
@@ -76,7 +76,7 @@ def test_preprocessing_plan_imputation():
 
 def test_preprocessing_plan_mode_imputation():
     """Test mode imputation through optional preprocessing plan.
-    
+
     Checks that NaN in column 1 is replaced by the most frequent value `2` and the
     service returns PreparedData."""
     X = np.array([
@@ -89,16 +89,16 @@ def test_preprocessing_plan_mode_imputation():
     td = TensorData.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
-        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode, 
+        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode,
                                            "features_idx": [1],
-                                           "step_args": None}]})
+                                            "step_args": None}]})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features[2, 1] == 2
 
 
 def test_preprocessing_plan_mean_imputation():
     """Test configured mean imputation through optional service.
-    
+
     Checks that explicit mean-imputation strategy fills column 1 NaN with `5` and
     keeps the result wrapped as PreparedData."""
     X = np.array([
@@ -110,16 +110,16 @@ def test_preprocessing_plan_mean_imputation():
     td = TensorData.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
-        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean, 
+        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean,
                                            "features_idx": [1],
-                                           "step_args": None}]})
+                                            "step_args": None}]})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features[1, 1] == 5
 
 
 def test_preprocessing_plan_constant_imputation():
     """Test constant imputation through optional service.
-    
+
     Checks that NaN in column 1 is replaced by configured constant `3` and the output
     is PreparedData."""
     X = np.array([
@@ -132,16 +132,16 @@ def test_preprocessing_plan_constant_imputation():
     td = TensorData.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
-        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant, 
+        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant,
                                            "features_idx": [1],
-                                           "step_args": {"constant": 3}}]})
+                                            "step_args": {"constant": 3}}]})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features[2, 1] == 3
 
 
 def test_preprocessing_plan_delete_raw_imputation():
     """Test row deletion imputation strategy.
-    
+
     Checks that rows containing NaN in selected column are removed from both features
     and target, leaving two aligned samples."""
     X = np.array([
@@ -153,9 +153,9 @@ def test_preprocessing_plan_delete_raw_imputation():
     td = TensorData.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
-        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw, 
+        PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw,
                                            "features_idx": [1],
-                                           "step_args": None}]})
+                                            "step_args": None}]})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features.shape[0] == 2
     assert preprocessed_data.target.shape[0] == 2
@@ -163,7 +163,7 @@ def test_preprocessing_plan_delete_raw_imputation():
 
 def test_preprocessing_minmax_scaling():
     """Test min-max scaling for a selected tabular column.
-    
+
     Compares non-NaN values in column 1 with manual `(x - min) / (max - min)` result,
     checks NaN preservation, and verifies unselected column 0 is unchanged."""
     X = np.array([
@@ -205,7 +205,7 @@ def test_preprocessing_minmax_scaling():
 
 def test_preprocessing_standard_scaling():
     """Test standard scaling for a selected tabular column.
-    
+
     Compares column 1 with manual z-score using valid values `[2, 8]`, checks NaN
     preservation, and verifies unselected column 0 is unchanged."""
     X = np.array([
@@ -249,7 +249,7 @@ def test_preprocessing_standard_scaling():
 
 def test_preprocessing_robust_scaling():
     """Test robust scaling by median and interquartile range.
-    
+
     Compares selected column values with manual `(x - median) / IQR` calculation,
     keeps NaN in place, and checks unselected feature values are unchanged."""
     X = np.array([
@@ -298,7 +298,7 @@ def test_preprocessing_robust_scaling():
 
 def test_imputation_scaling():
     """Test sequential optional imputation followed by scaling.
-    
+
     Checks that constant imputation first converts NaN to `3`, then min-max scaling
     produces the expected `[0, 1/6, 1]` column with no NaNs."""
     X = np.array([
@@ -347,7 +347,7 @@ def test_imputation_scaling():
 
 def test_encoding_autoscaling_imputation():
     """Test optional preprocessing after obligatory categorical encoding.
-    
+
     Checks that categorical column is label-encoded, numeric column is auto-scaled,
     configured imputation fills NaN with `3`, and another numeric feature changes due
     to scaling."""
@@ -393,7 +393,7 @@ def test_encoding_autoscaling_imputation():
 
 def test_preprocessing_clipping():
     """Test quantile clipping filter for outlier handling.
-    
+
     Compares selected column with manual clipping between 10th and 90th percentiles,
     verifies NaN preservation, and checks unselected column remains unchanged."""
     X = np.array([
@@ -440,7 +440,7 @@ def test_preprocessing_clipping():
 
 def test_custom_preprocessing():
     """Test custom optional preprocessing handlers.
-    
+
     Checks that a custom zero imputer fills NaNs in column 1 with `0`, a custom root
     constant imputer fills column 2 with `sqrt(100)=10`, and both columns match the
     reference arrays."""
@@ -479,7 +479,7 @@ def test_custom_preprocessing():
                 )
 
             return data
-    
+
     class CustomRootConstantImputer(AbstractPreprocessingHandler):
         def __init__(self, constant: float = 0.0):
             self.constant = constant
@@ -505,7 +505,7 @@ def test_custom_preprocessing():
                 )
 
             return data
-        
+
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td,
@@ -516,7 +516,7 @@ def test_custom_preprocessing():
                 "implementation": CustomZeroImputer,
                 "step_args": None,
             },
-            {
+                {
                 "method": 'RootConstantImputer',
                 "features_idx": [2],
                 "implementation": CustomRootConstantImputer,

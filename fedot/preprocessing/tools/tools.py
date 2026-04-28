@@ -2,7 +2,7 @@ from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 
 
-def update_handler_mapping(plan: PreprocessingPlan, 
+def update_handler_mapping(plan: PreprocessingPlan,
                            handler_mapping: dict) -> dict:
     """Inject custom step implementations from plan into handler mapping.
 
@@ -17,7 +17,7 @@ def update_handler_mapping(plan: PreprocessingPlan,
     for step in plan.steps:
         if step.step == PreprocessingStepEnum.custom:
             custom_dict[step.method] = step.implementation
-    
+
     if not custom_dict:
         return handler_mapping
 

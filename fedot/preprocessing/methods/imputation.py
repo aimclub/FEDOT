@@ -15,6 +15,7 @@ class MeanImputation(AbstractPreprocessingHandler):
     Intended for continuous numeric features where mean-based replacement is an
     acceptable approximation.
     """
+
     def __init__(self):
         """Initialize `MeanImputation`."""
         self.mean_values: Optional[torch.Tensor] = None
@@ -59,6 +60,7 @@ class MedianImputation(AbstractPreprocessingHandler):
     to replace missing values in selected columns. Median-based imputation is
     generally more robust to outliers than mean imputation.
     """
+
     def __init__(self):
         """Initialize `MedianImputation`."""
         self.median_values: Optional[torch.Tensor] = None
@@ -96,6 +98,7 @@ class ModeImputation(AbstractPreprocessingHandler):
 
     Useful for discrete or category-like numeric columns.
     """
+
     def __init__(self):
         """Initialize `ModeImputation`."""
         self.mode_values: Optional[torch.Tensor] = None
@@ -147,6 +150,7 @@ class ConstantImputation(AbstractPreprocessingHandler):
 
     Suitable for deterministic replacement policies and controlled experiments.
     """
+
     def __init__(self, constant: float = 0.0):
         """Initialize `ConstantImputation`."""
         self.constant = constant
@@ -183,11 +187,12 @@ class DeleteRawImputation(AbstractPreprocessingHandler):
     Use this strategy when dropping corrupted rows is preferable to value
     imputation.
     """
+
     def __init__(self):
         """Initialize `DeleteRawImputation`."""
         self.features_idx: Optional[Sequence[int]] = None
         self.valid_rows_mask: Optional[torch.Tensor] = None
-    
+
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
         """Fit the handler on input data."""
         self.features_idx = features_idx

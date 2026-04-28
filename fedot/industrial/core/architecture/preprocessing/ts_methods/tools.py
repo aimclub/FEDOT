@@ -18,7 +18,7 @@ def expand_features_idx_for_flatten(
     """
     if features_idx is None or len(original_shape) == 2:
         return features_idx
-    
+
     n_channels = original_shape[2]
     expanded = []
 

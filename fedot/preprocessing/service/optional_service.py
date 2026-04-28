@@ -13,7 +13,7 @@ class OptionalService:
 
     This class is a base (parent) implementation for specialized child services
     (OptionalTabularService, OptionalTSService). It defines shared logic for
-    optional transformations that are configured by user strategy. The main difference 
+    optional transformations that are configured by user strategy. The main difference
     from obligatory service is that optional service is requires ready TensorData as input.
 
     Processing sequence in `fit_transform`:
@@ -47,9 +47,9 @@ class OptionalService:
         if len(self.plan.steps) > 0:
             self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
 
-            prepared_data = PreparedData(features=data.features, 
-                                         target=data.target, 
-                                         idx_mapping=data.idx_mapping, 
+            prepared_data = PreparedData(features=data.features,
+                                         target=data.target,
+                                         idx_mapping=data.idx_mapping,
                                          ts_shape=data.ts_init_shape)
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping

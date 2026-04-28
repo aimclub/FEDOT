@@ -7,6 +7,7 @@ from fedot.core.data.complex_types import IndexType
 from fedot.core.data.tools import StateEnum
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
+
 class EmbeddingMethodEnum(Enum):
     """Enumeration of embeddingmethod options."""
     transformer = "sentence_transformer"

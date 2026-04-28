@@ -12,6 +12,7 @@ class ContrastEqualization(AbstractPreprocessingHandler):
     range. This redistributes intensity levels more uniformly and improves local
     contrast while preserving NaN locations.
     """
+
     def __init__(
         self,
         output_range: tuple[float, float] = (0.0, 1.0),
@@ -32,7 +33,6 @@ class ContrastEqualization(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
-
         """Run `transform` routine."""
         if self.channels_idx is None:
             raise RuntimeError("ContrastEqualization is not fitted yet.")
@@ -81,6 +81,7 @@ class ContrastStretching(AbstractPreprocessingHandler):
     to the requested range. This suppresses extreme outliers and increases
     dynamic range for the main signal mass.
     """
+
     def __init__(
         self,
         quantile_range: tuple[float, float] = (2.0, 98.0),
@@ -148,6 +149,7 @@ class GammaCorrection(AbstractPreprocessingHandler):
     missing data remain untouched. Typical use cases are contrast tuning and
     brightness emphasis/de-emphasis in image-like time-series features.
     """
+
     def __init__(
         self,
         gamma: float = 1.0,
@@ -189,6 +191,7 @@ class LogTransform(AbstractPreprocessingHandler):
     clipping at zero). Useful when feature amplitudes are highly skewed and need
     compressing before downstream modeling.
     """
+
     def __init__(
         self,
         eps: float = 1e-6,

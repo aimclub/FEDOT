@@ -3,7 +3,7 @@ import torch
 
 from fedot.core.data.prepared_data import PreparedData
 from fedot.industrial.core.architecture.preprocessing.ts_methods.tools import (
-    flatten_if_needed, 
+    flatten_if_needed,
     restore_if_needed,
     expand_features_idx_for_flatten)
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
@@ -16,6 +16,7 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
     each phase position (0..period-1) and normalizes values by matching phase.
     This helps remove repeating seasonal patterns in time-series features.
     """
+
     def __init__(
         self,
         period: int,
@@ -102,7 +103,7 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
         """Run `transform` routine."""
         if self.features_idx is None:
             raise RuntimeError("SeasonalNormalization is not fitted yet.")
-        
+
         flat_features = flatten_if_needed(data.features)
 
         selected = flat_features[:, self.features_idx]  # [A, F]
@@ -127,6 +128,7 @@ class RollingNormalization(AbstractPreprocessingHandler):
     each timestamp and selected feature. It is useful for non-stationary series
     where feature scale drifts over time.
     """
+
     def __init__(
         self,
         window_size: int,
@@ -226,6 +228,7 @@ class PerChannelNormalization(AbstractPreprocessingHandler):
     centering/scaling to selected channels. Intended for data shaped as
     `(n_samples, n_timesteps, n_channels)`.
     """
+
     def __init__(
         self,
         channels_idx: Sequence[int],
@@ -256,9 +259,8 @@ class PerChannelNormalization(AbstractPreprocessingHandler):
         """
         if data.ts_shape is None or len(data.ts_shape) != 3:
             raise ValueError(
-                f"Data must be in 3D tensor with shape (n_samples, n_features, n_channels), got shape={tuple(data.ts_shape)}" \
-                "It is not possible to apply PerChannelNormalization"
-            )
+                f"Data must be in 3D tensor with shape (n_samples, n_features, n_channels), got shape={tuple(data.ts_shape)}"
+                "It is not possible to apply PerChannelNormalization")
         selected = data.features[:, :, self.channels_idx]
 
         mask = ~torch.isnan(selected)
@@ -285,7 +287,7 @@ class PerChannelNormalization(AbstractPreprocessingHandler):
             self.scale_values = std
         else:
             self.scale_values = None
-        
+
         self.is_fitted = True
 
         return self

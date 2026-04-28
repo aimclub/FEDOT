@@ -114,8 +114,8 @@ def read_arff_file(file_path: PathType,
             - features: array of predictors (shape depends on the dataset).
             - target: target array or `None` if no target column is detected.
     """
-    xp = backend.xp
-    backend_name = backend.name
+    xp = Backend().xp
+    backend_name = Backend().name
 
     data, meta = loadarff(file_path)
 
