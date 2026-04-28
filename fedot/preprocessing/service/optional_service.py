@@ -12,7 +12,7 @@ class OptionalService:
     """Parent service class for optional preprocessing pipelines.
 
     This class is a base (parent) implementation for specialized child services
-    (OptionalTabularService, TSPreprocessingService). It defines shared logic for
+    (OptionalTabularService, OptionalTSService). It defines shared logic for
     optional transformations that are configured by user strategy. The main difference 
     from obligatory service is that optional service is requires ready TensorData as input.
 
