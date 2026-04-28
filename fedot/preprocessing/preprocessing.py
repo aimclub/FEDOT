@@ -7,7 +7,7 @@ from golem.core.log import default_log
 from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.data import InputData, np_datetime_to_numeric
 from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
@@ -178,7 +178,7 @@ class DataPreprocessor(BasePreprocessor):
 
         return input_data_to_tensordata(
             processed_input_data,
-            backend_name=backend.name,
+            backend_name=Backend().name,
             state=bridge_plan.state,
         )
 

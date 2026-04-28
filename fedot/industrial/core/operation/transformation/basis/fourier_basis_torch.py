@@ -183,7 +183,7 @@ class FourierBasisImplementationTorch(BasisDecompositionImplementation):
             OutputData: An object containing the prediction, input features,
             task parameters, and other metadata.
         """
-        # TODO: make NumpyConverter method as general for whole basis methods
+        # TODO romankuklo: make NumpyConverter method as general for whole basis methods
         if input_data.features.shape[0] == 1 and input_data.features.dim() == 3:
             self.predict = basis.unsqueeze(0)
         else:

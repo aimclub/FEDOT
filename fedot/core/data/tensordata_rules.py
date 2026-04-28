@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Optional, Union, List
 
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -161,14 +161,17 @@ def normalize_optional_ts_orientation(
     )
 
 
-def normalize_embedding_strategy(embedding_strategy: Optional[dict]) -> dict:
+def normalize_embedding_strategy(embedding_strategy: Optional[List]) -> dict:
     if embedding_strategy is None:
-        return {}
-    if not isinstance(embedding_strategy, dict):
+        return embedding_strategy
+    elif isinstance(embedding_strategy, dict):
+        return [embedding_strategy]
+    elif isinstance(embedding_strategy, list):
+        return embedding_strategy
+    else:
         raise TypeError(
             f'embedding_strategy must be dict or None, got {type(embedding_strategy)}'
         )
-    return dict(embedding_strategy)
 
 
 def normalize_dataloader_kwargs(dataloader_kwargs: Optional[dict]) -> dict:

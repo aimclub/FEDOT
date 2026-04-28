@@ -1,6 +1,7 @@
+# TODO romankuklo: move to obligatory ts preprocessing service
 from typing import Optional, List
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.data_tools import get_idx_from_features_names
 from fedot.core.data.complex_types import ArrayType, IndexType
 
@@ -33,7 +34,7 @@ def long_to_wide(features: ArrayType,
             - wide is the converted 3D/stacked wide array (dtype float32),
             - unique_labels are the unique term labels from the input (dtype depends on backend).
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if terms_idx is None:
         terms_idx = 0
@@ -60,15 +61,15 @@ def long_to_wide(features: ArrayType,
     return wide, unique_labels
 
 
-def check_multichannel_ts(features: ArrayType):
+def reshape_and_get_init_shape(features: ArrayType):
     """
     Normalize input time series with potentially multiple channels.
 
     The function ensures that multi-channel time series do not exceed 3 dimensions:
     - If `features.ndim == 1`, it is expanded to shape `(1, T)`.
     - If `features.ndim == 2`, it keeps `(B, T)` and returns `init_shape = None`.
-    - If `features.ndim == 3`, it reshapes `(B, C, T)` into `(B*C, T)` and
-      returns `init_shape = (B, C, T)` for potential later reshaping.
+    - If `features.ndim == 3`, it reshapes `(T, B, C)` into `(T, B * C)` and
+      returns `init_shape = (T, B, C)` for potential later reshaping.
 
     Args:
         features (ArrayType): Time-series array.
@@ -77,18 +78,17 @@ def check_multichannel_ts(features: ArrayType):
         Tuple[ArrayType, Optional[tuple]]: `(features_normalized, init_shape)` where
             `init_shape` is `None` unless the input was 3D.
     """
-    xp = backend.xp
+    xp = Backend().xp
 
     if features.ndim == 1:
         features = xp.expand_dims(features, axis=0)
-        init_shape = None
+        init_shape = features.shape
     elif features.ndim == 2:
-        B, T = features.shape
-        init_shape = None
+        init_shape = features.shape
     elif features.ndim == 3:
-        B, C, T = features.shape
-        features = features.reshape(B * C, T)
-        init_shape = (B, C, T)
+        init_shape = features.shape
+        T, B, C = features.shape
+        features = features.reshape(T, B * C)
     elif features.ndim > 3:
         raise ValueError("Multichannel time series must not have more than 3 dimensions")
 
@@ -141,7 +141,7 @@ def process_ts_data(
     if data_type == DataTypesEnum.tabular:
         return features, target, None, None
 
-    features, init_shape = check_multichannel_ts(features)
+    features, init_shape = reshape_and_get_init_shape(features)
 
     if isinstance(ts_orientation, str):
         ts_orientation = TSOrientationEnum(ts_orientation)

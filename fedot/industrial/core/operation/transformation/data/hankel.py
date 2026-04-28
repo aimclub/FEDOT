@@ -89,7 +89,7 @@ class HankelMatrix:
                                             self.__time_series[self.__window_length:])
 
     def __get_2d_trajectory_matrix(self):
-        # TODO: add case for apply_window_for_stat_feature_torch,
+        # TODO romankuklo: add case for apply_window_for_stat_feature_torch,
         # problem with negative tensor size
         if self.__use_torch:
             matrices = []
@@ -98,7 +98,7 @@ class HankelMatrix:
             tensor = [x.unsqueeze(0) for x in matrices]
             return torch.concat(tensor)
         else:
-            # TODO: add case for apply_window_for_stat_feature, required array
+            # TODO romankuklo: add case for apply_window_for_stat_feature, required array
             if self.__strides > 1:
                 return [self.__strided_trajectory_matrix(
                     time_series) for time_series in self.__time_series]

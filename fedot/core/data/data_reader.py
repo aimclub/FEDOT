@@ -6,7 +6,7 @@ from scipy.io.arff import loadarff
 
 from fedot.core.data.data_reader_rules import resolve_arff_target_idx, split_arff_features_and_target
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.complex_types import PathType
 
 
@@ -45,7 +45,7 @@ def get_df_from_csv(
     Returns:
         pandas.DataFrame: Loaded dataframe (CPU/GPU dependent on `backend.pd`).
     """
-    pd_backend = backend.pd
+    pd_backend = Backend().pd
 
     def define_index_column(candidate_columns: List[str]) -> Optional[str]:
         for column_name in candidate_columns:
@@ -114,8 +114,8 @@ def read_arff_file(file_path: PathType,
             - features: array of predictors (shape depends on the dataset).
             - target: target array or `None` if no target column is detected.
     """
-    xp = backend.xp
-    backend_name = backend.name
+    xp = Backend().xp
+    backend_name = Backend().name
 
     data, meta = loadarff(file_path)
 

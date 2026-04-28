@@ -24,21 +24,29 @@ from fedot.industrial.core.operation.dummy.dummy_operation import check_multivar
 
 
 class CustomDatasetTS:
+    """CustomDatasetTS implementation."""
+
     def __init__(self, ts):
+        """Initialize class instance."""
         self.x = torch.from_numpy(DataConverter(
             data=ts.features).convert_to_torch_format()).float()
         self.y = torch.from_numpy(DataConverter(
             data=ts.target).convert_to_torch_format()).float()
 
     def __getitem__(self, index):
+        """Internal helper for `_getitem__` logic."""
         pass
 
     def __len__(self):
+        """Internal helper for `_len__` logic."""
         pass
 
 
 class CustomDatasetCLF:
+    """CustomDatasetCLF implementation."""
+
     def __init__(self, ts):
+        """Initialize class instance."""
         self.x = torch.from_numpy(ts.features).to(default_device()).float()
         if ts.task.task_type.value == 'classification':
             label_1 = max(ts.class_labels)
@@ -77,18 +85,24 @@ class CustomDatasetCLF:
         self.supplementary_data = ts.supplementary_data
 
     def __getitem__(self, index):
+        """Internal helper for `_getitem__` logic."""
         return self.x[index], self.y[index]
 
     def __len__(self):
+        """Internal helper for `_len__` logic."""
         return self.n_samples
 
 
 class FedotConverter:
+    """FedotConverter implementation."""
+
     def __init__(self, data):
+        """Initialize class instance."""
         self.input_data = self.convert_to_input_data(data)
         self.data_type_condition = DataConverter(data=data)
 
     def convert_to_input_data(self, data):
+        """Run `convert_to_input_data` routine."""
         if isinstance(data, InputData):
             return data
         elif isinstance(data, OutputData):
@@ -106,6 +120,7 @@ class FedotConverter:
     def __init_input_data(self, features: pd.DataFrame,
                           target: np.ndarray,
                           task: str = 'classification') -> InputData:
+        """Internal helper for `_init_input_data` logic."""
         if type(features) is np.ndarray:
             features = pd.DataFrame(features)
         is_multivariate_data = check_multivariate_data(features)
@@ -131,6 +146,7 @@ class FedotConverter:
                                prediction,
                                predict_data,
                                output_data_type):
+        """Run `convert_to_output_data` routine."""
         if isinstance(prediction, OutputData):
             output_data = prediction
         elif isinstance(prediction, list):
@@ -162,11 +178,13 @@ class FedotConverter:
         return output_data
 
     def unwrap_list_to_output(self):
+        """Run `unwrap_list_to_output` routine."""
         data_type = self.input_data.data_type
         predict_data_copy = self.input_data
         return data_type, predict_data_copy
 
     def convert_input_to_output(self):
+        """Run `convert_input_to_output` routine."""
         return OutputData(idx=self.input_data.idx,
                           features=self.input_data.features,
                           task=self.input_data.task,
@@ -175,6 +193,7 @@ class FedotConverter:
                           predict=self.input_data.features)
 
     def convert_to_industrial_composing_format(self, mode):
+        """Run `convert_to_industrial_composing_format` routine."""
         if mode == 'one_dimensional':
             new_features, new_target = [
                 array.reshape(array.shape[0], np.prod(array.shape[1:]))
@@ -225,10 +244,14 @@ class FedotConverter:
 
 
 class TensorConverter:
+    """TensorConverter implementation."""
+
     def __init__(self, data):
+        """Initialize class instance."""
         self.tensor_data = self.convert_to_tensor(data)
 
     def convert_to_tensor(self, data):
+        """Run `convert_to_tensor` routine."""
         if isinstance(data, tuple) or isinstance(data, list):
             data = data[0]
 
@@ -254,6 +277,7 @@ class TensorConverter:
             raise ValueError(f"Can't convert {type(data)} to torch.Tensor")
 
     def convert_to_1d_tensor(self):
+        """Run `convert_to_1d_tensor` routine."""
         if self.tensor_data.ndim == 1:
             return self.tensor_data
         elif self.tensor_data.ndim == 3:
@@ -263,6 +287,7 @@ class TensorConverter:
         assert False, f'Please, review input dimensions {self.tensor_data.ndim}'
 
     def convert_to_2d_tensor(self):
+        """Run `convert_to_2d_tensor` routine."""
         if self.tensor_data.ndim == 2:
             return self.tensor_data
         elif self.tensor_data.ndim == 1:
@@ -272,6 +297,7 @@ class TensorConverter:
         assert False, f'Please, review input dimensions {self.tensor_data.ndim}'
 
     def convert_to_3d_tensor(self):
+        """Run `convert_to_3d_tensor` routine."""
         if self.tensor_data.ndim == 3:
             return self.tensor_data
         elif self.tensor_data.ndim == 1:
@@ -282,7 +308,10 @@ class TensorConverter:
 
 
 class NumpyConverter:
+    """NumpyConverter implementation."""
+
     def __init__(self, data, to_numpy_array=True):
+        """Initialize class instance."""
         if not to_numpy_array or isinstance(data, torch.Tensor):
             self.numpy_data = data
         else:
@@ -295,6 +324,7 @@ class NumpyConverter:
             self.numpy_data = self.numpy_data.squeeze()
 
     def convert_to_array(self, data):
+        """Run `convert_to_array` routine."""
         if isinstance(data, tuple):
             data = data[0]
 
@@ -319,6 +349,7 @@ class NumpyConverter:
                 print(f"Can't convert {type(data)} to np.array", Warning)
 
     def convert_to_1d_array(self):
+        """Run `convert_to_1d_array` routine."""
         if self.numpy_data.ndim == 1:
             return self.numpy_data
         elif self.numpy_data.ndim > 2:
@@ -329,6 +360,7 @@ class NumpyConverter:
             f'Please, review input dimensions {self.numpy_data.ndim}')
 
     def convert_to_2d_array(self):
+        """Run `convert_to_2d_array` routine."""
         if self.numpy_data.ndim == 2:
             return self.numpy_data
         elif self.numpy_data.ndim == 1:
@@ -339,6 +371,7 @@ class NumpyConverter:
             f'Please, review input dimensions {self.numpy_data.ndim}')
 
     def convert_to_3d_array(self):
+        """Run `convert_to_3d_array` routine."""
         if self.numpy_data.ndim == 3:
             return self.numpy_data
         elif self.numpy_data.ndim == 1:
@@ -349,6 +382,7 @@ class NumpyConverter:
             f'Please, review input dimensions {self.numpy_data.ndim}')
 
     def convert_to_4d_torch_format(self):
+        """Run `convert_to_4d_torch_format` routine."""
         if self.numpy_data.ndim == 4:
             if self.numpy_data.shape[1] in range(1, 5):
                 # because image.shape[1] could be maximum RGB(a) channels
@@ -364,6 +398,7 @@ class NumpyConverter:
                                            self.numpy_data.shape[2])
 
     def convert_to_torch_format(self):
+        """Run `convert_to_torch_format` routine."""
         add_1_channel = self.numpy_data.ndim == 2 and self.numpy_data.shape[0] == 1
         add_1_sample = self.numpy_data.ndim == 2 and self.numpy_data.shape[1] != 1
         matrix_type = self.numpy_data.ndim == 2 and all([self.numpy_data.shape[0] != 1,
@@ -392,6 +427,7 @@ class NumpyConverter:
         assert False, f'Please, review input dimensions {self.numpy_data.ndim}'
 
     def convert_to_ts_format(self):
+        """Run `convert_to_ts_format` routine."""
         if self.numpy_data.ndim > 1:
             return self.numpy_data.squeeze()
         else:
@@ -399,7 +435,10 @@ class NumpyConverter:
 
 
 class ConditionConverter:
+    """ConditionConverter implementation."""
+
     def __init__(self, train_data, operation_implementation, mode):
+        """Initialize class instance."""
         self.train_data = train_data
         self.operation_implementation = operation_implementation
         self.operation_example = operation_implementation[0] if isinstance(
@@ -529,6 +568,7 @@ class ConditionConverter:
         return self.operation_example is None
 
     def output_mode_converter(self, predict_data, output_mode, n_classes):
+        """Run `output_mode_converter` routine."""
         if output_mode == 'labels' and self.is_regression_of_forecasting_task:
             prediction = self.operation_example.predict(predict_data).reshape(-1, 1)
         elif output_mode == 'labels':
@@ -547,6 +587,7 @@ class ConditionConverter:
 
 class ApiConverter:
 
+    """ApiConverter implementation."""
     @staticmethod
     def solver_is_fedot_class(operation_implementation):
         return isinstance(operation_implementation, Fedot)
@@ -588,7 +629,10 @@ class ApiConverter:
 
 
 class DataConverter(TensorConverter, NumpyConverter):
+    """DataConverter implementation."""
+
     def __init__(self, data):
+        """Initialize class instance."""
         super().__init__(data)
         self.data = data
         self.numpy_data = self.convert_to_array(data)
@@ -686,12 +730,14 @@ class DataConverter(TensorConverter, NumpyConverter):
         return self.data is not None
 
     def convert_to_data_type(self):
+        """Run `convert_to_data_type` routine."""
         if isinstance(self.data, torch.Tensor):
             self.data = self.data.to(dtype=torch.Tensor)
         elif isinstance(self.data, np.ndarray):
             self.data = self.data.astype(np.ndarray)
 
     def convert_to_list(self):
+        """Run `convert_to_list` routine."""
         if isinstance(self.data, list):
             return self.data
         elif isinstance(self.data, (np.ndarray, torch.Tensor)):
@@ -705,6 +751,7 @@ class DataConverter(TensorConverter, NumpyConverter):
                     Warning)
 
     def convert_data_to_1d(self):
+        """Run `convert_data_to_1d` routine."""
         if self.data.ndim == 1:
             return self.data
         if isinstance(self.data, np.ndarray):
@@ -713,6 +760,7 @@ class DataConverter(TensorConverter, NumpyConverter):
             return self.convert_to_1d_tensor()
 
     def convert_data_to_2d(self):
+        """Run `convert_data_to_2d` routine."""
         if self.data.ndim == 2:
             return self.data
         if isinstance(self.data, np.ndarray):
@@ -721,6 +769,7 @@ class DataConverter(TensorConverter, NumpyConverter):
             return self.convert_to_2d_tensor()
 
     def convert_data_to_3d(self):
+        """Run `convert_data_to_3d` routine."""
         if self.data.ndim == 3:
             return self.data
         if isinstance(self.data, (np.ndarray, pd.DataFrame)):
@@ -729,6 +778,7 @@ class DataConverter(TensorConverter, NumpyConverter):
             return self.convert_to_3d_tensor()
 
     def convert_to_monad_data(self):
+        """Run `convert_to_monad_data` routine."""
         if not self.is_torch:
             if self.input_data_is_fedot_data:
                 values = ListMonad(*self.data.features.tolist()).value
@@ -751,6 +801,7 @@ class DataConverter(TensorConverter, NumpyConverter):
         return features
 
     def convert_to_eigen_basis(self):
+        """Run `convert_to_eigen_basis` routine."""
         if self.input_data_is_fedot_data:
             features = self.data.features
         else:
@@ -761,12 +812,16 @@ class DataConverter(TensorConverter, NumpyConverter):
 
 
 class NeuralNetworkConverter:
+    """NeuralNetworkConverter implementation."""
+
     def __init__(self, layer):
+        """Initialize class instance."""
         self.layer = layer
 
     @property
     def is_layer(self, *args):
         def _is_layer(cond=args):
+            """Internal helper for `is_layer` logic."""
             return isinstance(self.layer, cond)
 
         return partial(_is_layer, cond=args)

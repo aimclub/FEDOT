@@ -1,3 +1,5 @@
+from dataclasses import dataclass, field
+from typing import Optional, Union, Dict, Any, Callable, TypeAlias, ClassVar, List, Tuple
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -28,15 +30,19 @@ from fedot.core.data.tensordata_rules import (
 
 from fedot.core.data.data_tools import (
     get_device_from_str, get_values_from_df,
-    convert_idx_to_array, convert_to_list, replace_missing_with_nan, get_target_and_features,
-    transform_to_tensor, choose_categorical_encoding, encode_torch_tensors,
-    encode_categorical_features, get_text_embeddings)
+    convert_idx_to_list, replace_missing_with_nan, get_target_and_features,
+    transform_to_tensor, _drop_rows_with_nan_in_target)
 
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
 from fedot.preprocessing.ts_preprocessing import process_ts_data
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.data_compatibility_rules import autodetect_tensor_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
+
+from fedot.preprocessing.tools.index_mapping_tools import create_index_mapping
+
+from fedot.preprocessing.service.tabular_obligatory_service import ObligatoryTabularService
+from fedot.preprocessing.tools.tools import get_used_idx_from_plan
 
 
 logger = logging.getLogger(__name__)
@@ -159,10 +165,10 @@ class LoadDataSpec:
 
     target: TensorLike = None
     target_idx: IndexType = None
-    categorical_idx: IndexType = None
+    categorical_idx: IndexType = field(default_factory=list)
     encoding_strategy: Optional[Dict] = None
-    text_idx: IndexType = None
-    embedding_strategy: Optional[Union[Dict]] = field(default_factory=dict)
+    embedding_strategy: Optional[Union[Dict]] = None
+    custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
 
     ts_orientation: Union[TSOrientationEnum, str] = None
@@ -213,8 +219,8 @@ class LoadDataSpec:
             target_idx=self.target_idx,
             categorical_idx=self.categorical_idx,
             encoding_strategy=self.encoding_strategy,
-            text_idx=self.text_idx,
             embedding_strategy=self.embedding_strategy,
+            custom_strategy=self.custom_strategy,
             ts_orientation=self.ts_orientation,
             ts_terms_idx=self.ts_terms_idx,
             ts_forecast_horizon=self.ts_forecast_horizon,
@@ -259,15 +265,18 @@ class TensorData:
     predict: TensorLike = None
     target_idx: IndexType = None
     target_encoder: Any = None
-    categorical_idx: IndexType = None
-    encoding_strategy: Optional[Union[str, Dict]] = None
-    text_idx: IndexType = None
-    embedding_strategy: Optional[Union[Dict]] = field(default_factory=dict)
+    categorical_idx: IndexType = field(default_factory=list)
+    numerical_idx: IndexType = field(default_factory=list)
+    encoding_strategy: Optional[Union[Dict]] = None
+    text_idx: IndexType = field(default_factory=list)
+    embedding_strategy: Optional[Union[Dict]] = None
+    custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
+    idx_mapping: dict[int, int] = field(default_factory=dict)
     ts_orientation: Optional[str] = None
     ts_terms_idx: Optional[Union[int, str]] = None
     ts_forecast_horizon: Optional[int] = None
-    ts_init_shape: Optional[int] = None
+    ts_init_shape: Optional[Tuple[int]] = None
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
@@ -299,32 +308,28 @@ class TensorData:
         self.state = identity.state
 
         if isinstance(self.features, torch.Tensor):
-            self.encoding_strategy = encode_torch_tensors(
-                self.features,
-                self.encoding_strategy,
-                self.categorical_idx,
-                self.state,
-                self.features_names
-            )
+            self.features = torch_to_xp(self.features, Backend().xp)
+            self.target = torch_to_xp(self.target, Backend().xp)
+            self._post_init_raw()
         else:
-            raw_conversion_plan = build_raw_conversion_plan(backend.name)
+            raw_conversion_plan = build_raw_conversion_plan(Backend().name)
             try:
-                self.features = backend.xp.array(self.features)
+                self.features = Backend().xp.array(self.features)
                 self._post_init_raw()
             except Exception:
                 if not raw_conversion_plan.should_try_cpu_fallback:
                     raise
-                with backend.override("cpu"):
+                with Backend().override("cpu"):
                     logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
-                    self.features = backend.xp.array(self.features)
+                    self.features = Backend().xp.array(self.features)
                     self._post_init_raw()
 
         device_sync_plan = build_device_sync_plan(
             features_device_type=self.features.device.type,
-            backend_device_type=backend.device.type,
+            backend_device_type=Backend().device.type,
         )
         if device_sync_plan.should_move_to_backend:
-            self.to(backend.device)
+            self.to(Backend().device)
 
     def _post_init_raw(self):
         """
@@ -336,14 +341,14 @@ class TensorData:
         converts arrays to torch tensors (`transform_to_tensor`).
         """
 
-        self.target_idx = convert_idx_to_array(self.target_idx)
-        self.categorical_idx = convert_idx_to_array(self.categorical_idx)
-        self.text_idx = convert_idx_to_array(self.text_idx)
-        self.features_names = convert_to_list(self.features_names)
-        self.ts_terms_idx = convert_idx_to_array(self.ts_terms_idx)
+        self.target_idx = convert_idx_to_list(self.target_idx)
+        self.categorical_idx = convert_idx_to_list(self.categorical_idx)
+        self.features_names = convert_idx_to_list(self.features_names)
+        self.ts_terms_idx = convert_idx_to_list(self.ts_terms_idx)
 
         self.features = replace_missing_with_nan(self.features)
 
+        # TODO romankuklo: think how to add it to obligatory ts preprocessing
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
                                                                                             self.target,
                                                                                             self.features_names,
@@ -353,35 +358,58 @@ class TensorData:
                                                                                             self.ts_forecast_horizon,
                                                                                             self.data_type)
 
-        self.features, self.target, self.target_encoder = get_target_and_features(self.features,
-                                                                                  self.target,
-                                                                                  self.features_names,
-                                                                                  self.target_idx,
-                                                                                  self.state,
-                                                                                  self.data_type)
+        self.idx_mapping = create_index_mapping(self.features, self.ts_init_shape)
 
-        # get embeddings
-        text_tensors, self.text_idx, self.features = get_text_embeddings(self.features,
-                                                                         self.text_idx,
-                                                                         self.embedding_strategy,
-                                                                         self.features_names)
+        self.features, self.target, self.idx_mapping = get_target_and_features(self.features,
+                                                                               self.target,
+                                                                               self.features_names,
+                                                                               self.target_idx,
+                                                                               self.state,
+                                                                               self.data_type,
+                                                                               self.idx_mapping)
 
-        # encoding categorical features
-        encoding_decisions, non_cat_features = choose_categorical_encoding(
-            self.features, self.categorical_idx, self.encoding_strategy,
-            self.features_names, self.state
-        )
-        self.features, self.encoding_strategy = encode_categorical_features(
-            self.features, encoding_decisions, non_cat_features
-        )
+        self.features, self.target = _drop_rows_with_nan_in_target(self.features, self.target)
 
+        service = ObligatoryTabularService()
+
+        service_params = {
+            "encoding_strategy": self.encoding_strategy,
+            "embedding_strategy": self.embedding_strategy,
+            "custom_strategy": self.custom_strategy,
+            "features_names": self.features_names,
+            "idx_mapping": self.idx_mapping,
+            "data_type": self.data_type
+        }
+
+        if self.state == StateEnum.FIT:
+            prepared_data = service.fit_transform(
+                self.features,
+                self.target,
+                service_params
+            )
+        else:
+            prepared_data = service.transform(
+                self.features,
+                self.target,
+                self.idx_mapping
+            )
+
+        self.features = prepared_data.features
+        self.target = prepared_data.target
+        self.idx_mapping = prepared_data.idx_mapping
+
+        #     # TODO romankuklo: how to save steps?
         self.features, self.target = transform_to_tensor(self.features,
                                                          self.target,
-                                                         text_tensors,
-                                                         self.text_idx,
                                                          self.ts_init_shape)
 
         self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
+
+        preprocessed_idx = get_used_idx_from_plan(service.plan)
+        self.categorical_idx = list(set(self.categorical_idx) | set(preprocessed_idx))
+        self.numerical_idx = list(set(range(self.features.shape[1])) - set(self.categorical_idx))
+
+    # TODO romankuklo: create TensorData fabric and transfer all registry functions, preprocessing, create
 
     @classmethod
     def _resolve_creator(cls, source_data: Any) -> Callable:
@@ -434,7 +462,7 @@ class TensorData:
         """
 
         creation_request = build_creation_request(backend_name)
-        backend.set(creation_request.backend_name)
+        Backend().set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 
@@ -460,7 +488,7 @@ class TensorData:
         """
 
         creation_request = build_creation_request(backend_name)
-        backend.set(creation_request.backend_name)
+        Backend().set(creation_request.backend_name)
 
         spec = LoadDataSpec(**kwargs)
 

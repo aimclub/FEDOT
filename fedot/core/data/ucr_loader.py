@@ -191,6 +191,6 @@ class TSLoader:
 
         shutil.rmtree(cache_path)
 
-        # TODO: implement caching
+        # TODO romankuklo: implement caching
 
         return X_train, y_train, X_test, y_test

@@ -82,6 +82,8 @@ test/unit/catboost_info
 
 local/
 
+*.txt
+
 # Sampling zoo folder
 sampling_zoo/
 
