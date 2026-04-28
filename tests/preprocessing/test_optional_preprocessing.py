@@ -5,12 +5,13 @@ from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAP
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum, 
                                                     ImputationMethodEnum, 
                                                     ScalingMethodEnum,
-                                                    FilteringMethodEnum,
-                                                    ImagePreprocessingMethodEnum)
-from fedot.preprocessing.service.service import OptionalPreprocessingService
+                                                    FilteringMethodEnum)
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.core.data.prepared_data import PreparedData
 from fedot.core.data.tensordata import TensorData
-from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
+from fedot.preprocessing.planner.planner import PreprocessingPlan
+from fedot.preprocessing.planner.optional_planner import build_optional_plan
 
 
 def test_build_optional_plan():
@@ -55,7 +56,7 @@ def test_preprocessing_plan_imputation():
     ])
 
     td = TensorData.create(X, backend_name="cpu")
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {PreprocessingStepEnum.imputation: None})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features[1, 1] == 5
@@ -70,7 +71,7 @@ def test_preprocessing_plan_mode_imputation():
     ])
 
     td = TensorData.create(X, backend_name="cpu")
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode, 
                                            "features_idx": [1],
@@ -87,7 +88,7 @@ def test_preprocessing_plan_mean_imputation():
     ])
 
     td = TensorData.create(X, backend_name="cpu")
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean, 
                                            "features_idx": [1],
@@ -105,7 +106,7 @@ def test_preprocessing_plan_constant_imputation():
     ])
 
     td = TensorData.create(X, backend_name="cpu")
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant, 
                                            "features_idx": [1],
@@ -122,7 +123,7 @@ def test_preprocessing_plan_delete_raw_imputation():
     ])
 
     td = TensorData.create(X, backend_name="cpu")
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw, 
                                            "features_idx": [1],
@@ -141,7 +142,7 @@ def test_preprocessing_minmax_scaling():
 
     td = TensorData.create(X, backend_name="cpu")
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td,
         {
@@ -179,7 +180,7 @@ def test_preprocessing_standard_scaling():
 
     td = TensorData.create(X, backend_name="cpu")
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td,
         {
@@ -221,7 +222,7 @@ def test_preprocessing_robust_scaling():
 
     td = TensorData.create(X, backend_name="cpu")
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td,
         {
@@ -264,7 +265,7 @@ def test_imputation_scaling():
 
     td = TensorData.create(X, backend_name="cpu")
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     strategy = {
         PreprocessingStepEnum.imputation: [{
             "method": ImputationMethodEnum.constant,
@@ -318,7 +319,7 @@ def test_encoding_autoscaling_imputation():
         }],
     }
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, strategy)
 
     assert isinstance(preprocessed_data, PreparedData)
@@ -353,7 +354,7 @@ def test_preprocessing_clipping():
 
     td = TensorData.create(X, backend_name="cpu")
 
-    service = OptionalPreprocessingService()
+    service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td,
         {
@@ -382,3 +383,91 @@ def test_preprocessing_clipping():
     assert np.isnan(result[2, 1])
 
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
+
+
+def test_custom_preprocessing():
+    X = np.array([
+        [1, 10, 100],
+        [2, 20, 200],
+        [3, np.nan, 300],
+        [4, 40, np.nan],
+        [5, 50, 500],
+        [6, 1000, 600],
+    ], dtype=np.float32)
+    y = np.array([1, 2, 3, 4, 5, 6], dtype=np.float32)
+
+    td = TensorData.create(X, target=y, backend_name="cpu")
+
+    from typing import Optional, Sequence
+
+    class CustomZeroImputer(AbstractPreprocessingHandler):
+        def __init__(self):
+            self.features_idx: Optional[Sequence[int]] = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.features_idx = features_idx
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            if self.features_idx is None:
+                raise RuntimeError("ConstantImputation is not fitted yet.")
+
+            for col_idx in self.features_idx:
+                column = data.features[:, col_idx]
+                data.features[:, col_idx] = torch.where(
+                    torch.isnan(column),
+                    torch.tensor(0, device=data.features.device, dtype=data.features.dtype),
+                    column
+                )
+
+            return data
+    
+    class CustomRootConstantImputer(AbstractPreprocessingHandler):
+        def __init__(self, constant: float = 0.0):
+            self.constant = constant
+
+            self.features_idx: Optional[Sequence[int]] = None
+            self.root_constant: Optional[float] = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.features_idx = features_idx
+            self.root_constant = self.constant ** 0.5
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            if self.features_idx is None:
+                raise RuntimeError("ConstantImputation is not fitted yet.")
+
+            for col_idx in self.features_idx:
+                column = data.features[:, col_idx]
+                data.features[:, col_idx] = torch.where(
+                    torch.isnan(column),
+                    torch.tensor(self.root_constant, device=data.features.device, dtype=data.features.dtype),
+                    column
+                )
+
+            return data
+        
+    service = OptionalTabularService()
+    preprocessed_data = service.fit_transform(
+        td,
+        {
+            PreprocessingStepEnum.custom: [{
+                "method": 'ZeroImputer',
+                "features_idx": [1],
+                "implementation": CustomZeroImputer,
+                "step_args": None,
+            },
+            {
+                "method": 'RootConstantImputer',
+                "features_idx": [2],
+                "implementation": CustomRootConstantImputer,
+                "step_args": {"constant": 100},
+            },
+            ]
+        }
+    )
+
+    result = preprocessed_data.features.numpy()
+    assert np.allclose(result[:, 1], np.array([10, 20, 0, 40, 50, 1000], dtype=np.float32), atol=1e-6)
+    assert np.allclose(result[:, 2], np.array([100, 200, 300, 10, 500, 600], dtype=np.float32), atol=1e-6)

@@ -3,19 +3,23 @@ from typing import Optional
 from fedot.core.data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.core.data.tensordata import TensorData
-from fedot.preprocessing.service.planner import build_optional_plan, PreprocessingPlan
-from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
+from fedot.preprocessing.planner.planner import PreprocessingPlan
+from fedot.preprocessing.planner.optional_planner import build_optional_plan
+from fedot.preprocessing.tools.tools import update_handler_mapping
 
 
-class OptionalPreprocessingService:
-    handler_mapping = PREPROCESSING_OPTIONAL_MAPPING
+class OptionalService:
+    handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
 
     def fit_transform(self, data: TensorData, optional_steps) -> PreparedData:
         self.plan = build_optional_plan(data, optional_steps)
+
         prepared_data = None
 
         if len(self.plan.steps) > 0:
+            self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+
             prepared_data = PreparedData(features=data.features, 
                                          target=data.target, 
                                          idx_mapping=data.idx_mapping, 
@@ -42,9 +46,9 @@ class OptionalPreprocessingService:
                 # self.plan.steps[i]["model_hash"] = model_hash
         return prepared_data
 
-    def transform(self, data, pipline, optional_steps, plan) -> PreparedData:
+    def transform(self, data, optional_steps, plan) -> PreparedData:
         for step in self.plan.steps:
-            # TODO: get cached params
+            # TODO romankuklo: get cached params
             # handler = PREPROCESSING_OPTIONAL_MAPPING[step.step][step.method](**params)
             # prepared = handler.transform(data)
             ...

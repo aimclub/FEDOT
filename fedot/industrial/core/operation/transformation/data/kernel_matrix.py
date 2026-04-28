@@ -19,7 +19,7 @@ class TSTransformer:
         self.time_series = DataConverter(
             data=time_series).convert_to_2d_array()
         self.recurrence_matrix = None
-        # TODO add threshold for other metrics
+        # TODO romankuklo: add threshold for other metrics
         self.threshold_baseline = [0.95, 0.7]
         self.min_signal_ratio = 0.6
         self.max_signal_ratio = 0.85

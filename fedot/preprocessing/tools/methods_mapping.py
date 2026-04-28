@@ -40,6 +40,9 @@ PREPROCESSING_OBLIGATORY_MAPPING = {
     PreprocessingStepEnum.embedding: {
         EmbeddingMethodEnum.transformer: TransformerEmbedder,
     },
+    PreprocessingStepEnum.target_encoding: {
+        EncodingMethodEnum.label: LabelEncoder
+    },
     PreprocessingStepEnum.encoding: {
         EncodingMethodEnum.label: LabelEncoder,
         EncodingMethodEnum.ohe: OneHotEncoder,

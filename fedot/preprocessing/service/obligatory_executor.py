@@ -27,10 +27,10 @@ def apply_step(data: PreparedData,
         )
 
         step.state = StateEnum.PREDICT
-        # TODO: save model
+        # TODO romankuklo: save model
     
     else:
-        # TODO: get model from cache by hash and transform
+        # TODO romankuklo: get model from cache by hash and transform
         method = ...
         features = method.transform(data)
 
@@ -47,7 +47,7 @@ def apply_obligatory_steps(features: ArrayType,
     if not isinstance(steps, List):
         steps = [steps]
 
-    new_steps = [] # TODO: remove copy and make caching steps
+    new_steps = [] # TODO romankuklo: remove copy and make caching steps
 
     prepared_data = PreparedData(features=features)
     prepared_data.features = features

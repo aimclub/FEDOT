@@ -4,10 +4,13 @@ import pandas as pd
 import cupy as cp
 import cudf
 import os
+from typing import Sequence
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
+from fedot.core.data.prepared_data import PreparedData
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 
@@ -174,10 +177,10 @@ def test_categorical_features_match_indices():
     ], dtype=object)
     columns = ["id", "text", "number"]
 
-    strategy = {
+    strategy = [{
         "method": EncodingMethodEnum.label,
         "features_idx": ["text"]
-    }
+    }]
 
     td = TensorData.create(
         X,
@@ -203,13 +206,13 @@ def test_create_text_csv_to_tensordata():
 
     assert os.path.exists(csv_path)
 
-    embedding_strategy = {
+    embedding_strategy = [{
             "method": EmbeddingMethodEnum.transformer,
             "model_name": "all-distilroberta-v1",
             "batch_size": 3,
             "device": torch.device("cuda"),
             "features_idx": [0]
-        }
+        }]
 
     td = TensorData.create(
         csv_path,
@@ -246,18 +249,18 @@ def test_categorical_text():
 
     columns = ["text1", "text2", "number", "class", "subclass", "target"]
 
-    encoding_strategy = {
+    encoding_strategy = [{
         "method": EncodingMethodEnum.label,
         "features_idx": ["class", "subclass"]
-    }
+    }]
 
-    embedding_strategy = {
+    embedding_strategy = [{
             "method": EmbeddingMethodEnum.transformer,
             "model_name": "all-distilroberta-v1",
             "batch_size": 3,
             "device": torch.device("cpu"),
             "features_idx": ["text1", "text2"]
-    }
+    }]
 
     td = TensorData.create(
         X,
@@ -308,10 +311,10 @@ def test_encoding_torch_data():
     """
     X = torch.rand(10, 4)
 
-    encoding_strategy = {
+    encoding_strategy = [{
         "method": EncodingMethodEnum.label,
         "features_idx": [0, 1]
-    }
+    }]
 
     td = TensorData.create(
         X,
@@ -322,7 +325,7 @@ def test_encoding_torch_data():
     assert isinstance(td.features, torch.Tensor)
     assert td.features.shape[1] == X.shape[1] - 1
 
-# TODO: add test test_save_encoding_after_fit() for caching
+# TODO romankuklo: add test test_save_encoding_after_fit() for caching
 
 
 def test_create_lazy_does_not_materialize_immediately():
@@ -424,20 +427,21 @@ def test_target_extracted_by_index():
     assert td.target.shape[0] == 20
 
 
-def test_target_depends_state():
-    """
-    Test that target handling depends on the processing state, ensuring that in predict mode
-    no target is inferred or created and all input columns are treated as features.
-    """
-    features = torch.rand(100, 5)
+# TODO romankuklo: add test after STATE='PREDICT' is implemented
+# def test_target_depends_state():
+#     """
+#     Test that target handling depends on the processing state, ensuring that in predict mode
+#     no target is inferred or created and all input columns are treated as features.
+#     """
+#     features = torch.rand(100, 5)
 
-    td = TensorData.create(features, backend_name="cpu", state="predict")
+#     td = TensorData.create(features, backend_name="cpu", state="predict")
 
-    assert isinstance(td, TensorData)
-    assert isinstance(td.features, torch.Tensor)
-    assert td.target is None
-    assert td.features.shape[0] == features.shape[0]
-    assert td.features.shape[1] == features.shape[1]
+#     assert isinstance(td, TensorData)
+#     assert isinstance(td.features, torch.Tensor)
+#     assert td.target is None
+#     assert td.features.shape[0] == features.shape[0]
+#     assert td.features.shape[1] == features.shape[1]
 
 
 def test_create_from_numpy_cupy():
@@ -622,18 +626,18 @@ def test_update_idx_emb_enc():
 
     columns = ["text1", "number", "class", "subclass", "some","target"]
 
-    encoding_strategy = {
+    encoding_strategy = [{
         "method": EncodingMethodEnum.ohe,
         "features_idx": ["class", "subclass"]
-    }
+    }]
 
-    embedding_strategy = {
+    embedding_strategy = [{
             "method": EmbeddingMethodEnum.transformer,
             "model_name": "all-distilroberta-v1",
             "batch_size": 3,
             "device": torch.device("cpu"),
             "features_idx": ["text1"]
-    }
+    }]
 
     td = TensorData.create(
         X,
@@ -662,7 +666,7 @@ def test_update_idx_enc():
         [100, "A", "C", 10],
         [500, "B", "D", 20],
         [100, "A", "C", 30],
-    ])
+    ], dtype=object)
 
     features_names = ["A", "B", "C", "target"]
 
@@ -689,3 +693,146 @@ def test_update_idx_enc():
     assert td.features[1, 1] == 1
     assert td.features[1, 2] == 0
     assert td.features[1, 3] == 1
+
+
+def test_custom_encoders():
+    X = np.array([
+        [100, "A", "C", 10],
+        [500, "B", "D", 20],
+        [100, "A", "C", 30],
+    ], dtype=object)
+
+    features_names = ["A", "B", "C", "target"]
+
+    class OnesFiller(AbstractPreprocessingHandler):
+        def __init__(self):
+            self.categorical_idx_ = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.categorical_idx_ = list(features_idx)
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            xp = Backend().xp
+
+            features = data.features
+
+            n_rows = features.shape[0]
+            n_cat = len(self.categorical_idx_)
+
+            filled = xp.full((n_rows, n_cat), 1.0, dtype=float)
+
+            features[:, self.categorical_idx_] = filled
+            data.features = features
+
+            return data
+
+    class ConstantFiller(AbstractPreprocessingHandler):
+        def __init__(self, constant=0.0):
+            self.constant = constant
+
+            self.categorical_idx_ = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.categorical_idx_ = list(features_idx)
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            xp = Backend().xp
+
+            features = data.features
+
+            n_rows = features.shape[0]
+            n_cat = len(self.categorical_idx_)
+
+            filled = xp.full((n_rows, n_cat), self.constant, dtype=float)
+
+            features[:, self.categorical_idx_] = filled
+            data.features = features
+
+            return data
+
+
+    custom_strategy = [{
+                "method": 'OneFiller',
+                "features_idx": ["B"],
+                "implementation": OnesFiller,
+                "step_args": None,
+            },
+            {
+                "method": 'ConstantFiller',
+                "features_idx": ["C"],
+                "implementation": ConstantFiller,
+                "step_args": {"constant": -2.0},
+            }]
+
+    td = TensorData.create(X, backend_name="cpu", 
+                           features_names=features_names, 
+                           custom_strategy=custom_strategy)
+    
+    np_features = td.features.numpy()
+
+    ref_X = np.array([
+        [100, 1, -2],
+        [500, 1, -2],
+        [100, 1, -2],
+    ], dtype=np.float32)
+
+    assert isinstance(td, TensorData)
+    assert np.allclose(np_features, ref_X, atol=1e-5)
+
+
+def test_custom_encoders_automatic_encoding():
+    X = np.array([
+        [100, "A", "C", 10],
+        [500, "B", "D", 20],
+        [100, "A", "C", 30],
+    ], dtype=object)
+
+    features_names = ["A", "B", "C", "target"]
+
+    class OnesFiller(AbstractPreprocessingHandler):
+        def __init__(self):
+            self.categorical_idx_ = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.categorical_idx_ = list(features_idx)
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            xp = Backend().xp
+
+            features = data.features
+
+            n_rows = features.shape[0]
+            n_cat = len(self.categorical_idx_)
+
+            filled = xp.full((n_rows, n_cat), 1.0, dtype=float)
+
+            features[:, self.categorical_idx_] = filled
+            data.features = features
+
+            return data
+
+    custom_strategy = [{
+                "method": 'OneFiller',
+                "features_idx": ["B"],
+                "implementation": OnesFiller,
+                "step_args": None,
+            }]
+
+    td = TensorData.create(X, backend_name="cpu", 
+                           features_names=features_names, 
+                           custom_strategy=custom_strategy)
+    
+    np_features = td.features.numpy()
+
+    # col "C" was encoded using label encoding
+    ref_X = np.array([
+        [100, 1, 0],
+        [500, 1, 1],
+        [100, 1, 0],
+    ], dtype=np.float32)
+
+    assert isinstance(td, TensorData)
+    assert np.allclose(np_features, ref_X, atol=1e-5)

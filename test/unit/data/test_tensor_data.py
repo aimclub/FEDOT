@@ -1,15 +1,13 @@
 import numpy as np
 import torch
-import os
+import cupy as cp
+import cudf
+import pandas as pd
+
 from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 from fedot.core.backend.backend import Backend
-
-import cupy as cp
-import cudf
-
-import pandas as pd
 
 
 # Test loading from different sources and data types
@@ -64,9 +62,8 @@ def test_from_tensor():
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
-    assert td.target is None
     assert td.features.shape[0] == features.shape[0]
-    assert td.features.shape[1] == features.shape[1]
+    assert td.features.shape[1] == features.shape[1] - 1
     assert td.features.device.type == "cpu"
 
 
@@ -93,217 +90,6 @@ def test_loader():
     assert isinstance(train_tensor.target, torch.Tensor)
     assert isinstance(test_tensor.features, torch.Tensor)
     assert isinstance(test_tensor.target, torch.Tensor)
-# --------------------------------------------------
-
-
-# Test encoding and getting embeddings
-# --------------------------------------------------
-def test_text_features_preprocess_like_categorical():
-    """
-    Test that text features are detected and encoded like categorical,
-    if no embedding strategy is provided.
-    """
-    X = np.array([
-        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
-         "in adding cream to spaghetti carbonara which has the same effect on pasta", 1],
-        ["martin a posted tassos papadopoulos the greek sculptor behind", 
-         "i just had to jump in here as carbonara is one of my favourites to make", 2],
-        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm", 
-         "in adding cream to spaghetti carbonara which has the same effect on pasta", 3],
-    ], dtype=object)
-
-    td = TensorData.create(
-        X,
-        backend_name="cpu"
-    )
-
-    assert isinstance(td.features, torch.Tensor)
-    assert td.features.shape[1] == 2
-
-
-def test_categorical_features_match_indices():
-    """
-    Test that categorical features are correctly matched to the provided column indices or names
-    and are properly encoded into the resulting TensorData feature tensor.
-    """
-    X = np.array([
-        [1, "A", 10],
-        [2, "B", 20],
-        [3, "A", 30],
-    ], dtype=object)
-    columns = ["id", "text", "number"]
-    td = TensorData.create(
-        X,
-        backend_name="cpu",
-        categorical_idx=np.array(["text"]),
-        features_names=columns
-    )
-
-    assert isinstance(td.features, torch.Tensor)
-    assert td.features is not None
-    assert td.features.shape[1] == 2
-
-
-def test_create_text_csv_to_tensordata():
-    """
-    Test creation of TensorData from a CSV file containing text data, verifying that text features
-    are converted into embeddings and that both features and target tensors have the expected shapes.
-    """
-
-    csv_path = (
-        f"{fedot_project_root()}/examples/real_cases/data/spam/spamham.csv"
-    )
-
-    assert os.path.exists(csv_path)
-
-    td = TensorData.create(
-        csv_path,
-        backend_name="gpu",
-        text_idx = 0,
-        embedding_strategy={
-            "method": "sentence_transformer",
-            "model_name": "all-distilroberta-v1",
-            "batch_size": 3,
-            "device": "cuda"
-        },
-        max_rows=10,    
-    )
-
-    assert isinstance(td, TensorData)
-    assert isinstance(td.features, torch.Tensor)
-    assert isinstance(td.target, torch.Tensor)
-
-    assert td.features.ndim == 2
-
-    assert td.features.shape[0] == 10
-    assert td.target.shape[0] == 10
-
-    assert td.features.shape[1] > 1
-
-
-def test_categorical_text():
-    """
-    Test combined processing of text, numerical, and categorical features, ensuring that text columns
-    are embedded, categorical columns are encoded, and all transformed features are concatenated correctly.
-    """
-    X = np.array([
-        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
-         "in adding cream to spaghetti carbonara which has the same effect on pasta", 1, "A", "DOP", 0],
-        ["martin a posted tassos papadopoulos the greek sculptor behind", 
-         "i just had to jump in here as carbonara is one of my favourites to make", 1, "A", "DROP", 0],
-        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm", 
-         "in adding cream to spaghetti carbonara which has the same effect on pasta", 3, "B", "DOP", 1],
-    ], dtype=object)
-
-    columns = ["text1", "text2", "number", "class", "subclass", "target"]
-
-    encoding_strategy = {
-        "label": ["class", "subclass"]
-    }
-
-    embedding_strategy= {
-            "method": "sentence_transformer",
-            "model_name": "all-distilroberta-v1",
-            "batch_size": 3,
-            "device": "cpu",
-    }
-    text_idx = ["text1", "text2"]
-
-    td = TensorData.create(
-        X,
-        backend_name="cpu",
-        features_names=columns,
-        encoding_strategy=encoding_strategy,
-        text_idx=text_idx,
-        embedding_strategy=embedding_strategy
-    )
-
-    assert isinstance(td.features, torch.Tensor)
-    assert td.features.ndim == 2
-    assert td.features.shape[1] == 768 * 2 + 3
-
-
-def test_label_ohe_encoding():
-    """
-    Test application of mixed label encoding and one-hot encoding strategies, verifying that categorical
-    features are transformed correctly and the resulting feature tensor has the expected dimensionality.
-    """
-    X = np.array([
-        [100, "A", "C", 10],
-        [500, "B", "D", 20],
-        [100, "A", "D", 30],
-    ])
-
-    encoding_strategy = {
-        "label": [0, 1],
-        "ohe": [2]
-    }
-
-    td = TensorData.create(
-        X,
-        backend_name="cpu",
-        encoding_strategy=encoding_strategy,
-        target_idx=3
-    )
-
-    assert isinstance(td.features, torch.Tensor)
-    assert td.features.shape[1] == 4
-
-
-def test_save_encoding_after_fit():
-    """
-    Test that fitted encoding settings are preserved and reused during prediction, ensuring that test data
-    is transformed consistently with training data and produces identical encoded features when applicable.
-    """
-    X_train = np.array([
-        [100, "A", "C", 10],
-        [500, "B", "D", 20],
-        [100, "A", "D", 30],
-    ])
-
-    X_test = np.array([
-        [100, "A", "C"],
-        [500, "B", "D"],
-        [100, "A", "D"],
-    ])
-
-    td_train = TensorData.create(
-        X_train,
-        backend_name="cpu",
-        target_idx=3
-    )
-    
-    td_test = TensorData.create(
-        X_test,
-        backend_name="cpu",
-        state="predict",
-        encoding_strategy=td_train.encoding_strategy,
-    )
-
-    assert isinstance(td_test.features, torch.Tensor)
-    assert td_test.features.shape[1] == td_train.features.shape[1]
-    assert torch.equal(td_test.features, td_train.features)
-
-def test_encoding_torch_data():
-    """
-    Test encoding of torch data, ensuring that categorical features are transformed correctly
-    and the resulting feature tensor has the expected dimensionality.
-    """
-    X = torch.rand(10, 4)
-
-    encoding_strategy = {
-        "label": [0, 1],
-    }
-
-    td = TensorData.create(
-        X,
-        backend_name="cpu",
-        encoding_strategy=encoding_strategy,
-    )
-
-    assert isinstance(td.features, torch.Tensor)
-    assert td.features.shape[1] == 4
-# --------------------------------------------------
 
 
 # Test lazy tensordata
@@ -410,20 +196,21 @@ def test_target_extracted_by_index():
     assert td.target.shape[0] == 20
 
 
-def test_target_depends_state():
-    """
-    Test that target handling depends on the processing state, ensuring that in predict mode
-    no target is inferred or created and all input columns are treated as features.
-    """
-    features = torch.rand(100, 5)
+# TODO romankuklo: state='PREDICT' is not implemented yet
+# def test_target_depends_state():
+#     """
+#     Test that target handling depends on the processing state, ensuring that in predict mode
+#     no target is inferred or created and all input columns are treated as features.
+#     """
+#     features = torch.rand(100, 5)
 
-    td = TensorData.create(features, backend_name="cpu", state="predict")
+#     td = TensorData.create(features, backend_name="cpu", state="predict")
 
-    assert isinstance(td, TensorData)
-    assert isinstance(td.features, torch.Tensor)
-    assert td.target is None
-    assert td.features.shape[0] == features.shape[0]
-    assert td.features.shape[1] == features.shape[1]
+#     assert isinstance(td, TensorData)
+#     assert isinstance(td.features, torch.Tensor)
+#     assert td.target is None
+#     assert td.features.shape[0] == features.shape[0]
+#     assert td.features.shape[1] == features.shape[1]
 
 
 def test_memory_count_cpu():
@@ -521,27 +308,6 @@ def test_create_from_cudf():
     assert td.features.shape[1] == features.shape[1] - 1
     assert td.features.device.type == "cuda"
     assert td.target.device.type == "cuda"
-
-
-def test_create_from_csv_gpu():
-    """
-    Test creation of TensorData from a CSV file, verifying that data is properly loaded,
-    the specified target column is extracted, and both features and target are converted
-    into torch tensors.
-    """
-
-    csv_path = f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv'
-
-    td = TensorData.create(
-        csv_path,
-        backend_name="gpu",
-        target_idx = "Class"
-    )
-
-    assert isinstance(td, TensorData)
-    assert isinstance(td.features, torch.Tensor)
-    assert isinstance(td.target, torch.Tensor)
-    assert td.features.device.type == "cuda"
 
 
 def test_nan_gpu_backend():

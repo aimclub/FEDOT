@@ -5,6 +5,7 @@ from golem.utilities.data_structures import ComparableEnum as Enum
 import torch
 from fedot.core.data.complex_types import IndexType
 from fedot.core.data.tools import StateEnum
+from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 class EmbeddingMethodEnum(Enum):
     transformer = "sentence_transformer"
@@ -40,6 +41,8 @@ class PreprocessingStepEnum(Enum):
     scaling = "scaling"
     filtering = "filtering"
     image_preprocessing = "image_preprocessing"
+    custom = "custom"
+    target_encoding = "target_encoding"
 
 
 class EncodingMethodEnum(Enum):
@@ -88,8 +91,9 @@ class FilteringMethodEnum(Enum):
 @dataclass
 class PreprocessingStep:
     step: PreprocessingStepEnum
-    method: Union[EmbeddingMethodEnum, ImputationMethodEnum, ScalingMethodEnum]
+    method: Union[Enum, str]
     features_idx: IndexType
+    implementation: Optional[AbstractPreprocessingHandler] = None
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)
     model_hash: Optional[str] = None

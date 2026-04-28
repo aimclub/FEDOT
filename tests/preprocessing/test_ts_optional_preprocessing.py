@@ -4,7 +4,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                     ScalingMethodEnum,
                                                     ImagePreprocessingMethodEnum,
                                                     ImputationMethodEnum)
-from fedot.industrial.core.architecture.preprocessing.ts_service import TSPreprocessingService
+from fedot.industrial.core.architecture.preprocessing.ts_optional_service import TSPreprocessingService
 from fedot.core.data.tensordata import TensorData
 
 

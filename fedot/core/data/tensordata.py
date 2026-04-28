@@ -26,14 +26,11 @@ from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.data import autodetect_data_type
 from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
-from fedot.preprocessing.service.obligatory_steps import (get_embedding_step, 
-                                               get_encoding_steps, 
-                                               get_target_encoding_step)
 
-from fedot.preprocessing.service.obligatory_executor import apply_obligatory_steps
-from fedot.preprocessing.tools.index_mapping_tools import (create_index_mapping, 
-                                                     update_indices,
-                                                     agregate_idx_from_step)
+from fedot.preprocessing.tools.index_mapping_tools import create_index_mapping
+
+from fedot.preprocessing.service.tabular_obligatory_service import ObligatoryTabularService
+from fedot.preprocessing.tools.tools import get_used_idx_from_plan
 
 
 logger = logging.getLogger(__name__)
@@ -158,6 +155,7 @@ class LoadDataSpec:
     categorical_idx: IndexType = field(default_factory=list)
     encoding_strategy: Optional[Dict] = None
     embedding_strategy: Optional[Union[Dict]] = None
+    custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
 
     ts_orientation: Union[TSOrientationEnum, str] = None
@@ -198,6 +196,7 @@ class LoadDataSpec:
             categorical_idx=self.categorical_idx,
             encoding_strategy=self.encoding_strategy,
             embedding_strategy=self.embedding_strategy,
+            custom_strategy=self.custom_strategy,
             ts_orientation=self.ts_orientation,
             ts_terms_idx=self.ts_terms_idx,
             ts_forecast_horizon=self.ts_forecast_horizon,
@@ -244,9 +243,10 @@ class TensorData:
     target_encoder: Any = None
     categorical_idx: IndexType = field(default_factory=list)
     numerical_idx: IndexType = field(default_factory=list)
-    encoding_strategy: Optional[Union[str, Dict]] = None
+    encoding_strategy: Optional[Union[Dict]] = None
     text_idx: IndexType = field(default_factory=list)
     embedding_strategy: Optional[Union[Dict]] = None
+    custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
     ts_orientation: Optional[str] = None
@@ -321,12 +321,12 @@ class TensorData:
 
         self.target_idx = convert_idx_to_list(self.target_idx)
         self.categorical_idx = convert_idx_to_list(self.categorical_idx)
-        self.text_idx = convert_idx_to_list(self.text_idx)
         self.features_names = convert_idx_to_list(self.features_names)
         self.ts_terms_idx = convert_idx_to_list(self.ts_terms_idx)
 
         self.features = replace_missing_with_nan(self.features)
 
+        # TODO romankuklo: think how to add it to obligatory ts preprocessing
         self.features, self.target, self.ts_init_shape, self.ts_terms_idx = process_ts_data(self.features,
                                                     self.target,
                                                     self.features_names,
@@ -345,56 +345,52 @@ class TensorData:
                                                             self.state,
                                                             self.data_type,
                                                             self.idx_mapping)
-
-        # target encoding
-        target_encoding_step = get_target_encoding_step(self.target)
-        if target_encoding_step is not None:
-            self.target, target_encoding_step, _ = apply_obligatory_steps(self.target, target_encoding_step)
-            self.target = Backend().xp.asarray(self.target, dtype=Backend().xp.float32)
         
         self.features, self.target = _drop_rows_with_nan_in_target(self.features, self.target)
 
-        # get embeddings
-        embedding_step = get_embedding_step(self.embedding_strategy, self.features_names, self.idx_mapping, self.data_type)
-        if embedding_step is not None:
-            self.text_idx = agregate_idx_from_step(embedding_step)
-            self.features, embedding_step, self.idx_mapping = apply_obligatory_steps(self.features, embedding_step, self.idx_mapping)
-        else:
-            embedding_step = None
 
-        # encoding categorical features
-        encoding_steps = get_encoding_steps(self.encoding_strategy, self.features, self.features_names, self.idx_mapping)
-        if encoding_steps is not None:
-            encoding_idx = agregate_idx_from_step(encoding_steps)
-            self.features, encoding_steps, self.idx_mapping = apply_obligatory_steps(self.features, encoding_steps, self.idx_mapping)
-        else:
-            encoding_steps = None
-            encoding_idx = []
-            # TODO: how to save steps?      
+        service = ObligatoryTabularService()
 
+        service_params = {
+            "encoding_strategy": self.encoding_strategy,
+            "embedding_strategy": self.embedding_strategy,
+            "custom_strategy": self.custom_strategy,
+            "features_names": self.features_names,
+            "idx_mapping": self.idx_mapping,
+            "data_type": self.data_type
+        }
+
+        if self.state == StateEnum.FIT:
+            prepared_data = service.fit_transform(
+                self.features,
+                self.target,
+                service_params
+            )
+        else:
+            prepared_data = service.transform(
+                self.features,
+                self.target,
+                self.idx_mapping
+            )
+
+        self.features = prepared_data.features
+        self.target = prepared_data.target
+        self.idx_mapping = prepared_data.idx_mapping
+
+        #     # TODO romankuklo: how to save steps?      
         self.features, self.target = transform_to_tensor(self.features, 
                                                          self.target,
                                                          self.ts_init_shape)
-        
+
         self.idx = torch.arange(self.features.shape[1], dtype=torch.int32)
 
-        if embedding_step is not None:
-            self.text_idx = update_indices(self.idx_mapping, self.text_idx)
-
-        if encoding_steps is not None:
-            encoding_idx = update_indices(self.idx_mapping, encoding_idx)
-            if len(self.categorical_idx) == 0:
-                self.categorical_idx = encoding_idx
-            else:
-                self.categorical_idx = update_indices(self.idx_mapping, self.categorical_idx)
-                self.categorical_idx = list(set(self.categorical_idx.extend(encoding_idx)))
-        else:
-            if len(self.categorical_idx) != 0:
-                self.categorical_idx = update_indices(self.idx_mapping, self.categorical_idx) 
-
-        self.numerical_idx = list(set(range(self.features.shape[1])) - set(self.categorical_idx) - set(self.text_idx))
+        
+        preprocessed_idx = get_used_idx_from_plan(service.plan)
+        self.categorical_idx = list(set(self.categorical_idx) | set(preprocessed_idx))
+        self.numerical_idx = list(set(range(self.features.shape[1])) - set(self.categorical_idx))
 
 
+    # TODO romankuklo: create TensorData fabric and transfer all registry functions, preprocessing, create
     @classmethod
     def _resolve_creator(cls, source_data: Any) -> Callable:
         """

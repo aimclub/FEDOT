@@ -113,6 +113,9 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
     Returns:
         ArrayType: Array with missing values replaced by `NaN` (or `xp.nan`).
     """
+    if arr is None:
+        return arr
+
     xp = Backend().xp
     pd_backend = Backend().pd
     backend_name = Backend().name
@@ -161,38 +164,42 @@ def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
 
 def _drop_rows_with_nan_in_target(features: ArrayType,
                                   target: ArrayType) -> Tuple[ArrayType, ArrayType]:
-    """
-    Drop rows where `target` contains NaN in any target column.
-
-    Works for both numpy (CPU) and cupy (GPU) backends.
-
-    Args:
-        features (ArrayType): Feature matrix with shape `(n_samples, n_features)`.
-        target (ArrayType): Target matrix with shape `(n_samples, n_targets)` or
-            a compatible 2D representation.
-
-    Returns:
-        Tuple[ArrayType, ArrayType]: `(features_filtered, target_filtered)` with
-            rows containing NaNs removed. If `target is None`, returns the inputs unchanged.
-    """
     xp = Backend().xp
+    pd_backend = Backend().pd
 
     if target is None:
         return features, target
 
     target = xp.asarray(target)
 
-    nan_mask = xp.isnan(target)
+    if target.dtype.kind == "f":
+        nan_mask = xp.isnan(target)
+    elif target.dtype.kind in ("i", "u", "b"):
+        nan_mask = xp.zeros(target.shape, dtype=bool)
+    else:
+        missing_strings = {"", "nan", "none", "null", "na", "n/a"}
+
+        def _is_missing(x):
+            if x is None:
+                return True
+            try:
+                if pd_backend.isna(x):
+                    return True
+            except Exception:
+                pass
+            if isinstance(x, str) and x.strip().lower() in missing_strings:
+                return True
+            return False
+
+        nan_mask = xp.vectorize(_is_missing, otypes=[bool])(target)
+
     number_nans_per_rows = nan_mask.sum(axis=1)
     non_nan_row_ids = xp.ravel(xp.argwhere(number_nans_per_rows == 0))
 
     if non_nan_row_ids.size == 0:
         raise ValueError("Data contains too much nans in the target column(s)")
 
-    features = features[non_nan_row_ids, :]
-    target = target[non_nan_row_ids, :]
-
-    return features, target
+    return features[non_nan_row_ids, :], target[non_nan_row_ids, :]
 
 
 def atleast_n_dimensions(data: ArrayType, ndim: int) -> ArrayType:
