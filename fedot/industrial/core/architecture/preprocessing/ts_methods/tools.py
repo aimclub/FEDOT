@@ -31,6 +31,7 @@ def expand_features_idx_for_flatten(
 
 
 def flatten_if_needed(x: torch.Tensor) -> torch.Tensor:
+    """Run `flatten_if_needed` routine."""
     if x.dim() == 2:
         return x
     if x.dim() == 3:
@@ -39,6 +40,7 @@ def flatten_if_needed(x: torch.Tensor) -> torch.Tensor:
 
 
 def restore_if_needed(x: torch.Tensor, original_shape) -> torch.Tensor:
+    """Run `restore_if_needed` routine."""
     if original_shape is None or len(original_shape) == 2:
         return x
     else:

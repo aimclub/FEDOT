@@ -6,10 +6,20 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
 class QuantileClipping(AbstractPreprocessingHandler):
+    """Outlier clipping handler based on per-column quantile bounds.
+
+    For selected numeric columns, the handler estimates lower and upper
+    quantiles on `fit` (ignoring missing values), and on `transform` clips all
+    values to the learned interval. This limits the impact of extreme outliers
+    while preserving the original row/column layout.
+
+    NaN values are preserved and are not replaced during clipping.
+    """
     def __init__(
         self,
         quantile_range: tuple[float, float] = (1.0, 99.0),
     ):
+        """Initialize `QuantileClipping`."""
         self.q_min = quantile_range[0] / 100.0
         self.q_max = quantile_range[1] / 100.0
 
@@ -30,6 +40,7 @@ class QuantileClipping(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise RuntimeError("Clipping is not fitted yet.")
 
@@ -40,7 +51,17 @@ class QuantileClipping(AbstractPreprocessingHandler):
 
 
 class VarianceThreshold(AbstractPreprocessingHandler):
+    """Feature selector that drops low-variance columns.
+
+    The handler computes variance for selected columns on `fit` (with NaN-safe
+    calculations) and builds a boolean support mask. On `transform`, only
+    columns with variance strictly greater than the configured threshold are
+    retained among selected columns; all non-selected columns remain unchanged.
+
+    This is useful for removing near-constant features before model training.
+    """
     def __init__(self, threshold: float = 0.0):
+        """Initialize `VarianceThreshold`."""
         self.threshold = threshold
 
         self.features_idx: Optional[Sequence[int]] = None
@@ -89,6 +110,7 @@ class VarianceThreshold(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.support_mask is None:
             raise RuntimeError("VarianceThreshold is not fitted yet.")
 

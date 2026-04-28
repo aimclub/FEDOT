@@ -23,16 +23,23 @@ How to add a new categorical encoder
 
 class LabelEncoder(AbstractPreprocessingHandler):
     """
-    Label-encode categorical feature columns.
+    Label encoder for categorical feature columns.
 
-    During :meth:`fit`, the encoder learns unique categories for each categorical
-    column. During :meth:`transform`, it converts category values into integer
-    IDs. Missing values are preserved as `NaN`.
+    The encoder builds a per-column mapping from observed category values to
+    integer identifiers and then replaces original categorical values with
+    numeric labels. Mapping is learned independently for every selected column.
 
-    The encoded output shape is `(n_samples, n_categorical_columns)`.
+    Behavior details:
+    - category vocabulary is inferred from non-missing values during `fit`;
+    - transformed values are dense numeric ids in column-wise order;
+    - missing values are kept as `NaN` and are not mapped to artificial labels.
+
+    The transformed categorical block keeps shape
+    `(n_samples, n_selected_categorical_columns)`.
     """
 
     def __init__(self):
+        """Initialize `LabelEncoder`."""
         self.categories_ = {}
         self.categorical_idx_ = None
 
@@ -108,16 +115,25 @@ class LabelEncoder(AbstractPreprocessingHandler):
 
 class OneHotEncoder(AbstractPreprocessingHandler):
     """
-    One-hot encode categorical feature columns.
+    One-hot encoder for categorical feature columns.
 
-    During :meth:`fit`, the encoder learns unique categories for each categorical
-    column and precomputes output slices. During :meth:`transform`, it produces
-    a concatenated one-hot representation. Missing values are preserved as `NaN`.
+    The encoder learns unique values for each selected categorical column and
+    expands them into binary indicator features. During fitting, it also
+    precomputes output slices to place each column's one-hot block into a
+    shared output matrix.
 
-    The encoded output shape is `(n_samples, n_output_features_)`.
+    Behavior details:
+    - each categorical column is encoded independently;
+    - original categorical columns are removed from the feature matrix;
+    - one-hot blocks are concatenated to the right side of remaining features;
+    - missing values in source categorical columns remain `NaN` in the
+      corresponding one-hot block.
+
+    Final encoded block shape is `(n_samples, n_output_features_)`.
     """
 
     def __init__(self):
+        """Initialize `OneHotEncoder`."""
         self.categories_ = {}
         self.categorical_idx_ = None
         self.feature_slices_ = None

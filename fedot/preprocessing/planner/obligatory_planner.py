@@ -16,7 +16,17 @@ from fedot.preprocessing.planner.planner import PreprocessingPlan
 def get_embedding_steps(parameters: Optional[List], 
                        features_names: Optional[List[str]] = None,
                        feature_type: Optional[DataTypesEnum] = None) -> PreprocessingStep:
-    """
+    """Build embedding preprocessing steps from embedding strategy config.
+
+    Args:
+        parameters: List of embedding configuration dictionaries. Each item may
+            contain method and model parameters plus `features_idx`.
+        features_names: Optional feature names for name-to-index conversion.
+        feature_type: Input data type; embedding is skipped for time series.
+
+    Returns:
+        List of embedding preprocessing steps, or `None` if no embedding should
+        be applied.
     """
     if feature_type == DataTypesEnum.ts:
         return None
@@ -70,6 +80,12 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
     2. among non-missing values, it cannot be safely converted to numeric values.
 
     Missing values (None, np.nan, pd.NA, etc.) do not make a column categorical.
+
+    Args:
+        table: Feature matrix where columns are inspected independently.
+
+    Returns:
+        List of detected categorical column indices.
     """
     pd_backend = Backend().pd
 
@@ -114,7 +130,16 @@ def preprocess_encoding_params(params: Dict,
                                features: ArrayType, 
                                features_names: Optional[List[str]]
                             ) -> PreprocessingStep:
-    
+    """Normalize encoding config and convert feature selectors to indices.
+
+    Args:
+        params: Encoding parameters dictionary, or `None` for defaults.
+        features: Feature matrix used to auto-detect categorical columns.
+        features_names: Optional feature names for name-to-index conversion.
+
+    Returns:
+        One encoding preprocessing step, or `None` when nothing to encode.
+    """
     if params is not None and not isinstance(params, Dict):
         raise ValueError(f"Unsupported parameters type: {type(params)}")
 
@@ -151,7 +176,19 @@ def get_encoding_steps(features: ArrayType,
                        features_names: Optional[List[str]] = None,
                        feature_type: Optional[DataTypesEnum] = None,
                        used_idx: Optional[List[int]] = None) -> List[PreprocessingStep]:
-    """
+    """Build encoding steps for all categorical columns not used by prior steps.
+
+    Args:
+        features: Feature matrix used for categorical detection.
+        parameters: User encoding strategy list, or `None` for default encoding.
+        features_names: Optional feature names for name-to-index conversion.
+        feature_type: Input data type; encoding is skipped for time series.
+        used_idx: Feature indices already consumed by previous preprocessing
+            stages (e.g., embedding/custom handlers).
+
+    Returns:
+        List of encoding steps (possibly containing `None` placeholders), or
+        `None` for unsupported data types.
     """
     if feature_type == DataTypesEnum.ts:
         return None
@@ -202,7 +239,13 @@ def get_encoding_steps(features: ArrayType,
 
 
 def target_has_strings(target) -> bool:
-    """
+    """Check whether target array contains string labels.
+
+    Args:
+        target: Target array/tensor to inspect.
+
+    Returns:
+        `True` when target includes string-like values; otherwise `False`.
     """
 
     xp = Backend().xp
@@ -225,7 +268,15 @@ def target_has_strings(target) -> bool:
 
 
 def get_target_encoding_step(target):
+    """Create target label-encoding step when target is string-based.
 
+    Args:
+        target: Target array/tensor for task.
+
+    Returns:
+        Target encoding preprocessing step, or `None` when target is already
+        numeric or absent.
+    """
     if target is None:
         return None
     
@@ -243,6 +294,15 @@ def get_target_encoding_step(target):
 
 
 def get_constant_idx(features, steps):
+    """Get feature indices untouched by provided preprocessing steps.
+
+    Args:
+        features: Feature matrix used to derive full feature index range.
+        steps: One step dict or list of step dicts with `features_idx`.
+
+    Returns:
+        Array of feature indices not present in `steps`.
+    """
     xp = Backend().xp
 
     changeable_idx = []
@@ -259,6 +319,18 @@ def get_constant_idx(features, steps):
 
 
 def check_idx(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]):
+    """Validate uniqueness of feature indices between step groups.
+
+    Args:
+        steps: Existing preprocessing steps.
+        new_steps: Candidate steps to append.
+
+    Returns:
+        `None`.
+
+    Raises:
+        ValueError: If any feature index is reused across steps.
+    """
     old_idx = [idx for step in steps for idx in step.features_idx]
     
     new_idx = set()
@@ -272,6 +344,15 @@ def check_idx(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
 
 
 def add_steps(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]):
+    """Append validated non-empty steps to the current step list.
+
+    Args:
+        steps: Existing preprocessing step list.
+        new_steps: New steps to append (`None` and empty items are ignored).
+
+    Returns:
+        Updated list of preprocessing steps.
+    """
     if new_steps is None:
         return steps
 
@@ -289,6 +370,17 @@ def add_steps(steps: List[PreprocessingStep], new_steps: List[PreprocessingStep]
 
 
 def get_custom_steps(parameters: List, features_names: Optional[List[str]] = None) -> List[PreprocessingStep]:
+    """Build custom preprocessing steps from user-defined strategy.
+
+    Args:
+        parameters: List of custom strategy dictionaries with method, feature
+            selector, and implementation class.
+        features_names: Optional feature names for name-to-index conversion.
+
+    Returns:
+        List of custom preprocessing steps, or `None` if no custom strategy is
+        provided.
+    """
     if parameters is None:
         return None
 
@@ -314,6 +406,21 @@ def get_custom_steps(parameters: List, features_names: Optional[List[str]] = Non
 def build_obligatory_plan(features: ArrayType, 
                           target: ArrayType,
                           params: dict) -> PreprocessingPlan:
+    """Build obligatory preprocessing plan from all mandatory strategies.
+
+    The plan is composed in order: custom steps, embedding steps, encoding
+    steps, and optional target encoding inserted to the beginning.
+
+    Args:
+        features: Input feature matrix.
+        target: Target array/tensor.
+        params: Unified preprocessing config with strategy sections and metadata
+            (`custom_strategy`, `embedding_strategy`, `encoding_strategy`,
+            `features_names`, `data_type`).
+
+    Returns:
+        Fully assembled obligatory preprocessing plan.
+    """
     obligatory_plan = PreprocessingPlan()
 
     steps = []

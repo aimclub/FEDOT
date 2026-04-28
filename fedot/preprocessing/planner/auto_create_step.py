@@ -10,6 +10,15 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def find_nan_idx(features: torch.Tensor):
+    """Find feature indices containing at least one missing value.
+
+    Args:
+        features: Input feature tensor. Supported shapes are
+            `(n_samples, n_features)` and `(n_samples, n_features, n_channels)`.
+
+    Returns:
+        List of feature indices where at least one `NaN` is present.
+    """
     nan_mask = torch.isnan(features)
 
     if features.ndim == 2:
@@ -28,7 +37,19 @@ def find_nan_idx(features: torch.Tensor):
 
 
 def auto_imputation_steps(data: TensorData):
+    """Build default imputation steps based on data type and missing values.
 
+    For tabular data, missing values are split by feature type:
+    categorical columns use mode imputation, numerical columns use median
+    imputation, and remaining columns fall back to row deletion.
+    For time series data, a single time-series mean imputation step is created.
+
+    Args:
+        data: TensorData object with detected feature type indices.
+
+    Returns:
+        List of automatically created imputation preprocessing steps.
+    """
     nan_idx = find_nan_idx(data.features)
 
     if data.data_type == DataTypesEnum.tabular:
@@ -61,6 +82,17 @@ def auto_imputation_steps(data: TensorData):
 
 
 def auto_scaling_steps(data: TensorData):
+    """Build default scaling steps for numerical features.
+
+    Uses min-max scaling for tabular data and seasonal scaling for time series
+    data when numerical features are available.
+
+    Args:
+        data: TensorData object with `numerical_idx` and `data_type`.
+
+    Returns:
+        List with scaling step(s), or `None` when no numerical features exist.
+    """
     steps = []
     if len(data.numerical_idx) > 0:
         if data.data_type == DataTypesEnum.tabular:
@@ -80,6 +112,15 @@ def auto_scaling_steps(data: TensorData):
 
 
 def auto_clipping_step(data: TensorData):
+    """Build default quantile clipping step for numerical features.
+
+    Args:
+        data: TensorData object with `numerical_idx`.
+
+    Returns:
+        List with one clipping step when numerical features exist; otherwise an
+        empty list.
+    """
     steps = []
     if len(data.numerical_idx) > 0:
         step = PreprocessingStep(PreprocessingStepEnum.filtering,

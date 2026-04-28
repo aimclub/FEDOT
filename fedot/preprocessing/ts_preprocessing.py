@@ -1,3 +1,4 @@
+# TODO romankuklo: move to obligatory ts preprocessing service
 from typing import Optional, List
 
 from fedot.core.backend.backend import Backend

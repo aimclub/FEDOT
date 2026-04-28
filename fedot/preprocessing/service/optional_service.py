@@ -9,10 +9,37 @@ from fedot.preprocessing.tools.tools import update_handler_mapping
 
 
 class OptionalService:
+    """Parent service class for optional preprocessing pipelines.
+
+    This class is a base (parent) implementation for specialized child services
+    (OptionalTabularService, TSPreprocessingService). It defines shared logic for
+    optional transformations that are configured by user strategy. The main difference 
+    from obligatory service is that optional service is requires ready TensorData as input.
+
+    Processing sequence in `fit_transform`:
+    1. Build optional preprocessing plan for the provided data and strategy.
+    2. Initialize `PreparedData` from source tensor data.
+    3. Resolve preprocessing handlers required by plan steps.
+    4. For each step:
+       - remap feature indices according to current index mapping;
+       - fit and apply the step handler;
+       - refresh index mapping after feature space changes.
+    5. Return transformed `PreparedData`.
+    """
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
 
     def fit_transform(self, data: TensorData, optional_steps) -> PreparedData:
+        """Build and execute optional preprocessing plan.
+
+        Args:
+            data: Input tensor data with features, target and metadata.
+            optional_steps: Mapping with optional preprocessing strategy by step
+                type. Each step can be configured explicitly or auto-generated.
+
+        Returns:
+            Prepared data after executing optional preprocessing steps.
+        """
         self.plan = build_optional_plan(data, optional_steps)
 
         prepared_data = None
@@ -47,6 +74,16 @@ class OptionalService:
         return prepared_data
 
     def transform(self, data, optional_steps, plan) -> PreparedData:
+        """Placeholder for transform-only execution with cached plan/handlers.
+
+        Args:
+            data: Input data to transform.
+            optional_steps: Optional strategy configuration.
+            plan: Pre-built preprocessing plan.
+
+        Returns:
+            Transformed prepared data when implementation is completed.
+        """
         for step in self.plan.steps:
             # TODO romankuklo: get cached params
             # handler = PREPROCESSING_OPTIONAL_MAPPING[step.step][step.method](**params)

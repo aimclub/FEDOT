@@ -11,12 +11,20 @@ from fedot.industrial.core.architecture.preprocessing.ts_methods.tools import (
 
 
 class TSMeanImputation(AbstractPreprocessingHandler):
+    """Time-series imputer that replaces NaNs with per-feature mean values.
+
+    The handler supports both 2D and 3D tensors. For 3D inputs, feature-channel
+    axes are temporarily flattened, means are computed on selected columns while
+    ignoring NaNs, then data is restored to original shape.
+    """
     def __init__(self):
+        """Initialize class instance."""
         self.mean_values: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -29,6 +37,7 @@ class TSMeanImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.mean_values is None or self.features_idx is None:
             raise RuntimeError("MeanImputation is not fitted yet.")
 
@@ -48,12 +57,20 @@ class TSMeanImputation(AbstractPreprocessingHandler):
 
 
 class TSMedianImputation(AbstractPreprocessingHandler):
+    """Time-series imputer that fills NaNs with per-feature median values.
+
+    This strategy is robust to outliers compared to mean imputation. It uses
+    NaN-aware median estimation on selected columns and keeps tensor layout
+    unchanged after restore from flattened representation.
+    """
     def __init__(self):
+        """Initialize class instance."""
         self.median_values: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -66,6 +83,7 @@ class TSMedianImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.median_values is None or self.features_idx is None:
             raise RuntimeError("MedianImputation is not fitted yet.")
 
@@ -85,12 +103,20 @@ class TSMedianImputation(AbstractPreprocessingHandler):
 
 
 class TSConstantImputation(AbstractPreprocessingHandler):
+    """Time-series imputer that replaces NaNs with a fixed constant.
+
+    Useful when a deterministic fill policy is required (for example, zero
+    imputation). Selected features are processed after flattening when needed,
+    then restored back to the original tensor shape.
+    """
     def __init__(self, constant: float = 0.0):
+        """Initialize class instance."""
         self.constant = constant
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -99,6 +125,7 @@ class TSConstantImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None:
             raise RuntimeError("ConstantImputation is not fitted yet.")
 
@@ -124,7 +151,14 @@ class TSConstantImputation(AbstractPreprocessingHandler):
 
 
 class TSFillImputation(AbstractPreprocessingHandler):
+    """Directional fill imputation for time-series gaps.
+
+    Supports forward-fill and backward-fill modes. For each selected feature,
+    missing values are propagated from nearest valid observations along the time
+    axis, preserving existing non-missing values.
+    """
     def __init__(self, direction: str = "forward"):
+        """Initialize class instance."""
         if direction not in {"forward", "backward"}:
             raise ValueError("direction must be either 'forward' or 'backward'")
 
@@ -133,6 +167,7 @@ class TSFillImputation(AbstractPreprocessingHandler):
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -144,6 +179,7 @@ class TSFillImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None or self.original_shape is None:
             raise RuntimeError("TSFillImputation is not fitted yet.")
 
@@ -191,12 +227,19 @@ class TSFillImputation(AbstractPreprocessingHandler):
 
 
 class TSRollingImputation(AbstractPreprocessingHandler):
+    """Rolling-window imputation for time-series data.
+
+    Missing values are replaced using rolling statistics computed in a local
+    window (`mean` or `median`). The window can be centered or causal, which
+    makes the method suitable for both offline and streaming-like scenarios.
+    """
     def __init__(
         self,
         window_size: int = 5,
         method: str = "mean",
         center: bool = True,
     ):
+        """Initialize class instance."""
         if window_size <= 0:
             raise ValueError("window_size must be > 0")
         if method not in {"mean", "median"}:
@@ -210,6 +253,7 @@ class TSRollingImputation(AbstractPreprocessingHandler):
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -221,6 +265,7 @@ class TSRollingImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None or self.original_shape is None:
             raise RuntimeError("TSRollingImputation is not fitted yet.")
 
@@ -265,7 +310,14 @@ class TSRollingImputation(AbstractPreprocessingHandler):
 
 
 class TSKalmanImputation(AbstractPreprocessingHandler):
+    """Kalman filter-based imputation for sequential signals.
+
+    The method models each selected feature as a local linear trend process and
+    performs prediction-update steps over time. Missing observations are filled
+    with filtered state estimates, while observed values are preserved.
+    """
     def __init__(self):
+        """Initialize class instance."""
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
@@ -276,15 +328,19 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         self.q_trend: Optional[torch.Tensor] = None
         self.r: Optional[torch.Tensor] = None
 
+        """Internal helper for `nanmean` logic."""
     @staticmethod
     def _nanmean(values: torch.Tensor, dim: int) -> torch.Tensor:
+        """Internal helper for `nanmean` logic."""
         mask = ~torch.isnan(values)
         safe_values = torch.where(mask, values, torch.zeros_like(values))
         count = mask.sum(dim=dim).clamp_min(1)
         return safe_values.sum(dim=dim) / count
 
+        """Internal helper for `nanvar` logic."""
     @staticmethod
     def _nanvar(values: torch.Tensor, dim: int) -> torch.Tensor:
+        """Internal helper for `nanvar` logic."""
         mean = TSKalmanImputation._nanmean(values, dim=dim)
         mask = ~torch.isnan(values)
         centered = torch.where(mask, values - mean.unsqueeze(dim), torch.zeros_like(values))
@@ -292,6 +348,7 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         return centered.pow(2).sum(dim=dim) / count
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -330,6 +387,7 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if (
             self.features_idx is None
             or self.original_shape is None
@@ -405,11 +463,19 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
 
 
 class TSLinearInterpolation(AbstractPreprocessingHandler):
+    """Linear interpolation imputer for missing time points.
+
+    Each NaN is replaced by a linear value between nearest previous and next
+    valid observations. Edge gaps are handled via one-sided propagation when one
+    of the neighbors is absent.
+    """
     def __init__(self):
+        """Initialize class instance."""
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -418,6 +484,7 @@ class TSLinearInterpolation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None or self.original_shape is None:
             raise RuntimeError("LinearInterpolation is not fitted yet.")
 
@@ -473,7 +540,14 @@ class TSLinearInterpolation(AbstractPreprocessingHandler):
 
 
 class TSPolynomialInterpolation(AbstractPreprocessingHandler):
+    """Windowed polynomial interpolation for time-series gaps.
+
+    For each feature and window, the method fits a polynomial of configurable
+    degree on valid points and predicts missing ones. If valid points are
+    insufficient, it falls back to linear interpolation.
+    """
     def __init__(self, degree: int = 2, window_size: int = 64):
+        """Initialize class instance."""
         self.degree = degree
         self.window_size = window_size
 
@@ -481,6 +555,7 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -488,8 +563,10 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
 
         return self
 
+        """Internal helper for `linear_fallback` logic."""
     @staticmethod
     def _linear_fallback(y: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """Internal helper for `linear_fallback` logic."""
         T = y.shape[0]
         device = y.device
         dtype = y.dtype
@@ -525,6 +602,7 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
         return torch.where(mask, y, interp)
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None or self.original_shape is None:
             raise RuntimeError("PolynomialInterpolation is not fitted yet.")
 
@@ -587,13 +665,21 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
 
 
 class TSSplineInterpolation(AbstractPreprocessingHandler):
+    """Windowed spline interpolation for smooth gap reconstruction.
+
+    The method uses natural cubic spline interpolation inside each window when
+    enough valid points are available; otherwise it falls back to linear
+    interpolation. This provides smoother trajectories than linear filling.
+    """
     def __init__(self, window_size: int = 64):
+        """Initialize class instance."""
         self.window_size = window_size
 
         self.features_idx: Optional[Sequence[int]] = None
         self.original_shape: Optional[tuple] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         x = data.features
         self.original_shape = x.shape
 
@@ -601,8 +687,10 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
 
         return self
 
+        """Internal helper for `linear_fallback` logic."""
     @staticmethod
     def _linear_fallback(y: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """Internal helper for `linear_fallback` logic."""
         T = y.shape[0]
         device = y.device
         dtype = y.dtype
@@ -638,6 +726,7 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
         return torch.where(mask, y, interp)
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None or self.original_shape is None:
             raise RuntimeError("SplineInterpolation is not fitted yet.")
 

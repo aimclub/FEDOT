@@ -7,10 +7,18 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 class StandartScaling(AbstractPreprocessingHandler):
     """
-    Scaling with nan
+    Standard score scaling for selected columns with NaN-aware statistics.
+
+    The handler computes per-column mean and standard deviation on `fit`,
+    skipping missing values, and applies z-score transformation on `transform`:
+    `(x - mean) / std`.
+
+    Configuration flags allow disabling centering and/or scaling to mirror
+    standard scaler behavior in different preprocessing scenarios.
     """
     def __init__(self, with_mean: bool = True, with_std: bool = True):
 
+        """Initialize `StandartScaling`."""
         self.with_mean = with_mean
         self.with_std = with_std
 
@@ -59,6 +67,7 @@ class StandartScaling(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise RuntimeError("ScalingImplementation is not fitted yet.")
 
@@ -75,7 +84,18 @@ class StandartScaling(AbstractPreprocessingHandler):
 
 
 class MinMaxNormalization(AbstractPreprocessingHandler):
+    """Min-max normalization for selected feature columns.
+
+    On `fit`, the handler estimates per-column minimum and maximum values
+    (ignoring NaNs), then derives scaling coefficients for the configured output
+    range. On `transform`, each selected value is linearly mapped to
+    `feature_range`.
+
+    Columns with zero data range are handled safely by replacing zero divisors
+    with ones.
+    """
     def __init__(self, feature_range: tuple[float, float] = (0.0, 1.0)):
+        """Initialize `MinMaxNormalization`."""
         self.min_range = feature_range[0]
         self.max_range = feature_range[1]
 
@@ -111,6 +131,7 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise RuntimeError("NormalizationImplementation is not fitted yet.")
 
@@ -124,12 +145,23 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
 
 
 class RobustScaling(AbstractPreprocessingHandler):
+    """Robust scaler based on median and inter-quantile range (IQR).
+
+    This handler is less sensitive to outliers than standard scaling. During
+    `fit`, it computes per-column median (optional) and quantile-based scale
+    (`q_max - q_min`) for selected columns while ignoring NaNs. During
+    `transform`, it applies centering and scaling according to enabled flags.
+
+    Designed for tabular data where heavy tails or extreme values can distort
+    mean/std-based normalization.
+    """
     def __init__(
         self,
         quantile_range: tuple[float, float] = (25.0, 75.0),
         with_centering: bool = True,
         with_scaling: bool = True,
     ):
+        """Initialize `RobustScaling`."""
         self.q_min = quantile_range[0] / 100.0
         self.q_max = quantile_range[1] / 100.0
         self.with_centering = with_centering
@@ -164,6 +196,7 @@ class RobustScaling(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise RuntimeError("RobustScaling is not fitted yet.")
 

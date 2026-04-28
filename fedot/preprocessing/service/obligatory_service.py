@@ -11,10 +11,38 @@ from fedot.core.data.complex_types import ArrayType
 
 
 class ObligatoryService:
+    """Parent service class for obligatory preprocessing pipelines.
+
+    This class is a base (parent) implementation used by specialized child
+    services (ObligatoryTabularService). It defines the common
+    orchestration flow for mandatory preprocessing that must be applied before
+    model training or inference.
+
+    Processing sequence in `fit_transform`:
+    1. Build obligatory preprocessing plan from input data and strategy params.
+    2. Wrap raw features/target into `PreparedData` with index mapping.
+    3. Resolve handler classes for all plan steps.
+    4. For each step:
+       - remap logical feature indices to current feature positions;
+       - fit and apply handler transformation;
+       - update feature index mapping after column changes.
+    5. Return transformed `PreparedData`.
+    """
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
 
     def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> PreparedData:
+        """Build and execute obligatory preprocessing plan.
+
+        Args:
+            features: Input feature matrix/tensor.
+            target: Target values aligned with `features`.
+            params: Preprocessing configuration dictionary with strategies and
+                metadata (including feature names and index mapping).
+
+        Returns:
+            Prepared data after all obligatory preprocessing steps.
+        """
         prepared_data = None
 
         self.plan = build_obligatory_plan(features, target, params)

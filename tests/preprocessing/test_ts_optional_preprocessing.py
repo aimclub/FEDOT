@@ -9,6 +9,10 @@ from fedot.core.data.tensordata import TensorData
 
 
 def test_preprocessing_seasonal_normalization():
+    """Test seasonal normalization by phase.
+    
+    Compares column 1 with manual z-score normalization computed separately for each
+    period-3 phase, verifies NaN preservation, and checks column 0 is unchanged."""
     X = np.array([
         [1, 10, 100],
         [2, 20, 200],
@@ -67,6 +71,10 @@ def test_preprocessing_seasonal_normalization():
 
 
 def test_preprocessing_rolling_normalization():
+    """Test rolling-window normalization over time.
+    
+    Compares column 1 with manually computed causal window-3 z-scores, verifies NaN
+    at the original missing position, and checks column 0 is unchanged."""
     X = np.array([
         [1, 10, 100],
         [2, 20, 200],
@@ -124,6 +132,10 @@ def test_preprocessing_rolling_normalization():
 
 
 def test_preprocessing_per_channel_normalization():
+    """Test per-channel normalization for 3D time-series data.
+    
+    Compares channel 1 with manual mean/std normalization over all valid channel
+    values, verifies NaN preservation, and checks channel 0 is unchanged."""
     X = np.array([
         [
             [1, 10],
@@ -182,6 +194,10 @@ def test_preprocessing_per_channel_normalization():
 
 
 def test_preprocessing_gamma_correction():
+    """Test gamma correction for selected image-like channel.
+    
+    Compares channel 1 with squared input values for `gamma=2`, verifies NaN is
+    preserved, and checks channel 0 is unchanged."""
     X = np.array([
         [
             [1, 0.0],
@@ -229,6 +245,10 @@ def test_preprocessing_gamma_correction():
 
 
 def test_preprocessing_log_transform():
+    """Test logarithmic transformation for selected image-like channel.
+    
+    Compares channel 1 with `log(x + eps)`, verifies NaN is preserved, and checks
+    channel 0 remains unchanged."""
     X = np.array([
         [
             [1, 0.0],
@@ -276,6 +296,10 @@ def test_preprocessing_log_transform():
 
 
 def test_preprocessing_mean_imputation():
+    """Test time-series mean imputation on selected features.
+    
+    Compares the full 3D output with an explicit reference tensor where NaNs in
+    selected features/channels are replaced by computed mean values."""
     X = np.array([
         [
             [1.0, 10.0, 1.],
@@ -338,6 +362,10 @@ def test_preprocessing_mean_imputation():
 
 
 def test_preprocessing_median_imputation():
+    """Test time-series median imputation on selected features.
+    
+    Compares the full 3D output with an explicit reference tensor where missing
+    selected values are replaced by median values."""
     X = np.array([
         [
             [1.0, 10.0, 1.],
@@ -400,6 +428,10 @@ def test_preprocessing_median_imputation():
 
 
 def test_preprocessing_constant_imputation():
+    """Test time-series constant imputation.
+    
+    Checks that all NaNs in selected time-series features are replaced with `-1.0`
+    and compares the full tensor with the expected output."""
     X = np.array([
         [
             [1.0, 10.0, 1.],
@@ -464,6 +496,10 @@ def test_preprocessing_constant_imputation():
 
 
 def test_preprocessing_fill_imputation_forward():
+    """Test forward-fill imputation along the time axis.
+    
+    Compares the full tensor with a reference where missing selected values are
+    filled from previous valid observations, while leading gaps remain NaN."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -528,6 +564,10 @@ def test_preprocessing_fill_imputation_forward():
 
 
 def test_preprocessing_fill_imputation_backward():
+    """Test backward-fill imputation along the time axis.
+    
+    Compares the full tensor with a reference where missing selected values are
+    filled from next valid observations, while trailing gaps remain NaN."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -592,6 +632,10 @@ def test_preprocessing_fill_imputation_backward():
 
 
 def test_preprocessing_rolling_imputation_mean_center():
+    """Test centered rolling mean imputation.
+    
+    Checks that NaNs in selected features are filled from a centered window of size 3
+    using mean values and compares against the explicit expected tensor."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -658,6 +702,10 @@ def test_preprocessing_rolling_imputation_mean_center():
 
 
 def test_preprocessing_rolling_imputation_median_backward_window():
+    """Test causal rolling median imputation.
+    
+    Checks that NaNs are filled using a backward-looking window of size 2 with median
+    statistics, preserving gaps when no valid window value exists."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -724,6 +772,10 @@ def test_preprocessing_rolling_imputation_median_backward_window():
 
 
 def test_preprocessing_kalman_imputation():
+    """Test Kalman imputation output constraints.
+    
+    Checks that selected NaNs are filled, unaffected positions remain equal to the
+    input, and imputed values fall inside expected numeric ranges."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -779,6 +831,10 @@ def test_preprocessing_kalman_imputation():
 
 
 def test_preprocessing_linear_interpolation():
+    """Test linear interpolation imputation.
+    
+    Compares the full tensor with a reference where missing selected values are
+    interpolated between neighboring valid time points or edge-filled when needed."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -841,6 +897,10 @@ def test_preprocessing_linear_interpolation():
 
 
 def test_preprocessing_polynomial_interpolation():
+    """Test polynomial interpolation imputation.
+    
+    Checks degree-2 interpolation with a large window and compares the full output
+    against the expected tensor, including inferred values `0` and `1`."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -918,6 +978,10 @@ def test_preprocessing_polynomial_interpolation():
 
 
 def test_preprocessing_spline_interpolation():
+    """Test spline interpolation imputation.
+    
+    Checks spline-based reconstruction with fallback behavior by comparing the full
+    output tensor to the same explicit expected values as polynomial interpolation."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],
@@ -994,6 +1058,10 @@ def test_preprocessing_spline_interpolation():
 
 
 def test_multiple_imputation_step():
+    """Test applying multiple imputation steps in sequence.
+    
+    Checks that forward-fill runs first, then constant imputation fills remaining
+    leading NaNs with `-1`, and the final tensor matches the explicit reference."""
     X = np.array([
         [
             [1.0, 10.0, 1.0],

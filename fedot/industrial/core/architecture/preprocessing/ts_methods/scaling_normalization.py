@@ -10,12 +10,19 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
 class SeasonalNormalization(AbstractPreprocessingHandler):
+    """Seasonality-aware normalization using phase-specific statistics.
+
+    For a given seasonal `period`, the method computes separate mean/std for
+    each phase position (0..period-1) and normalizes values by matching phase.
+    This helps remove repeating seasonal patterns in time-series features.
+    """
     def __init__(
         self,
         period: int,
         with_centering: bool = True,
         with_scaling: bool = True,
     ):
+        """Initialize class instance."""
         if period <= 0:
             raise ValueError("period must be > 0")
 
@@ -92,6 +99,7 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None:
             raise RuntimeError("SeasonalNormalization is not fitted yet.")
         
@@ -113,6 +121,12 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
 
 
 class RollingNormalization(AbstractPreprocessingHandler):
+    """Local rolling normalization over time axis.
+
+    Instead of global statistics, this method uses rolling window mean/std for
+    each timestamp and selected feature. It is useful for non-stationary series
+    where feature scale drifts over time.
+    """
     def __init__(
         self,
         window_size: int,
@@ -120,6 +134,7 @@ class RollingNormalization(AbstractPreprocessingHandler):
         with_scaling: bool = True,
         min_periods: int = 1,
     ):
+        """Initialize class instance."""
         if window_size <= 0:
             raise ValueError("window_size must be > 0")
         if min_periods <= 0:
@@ -147,6 +162,7 @@ class RollingNormalization(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.features_idx is None:
             raise RuntimeError("RollingNormalization is not fitted yet.")
 
@@ -204,12 +220,19 @@ class RollingNormalization(AbstractPreprocessingHandler):
 
 class PerChannelNormalization(AbstractPreprocessingHandler):
     # as StandartScaler, but for multiple channels
+    """Channel-wise standardization for 3D multichannel time-series tensors.
+
+    Computes per-channel mean/std across all samples and time steps, then applies
+    centering/scaling to selected channels. Intended for data shaped as
+    `(n_samples, n_timesteps, n_channels)`.
+    """
     def __init__(
         self,
         channels_idx: Sequence[int],
         with_centering: bool = True,
         with_scaling: bool = True
     ):
+        """Initialize class instance."""
         if channels_idx is None:
             raise ValueError("channels_idx must be not None")
         self.with_centering = with_centering
@@ -268,6 +291,7 @@ class PerChannelNormalization(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if not self.is_fitted:
             raise RuntimeError("PerChannelNormalization is not fitted yet.")
 

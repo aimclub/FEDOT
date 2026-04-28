@@ -6,11 +6,18 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
 class ContrastEqualization(AbstractPreprocessingHandler):
+    """Rank-based contrast equalization for each sample/channel.
+
+    Valid values are converted to rank positions and mapped to target output
+    range. This redistributes intensity levels more uniformly and improves local
+    contrast while preserving NaN locations.
+    """
     def __init__(
         self,
         output_range: tuple[float, float] = (0.0, 1.0),
         channels_idx: Optional[Tuple[int]] = None,
     ):
+        """Initialize class instance."""
         self.min_range = output_range[0]
         self.max_range = output_range[1]
         self.channels_idx = channels_idx
@@ -26,6 +33,7 @@ class ContrastEqualization(AbstractPreprocessingHandler):
 
     def transform(self, data: PreparedData) -> PreparedData:
 
+        """Run `transform` routine."""
         if self.channels_idx is None:
             raise RuntimeError("ContrastEqualization is not fitted yet.")
 
@@ -67,12 +75,19 @@ class ContrastEqualization(AbstractPreprocessingHandler):
 
 
 class ContrastStretching(AbstractPreprocessingHandler):
+    """Quantile-based contrast stretching to fixed output range.
+
+    Intensities are linearly rescaled between lower/upper quantiles and clipped
+    to the requested range. This suppresses extreme outliers and increases
+    dynamic range for the main signal mass.
+    """
     def __init__(
         self,
         quantile_range: tuple[float, float] = (2.0, 98.0),
         output_range: tuple[float, float] = (0.0, 1.0),
         channels_idx: Optional[Sequence[int]] = None,
     ):
+        """Initialize class instance."""
         self.q_min = quantile_range[0] / 100.0
         self.q_max = quantile_range[1] / 100.0
 
@@ -82,11 +97,13 @@ class ContrastStretching(AbstractPreprocessingHandler):
         self.channels_idx = channels_idx
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.channels_idx is None:
             raise RuntimeError("ContrastStretching is not fitted yet.")
 
@@ -125,20 +142,29 @@ class ContrastStretching(AbstractPreprocessingHandler):
 
 
 class GammaCorrection(AbstractPreprocessingHandler):
+    """Nonlinear gamma correction for intensity adjustment.
+
+    Applies power-law transform `x^gamma` to selected channels. Values with
+    missing data remain untouched. Typical use cases are contrast tuning and
+    brightness emphasis/de-emphasis in image-like time-series features.
+    """
     def __init__(
         self,
         gamma: float = 1.0,
         channels_idx: Optional[Sequence[int]] = None,
     ):
+        """Initialize class instance."""
         self.gamma = gamma
         self.channels_idx = channels_idx
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.channels_idx is None:
             raise RuntimeError("GammaCorrection is not fitted yet.")
 
@@ -157,20 +183,29 @@ class GammaCorrection(AbstractPreprocessingHandler):
 
 
 class LogTransform(AbstractPreprocessingHandler):
+    """Logarithmic intensity transform for dynamic range compression.
+
+    Applies `log(x + eps)` to non-missing non-negative values (with safety
+    clipping at zero). Useful when feature amplitudes are highly skewed and need
+    compressing before downstream modeling.
+    """
     def __init__(
         self,
         eps: float = 1e-6,
         channels_idx: Optional[Sequence[int]] = None,
     ):
+        """Initialize class instance."""
         self.eps = eps
         self.channels_idx = channels_idx
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Run `fit` routine."""
         if self.channels_idx is None:
             self.channels_idx = list(range(data.ts_init_shape[2]))
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Run `transform` routine."""
         if self.channels_idx is None:
             raise RuntimeError("LogTransform is not fitted yet.")
 

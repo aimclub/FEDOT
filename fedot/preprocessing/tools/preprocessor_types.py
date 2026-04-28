@@ -8,11 +8,13 @@ from fedot.core.data.tools import StateEnum
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 class EmbeddingMethodEnum(Enum):
+    """Enumeration of embeddingmethod options."""
     transformer = "sentence_transformer"
 
 
 @dataclass
 class EmbedderParameters:
+    """EmbedderParameters implementation."""
     method: EmbeddingMethodEnum
     model_name: str
     batch_size: int
@@ -20,12 +22,14 @@ class EmbedderParameters:
 
 
 class EncodingStrategyEnum(Enum):
+    """Enumeration of encodingstrategy options."""
     label = "label"
     ohe = "ohe"
 
 
 @dataclass
 class CategoricalEncodingDecision:
+    """CategoricalEncodingDecision implementation."""
     categorical_columns: IndexType
     strategy: Optional[EncodingStrategyEnum] = None
     encoder: Any = None
@@ -35,6 +39,7 @@ EncodingStrategyType: TypeAlias = Optional[Union[Dict, CategoricalEncodingDecisi
 
 
 class PreprocessingStepEnum(Enum):
+    """Enumeration of preprocessingstep options."""
     encoding = "encoding"
     embedding = "embedding"
     imputation = "imputation"
@@ -46,12 +51,14 @@ class PreprocessingStepEnum(Enum):
 
 
 class EncodingMethodEnum(Enum):
+    """Enumeration of encodingmethod options."""
     label = "label"
     ohe = "ohe"
     target_encoding = "target_encoding"
 
 
 class ImputationMethodEnum(Enum):
+    """Enumeration of imputationmethod options."""
     mean = "mean"
     median = "median"
     mode = "mode"
@@ -69,6 +76,7 @@ class ImputationMethodEnum(Enum):
 
 
 class ScalingMethodEnum(Enum):
+    """Enumeration of scalingmethod options."""
     min_max = "min_max"
     standard = "standard"
     robust = "robust"
@@ -78,6 +86,7 @@ class ScalingMethodEnum(Enum):
 
 
 class ImagePreprocessingMethodEnum(Enum):
+    """Enumeration of imagepreprocessingmethod options."""
     contrast_equalization = "contrast_equalization"
     contrast_stretching = "contrast_stretching"
     gamma_correction = "gamma_correction"
@@ -85,11 +94,13 @@ class ImagePreprocessingMethodEnum(Enum):
 
 
 class FilteringMethodEnum(Enum):
+    """Enumeration of filteringmethod options."""
     quantile = "quantile"
 
 
 @dataclass
 class PreprocessingStep:
+    """PreprocessingStep definition used in preprocessing flow."""
     step: PreprocessingStepEnum
     method: Union[Enum, str]
     features_idx: IndexType

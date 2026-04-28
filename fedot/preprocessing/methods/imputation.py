@@ -6,7 +6,17 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
 class MeanImputation(AbstractPreprocessingHandler):
+    """Missing-value imputer that fills NaNs with column means.
+
+    During `fit`, the handler computes a mean value for each selected feature
+    column using non-missing observations only. During `transform`, every NaN in
+    those columns is replaced with the corresponding learned mean.
+
+    Intended for continuous numeric features where mean-based replacement is an
+    acceptable approximation.
+    """
     def __init__(self):
+        """Initialize `MeanImputation`."""
         self.mean_values: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
 
@@ -27,6 +37,7 @@ class MeanImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData):
+        """Transform input data with fitted state."""
         if self.mean_values is None or self.features_idx is None:
             raise RuntimeError("MeanImputation is not fitted yet.")
 
@@ -42,17 +53,26 @@ class MeanImputation(AbstractPreprocessingHandler):
 
 
 class MedianImputation(AbstractPreprocessingHandler):
+    """Missing-value imputer that fills NaNs with column medians.
+
+    The handler stores per-column medians on `fit` and uses them on `transform`
+    to replace missing values in selected columns. Median-based imputation is
+    generally more robust to outliers than mean imputation.
+    """
     def __init__(self):
+        """Initialize `MedianImputation`."""
         self.median_values: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Fit the handler on input data."""
         self.features_idx = features_idx
         selected = data.features[:, self.features_idx]
         self.median_values = torch.nanquantile(selected, q=0.5, dim=0)
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.median_values is None or self.features_idx is None:
             raise RuntimeError("MedianImputation is not fitted yet.")
 
@@ -68,11 +88,21 @@ class MedianImputation(AbstractPreprocessingHandler):
 
 
 class ModeImputation(AbstractPreprocessingHandler):
+    """Missing-value imputer that fills NaNs with the most frequent value.
+
+    For each selected column, `fit` finds the mode over non-missing values.
+    During `transform`, missing entries are replaced with that mode. If a column
+    has no valid values at fit time, its fallback mode remains `NaN`.
+
+    Useful for discrete or category-like numeric columns.
+    """
     def __init__(self):
+        """Initialize `ModeImputation`."""
         self.mode_values: Optional[torch.Tensor] = None
         self.features_idx: Optional[Sequence[int]] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Fit the handler on input data."""
         self.features_idx = features_idx
         features = data.features
         selected = features[:, self.features_idx]
@@ -93,6 +123,7 @@ class ModeImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.mode_values is None or self.features_idx is None:
             raise RuntimeError("ModeImputation is not fitted yet.")
 
@@ -108,15 +139,26 @@ class ModeImputation(AbstractPreprocessingHandler):
 
 
 class ConstantImputation(AbstractPreprocessingHandler):
+    """Missing-value imputer that replaces NaNs with a user constant.
+
+    The handler does not estimate statistics from data; it only stores selected
+    feature indices in `fit` and writes the configured constant value to NaN
+    positions during `transform`.
+
+    Suitable for deterministic replacement policies and controlled experiments.
+    """
     def __init__(self, constant: float = 0.0):
+        """Initialize `ConstantImputation`."""
         self.constant = constant
         self.features_idx: Optional[Sequence[int]] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Fit the handler on input data."""
         self.features_idx = features_idx
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise RuntimeError("ConstantImputation is not fitted yet.")
 
@@ -132,11 +174,22 @@ class ConstantImputation(AbstractPreprocessingHandler):
 
 
 class DeleteRawImputation(AbstractPreprocessingHandler):
+    """Row-wise missing-value strategy that removes rows containing NaNs.
+
+    The handler builds a row validity mask in `fit` for selected columns and, in
+    `transform`, filters both `features` and `target` (if present) by that mask.
+    This keeps feature-target alignment while discarding incomplete samples.
+
+    Use this strategy when dropping corrupted rows is preferable to value
+    imputation.
+    """
     def __init__(self):
+        """Initialize `DeleteRawImputation`."""
         self.features_idx: Optional[Sequence[int]] = None
         self.valid_rows_mask: Optional[torch.Tensor] = None
     
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Fit the handler on input data."""
         self.features_idx = features_idx
 
         nan_mask = torch.isnan(data.features[:, self.features_idx])
@@ -146,6 +199,7 @@ class DeleteRawImputation(AbstractPreprocessingHandler):
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.valid_rows_mask is None:
             raise RuntimeError("DeleteRawImputation is not fitted yet.")
 

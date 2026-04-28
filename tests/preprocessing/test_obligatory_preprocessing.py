@@ -16,10 +16,10 @@ from fedot.core.utils import fedot_project_root
 
 
 def test_create_from_numpy():
-    """
-    Test creation of TensorData from a NumPy array, ensuring that features and target
-    are correctly separated and converted into torch tensors with expected shapes.
-    """
+    """Test TensorData creation from a NumPy matrix.
+    
+    Checks that the last column is split into target by default, features keep the
+    same number of rows, and both parts are converted to torch tensors."""
 
     features = np.random.rand(100, 10)
 
@@ -35,11 +35,10 @@ def test_create_from_numpy():
 
 
 def test_create_from_csv():
-    """
-    Test creation of TensorData from a CSV file, verifying that data is properly loaded,
-    the specified target column is extracted, and both features and target are converted
-    into torch tensors.
-    """
+    """Test TensorData creation from CSV with an explicit target column.
+    
+    Checks that the scoring CSV is loaded, `target` is extracted as target, and
+    features/target are returned as torch tensors."""
 
     csv_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
@@ -55,10 +54,10 @@ def test_create_from_csv():
 
 
 def test_text_features_preprocess_like_categorical():
-    """
-    Test that text features are detected and encoded like categorical,
-    if no embedding strategy is provided.
-    """
+    """Test automatic text handling without embedding strategy.
+    
+    Checks that object text columns are treated like categorical features and that
+    the resulting tensor keeps two feature columns after target separation."""
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
          "in adding cream to spaghetti carbonara which has the same effect on pasta", 1],
@@ -78,10 +77,10 @@ def test_text_features_preprocess_like_categorical():
 
 
 def test_categorical_features_match_indices():
-    """
-    Test that categorical features are correctly matched to the provided column indices or names
-    and are properly encoded into the resulting TensorData feature tensor.
-    """
+    """Test categorical column selection by feature name.
+    
+    Checks that the named categorical column is resolved through `features_names`,
+    encoded, and the output feature tensor has the expected reduced width."""
     X = np.array([
         [1, "A", 10],
         [2, "B", 20],
@@ -101,10 +100,10 @@ def test_categorical_features_match_indices():
 
 
 def test_from_tensor():
-    """
-    Test creation of TensorData from a torch tensor, ensuring that features are preserved,
-    no target is assigned, and the tensor is moved to the expected device with correct shape.
-    """
+    """Test TensorData creation from an input torch tensor.
+    
+    Checks default target extraction from the last column, feature shape reduction by
+    one column, and placement on the requested CPU device."""
     features = torch.rand(100, 10)
 
     td = TensorData.create(features, backend_name="cpu",)
@@ -118,11 +117,10 @@ def test_from_tensor():
 
 
 def test_loader():
-    """
-    Test TensorData creation using UCR dataset loaded via TSLoader, ensuring that both training
-    and test datasets are correctly converted into TensorData objects with valid feature
-    and target tensors.
-    """
+    """Test TensorData conversion for a dataset loaded by `TSLoader`.
+    
+    Checks that both train and test parts of the UCR dataset are converted into
+    TensorData objects with torch feature and target tensors."""
     name = "AbnormalHeartbeat"
     X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
 
@@ -143,10 +141,10 @@ def test_loader():
 
 
 def test_text_features_preprocess_like_categorical():
-    """
-    Test that text features are detected and encoded like categorical,
-    if no embedding strategy is provided.
-    """
+    """Test automatic text handling without embedding strategy.
+    
+    Checks that object text columns are treated like categorical features and that
+    the resulting tensor keeps two feature columns after target separation."""
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
          "in adding cream to spaghetti carbonara which has the same effect on pasta", 1],
@@ -166,10 +164,10 @@ def test_text_features_preprocess_like_categorical():
 
 
 def test_categorical_features_match_indices():
-    """
-    Test that categorical features are correctly matched to the provided column indices or names
-    and are properly encoded into the resulting TensorData feature tensor.
-    """
+    """Test categorical column selection by feature name.
+    
+    Checks that the named categorical column is resolved through `features_names`,
+    encoded, and the output feature tensor has the expected reduced width."""
     X = np.array([
         [1, "A", 10],
         [2, "B", 20],
@@ -195,10 +193,10 @@ def test_categorical_features_match_indices():
 
 
 def test_create_text_csv_to_tensordata():
-    """
-    Test creation of TensorData from a CSV file containing text data, verifying that text features
-    are converted into embeddings and that both features and target tensors have the expected shapes.
-    """
+    """Test CSV text data conversion with transformer embeddings.
+    
+    Checks that spam text data is loaded from CSV, limited to 10 rows, converted to
+    feature/target tensors, and expanded into a 2D embedding feature matrix."""
 
     csv_path = (
         f"{fedot_project_root()}/examples/real_cases/data/spam/spamham.csv"
@@ -234,10 +232,11 @@ def test_create_text_csv_to_tensordata():
 
 
 def test_categorical_text():
-    """
-    Test combined processing of text, numerical, and categorical features, ensuring that text columns
-    are embedded, categorical columns are encoded, and all transformed features are concatenated correctly.
-    """
+    """Test combined text embedding and categorical encoding.
+    
+    Checks that two text columns become transformer embeddings, categorical columns
+    are label-encoded, and the final feature width equals two embedding blocks plus
+    three remaining numeric/encoded columns."""
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 
          "in adding cream to spaghetti carbonara which has the same effect on pasta", 1, "A", "DOP", 0],
@@ -276,10 +275,10 @@ def test_categorical_text():
 
 
 def test_label_ohe_encoding():
-    """
-    Test application of mixed label encoding and one-hot encoding strategies, verifying that categorical
-    features are transformed correctly and the resulting feature tensor has the expected dimensionality.
-    """
+    """Test mixed label and one-hot categorical encoding.
+    
+    Checks that selected columns are encoded by different strategies and that the
+    resulting feature tensor has the expected four columns after target extraction."""
     X = np.array([
         [100, "A", "C", 10],
         [500, "B", "D", 20],
@@ -305,10 +304,10 @@ def test_label_ohe_encoding():
 
 
 def test_encoding_torch_data():
-    """
-    Test encoding of torch data, ensuring that categorical features are transformed correctly
-    and the resulting feature tensor has the expected dimensionality.
-    """
+    """Test encoding strategy on torch tensor input.
+    
+    Checks that TensorData accepts a torch tensor with categorical encoding config
+    and still produces the expected feature width after default target split."""
     X = torch.rand(10, 4)
 
     encoding_strategy = [{
@@ -329,10 +328,10 @@ def test_encoding_torch_data():
 
 
 def test_create_lazy_does_not_materialize_immediately():
-    """
-    Test that lazy TensorData creation does not immediately materialize the underlying data,
-    and that calling get() properly constructs a TensorData instance with expected features.
-    """
+    """Test lazy TensorData creation lifecycle.
+    
+    Checks that `create_lazy` returns an unmaterialized LazyTensor, then `get()`
+    creates TensorData with torch features of the expected shape."""
     X = np.random.rand(10, 3)
 
     lazy_td = TensorData.create_lazy(
@@ -351,10 +350,10 @@ def test_create_lazy_does_not_materialize_immediately():
 
 
 def test_lazy_tensordata_to_device():
-    """
-    Test that a LazyTensor can be materialized directly onto a specified device using to(),
-    ensuring that the resulting TensorData has its features tensor on the correct device.
-    """
+    """Test lazy TensorData materialization to a requested device.
+    
+    Checks that a GPU-configured LazyTensor can be materialized via `to("cpu")` and
+    that resulting feature tensor is on CPU."""
     X = np.random.rand(4, 3)
 
     lazy_td = TensorData.create_lazy(
@@ -370,10 +369,10 @@ def test_lazy_tensordata_to_device():
 
 
 def test_datetime_features():
-    """
-    Test that datetime columns are handled correctly during TensorData creation,
-    with the target column excluded from features and all data converted into valid tensors.
-    """
+    """Test DataFrame input with datetime feature and named target.
+    
+    Checks that datetime columns do not break TensorData creation, target is removed
+    from features, and feature/target row counts remain aligned."""
     features = pd.DataFrame({"date": pd.date_range("2022-01-01", periods=10, freq="D"), 
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
@@ -388,10 +387,10 @@ def test_datetime_features():
 
 
 def test_nan_rows_are_dropped_from_target():
-    """
-    Test that rows with missing target values are removed during TensorData creation,
-    ensuring that features and target remain aligned after dropping invalid samples.
-    """
+    """Test removal of rows with missing target values.
+    
+    Checks that a `None` target entry drops the corresponding feature row so feature
+    and target tensors both contain only two valid samples."""
     X = np.array([
         [1.0, 2.0],
         [3.0, 4.0],
@@ -410,10 +409,10 @@ def test_nan_rows_are_dropped_from_target():
 
 
 def test_target_extracted_by_index():
-    """
-    Test that the target column can be extracted by its positional index,
-    with the remaining columns correctly used as feature data.
-    """
+    """Test target extraction by positional column index.
+    
+    Checks that column index 2 becomes target, remaining four columns stay as
+    features, and target length matches the number of samples."""
     X = np.random.rand(20, 5)
 
     td = TensorData.create(
@@ -445,10 +444,10 @@ def test_target_extracted_by_index():
 
 
 def test_create_from_numpy_cupy():
-    """
-    Test TensorData creation from a NumPy array using the GPU backend, ensuring that data
-    is correctly transferred to CUDA tensors and feature-target separation is preserved.
-    """
+    """Test NumPy input conversion with GPU backend.
+    
+    Checks that NumPy data is converted into CUDA feature/target tensors and default
+    last-column target extraction preserves sample count."""
 
     Backend().set("gpu")
     features = np.random.rand(100, 10)
@@ -468,10 +467,10 @@ def test_create_from_numpy_cupy():
 
 
 def test_create_from_cupy():
-    """
-    Test TensorData creation from a CuPy array, verifying that GPU-native data is properly
-    converted into torch tensors on the CUDA device with correct shapes.
-    """
+    """Test CuPy input conversion to TensorData on GPU.
+    
+    Checks that GPU-native CuPy data becomes CUDA torch tensors with expected
+    feature/target shapes after default target extraction."""
     features = cp.random.rand(100, 10)
 
     td = TensorData.create(
@@ -489,10 +488,10 @@ def test_create_from_cupy():
 
 
 def test_create_from_cudf():
-    """
-    Test TensorData creation from a cuDF DataFrame, ensuring that GPU DataFrame inputs
-    are correctly processed into CUDA tensors with proper feature-target handling.
-    """
+    """Test cuDF DataFrame input conversion on GPU.
+    
+    Checks that cuDF data is processed into CUDA feature and target tensors with the
+    same row count and one fewer feature column."""
     features = cudf.DataFrame(np.random.rand(100, 10))
 
     td = TensorData.create(
@@ -510,11 +509,10 @@ def test_create_from_cudf():
 
 
 def test_create_from_csv_gpu():
-    """
-    Test creation of TensorData from a CSV file, verifying that data is properly loaded,
-    the specified target column is extracted, and both features and target are converted
-    into torch tensors.
-    """
+    """Test CSV loading with GPU backend and named target.
+    
+    Checks that credit card anomaly CSV data is loaded, `Class` is used as target,
+    and features are placed on CUDA."""
 
     csv_path = f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv'
 
@@ -531,6 +529,10 @@ def test_create_from_csv_gpu():
 
 
 def test_nan_gpu_backend():
+    """Test GPU TensorData creation with missing values.
+    
+    Checks that arrays containing `np.nan` and `None` are accepted and converted to a
+    CUDA feature tensor."""
     x = np.array([[1, np.nan, 3], [4, None, 6]])
     td = TensorData.create(x, backend_name="gpu")
     assert isinstance(td, TensorData)
@@ -539,6 +541,10 @@ def test_nan_gpu_backend():
 
 
 def test_categorical_encoding_gpu_backend():
+    """Test automatic categorical encoding on GPU backend.
+    
+    Checks that object categorical values are converted during TensorData creation
+    and final features reside on CUDA."""
     X = np.array([
         [100, "A", 10],
         [500, "B", 20],
@@ -551,10 +557,10 @@ def test_categorical_encoding_gpu_backend():
 
 
 def test_create_time_series():
-    """
-    Test creation of TensorData from a time series dataset, ensuring that features and target
-    are correctly separated and converted into torch tensors with expected shapes.
-    """
+    """Test time-series TensorData creation without default target split.
+    
+    Checks that `data_type="time_series"` preserves the original 2D feature width
+    and returns torch features with matching sample count."""
     Backend().set("cpu")
     features = np.random.rand(100, 10)
 
@@ -571,10 +577,10 @@ def test_create_time_series():
 
 
 def test_long_orientation():
-    """
-    Test that TensorData supports long orientation, ensuring that features
-    are correctly separated and converted into torch tensors with expected shapes.
-    """
+    """Test long-orientation time-series reshaping.
+    
+    Checks that repeated term labels are pivoted into three logical series with
+    three values each, producing a `(3, 3)` feature tensor."""
     X = pd.DataFrame({
         'terms': ["A", "A", "A", "B", "B", "B", "C", "C", "C"],
         'vals': [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -595,9 +601,10 @@ def test_long_orientation():
 
 
 def test_is_multichannel():
-    """
-    Test that TensorData supports multi-channel data, ensuring that features save the correct shape.
-    """
+    """Test multichannel time-series TensorData creation.
+    
+    Checks that a 3D array keeps sample, timestep, and channel dimensions unchanged
+    in the resulting feature tensor."""
     X = np.random.rand(100, 10, 3)
 
     td = TensorData.create(
@@ -614,10 +621,11 @@ def test_is_multichannel():
 
 
 def test_update_idx_emb_enc():
-    """
-    Test combined processing of text, numerical, and categorical features, ensuring that text columns
-    are embedded, categorical columns are encoded, and all transformed features are concatenated correctly.
-    """
+    """Test index mapping when embedding and one-hot encoding are combined.
+    
+    Checks that numeric columns remain in expected positions and appended one-hot
+    columns for `class`/`subclass` contain the expected indicator values after a text
+    embedding step changes feature layout."""
     X = np.array([
         ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 1, "A", "DOP", 0, 1],
         ["martin a posted tassos papadopoulos the greek sculptor behind",  1, "A", "DROP", 0, 1],
@@ -662,6 +670,10 @@ def test_update_idx_emb_enc():
 
 
 def test_update_idx_enc():
+    """Test index mapping with one-hot and label encoding strategies.
+    
+    Checks that named feature selectors are resolved correctly, one-hot output is
+    appended in the expected order, and label-encoded values match reference rows."""
     X = np.array([
         [100, "A", "C", 10],
         [500, "B", "D", 20],
@@ -696,6 +708,10 @@ def test_update_idx_enc():
 
 
 def test_custom_encoders():
+    """Test custom obligatory encoders with explicit implementations.
+    
+    Checks that custom handlers fill selected named columns with `1` and `-2`, and
+    that resulting features match the reference numeric matrix."""
     X = np.array([
         [100, "A", "C", 10],
         [500, "B", "D", 20],
@@ -783,6 +799,10 @@ def test_custom_encoders():
 
 
 def test_custom_encoders_automatic_encoding():
+    """Test custom encoder together with automatic categorical encoding.
+    
+    Checks that the custom handler fills column `B` with ones while remaining
+    categorical column `C` is automatically label-encoded to the expected values."""
     X = np.array([
         [100, "A", "C", 10],
         [500, "B", "D", 20],

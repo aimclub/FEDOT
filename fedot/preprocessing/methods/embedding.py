@@ -23,10 +23,15 @@ How to add a new embedding method
 
 class TextToEmbedding:
     """
-    A callable wrapper converting a list of sentences/text strings into embeddings.
+    Callable wrapper around `SentenceTransformer` for batch text vectorization.
 
-    Internally it uses `SentenceTransformer` and returns embeddings as a
-    `torch.Tensor`.
+    This helper encapsulates model initialization and inference call details,
+    so preprocessing handlers can request embeddings from plain lists of
+    strings. It returns a dense `torch.Tensor` with one embedding vector per
+    input text row.
+
+    The class is backend-agnostic at interface level and is used as the core
+    embedding primitive by text preprocessing handlers in this module.
     """
     def __init__(self, model_name: str, device: Optional[torch.device] = None):
         """
@@ -62,11 +67,27 @@ class TextToEmbedding:
 
 
 class TransformerEmbedder(AbstractPreprocessingHandler):
+    """Transformer-based text embedding handler for selected feature columns.
 
+    The handler expects one or more text columns, converts each column to
+    sentence embeddings with `SentenceTransformer`, then concatenates resulting
+    embedding blocks and appends them to the feature matrix.
+
+    Processing flow:
+    - `fit` stores feature indices to transform;
+    - `transform` encodes text in mini-batches, concatenates vectors across
+      selected columns, removes original text columns, and appends numeric
+      embeddings.
+
+    This class is intended for optional preprocessing pipelines where raw text
+    features must be converted into dense numerical representations suitable for
+    downstream models.
+    """
     def __init__(self, 
                  model_name: str, 
                  batch_size: int = 4, 
                  device: Optional[torch.device] = Backend().device):
+        """Initialize `TransformerEmbedder`."""
         self.model_name = model_name
         self.batch_size = batch_size
         self.device = device
@@ -74,10 +95,12 @@ class TransformerEmbedder(AbstractPreprocessingHandler):
         self.features_idx: Optional[Sequence[int]] = None
 
     def fit(self, data: PreparedData, features_idx: Sequence[int]):
+        """Fit the handler on input data."""
         self.features_idx = features_idx
         return self
 
     def transform(self, data: PreparedData) -> PreparedData:
+        """Transform input data with fitted state."""
         if self.features_idx is None:
             raise ValueError("TransformerEmbedder must be fitted first")
 

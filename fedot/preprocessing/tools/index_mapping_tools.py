@@ -4,6 +4,20 @@ from fedot.core.data.complex_types import ArrayType, IndexType
 
 
 def create_index_mapping(features: ArrayType, init_shape: Optional[Tuple[int]] = None) -> Dict[int, int]:
+    """Create initial feature index mapping for preprocessing pipeline.
+
+    Mapping format is `{current_idx: original_idx}` and is used to translate
+    user-declared feature indices between preprocessing steps.
+
+    Args:
+        features: Current feature matrix/tensor.
+        init_shape: Optional initial shape for time-series data. For 3D time
+            series, mapping is created on logical feature channels.
+
+    Returns:
+        Initial index mapping where each current column points to its source
+        column index.
+    """
     if init_shape is None or len(init_shape) == 2: # for 2-dimensional
         return {idx: idx for idx in range(features.shape[1])}
     else: # for 3-dimensional, only for ts type
@@ -16,6 +30,24 @@ def update_index_mapping(
     features: ArrayType,
     new_cols_dict: Optional[Dict[int, int]] = None,
 ) -> Dict[int, int]:
+    """Update `{current_idx: original_idx}` mapping after a preprocessing step.
+
+    Main rule for index consistency:
+    if a step expands selected columns into multiple columns, original selected
+    columns are considered removed from current feature space, and produced
+    columns are appended to the end of feature matrix. New appended columns keep
+    link to the same original source indices.
+
+    Args:
+        index_mapping: Previous mapping in `{current_idx: original_idx}` format.
+        changed_idx: Current indices of columns that were transformed by step.
+        features: Feature matrix after step execution.
+        new_cols_dict: Optional explicit mapping `{changed_current_idx: n_new_cols}`
+            for steps that expand columns unevenly.
+
+    Returns:
+        Updated index mapping aligned with post-step feature layout.
+    """
     if index_mapping is None:
         return None
     
@@ -104,14 +136,14 @@ def update_index_mapping(
 
 def update_indices(index_mapping: Dict[int, int], indices: IndexType) -> List[int]:
     """
-    Update old feature indices to current feature indices.
+    Convert original feature indices to current indices for next step execution.
 
     Args:
-        index_mapping (Dict[int, int]): Mapping in format {new_idx: old_idx}.
-        indices (IndexType): Old feature indices to update.
+        index_mapping (Dict[int, int]): Mapping in format `{current_idx: original_idx}`.
+        indices (IndexType): Original/source feature indices to update.
 
     Returns:
-        List[int]: Updated feature indices.
+        List[int]: Current feature indices.
     """
     if indices is None or index_mapping is None:
         return indices
@@ -133,6 +165,14 @@ def update_indices(index_mapping: Dict[int, int], indices: IndexType) -> List[in
 
 
 def agregate_idx_from_step(steps: List):
+    """Collect feature indices from all preprocessing steps.
+
+    Args:
+        steps: Sequence of preprocessing steps with `features_idx`.
+
+    Returns:
+        Flat list of feature indices used by the provided steps.
+    """
     features_idx = []
     for step in steps:
         features_idx.extend(step.features_idx)

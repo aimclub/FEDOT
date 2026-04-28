@@ -4,6 +4,15 @@ from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 
 def update_handler_mapping(plan: PreprocessingPlan, 
                            handler_mapping: dict) -> dict:
+    """Inject custom step implementations from plan into handler mapping.
+
+    Args:
+        plan: Preprocessing plan containing resolved steps.
+        handler_mapping: Global mapping `{step_enum: {method_enum: handler_cls}}`.
+
+    Returns:
+        Updated handler mapping with `custom` step methods from current plan.
+    """
     custom_dict = {}
     for step in plan.steps:
         if step.step == PreprocessingStepEnum.custom:
@@ -17,6 +26,14 @@ def update_handler_mapping(plan: PreprocessingPlan,
 
 
 def get_used_idx_from_plan(plan: PreprocessingPlan) -> list:
+    """Collect all non-target feature indices referenced by plan steps.
+
+    Args:
+        plan: Preprocessing plan to inspect.
+
+    Returns:
+        List of feature indices used by plan steps except target encoding.
+    """
     used_idx = []
 
     if plan is None:
