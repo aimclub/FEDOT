@@ -1,0 +1,119 @@
+name: Make a Review (by Codex)
+on:
+  pull_request:
+    branches: [ master ]
+    types: [ opened, synchronize, ready_for_review ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to review'
+        required: true
+        
+jobs:
+  codex:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      final_message: ${{ steps.run_codex.outputs.final-message }}
+      pr_number: ${{ steps.prnum.outputs.pr }}
+    steps:
+      - name: Resolve PR number
+        id: prnum
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "pr=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "pr=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Checkout PR head
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ format('refs/pull/{0}/head', steps.prnum.outputs.pr) }}
+
+      - name: Fetch PR refs
+        run: |
+          git fetch --no-tags origin \
+            "+refs/pull/${{ steps.prnum.outputs.pr }}/head:refs/remotes/origin/pr/${{ steps.prnum.outputs.pr }}"
+
+      - name: Load PR metadata
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = Number("${{ steps.prnum.outputs.pr }}");
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            core.setOutput('title', pr.title || '');
+            core.setOutput('body', pr.body || 'No description provided');
+            core.setOutput('base_sha', pr.base.sha);
+            core.setOutput('head_sha', pr.head.sha);
+            
+      - name: Load Codex Review system promt
+        id: prompt
+        run: |
+            PROMPT_FILE=".github/codex/prompts/review_system_prompt.md"
+            if [ -f "$PROMPT_FILE" ]; then
+              CONTENT=$(cat "$PROMPT_FILE")
+              echo "content<<EOF" >> $GITHUB_OUTPUT
+              echo "$CONTENT" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "content=" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Run Codex
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: |
+            This is PR #${{ steps.prnum.outputs.pr }} for ${{ github.repository }}.
+
+            Read the instructions for the current review below:
+            ${{ steps.prompt.outputs.content }}
+
+            Review ONLY the changes introduced by the PR, so consider:
+               git log --oneline ${{ steps.pr.outputs.base_sha }}...${{ steps.pr.outputs.head_sha }}
+
+            Pull request title and body:
+
+            ----
+            
+            ${{ steps.pr.outputs.title }}
+            ${{ steps.pr.outputs.body }}
+
+  post_feedback:
+    runs-on: ubuntu-latest
+    needs: codex
+    if: needs.codex.outputs.final_message != ''
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Report Codex feedback
+        uses: actions/github-script@v7
+        env:
+          CODEX_FINAL_MESSAGE: ${{ needs.codex.outputs.final_message }}
+          PR_NUMBER: ${{ needs.codex.outputs.pr_number }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+            if (!prNumber) {
+              console.log('Not a pull request, skipping post.');
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: process.env.CODEX_FINAL_MESSAGE,
+            });
