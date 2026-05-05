@@ -1,4 +1,5 @@
 from typing import Union, Optional, TypeAlias, List
+import torch
 import os
 import pandas as pd
 import numpy as np
@@ -14,3 +15,5 @@ ArrayType: TypeAlias = Optional[Union[np.ndarray, cp.ndarray]]
 
 IndexType: TypeAlias = Optional[Union[int, str, np.ndarray,
                                       cp.ndarray, List[int], List[str]]]
+
+TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray]]

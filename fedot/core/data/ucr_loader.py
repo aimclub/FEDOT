@@ -158,7 +158,8 @@ class TSLoader:
 
         return x_train, y_train, x_test, y_test
 
-    def download_by_url(self, dataset_name: str = None, url: str = DEFAULT_URL) -> Tuple:
+    @classmethod
+    def download_by_url(cls, dataset_name: str = None, url: str = DEFAULT_URL) -> Tuple:
         '''
         Downloads dataset from UCR archive by URL and extracts it into temporary folder.
 
@@ -169,6 +170,8 @@ class TSLoader:
         Returns:
             tuple: train and test data
         '''
+        loader = cls()
+
         cache_path = os.path.join(PROJECT_PATH, 'temp_cache/')
         os.makedirs(cache_path, exist_ok=True)
         download_path = cache_path + 'downloads/'
@@ -187,7 +190,7 @@ class TSLoader:
         except zipfile.BadZipFile:
             raise FileNotFoundError(f'Cannot extract data: {dataset_name} dataset not found in {url}')
 
-        X_train, y_train, X_test, y_test = self.extract_data(dataset_name, temp_data_path)
+        X_train, y_train, X_test, y_test = loader.extract_data(dataset_name, temp_data_path)
 
         shutil.rmtree(cache_path)
 

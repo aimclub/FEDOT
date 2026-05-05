@@ -1,15 +1,13 @@
-from fedot.core.data.tensor_data.td_creator import TensorDataCreator
-from fedot.core.data.tensor_data.tensor_data import TensorData
 import numpy as np
 import torch
 import cupy as cp
 import cudf
 import pandas as pd
 
+from fedot.core.data.tensordata import TensorData, LazyTensor
 from fedot.core.data.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 from fedot.core.backend.backend import Backend
-from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
 
 
 # Test loading from different sources and data types
@@ -22,7 +20,7 @@ def test_create_from_numpy():
 
     features = np.random.rand(100, 10)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         features,
         backend_name="cpu"
     )
@@ -42,7 +40,7 @@ def test_create_from_csv():
 
     csv_path = f'{fedot_project_root()}/examples/real_cases/data/scoring/scoring_train.csv'
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         csv_path,
         backend_name="cpu",
         target_idx="target"
@@ -60,7 +58,7 @@ def test_from_tensor():
     """
     features = torch.rand(100, 10)
 
-    td = TensorDataCreator.create(features, backend_name="cpu",)
+    td = TensorData.create(features, backend_name="cpu",)
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -76,12 +74,12 @@ def test_loader():
     and target tensors.
     """
     name = "AbnormalHeartbeat"
-    X_train, y_train, X_test, y_test = TSLoader.download_by_url(dataset_name=name)
+    X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
 
-    train_tensor = TensorDataCreator.create(X_train,
+    train_tensor = TensorData.create(X_train,
                                      target=y_train,
                                      backend_name="cpu",)
-    test_tensor = TensorDataCreator.create(X_test,
+    test_tensor = TensorData.create(X_test,
                                     target=y_test,
                                     backend_name="cpu",)
 
@@ -103,7 +101,7 @@ def test_create_lazy_does_not_materialize_immediately():
     """
     X = np.random.rand(10, 3)
 
-    lazy_td = TensorDataCreator.create_lazy(
+    lazy_td = TensorData.create_lazy(
         X,
         backend_name="cpu",
     )
@@ -125,7 +123,7 @@ def test_lazy_tensordata_to_device():
     """
     X = np.random.rand(4, 3)
 
-    lazy_td = TensorDataCreator.create_lazy(
+    lazy_td = TensorData.create_lazy(
         X,
         backend_name="gpu",
     )
@@ -149,7 +147,7 @@ def test_datetime_features():
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
 
-    td = TensorDataCreator.create(features, backend_name="cpu", target_idx="target")
+    td = TensorData.create(features, backend_name="cpu", target_idx="target")
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -170,7 +168,7 @@ def test_nan_rows_are_dropped_from_target():
     ])
     y = np.array([1.0, None, 0.0], dtype=object)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         X,
         target=y,
         backend_name="cpu"
@@ -187,7 +185,7 @@ def test_target_extracted_by_index():
     """
     X = np.random.rand(20, 5)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         X,
         target_idx=2,
         backend_name="cpu"
@@ -198,21 +196,21 @@ def test_target_extracted_by_index():
     assert td.target.shape[0] == 20
 
 
-# # TODO romankuklo: state='PREDICT' is not implemented yet
-# # def test_target_depends_state():
-# #     """
-# #     Test that target handling depends on the processing state, ensuring that in predict mode
-# #     no target is inferred or created and all input columns are treated as features.
-# #     """
-# #     features = torch.rand(100, 5)
+# TODO romankuklo: state='PREDICT' is not implemented yet
+# def test_target_depends_state():
+#     """
+#     Test that target handling depends on the processing state, ensuring that in predict mode
+#     no target is inferred or created and all input columns are treated as features.
+#     """
+#     features = torch.rand(100, 5)
 
-# #     td = TensorData.create(features, backend_name="cpu", state="predict")
+#     td = TensorData.create(features, backend_name="cpu", state="predict")
 
-# #     assert isinstance(td, TensorData)
-# #     assert isinstance(td.features, torch.Tensor)
-# #     assert td.target is None
-# #     assert td.features.shape[0] == features.shape[0]
-# #     assert td.features.shape[1] == features.shape[1]
+#     assert isinstance(td, TensorData)
+#     assert isinstance(td.features, torch.Tensor)
+#     assert td.target is None
+#     assert td.features.shape[0] == features.shape[0]
+#     assert td.features.shape[1] == features.shape[1]
 
 
 def test_memory_count_cpu():
@@ -222,7 +220,7 @@ def test_memory_count_cpu():
     """
     features = np.random.rand(100, 10)
 
-    td = TensorDataCreator.create(features, backend_name="cpu")
+    td = TensorData.create(features, backend_name="cpu")
 
     assert td.features.device.type == "cpu"
     assert td.memory_usage > 0
@@ -237,7 +235,7 @@ def test_memory_count_gpu():
 
     features = np.random.rand(100, 10)
 
-    td = TensorDataCreator.create(features, backend_name="gpu")
+    td = TensorData.create(features, backend_name="gpu")
 
     assert td.features.device.type == "cuda"
     assert td.memory_usage > 0
@@ -256,7 +254,7 @@ def test_create_from_numpy_cupy():
     Backend().set("gpu")
     features = np.random.rand(100, 10)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         features,
         backend_name="gpu"
     )
@@ -277,7 +275,7 @@ def test_create_from_cupy():
     """
     features = cp.random.rand(100, 10)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         features,
         backend_name="gpu",
     )
@@ -298,7 +296,7 @@ def test_create_from_cudf():
     """
     features = cudf.DataFrame(np.random.rand(100, 10))
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         features,
         backend_name="gpu",
     )
@@ -314,7 +312,7 @@ def test_create_from_cudf():
 
 def test_nan_gpu_backend():
     x = np.array([[1, np.nan, 3], [4, None, 6]])
-    td = TensorDataCreator.create(x, backend_name="gpu")
+    td = TensorData.create(x, backend_name="gpu")
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.device.type == "cuda"
@@ -327,7 +325,7 @@ def test_categorical_encoding_gpu_backend():
         [100, "A", 30],
     ])
 
-    td = TensorDataCreator.create(X, backend_name="gpu")
+    td = TensorData.create(X, backend_name="gpu")
     assert isinstance(td, TensorData)
     assert td.features.device.type == "cuda"
 
@@ -344,7 +342,7 @@ def test_create_time_series():
     Backend().set("cpu")
     features = np.random.rand(100, 10)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         features,
         backend_name="cpu",
         data_type="time_series",
@@ -366,7 +364,7 @@ def test_long_orientation():
         'vals': [1, 2, 3, 4, 5, 6, 7, 8, 9],
     })
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         X,
         backend_name="cpu",
         data_type="time_series",
@@ -386,7 +384,7 @@ def test_is_multichannel():
     """
     X = np.random.rand(100, 10, 3)
 
-    td = TensorDataCreator.create(
+    td = TensorData.create(
         X,
         backend_name="cpu",
         data_type="time_series"

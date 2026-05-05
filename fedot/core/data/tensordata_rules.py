@@ -86,9 +86,10 @@ class TensorDataDeviceSyncPlan:
     should_move_to_backend: bool
 
 
-@dataclass(frozen=True)
+@dataclass
 class TensorDataRawConversionPlan:
     should_try_cpu_fallback: bool
+    preprocessing_done: bool
 
 
 class TensorDataCreatorResolutionError(TypeError):
@@ -310,7 +311,8 @@ def build_device_sync_plan(features_device_type: str, backend_device_type: str) 
 def build_raw_conversion_plan(backend_name: str) -> TensorDataRawConversionPlan:
     normalized_backend_name = normalize_backend_name(backend_name)
     return TensorDataRawConversionPlan(
-        should_try_cpu_fallback=normalized_backend_name != 'cpu'
+        should_try_cpu_fallback=normalized_backend_name != 'cpu',
+        preprocessing_done=False
     )
 
 
