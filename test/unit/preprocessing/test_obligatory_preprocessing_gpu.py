@@ -4,14 +4,14 @@ import numpy as np
 import pytest
 import torch
 
-cp = pytest.importorskip("cupy")
-cudf = pytest.importorskip("cudf")
+cp = pytest.importorskip("cupy", exc_type=ImportError)
+cudf = pytest.importorskip("cudf", exc_type=ImportError)
 
 if not torch.cuda.is_available():
     pytest.skip("CUDA is required for GPU TensorData tests", allow_module_level=True)
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.tensor_data.td_creator import TensorDataCreator
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.tools.preprocessor_types import EmbeddingMethodEnum

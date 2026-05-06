@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Union
 
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 from pymonad.either import Either
 from sklearn.preprocessing import LabelEncoder

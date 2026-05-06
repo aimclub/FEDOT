@@ -1,7 +1,7 @@
 from typing import Optional
 
 import dask
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 
 from fedot.industrial.core.architecture.settings.computational import backend_methods as np

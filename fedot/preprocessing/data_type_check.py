@@ -1,4 +1,4 @@
-from fedot.core.data.data import data_type_is_ts, data_type_is_multi_ts, data_type_is_image
+from fedot.core.data.input_data.data import data_type_is_ts, data_type_is_multi_ts, data_type_is_image
 
 
 def exclude_ts(preprocessing_function):

@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

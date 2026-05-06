@@ -5,7 +5,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from fedot.core.composer.metrics import QualityMetric
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.tasks import Task
 
 from fedot.core.pipelines.prediction_intervals.metrics import quantile_loss

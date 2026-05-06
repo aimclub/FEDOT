@@ -5,7 +5,7 @@ from sklearn.datasets import make_moons
 
 from examples.simple.classification.classification_pipelines import classification_svc_complex_pipeline
 from fedot import Fedot
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

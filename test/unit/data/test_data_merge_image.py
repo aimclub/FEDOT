@@ -2,11 +2,11 @@ import pytest
 from typing import Tuple, Iterable
 import numpy as np
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.array_utilities import atleast_4d
+from fedot.core.data.common.array_utils import atleast_4d
 
 
 def generate_output_images(image_sizes: Iterable[Tuple[int, int]], num_samples=10):

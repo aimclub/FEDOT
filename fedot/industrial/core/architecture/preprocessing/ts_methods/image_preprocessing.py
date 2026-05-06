@@ -1,7 +1,7 @@
 from typing import Optional, Sequence, Tuple
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 

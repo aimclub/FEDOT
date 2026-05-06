@@ -8,8 +8,8 @@ import pytest
 from sklearn.datasets import load_breast_cancer, load_diabetes, load_linnerud, load_wine
 
 from fedot.core.composer.metrics import QualityMetric, ROCAUC
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

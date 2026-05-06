@@ -14,12 +14,12 @@ from fedot.api.api_utils.api_data_rules import (
     plan_predict_preprocessing,
 )
 from fedot.api.api_utils.data_definition import data_strategy_selector, FeaturesType, TargetType
-from fedot.core.data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.input_data_bridge import input_data_to_tensordata
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
-from fedot.core.data.tools import StateEnum
-from fedot.core.data.data_preprocessing import convert_into_column
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.bridges.input_to_tensor import input_data_to_tensordata
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
+from fedot.core.data.common.enums import StateEnum
+from fedot.preprocessing.data_preprocessing import convert_into_column
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum

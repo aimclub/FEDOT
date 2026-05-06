@@ -4,7 +4,7 @@ from multiprocessing import cpu_count
 
 import dask
 import torch
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from numpy.lib import stride_tricks as stride_repr
 from pymonad.either import Either

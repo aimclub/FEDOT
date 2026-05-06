@@ -3,8 +3,8 @@ from typing import Optional, Any, Dict, TypeAlias, Union
 from dataclasses import dataclass, field
 from golem.utilities.data_structures import ComparableEnum as Enum
 import torch
-from fedot.core.data.complex_types import IndexType
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.types import IndexType
+from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 

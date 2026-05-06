@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from golem.core.log import Log, default_log
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.mutation_of_best_pipeline import solver_mutation_of_best_pipeline
 from fedot.core.pipelines.prediction_intervals.utils import get_last_generations

@@ -4,14 +4,14 @@ from typing import Optional, Union
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup, _are_stratification_allowed
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.split.cv_folds import cv_generator
 
 
 class DataSourceSplitter:

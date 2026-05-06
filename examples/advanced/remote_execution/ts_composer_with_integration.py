@@ -1,5 +1,5 @@
 from fedot import Fedot
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed
 from fedot.remote.infrastructure.clients.test_client import TestClient

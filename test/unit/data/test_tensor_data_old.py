@@ -5,7 +5,7 @@ import cudf
 import pandas as pd
 
 from fedot.core.data.tensordata import TensorData, LazyTensor
-from fedot.core.data.ucr_loader import TSLoader
+from fedot.core.data.reader.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 from fedot.core.backend.backend import Backend
 

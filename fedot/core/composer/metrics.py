@@ -16,7 +16,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum

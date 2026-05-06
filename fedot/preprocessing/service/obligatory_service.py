@@ -1,13 +1,13 @@
 from typing import Optional
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.obligatory_planner import build_obligatory_plan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.tools import update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
-from fedot.core.data.complex_types import ArrayType
+from fedot.core.data.common.types import ArrayType
 
 
 class ObligatoryService:

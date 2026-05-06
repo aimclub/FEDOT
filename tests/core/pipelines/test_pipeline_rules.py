@@ -1,4 +1,4 @@
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.pipelines.pipeline_rules import (
     build_pipeline_postprocess_plan,
     build_pipeline_preprocess_plan,

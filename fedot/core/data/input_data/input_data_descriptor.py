@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import numpy as np
 
-from fedot.core.data.data_compatibility_rules import build_data_type_compatibility
+from fedot.core.data.common.compatibility_rules import build_data_type_compatibility
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 

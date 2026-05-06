@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error
 
 from fedot.core.composer.metrics import root_mean_squared_error
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast

@@ -5,7 +5,7 @@ from typing import List
 
 from golem.core.log import LoggerAdapter
 from golem.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.composer.metrics import RMSE
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast

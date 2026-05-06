@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError

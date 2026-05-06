@@ -1,7 +1,7 @@
 ﻿from dataclasses import dataclass
 from typing import Any, Iterable, Optional, Tuple
 
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 

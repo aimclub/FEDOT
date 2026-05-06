@@ -1,7 +1,7 @@
 import torch
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.industrial.core.models.base_extractor import BaseExtractor
 

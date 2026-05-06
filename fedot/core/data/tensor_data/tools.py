@@ -7,8 +7,8 @@ import numpy as np
 import torch
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.complex_types import PathType, PandasType, ArrayType, IndexType
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.types import PathType, PandasType, ArrayType, IndexType
+from fedot.core.data.common.enums import StateEnum
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping

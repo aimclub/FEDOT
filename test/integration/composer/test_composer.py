@@ -14,7 +14,7 @@ from fedot import Fedot
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective

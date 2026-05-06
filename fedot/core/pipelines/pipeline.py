@@ -18,9 +18,9 @@ from golem.visualisation.graph_viz import NodeColorType
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PipelineNode

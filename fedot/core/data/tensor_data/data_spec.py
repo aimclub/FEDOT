@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.tools import StateEnum, TSOrientationEnum
-from fedot.core.data.tensordata_rules import DEFAULT_DATALOADER_KWARGS, build_load_data_spec_normalization
-from fedot.core.data.complex_types import IndexType, TensorLike
+from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
+from fedot.core.data.tensor_data.rules import DEFAULT_DATALOADER_KWARGS, build_load_data_spec_normalization
+from fedot.core.data.common.types import IndexType, TensorLike
 
 
 @dataclass

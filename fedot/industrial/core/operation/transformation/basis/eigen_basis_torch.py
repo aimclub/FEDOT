@@ -2,7 +2,7 @@ from pymonad.either import Either
 from typing import Optional
 import torch
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.industrial.core.architecture.preprocessing.data_convertor import DataConverter, NumpyConverter

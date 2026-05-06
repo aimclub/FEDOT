@@ -1,13 +1,13 @@
 from dataclasses import dataclass, field
 from typing import Optional, Union, Dict, Any, Tuple
-from fedot.core.data.complex_types import IndexType
-from fedot.core.data.tools import StateEnum, TSOrientationEnum
+from fedot.core.data.common.types import IndexType
+from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 import torch
 import logging
-from fedot.core.data.data_tools import get_device_from_str
-from fedot.core.data.complex_types import TensorLike
+from fedot.core.data.tensor_data.tools import get_device_from_str
+from fedot.core.data.common.types import TensorLike
 
 logger = logging.getLogger(__name__)
 

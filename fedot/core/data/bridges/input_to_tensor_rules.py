@@ -3,8 +3,8 @@ from typing import Any, Optional, Union
 
 import numpy as np
 
-from fedot.core.data.input_data_descriptor import InputDataDescriptor, normalize_optional_numpy_array
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.input_data_descriptor import InputDataDescriptor, normalize_optional_numpy_array
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 

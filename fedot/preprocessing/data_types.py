@@ -10,7 +10,7 @@ from golem.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 if TYPE_CHECKING:
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
 
 _convertable_types = (bool, float, int, str, type(None))  # preserve lexicographical order
 _type_ids = range(len(_convertable_types))

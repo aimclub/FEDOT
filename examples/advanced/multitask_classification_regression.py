@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder

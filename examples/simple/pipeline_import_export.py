@@ -5,7 +5,7 @@ import numpy as np
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

@@ -4,7 +4,7 @@ from typing import Any, Union
 from golem.core.log import LoggerAdapter
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verify_pipeline

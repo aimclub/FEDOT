@@ -1,6 +1,6 @@
 from fedot import Fedot
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
 from fedot.core.utils import set_random_seed
 

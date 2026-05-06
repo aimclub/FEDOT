@@ -6,7 +6,7 @@ from typing import Callable, Iterable, Tuple
 from uuid import uuid4
 
 import numpy as np
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import to_fitness

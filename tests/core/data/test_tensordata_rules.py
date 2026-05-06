@@ -1,6 +1,6 @@
 import pytest
 
-from fedot.core.data.tensordata_rules import (
+from fedot.core.data.tensor_data.rules import (
     TensorDataCreatorNotFoundError,
     DEFAULT_DATALOADER_KWARGS,
     TensorDataCreatorResolutionError,
@@ -22,7 +22,7 @@ from fedot.core.data.tensordata_rules import (
     resolve_registered_creator,
     validate_creator_predicate_result,
 )
-from fedot.core.data.tools import StateEnum, TSOrientationEnum
+from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 

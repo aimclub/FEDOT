@@ -4,8 +4,8 @@ import pytest
 
 from fedot import Fedot
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.data.datasets import data_with_binary_features_and_categorical_target, get_dataset, \

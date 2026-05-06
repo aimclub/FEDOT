@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.ts_wrappers import fitted_values, in_sample_fitted_values
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.pipelines.test_pipeline_ts_wrappers import get_simple_short_lagged_pipeline

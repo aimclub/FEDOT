@@ -7,8 +7,8 @@ import pytest
 
 import fedot.api.api_utils.data_definition as fedot_api_api_utils_data_definition
 from fedot.api.api_utils.data_definition import PandasStrategy, TupleStrategy, NumpyStrategy, StrategyDefineData
-from fedot.core.data.data import InputData
-from fedot.core.data.data import np_datetime_to_numeric
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.input_data.data import np_datetime_to_numeric
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

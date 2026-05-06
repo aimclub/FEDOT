@@ -13,7 +13,7 @@ from golem.structural_analysis.graph_sa.sa_requirements import StructuralAnalysi
 
 from examples.advanced.structural_analysis.dataset_access import get_scoring_data
 from examples.advanced.structural_analysis.pipelines_access import get_three_depth_manual_class_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.adapters import PipelineAdapter

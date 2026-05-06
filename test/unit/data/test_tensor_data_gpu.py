@@ -1,9 +1,9 @@
 import pytest
 
-cp = pytest.importorskip("cupy")
-cudf = pytest.importorskip("cudf")
+cp = pytest.importorskip("cupy", exc_type=ImportError)
+cudf = pytest.importorskip("cudf", exc_type=ImportError)
 
-from fedot.core.data.tensor_data.td_creator import TensorDataCreator
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 import numpy as np
 import torch

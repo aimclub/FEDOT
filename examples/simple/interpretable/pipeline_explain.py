@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
 

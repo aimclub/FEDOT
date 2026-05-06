@@ -3,7 +3,7 @@ from typing import Optional, Union
 import dask
 import pandas as pd
 import torch
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from pymonad.either import Either
 from pymonad.list import ListMonad

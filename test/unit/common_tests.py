@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.utils import set_random_seed
 
 

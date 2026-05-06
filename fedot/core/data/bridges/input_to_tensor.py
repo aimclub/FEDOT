@@ -1,7 +1,7 @@
-from fedot.core.data.input_data_bridge_rules import build_input_data_tensor_bridge_plan
-from fedot.core.data.input_data_descriptor import build_input_data_descriptor
-from fedot.core.data.tensordata import TensorData
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.bridges.input_to_tensor_rules import build_input_data_tensor_bridge_plan
+from fedot.core.data.input_data.input_data_descriptor import build_input_data_descriptor
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+from fedot.core.data.common.enums import StateEnum
 
 
 def input_data_to_tensordata(input_data, backend_name: str, state=StateEnum.FIT):
@@ -12,7 +12,7 @@ def input_data_to_tensordata(input_data, backend_name: str, state=StateEnum.FIT)
         state=state,
     )
 
-    return TensorData.create(
+    return TensorDataCreator.create(
         input_data.features,
         backend_name=backend_name,
         task=plan.task,

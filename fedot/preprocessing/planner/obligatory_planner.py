@@ -2,12 +2,12 @@ import torch
 from typing import Optional, Dict, List
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.complex_types import ArrayType, IndexType
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.types import ArrayType, IndexType
+from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                           PreprocessingStepEnum, EmbeddingMethodEnum,
                                                           EncodingMethodEnum)
-from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
+from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan

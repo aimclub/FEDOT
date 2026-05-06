@@ -2,7 +2,7 @@ from typing import Optional
 
 import torch
 import torch.nn.utils.parametrize as parametrize
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from torch import Tensor
 from torch import nn, optim

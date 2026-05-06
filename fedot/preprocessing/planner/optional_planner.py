@@ -2,7 +2,7 @@ import torch
 import logging
 
 from fedot.preprocessing.planner.auto_create_step import AUTO_CREATE_STEP_MAPPING
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 

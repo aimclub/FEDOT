@@ -8,8 +8,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.utils.data as data
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     transform_features_and_target_into_lagged
 from fedot.core.operations.operation_parameters import OperationParameters

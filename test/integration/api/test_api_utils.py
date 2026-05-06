@@ -9,7 +9,7 @@ from fedot import Fedot
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import ClassificationAssumptions
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams

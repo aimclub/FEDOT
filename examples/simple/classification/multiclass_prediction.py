@@ -13,7 +13,7 @@ from datetime import timedelta
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum

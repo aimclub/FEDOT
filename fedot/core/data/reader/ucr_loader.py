@@ -11,8 +11,8 @@ import shutil
 import logging
 
 from fedot.core.utils import fedot_project_root, extract_dataset_name_from_url
-from fedot.core.data.data_tools import convert_bytes
-from fedot.core.data.complex_types import PathType
+from fedot.core.data.tensor_data.tools import convert_bytes
+from fedot.core.data.common.types import PathType
 
 
 PROJECT_PATH = fedot_project_root()

@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import pytest
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.prediction_intervals.main import PredictionIntervals
 from fedot.core.pipelines.prediction_intervals.metrics import interval_score, picp
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams

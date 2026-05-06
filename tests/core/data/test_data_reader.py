@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from fedot.core.backend.backend import backend
-from fedot.core.data.data_reader import read_arff_file
+from fedot.core.data.reader.tools import read_arff_file
 
 
 class _FakeMeta:

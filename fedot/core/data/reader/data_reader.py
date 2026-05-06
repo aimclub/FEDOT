@@ -2,13 +2,13 @@ from typing import Any, Callable, ClassVar, List, Tuple
 import numpy as np
 import torch
 
-from fedot.core.data.tensordata_rules import (
+from fedot.core.data.tensor_data.rules import (
     build_tabular_file_load_plan,
     resolve_registered_creator,
 )
-from fedot.core.data.data_tools import get_values_from_df
-from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
-from fedot.core.data.complex_types import (
+from fedot.core.data.tensor_data.tools import get_values_from_df
+from fedot.core.data.reader.tools import get_df_from_csv, read_arff_file
+from fedot.core.data.common.types import (
     ARRAY_RUNTIME_TYPES,
     PANDAS_RUNTIME_TYPES,
     ArrayType,

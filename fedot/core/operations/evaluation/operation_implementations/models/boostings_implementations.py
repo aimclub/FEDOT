@@ -10,8 +10,8 @@ from matplotlib import pyplot as plt
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.multioutput import MultiOutputRegressor, MultiOutputClassifier
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utils import default_fedot_data_dir, is_multi_output_target

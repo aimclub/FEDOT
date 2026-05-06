@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task

@@ -3,7 +3,7 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 
-from fedot.core.data.data_tools import convert_bytes
+from fedot.core.data.tensor_data.tools import convert_bytes
 
 
 @dataclass(frozen=True)

@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.industrial.core.repository.constanst_repository import (
     FEDOT_TUNER_STRATEGY,
     FEDOT_TUNING_METRICS,

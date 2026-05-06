@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from golem.core.dag.graph import Graph
 from sklearn.metrics import (

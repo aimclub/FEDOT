@@ -11,9 +11,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_sco
 from sklearn.preprocessing import MinMaxScaler
 
 from fedot.core.constants import FAST_TRAIN_PRESET_NAME
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \

@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Sequence
 
 import numpy as np
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 MetaRule = Callable[..., Dict[str, Any]]

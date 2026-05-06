@@ -3,8 +3,8 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data_compatibility_rules import to_input_compatible_data_type
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.compatibility_rules import to_input_compatible_data_type
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 

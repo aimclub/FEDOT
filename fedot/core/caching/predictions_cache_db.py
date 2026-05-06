@@ -4,7 +4,7 @@ from contextlib import closing
 from typing import Optional, List, Tuple
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 
 
 class PredictionsCacheDB(BaseCacheDB):

@@ -5,9 +5,9 @@ from sklearn.datasets import load_iris, make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.image_classification_problem import run_image_classification_problem
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

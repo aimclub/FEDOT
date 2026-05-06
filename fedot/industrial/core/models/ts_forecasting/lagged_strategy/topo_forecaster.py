@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     LaggedTransformationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters

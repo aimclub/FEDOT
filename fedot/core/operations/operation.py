@@ -9,7 +9,7 @@ from golem.serializers.serializer import register_serializable
 if TYPE_CHECKING:
     from fedot.core.caching.predictions_cache import PredictionsCache
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo

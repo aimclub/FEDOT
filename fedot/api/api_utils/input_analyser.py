@@ -11,9 +11,9 @@ from fedot.api.api_utils.recommendation_rules import (
     should_use_label_encoding,
 )
 from fedot.core.composer.meta_rules import get_cv_folds_number, get_early_stopping_generations, get_recommended_preset
-from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import find_categorical_columns
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.preprocessing.data_preprocessing import find_categorical_columns
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 meta_rules = [get_cv_folds_number,

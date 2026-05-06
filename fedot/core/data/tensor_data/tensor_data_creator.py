@@ -1,8 +1,8 @@
 import logging
 import torch
 
-from fedot.core.data.tools import StateEnum
-from fedot.core.data.tensordata_rules import (
+from fedot.core.data.common.enums import StateEnum
+from fedot.core.data.tensor_data.rules import (
     build_creation_failure,
     build_creation_request,
     build_device_sync_plan,
@@ -10,17 +10,17 @@ from fedot.core.data.tensordata_rules import (
     normalize_array_target_reference,
     normalize_tensordata_identity,
 )
-from fedot.core.data.data_tools import (
+from fedot.core.data.tensor_data.tools import (
     convert_idx_to_list, replace_missing_with_nan, get_target_and_features,
     transform_to_tensor, _drop_rows_with_nan_in_target)
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, torch_to_xp
-from fedot.core.data.data_compatibility_rules import autodetect_tensor_data_type
+from fedot.core.data.common.compatibility_rules import autodetect_tensor_data_type
 from fedot.preprocessing.tools.index_mapping_tools import create_index_mapping
 from fedot.preprocessing.service.tabular_obligatory_service import ObligatoryTabularService
 from fedot.preprocessing.tools.tools import get_used_idx_from_plan
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.tensor_data.data_reader import DataReader
+from fedot.core.data.reader.data_reader import DataReader
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
 

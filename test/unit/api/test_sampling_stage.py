@@ -5,7 +5,7 @@ from sklearn.datasets import make_classification
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingProviderResult
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

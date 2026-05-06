@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List, Tuple
 
-from fedot.core.data.complex_types import ArrayType, IndexType
+from fedot.core.data.common.types import ArrayType, IndexType
 
 
 def create_index_mapping(features: ArrayType, init_shape: Optional[Tuple[int]] = None) -> Dict[int, int]:

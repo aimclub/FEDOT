@@ -4,7 +4,7 @@ import numpy as np
 
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

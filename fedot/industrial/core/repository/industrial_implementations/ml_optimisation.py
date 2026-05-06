@@ -8,7 +8,7 @@ import optuna
 from dask.distributed import wait
 from distributed import Client, LocalCluster
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from golem.core.adapter import BaseOptimizationAdapter

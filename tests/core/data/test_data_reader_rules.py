@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data_reader_rules import (
+from fedot.core.data.reader.data_reader_rules import (
     infer_arff_target_idx,
     resolve_arff_target_idx,
     split_arff_features_and_target,

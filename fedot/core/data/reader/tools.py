@@ -4,10 +4,10 @@ from typing import Optional, Union, List
 import numpy as np
 from scipy.io.arff import loadarff
 
-from fedot.core.data.data_reader_rules import resolve_arff_target_idx, split_arff_features_and_target
+from fedot.core.data.reader.data_reader_rules import resolve_arff_target_idx, split_arff_features_and_target
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.complex_types import PathType
+from fedot.core.data.common.types import PathType
 
 
 def get_df_from_csv(

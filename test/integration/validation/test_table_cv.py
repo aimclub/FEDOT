@@ -3,7 +3,7 @@ from datetime import timedelta
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import OperationTypesRepository

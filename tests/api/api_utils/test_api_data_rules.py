@@ -14,7 +14,7 @@ from fedot.api.api_utils.api_data_rules import (
     plan_predict_preprocessing,
     resolve_strategy,
 )
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 

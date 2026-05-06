@@ -10,7 +10,7 @@ from golem.core.optimisers.timer import Timer
 from golem.serializers.serializer import register_serializable
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation

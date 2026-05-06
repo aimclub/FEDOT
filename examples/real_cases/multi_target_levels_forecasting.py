@@ -5,8 +5,8 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')

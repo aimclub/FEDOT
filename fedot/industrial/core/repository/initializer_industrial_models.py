@@ -1,4 +1,4 @@
-import fedot.core.data.data_split as fedot_data_split
+import fedot.core.data.split.data_split as fedot_data_split
 import golem.core.tuning.optuna_tuner as OptunaImpl
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_params_repository import ApiParamsRepository

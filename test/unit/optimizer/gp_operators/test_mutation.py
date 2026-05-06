@@ -11,7 +11,7 @@ from golem.core.optimisers.graph import OptGraph, OptNode
 from golem.core.optimisers.optimizer import GraphGenerationParams
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

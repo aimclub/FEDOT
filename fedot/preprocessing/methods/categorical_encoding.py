@@ -1,7 +1,7 @@
 from typing import Sequence
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 

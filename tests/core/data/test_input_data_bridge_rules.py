@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.input_data_bridge_rules import (
+from fedot.core.data.bridges.input_to_tensor_rules import (
     build_input_data_tensor_bridge_plan,
     normalize_bridge_state,
 )
-from fedot.core.data.input_data_descriptor import InputDataDescriptor
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.input_data_descriptor import InputDataDescriptor
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

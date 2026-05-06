@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from fedot.core.data.data_compatibility_rules import build_data_type_compatibility
+from fedot.core.data.common.compatibility_rules import build_data_type_compatibility
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.core.repository.constanst_repository import FEDOT_DATA_TYPE

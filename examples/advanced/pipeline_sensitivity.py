@@ -8,8 +8,8 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
 from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum

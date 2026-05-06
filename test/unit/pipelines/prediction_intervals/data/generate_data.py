@@ -7,7 +7,7 @@ import pickle
 from numpy import genfromtxt
 
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot import Fedot
 from fedot.core.repository.dataset_types import DataTypesEnum
 

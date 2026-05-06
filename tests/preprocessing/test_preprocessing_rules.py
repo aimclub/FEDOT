@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing_rules import (

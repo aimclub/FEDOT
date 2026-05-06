@@ -3,12 +3,12 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from fedot.core.data.tensor_data_bridge_rules import (
+from fedot.core.data.bridges.tensor_to_input_rules import (
     build_tensordata_input_bridge_plan,
     normalize_input_bridge_target,
     resolve_input_idx,
 )
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

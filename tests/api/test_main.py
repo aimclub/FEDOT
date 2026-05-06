@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from fedot import Fedot
-from fedot.core.data.data import OutputData
-from fedot.core.data.tensordata import TensorData
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.data import OutputData
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams

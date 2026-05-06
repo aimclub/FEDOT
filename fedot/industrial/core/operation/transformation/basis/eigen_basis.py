@@ -2,7 +2,7 @@ from typing import Optional
 
 import dask
 import tensorly as tl
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from pymonad.either import Either

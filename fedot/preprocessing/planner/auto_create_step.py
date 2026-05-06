@@ -5,7 +5,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                           ImputationMethodEnum,
                                                           ScalingMethodEnum,
                                                           FilteringMethodEnum)
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 

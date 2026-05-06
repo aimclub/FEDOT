@@ -18,9 +18,9 @@ except ModuleNotFoundError:
     warn_requirement('opencv-python', 'fedot[extra]')
     cv2 = None
 
-from fedot.core.data.array_utilities import atleast_2d
-from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.common.array_utils import atleast_2d
+from fedot.core.data.reader.load_data import JSONBatchLoader, TextBatchLoader
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

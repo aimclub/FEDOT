@@ -5,7 +5,7 @@ import numpy as np
 from golem.core.log import default_log
 from golem.utilities.requirements_notificator import warn_requirement
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters

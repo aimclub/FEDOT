@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Any, Optional
 
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from MKLpy.callbacks import EarlyStopping

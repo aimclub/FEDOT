@@ -1,6 +1,6 @@
 import pytest
 
-from fedot.core.data.data_compatibility_rules import (
+from fedot.core.data.common.compatibility_rules import (
     autodetect_tensor_data_type,
     build_data_type_compatibility,
     to_input_compatible_data_type,

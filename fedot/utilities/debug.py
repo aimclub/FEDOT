@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.utils import default_fedot_data_dir

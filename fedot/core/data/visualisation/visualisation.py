@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.composer.metrics import ROCAUC
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 

@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.boostings_implementations import \
     FedotCatBoostClassificationImplementation, FedotCatBoostRegressionImplementation, \

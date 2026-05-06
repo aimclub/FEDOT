@@ -5,7 +5,7 @@ import numpy as np
 from golem.core.log import default_log, Log
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
 from fedot.core.pipelines.prediction_intervals.solvers.best_pipelines_quantiles import solver_best_pipelines_quantiles
 from fedot.core.pipelines.prediction_intervals.solvers.last_generation_quantile_loss import solver_last_generation_ql

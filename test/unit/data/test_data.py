@@ -7,7 +7,7 @@ import pytest
 from sklearn.datasets import load_iris
 
 from examples.real_cases.dataset_preparation import unpack_archived_data
-from fedot.core.data.data import InputData, get_df_from_csv
+from fedot.core.data.input_data.data import InputData, get_df_from_csv
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

@@ -1,4 +1,4 @@
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 

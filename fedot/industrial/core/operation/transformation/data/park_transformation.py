@@ -1,7 +1,7 @@
 from typing import Union
 
 import numpy as np
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 
 
 def _apply_park_transform(sample):

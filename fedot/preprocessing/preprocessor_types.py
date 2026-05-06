@@ -3,7 +3,7 @@ from typing import Optional, Any, Dict, TypeAlias, Union
 from dataclasses import dataclass
 from golem.utilities.data_structures import ComparableEnum as Enum
 import torch
-from fedot.core.data.complex_types import IndexType
+from fedot.core.data.common.types import IndexType
 
 
 class EmbeddingMethodEnum(Enum):

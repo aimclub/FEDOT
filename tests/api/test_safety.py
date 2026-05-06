@@ -3,7 +3,7 @@
 from fedot import Fedot
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.input_analyser import InputAnalyser
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor

@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

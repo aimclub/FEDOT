@@ -1,7 +1,7 @@
 from copy import copy
 
 import pandas as pd
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.industrial.core.architecture.settings.computational import backend_methods as np

@@ -6,7 +6,7 @@ import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.composer.metrics import MSE
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.structural_analysis.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem

@@ -6,8 +6,8 @@ import numpy as np
 from fedot.api.api_utils.assumptions.assumptions_builder \
     import UniModalAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

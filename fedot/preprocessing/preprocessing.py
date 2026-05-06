@@ -8,18 +8,18 @@ from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.data import InputData, np_datetime_to_numeric
-from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
-from fedot.core.data.data_preprocessing import (
+from fedot.core.data.input_data.data import InputData, np_datetime_to_numeric
+from fedot.core.data.input_data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
+from fedot.preprocessing.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
     find_categorical_columns,
     replace_inf_with_nans,
     replace_nans_with_empty_strings
 )
-from fedot.core.data.input_data_bridge import input_data_to_tensordata
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.bridges.input_to_tensor import input_data_to_tensordata
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation

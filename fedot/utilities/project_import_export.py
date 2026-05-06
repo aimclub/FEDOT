@@ -7,7 +7,7 @@ import golem.core.paths
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 
 DEFAULT_PATH = Path(golem.core.paths.default_data_dir())

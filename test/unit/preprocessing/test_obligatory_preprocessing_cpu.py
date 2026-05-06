@@ -5,10 +5,10 @@ import pandas as pd
 import torch
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.tensor_data.td_creator import TensorDataCreator
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.core.data.prepared_data import PreparedData
-from fedot.core.data.ucr_loader import TSLoader
+from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.core.data.reader.ucr_loader import TSLoader
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
 

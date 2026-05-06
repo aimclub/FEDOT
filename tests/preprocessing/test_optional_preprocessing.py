@@ -8,8 +8,8 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           FilteringMethodEnum)
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
-from fedot.core.data.prepared_data import PreparedData
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
 
@@ -20,7 +20,7 @@ def test_build_optional_plan():
     Checks that `build_optional_plan` returns a PreprocessingPlan containing exactly
     one mean-imputation step for the configured feature index."""
     tensor = torch.Tensor([[1, float('nan'), 3], [4, 5, 6]])
-    data = TensorData.create(tensor, "cpu")
+    data = TensorDataCreator.create(tensor, "cpu")
     pipeline = None
 
     optional_steps = {
@@ -50,7 +50,7 @@ def test_mean_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation][ImputationMethodEnum.mean]()
     preprocessed_data = preprocessor.fit_transform(td, [1])
     assert preprocessed_data.features[1, 1] == 5
@@ -67,7 +67,7 @@ def test_preprocessing_plan_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {PreprocessingStepEnum.imputation: None})
     assert isinstance(preprocessed_data, PreparedData)
@@ -86,7 +86,7 @@ def test_preprocessing_plan_mode_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode,
@@ -107,7 +107,7 @@ def test_preprocessing_plan_mean_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean,
@@ -129,7 +129,7 @@ def test_preprocessing_plan_constant_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant,
@@ -150,7 +150,7 @@ def test_preprocessing_plan_delete_raw_imputation():
         [7, 8, 9]
     ])
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, {
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw,
@@ -172,7 +172,7 @@ def test_preprocessing_minmax_scaling():
         [7, 8, 9]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
@@ -214,7 +214,7 @@ def test_preprocessing_standard_scaling():
         [7, 8, 9]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
@@ -260,7 +260,7 @@ def test_preprocessing_robust_scaling():
         [5, 40, 15],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
@@ -307,7 +307,7 @@ def test_imputation_scaling():
         [7, 8, 9]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
     strategy = {
@@ -357,7 +357,7 @@ def test_encoding_autoscaling_imputation():
         [7, 8, "C", 9]
     ], dtype=object)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     strategy = {
         PreprocessingStepEnum.scaling: None,
@@ -405,7 +405,7 @@ def test_preprocessing_clipping():
         [6, 1000, 600],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu")
+    td = TensorDataCreator.create(X, backend_name="cpu")
 
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
@@ -454,7 +454,7 @@ def test_custom_preprocessing():
     ], dtype=np.float32)
     y = np.array([1, 2, 3, 4, 5, 6], dtype=np.float32)
 
-    td = TensorData.create(X, target=y, backend_name="cpu")
+    td = TensorDataCreator.create(X, target=y, backend_name="cpu")
 
     from typing import Optional, Sequence
 

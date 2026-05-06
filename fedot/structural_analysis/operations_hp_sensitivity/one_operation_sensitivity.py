@@ -8,7 +8,7 @@ import numpy as np
 from golem.core.log import default_log
 from sklearn.metrics import mean_squared_error
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline

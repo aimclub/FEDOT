@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 from golem.core.tuning.simultaneous import SimultaneousTuner
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PipelineNode

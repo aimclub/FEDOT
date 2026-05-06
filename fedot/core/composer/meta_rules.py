@@ -2,7 +2,7 @@ from golem.core.log import LoggerAdapter
 from typing import Dict, Optional
 
 from fedot.api.api_utils.params import ApiParams
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 
 
 def get_cv_folds_number(input_data: InputData, log: LoggerAdapter) -> Dict[str, Optional[int]]:

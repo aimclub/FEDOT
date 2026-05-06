@@ -4,12 +4,12 @@ from itertools import chain
 from typing import List, Optional, Union
 
 from fedot.core.constants import default_data_split_ratio_by_task
-from fedot.core.data.array_utilities import atleast_4d
-from fedot.core.data.cv_folds import cv_generator
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import _split_input_data_by_indexes
+from fedot.core.data.common.array_utils import atleast_4d
+from fedot.core.data.split.cv_folds import cv_generator
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.split.data_split import _split_input_data_by_indexes
 from fedot.core.data.merge.data_merger import TSDataMerger, DataMerger, ImageDataMerger, TextDataMerger
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.optimisers.objective import DataSource
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace

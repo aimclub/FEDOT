@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.api_data_rules import resolve_strategy
-from fedot.core.data.data import InputData, array_to_input_data
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, array_to_input_data
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

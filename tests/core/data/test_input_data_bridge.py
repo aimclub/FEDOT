@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import InputData
-from fedot.core.data.input_data_bridge import input_data_to_tensordata
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.bridges.input_to_tensor import input_data_to_tensordata
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

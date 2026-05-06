@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

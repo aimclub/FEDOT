@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing, \
     classification_pipeline_with_balancing
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum

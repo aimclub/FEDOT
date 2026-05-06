@@ -9,7 +9,7 @@ from sklearn.tree._tree import TREE_LEAF
 
 from fedot.core.composer.metrics import Metric
 from fedot.core.composer.metrics import R2, F1
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum

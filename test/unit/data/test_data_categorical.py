@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 

@@ -5,7 +5,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           ImagePreprocessingMethodEnum,
                                                           ImputationMethodEnum)
 from fedot.industrial.core.architecture.preprocessing.ts_optional_service import OptionalTSService
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 
 
 def test_preprocessing_seasonal_normalization():
@@ -25,7 +25,7 @@ def test_preprocessing_seasonal_normalization():
         [9, 36, 900],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -84,7 +84,7 @@ def test_preprocessing_rolling_normalization():
         [6, 60, 600],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -149,7 +149,7 @@ def test_preprocessing_per_channel_normalization():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -213,7 +213,7 @@ def test_preprocessing_gamma_correction():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -264,7 +264,7 @@ def test_preprocessing_log_transform():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -321,7 +321,7 @@ def test_preprocessing_mean_imputation():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -387,7 +387,7 @@ def test_preprocessing_median_imputation():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -453,7 +453,7 @@ def test_preprocessing_constant_imputation():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -521,7 +521,7 @@ def test_preprocessing_fill_imputation_forward():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -589,7 +589,7 @@ def test_preprocessing_fill_imputation_backward():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -657,7 +657,7 @@ def test_preprocessing_rolling_imputation_mean_center():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -727,7 +727,7 @@ def test_preprocessing_rolling_imputation_median_backward_window():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -797,7 +797,7 @@ def test_preprocessing_kalman_imputation():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -856,7 +856,7 @@ def test_preprocessing_linear_interpolation():
         ]
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -928,7 +928,7 @@ def test_preprocessing_polynomial_interpolation():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -1009,7 +1009,7 @@ def test_preprocessing_spline_interpolation():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(
@@ -1083,7 +1083,7 @@ def test_multiple_imputation_step():
         ],
     ], dtype=np.float32)
 
-    td = TensorData.create(X, backend_name="cpu", data_type="time_series")
+    td = TensorDataCreator.create(X, backend_name="cpu", data_type="time_series")
 
     service = OptionalTSService()
     preprocessed_data = service.fit_transform(

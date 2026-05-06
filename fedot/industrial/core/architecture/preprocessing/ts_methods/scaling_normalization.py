@@ -1,7 +1,7 @@
 from typing import Optional, Sequence
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.industrial.core.architecture.preprocessing.ts_methods.tools import (
     flatten_if_needed,
     restore_if_needed,

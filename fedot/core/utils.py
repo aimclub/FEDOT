@@ -13,7 +13,7 @@ import pandas as pd
 from golem.utilities.random import RandomStateHandler
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'

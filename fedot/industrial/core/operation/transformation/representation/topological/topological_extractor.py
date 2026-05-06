@@ -5,7 +5,7 @@ from typing import Optional
 
 # import open3d as o3d
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from gtda.homology import VietorisRipsPersistence
 from gtda.time_series import takens_embedding_optimal_parameters

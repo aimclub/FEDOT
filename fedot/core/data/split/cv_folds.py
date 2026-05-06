@@ -2,13 +2,13 @@ from typing import Iterator, Optional, Tuple, Union
 
 import numpy as np
 
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.tasks import TaskTypesEnum
 from sklearn.model_selection import KFold, TimeSeriesSplit
 from sklearn.model_selection._split import StratifiedKFold
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import _split_input_data_by_indexes
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import _split_input_data_by_indexes
 
 
 class TsInputDataSplit(TimeSeriesSplit):

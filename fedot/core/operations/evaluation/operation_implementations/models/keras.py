@@ -13,7 +13,7 @@ except ModuleNotFoundError:
     warn_requirement('tensorflow', 'fedot[extra]')
     tf = None
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from golem.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from sklearn import preprocessing

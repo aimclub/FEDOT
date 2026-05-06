@@ -1,10 +1,10 @@
-from fedot.core.data.tensor_data.td_creator import TensorDataCreator
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 import numpy as np
 import torch
 import pandas as pd
 
-from fedot.core.data.ucr_loader import TSLoader
+from fedot.core.data.reader.ucr_loader import TSLoader
 from fedot.core.utils import fedot_project_root
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor

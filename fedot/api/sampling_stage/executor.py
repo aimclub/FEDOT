@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 from fedot.api.sampling_stage.config import SamplingConfig, validate_sampling_config
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingZooProvider
-from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.input_data.data import InputData, data_type_is_table
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
