@@ -1,5 +1,6 @@
 from typing import Optional
 
+# TODO someone: create save import like for TensorData (data_reader.py)
 import cupy as cp
 from fedot.core.operations.operation_parameters import OperationParameters
 from py_boost.multioutput.sketching import GradSketch

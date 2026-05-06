@@ -1,12 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, Callable, TypeAlias, ClassVar, List, Tuple
-from fedot.core.data.complex_types import PathType, IndexType, PandasType, ArrayType
+from typing import Optional, Union, Dict, Any, Tuple
+from fedot.core.data.complex_types import IndexType
 from fedot.core.data.tools import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 import torch
-import numpy as np
-import cupy as cp
 import logging
 from fedot.core.data.data_tools import get_device_from_str
 from fedot.core.data.complex_types import TensorLike
@@ -95,8 +93,8 @@ class TensorData:
 
     state: Union[str, StateEnum] = StateEnum.FIT
     idx: IndexType = None
-    features: TensorLike = None
-    target: TensorLike = None
+    features: Optional[torch.Tensor] = None
+    target: Optional[torch.Tensor] = None
     predict: TensorLike = None
     target_idx: IndexType = None
     categorical_idx: IndexType = field(default_factory=list)

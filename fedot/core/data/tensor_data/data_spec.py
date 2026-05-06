@@ -56,7 +56,7 @@ class DataSpec:
     features: TensorLike = None
     state: Union[str, StateEnum] = StateEnum.FIT
     target: TensorLike = None
-    target_idx: IndexType = field(default_factory=list)
+    target_idx: Optional[IndexType] = None
     categorical_idx: IndexType = field(default_factory=list)
     numerical_idx: IndexType = field(default_factory=list)
     encoding_strategy: Optional[Dict] = None

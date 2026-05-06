@@ -1,8 +1,5 @@
 from typing import Any, Callable, ClassVar, List, Tuple
-import cupy as cp
-import cudf
 import numpy as np
-import pandas as pd
 import torch
 
 from fedot.core.data.tensordata_rules import (
@@ -11,7 +8,12 @@ from fedot.core.data.tensordata_rules import (
 )
 from fedot.core.data.data_tools import get_values_from_df
 from fedot.core.data.data_reader import get_df_from_csv, read_arff_file
-from fedot.core.data.complex_types import PandasType, ArrayType
+from fedot.core.data.complex_types import (
+    ARRAY_RUNTIME_TYPES,
+    PANDAS_RUNTIME_TYPES,
+    ArrayType,
+    PandasType,
+)
 from fedot.core.data.tensor_data.data_spec import DataSpec
 
 
@@ -102,7 +104,7 @@ def from_torch(features: torch.Tensor, spec: DataSpec) -> DataSpec:
 
 
 @DataReader.register_creator(
-    lambda x: isinstance(x, np.ndarray) or isinstance(x, cp.ndarray)
+    lambda x: isinstance(x, ARRAY_RUNTIME_TYPES)
 )
 def from_numpy(features: ArrayType, spec: DataSpec) -> DataSpec:
     """
@@ -121,7 +123,7 @@ def from_numpy(features: ArrayType, spec: DataSpec) -> DataSpec:
 
 
 @DataReader.register_creator(
-    lambda x: isinstance(x, pd.DataFrame) or isinstance(x, pd.Series) or isinstance(x, cudf.DataFrame)
+    lambda x: isinstance(x, PANDAS_RUNTIME_TYPES)
 )
 def from_pandas(
         features: PandasType,

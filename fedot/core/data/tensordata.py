@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, TypeAlias, Union
 
-import cupy as cp
 import cudf
 import numpy as np
 import pandas as pd
@@ -105,7 +104,7 @@ class LazyTensor:
         return f"LazyTensor(initialized={self._data is not None})"
 
 
-TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor, cp.ndarray]]
+TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, LazyTensor]]
 
 
 @dataclass
