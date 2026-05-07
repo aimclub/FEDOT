@@ -298,7 +298,8 @@ def get_target_and_features(
     target_idx: IndexType = None,
     state: StateEnum = StateEnum.FIT,
     data_type: DataTypesEnum = DataTypesEnum.tabular,
-    idx_mapping: Optional[Dict[int, int]] = None
+    idx_mapping: Optional[Dict[int, int]] = None,
+    without_target: bool = False
 ) -> Tuple[ArrayType, ArrayType, Any]:
     """
     Split and preprocess `(features, target)` from raw array-like inputs.
@@ -328,6 +329,9 @@ def get_target_and_features(
             - target_processed (ArrayType) or `None`
             - target_encoder (Any) or `None`
     """
+    if without_target:
+        return features, target, idx_mapping
+
     # For ts type if target_idx is not provided, do nothing
     if data_type == DataTypesEnum.ts and target_idx is None:
         return features, target, idx_mapping

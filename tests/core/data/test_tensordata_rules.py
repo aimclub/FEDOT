@@ -244,7 +244,7 @@ def test_build_load_data_spec_normalization_is_idempotent_for_normalized_values(
     )
 
     assert second == first
-    assert second.embedding_strategy is not first.embedding_strategy
+    assert second.embedding_strategy == first.embedding_strategy
     assert second.dataloader_kwargs is not first.dataloader_kwargs
 
 
@@ -259,5 +259,26 @@ def test_build_load_data_spec_normalization_keeps_empty_embedding_strategy_deter
         dataloader_kwargs=None,
     )
 
-    assert normalization.embedding_strategy == {}
+    assert normalization.embedding_strategy is None
     assert normalization.dataloader_kwargs == DEFAULT_DATALOADER_KWARGS
+
+
+@pytest.mark.unit
+def test_build_load_data_spec_normalization_normalizes_index_fields_by_default_semantics():
+    normalization = build_load_data_spec_normalization(
+        task='classification',
+        data_type='table',
+        state='fit',
+        ts_orientation=None,
+        embedding_strategy=None,
+        dataloader_kwargs=None,
+        target_idx=[],
+        ts_terms_idx=[],
+        categorical_idx=None,
+        numerical_idx=None,
+    )
+
+    assert normalization.target_idx is None
+    assert normalization.ts_terms_idx is None
+    assert normalization.categorical_idx == []
+    assert normalization.numerical_idx == []

@@ -103,7 +103,8 @@ def process_ts_data(
     ts_orientation: Optional[TSOrientationEnum] = None,
     terms_idx: int = None,
     forecast_horizon: int = None,
-    data_type: DataTypesEnum = DataTypesEnum.ts
+    data_type: DataTypesEnum = DataTypesEnum.ts,
+    without_target: bool = False
 ):
     """
     Apply time-series preprocessing and optional forecasting split.
@@ -150,6 +151,9 @@ def process_ts_data(
         ts_orientation = TSOrientationEnum.wide
     elif ts_orientation == TSOrientationEnum.long:
         features, terms_idx = long_to_wide(features, features_names, terms_idx)
+    
+    if without_target:
+        return features, target, init_shape, terms_idx
 
     if state == StateEnum.FIT and forecast_horizon is not None:
         target = features[features.shape[1] - forecast_horizon:, :]

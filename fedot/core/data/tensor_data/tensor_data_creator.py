@@ -77,7 +77,8 @@ class TensorDataCreator:
                                                                                             self.spec.ts_orientation,
                                                                                             self.spec.ts_terms_idx,
                                                                                             self.spec.ts_forecast_horizon,
-                                                                                            self.spec.data_type)
+                                                                                            self.spec.data_type,
+                                                                                            self.spec.without_target)
 
         self.spec.idx_mapping = create_index_mapping(self.spec.features, self.spec.ts_init_shape)
 
@@ -87,7 +88,8 @@ class TensorDataCreator:
                                                                                self.spec.target_idx,
                                                                                self.spec.state,
                                                                                self.spec.data_type,
-                                                                               self.spec.idx_mapping)
+                                                                               self.spec.idx_mapping,
+                                                                               self.spec.without_target)
 
         self.spec.features, self.spec.target = _drop_rows_with_nan_in_target(self.spec.features, self.spec.target)
 

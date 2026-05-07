@@ -177,6 +177,26 @@ def test_target_extracted_by_index():
     assert td.target.shape[0] == 20
 
 
+def test_create_from_numpy_without_target():
+    """
+    Test creation of TensorData from a NumPy array without target, ensuring that features
+    are correctly separated and converted into torch tensors with expected shapes.
+    """
+
+    features = np.random.rand(100, 10)
+
+    td = TensorDataCreator.create(
+        features,
+        backend_name="cpu",
+        without_target=True
+    )
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert td.target is None
+    assert td.features.shape[0] == features.shape[0]
+    assert td.features.shape[1] == features.shape[1]
+
+
 # # TODO romankuklo: state='PREDICT' is not implemented yet
 # # def test_target_depends_state():
 # #     """

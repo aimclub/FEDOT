@@ -28,6 +28,7 @@ class DataSpec:
         target: Optional target data. If omitted in fit mode, it can be extracted
             from `features` using `target_idx` or the default target convention.
         target_idx: Target column index/name or a list of indices/names.
+        without_target: If True, target is not extracted from features.
         categorical_idx: Known categorical feature indices/names.
         numerical_idx: Known numerical feature indices. Filled during preprocessing.
         encoding_strategy: Optional categorical encoding strategy.
@@ -57,6 +58,7 @@ class DataSpec:
     state: Union[str, StateEnum] = StateEnum.FIT
     target: TensorLike = None
     target_idx: Optional[IndexType] = None
+    without_target: bool = False
     categorical_idx: IndexType = field(default_factory=list)
     numerical_idx: IndexType = field(default_factory=list)
     encoding_strategy: Optional[Dict] = None
@@ -87,7 +89,9 @@ class DataSpec:
 
         String aliases for task, data type, state, and time-series orientation are
         converted to FEDOT enum objects. Dataloader options are merged with default
-        values and embedding strategy format is normalized.
+        values and embedding strategy format is normalized. Index fields are also
+        aligned with their default semantics: optional references use `None`, while
+        index collections use empty lists.
         """
         normalization = build_load_data_spec_normalization(
             task=self.task,
@@ -96,6 +100,10 @@ class DataSpec:
             ts_orientation=self.ts_orientation,
             embedding_strategy=self.embedding_strategy,
             dataloader_kwargs=self.dataloader_kwargs,
+            target_idx=self.target_idx,
+            categorical_idx=self.categorical_idx,
+            numerical_idx=self.numerical_idx,
+            ts_terms_idx=self.ts_terms_idx,
         )
         self.task = normalization.task
         self.state = normalization.state
@@ -103,3 +111,7 @@ class DataSpec:
         self.ts_orientation = normalization.ts_orientation
         self.embedding_strategy = normalization.embedding_strategy
         self.dataloader_kwargs = normalization.dataloader_kwargs
+        self.target_idx = normalization.target_idx
+        self.categorical_idx = normalization.categorical_idx
+        self.numerical_idx = normalization.numerical_idx
+        self.ts_terms_idx = normalization.ts_terms_idx

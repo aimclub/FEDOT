@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Optional, Union, List
 
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
+from fedot.core.data.common.types import IndexType, TensorLike
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -53,6 +54,10 @@ class LoadDataSpecNormalization:
     ts_orientation: Optional[TSOrientationEnum]
     embedding_strategy: dict
     dataloader_kwargs: dict
+    target_idx: IndexType
+    categorical_idx: IndexType
+    numerical_idx: IndexType
+    ts_terms_idx: IndexType
 
 
 @dataclass(frozen=True)
@@ -185,6 +190,32 @@ def normalize_dataloader_kwargs(dataloader_kwargs: Optional[dict]) -> dict:
     return {**DEFAULT_DATALOADER_KWARGS, **dataloader_kwargs}
 
 
+def normalize_optional_idx(idx: IndexType) -> IndexType:
+    if isinstance(idx, list) and len(idx) == 0:
+        return None
+    return idx
+
+
+def normalize_idx_collection(idx: IndexType) -> IndexType:
+    if idx is None:
+        return []
+    return idx
+
+
+def normalize_array_target_reference(
+    target: Any,
+    target_idx: Any,
+    feature_width: int,
+) -> tuple[Any, Any]:
+    if target_idx is not None:
+        return target, target_idx
+
+    if isinstance(target, int) and 0 <= target < feature_width:
+        return None, target
+
+    return target, target_idx
+
+
 def build_load_data_spec_normalization(
     task: Union[Task, str],
     data_type: Optional[Union[DataTypesEnum, str]],
@@ -192,6 +223,10 @@ def build_load_data_spec_normalization(
     ts_orientation: Optional[Union[TSOrientationEnum, str]],
     embedding_strategy: Optional[dict],
     dataloader_kwargs: Optional[dict],
+    target_idx: IndexType = None,
+    categorical_idx: IndexType = None,
+    numerical_idx: IndexType = None,
+    ts_terms_idx: IndexType = None,
 ) -> LoadDataSpecNormalization:
     return LoadDataSpecNormalization(
         task=normalize_task(task),
@@ -200,6 +235,10 @@ def build_load_data_spec_normalization(
         ts_orientation=normalize_optional_ts_orientation(ts_orientation),
         embedding_strategy=normalize_embedding_strategy(embedding_strategy),
         dataloader_kwargs=normalize_dataloader_kwargs(dataloader_kwargs),
+        target_idx=normalize_optional_idx(target_idx),
+        categorical_idx=normalize_idx_collection(categorical_idx),
+        numerical_idx=normalize_idx_collection(numerical_idx),
+        ts_terms_idx=normalize_optional_idx(ts_terms_idx),
     )
 
 
@@ -241,20 +280,6 @@ def build_creation_failure(
         backend_name=normalize_backend_name(backend_name),
         error_type_name=type(error).__name__,
     )
-
-
-def normalize_array_target_reference(
-    target: Any,
-    target_idx: Any,
-    feature_width: int,
-) -> tuple[Any, Any]:
-    if target_idx is not None:
-        return target, target_idx
-
-    if isinstance(target, int) and 0 <= target < feature_width:
-        return None, target
-
-    return target, target_idx
 
 
 def normalize_tabular_file_delimiter(file_path: str, delimiter: str) -> str:

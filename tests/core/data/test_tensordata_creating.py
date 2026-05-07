@@ -152,8 +152,8 @@ def test_csv_tsv_reader_applies_file_load_plan_defaults(monkeypatch, tmp_path):
 
         return _Frame()
 
-    monkeypatch.setattr('fedot.core.data.tensor_data.data_reader.get_df_from_csv', fake_get_df_from_csv)
-    monkeypatch.setattr('fedot.core.data.tensor_data.data_reader.get_values_from_df', lambda frame: frame.values)
+    monkeypatch.setattr('fedot.core.data.reader.data_reader.get_df_from_csv', fake_get_df_from_csv)
+    monkeypatch.setattr('fedot.core.data.reader.data_reader.get_values_from_df', lambda frame: frame.values)
 
     spec = DataSpec()
 
@@ -189,6 +189,22 @@ def test_data_spec_normalizes_aliases_and_merges_dataloader_defaults():
         'num_workers': 0,
         'drop_last': False,
     }
+
+
+@pytest.mark.unit
+def test_data_spec_normalizes_empty_and_missing_index_fields_by_default_semantics():
+    """Check that empty optional index references and missing index collections use canonical values."""
+    spec = DataSpec(
+        target_idx=[],
+        ts_terms_idx=[],
+        categorical_idx=None,
+        numerical_idx=None,
+    )
+
+    assert spec.target_idx is None
+    assert spec.ts_terms_idx is None
+    assert spec.categorical_idx == []
+    assert spec.numerical_idx == []
 
 
 @pytest.mark.unit
