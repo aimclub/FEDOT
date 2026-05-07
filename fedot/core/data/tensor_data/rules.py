@@ -6,6 +6,7 @@ from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.data.common.types import IndexType, TensorLike
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.tensor_data.tools import convert_idx_to_list
 
 SUPPORTED_BACKEND_NAMES = ('cpu', 'gpu')
 
@@ -58,6 +59,7 @@ class LoadDataSpecNormalization:
     categorical_idx: IndexType
     numerical_idx: IndexType
     ts_terms_idx: IndexType
+    features_names: IndexType
 
 
 @dataclass(frozen=True)
@@ -191,12 +193,14 @@ def normalize_dataloader_kwargs(dataloader_kwargs: Optional[dict]) -> dict:
 
 
 def normalize_optional_idx(idx: IndexType) -> IndexType:
+    idx = convert_idx_to_list(idx)
     if isinstance(idx, list) and len(idx) == 0:
         return None
     return idx
 
 
 def normalize_idx_collection(idx: IndexType) -> IndexType:
+    idx = convert_idx_to_list(idx)
     if idx is None:
         return []
     return idx
@@ -227,7 +231,9 @@ def build_load_data_spec_normalization(
     categorical_idx: IndexType = None,
     numerical_idx: IndexType = None,
     ts_terms_idx: IndexType = None,
+    features_names: IndexType = None,
 ) -> LoadDataSpecNormalization:
+
     return LoadDataSpecNormalization(
         task=normalize_task(task),
         data_type=normalize_optional_data_type(data_type),
@@ -239,6 +245,7 @@ def build_load_data_spec_normalization(
         categorical_idx=normalize_idx_collection(categorical_idx),
         numerical_idx=normalize_idx_collection(numerical_idx),
         ts_terms_idx=normalize_optional_idx(ts_terms_idx),
+        features_names=normalize_optional_idx(features_names)
     )
 
 

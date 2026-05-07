@@ -7,6 +7,7 @@ from fedot.core.data.common.types import ArrayType, IndexType
 
 from fedot.core.data.common.enums import TSOrientationEnum, StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.tensor_data.tools import replace_missing_with_np_nan
 
 
 def long_to_wide(features: ArrayType,
@@ -143,6 +144,8 @@ def process_ts_data(
         return features, target, None, None
 
     features, init_shape = reshape_and_get_init_shape(features)
+
+    features = replace_missing_with_np_nan(features)
 
     if isinstance(ts_orientation, str):
         ts_orientation = TSOrientationEnum(ts_orientation)

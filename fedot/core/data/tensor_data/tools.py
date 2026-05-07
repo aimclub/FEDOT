@@ -97,7 +97,7 @@ def get_values_from_df(df: PandasType) -> ArrayType:
         return features
 
 
-def replace_missing_with_nan(arr: ArrayType) -> ArrayType:
+def replace_missing_with_np_nan(arr: ArrayType) -> ArrayType:
     """
     Replace missing values with `NaN` and normalize dtype for CPU backends.
 
@@ -329,11 +329,15 @@ def get_target_and_features(
             - target_processed (ArrayType) or `None`
             - target_encoder (Any) or `None`
     """
-    if without_target:
-        return features, target, idx_mapping
-
     # For ts type if target_idx is not provided, do nothing
     if data_type == DataTypesEnum.ts and target_idx is None:
+        return features, target, idx_mapping
+    
+    # replace missing values with np.nan for ts is already done in ts preprocessing
+    if data_type != DataTypesEnum.ts:
+        features = replace_missing_with_np_nan(features)
+
+    if without_target:
         return features, target, idx_mapping
 
     xp = Backend().xp
@@ -357,11 +361,13 @@ def get_target_and_features(
             idx_mapping = update_index_mapping(idx_mapping, target_idx, features)
 
         target = atleast_n_dimensions(target, 2)
-        target = replace_missing_with_nan(target)
+        target = replace_missing_with_np_nan(target)
         try:
             target = xp.asarray(target, dtype=xp.float32)
         except BaseException:
             pass
+
+        features, target = _drop_rows_with_nan_in_target(features, target)
 
         return features, target, idx_mapping
 

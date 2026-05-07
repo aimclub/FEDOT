@@ -104,6 +104,7 @@ class DataSpec:
             categorical_idx=self.categorical_idx,
             numerical_idx=self.numerical_idx,
             ts_terms_idx=self.ts_terms_idx,
+            features_names=self.features_names,
         )
         self.task = normalization.task
         self.state = normalization.state
@@ -115,3 +116,4 @@ class DataSpec:
         self.categorical_idx = normalization.categorical_idx
         self.numerical_idx = normalization.numerical_idx
         self.ts_terms_idx = normalization.ts_terms_idx
+        self.features_names = normalization.features_names

@@ -11,14 +11,13 @@ from fedot.core.data.tensor_data.rules import (
     normalize_tensordata_identity,
 )
 from fedot.core.data.tensor_data.tools import (
-    convert_idx_to_list, replace_missing_with_nan, get_target_and_features,
-    transform_to_tensor, _drop_rows_with_nan_in_target)
+    get_target_and_features, transform_to_tensor)
 from fedot.preprocessing.ts_preprocessing import process_ts_data
 from fedot.core.backend.backend import Backend, torch_to_xp
 from fedot.core.data.common.compatibility_rules import autodetect_tensor_data_type
 from fedot.preprocessing.tools.index_mapping_tools import create_index_mapping
 from fedot.preprocessing.service.tabular_obligatory_service import ObligatoryTabularService
-from fedot.preprocessing.tools.tools import get_used_idx_from_plan
+from fedot.preprocessing.tools.tools import get_useful_idx
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.reader.data_reader import DataReader
 from fedot.core.data.tensor_data.data_spec import DataSpec
@@ -62,14 +61,8 @@ class TensorDataCreator:
         and numerical feature indices.
         """
 
-        self.spec.target_idx = convert_idx_to_list(self.spec.target_idx)
-        self.spec.categorical_idx = convert_idx_to_list(self.spec.categorical_idx)
-        self.spec.features_names = convert_idx_to_list(self.spec.features_names)
-        self.spec.ts_terms_idx = convert_idx_to_list(self.spec.ts_terms_idx)
+        self.spec.idx_mapping = create_index_mapping(self.spec.features, self.spec.ts_init_shape)
 
-        self.spec.features = replace_missing_with_nan(self.spec.features)
-
-        # TODO romankuklo: think how to add it to obligatory ts preprocessing
         self.spec.features, self.spec.target, self.spec.ts_init_shape, self.spec.ts_terms_idx = process_ts_data(self.spec.features,
                                                                                             self.spec.target,
                                                                                             self.spec.features_names,
@@ -80,8 +73,6 @@ class TensorDataCreator:
                                                                                             self.spec.data_type,
                                                                                             self.spec.without_target)
 
-        self.spec.idx_mapping = create_index_mapping(self.spec.features, self.spec.ts_init_shape)
-
         self.spec.features, self.spec.target, self.spec.idx_mapping = get_target_and_features(self.spec.features,
                                                                                self.spec.target,
                                                                                self.spec.features_names,
@@ -91,10 +82,7 @@ class TensorDataCreator:
                                                                                self.spec.idx_mapping,
                                                                                self.spec.without_target)
 
-        self.spec.features, self.spec.target = _drop_rows_with_nan_in_target(self.spec.features, self.spec.target)
-
         service = ObligatoryTabularService()
-
         service_params = {
             "encoding_strategy": self.spec.encoding_strategy,
             "embedding_strategy": self.spec.embedding_strategy,
@@ -103,34 +91,32 @@ class TensorDataCreator:
             "idx_mapping": self.spec.idx_mapping,
             "data_type": self.spec.data_type
         }
-
         if self.spec.state == StateEnum.FIT:
             prepared_data = service.fit_transform(
                 self.spec.features,
                 self.spec.target,
                 service_params
             )
+            # TODO romankuklo: how to save steps?
         else:
+            # TODO romankuklo: how to get from cache?
             prepared_data = service.transform(
                 self.spec.features,
                 self.spec.target,
                 self.spec.idx_mapping
             )
-
         self.spec.features = prepared_data.features
         self.spec.target = prepared_data.target
         self.spec.idx_mapping = prepared_data.idx_mapping
 
-        # TODO romankuklo: how to save steps?
         self.spec.features, self.spec.target = transform_to_tensor(self.spec.features,
                                                          self.spec.target,
                                                          self.spec.ts_init_shape)
 
-        self.spec.idx = torch.arange(self.spec.features.shape[1], dtype=torch.int32)
-
-        preprocessed_idx = get_used_idx_from_plan(service.plan)
-        self.spec.categorical_idx = list(set(self.spec.categorical_idx) | set(preprocessed_idx))
-        self.spec.numerical_idx = list(set(range(self.spec.features.shape[1])) - set(self.spec.categorical_idx))
+        self.spec.idx, self.spec.categorical_idx, self.spec.numerical_idx = get_useful_idx(self.spec.features.shape[1],
+                                                                                        service.plan,
+                                                                                        self.spec.categorical_idx,
+                                                                                        self.spec.idx_mapping)       
 
     def preprocess_data(self):
         """
