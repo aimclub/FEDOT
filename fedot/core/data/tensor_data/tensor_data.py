@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import sys
 from typing import Optional, Union, Dict, Any, Tuple
 from fedot.core.data.common.types import IndexType
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
@@ -6,7 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
 import torch
 import logging
-from fedot.core.data.tensor_data.tools import get_device_from_str
+from fedot.core.data.tensor_data.tools import get_device_from_str, tensor_memory_usage
 from fedot.core.data.common.types import TensorLike
 
 logger = logging.getLogger(__name__)
@@ -111,24 +112,49 @@ class TensorData:
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=dict)
 
-    # TODO romankuklo: add update memory usage method
     @property
-    def memory_usage(self):
+    def memory_usage(self) -> Dict[str, int]:
         """
-        Estimate memory usage of the feature tensor in bytes.
+        Estimate tensor memory usage in bytes.
 
-        The estimate is available only when `features` is a `torch.Tensor`.
-        Non-torch feature containers are not expected after normal creation and
-        return `0` with a warning.
+        The estimate works for CPU and GPU torch tensors because it is based on
+        tensor element size and number of elements. Metadata is estimated with
+        `sys.getsizeof`, so nested containers are only shallowly counted.
 
         Returns:
-            int: Number of bytes occupied by `features`, or `0` when unavailable.
+            Dict[str, int]: Memory usage by tensor field and the total value:
+                `features`, `target`, `predict`, `metadata`, and `total`.
         """
-        if isinstance(self.features, torch.Tensor):
-            return self.features.element_size() * self.features.nelement()
-        else:
-            logger.warning("Memory usage is not available for non-torch tensors.")
-            return 0
+        usage = {
+            'features': tensor_memory_usage(self.features),
+            'target': tensor_memory_usage(self.target),
+            'predict': tensor_memory_usage(self.predict),
+            'metadata': self._metadata_memory_usage(),
+        }
+        usage['total'] = sum(usage.values())
+        return usage
+
+    def _metadata_memory_usage(self) -> int:
+        metadata_fields = (
+            self.task,
+            self.data_type,
+            self.state,
+            self.idx,
+            self.target_idx,
+            self.categorical_idx,
+            self.numerical_idx,
+            self.encoding_strategy,
+            self.embedding_strategy,
+            self.custom_strategy,
+            self.features_names,
+            self.idx_mapping,
+            self.ts_orientation,
+            self.ts_terms_idx,
+            self.ts_forecast_horizon,
+            self.ts_init_shape,
+            self.dataloader_kwargs,
+        )
+        return sum(sys.getsizeof(field) for field in metadata_fields)
     
     def to(self, device: Union[str, torch.device]):
         """

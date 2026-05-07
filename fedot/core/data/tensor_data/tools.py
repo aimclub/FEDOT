@@ -48,6 +48,21 @@ def get_device_from_str(device: Union[str, torch.device]) -> torch.device:
     return torch.device(device)
 
 
+def tensor_memory_usage(value: Any) -> int:
+    """
+    Estimate memory occupied by a torch tensor in bytes.
+
+    Args:
+        value: Value to inspect.
+
+    Returns:
+        int: Tensor payload size in bytes, or `0` for non-tensor values.
+    """
+    if isinstance(value, torch.Tensor):
+        return value.element_size() * value.nelement()
+    return 0
+
+
 def convert_bytes(x: np.ndarray) -> np.ndarray:
     """
     Convert decoded byte/string data to numeric values when possible.

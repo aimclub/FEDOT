@@ -47,7 +47,16 @@ def test_memory_count_gpu():
     td = TensorDataCreator.create(features, backend_name="gpu")
 
     assert td.features.device.type == "cuda"
-    assert td.memory_usage > 0
+    assert td.memory_usage["features"] > 0
+    assert td.memory_usage["target"] >= 0
+    assert td.memory_usage["predict"] == 0
+    assert td.memory_usage["metadata"] > 0
+    assert td.memory_usage["total"] == (
+        td.memory_usage["features"]
+        + td.memory_usage["target"]
+        + td.memory_usage["predict"]
+        + td.memory_usage["metadata"]
+    )
 # --------------------------------------------------
 
 
