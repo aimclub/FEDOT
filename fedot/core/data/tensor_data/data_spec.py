@@ -65,7 +65,7 @@ class DataSpec:
     embedding_strategy: Optional[Union[Dict]] = None
     custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
-    
+
     ts_orientation: Union[TSOrientationEnum, str] = None
     ts_terms_idx: IndexType = None
     ts_forecast_horizon: Optional[int] = None

@@ -25,7 +25,7 @@ if cp is not None:
     ARRAY_RUNTIME_TYPES = (*ARRAY_RUNTIME_TYPES, cp.ndarray)
     ArrayType: TypeAlias = Optional[Union[np.ndarray, cp.ndarray]]
     IndexType: TypeAlias = Optional[Union[int, str, np.ndarray,
-                                        cp.ndarray, List[int], List[str]]]
+                                          cp.ndarray, List[int], List[str]]]
     TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray]]
 else:
     ArrayType: TypeAlias = Optional[np.ndarray]

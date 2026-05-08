@@ -64,23 +64,23 @@ class TensorDataCreator:
         self.spec.idx_mapping = create_index_mapping(self.spec.features, self.spec.ts_init_shape)
 
         self.spec.features, self.spec.target, self.spec.ts_init_shape, self.spec.ts_terms_idx = process_ts_data(self.spec.features,
-                                                                                            self.spec.target,
-                                                                                            self.spec.features_names,
-                                                                                            self.spec.state,
-                                                                                            self.spec.ts_orientation,
-                                                                                            self.spec.ts_terms_idx,
-                                                                                            self.spec.ts_forecast_horizon,
-                                                                                            self.spec.data_type,
-                                                                                            self.spec.without_target)
+                                                                                                                self.spec.target,
+                                                                                                                self.spec.features_names,
+                                                                                                                self.spec.state,
+                                                                                                                self.spec.ts_orientation,
+                                                                                                                self.spec.ts_terms_idx,
+                                                                                                                self.spec.ts_forecast_horizon,
+                                                                                                                self.spec.data_type,
+                                                                                                                self.spec.without_target)
 
         self.spec.features, self.spec.target, self.spec.idx_mapping = get_target_and_features(self.spec.features,
-                                                                               self.spec.target,
-                                                                               self.spec.features_names,
-                                                                               self.spec.target_idx,
-                                                                               self.spec.state,
-                                                                               self.spec.data_type,
-                                                                               self.spec.idx_mapping,
-                                                                               self.spec.without_target)
+                                                                                              self.spec.target,
+                                                                                              self.spec.features_names,
+                                                                                              self.spec.target_idx,
+                                                                                              self.spec.state,
+                                                                                              self.spec.data_type,
+                                                                                              self.spec.idx_mapping,
+                                                                                              self.spec.without_target)
 
         service = ObligatoryTabularService()
         service_params = {
@@ -110,13 +110,13 @@ class TensorDataCreator:
         self.spec.idx_mapping = prepared_data.idx_mapping
 
         self.spec.features, self.spec.target = transform_to_tensor(self.spec.features,
-                                                         self.spec.target,
-                                                         self.spec.ts_init_shape)
+                                                                   self.spec.target,
+                                                                   self.spec.ts_init_shape)
 
         self.spec.idx, self.spec.categorical_idx, self.spec.numerical_idx = get_useful_idx(self.spec.features.shape[1],
-                                                                                        service.plan,
-                                                                                        self.spec.categorical_idx,
-                                                                                        self.spec.idx_mapping)       
+                                                                                           service.plan,
+                                                                                           self.spec.categorical_idx,
+                                                                                           self.spec.idx_mapping)
 
     def preprocess_data(self):
         """
@@ -133,7 +133,7 @@ class TensorDataCreator:
         """
         if self.spec.data_type is None:
             self.spec.data_type = autodetect_tensor_data_type(self.spec.task)
-        
+
         self.spec.target, self.spec.target_idx = normalize_array_target_reference(
             target=self.spec.target,
             target_idx=self.spec.target_idx,
@@ -168,7 +168,7 @@ class TensorDataCreator:
                         self.spec.target = Backend().xp.array(self.spec.target)
                     self.obligatory_preprocess()
                     raw_conversion_plan.preprocessing_done = True
-        
+
         if not raw_conversion_plan.preprocessing_done:
             self.obligatory_preprocess()
             raw_conversion_plan.preprocessing_done = True
@@ -259,7 +259,7 @@ class TensorDataCreator:
         except Exception as e:
             failure = build_creation_failure(source_data, creation_request.backend_name, e)
             raise ValueError(failure.message) from e
-    
+
     @classmethod
     def create_lazy(cls, source_data, backend_name, **kwargs):
         """

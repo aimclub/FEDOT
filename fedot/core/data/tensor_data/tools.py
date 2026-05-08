@@ -179,6 +179,25 @@ def replace_missing_with_np_nan(arr: ArrayType) -> ArrayType:
 
 def _drop_rows_with_nan_in_target(features: ArrayType,
                                   target: ArrayType) -> Tuple[ArrayType, ArrayType]:
+    """
+    Remove samples whose target contains missing values.
+
+    Missing target values are detected for numeric arrays with backend `isnan`
+    logic and for object/string arrays with pandas-style NA checks plus common
+    textual missing markers.
+
+    Args:
+        features (ArrayType): Feature matrix aligned with `target` by rows.
+        target (ArrayType): Target array to inspect for missing values.
+
+    Returns:
+        Tuple[ArrayType, ArrayType]: Features and target filtered to rows with
+            complete target values. If `target` is None, inputs are returned
+            unchanged.
+
+    Raises:
+        ValueError: If all rows contain missing target values.
+    """
     xp = Backend().xp
     pd_backend = Backend().pd
 
@@ -347,7 +366,7 @@ def get_target_and_features(
     # For ts type if target_idx is not provided, do nothing
     if data_type == DataTypesEnum.ts and target_idx is None:
         return features, target, idx_mapping
-    
+
     # replace missing values with np.nan for ts is already done in ts preprocessing
     if data_type != DataTypesEnum.ts:
         features = replace_missing_with_np_nan(features)

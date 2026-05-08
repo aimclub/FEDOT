@@ -154,7 +154,7 @@ def process_ts_data(
         ts_orientation = TSOrientationEnum.wide
     elif ts_orientation == TSOrientationEnum.long:
         features, terms_idx = long_to_wide(features, features_names, terms_idx)
-    
+
     if without_target:
         return features, target, init_shape, terms_idx
 

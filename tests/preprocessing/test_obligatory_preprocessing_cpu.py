@@ -91,7 +91,7 @@ def test_from_tensor():
 #     """Test TensorData conversion for a dataset loaded by `TSLoader`.
 
 #     Checks that both train and test parts of the UCR dataset are converted into
-#     TensorData objects with torch feature and target tensors. 
+#     TensorData objects with torch feature and target tensors.
 #     Also checks that target is encoded automatically."""
 #     name = "AbnormalHeartbeat"
 #     X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
@@ -411,8 +411,8 @@ def test_update_idx_enc():
     }]
 
     td = TensorDataCreator.create(X, backend_name="cpu",
-                           features_names=features_names,
-                           encoding_strategy=encoding_strategy)
+                                  features_names=features_names,
+                                  encoding_strategy=encoding_strategy)
     assert isinstance(td, TensorData)
     assert td.features.shape[1] == 4
     assert td.features[0, 0] == 100
@@ -502,8 +502,8 @@ def test_custom_encoders():
     }]
 
     td = TensorDataCreator.create(X, backend_name="cpu",
-                           features_names=features_names,
-                           custom_strategy=custom_strategy)
+                                  features_names=features_names,
+                                  custom_strategy=custom_strategy)
 
     np_features = td.features.numpy()
 
@@ -562,8 +562,8 @@ def test_custom_encoders_automatic_encoding():
     }]
 
     td = TensorDataCreator.create(X, backend_name="cpu",
-                           features_names=features_names,
-                           custom_strategy=custom_strategy)
+                                  features_names=features_names,
+                                  custom_strategy=custom_strategy)
 
     np_features = td.features.numpy()
 

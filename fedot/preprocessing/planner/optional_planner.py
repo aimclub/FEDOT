@@ -111,7 +111,7 @@ def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, 
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
     else:
-        steps = get_steps_from_params(data,step_name, params)
+        steps = get_steps_from_params(data, step_name, params)
         return steps
 
 

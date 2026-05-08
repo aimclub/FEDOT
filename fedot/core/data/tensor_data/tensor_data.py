@@ -155,7 +155,7 @@ class TensorData:
             self.dataloader_kwargs,
         )
         return sum(sys.getsizeof(field) for field in metadata_fields)
-    
+
     def to(self, device: Union[str, torch.device]):
         """
         Move tensor fields to the given device in place.

@@ -1,8 +1,8 @@
 from typing import Optional
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
-from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping, 
-    update_indices, create_index_mapping)
+from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
+                                                           update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan

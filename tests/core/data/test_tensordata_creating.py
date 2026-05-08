@@ -79,6 +79,7 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
 @pytest.mark.unit
 def test_tensor_data_creator_wraps_reader_errors_with_creation_context(monkeypatch):
     """Check that low-level reader failures are reported with source type and backend context."""
+
     def fake_backend_set(self, _name):
         return None
 
