@@ -6,7 +6,8 @@ from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAP
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           ImputationMethodEnum,
                                                           ScalingMethodEnum,
-                                                          FilteringMethodEnum)
+                                                          FilteringMethodEnum,
+                                                          EncodingMethodEnum)
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.core.data.prepared_data.prepared_data import PreparedData
@@ -402,6 +403,102 @@ def test_encoding_autoscaling_imputation():
     assert np.allclose(result[[0, 2], 1], expected_col[[0, 2]], atol=1e-6)
     assert result[1, 1] == 3
     assert np.allclose(result[:, 2], np.array([0, 1, 2], dtype=np.float32), atol=1e-6)
+
+
+@pytest.mark.unit
+def test_ohe_encoding_imputation_uses_original_indices():
+    """Test optional preprocessing index mapping after one-hot encoding.
+
+    Checks that optional preprocessing still targets the original numeric column
+    after OHE moves the encoded categorical column to the end of the feature matrix.
+    """
+    X = np.array([
+        [1, "A", 2, 3],
+        [4, "B", np.nan, 6],
+        [7, "C", 8, 9]
+    ], dtype=object)
+
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.ohe,
+        "features_idx": [1]
+    }]
+
+    td = TensorDataCreator.create(
+        X,
+        backend_name="cpu",
+        encoding_strategy=encoding_strategy
+    )
+
+    strategy = {
+        PreprocessingStepEnum.imputation: [{
+            "method": ImputationMethodEnum.constant,
+            "features_idx": [2],
+            "step_args": {"constant": 3}
+        }],
+    }
+
+    service = OptionalTabularService()
+    preprocessed_data = service.fit_transform(td, strategy)
+
+    assert isinstance(preprocessed_data, PreparedData)
+    assert preprocessed_data.features.shape[1] == 5
+
+    result = preprocessed_data.features.numpy()
+
+    reference_result = np.array([
+        [1, 2, 1, 0, 0],
+        [4, 3, 0, 1, 0],
+        [7, 8, 0, 0, 1],
+    ], dtype=np.float32)
+
+    assert np.allclose(result, reference_result, atol=1e-6)
+
+
+@pytest.mark.unit
+def test_ohe_encoding_imputation_uses_original_feature_names():
+    """Test optional preprocessing name mapping after one-hot encoding."""
+    X = np.array([
+        [1, "A", 2, 3],
+        [4, "B", np.nan, 6],
+        [7, "C", 8, 9]
+    ], dtype=object)
+    columns = ["id", "category", "value", "target"]
+
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.ohe,
+        "features_idx": ["category"]
+    }]
+
+    td = TensorDataCreator.create(
+        X,
+        backend_name="cpu",
+        features_names=columns,
+        encoding_strategy=encoding_strategy
+    )
+
+    strategy = {
+        PreprocessingStepEnum.imputation: [{
+            "method": ImputationMethodEnum.constant,
+            "features_idx": ["value"],
+            "step_args": {"constant": 3}
+        }],
+    }
+
+    service = OptionalTabularService()
+    preprocessed_data = service.fit_transform(td, strategy)
+
+    assert isinstance(preprocessed_data, PreparedData)
+    assert preprocessed_data.features.shape[1] == 5
+
+    result = preprocessed_data.features.numpy()
+
+    reference_result = np.array([
+        [1, 2, 1, 0, 0],
+        [4, 3, 0, 1, 0],
+        [7, 8, 0, 0, 1],
+    ], dtype=np.float32)
+
+    assert np.allclose(result, reference_result, atol=1e-6)
 
 
 @pytest.mark.unit

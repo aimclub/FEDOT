@@ -297,6 +297,6 @@ def test_tensor_data_creator_builds_tensor_data_container_from_spec_fields():
     assert isinstance(tensor_data, TensorData)
     assert tensor_data.features is creator.spec.features
     assert tensor_data.target is creator.spec.target
-    assert tensor_data.target_idx == 1
+    assert tensor_data.target_idx == [1]
     assert tensor_data.categorical_idx == [0]
     assert tensor_data.features_names == ['feature', 'target']

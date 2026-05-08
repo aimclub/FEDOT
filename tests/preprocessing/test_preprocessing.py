@@ -13,7 +13,7 @@ def test_prepare_tensordata_uses_obligatory_bridge_path(monkeypatch):
     captured = {}
     preprocessor = DataPreprocessor()
 
-    monkeypatch.setattr(preprocessing_module.backend, 'name', 'gpu')
+    monkeypatch.setattr(preprocessing_module.Backend(), 'name', 'gpu')
 
     def fake_tensordata_to_input_data(tensor_data):
         captured['tensor_data'] = tensor_data
@@ -44,7 +44,7 @@ def test_prepare_tensordata_uses_optional_predict_bridge_path(monkeypatch):
     captured = {}
     preprocessor = DataPreprocessor()
 
-    monkeypatch.setattr(preprocessing_module.backend, 'name', 'cpu')
+    monkeypatch.setattr(preprocessing_module.Backend(), 'name', 'cpu')
 
     def fake_tensordata_to_input_data(tensor_data):
         return 'input-data'

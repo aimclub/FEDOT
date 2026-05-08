@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fedot.core.backend.backend import backend
+from fedot.core.backend.backend import Backend
 from fedot.core.data.reader.tools import read_arff_file
 
 
@@ -17,9 +17,9 @@ def test_read_arff_file_uses_target_resolution_rules(monkeypatch):
         'target': np.array([b'a', b'b']),
     }
 
-    monkeypatch.setattr('fedot.core.data.data_reader.loadarff', lambda _path: (fake_record, _FakeMeta()))
-    monkeypatch.setattr(backend, 'name', 'cpu')
-    monkeypatch.setattr(backend, 'xp', np)
+    monkeypatch.setattr('fedot.core.data.reader.tools.loadarff', lambda _path: (fake_record, _FakeMeta()))
+    monkeypatch.setattr(Backend(), 'name', 'cpu')
+    monkeypatch.setattr(Backend(), 'xp', np)
 
     features, target = read_arff_file('sample.arff', target_idx='target')
 
@@ -34,9 +34,9 @@ def test_read_arff_file_infers_target_when_not_provided(monkeypatch):
         'target': np.array([b'a', b'b']),
     }
 
-    monkeypatch.setattr('fedot.core.data.data_reader.loadarff', lambda _path: (fake_record, _FakeMeta()))
-    monkeypatch.setattr(backend, 'name', 'cpu')
-    monkeypatch.setattr(backend, 'xp', np)
+    monkeypatch.setattr('fedot.core.data.reader.tools.loadarff', lambda _path: (fake_record, _FakeMeta()))
+    monkeypatch.setattr(Backend(), 'name', 'cpu')
+    monkeypatch.setattr(Backend(), 'xp', np)
 
     features, target = read_arff_file('sample.arff')
 

@@ -1,7 +1,8 @@
 from typing import Optional
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
-from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
+from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping, 
+    update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
@@ -42,6 +43,8 @@ class OptionalService:
         """
         self.plan = build_optional_plan(data, optional_steps)
 
+        optional_idx_mapping = create_index_mapping(data.features)
+
         prepared_data = None
 
         if len(self.plan.steps) > 0:
@@ -49,7 +52,7 @@ class OptionalService:
 
             prepared_data = PreparedData(features=data.features,
                                          target=data.target,
-                                         idx_mapping=data.idx_mapping,
+                                         idx_mapping=optional_idx_mapping,
                                          ts_shape=data.ts_init_shape)
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping

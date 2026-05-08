@@ -28,7 +28,7 @@ def test_input_data_to_tensordata_passes_bridge_plan_to_tensor_create(monkeypatc
         captured['kwargs'] = kwargs
         return 'tensor-data'
 
-    monkeypatch.setattr('fedot.core.data.input_data_bridge.TensorData.create', fake_create)
+    monkeypatch.setattr('fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
 
     result = input_data_to_tensordata(input_data, backend_name='cpu', state='fit')
 
@@ -58,7 +58,7 @@ def test_input_data_to_tensordata_drops_target_for_predict_state(monkeypatch):
         captured['kwargs'] = kwargs
         return 'tensor-data'
 
-    monkeypatch.setattr('fedot.core.data.input_data_bridge.TensorData.create', fake_create)
+    monkeypatch.setattr('fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
 
     input_data_to_tensordata(input_data, backend_name='gpu', state=StateEnum.PREDICT)
 
