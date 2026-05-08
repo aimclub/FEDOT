@@ -13,7 +13,7 @@ Here examples of for tabular data:
 .. code-block:: python
 
 
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     data_path = 'path_to_data'
 
     data = InputData.from_csv(data_path,
@@ -36,7 +36,7 @@ You also can create ``InputData`` from pandas ``DataFrame``:
 .. code-block:: python
 
 
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
 
 
     data = InputData.from_dataframe(features_df,
@@ -48,7 +48,7 @@ or from numpy array:
 .. code-block:: python
 
 
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
 
 
     data = InputData.from_numpy(features_array,
