@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           ScalingMethodEnum,
@@ -8,6 +9,7 @@ from fedot.industrial.core.architecture.preprocessing.ts_optional_service import
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 
 
+@pytest.mark.unit
 def test_preprocessing_seasonal_normalization():
     """Test seasonal normalization by phase.
 
@@ -70,6 +72,7 @@ def test_preprocessing_seasonal_normalization():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_rolling_normalization():
     """Test rolling-window normalization over time.
 
@@ -131,6 +134,7 @@ def test_preprocessing_rolling_normalization():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_per_channel_normalization():
     """Test per-channel normalization for 3D time-series data.
 
@@ -193,6 +197,7 @@ def test_preprocessing_per_channel_normalization():
     assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_gamma_correction():
     """Test gamma correction for selected image-like channel.
 
@@ -244,6 +249,7 @@ def test_preprocessing_gamma_correction():
     assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_log_transform():
     """Test logarithmic transformation for selected image-like channel.
 
@@ -295,6 +301,7 @@ def test_preprocessing_log_transform():
     assert np.allclose(result[:, :, 0], X[:, :, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_mean_imputation():
     """Test time-series mean imputation on selected features.
 
@@ -361,6 +368,7 @@ def test_preprocessing_mean_imputation():
     assert np.allclose(result, expected, atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_median_imputation():
     """Test time-series median imputation on selected features.
 
@@ -427,6 +435,7 @@ def test_preprocessing_median_imputation():
     assert np.allclose(result, expected, atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_constant_imputation():
     """Test time-series constant imputation.
 
@@ -495,6 +504,7 @@ def test_preprocessing_constant_imputation():
     assert np.allclose(result, expected, atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_fill_imputation_forward():
     """Test forward-fill imputation along the time axis.
 
@@ -563,6 +573,7 @@ def test_preprocessing_fill_imputation_forward():
     assert np.allclose(result, expected, atol=1e-6, equal_nan=True)
 
 
+@pytest.mark.unit
 def test_preprocessing_fill_imputation_backward():
     """Test backward-fill imputation along the time axis.
 
@@ -631,6 +642,7 @@ def test_preprocessing_fill_imputation_backward():
     assert np.allclose(result, expected, atol=1e-6, equal_nan=True)
 
 
+@pytest.mark.unit
 def test_preprocessing_rolling_imputation_mean_center():
     """Test centered rolling mean imputation.
 
@@ -701,6 +713,7 @@ def test_preprocessing_rolling_imputation_mean_center():
     assert np.allclose(result, expected, atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_rolling_imputation_median_backward_window():
     """Test causal rolling median imputation.
 
@@ -771,6 +784,7 @@ def test_preprocessing_rolling_imputation_median_backward_window():
     assert np.allclose(result, expected, atol=1e-6, equal_nan=True)
 
 
+@pytest.mark.unit
 def test_preprocessing_kalman_imputation():
     """Test Kalman imputation output constraints.
 
@@ -830,6 +844,7 @@ def test_preprocessing_kalman_imputation():
     assert 2.0 <= result[1, 1, 0] <= 4.0
 
 
+@pytest.mark.unit
 def test_preprocessing_linear_interpolation():
     """Test linear interpolation imputation.
 
@@ -896,6 +911,7 @@ def test_preprocessing_linear_interpolation():
     assert np.allclose(result, expected, atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_polynomial_interpolation():
     """Test polynomial interpolation imputation.
 
@@ -977,6 +993,7 @@ def test_preprocessing_polynomial_interpolation():
     assert np.allclose(result, expected, atol=1e-5)
 
 
+@pytest.mark.unit
 def test_preprocessing_spline_interpolation():
     """Test spline interpolation imputation.
 
@@ -1057,6 +1074,7 @@ def test_preprocessing_spline_interpolation():
     assert np.allclose(result, expected, atol=1e-5)
 
 
+@pytest.mark.unit
 def test_multiple_imputation_step():
     """Test applying multiple imputation steps in sequence.
 

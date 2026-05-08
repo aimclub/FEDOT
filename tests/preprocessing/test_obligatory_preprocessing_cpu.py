@@ -2,6 +2,7 @@ from typing import Sequence
 
 import numpy as np
 import pandas as pd
+import pytest
 import torch
 
 from fedot.core.backend.backend import Backend
@@ -13,6 +14,7 @@ from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
 
 
+@pytest.mark.unit
 def test_text_features_preprocess_like_categorical():
     """Test automatic text handling without embedding strategy.
 
@@ -36,6 +38,7 @@ def test_text_features_preprocess_like_categorical():
     assert td.features.shape[1] == 2
 
 
+@pytest.mark.unit
 def test_categorical_features_match_indices():
     """Test categorical column selection by feature name.
 
@@ -65,6 +68,7 @@ def test_categorical_features_match_indices():
     assert td.features.shape[1] == 2
 
 
+@pytest.mark.unit
 def test_from_tensor():
     """Test TensorData creation from an input torch tensor.
 
@@ -108,6 +112,7 @@ def test_from_tensor():
 #     assert isinstance(test_tensor.target, torch.Tensor)
 
 
+@pytest.mark.integration
 def test_categorical_text():
     """Test combined text embedding and categorical encoding.
 
@@ -151,6 +156,7 @@ def test_categorical_text():
     assert td.features.shape[1] == 768 * 2 + 3
 
 
+@pytest.mark.unit
 def test_label_ohe_encoding():
     """Test mixed label and one-hot categorical encoding.
 
@@ -180,6 +186,7 @@ def test_label_ohe_encoding():
     assert td.features.shape[1] == 4
 
 
+@pytest.mark.unit
 def test_encoding_torch_data():
     """Test encoding strategy on torch tensor input.
 
@@ -202,6 +209,7 @@ def test_encoding_torch_data():
     assert td.features.shape[1] == X.shape[1] - 1
 
 
+@pytest.mark.unit
 def test_datetime_features():
     """Test DataFrame input with datetime feature and named target.
 
@@ -220,6 +228,7 @@ def test_datetime_features():
     assert td.features.shape[1] == features.shape[1] - 1
 
 
+@pytest.mark.unit
 def test_nan_rows_are_dropped_from_target():
     """Test removal of rows with missing target values.
 
@@ -242,6 +251,7 @@ def test_nan_rows_are_dropped_from_target():
     assert td.target.shape[0] == 2
 
 
+@pytest.mark.unit
 def test_target_extracted_by_index():
     """Test target extraction by positional column index.
 
@@ -260,6 +270,7 @@ def test_target_extracted_by_index():
     assert td.target.shape[0] == 20
 
 
+@pytest.mark.unit
 def test_create_time_series():
     """Test time-series TensorData creation without default target split.
 
@@ -280,6 +291,7 @@ def test_create_time_series():
     assert td.features.shape[1] == features.shape[1]
 
 
+@pytest.mark.unit
 def test_long_orientation():
     """Test long-orientation time-series reshaping.
 
@@ -304,6 +316,7 @@ def test_long_orientation():
     assert td.features.shape[1] == 3
 
 
+@pytest.mark.unit
 def test_is_multichannel():
     """Test multichannel time-series TensorData creation.
 
@@ -324,6 +337,7 @@ def test_is_multichannel():
     assert td.features.shape[2] == X.shape[2]
 
 
+@pytest.mark.integration
 def test_update_idx_emb_enc():
     """Test index mapping when embedding and one-hot encoding are combined.
 
@@ -373,6 +387,7 @@ def test_update_idx_emb_enc():
     assert td.features[1, -1] == 1
 
 
+@pytest.mark.unit
 def test_update_idx_enc():
     """Test index mapping with one-hot and label encoding strategies.
 
@@ -411,6 +426,7 @@ def test_update_idx_enc():
     assert td.features[1, 3] == 1
 
 
+@pytest.mark.unit
 def test_custom_encoders():
     """Test custom obligatory encoders with explicit implementations.
 
@@ -501,6 +517,7 @@ def test_custom_encoders():
     assert np.allclose(np_features, ref_X, atol=1e-5)
 
 
+@pytest.mark.unit
 def test_custom_encoders_automatic_encoding():
     """Test custom encoder together with automatic categorical encoding.
 

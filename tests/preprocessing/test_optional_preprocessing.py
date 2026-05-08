@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
@@ -14,6 +15,7 @@ from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
 
 
+@pytest.mark.unit
 def test_build_optional_plan():
     """Test optional plan construction from explicit imputation params.
 
@@ -39,6 +41,7 @@ def test_build_optional_plan():
     assert len(optional_plan.steps) == 1
 
 
+@pytest.mark.unit
 def test_mean_imputation():
     """Test direct mean imputation handler behavior.
 
@@ -56,6 +59,7 @@ def test_mean_imputation():
     assert preprocessed_data.features[1, 1] == 5
 
 
+@pytest.mark.unit
 def test_preprocessing_plan_imputation():
     """Test default optional imputation through `OptionalTabularService`.
 
@@ -74,6 +78,7 @@ def test_preprocessing_plan_imputation():
     assert preprocessed_data.features[1, 1] == 5
 
 
+@pytest.mark.unit
 def test_preprocessing_plan_mode_imputation():
     """Test mode imputation through optional preprocessing plan.
 
@@ -96,6 +101,7 @@ def test_preprocessing_plan_mode_imputation():
     assert preprocessed_data.features[2, 1] == 2
 
 
+@pytest.mark.unit
 def test_preprocessing_plan_mean_imputation():
     """Test configured mean imputation through optional service.
 
@@ -117,6 +123,7 @@ def test_preprocessing_plan_mean_imputation():
     assert preprocessed_data.features[1, 1] == 5
 
 
+@pytest.mark.unit
 def test_preprocessing_plan_constant_imputation():
     """Test constant imputation through optional service.
 
@@ -139,6 +146,7 @@ def test_preprocessing_plan_constant_imputation():
     assert preprocessed_data.features[2, 1] == 3
 
 
+@pytest.mark.unit
 def test_preprocessing_plan_delete_raw_imputation():
     """Test row deletion imputation strategy.
 
@@ -161,6 +169,7 @@ def test_preprocessing_plan_delete_raw_imputation():
     assert preprocessed_data.target.shape[0] == 2
 
 
+@pytest.mark.unit
 def test_preprocessing_minmax_scaling():
     """Test min-max scaling for a selected tabular column.
 
@@ -203,6 +212,7 @@ def test_preprocessing_minmax_scaling():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_standard_scaling():
     """Test standard scaling for a selected tabular column.
 
@@ -247,6 +257,7 @@ def test_preprocessing_standard_scaling():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_robust_scaling():
     """Test robust scaling by median and interquartile range.
 
@@ -296,6 +307,7 @@ def test_preprocessing_robust_scaling():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_imputation_scaling():
     """Test sequential optional imputation followed by scaling.
 
@@ -345,6 +357,7 @@ def test_imputation_scaling():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_encoding_autoscaling_imputation():
     """Test optional preprocessing after obligatory categorical encoding.
 
@@ -391,6 +404,7 @@ def test_encoding_autoscaling_imputation():
     assert np.allclose(result[:, 2], np.array([0, 1, 2], dtype=np.float32), atol=1e-6)
 
 
+@pytest.mark.unit
 def test_preprocessing_clipping():
     """Test quantile clipping filter for outlier handling.
 
@@ -438,6 +452,7 @@ def test_preprocessing_clipping():
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
 
 
+@pytest.mark.unit
 def test_custom_preprocessing():
     """Test custom optional preprocessing handlers.
 

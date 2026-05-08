@@ -17,6 +17,7 @@ from fedot.core.utils import fedot_project_root
 from fedot.preprocessing.tools.preprocessor_types import EmbeddingMethodEnum
 
 
+@pytest.mark.integration
 def test_create_text_csv_to_tensordata():
     """Test CSV text data conversion with transformer embeddings.
 
@@ -56,6 +57,7 @@ def test_create_text_csv_to_tensordata():
     assert td.features.shape[1] > 1
 
 
+@pytest.mark.unit
 def test_lazy_tensordata_to_device():
     """Test lazy TensorData materialization to a requested device.
 
@@ -75,6 +77,7 @@ def test_lazy_tensordata_to_device():
     assert td.features.device.type == "cpu"
 
 
+@pytest.mark.unit
 def test_create_from_numpy_cupy():
     """Test NumPy input conversion with GPU backend.
 
@@ -98,6 +101,7 @@ def test_create_from_numpy_cupy():
     assert td.target.device.type == "cuda"
 
 
+@pytest.mark.unit
 def test_create_from_cupy():
     """Test CuPy input conversion to TensorData on GPU.
 
@@ -119,6 +123,7 @@ def test_create_from_cupy():
     assert td.target.device.type == "cuda"
 
 
+@pytest.mark.unit
 def test_create_from_cudf():
     """Test cuDF DataFrame input conversion on GPU.
 
@@ -140,6 +145,7 @@ def test_create_from_cudf():
     assert td.target.device.type == "cuda"
 
 
+@pytest.mark.integration
 def test_create_from_csv_gpu():
     """Test CSV loading with GPU backend and named target.
 
@@ -160,6 +166,7 @@ def test_create_from_csv_gpu():
     assert td.features.device.type == "cuda"
 
 
+@pytest.mark.unit
 def test_nan_gpu_backend():
     """Test GPU TensorData creation with missing values.
 
@@ -172,6 +179,7 @@ def test_nan_gpu_backend():
     assert td.features.device.type == "cuda"
 
 
+@pytest.mark.unit
 def test_categorical_encoding_gpu_backend():
     """Test automatic categorical encoding on GPU backend.
 

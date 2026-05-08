@@ -105,6 +105,7 @@ class PreprocessingStep:
     step: PreprocessingStepEnum
     method: Union[Enum, str]
     features_idx: IndexType
+    # update_idx_required: bool = True
     implementation: Optional[AbstractPreprocessingHandler] = None
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)

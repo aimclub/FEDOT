@@ -181,21 +181,26 @@ class TensorDataCreator:
             TensorData: Runtime data container populated with fields from `spec`.
         """
         return TensorData(
-            features=self.spec.features,
-            target=self.spec.target,
             task=self.spec.task,
             data_type=self.spec.data_type,
             state=self.spec.state,
-            features_names=self.spec.features_names,
+            idx=self.spec.idx,
+            features=self.spec.features,
+            target=self.spec.target,
+            predict=self.spec.predict,
             target_idx=self.spec.target_idx,
             categorical_idx=self.spec.categorical_idx,
+            numerical_idx=self.spec.numerical_idx,
             encoding_strategy=self.spec.encoding_strategy,
             embedding_strategy=self.spec.embedding_strategy,
             custom_strategy=self.spec.custom_strategy,
+            features_names=self.spec.features_names,
+            idx_mapping=self.spec.idx_mapping,
             ts_orientation=self.spec.ts_orientation,
             ts_terms_idx=self.spec.ts_terms_idx,
             ts_forecast_horizon=self.spec.ts_forecast_horizon,
-            dataloader_kwargs=self.spec.dataloader_kwargs,
+            ts_init_shape=self.spec.ts_init_shape,
+            dataloader_kwargs=self.spec.dataloader_kwargs
         )
 
     def to_backend(self, tensor_data: "TensorData") -> "TensorData":
