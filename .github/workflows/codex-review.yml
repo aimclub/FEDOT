@@ -75,7 +75,7 @@ jobs:
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.FEDOT_LLM_KEY_TEST_ONLY }}
-          response-api-endpoint: "https://openrouter.ai/api/v1"
+          responses-api-endpoint: "https://openrouter.ai/api/v1"
           model: "openai/gpt-5.1-codex-mini"
           prompt: |
             This is PR #${{ steps.prnum.outputs.pr }} for ${{ github.repository }}.
