@@ -34,13 +34,15 @@ class BasePreprocessor(ABC):
     def __init__(self):
         # There was performed encoding for string target column or not
         self.target_encoders: Dict[str, LabelEncoder] = {}
-        self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
+        self.features_encoders: Dict[str,
+                                     Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
         self.use_label_encoder: bool = False
         self.features_imputers: Dict[str, ImputationImplementation] = {}
         self.ids_relevant_features: Dict[str, np.ndarray] = {}
 
         # Categorical preprocessor for binary categorical features
-        self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
+        self.binary_categorical_processors: Dict[str,
+                                                 BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
         self.main_target_source_name = None
 

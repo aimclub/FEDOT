@@ -25,10 +25,13 @@ def run_multi_modal_example(file_path: str, visualization: bool = False, with_tu
     """
     task = 'classification'
     path = fedot_project_root().joinpath(file_path)
-    data = MultiModalData.from_csv(file_path=path, task=task, target_columns='variety', index_col=None)
-    fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.7)
+    data = MultiModalData.from_csv(
+        file_path=path, task=task, target_columns='variety', index_col=None)
+    fit_data, predict_data = train_test_data_setup(
+        data, shuffle=True, split_ratio=0.7)
 
-    automl_model = Fedot(problem=task, timeout=timeout, with_tuning=with_tuning, n_jobs=1)
+    automl_model = Fedot(problem=task, timeout=timeout,
+                         with_tuning=with_tuning, n_jobs=1)
     automl_model.fit(features=fit_data,
                      target=fit_data.target)
 
@@ -46,4 +49,5 @@ def run_multi_modal_example(file_path: str, visualization: bool = False, with_tu
 if __name__ == '__main__':
     set_random_seed(42)
 
-    run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', visualization=True)
+    run_multi_modal_example(
+        file_path='examples/data/multimodal_wine.csv', visualization=True)

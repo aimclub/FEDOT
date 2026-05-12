@@ -43,7 +43,8 @@ def export_h2o(pipeline, pipeline_path, test_data):
     json_path_load = create_correct_path(pipeline_path)
     new_pipeline = Pipeline.from_serialized(json_path_load)
 
-    results = new_pipeline.predict(input_data=test_data, output_mode="full_probs")
+    results = new_pipeline.predict(
+        input_data=test_data, output_mode="full_probs")
     prediction_after_export = results.predict[:, 0]
     print(f'After export {prediction_after_export[:4]}')
 

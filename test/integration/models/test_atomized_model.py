@@ -54,13 +54,18 @@ def create_atomized_model() -> AtomizedModel:
 
 def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
     pipeline = Pipeline()
-    node_atomized_model_primary = PipelineNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary = PipelineNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_second = PipelineNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_third = PipelineNode(operation_type=create_atomized_model())
+    node_atomized_model_primary = PipelineNode(
+        operation_type=create_atomized_model())
+    node_atomized_model_secondary = PipelineNode(
+        operation_type=create_atomized_model())
+    node_atomized_model_secondary_second = PipelineNode(
+        operation_type=create_atomized_model())
+    node_atomized_model_secondary_third = PipelineNode(
+        operation_type=create_atomized_model())
 
     node_atomized_model_secondary.nodes_from = [node_atomized_model_primary]
-    node_atomized_model_secondary_second.nodes_from = [node_atomized_model_primary]
+    node_atomized_model_secondary_second.nodes_from = [
+        node_atomized_model_primary]
     node_atomized_model_secondary_third.nodes_from = [node_atomized_model_secondary,
                                                       node_atomized_model_secondary_second]
 
@@ -75,7 +80,8 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     atomized_op = create_atomized_model_with_several_atomized_models()
     node_atomized_model = PipelineNode(operation_type=atomized_op)
 
-    node_atomized_model_secondary = PipelineNode(operation_type=create_atomized_model())
+    node_atomized_model_secondary = PipelineNode(
+        operation_type=create_atomized_model())
     node_atomized_model_secondary.nodes_from = [node_atomized_model]
 
     node_knn = PipelineNode('knn')
@@ -84,10 +90,12 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
 
     node_knn_second = PipelineNode('knn')
     node_knn_second.parameters = {'n_neighbors': 5}
-    node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
+    node_knn_second.nodes_from = [
+        node_atomized_model, node_atomized_model_secondary, node_knn]
 
     node_atomized_model_secondary_second = \
-        PipelineNode(operation_type=create_atomized_model_with_several_atomized_models())
+        PipelineNode(
+            operation_type=create_atomized_model_with_several_atomized_models())
 
     node_atomized_model_secondary_second.nodes_from = [node_knn_second]
 
@@ -101,10 +109,14 @@ def get_some_atomized_nodes():
 
 
 def create_input_data():
-    train_file_path = os.path.join('test', 'data', 'scoring', 'scoring_train.csv')
-    test_file_path = os.path.join('test', 'data', 'scoring', 'scoring_test.csv')
-    full_train_file_path = os.path.join(str(fedot_project_root()), train_file_path)
-    full_test_file_path = os.path.join(str(fedot_project_root()), test_file_path)
+    train_file_path = os.path.join(
+        'test', 'data', 'scoring', 'scoring_train.csv')
+    test_file_path = os.path.join(
+        'test', 'data', 'scoring', 'scoring_test.csv')
+    full_train_file_path = os.path.join(
+        str(fedot_project_root()), train_file_path)
+    full_test_file_path = os.path.join(
+        str(fedot_project_root()), test_file_path)
 
     train_data = InputData.from_csv(full_train_file_path)
     test_data = InputData.from_csv(full_test_file_path)
@@ -145,9 +157,11 @@ def test_atomized_model_metadata(atomized_node):
 def test_save_load_atomized_pipeline_correctly():
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    json_actual, _ = pipeline.save('test_save_load_atomized_pipeline_correctly', create_subdir=False)
+    json_actual, _ = pipeline.save(
+        'test_save_load_atomized_pipeline_correctly', create_subdir=False)
 
-    json_path_load = create_correct_path('test_save_load_atomized_pipeline_correctly')
+    json_path_load = create_correct_path(
+        'test_save_load_atomized_pipeline_correctly')
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -165,9 +179,11 @@ def test_save_load_fitted_atomized_pipeline_correctly():
 
     pipeline.fit(train_data)
     before_save_predicted = pipeline.predict(test_data)
-    json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly', create_subdir=False)
+    json_actual, _ = pipeline.save(
+        'test_save_load_fitted_atomized_pipeline_correctly', create_subdir=False)
 
-    json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
+    json_path_load = create_correct_path(
+        'test_save_load_fitted_atomized_pipeline_correctly')
 
     pipeline_loaded = Pipeline.from_serialized(json_path_load)
     json_expected, _ = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded',
@@ -179,8 +195,10 @@ def test_save_load_fitted_atomized_pipeline_correctly():
     pipeline_loaded.fit_from_scratch(train_data)
     after_save_predicted = pipeline_loaded.predict(test_data)
 
-    bfr_save_mse = mean_squared_error(y_true=test_data.target, y_pred=before_save_predicted.predict)
-    aft_load_mse = mean_squared_error(y_true=test_data.target, y_pred=after_save_predicted.predict)
+    bfr_save_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=before_save_predicted.predict)
+    aft_load_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=after_save_predicted.predict)
 
     assert np.isclose(aft_load_mse, bfr_save_mse)
 
@@ -201,8 +219,10 @@ def test_fit_predict_atomized_model_correctly():
     predicted_atomized_output = pipeline.predict(test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
-    source_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
-    atomized_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
+    source_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=predicted_values.predict)
+    atomized_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=predicted_atomized_values)
 
     assert np.isclose(atomized_mse, source_mse)
 
@@ -226,15 +246,20 @@ def test_fine_tune_atomized_model_correct():
     dummy_atomized_model.fit(None, train_data)
 
     fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(None, train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(
+        None, train_data)
 
-    after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
+    after_tuning_output = fine_tuned_atomized_model.predict(
+        fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict
-    before_tuning_output = dummy_atomized_model.predict(fitted_dummy_model, data=test_data)
+    before_tuning_output = dummy_atomized_model.predict(
+        fitted_dummy_model, data=test_data)
     before_tuning_predicted = before_tuning_output.predict
 
-    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_tuning_predicted)
-    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=before_tuning_predicted)
+    aft_tun_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=after_tuning_predicted)
+    bfr_tun_mse = mean_squared_error(
+        y_true=test_data.target, y_pred=before_tuning_predicted)
 
     deviation = 0.50 * bfr_tun_mse
     assert aft_tun_mse <= (bfr_tun_mse + deviation)

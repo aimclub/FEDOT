@@ -57,7 +57,8 @@ def get_ts_data(dataset='m4_monthly', horizon: int = 30, m4_id=None, validation_
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
-    train_data, test_data = train_test_data_setup(train_input, validation_blocks=validation_blocks)
+    train_data, test_data = train_test_data_setup(
+        train_input, validation_blocks=validation_blocks)
     return train_data, test_data, label
 
 
@@ -69,7 +70,8 @@ def run_ts_forecasting_example(
         validation_blocks: int = 2,
         with_tuning: bool = True,
         use_stats: bool = False):
-    train_data, test_data, label = get_ts_data(dataset, horizon, validation_blocks=validation_blocks)
+    train_data, test_data, label = get_ts_data(
+        dataset, horizon, validation_blocks=validation_blocks)
     # init model for the time series forecasting
 
     model = Fedot(problem='ts_forecasting',
@@ -97,4 +99,5 @@ def run_ts_forecasting_example(
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='m4_monthly', horizon=14, timeout=2., validation_blocks=None, visualization=True)
+    run_ts_forecasting_example(dataset='m4_monthly', horizon=14,
+                               timeout=2., validation_blocks=None, visualization=True)

@@ -139,11 +139,13 @@ def pipeline_fourth():
     new_node = PipelineNode('qda')
     for model_type in ('rf', 'rf'):
         new_node.nodes_from.append(PipelineNode(model_type))
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
+    pipeline.update_subtree(
+        pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
     new_node = PipelineNode('knn')
     for model_type in ('knn', 'knn'):
         new_node.nodes_from.append(PipelineNode(model_type))
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[0], new_node)
+    pipeline.update_subtree(
+        pipeline.root_node.nodes_from[0].nodes_from[0], new_node)
     return pipeline
 
 
@@ -158,8 +160,10 @@ def pipeline_fifth():
     pipeline.update_node(pipeline.root_node, new_node)
     new_node1 = PipelineNode('knn')
     new_node2 = PipelineNode('knn')
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[0], new_node1)
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[1], new_node2)
+    pipeline.update_node(
+        pipeline.root_node.nodes_from[1].nodes_from[0], new_node1)
+    pipeline.update_node(
+        pipeline.root_node.nodes_from[1].nodes_from[1], new_node2)
 
     return pipeline
 
@@ -180,14 +184,17 @@ def test_cache_actuality_after_model_change(data_setup, cache_cleanup):
     root_parent_first = pipeline.root_node.nodes_from[0]
 
     nodes_with_non_actual_cache = [pipeline.root_node, root_parent_first]
-    nodes_with_actual_cache = [node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
+    nodes_with_actual_cache = [
+        node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
 
     # non-affected nodes are actual
     cache.try_load_nodes(nodes_with_actual_cache)
-    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
+    assert all(
+        node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected nodes and their childs has no any actual cache
     cache.try_load_nodes(nodes_with_non_actual_cache)
-    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
+    assert all(
+        node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
 def test_cache_actuality_after_subtree_change_to_identical(data_setup, cache_cleanup):
@@ -204,11 +211,13 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup, cache_cle
     pipeline.update_subtree(pipeline.root_node.nodes_from[0],
                             other_pipeline.root_node.nodes_from[0])
 
-    nodes_with_actual_cache = [node for node in pipeline.nodes if node not in [pipeline.root_node]]
+    nodes_with_actual_cache = [
+        node for node in pipeline.nodes if node not in [pipeline.root_node]]
 
     # non-affected nodes of initial pipeline and fitted nodes of new subtree are actual
     cache.try_load_nodes(nodes_with_actual_cache)
-    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
+    assert all(
+        node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected root node has no any actual cache
     cache.try_load_nodes(pipeline.root_node)
     assert pipeline.root_node.fitted_operation is None
@@ -229,14 +238,17 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup, cache
     root_parent_first = pipeline.root_node.nodes_from[0]
 
     nodes_with_non_actual_cache = [pipeline.root_node, root_parent_first]
-    nodes_with_actual_cache = [node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
+    nodes_with_actual_cache = [
+        node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
 
     # non-affected nodes of initial pipeline and fitted nodes of new subtree are actual
     cache.try_load_nodes(nodes_with_actual_cache)
-    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
+    assert all(
+        node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected root nodes and their childs has no any actual cache
     cache.try_load_nodes(nodes_with_non_actual_cache)
-    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
+    assert all(
+        node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
 def test_cache_historical_state_using_with_cv(data_setup, cache_cleanup):
@@ -286,15 +298,18 @@ def test_multi_pipeline_caching_with_cache(data_setup, cache_cleanup):
 
     nodes_with_non_actual_cache = [main_pipeline.root_node, main_pipeline.root_node.nodes_from[0]] + \
                                   [_ for _ in main_pipeline.root_node.nodes_from[0].nodes_from]
-    nodes_with_actual_cache = [node for node in main_pipeline.nodes if node not in nodes_with_non_actual_cache]
+    nodes_with_actual_cache = [
+        node for node in main_pipeline.nodes if node not in nodes_with_non_actual_cache]
 
     # check that using of other_pipeline make identical of the main_pipeline fitted,
     # despite the main_pipeline.fit() was not called
     cache.try_load_nodes(nodes_with_actual_cache)
-    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
+    assert all(
+        node.fitted_operation is not None for node in nodes_with_actual_cache)
     # the non-identical parts are still not fitted
     cache.try_load_nodes(nodes_with_non_actual_cache)
-    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
+    assert all(
+        node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
     # check the same case with another pipelines
     cache.reset()
@@ -309,12 +324,16 @@ def test_multi_pipeline_caching_with_cache(data_setup, cache_cleanup):
     prev_pipeline_second.fit(input_data=train)
     cache.save_pipeline(prev_pipeline_second)
 
-    nodes_with_non_actual_cache = [main_pipeline.root_node, main_pipeline.root_node.nodes_from[1]]
-    nodes_with_actual_cache = [child for child in main_pipeline.root_node.nodes_from[0].nodes_from]
+    nodes_with_non_actual_cache = [
+        main_pipeline.root_node, main_pipeline.root_node.nodes_from[1]]
+    nodes_with_actual_cache = [
+        child for child in main_pipeline.root_node.nodes_from[0].nodes_from]
 
     cache.try_load_nodes(nodes_with_non_actual_cache)
-    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
+    assert all(
+        node.fitted_operation is None for node in nodes_with_non_actual_cache)
     cache.try_load_nodes(nodes_with_actual_cache)
-    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
+    assert all(
+        node.fitted_operation is not None for node in nodes_with_actual_cache)
 
 # TODO Add changed data case for cache

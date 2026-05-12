@@ -13,10 +13,13 @@ def get_multimodal_pipeline():
     node_data_source_first = PipelineNode('data_source_table/first')
     node_data_source_second = PipelineNode('data_source_table/second')
 
-    node_scaling_first = PipelineNode('scaling', nodes_from=[node_data_source_first])
-    node_imputation_second = PipelineNode('simple_imputation', nodes_from=[node_data_source_second])
+    node_scaling_first = PipelineNode(
+        'scaling', nodes_from=[node_data_source_first])
+    node_imputation_second = PipelineNode(
+        'simple_imputation', nodes_from=[node_data_source_second])
 
-    node_final = PipelineNode('logit', nodes_from=[node_scaling_first, node_imputation_second])
+    node_final = PipelineNode(
+        'logit', nodes_from=[node_scaling_first, node_imputation_second])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -32,7 +35,8 @@ def get_single_task_multimodal_tabular_data():
     features_second = np.array([[10, 'a'], [11, 'a'], [12, 'b'], [13, 'a'], [14, 'a'],
                                 [15, 'b'], [16, 'b'], [17, 'c'], [18, 'c']], dtype=object)
 
-    target = np.array(['true', 'false', 'true', 'false', 'false', 'false', 'false', 'true', 'true'], dtype=str)
+    target = np.array(['true', 'false', 'true', 'false',
+                      'false', 'false', 'false', 'true', 'true'], dtype=str)
 
     input_first = InputData(idx=np.arange(0, 9), features=features_first,
                             target=target, task=task, data_type=DataTypesEnum.table)

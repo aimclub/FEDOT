@@ -13,17 +13,20 @@ class FrequencyClassificator(StatClassificator):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.transformation_model = params.get('transformation_model', 'fourier_basis')
+        self.transformation_model = params.get(
+            'transformation_model', 'fourier_basis')
         self.tuning_params['tuning_iterations'] = 1
 
     def _define_model(self):
         with open(PATH_TO_DEFAULT_PARAMS) as json_data:
             self.default_operation_params = json.load(json_data)
-        self.default_transform_model_params = self.default_operation_params[self.transformation_model]
+        self.default_transform_model_params = self.default_operation_params[
+            self.transformation_model]
         self.default_channel_model_params = self.default_operation_params[self.channel_model]
         self.default_stat_model_params = self.default_operation_params['quantile_extractor']
         self.model = PipelineBuilder(). \
             add_node(self.transformation_model, params=self.default_transform_model_params). \
             add_node('quantile_extractor', params=self.default_stat_model_params). \
-            add_node(self.channel_model, params=self.default_channel_model_params).build()
+            add_node(self.channel_model,
+                     params=self.default_channel_model_params).build()
         return self.model

@@ -47,7 +47,8 @@ class RAFEnsembler:
 
     def fit(self, train_data):
         if self.n_splits is None:
-            self.n_splits = round(train_data.features.shape[0] / self.batch_size)
+            self.n_splits = round(
+                train_data.features.shape[0] / self.batch_size)
 
         new_features = np.array_split(train_data.features,
                                       self.n_splits)

@@ -41,7 +41,8 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
     predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
                                    features=exog_variable, target=time_series,
                                    task=task, data_type=DataTypesEnum.ts)
-    train_input_exog, predict_input_exog = train_test_data_setup(predict_input_exog)
+    train_input_exog, predict_input_exog = train_test_data_setup(
+        predict_input_exog)
 
     return train_input, predict_input, train_input_exog, predict_input_exog, predict_input.target
 
@@ -88,7 +89,8 @@ def get_ridge_nemo_pipeline():
     node_ridge_1 = PipelineNode('ridge', nodes_from=[node_lagged_1])
     node_lagged_2 = PipelineNode('lagged/2')
     node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
-    node_ridge_3 = PipelineNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    node_ridge_3 = PipelineNode(
+        'ridge', nodes_from=[node_ridge_1, node_ridge_2])
     node_nemo = PipelineNode('exog_ts')
     node_final = PipelineNode('linear', nodes_from=[node_ridge_3, node_nemo])
     pipeline = Pipeline(node_final)
@@ -142,7 +144,8 @@ def compare_plot(predicted, real, forecast_length, model):
     plt.legend()
     plt.xlabel('Time index')
     plt.ylabel('SSH, m')
-    plt.title(f'Sea surface height forecast for {forecast_length} days with {model}')
+    plt.title(
+        f'Sea surface height forecast for {forecast_length} days with {model}')
     plt.show()
 
 
@@ -208,7 +211,8 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, visu
         return pipeline, train_dataset, predict_dataset
 
     for model_name in pipelines.keys():
-        pipeline, train_dataset, predict_dataset = multimodal_data_preparing(model_name)
+        pipeline, train_dataset, predict_dataset = multimodal_data_preparing(
+            model_name)
 
         pipeline.fit_from_scratch(train_dataset)
         predicted_values = pipeline.predict(predict_dataset)
@@ -304,14 +308,20 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, visuali
                                                 len_forecast=len_forecast,
                                                 visualization=visualization)
 
-            mse_errors_df = add_data_to_errors_df(mse_errors_df, 'MSE', point, errors)
-            mae_errors_df = add_data_to_errors_df(mae_errors_df, 'MAE', point, errors)
-            mape_errors_df = add_data_to_errors_df(mape_errors_df, 'MAPE', point, errors)
+            mse_errors_df = add_data_to_errors_df(
+                mse_errors_df, 'MSE', point, errors)
+            mae_errors_df = add_data_to_errors_df(
+                mae_errors_df, 'MAE', point, errors)
+            mape_errors_df = add_data_to_errors_df(
+                mape_errors_df, 'MAPE', point, errors)
 
     if out_path is not None:
-        mse_errors_df.to_csv(os.path.join(out_path, 'mse_errors.csv'), index=False)
-        mae_errors_df.to_csv(os.path.join(out_path, 'mae_errors.csv'), index=False)
-        mape_errors_df.to_csv(os.path.join(out_path, 'mape_errors.csv'), index=False)
+        mse_errors_df.to_csv(os.path.join(
+            out_path, 'mse_errors.csv'), index=False)
+        mae_errors_df.to_csv(os.path.join(
+            out_path, 'mae_errors.csv'), index=False)
+        mape_errors_df.to_csv(os.path.join(
+            out_path, 'mape_errors.csv'), index=False)
 
     if visualization:
         boxplot_visualize(mse_errors_df, 'MSE')

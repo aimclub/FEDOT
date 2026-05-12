@@ -98,7 +98,8 @@ def in_sample_ts_forecast(pipeline,
         source_len = len(pre_history_ts)
         last_index_pre_history = source_len - 1
 
-        data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
+        data = _update_input(pre_history_ts, scope_len,
+                             task, input_data.data_type)
     else:
         # TODO simplify
 
@@ -110,7 +111,8 @@ def in_sample_ts_forecast(pipeline,
             source_len = len(pre_history_ts)
             last_index_pre_history = source_len - 1
 
-            local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
+            local_data = _update_input(
+                pre_history_ts, scope_len, task, input_data[data_id].data_type)
             data[data_id] = local_data
 
     # Calculate intervals
@@ -122,7 +124,8 @@ def in_sample_ts_forecast(pipeline,
     final_forecast = []
     for _, border in zip(range(0, number_of_iterations), intervals):
 
-        iter_predict = pipeline.predict(input_data=data, predictions_cache=predictions_cache, fold_id=fold_id)
+        iter_predict = pipeline.predict(
+            input_data=data, predictions_cache=predictions_cache, fold_id=fold_id)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
 
@@ -130,7 +133,8 @@ def in_sample_ts_forecast(pipeline,
             # Add actual values to the historical data - update it
             pre_history_ts = time_series[:border + 1]
             # Prepare InputData for next iteration
-            data = _update_input(pre_history_ts, scope_len, task, input_data.data_type)
+            data = _update_input(pre_history_ts, scope_len,
+                                 task, input_data.data_type)
         else:
             # TODO simplify
             data = MultiModalData()
@@ -138,7 +142,8 @@ def in_sample_ts_forecast(pipeline,
                 features = input_data[data_id].features
                 time_series = np.array(features)
                 pre_history_ts = time_series[:border + 1]
-                local_data = _update_input(pre_history_ts, scope_len, task, input_data[data_id].data_type)
+                local_data = _update_input(
+                    pre_history_ts, scope_len, task, input_data[data_id].data_type)
                 data[data_id] = local_data
 
     # Create output data
@@ -163,7 +168,8 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
         copied_data.predict = copied_data.predict[:, horizon_step]
         if isinstance(copied_data.idx, list):
             # if indices can not be incremented, replace it
-            copied_data.idx = generate_ids(source_input, copied_data, expand=False)
+            copied_data.idx = generate_ids(
+                source_input, copied_data, expand=False)
         copied_data.idx = copied_data.idx + horizon_step
         return copied_data
     else:
@@ -172,7 +178,8 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
 
         # Extend source index range
         if isinstance(copied_data.idx, list):
-            indices_range = generate_ids(source_input, copied_data, expand=True)
+            indices_range = generate_ids(
+                source_input, copied_data, expand=True)
         else:
             # if indices can be incremented
             indices_range = np.arange(copied_data.idx[0],
@@ -285,7 +292,8 @@ def _calculate_intervals(last_index_pre_history, amount_of_iterations, scope_len
 
 def exception_if_not_ts_task(task):
     if task.task_type is not TaskTypesEnum.ts_forecasting:
-        raise ValueError('Method forecast is available only for time series forecasting task')
+        raise ValueError(
+            'Method forecast is available only for time series forecasting task')
 
 
 def generate_ids(source_input, output_data, expand: bool):
@@ -323,7 +331,8 @@ def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData
         idx: array with idx values. If None sets next idx after `pre_history_data` with length of forecast for InputData
         and idx from 0 to forecast length for MultimodalData.
     """
-    features = pre_history_data.features if isinstance(pre_history_data, InputData) else None
+    features = pre_history_data.features if isinstance(
+        pre_history_data, InputData) else None
     if forecast.ndim > 1:
         forecast = np.squeeze(forecast)
     if idx is None:

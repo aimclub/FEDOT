@@ -48,13 +48,15 @@ def get_output_timeseries(len_forecast=5, length=100, num_variables=1, for_predi
         idx = np.arange(0, length)
         predict = features
 
-    predict_output = OutputData(idx, task, DataTypesEnum.ts, features=features, predict=predict)
+    predict_output = OutputData(
+        idx, task, DataTypesEnum.ts, features=features, predict=predict)
     return predict_output
 
 
 def drop_elements(output: OutputData, fraction_dropped=0.2, with_repetitions=False) -> OutputData:
     num_left = int(len(output.idx) * (1 - fraction_dropped))
-    idx_short = np.sort(np.random.choice(output.idx, size=num_left, replace=with_repetitions))
+    idx_short = np.sort(np.random.choice(
+        output.idx, size=num_left, replace=with_repetitions))
     output_short = OutputData(idx=idx_short,
                               features=output.features[idx_short],
                               predict=output.predict[idx_short],

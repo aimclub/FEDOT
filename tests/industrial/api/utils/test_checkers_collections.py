@@ -9,7 +9,8 @@ def test_data_check_uses_rule_based_data_type_and_detection_window_task():
     checker = DataCheck(
         input_data=(np.arange(12).reshape(6, 2), np.array([0, 1, 0, 1, 0, 1])),
         task='classification',
-        industrial_task_params={'data_type': 'time_series', 'detection_window': 4},
+        industrial_task_params={
+            'data_type': 'time_series', 'detection_window': 4},
     )
 
     result = checker._transformation_for_other_task({

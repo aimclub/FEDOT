@@ -50,14 +50,16 @@ def to_tensor_canonical_data_type(data_type: Union[DataTypesEnum, str]) -> DataT
     try:
         return TENSOR_CANONICAL_MAPPING[data_type]
     except KeyError as exc:
-        raise ValueError(f'Unsupported data_type for tensor compatibility: {data_type}') from exc
+        raise ValueError(
+            f'Unsupported data_type for tensor compatibility: {data_type}') from exc
 
 
 def to_input_compatible_data_type(data_type: Union[DataTypesEnum, str]) -> DataTypesEnum:
     try:
         return INPUT_COMPATIBILITY_MAPPING[data_type]
     except KeyError as exc:
-        raise ValueError(f'Unsupported data_type for input compatibility: {data_type}') from exc
+        raise ValueError(
+            f'Unsupported data_type for input compatibility: {data_type}') from exc
 
 
 def build_data_type_compatibility(data_type: Union[DataTypesEnum, str]) -> DataTypeCompatibility:

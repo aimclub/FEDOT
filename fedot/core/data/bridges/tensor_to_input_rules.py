@@ -58,7 +58,8 @@ def build_tensordata_input_bridge_plan(tensor_data) -> TensorDataInputBridgePlan
     state = normalize_tensor_bridge_state(tensor_data.state)
     features = to_numpy_copy(tensor_data.features)
     if features is None:
-        raise ValueError('TensorData features are required for conversion to InputData')
+        raise ValueError(
+            'TensorData features are required for conversion to InputData')
 
     return TensorDataInputBridgePlan(
         task=tensor_data.task,

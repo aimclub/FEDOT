@@ -17,10 +17,12 @@ def series_has_gaps_check(gapfilling_method):
         input_data = replace_nan_with_label(input_data, label=self.gap_value)
         gap_ids = np.ravel(np.argwhere(input_data == self.gap_value))
         if len(gap_ids) == 0:
-            self.log.info(f'Array does not contain values marked as gaps {self.gap_value}')
+            self.log.info(
+                f'Array does not contain values marked as gaps {self.gap_value}')
             return input_data
         else:
-            self.log.debug(f'Array contain values marked as gaps {self.gap_value}. Start gap-filling')
+            self.log.debug(
+                f'Array contain values marked as gaps {self.gap_value}. Start gap-filling')
             filled_array = gapfilling_method(self, input_data, *args, **kwargs)
             return filled_array
 
@@ -217,11 +219,13 @@ class SimpleGapFiller:
         non_nan = output_data[non_nan_ids]
         if np.isclose(input_data[0], self.gap_value):
             # First element is a gap - replace with first known value
-            self.log.info('First element in the array were replaced by first known value')
+            self.log.info(
+                'First element in the array were replaced by first known value')
             output_data[0] = non_nan[0]
         if np.isclose(input_data[-1], self.gap_value):
             # Last element is a gap - last known value
-            self.log.info('Last element in the array were replaced by last known value')
+            self.log.info(
+                'Last element in the array were replaced by last known value')
             output_data[-1] = non_nan[-1]
 
         return output_data
@@ -368,7 +372,8 @@ class ModelGapFiller(SimpleGapFiller):
             timeseries_train_part = output_data[(latest_gap_element_id + 1):]
 
             is_gap_in_end_time_series = len(timeseries_train_part) == 0
-            is_series_size_not_enough = (len(timeseries_train_part) - len_gap) < self.min_train_ts_length
+            is_series_size_not_enough = (
+                len(timeseries_train_part) - len_gap) < self.min_train_ts_length
             if is_gap_in_end_time_series:
                 # The gap is last element - take last observed value as predicted
                 last_known_value = output_data[first_gap_element_id - 1]
@@ -381,10 +386,12 @@ class ModelGapFiller(SimpleGapFiller):
         else:
             # Next gap interval is exist
             next_gap = new_gap_list[batch_index + 1]
-            timeseries_train_part = output_data[(latest_gap_element_id + 1): next_gap[0]]
+            timeseries_train_part = output_data[(
+                latest_gap_element_id + 1): next_gap[0]]
 
             # Take part with known values to the left from the gap
-            extended_part = output_data[(first_gap_element_id - 1): next_gap[0]]
+            extended_part = output_data[(
+                first_gap_element_id - 1): next_gap[0]]
 
             if first_gap_element_id == 0:
                 # Gap in the first part of time series - take first observed value
@@ -435,7 +442,8 @@ class ModelGapFiller(SimpleGapFiller):
         for node in pipeline_for_forecast.nodes:
             if node.name == 'lagged':
                 if node.parameters['window_size'] + forecast_length >= data_length:
-                    node.parameters = {'window_size': max(data_length - forecast_length - 10, 2)}
+                    node.parameters = {'window_size': max(
+                        data_length - forecast_length - 10, 2)}
 
         # Making predictions for the missing part in the time series
         pipeline_for_forecast.fit_from_scratch(input_data)

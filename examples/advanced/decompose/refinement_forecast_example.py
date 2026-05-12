@@ -24,7 +24,8 @@ def get_refinement_pipeline_with_polyfit():
     node_polyfit = PipelineNode('polyfit')
     node_polyfit.parameters = {'degree': 2}
     node_lagged = PipelineNode('lagged')
-    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_polyfit])
+    node_decompose = PipelineNode('decompose', nodes_from=[
+                                  node_lagged, node_polyfit])
     node_dtreg = PipelineNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.parameters = {'max_depth': 3}
 
@@ -45,7 +46,8 @@ def get_refinement_pipeline(lagged):
     node_lagged = PipelineNode('lagged')
     node_lagged.parameters = {'window_size': lagged}
     node_lasso = PipelineNode('lasso', nodes_from=[node_lagged])
-    node_decompose = PipelineNode('decompose', nodes_from=[node_lagged, node_lasso])
+    node_decompose = PipelineNode('decompose', nodes_from=[
+                                  node_lagged, node_lasso])
     node_dtreg = PipelineNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.parameters = {'max_depth': 3}
 
@@ -110,7 +112,8 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     horizon = len_forecast * validation_blocks
 
     # Get pipeline with decomposing operation
-    pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline = get_refinement_pipeline(lagged)
+    pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline = get_refinement_pipeline(
+        lagged)
     # Get simple pipeline without decomposing operation
     simple_pipeline = get_non_refinement_pipeline(lagged)
 
@@ -126,7 +129,8 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Forecast of pipeline with decomposition
     predicted_values = in_sample_fit_predict(pipeline, train_input,
                                              predict_input, horizon)
-    display_metrics(predict_input, predicted_values, pipeline_name='with decomposition')
+    display_metrics(predict_input, predicted_values,
+                    pipeline_name='with decomposition')
 
     # Range for visualisation
     ids_for_test = idx[range(len(train_input.target), len(time_series))]
@@ -142,12 +146,14 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
                                                     predict_input, horizon)
 
         plt.plot(ids_for_test, predicted_main, label='Main branch forecast')
-        plt.plot(ids_for_test, predicted_decompose, label='Residual branch forecast')
+        plt.plot(ids_for_test, predicted_decompose,
+                 label='Residual branch forecast')
     else:
         predicted_simple = in_sample_fit_predict(simple_pipeline, train_input,
                                                  predict_input, horizon)
         plt.plot(ids_for_test, predicted_simple, label='Non decomposition')
-        display_metrics(predict_input, predicted_simple, pipeline_name='without decomposition')
+        display_metrics(predict_input, predicted_simple,
+                        pipeline_name='without decomposition')
 
     i = len(train_input.target)
     for _ in range(0, validation_blocks):

@@ -55,7 +55,8 @@ def test_mean_imputation():
     ])
 
     td = TensorDataCreator.create(X, backend_name="cpu")
-    preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation][ImputationMethodEnum.mean]()
+    preprocessor = PREPROCESSING_OPTIONAL_MAPPING[PreprocessingStepEnum.imputation][ImputationMethodEnum.mean](
+    )
     preprocessed_data = preprocessor.fit_transform(td, [1])
     assert preprocessed_data.features[1, 1] == 5
 
@@ -74,7 +75,8 @@ def test_preprocessing_plan_imputation():
 
     td = TensorDataCreator.create(X, backend_name="cpu")
     service = OptionalTabularService()
-    preprocessed_data = service.fit_transform(td, {PreprocessingStepEnum.imputation: None})
+    preprocessed_data = service.fit_transform(
+        td, {PreprocessingStepEnum.imputation: None})
     assert isinstance(preprocessed_data, PreparedData)
     assert preprocessed_data.features[1, 1] == 5
 
@@ -302,7 +304,8 @@ def test_preprocessing_robust_scaling():
         (40 - median) / iqr,
     ], dtype=np.float32)
 
-    assert np.allclose(result[[0, 2, 3, 4], 1], expected_col[[0, 2, 3, 4]], atol=1e-6)
+    assert np.allclose(result[[0, 2, 3, 4], 1],
+                       expected_col[[0, 2, 3, 4]], atol=1e-6)
     assert np.isnan(result[1, 1])
 
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
@@ -399,10 +402,12 @@ def test_encoding_autoscaling_imputation():
         (8 - 2) / 6
     ], dtype=np.float32)
 
-    assert not np.allclose(result[:, 0].astype(np.float32), X[:, 0].astype(np.float32))
+    assert not np.allclose(result[:, 0].astype(
+        np.float32), X[:, 0].astype(np.float32))
     assert np.allclose(result[[0, 2], 1], expected_col[[0, 2]], atol=1e-6)
     assert result[1, 1] == 3
-    assert np.allclose(result[:, 2], np.array([0, 1, 2], dtype=np.float32), atol=1e-6)
+    assert np.allclose(result[:, 2], np.array(
+        [0, 1, 2], dtype=np.float32), atol=1e-6)
 
 
 @pytest.mark.unit
@@ -543,7 +548,8 @@ def test_preprocessing_clipping():
     expected_col[valid_mask] = np.clip(expected_col[valid_mask], lower, upper)
 
     compare_mask = ~np.isnan(expected_col)
-    assert np.allclose(result[compare_mask, 1], expected_col[compare_mask], atol=1e-6)
+    assert np.allclose(result[compare_mask, 1],
+                       expected_col[compare_mask], atol=1e-6)
     assert np.isnan(result[2, 1])
 
     assert np.allclose(result[:, 0], X[:, 0], atol=1e-6)
@@ -586,7 +592,8 @@ def test_custom_preprocessing():
                 column = data.features[:, col_idx]
                 data.features[:, col_idx] = torch.where(
                     torch.isnan(column),
-                    torch.tensor(0, device=data.features.device, dtype=data.features.dtype),
+                    torch.tensor(0, device=data.features.device,
+                                 dtype=data.features.dtype),
                     column
                 )
 
@@ -612,7 +619,8 @@ def test_custom_preprocessing():
                 column = data.features[:, col_idx]
                 data.features[:, col_idx] = torch.where(
                     torch.isnan(column),
-                    torch.tensor(self.root_constant, device=data.features.device, dtype=data.features.dtype),
+                    torch.tensor(
+                        self.root_constant, device=data.features.device, dtype=data.features.dtype),
                     column
                 )
 
@@ -639,5 +647,7 @@ def test_custom_preprocessing():
     )
 
     result = preprocessed_data.features.numpy()
-    assert np.allclose(result[:, 1], np.array([10, 20, 0, 40, 50, 1000], dtype=np.float32), atol=1e-6)
-    assert np.allclose(result[:, 2], np.array([100, 200, 300, 10, 500, 600], dtype=np.float32), atol=1e-6)
+    assert np.allclose(result[:, 1], np.array(
+        [10, 20, 0, 40, 50, 1000], dtype=np.float32), atol=1e-6)
+    assert np.allclose(result[:, 2], np.array(
+        [100, 200, 300, 10, 500, 600], dtype=np.float32), atol=1e-6)

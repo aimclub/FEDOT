@@ -89,7 +89,8 @@ class ResampleImplementation(DataOperationImplementation):
             # Imbalanced multi-class balancing is not supported.
             return self._convert_to_output(input_data, input_data.features)
 
-        unique_class, number_of_elements = np.unique(copied_data.target, return_counts=True)
+        unique_class, number_of_elements = np.unique(
+            copied_data.target, return_counts=True)
 
         if number_of_elements[0] == number_of_elements[1]:
             # If number of elements of each class are equal that transformation is not required
@@ -122,7 +123,8 @@ class ResampleImplementation(DataOperationImplementation):
                 f'{GLOBAL_PREFIX} According to {self.balance} data was changed from {prev_shape} to {maj_data.shape}'
             )
 
-        transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
+        transformed_data = np.concatenate(
+            (min_data, maj_data), axis=0).transpose()
 
         if isinstance(input_data.features, pd.DataFrame):
             predict = reduce_mem_usage(
@@ -163,8 +165,10 @@ class ResampleImplementation(DataOperationImplementation):
             min_idx = np.where(target == unique[1])[0]
             maj_idx = np.where(target == unique[0])[0]
 
-        minority_data = np.hstack((features[min_idx], target[min_idx].reshape(-1, 1)))
-        majority_data = np.hstack((features[maj_idx], target[maj_idx].reshape(-1, 1)))
+        minority_data = np.hstack(
+            (features[min_idx], target[min_idx].reshape(-1, 1)))
+        majority_data = np.hstack(
+            (features[maj_idx], target[maj_idx].reshape(-1, 1)))
 
         return minority_data, majority_data
 
@@ -180,7 +184,8 @@ class ResampleImplementation(DataOperationImplementation):
                 self.params.update(replace=True)
             elif self.balance == 'reduce_majority' and self.n_samples >= maj_data.shape[0]:
                 self.params.update(replace=True)
-            self.log.debug(f'{GLOBAL_PREFIX} resample operation allow repeats in data')
+            self.log.debug(
+                f'{GLOBAL_PREFIX} resample operation allow repeats in data')
 
     def _check_and_correct_balance_ratio_param(self):
         """Method checks if selected balance_ratio parameter is correct
@@ -189,10 +194,12 @@ class ResampleImplementation(DataOperationImplementation):
             self.params.update(balance_ratio=1)
         if self.balance_ratio < 0 or self.balance_ratio > 1:
             self.params.update(balance_ratio=1)
-            self.log.debug(f'{GLOBAL_PREFIX} balance ratio set to full balance')
+            self.log.debug(
+                f'{GLOBAL_PREFIX} balance ratio set to full balance')
 
     def _convert_to_absolute(self, min_data: np.array, maj_data: np.array) -> float:
-        self.log.debug(f'{GLOBAL_PREFIX} set n_samples in absolute values due to balance_ratio')
+        self.log.debug(
+            f'{GLOBAL_PREFIX} set n_samples in absolute values due to balance_ratio')
         difference = maj_data.shape[0] - min_data.shape[0]
 
         if self.balance == 'expand_minority':

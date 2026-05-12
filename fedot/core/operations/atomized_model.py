@@ -22,7 +22,8 @@ class AtomizedModel(Operation):
 
     def __init__(self, pipeline: 'Pipeline'):
         if not pipeline.root_node:
-            raise ValueError('AtomizedModel could not create instance of empty Pipeline.')
+            raise ValueError(
+                'AtomizedModel could not create instance of empty Pipeline.')
 
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
@@ -41,7 +42,8 @@ class AtomizedModel(Operation):
     def predict(self,
                 fitted_operation: 'Pipeline',
                 data: InputData,
-                params: Optional[Union[OperationParameters, Dict[str, Any]]] = None,
+                params: Optional[Union[OperationParameters,
+                                       Dict[str, Any]]] = None,
                 output_mode: str = 'default',
                 predictions_cache: Optional[PredictionsCache] = None,
                 fold_id: Optional[int] = None,
@@ -86,7 +88,8 @@ class AtomizedModel(Operation):
         root_node = self.pipeline.root_node
 
         def extract_metadata_from_pipeline(attr_name: str,
-                                           node_filter: Optional[Callable[[PipelineNode], bool]] = None,
+                                           node_filter: Optional[Callable[[
+                                               PipelineNode], bool]] = None,
                                            reduce_function: Optional[Callable[[Set], Set]] = None) -> List[Any]:
             """ Extract metadata from atomized pipeline
                 :param attr_name: extracting metadata property
@@ -97,8 +100,10 @@ class AtomizedModel(Operation):
                 """
             nodes_to_extract_metadata = self.pipeline.nodes
             if node_filter is not None:
-                nodes_to_extract_metadata = [node for node in nodes_to_extract_metadata if node_filter(node)]
-            data = [set(getattr(node.operation.metadata, attr_name)) for node in nodes_to_extract_metadata]
+                nodes_to_extract_metadata = [
+                    node for node in nodes_to_extract_metadata if node_filter(node)]
+            data = [set(getattr(node.operation.metadata, attr_name))
+                    for node in nodes_to_extract_metadata]
             return list(reduce(reduce_function or or_, data))
 
         tags = extract_metadata_from_pipeline('tags')

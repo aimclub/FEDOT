@@ -47,7 +47,8 @@ class TabPFNStrategy(EvaluationStrategy):
             max_features=self.max_features,
         )
         if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
-            raise ValueError('Time series forecasting not supported for TabPFN')
+            raise ValueError(
+                'Time series forecasting not supported for TabPFN')
 
         operation_implementation = self.operation_impl(self.params_for_fit)
 
@@ -74,12 +75,14 @@ class TabPFNClassificationStrategy(TabPFNStrategy):
             n_classes = len(trained_operation.classes_)
             output = trained_operation.predict_proba(predict_data)
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             elif (n_classes == 2 and self.output_mode != 'full_probs'
                   and len(output.predict.shape) > 1):
                 output.predict = output.predict[:, 1]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output model {self.output_mode} is not supported')
 
         return output
 

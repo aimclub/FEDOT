@@ -103,7 +103,8 @@ def init_input_data_tensor(X: pd.DataFrame, y: Optional[np.ndarray], task: str =
 
     data_type = DataTypesEnum.image if is_multivariate_data else DataTypesEnum.table
     input_data = InputData(idx=np.arange(len(X)),
-                           features=torch.Tensor(features.tolist()).to(X.device),
+                           features=torch.Tensor(
+                               features.tolist()).to(X.device),
                            target=y.reshape(-1, 1) if y is not None else y,
                            task=task_dict[task],
                            data_type=data_type)
@@ -117,12 +118,14 @@ def init_input_data_tensor(X: pd.DataFrame, y: Optional[np.ndarray], task: str =
     # Replace NaN and infinite values with 0 in features
     input_data.features = torch.where(
         torch.isnan(input_data.features),
-        torch.tensor(0.0, device=input_data.features.device, dtype=input_data.features.dtype),
+        torch.tensor(0.0, device=input_data.features.device,
+                     dtype=input_data.features.dtype),
         input_data.features
     )
     input_data.features = torch.where(
         torch.isinf(input_data.features),
-        torch.tensor(0.0, device=input_data.features.device, dtype=input_data.features.dtype),
+        torch.tensor(0.0, device=input_data.features.device,
+                     dtype=input_data.features.dtype),
         input_data.features
     )
     return input_data

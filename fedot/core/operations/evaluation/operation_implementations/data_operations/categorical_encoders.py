@@ -22,7 +22,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         default_params = {
             'handle_unknown': 'ignore'
         }
-        self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
+        self.encoder = OneHotEncoder(
+            **{**default_params, **self.params.to_dict()})
         self.categorical_ids: np.ndarray = np.array([])
         self.non_categorical_ids: np.ndarray = np.array([])
         self.encoded_ids: np.ndarray = np.array([])
@@ -40,9 +41,11 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         # If there are categorical features - process it
         if self.categorical_ids.size > 0:
             if isinstance(features, np.ndarray):
-                updated_cat_features = features[:, self.categorical_ids].astype(str)
+                updated_cat_features = features[:,
+                                                self.categorical_ids].astype(str)
             else:
-                updated_cat_features = features.iloc[:, self.categorical_ids].astype(str)
+                updated_cat_features = features.iloc[:, self.categorical_ids].astype(
+                    str)
 
             self.encoder.fit(updated_cat_features)
 
@@ -61,10 +64,12 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         transformed_features = copied_data.features
         if self.categorical_ids.size > 0:
             # If categorical features exist
-            transformed_features = self._apply_one_hot_encoding(transformed_features)
+            transformed_features = self._apply_one_hot_encoding(
+                transformed_features)
 
         # Update features
-        output_data = self._convert_to_output(copied_data, transformed_features)
+        output_data = self._convert_to_output(
+            copied_data, transformed_features)
         self._update_column_types(output_data)
 
         if isinstance(output_data.features, pd.DataFrame):
@@ -80,11 +85,14 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         if self.categorical_ids.size > 0:
             # There are categorical features in the table
             feature_type_ids = output_data.supplementary_data.col_type_ids['features']
-            numerical_columns = feature_type_ids[feature_type_ids != TYPE_TO_ID[str]]
+            numerical_columns = feature_type_ids[feature_type_ids !=
+                                                 TYPE_TO_ID[str]]
 
             # Calculate new binary columns number after encoding
-            encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
-            numerical_columns = np.append(numerical_columns, [TYPE_TO_ID[int]] * encoded_columns_number)
+            encoded_columns_number = output_data.predict.shape[1] - len(
+                numerical_columns)
+            numerical_columns = np.append(
+                numerical_columns, [TYPE_TO_ID[int]] * encoded_columns_number)
 
             output_data.encoded_idx = self.encoded_ids
             output_data.supplementary_data.col_type_ids['features'] = numerical_columns
@@ -97,20 +105,25 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return transformed_features: transformed features table
         """
         if isinstance(features, np.ndarray):
-            transformed_categorical = self.encoder.transform(features[:, self.categorical_ids]).toarray()
+            transformed_categorical = self.encoder.transform(
+                features[:, self.categorical_ids]).toarray()
             # Stack transformed categorical and non-categorical data, ignore if none
-            non_categorical_features = np.array(features[:, self.non_categorical_ids.astype(int)])
+            non_categorical_features = np.array(
+                features[:, self.non_categorical_ids.astype(int)])
 
         else:
-            transformed_categorical = self.encoder.transform(features.iloc[:, self.categorical_ids]).toarray()
-            non_categorical_features = np.array(features.iloc[:, self.non_categorical_ids.astype(int)])
+            transformed_categorical = self.encoder.transform(
+                features.iloc[:, self.categorical_ids]).toarray()
+            non_categorical_features = np.array(
+                features.iloc[:, self.non_categorical_ids.astype(int)])
 
         transformed_categorical = transformed_categorical.astype(np.float32)
         non_categorical_features = non_categorical_features.astype(np.float32)
 
         frames = (non_categorical_features, transformed_categorical)
         transformed_features = np.hstack(frames)
-        self.encoded_ids = np.array(range(non_categorical_features.shape[1], transformed_features.shape[1]))
+        self.encoded_ids = np.array(
+            range(non_categorical_features.shape[1], transformed_features.shape[1]))
 
         return transformed_features
 
@@ -162,7 +175,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
                 self.encoders[column_id] = le
 
         else:
-            categorical_columns = data.iloc[:, self.categorical_ids].astype(str)
+            categorical_columns = data.iloc[:,
+                                            self.categorical_ids].astype(str)
 
             for column_id in self.categorical_ids:
                 le = LabelEncoder()
@@ -181,7 +195,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
             for column_id, column in zip(self.categorical_ids, categorical_columns.T):
                 column_encoder = self.encoders[column_id]
-                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
+                column_encoder.classes_ = np.unique(
+                    np.concatenate((column_encoder.classes_, column)))
 
                 transformed_column = column_encoder.transform(column)
                 nan_indices = np.flatnonzero(column == 'nan')
@@ -192,12 +207,14 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
                 data[:, column_id] = transformed_column
         else:
-            categorical_columns = data.iloc[:, self.categorical_ids].astype(str)
+            categorical_columns = data.iloc[:,
+                                            self.categorical_ids].astype(str)
 
             for column_id in self.categorical_ids:
                 column_encoder = self.encoders[column_id]
                 column = categorical_columns[column_id]
-                column_encoder.classes_ = np.unique(np.concatenate((column_encoder.classes_, column)))
+                column_encoder.classes_ = np.unique(
+                    np.concatenate((column_encoder.classes_, column)))
 
                 transformed_column = column_encoder.transform(column)
                 nan_indices = np.flatnonzero(column == 'nan')

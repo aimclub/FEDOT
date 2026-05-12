@@ -17,7 +17,8 @@ def _make_input_data():
 
 
 def test_data_source_splitter_build_tensordata_uses_bridge_boundary(monkeypatch):
-    splitter = DataSourceSplitter(cv_folds=None, split_ratio=0.5, shuffle=False, stratify=False)
+    splitter = DataSourceSplitter(
+        cv_folds=None, split_ratio=0.5, shuffle=False, stratify=False)
     converted_input = _make_input_data()
     captured = {}
 
@@ -41,7 +42,8 @@ def test_data_source_splitter_build_tensordata_uses_bridge_boundary(monkeypatch)
 
 
 def test_data_source_splitter_build_tensordata_keeps_input_data_shape(monkeypatch):
-    splitter = DataSourceSplitter(cv_folds=None, split_ratio=0.5, shuffle=False, stratify=False)
+    splitter = DataSourceSplitter(
+        cv_folds=None, split_ratio=0.5, shuffle=False, stratify=False)
     converted_input = _make_input_data()
 
     monkeypatch.setattr(

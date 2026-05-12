@@ -75,7 +75,8 @@ def _make_optional_input_data():
 
 def test_mark_as_preprocessed_marks_unimodal_and_multimodal_inputs():
     input_data = _make_input_data()
-    multi_data = MultiModalData({'main': _make_input_data(), 'side': _make_input_data(is_main_target=False)})
+    multi_data = MultiModalData(
+        {'main': _make_input_data(), 'side': _make_input_data(is_main_target=False)})
 
     BasePreprocessor.mark_as_preprocessed(input_data)
     BasePreprocessor.mark_as_preprocessed(multi_data, is_obligatory=False)
@@ -111,7 +112,8 @@ def test_data_preprocessor_initialization_uses_source_and_target_rules():
     preprocessor._init_supplementary_preprocessors(multi_data)
     preprocessor._init_main_target_source_name(multi_data)
 
-    assert set(preprocessor.binary_categorical_processors.keys()) == {'main', 'side'}
+    assert set(preprocessor.binary_categorical_processors.keys()) == {
+        'main', 'side'}
     assert set(preprocessor.types_correctors.keys()) == {'main', 'side'}
     assert preprocessor.main_target_source_name == 'main'
 

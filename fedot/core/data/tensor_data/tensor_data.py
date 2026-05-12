@@ -154,7 +154,7 @@ class TensorData:
             self.ts_init_shape,
             self.dataloader_kwargs,
         )
-        return sum(sys.getsizeof(field) for field in metadata_fields)
+        return sum(sys.getsizeof(field) for field in metadata_fields if field is not None)
 
     def to(self, device: Union[str, torch.device]):
         """

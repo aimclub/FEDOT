@@ -33,7 +33,8 @@ class TabularExtractor(BaseExtractor):
         self.reduce_dimension = params.get('reduce_dimension', True)
 
         self.repo = IndustrialModels().setup_repository()
-        self.custom_tabular_transformation = {'park_transformation': park_transform}
+        self.custom_tabular_transformation = {
+            'park_transformation': park_transform}
         self.pca_is_fitted = False
         self.scaler = StandardScaler()
         self.pca = PCA(self.explained_dispersion)
@@ -62,7 +63,8 @@ class TabularExtractor(BaseExtractor):
             self.feature_list.append(ts_representation)
 
     def _create_from_default_fg(self, input_data):
-        feature_domain_models = [model for model in KERNEL_BASELINE_FEATURE_GENERATORS]
+        feature_domain_models = [
+            model for model in KERNEL_BASELINE_FEATURE_GENERATORS]
 
         if not self.feature_domain.__contains__('all'):
             feature_domain_models = [model for model in feature_domain_models
@@ -90,7 +92,8 @@ class TabularExtractor(BaseExtractor):
     def generate_features_from_ts(self,
                                   input_data: InputData,
                                   window_length: int = None) -> InputData:
-        is_custom_feature_representation = isinstance(self.feature_domain, dict)
+        is_custom_feature_representation = isinstance(
+            self.feature_domain, dict)
         self.feature_list = []
         Either(value=input_data,
                monoid=[input_data,

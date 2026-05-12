@@ -6,7 +6,8 @@ def test_industrial_config_uses_rule_based_context_and_initial_problem(monkeypat
 
     monkeypatch.setattr(
         'fedot.industrial.api.utils.api_init.fedot_init_assumptions',
-        lambda problem: captured.setdefault('problem', problem) or 'initial-assumption',
+        lambda problem: captured.setdefault(
+            'problem', problem) or 'initial-assumption',
     )
 
     config = IndustrialConfig().build({
@@ -24,7 +25,8 @@ def test_industrial_config_uses_rule_based_context_and_initial_problem(monkeypat
 
 
 def test_learning_config_with_loss_uses_rule_based_loss_plan():
-    config = LearningConfig().build({'optimisation_loss': {'quality_loss': 'f1', 'structural_loss': 'size'}})
+    config = LearningConfig().build(
+        {'optimisation_loss': {'quality_loss': 'f1', 'structural_loss': 'size'}})
 
     assert config.quality_loss == 'f1'
     assert config.structural_loss == 'size'

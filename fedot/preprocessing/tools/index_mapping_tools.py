@@ -89,7 +89,8 @@ def update_index_mapping(
 
     updated_mapping: Dict[int, int] = {}
     for current_idx in sorted(remaining_items.keys()):
-        shift = sum(1 for removed_idx in changed_idx if removed_idx < current_idx)
+        shift = sum(
+            1 for removed_idx in changed_idx if removed_idx < current_idx)
         updated_mapping[current_idx - shift] = remaining_items[current_idx]
 
     appended_total = new_n_cols - len(updated_mapping)
@@ -102,7 +103,8 @@ def update_index_mapping(
     if new_cols_dict is None:
         if len(changed_idx) == 0:
             if appended_total != 0:
-                raise ValueError("No changed_idx provided, but number of columns changed.")
+                raise ValueError(
+                    "No changed_idx provided, but number of columns changed.")
             per_col_counts = {}
         else:
             if appended_total % len(changed_idx) != 0:
@@ -115,7 +117,8 @@ def update_index_mapping(
     else:
         per_col_counts = dict(new_cols_dict)
         if set(per_col_counts.keys()) != set(changed_idx):
-            raise ValueError("new_cols_dict keys must exactly match changed_idx.")
+            raise ValueError(
+                "new_cols_dict keys must exactly match changed_idx.")
         if sum(per_col_counts.values()) != appended_total:
             raise ValueError(
                 f"Sum of new_cols_dict values ({sum(per_col_counts.values())}) "
@@ -157,7 +160,8 @@ def update_indices(index_mapping: Dict[int, int], indices: IndexType) -> List[in
         ]
 
         if not matched_new_indices:
-            raise ValueError(f"Old index {old_idx} is not present in index_mapping.")
+            raise ValueError(
+                f"Old index {old_idx} is not present in index_mapping.")
 
         updated_indices.append(max(matched_new_indices))
 

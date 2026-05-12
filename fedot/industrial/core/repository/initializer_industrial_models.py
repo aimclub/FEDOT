@@ -132,8 +132,10 @@ class IndustrialModels:
         for class_impl, method_to_replace in zip(FEDOT_METHOD_TO_REPLACE, method):
             setattr(class_impl[0], class_impl[1], method_to_replace)
         if backend.__contains__('dask'):
-            model_to_overload = [SKLEARN_REG_MODELS, SKLEARN_CLF_MODELS, FEDOT_PREPROC_MODEL]
-            overloaded_model = overload_model_implementation(model_to_overload, backend=backend)
+            model_to_overload = [SKLEARN_REG_MODELS,
+                                 SKLEARN_CLF_MODELS, FEDOT_PREPROC_MODEL]
+            overloaded_model = overload_model_implementation(
+                model_to_overload, backend=backend)
             for model_impl, new_backend_impl in zip(DEFAULT_MODELS_TO_REPLACE, overloaded_model):
                 setattr(model_impl[0], model_impl[1], new_backend_impl)
 

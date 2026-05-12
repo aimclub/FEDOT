@@ -65,7 +65,8 @@ def get_ts_pipelines_for_testing():
 def test_out_of_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
-    train_input, predict_input = prepare_ts_for_in_sample(simple_length, multi_length)
+    train_input, predict_input = prepare_ts_for_in_sample(
+        simple_length, multi_length)
 
     pipeline = get_simple_short_lagged_pipeline()
     pipeline.fit(train_input)
@@ -91,7 +92,8 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
     forecast_length = 20
     # one-step horizon
     one_step_length = 10
-    path = os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'M4Yearly.csv')
+    path = os.path.join(fedot_project_root(), 'examples',
+                        'data', 'ts', 'M4Yearly.csv')
     time_series = pd.read_csv(path)
     time_series = time_series[time_series['label'] == 'Y15626']['value']
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -132,7 +134,8 @@ def test_in_sample_ts_models_forecast_correct():
     """
     simple_length = 2
     multi_length = 10
-    train_input, predict_input = prepare_ts_for_in_sample(simple_length, multi_length)
+    train_input, predict_input = prepare_ts_for_in_sample(
+        simple_length, multi_length)
 
     ts_pipelines = get_ts_pipelines_for_testing()
     full_ts = predict_input.features
@@ -144,7 +147,8 @@ def test_in_sample_ts_models_forecast_correct():
                                                 horizon=multi_length)
 
         # Validate without last element
-        metric = mean_absolute_percentage_error(full_ts[-multi_length: -1], multi_predicted[: -1])
+        metric = mean_absolute_percentage_error(
+            full_ts[-multi_length: -1], multi_predicted[: -1])
         # Metric should be low - forecast should almost repeat the actual line
         assert metric < 0.001
 

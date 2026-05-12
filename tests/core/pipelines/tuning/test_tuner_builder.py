@@ -19,10 +19,12 @@ def test_tuner_builder_build_uses_regular_splitter_boundary(monkeypatch):
             captured['build_data'] = data
             return 'regular-producer'
 
-    monkeypatch.setattr('fedot.core.pipelines.tuning.tuner_builder.DataSourceSplitter', FakeSplitter)
+    monkeypatch.setattr(
+        'fedot.core.pipelines.tuning.tuner_builder.DataSourceSplitter', FakeSplitter)
     monkeypatch.setattr(
         'fedot.core.pipelines.tuning.tuner_builder.MetricsObjective',
-        lambda metric, is_multi_objective=False: ('objective', metric, is_multi_objective),
+        lambda metric, is_multi_objective=False: (
+            'objective', metric, is_multi_objective),
     )
 
     def fake_objective_evaluate(objective, data_producer, time_constraint=None, eval_n_jobs=1, validation_blocks=None):
@@ -59,10 +61,12 @@ def test_tuner_builder_build_tensordata_uses_tensor_splitter_boundary(monkeypatc
             captured['tensor_data'] = tensor_data
             return 'tensor-producer'
 
-    monkeypatch.setattr('fedot.core.pipelines.tuning.tuner_builder.DataSourceSplitter', FakeSplitter)
+    monkeypatch.setattr(
+        'fedot.core.pipelines.tuning.tuner_builder.DataSourceSplitter', FakeSplitter)
     monkeypatch.setattr(
         'fedot.core.pipelines.tuning.tuner_builder.MetricsObjective',
-        lambda metric, is_multi_objective=False: ('objective', metric, is_multi_objective),
+        lambda metric, is_multi_objective=False: (
+            'objective', metric, is_multi_objective),
     )
 
     def fake_objective_evaluate(objective, data_producer, time_constraint=None, eval_n_jobs=1, validation_blocks=None):

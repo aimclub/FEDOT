@@ -44,7 +44,8 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         for name in target_names:
             model = H2OAutoML(max_models=self.params_for_fit.get("max_models"),
                               seed=self.params_for_fit.get("seed"),
-                              max_runtime_secs=self.params_for_fit.get("timeout") * 60 // target_len
+                              max_runtime_secs=self.params_for_fit.get(
+                                  "timeout") * 60 // target_len
                               )
             model.train(x=train_columns, y=name, training_frame=train_frame)
             models.append(model.leader)
@@ -64,9 +65,11 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
 
     def _data_transform(self, data: InputData) -> H2OFrame:
         if len(data.target.shape) == 1:
-            concat_data = np.concatenate((data.features, data.target.reshape(1, -1)), 1)
+            concat_data = np.concatenate(
+                (data.features, data.target.reshape(1, -1)), 1)
         else:
-            concat_data = np.concatenate((data.features, data.target.reshape(-1, data.target.shape[1])), 1)
+            concat_data = np.concatenate(
+                (data.features, data.target.reshape(-1, data.target.shape[1])), 1)
         frame = H2OFrame(python_obj=concat_data)
         return frame
 
@@ -102,7 +105,8 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         train_frame[target_name] = train_frame[target_name].asfactor()
         model = self.operation_impl(max_models=self.params_for_fit.get("max_models"),
                                     seed=self.params_for_fit.get("seed"),
-                                    max_runtime_secs=self.params_for_fit.get("timeout") * 60
+                                    max_runtime_secs=self.params_for_fit.get(
+                                        "timeout") * 60
                                     )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
@@ -119,12 +123,14 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = prediction[:, 1::]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
 
     def _data_transform(self, data: InputData) -> H2OFrame:
-        concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
+        concat_data = np.concatenate(
+            (data.features, data.target.reshape(-1, 1)), 1)
         frame = H2OFrame(python_obj=concat_data)
         return frame
 
@@ -156,12 +162,15 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
 
         for i in range(target.shape[1]):
             model = self.operation_impl(generations=self.params_for_fit.get('generations'),
-                                        population_size=self.params_for_fit.get('population_size'),
+                                        population_size=self.params_for_fit.get(
+                                            'population_size'),
                                         verbosity=2,
                                         random_state=42,
-                                        max_time_mins=self.params_for_fit.get('timeout', 0.) // target_len
+                                        max_time_mins=self.params_for_fit.get(
+                                            'timeout', 0.) // target_len
                                         )
-            model.fit(train_data.features.astype(float), target.astype(float)[:, i])
+            model.fit(train_data.features.astype(
+                float), target.astype(float)[:, i])
             models.append(model.fitted_pipeline_)
         model = TPOTRegressionSerializationWrapper(models)
         return model
@@ -189,27 +198,34 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         model = self.operation_impl(generations=self.params_for_fit.get('generations'),
-                                    population_size=self.params_for_fit.get('population_size'),
+                                    population_size=self.params_for_fit.get(
+                                        'population_size'),
                                     verbosity=2,
                                     random_state=42,
-                                    max_time_mins=self.params_for_fit.get('timeout', 0.)
+                                    max_time_mins=self.params_for_fit.get(
+                                        'timeout', 0.)
                                     )
 
-        model.fit(train_data.features.astype(float), train_data.target.astype(int))
+        model.fit(train_data.features.astype(float),
+                  train_data.target.astype(int))
 
         return model.fitted_pipeline_
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data.features.astype(float))
+            prediction = trained_operation.predict(
+                predict_data.features.astype(float))
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data.features.astype(float))
+            prediction = trained_operation.predict_proba(
+                predict_data.features.astype(float))
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:
                 prediction = prediction[:, 1]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out

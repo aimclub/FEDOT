@@ -82,8 +82,6 @@ test/unit/catboost_info
 
 local/
 
-*.txt
-!requirements-gpu.txt
 # Sampling zoo folder
 sampling_zoo/
 

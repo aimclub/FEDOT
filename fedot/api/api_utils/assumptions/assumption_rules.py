@@ -47,7 +47,8 @@ def required_operations_for_data(data, data_type: DataTypesEnum) -> Tuple[str, .
     data_type = normalize_assumption_data_type(data_type)
 
     if hasattr(data, 'items'):
-        required_operations.extend(_REQUIRED_SOURCE_OPERATIONS.get(data_type, ()))
+        required_operations.extend(
+            _REQUIRED_SOURCE_OPERATIONS.get(data_type, ()))
 
     return tuple(dict.fromkeys(required_operations))
 
@@ -59,7 +60,8 @@ def build_operations_filter_decision(data,
     data_type = normalize_assumption_data_type(data_type)
     whitelist = tuple(dict.fromkeys(available_operations or ()))
     suitable_set = set(suitable_operations)
-    sampling_choices = [operation for operation in whitelist if operation in suitable_set]
+    sampling_choices = [
+        operation for operation in whitelist if operation in suitable_set]
 
     for required_operation in required_operations_for_data(data, data_type):
         if required_operation not in sampling_choices:

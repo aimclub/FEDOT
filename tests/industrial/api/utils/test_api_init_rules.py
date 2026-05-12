@@ -26,13 +26,16 @@ def test_build_industrial_context_plan_detects_tabular_and_forecasting_context()
 
 
 def test_resolve_initial_assumption_problem_appends_strategy_only_for_default_fedot_context():
-    assert resolve_initial_assumption_problem('classification', 'tabular', True) == 'classification_tabular'
-    assert resolve_initial_assumption_problem('classification', 'default', False) == 'classification'
+    assert resolve_initial_assumption_problem(
+        'classification', 'tabular', True) == 'classification_tabular'
+    assert resolve_initial_assumption_problem(
+        'classification', 'default', False) == 'classification'
 
 
 def test_build_learning_loss_plan_supports_dict_and_callable():
     callable_plan = build_learning_loss_plan(lambda x: x)
-    dict_plan = build_learning_loss_plan({'quality_loss': 'f1', 'computational_loss': 'time'})
+    dict_plan = build_learning_loss_plan(
+        {'quality_loss': 'f1', 'computational_loss': 'time'})
 
     assert callable(callable_plan.quality_loss)
     assert callable_plan.computational_loss is None

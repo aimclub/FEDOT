@@ -9,7 +9,6 @@ from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
-from fedot.core.data.reader import TSLoader
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
 
@@ -219,7 +218,8 @@ def test_datetime_features():
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
 
-    td = TensorDataCreator.create(features, backend_name="cpu", target_idx="target")
+    td = TensorDataCreator.create(
+        features, backend_name="cpu", target_idx="target")
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -345,9 +345,12 @@ def test_update_idx_emb_enc():
     columns for `class`/`subclass` contain the expected indicator values after a text
     embedding step changes feature layout."""
     X = np.array([
-        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg", 1, "A", "DOP", 0, 1],
-        ["martin a posted tassos papadopoulos the greek sculptor behind", 1, "A", "DROP", 0, 1],
-        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm", 3, "B", "DOP", 1, 1],
+        ["date wed NUMBER aug NUMBER NUMBER NUMBER NUMBER NUMBER from chris garrigues cwg",
+            1, "A", "DOP", 0, 1],
+        ["martin a posted tassos papadopoulos the greek sculptor behind",
+            1, "A", "DROP", 0, 1],
+        ["man threatens explosion in moscow thursday august NUMBER NUMBER NUMBER NUMBER pm",
+            3, "B", "DOP", 1, 1],
     ], dtype=object)
 
     columns = ["text1", "number", "class", "subclass", "some", "target"]

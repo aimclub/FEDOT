@@ -71,7 +71,8 @@ class InputAnalyser:
                 recommendations_for_data = recommendation_bundle.data
                 recommendations_for_params = recommendation_bundle.params
                 if 'label_encoded' in recommendations_for_data:
-                    self._log.info('Switch categorical encoder to label encoder')
+                    self._log.info(
+                        'Switch categorical encoder to label encoder')
 
         return recommendations_for_data, recommendations_for_params
 

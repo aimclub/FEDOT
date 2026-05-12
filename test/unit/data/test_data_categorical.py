@@ -23,7 +23,8 @@ def get_dataset_with_cats(output_mode: str = None):
 
 
 def get_dataset_without_cats(output_mode: str = None):
-    path_to_csv = fedot_project_root().joinpath('test/data/scoring/scoring_train.csv')
+    path_to_csv = fedot_project_root().joinpath(
+        'test/data/scoring/scoring_train.csv')
     df = pd.read_csv(path_to_csv)
     df = df.drop(['ID'], axis=1)
 
@@ -42,7 +43,8 @@ def get_dataset_without_cats(output_mode: str = None):
     ([], np.array([]), np.array([0, 1, 2])),
     (np.array([]), np.array([]), np.array([0, 1, 2])),
     (['Type', 'Method', 'Regionname'], np.array([0, 1, 2]), np.array([0, 1, 2])),
-    (np.array(['Type', 'Method', 'Regionname']), np.array([0, 1, 2]), np.array([0, 1, 2])),
+    (np.array(['Type', 'Method', 'Regionname']),
+     np.array([0, 1, 2]), np.array([0, 1, 2])),
     ([0, 1, 2], np.array([0, 1, 2]), np.array([0, 1, 2])),
     (np.array([0, 1, 2]), np.array([0, 1, 2]), np.array([0, 1, 2]))
 ])
@@ -62,10 +64,12 @@ def test_from_numpy_with_cats(categorical_idx, expected_idx_after_opening, expec
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()
 
 
 @pytest.mark.parametrize('categorical_idx, expected_idx_after_opening, expected_idx_after_preprocessing', [
@@ -73,7 +77,8 @@ def test_from_numpy_with_cats(categorical_idx, expected_idx_after_opening, expec
     ([], np.array([]), np.array([0, 1, 2])),
     (np.array([]), np.array([]), np.array([0, 1, 2])),
     (['Type', 'Method', 'Regionname'], np.array([0, 1, 2]), np.array([0, 1, 2])),
-    (np.array(['Type', 'Method', 'Regionname']), np.array([0, 1, 2]), np.array([0, 1, 2])),
+    (np.array(['Type', 'Method', 'Regionname']),
+     np.array([0, 1, 2]), np.array([0, 1, 2])),
     ([0, 1, 2], np.array([0, 1, 2]), np.array([0, 1, 2])),
     (np.array([0, 1, 2]), np.array([0, 1, 2]), np.array([0, 1, 2]))
 ])
@@ -91,10 +96,12 @@ def test_from_dataframe_with_cats(categorical_idx, expected_idx_after_opening, e
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()
 
 
 @pytest.mark.parametrize('categorical_idx, expected_idx_after_opening, expected_idx_after_preprocessing', [
@@ -102,7 +109,8 @@ def test_from_dataframe_with_cats(categorical_idx, expected_idx_after_opening, e
     ([], np.array([]), np.array([0, 1, 2])),
     (np.array([]), np.array([]), np.array([0, 1, 2])),
     (['Type', 'Method', 'Regionname'], np.array([0, 1, 2]), np.array([0, 1, 2])),
-    (np.array(['Type', 'Method', 'Regionname']), np.array([0, 1, 2]), np.array([0, 1, 2])),
+    (np.array(['Type', 'Method', 'Regionname']),
+     np.array([0, 1, 2]), np.array([0, 1, 2])),
     ([0, 1, 2], np.array([0, 1, 2]), np.array([0, 1, 2])),
     (np.array([0, 1, 2]), np.array([0, 1, 2]), np.array([0, 1, 2]))
 ])
@@ -120,10 +128,12 @@ def test_from_csv_with_cats(categorical_idx, expected_idx_after_opening, expecte
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()
 
 
 @pytest.mark.parametrize('categorical_idx, expected_idx_after_opening, expected_idx_after_preprocessing', [
@@ -147,10 +157,12 @@ def test_from_numpy_without_cats(categorical_idx, expected_idx_after_opening, ex
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()
 
 
 @pytest.mark.parametrize('categorical_idx, expected_idx_after_opening, expected_idx_after_preprocessing', [
@@ -172,10 +184,12 @@ def test_from_dataframe_without_cats(categorical_idx, expected_idx_after_opening
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()
 
 
 @pytest.mark.parametrize('categorical_idx, expected_idx_after_opening, expected_idx_after_preprocessing', [
@@ -197,7 +211,9 @@ def test_from_csv_without_cats(categorical_idx, expected_idx_after_opening, expe
     else:
         assert input_data.categorical_idx == expected_idx_after_opening
 
-    data_preprocessor = ApiDataProcessor(task=Task(TaskTypesEnum.classification))
+    data_preprocessor = ApiDataProcessor(
+        task=Task(TaskTypesEnum.classification))
     preprocessed_input_data = data_preprocessor.fit_transform(input_data)
 
-    assert (preprocessed_input_data.categorical_idx == expected_idx_after_preprocessing).all()
+    assert (preprocessed_input_data.categorical_idx ==
+            expected_idx_after_preprocessing).all()

@@ -128,7 +128,8 @@ def resolve_strategy(features: Any, strategy_dispatch: Iterable[Tuple[type, Any]
         if isinstance(features, source_type):
             return StrategyResolution(strategy_factory=strategy_factory)
 
-    supported_sources = ', '.join(source_type.__name__ for source_type, _ in strategy_dispatch)
+    supported_sources = ', '.join(
+        source_type.__name__ for source_type, _ in strategy_dispatch)
     raise DataDefinitionResolutionError(
         f'Unsupported features type: {type(features).__name__}. Supported types: {supported_sources}.'
     )

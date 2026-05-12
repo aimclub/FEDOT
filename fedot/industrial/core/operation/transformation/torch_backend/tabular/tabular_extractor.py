@@ -54,7 +54,8 @@ class TabularExtractorTorch(BaseExtractor):
             self.feature_list.append(ts_representation)
 
     def _create_from_default_fg(self, input_data: InputData):
-        feature_domain_models = [model for model in KERNEL_BASELINE_FEATURE_GENERATORS_TORCH]
+        feature_domain_models = [
+            model for model in KERNEL_BASELINE_FEATURE_GENERATORS_TORCH]
 
         if not self.feature_domain.__contains__('all'):
             feature_domain_models = [model for model in feature_domain_models
@@ -97,7 +98,8 @@ class TabularExtractorTorch(BaseExtractor):
 
     def generate_features_from_ts(self,
                                   input_data: InputData) -> list[torch.Tensor]:
-        is_custom_feature_representation = isinstance(self.feature_domain, dict)
+        is_custom_feature_representation = isinstance(
+            self.feature_domain, dict)
         self.feature_list = []
         Either(value=input_data,
                monoid=[input_data,

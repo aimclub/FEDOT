@@ -72,12 +72,15 @@ def cv_generator(data: Union[InputData, MultiModalData],
         # for multi_ts use first target column as main target
         retain_first_target = True
     elif data.task.task_type is TaskTypesEnum.classification and stratify:
-        kf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_seed)
+        kf = StratifiedKFold(n_splits=cv_folds, shuffle=True,
+                             random_state=random_seed)
     else:
-        kf = KFold(n_splits=cv_folds, shuffle=shuffle, random_state=random_seed)
+        kf = KFold(n_splits=cv_folds, shuffle=shuffle,
+                   random_state=random_seed)
 
     # Split
     for train_ids, test_ids in kf.split(data.target, data.target):
         train_data = _split_input_data_by_indexes(data, train_ids)
-        test_data = _split_input_data_by_indexes(data, test_ids, retain_first_target=retain_first_target)
+        test_data = _split_input_data_by_indexes(
+            data, test_ids, retain_first_target=retain_first_target)
         yield train_data, test_data

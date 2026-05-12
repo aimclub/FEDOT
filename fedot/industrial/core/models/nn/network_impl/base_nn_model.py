@@ -117,7 +117,8 @@ class BaseNeuralModel:
     def _train_loop(self, train_loader, val_loader, loss_fn, optimizer):
         early_stopping = EarlyStopping()
         scheduler = lr_scheduler.OneCycleLR(optimizer=optimizer,
-                                            steps_per_epoch=max(1, len(train_loader)),
+                                            steps_per_epoch=max(
+                                                1, len(train_loader)),
                                             epochs=self.epochs,
                                             max_lr=self.learning_rate)
         if val_loader is None:
@@ -146,7 +147,8 @@ class BaseNeuralModel:
                 correct += (torch.argmax(output, 1) == torch.argmax(targets, 1)).sum().item() \
                     if not self.is_regression_task else 0
 
-            training_loss = training_loss / len(train_loader.dataset) if not self.is_regression_task else training_loss
+            training_loss = training_loss / \
+                len(train_loader.dataset) if not self.is_regression_task else training_loss
             accuracy = correct / total if not self.is_regression_task else training_loss
             print('Epoch: {}, {}= {}, Training Loss: {:.2f}'.format(
                 epoch, loss_prefix, accuracy, training_loss))
@@ -207,12 +209,14 @@ class BaseNeuralModel:
         return self._convert_predict(pred, output_mode)
 
     def _convert_predict(self, pred, output_mode: str = 'labels'):
-        have_encoder = all([self.label_encoder is not None, output_mode == 'labels'])
+        have_encoder = all(
+            [self.label_encoder is not None, output_mode == 'labels'])
         output_is_clf_labels = output_mode == 'labels' and self.is_regression_task
 
         pred = pred if self.is_regression_task else F.softmax(pred, dim=1)
         y_pred = torch.argmax(pred, dim=1) if output_is_clf_labels else pred
-        y_pred = self.label_encoder.inverse_transform(y_pred) if have_encoder else y_pred
+        y_pred = self.label_encoder.inverse_transform(
+            y_pred) if have_encoder else y_pred
         y_pred = y_pred.cpu().detach().numpy()
         predict = OutputData(
             idx=np.arange(len(y_pred)),

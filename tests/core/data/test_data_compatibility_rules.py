@@ -54,5 +54,7 @@ def test_build_data_type_compatibility_contains_both_views():
 
 @pytest.mark.unit
 def test_autodetect_tensor_data_type_prefers_ts_for_forecasting_task():
-    assert autodetect_tensor_data_type(Task(TaskTypesEnum.ts_forecasting)) == DataTypesEnum.ts
-    assert autodetect_tensor_data_type(Task(TaskTypesEnum.classification)) == DataTypesEnum.tabular
+    assert autodetect_tensor_data_type(
+        Task(TaskTypesEnum.ts_forecasting)) == DataTypesEnum.ts
+    assert autodetect_tensor_data_type(
+        Task(TaskTypesEnum.classification)) == DataTypesEnum.tabular

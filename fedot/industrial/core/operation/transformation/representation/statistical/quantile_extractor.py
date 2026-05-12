@@ -51,12 +51,14 @@ class QuantileExtractor(BaseExtractor):
         if isinstance(window_stat_features[0], list):
             window_stat_features = np.concatenate(window_stat_features, axis=0)
 
-        window_stat_features = np.concatenate([global_features, window_stat_features], axis=0)
+        window_stat_features = np.concatenate(
+            [global_features, window_stat_features], axis=0)
         window_stat_features = np.nan_to_num(window_stat_features)
         return window_stat_features
 
     def extract_stats_features(self, ts: np.array, axis: int) -> InputData:
-        global_features = self.get_statistical_features(ts, add_global_features=self.add_global_features, axis=axis)
+        global_features = self.get_statistical_features(
+            ts, add_global_features=self.add_global_features, axis=axis)
         window_stat_features = self.get_statistical_features(ts, axis=axis) if self.window_size == 0 else \
             self.apply_window_for_stat_feature(ts_data=ts, feature_generator=self.get_statistical_features,
                                                window_size=self.window_size)
@@ -67,7 +69,8 @@ class QuantileExtractor(BaseExtractor):
     def generate_features_from_ts(self,
                                   ts: np.array,
                                   window_length: int = None) -> InputData:
-        ts = ts[None, :] if len(ts.shape) == 1 else ts  # sanity check for map method
+        # sanity check for map method
+        ts = ts[None, :] if len(ts.shape) == 1 else ts
         statistical_representation = np.array(
             list(map(lambda channel: self.extract_stats_features(channel, axis=0), ts)))
         return statistical_representation

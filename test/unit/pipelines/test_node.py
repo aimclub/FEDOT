@@ -110,7 +110,8 @@ def test_node_return_correct_operation_info():
 
 
 @pytest.mark.parametrize('params, expected_params', [(DEFAULT_PARAMS_STUB, {"family": "gaussian", "link": "identity"}),
-                                                     ({}, {"family": "gaussian", "link": "identity"}),
+                                                     ({}, {"family": "gaussian",
+                                                      "link": "identity"}),
                                                      ({NESTED_PARAMS_LABEL: {'family': 'gaussian', 'link': 'log'}},
                                                       {'family': 'gaussian', 'link': 'log'}),
                                                      ({'family': 'inverse_gaussian', 'link': 'inverse_power'},

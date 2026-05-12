@@ -42,8 +42,10 @@ def test_build_federated_runtime_plan_switches_between_raf_and_fedot():
 
 
 def test_build_sampling_predict_plan_tracks_mode_and_cur_feature_space():
-    labels_plan = build_sampling_predict_plan(mode='labels', sampling_algorithm='CUR')
-    probs_plan = build_sampling_predict_plan(mode='probs', sampling_algorithm='Random')
+    labels_plan = build_sampling_predict_plan(
+        mode='labels', sampling_algorithm='CUR')
+    probs_plan = build_sampling_predict_plan(
+        mode='probs', sampling_algorithm='Random')
 
     assert labels_plan.labels_output is True
     assert labels_plan.use_cur_feature_space is True
@@ -52,7 +54,8 @@ def test_build_sampling_predict_plan_tracks_mode_and_cur_feature_space():
 
 
 def test_build_industrial_kernel_finetune_plan_normalizes_metric_and_tuner():
-    plan = build_industrial_kernel_finetune_plan('classification', {'iterations': 5})
+    plan = build_industrial_kernel_finetune_plan(
+        'classification', {'iterations': 5})
 
     assert plan.normalized_tuning_params['iterations'] == 5
     assert plan.normalized_tuning_params['metric'] == FEDOT_TUNING_METRICS['classification']
@@ -63,4 +66,5 @@ def test_build_sampling_iteration_plans_creates_stable_keys():
     plans = build_sampling_iteration_plans('CUR', [0.2, 0.5])
 
     assert [plan.sampling_rate for plan in plans] == [0.2, 0.5]
-    assert [plan.result_key for plan in plans] == ['CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']
+    assert [plan.result_key for plan in plans] == [
+        'CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']

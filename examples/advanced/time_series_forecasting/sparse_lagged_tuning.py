@@ -129,7 +129,8 @@ def visualize(tuned, no_tuned, time, method_name):
 
 
 def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True):
-    file_path = os.path.join(str(fedot_project_root()), 'examples/real_cases/data/time_series/temperature.csv')
+    file_path = os.path.join(str(fedot_project_root()),
+                             'examples/real_cases/data/time_series/temperature.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
 
@@ -138,7 +139,8 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visuali
     test_part = time_series[-forecast_length:]
 
     # Prepare data for train and test
-    train_input, predict_input, task = prepare_train_test_input(train_part, forecast_length)
+    train_input, predict_input, task = prepare_train_test_input(
+        train_part, forecast_length)
 
     nodes_names = ['sparse_lagged', 'lagged']
     for name in nodes_names:
@@ -171,4 +173,5 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visuali
 
 if __name__ == '__main__':
     # On large time series the speed of sparse_lagged increase (ts_size parameter)
-    run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True)
+    run_tuning_comparison(n_repits=10, ts_size=1000,
+                          forecast_length=50, visualization=True)

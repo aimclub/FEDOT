@@ -38,7 +38,8 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
+            operation_implementation = self.operation_impl(
+                **self.params_for_fit.to_dict())
         else:
             operation_implementation = self.operation_impl(n_clusters=2)
 

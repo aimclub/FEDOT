@@ -17,13 +17,15 @@ class TopologicalAR(LaggedAR):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.ts_patch_len = self.params.get("patch_len", 10)
-        self.lagged_node = LaggedTransformationImplementation(OperationParameters(window_size=10))
+        self.lagged_node = LaggedTransformationImplementation(
+            OperationParameters(window_size=10))
         self.topo_ts = PipelineBuilder().add_node('topological_extractor', params={
             'window_size': self.window_size})
 
     def _create_pcd(self, input_data):
         new_input_data = self._convert_input_data(deepcopy(input_data))
-        ts_patch_len = round(input_data.features.shape[0] * 0.01 * self.ts_patch_len)
+        ts_patch_len = round(
+            input_data.features.shape[0] * 0.01 * self.ts_patch_len)
         input_data.features = HankelMatrix(
             time_series=new_input_data.features,
             window_size=ts_patch_len).trajectory_matrix.T

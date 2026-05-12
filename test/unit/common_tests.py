@@ -18,7 +18,8 @@ def is_predict_ignores_target(predict_func, input_data, data_arg_name, predict_a
     input_data_without_target = deepcopy(input_data)
     input_data_without_target.target = None
     predictions = predict_func(**{data_arg_name: input_data}, **predict_args)
-    predictions_without_target = predict_func(**{data_arg_name: input_data_without_target}, **predict_args)
+    predictions_without_target = predict_func(
+        **{data_arg_name: input_data_without_target}, **predict_args)
 
     if isinstance(predictions, OutputData):
         pred_values = predictions.predict

@@ -31,7 +31,8 @@ class EigenAR(LaggedAR):
 
     def fit(self, input_data):
         self.eigen_ts = self.eigen_ts.build()
-        decomposed_time_series = self.eigen_ts.fit(input_data).predict.squeeze()
+        decomposed_time_series = self.eigen_ts.fit(
+            input_data).predict.squeeze()
         self.fitted_model_dict = {}
         if len(decomposed_time_series.shape) == 1:
             decomposed_time_series = decomposed_time_series.reshape(1, -1)
@@ -57,10 +58,12 @@ class EigenAR(LaggedAR):
         for component_idx, ts_component in enumerate(decomposed_time_series):
             copy_input_data = deepcopy(input_data)
             copy_input_data.features = ts_component
-            prediction.append(self.fitted_model_dict[component_idx].predict(copy_input_data).predict)
+            prediction.append(self.fitted_model_dict[component_idx].predict(
+                copy_input_data).predict)
         prediction = np.stack(prediction)
         output_data = self._convert_to_output(input_data,
-                                              predict=np.sum(prediction, axis=0),
+                                              predict=np.sum(
+                                                  prediction, axis=0),
                                               data_type=DataTypesEnum.table)
         return output_data
 

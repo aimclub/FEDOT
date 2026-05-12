@@ -53,9 +53,11 @@ def _test_individuals_in_history(history: OptHistory):
         assert ind.parents
         assert ind.parents_from_prev_generation
         # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
-        assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
+        assert ind.parents_from_prev_generation == list(
+            ind.operators_from_prev_generation[0].parent_individuals)
         # All parents are from previous generations
-        assert all(p.native_generation < ind.native_generation for p in ind.parents_from_prev_generation)
+        assert all(p.native_generation <
+                   ind.native_generation for p in ind.parents_from_prev_generation)
 
         uids.add(ind.uid)
         ids.add(id(ind))
@@ -68,7 +70,8 @@ def _test_individuals_in_history(history: OptHistory):
 
 @pytest.mark.parametrize('n_jobs', [1, 2])
 def test_newly_generated_history(n_jobs: int):
-    file_path_train = fedot_project_root().joinpath('test/data/simple_classification.csv')
+    file_path_train = fedot_project_root().joinpath(
+        'test/data/simple_classification.csv')
 
     num_of_gens = 2
     auto_model = Fedot(problem='classification', seed=42,
@@ -82,8 +85,10 @@ def test_newly_generated_history(n_jobs: int):
     history = auto_model.history
 
     assert history is not None
-    assert len(history.individuals) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
-    assert len(history.archive_history) == num_of_gens + 2  # initial_assumptions + num_of_gens + final_choices
+    # initial_assumptions + num_of_gens + final_choices
+    assert len(history.individuals) == num_of_gens + 2
+    # initial_assumptions + num_of_gens + final_choices
+    assert len(history.archive_history) == num_of_gens + 2
     assert len(history.initial_assumptions) >= 2
     assert len(history.final_choices) == 1
     assert isinstance(history.tuning_result, Graph)
@@ -92,7 +97,8 @@ def test_newly_generated_history(n_jobs: int):
     dumped_history_json = history.save()
     loaded_history = OptHistory.load(dumped_history_json)
     assert dumped_history_json is not None
-    assert dumped_history_json == loaded_history.save(), 'The history is not equal to itself after reloading!'
+    assert dumped_history_json == loaded_history.save(
+    ), 'The history is not equal to itself after reloading!'
     _test_individuals_in_history(loaded_history)
 
 
@@ -120,12 +126,14 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     metrics = [metric]
 
     validation_blocks = 1 if input_data.task.task_type is TaskTypesEnum.ts_forecasting else None
-    data_source = DataSourceSplitter(validation_blocks=validation_blocks).build(input_data)
+    data_source = DataSourceSplitter(
+        validation_blocks=validation_blocks).build(input_data)
     objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics),
                                                data_source,
                                                validation_blocks=validation_blocks)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
-    dispatcher.set_graph_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
+    dispatcher.set_graph_evaluation_callback(
+        objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)
 
     population = [Individual(graph_gen_params.adapter.adapt(pipeline))]
@@ -139,7 +147,8 @@ def test_history_backward_compatibility():
     from fedot.core.optimisers.objective import init_backward_serialize_compat
     init_backward_serialize_compat()
 
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
+    test_history_path = Path(fedot_project_root(
+    ), 'test', 'data', 'fast_train_classification_history.json')
     history = OptHistory.load(test_history_path)
     # Pre-computing properties
     all_historical_fitness = history.all_historical_fitness
@@ -153,9 +162,11 @@ def test_history_backward_compatibility():
     assert len(history.individuals) == len(historical_fitness)
     assert np.all(len(generation) == len(gen_fitness)
                   for generation, gen_fitness in zip(history.individuals, historical_fitness))
-    assert np.all(np.equal([ind.fitness.value for ind in chain(*history.individuals)], all_historical_fitness))
+    assert np.all(np.equal([ind.fitness.value for ind in chain(
+        *history.individuals)], all_historical_fitness))
     # Assert that fitness, graph, parent_individuals, and objective are valid
-    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
+    assert all(isinstance(ind.fitness, SingleObjFitness)
+               for ind in chain(*history.individuals))
     assert all(ind.graph.nodes for ind in chain(*history.individuals))
     assert all(isinstance(parent_ind, Individual)
                for ind in chain(*history.individuals)

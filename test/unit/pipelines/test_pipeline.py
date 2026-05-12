@@ -191,23 +191,27 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
 
     # train results should be invariant
     assert pipeline.root_node.descriptive_id == pipeline_shuffled.root_node.descriptive_id
-    assert np.equal(train_predicted.predict, train_predicted_shuffled.predict).all()
+    assert np.equal(train_predicted.predict,
+                    train_predicted_shuffled.predict).all()
 
     test_predicted = pipeline.predict(input_data=test)
     test_predicted_shuffled = pipeline_shuffled.predict(input_data=test)
 
     # predict results should be invariant
-    assert np.equal(test_predicted.predict, test_predicted_shuffled.predict).all()
+    assert np.equal(test_predicted.predict,
+                    test_predicted_shuffled.predict).all()
 
     # change parents order for the nodes fitted pipeline
     nodes_for_change = pipeline.nodes[3].nodes_from
-    pipeline.nodes[3].nodes_from = [nodes_for_change[2], nodes_for_change[0], nodes_for_change[1]]
+    pipeline.nodes[3].nodes_from = [nodes_for_change[2],
+                                    nodes_for_change[0], nodes_for_change[1]]
     pipeline.nodes[3].unfit()
     pipeline.fit(train)
     test_predicted_re_shuffled = pipeline.predict(input_data=test)
 
     # predict results should be invariant
-    assert np.equal(test_predicted.predict, test_predicted_re_shuffled.predict).all()
+    assert np.equal(test_predicted.predict,
+                    test_predicted_re_shuffled.predict).all()
 
 
 def test_pipeline_with_custom_params_for_model(data_setup):
@@ -231,7 +235,8 @@ def test_pipeline_with_custom_params_for_model(data_setup):
     custom_params_prediction = pipeline.predict(data).predict
     default_params_prediction = pipeline_default_params.predict(data).predict
 
-    assert not np.array_equal(custom_params_prediction, default_params_prediction)
+    assert not np.array_equal(custom_params_prediction,
+                              default_params_prediction)
 
 
 def test_pipeline_with_wrong_data():
@@ -323,7 +328,8 @@ def test_delete_primary_node():
     # when
     pipeline.delete_node(first)
 
-    new_primary_node = [node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
+    new_primary_node = [
+        node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
 
     # then
     assert pipeline.length == 3
@@ -371,7 +377,8 @@ def test_pipeline_fit_time_constraint():
     computation_time_first = None
     process_start_time = time.time()
     try:
-        predicted_first = test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
+        predicted_first = test_pipeline_first.fit(
+            input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
         computation_time_first = test_pipeline_first.computation_time
@@ -381,7 +388,8 @@ def test_pipeline_fit_time_constraint():
     time_constraint = datetime.timedelta(seconds=3)
     process_start_time = time.time()
     try:
-        test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
+        test_pipeline_first.fit(input_data=train_data,
+                                time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
         assert isinstance(received_ex, TimeoutError)
@@ -431,7 +439,8 @@ def test_ts_forecasting_pipeline_with_ets():
     """ Test for an ets-comprising pipeline, ensuring predict does not contain NaNs """
     smoothing_node = PipelineNode('smoothing')
     smoothing_node.parameters = {'window_size': 9}
-    gaussian_filter_node = PipelineNode('gaussian_filter', nodes_from=[smoothing_node])
+    gaussian_filter_node = PipelineNode(
+        'gaussian_filter', nodes_from=[smoothing_node])
     smoothing_node.parameters = {'sigma': 4.747037682823521}
     ets_node = PipelineNode('ets', nodes_from=[gaussian_filter_node])
     ets_node.parameters = {
@@ -456,7 +465,8 @@ def test_get_nodes_with_operation():
     actual_nodes = pipeline.get_nodes_by_name(name='rf')
     expected_nodes = [pipeline.nodes[2], pipeline.nodes[-1]]
 
-    assert (actual is expected for actual, expected in zip(actual_nodes, expected_nodes))
+    assert (actual is expected for actual,
+            expected in zip(actual_nodes, expected_nodes))
 
 
 def test_get_node_with_uid():

@@ -27,13 +27,15 @@ def _make_ts_output():
         idx=np.arange(2),
         predict=np.array([[1.0], [2.0]]),
         target=None,
-        task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+        task=Task(TaskTypesEnum.ts_forecasting,
+                  TsForecastingParams(forecast_length=2)),
         data_type=DataTypesEnum.ts,
     )
 
 
 def _make_classification_input(is_auto_preprocessed: bool):
-    supplementary_data = SupplementaryData(is_auto_preprocessed=is_auto_preprocessed)
+    supplementary_data = SupplementaryData(
+        is_auto_preprocessed=is_auto_preprocessed)
     return InputData(
         idx=np.arange(2),
         features=np.array([[1.0], [2.0]]),
@@ -48,9 +50,11 @@ def test_pipeline_postprocess_uses_typed_postprocess_plan():
     pipeline = Pipeline(use_input_preprocessing=False)
     pipeline.preprocessor = _StubPreprocessor()
 
-    result = pipeline._postprocess(None, _make_ts_output(), output_mode='labels')
+    result = pipeline._postprocess(
+        None, _make_ts_output(), output_mode='labels')
 
-    assert pipeline.preprocessor.calls == ['restore_index', 'inverse_target_encoding']
+    assert pipeline.preprocessor.calls == [
+        'restore_index', 'inverse_target_encoding']
     assert result.predict.tolist() == [2.0, 3.0]
 
 
@@ -77,7 +81,8 @@ def test_pipeline_fit_tensordata_uses_tensor_runtime_preprocess_path():
         return f'tensor-{len(calls)}'
 
     pipeline.preprocessor.prepare_tensordata = fake_prepare_tensordata
-    pipeline.preprocessor.convert_indexes_for_fit = lambda pipeline, data: ('fit-indexed', data)
+    pipeline.preprocessor.convert_indexes_for_fit = lambda pipeline, data: (
+        'fit-indexed', data)
     pipeline.preprocessor.reduce_memory_size = lambda data: ('reduced', data)
     pipeline._assign_data_to_nodes = lambda data: data
     pipeline._fit = lambda input_data=None, predictions_cache=None, fold_id=None: input_data
@@ -88,10 +93,12 @@ def test_pipeline_fit_tensordata_uses_tensor_runtime_preprocess_path():
             fromlist=['tensordata_to_input_data']),
         'tensordata_to_input_data')
     import fedot.core.pipelines.pipeline as pipeline_module
-    pipeline_module.tensordata_to_input_data = lambda tensor_data: ('input', tensor_data)
+    pipeline_module.tensordata_to_input_data = lambda tensor_data: (
+        'input', tensor_data)
 
     try:
-        result = pipeline.fit_tensordata(SimpleNamespace(features=np.array([[1.0]])))
+        result = pipeline.fit_tensordata(
+            SimpleNamespace(features=np.array([[1.0]])))
     finally:
         pipeline_module.tensordata_to_input_data = original_bridge
 
@@ -109,8 +116,10 @@ def test_pipeline_predict_tensordata_uses_tensor_runtime_preprocess_path():
         return f'tensor-{len(calls)}'
 
     pipeline.preprocessor.prepare_tensordata = fake_prepare_tensordata
-    pipeline.preprocessor.convert_indexes_for_predict = lambda pipeline, data: ('predict-indexed', data)
-    pipeline.preprocessor.update_indices_for_time_series = lambda data: ('ts-updated', data)
+    pipeline.preprocessor.convert_indexes_for_predict = lambda pipeline, data: (
+        'predict-indexed', data)
+    pipeline.preprocessor.update_indices_for_time_series = lambda data: (
+        'ts-updated', data)
     pipeline.preprocessor.reduce_memory_size = lambda data: ('reduced', data)
     pipeline._assign_data_to_nodes = lambda data: data
     pipeline._postprocess = lambda copied_input_data, result, output_mode: (
@@ -122,7 +131,8 @@ def test_pipeline_predict_tensordata_uses_tensor_runtime_preprocess_path():
             fromlist=['tensordata_to_input_data']),
         'tensordata_to_input_data')
     import fedot.core.pipelines.pipeline as pipeline_module
-    pipeline_module.tensordata_to_input_data = lambda tensor_data: ('input', tensor_data)
+    pipeline_module.tensordata_to_input_data = lambda tensor_data: (
+        'input', tensor_data)
 
     original_is_fitted = Pipeline.is_fitted
     original_root_node = Pipeline.root_node
@@ -132,7 +142,8 @@ def test_pipeline_predict_tensordata_uses_tensor_runtime_preprocess_path():
     ))
 
     try:
-        result = pipeline.predict_tensordata(SimpleNamespace(features=np.array([[1.0]])), output_mode='labels')
+        result = pipeline.predict_tensordata(SimpleNamespace(
+            features=np.array([[1.0]])), output_mode='labels')
     finally:
         pipeline_module.tensordata_to_input_data = original_bridge
         Pipeline.is_fitted = original_is_fitted
@@ -140,5 +151,6 @@ def test_pipeline_predict_tensordata_uses_tensor_runtime_preprocess_path():
 
     assert calls == [(False, False, None), (False, True, pipeline)]
     assert result[0] == 'postprocessed'
-    assert result[1] == ('reduced', ('ts-updated', ('predict-indexed', ('input', 'tensor-2'))))
+    assert result[1] == (
+        'reduced', ('ts-updated', ('predict-indexed', ('input', 'tensor-2'))))
     assert result[3] == 'labels'

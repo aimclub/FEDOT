@@ -48,7 +48,8 @@ def reproduce_fitting_error(pipeline_id: str, base_path=None, use_input_preproce
         base_path = Path(default_fedot_data_dir(), 'debug_info')
 
     pipeline = Pipeline(use_input_preprocessing=use_input_preprocessing)
-    pipeline.load(str(Path(base_path, f'{pipeline_id}_pipeline', f'{pipeline_id}_pipeline.json')))
+    pipeline.load(
+        str(Path(base_path, f'{pipeline_id}_pipeline', f'{pipeline_id}_pipeline.json')))
     with open(Path(base_path, f'{pipeline_id}_train_data.pkl'), 'rb') as file:
         train_data = pickle.load(file)
     with open(Path(base_path, f'{pipeline_id}_test_data.pkl'), 'rb') as file:

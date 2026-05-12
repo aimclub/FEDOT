@@ -9,10 +9,8 @@ cp = pytest.importorskip("cupy", exc_type=ImportError)
 cudf = pytest.importorskip("cudf", exc_type=ImportError)
 
 if not torch.cuda.is_available():
-    pytest.skip("CUDA is required for GPU TensorData tests", allow_module_level=True)
-
-# Test lazy tensordata
-# --------------------------------------------------
+    pytest.skip("CUDA is required for GPU TensorData tests",
+                allow_module_level=True)
 
 
 @pytest.mark.unit
@@ -33,11 +31,8 @@ def test_lazy_tensordata_to_device():
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.device.type == "cpu"
-# --------------------------------------------------
 
 
-# Test some cases with types, nans. Detecting target. Testing counting memory.
-# --------------------------------------------------
 @pytest.mark.unit
 def test_memory_count_gpu():
     """
@@ -61,11 +56,8 @@ def test_memory_count_gpu():
         + td.memory_usage["predict"]
         + td.memory_usage["metadata"]
     )
-# --------------------------------------------------
 
 
-# Test GPU backend
-# --------------------------------------------------
 @pytest.mark.unit
 def test_create_from_numpy_cupy():
     """
@@ -154,4 +146,3 @@ def test_categorical_encoding_gpu_backend():
     td = TensorDataCreator.create(X, backend_name="gpu")
     assert isinstance(td, TensorData)
     assert td.features.device.type == "cuda"
-# --------------------------------------------------

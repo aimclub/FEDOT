@@ -76,7 +76,8 @@ class DataSpec:
     idx: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
 
-    dataloader_kwargs: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
+    dataloader_kwargs: Dict[str, Any] = field(
+        default_factory=lambda: dict(DEFAULT_DATALOADER_KWARGS))
 
     delimiter: str = ','
     max_rows: Optional[int] = None
@@ -95,6 +96,7 @@ class DataSpec:
         index collections use empty lists.
         """
         normalization = build_load_data_spec_normalization(
+            target=self.target,
             task=self.task,
             data_type=self.data_type,
             state=self.state,

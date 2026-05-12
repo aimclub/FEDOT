@@ -28,7 +28,8 @@ class PDCDataTransformer:
         self.ordinal_features = ordinal_features
         self.string_features = string_features
         if y_type is not None and y_type not in ('numeric', 'ordinal', 'string'):
-            raise ValueError(f"y_type must be one of 'numeric', 'ordinal', 'string' but got {y_type}")
+            raise ValueError(
+                f"y_type must be one of 'numeric', 'ordinal', 'string' but got {y_type}")
         self.y_type = y_type
 
     def fit(self, X, y=None):
@@ -48,7 +49,8 @@ class PDCDataTransformer:
                         self.ordinal_features.append(column)  # ordinal...
                     else:
                         self.string_features.append(column)
-                elif pd.api.types.is_bool_dtype(dtype):  # pd.api.types.is_categorical_dtype(dtype) deprecated
+                # pd.api.types.is_categorical_dtype(dtype) deprecated
+                elif pd.api.types.is_bool_dtype(dtype):
                     self.string_features.append(column)
                 elif pd.api.types.is_string_dtype(dtype):
                     self.string_features.append(column)
@@ -87,17 +89,20 @@ class PDCDataTransformer:
         X = pd.DataFrame(self.preprocessing_.transform(X))
         from scipy.sparse import csr_matrix
         if any(isinstance(e, csr_matrix) for e in X.values.flatten()):
-            raise NotImplementedError('error in data \t X contains sparse features (csr_matrix)')
+            raise NotImplementedError(
+                'error in data \t X contains sparse features (csr_matrix)')
         X = X.dropna(axis=1, how='all')  # Drop columns with all NaN values
         X = X.astype(np.float32)
 
         if len(X.columns) == 0:
-            raise ValueError('error in data \t X no features left after pre-processing')
+            raise ValueError(
+                'error in data \t X no features left after pre-processing')
         # if X.isna().any().any():
         #     raise NotImplementedError('error in data \t Some features are NaNs in the X set')
         if any(x in pd.Series(X.values.flatten()).apply(type).unique() for x in
                ('csr_matrix', 'date',)):  # todo think about adding  'str'
-            raise NotImplementedError('error in data \t Dataset contains sparse data')
+            raise NotImplementedError(
+                'error in data \t Dataset contains sparse data')
 
         if y is not None and self.preprocessing_ is not None:
             y = pd.Series(self.preprocessing_.transform(y), name='y')
@@ -134,7 +139,8 @@ class SampleWeights:
         """
         if all(np.isclose(weights, weights.values[0])):
             weights = pd.Series(1., index=weights.index)
-        assert weights.min() >= 0, f'Negative weights found: {weights[weights < 0]}'
+        assert weights.min(
+        ) >= 0, f'Negative weights found: {weights[weights < 0]}'
         weights /= weights.sum()
         return weights
 
@@ -158,9 +164,11 @@ class SampleWeights:
         if kld_lambda > 0:
             train_size = len(weights)
             weights_initial_guess = np.ones(train_size) / train_size
-            regularisation += kld_lambda * entropy(weights, weights_initial_guess) / train_size
+            regularisation += kld_lambda * entropy(
+                weights, weights_initial_guess) / train_size
         if l1_lambda > 0:
-            regularisation += l1_lambda * (np.linalg.norm(weights, ord=1) - max(weights))
+            regularisation += l1_lambda * (np.linalg.norm(weights,
+                                           ord=1) - max(weights))
         if l2_lambda > 0:
             regularisation += l2_lambda * np.linalg.norm(weights, ord=2)
 
@@ -183,7 +191,8 @@ class SampleWeights:
         pred_val_samples_np = prediction_samples_df.values
         train_size = len(self.X_train_)
         weights_initial_guess = np.ones(train_size) / train_size
-        initial_mae = sklearn.metrics.mean_absolute_error(y_val, np.matmul(pred_val_samples_np, weights_initial_guess))
+        initial_mae = sklearn.metrics.mean_absolute_error(
+            y_val, np.matmul(pred_val_samples_np, weights_initial_guess))
 
         def objective_function(weights: np.ndarray) -> float:
             return self.__objective_function(weights=weights, pred_val_samples_np=pred_val_samples_np, y_val=y_val,
@@ -208,7 +217,8 @@ class SampleWeights:
     def _sample_weight_extreme_pruning(self, X_val: pd.DataFrame, y_val: pd.Series, **kwargs) -> pd.Series:
         l1 = 0.8
         while l1 > 0.0001:
-            weights = self._sample_weight_optimize(X_val=X_val, y_val=y_val, l1_lambda=l1)
+            weights = self._sample_weight_optimize(
+                X_val=X_val, y_val=y_val, l1_lambda=l1)
             if sum(weights == 0) / len(weights) > .9:
                 l1 *= 0.5
             else:
@@ -224,7 +234,8 @@ class SampleWeights:
         :return:
         """
         pred_val_samples, _ = self._predict_samples(X_val)
-        errors = pred_val_samples.apply(lambda one_val_samples: abs(y_val - one_val_samples), axis=0)
+        errors = pred_val_samples.apply(
+            lambda one_val_samples: abs(y_val - one_val_samples), axis=0)
         val_mae = errors.mean()
         np.testing.assert_array_equal(val_mae.index, self.X_train_.index)
         return val_mae
@@ -236,7 +247,8 @@ class SampleWeights:
         return sample_weights
 
     def _sample_weight_negative_error(self, X_val: pd.DataFrame, y_val: pd.Series, **kwargs) -> pd.Series:
-        uniform_weights = pd.Series([1 / len(self.X_train_)] * len(self.X_train_), index=self.X_train_.index)
+        uniform_weights = pd.Series(
+            [1 / len(self.X_train_)] * len(self.X_train_), index=self.X_train_.index)
         val_mae = self._error(X_val=X_val, y_val=y_val)
         if sum(val_mae) == 0:
             return uniform_weights
@@ -262,7 +274,8 @@ class SampleWeights:
         :param force_symmetry: Sets the force_symmetry parameter of the prediction function
         :return: The weights as np.NDarray
         """
-        weights = self._sample_weight_negative_error(X_val, y_val, force_symmetry=force_symmetry)
+        weights = self._sample_weight_negative_error(
+            X_val, y_val, force_symmetry=force_symmetry)
         return self._sample_weight_ordered_votes_from_weights(weights)
 
     def _sample_weight_by_kmeans_prototypes(self, k=None, **kwargs):
@@ -275,14 +288,18 @@ class SampleWeights:
         :return: The weights as np.NDarray
         """
         if not k:
-            k = max(int(len(self.X_train_) / 10), 3)  # 10% and min 3 of the training set data points is used as weights
+            # 10% and min 3 of the training set data points is used as weights
+            k = max(int(len(self.X_train_) / 10), 3)
 
         kmeans = KMeans(n_clusters=k, n_init="auto", random_state=0)
         kmeans.fit(self.X_train_)
 
-        cluster_centers = kmeans.cluster_centers_  # Get the cluster centers (prototypical data points)
-        distances = cdist(self.X_train_, cluster_centers)  # distance between each data point and each cluster center
-        closest_indices = np.argmin(distances, axis=0)  # Get the index of the closest data points to the clusters
+        # Get the cluster centers (prototypical data points)
+        cluster_centers = kmeans.cluster_centers_
+        # distance between each data point and each cluster center
+        distances = cdist(self.X_train_, cluster_centers)
+        # Get the index of the closest data points to the clusters
+        closest_indices = np.argmin(distances, axis=0)
 
         # Create an array to mark the closest data points
         closest_array = np.zeros(len(self.X_train_))
@@ -290,5 +307,6 @@ class SampleWeights:
 
         s = pd.Series(closest_array, index=self.X_train_.index)
         s = s.fillna(0)  # I don't know why there are NaNs rather than 0s
-        assert not s.isna().any(), f'Nans values in sample_weights using KMeans\n {s}'
+        assert not s.isna().any(
+        ), f'Nans values in sample_weights using KMeans\n {s}'
         return s

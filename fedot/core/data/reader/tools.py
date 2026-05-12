@@ -1,13 +1,11 @@
-import os
-from typing import Optional, Union, List
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from scipy.io.arff import loadarff
 
-from fedot.core.data.reader.data_reader_rules import resolve_arff_target_idx, split_arff_features_and_target
-
 from fedot.core.backend.backend import Backend
 from fedot.core.data.common.types import PathType
+from fedot.core.data.tensor_data.tools import convert_bytes
 
 
 def get_df_from_csv(
@@ -60,7 +58,8 @@ def get_df_from_csv(
     columns_to_use = columns_to_use or []
     possible_idx_keywords = possible_idx_keywords or []
 
-    columns = pd_backend.read_csv(file_path, sep=delimiter, index_col=False, nrows=1).columns
+    columns = pd_backend.read_csv(
+        file_path, sep=delimiter, index_col=False, nrows=1).columns
 
     if columns_to_drop and columns_to_use:
         raise ValueError(
@@ -91,50 +90,43 @@ def get_df_from_csv(
     )
 
 
-def read_arff_file(file_path: PathType,
-                   target_idx: Optional[Union[int, str]] = None):
+def read_arff_file(file_path: PathType) -> Tuple[np.ndarray, Optional[List[str]]]:
     """
-    Read an ARFF file and return `(features, target)` arrays.
+    Load an ARFF file via SciPy and return the full attribute matrix plus field names.
 
-    The function uses the current global `backend` to decide whether to return
-    NumPy arrays (CPU) or CuPy arrays (GPU). Target column detection can be
-    provided explicitly via `target_idx` or inferred automatically:
-    - If `target_idx` is `None`, it tries to detect whether the last or the first
-      column contains string values (byte strings after reading).
-    - If `target_idx` is a `str`, it is treated as a target column name.
+    Each row of ``features`` corresponds to one ``@attribute`` in file order (same order
+    as :meth:`scipy.io.arff.MetaData.names`). Columns are instances / data rows. Values
+    are passed through :func:`~fedot.core.data.tensor_data.tools.convert_bytes` for
+    byte-string decoding and numeric coercion where possible.
+
+    When the active FEDOT backend is ``gpu``, the feature array is moved to the backend
+    array module (CuPy) via ``Backend().xp``.
 
     Args:
-        file_path (PathType): Path to the input `.arff` file.
-        target_idx (Optional[Union[int, str]]): Target column index or name.
-            If `None`, the target is inferred automatically. If a string is provided,
-            it is resolved against `meta.names()`.
+        file_path: Path to the ``.arff`` file.
 
     Returns:
-        Tuple[Any, Optional[Any]]:
-            - features: array of predictors (shape depends on the dataset).
-            - target: target array or `None` if no target column is detected.
+        A pair ``(features, field_names)`` where:
+
+        * ``features`` — ``ndarray`` of shape ``(n_attributes, n_instances)``.
+        * ``field_names`` — list of attribute names from the ARFF header, aligned with
+          rows of ``features``; ``None`` if the header declares no attributes (empty
+          name list).
     """
     xp = Backend().xp
     backend_name = Backend().name
 
     data, meta = loadarff(file_path)
 
+    field_names = meta.names()
+    if len(field_names) == 0:
+        field_names = None
+
     data_array = np.asarray([data[name] for name in meta.names()])
 
-    target_resolution = resolve_arff_target_idx(
-        target_idx=target_idx,
-        field_names=meta.names(),
-        data_array=data_array,
-    )
-
-    features, target = split_arff_features_and_target(
-        data_array=data_array,
-        target_idx=target_resolution.target_idx,
-    )
+    features = convert_bytes(data_array)
 
     if backend_name == "gpu":
         features = xp.asarray(features)
-        if target is not None:
-            target = xp.asarray(target)
 
-    return features, target
+    return features, field_names

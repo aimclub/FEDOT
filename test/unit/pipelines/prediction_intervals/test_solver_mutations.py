@@ -18,8 +18,10 @@ def params():
     with open(f'{fedot_project_root()}'
               f'/test/unit/pipelines/prediction_intervals/data/pred_ints_model_test.pickle', 'rb') as f:
         model = pickle.load(f)
-    ts_train = np.genfromtxt(f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/train_ts.csv')
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=20))
+    ts_train = np.genfromtxt(
+        f'{fedot_project_root()}/test/unit/pipelines/prediction_intervals/data/train_ts.csv')
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=20))
     idx = np.arange(len(ts_train))
     train_input = InputData(idx=idx,
                             features=ts_train,
@@ -62,10 +64,14 @@ def test_solver_mutation_of_best_pipeline(params):
 
         if x == params_default:
             number_predictions = len(res)
-            assert number_predictions <= 10 * x['percentage'] + 1, f"{x['message']} Bad pipelines are not deleted."
+            assert number_predictions <= 10 * \
+                x['percentage'] + \
+                1, f"{x['message']} Bad pipelines are not deleted."
 
         elif x in [params_with_replacement, params_different]:
             prediction_length = len(res[0])
             for y in res:
-                assert isinstance(y, np.ndarray), f"{x['message']} Wrong output of a mutation."
-                assert len(y) == prediction_length, f"{x['message']} Wrong prediction length."
+                assert isinstance(
+                    y, np.ndarray), f"{x['message']} Wrong output of a mutation."
+                assert len(
+                    y) == prediction_length, f"{x['message']} Wrong prediction length."

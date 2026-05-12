@@ -28,7 +28,8 @@ def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/FEDOT
     """
-    temp_dir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+    temp_dir = Path("/tmp" if platform.system() ==
+                    "Darwin" else tempfile.gettempdir())
     default_data_path = os.path.join(temp_dir, 'FEDOT')
 
     if 'FEDOT' not in os.listdir(temp_dir):
@@ -55,7 +56,8 @@ def probs_to_labels(prediction: np.array):
 
 def split_data(df: pd.DataFrame, t_size: float = 0.2):
     """ Split pandas DataFrame into train and test parts """
-    train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
+    train, test = train_test_split(
+        df.iloc[:, :], test_size=t_size, random_state=42)
     return train, test
 
 
@@ -64,16 +66,22 @@ def save_file_to_csv(df: pd.DataFrame, path_to_save: str):
 
 
 def get_split_data_paths(directory_names: list):
-    train_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'train.csv')
-    full_train_file_path = os.path.join(str(fedot_project_root()), train_file_path)
-    test_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'test.csv')
-    full_test_file_path = os.path.join(str(fedot_project_root()), test_file_path)
+    train_file_path = os.path.join(
+        directory_names[0], directory_names[1], directory_names[2], 'train.csv')
+    full_train_file_path = os.path.join(
+        str(fedot_project_root()), train_file_path)
+    test_file_path = os.path.join(
+        directory_names[0], directory_names[1], directory_names[2], 'test.csv')
+    full_test_file_path = os.path.join(
+        str(fedot_project_root()), test_file_path)
     return full_train_file_path, full_test_file_path
 
 
 def ensure_directory_exists(dir_names: list):
-    main_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1])
-    dataset_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1], dir_names[2])
+    main_dir = os.path.join(str(fedot_project_root()),
+                            dir_names[0], dir_names[1])
+    dataset_dir = os.path.join(
+        str(fedot_project_root()), dir_names[0], dir_names[1], dir_names[2])
     if not os.path.exists(main_dir):
         os.mkdir(main_dir)
     if not os.path.exists(dataset_dir):
@@ -101,7 +109,8 @@ def df_to_html(df: pd.DataFrame, save_path: Union[str, os.PathLike], name: str =
     '''
     from bs4 import BeautifulSoup
 
-    df_styler = df.round(3).style.highlight_max(props='color: blue; font-weight: bold;', axis=1)
+    df_styler = df.round(3).style.highlight_max(
+        props='color: blue; font-weight: bold;', axis=1)
     df_styler.format(precision=3)
     if caption:
         df_styler.set_caption(caption)
@@ -172,6 +181,7 @@ def extract_dataset_name_from_url(url: str) -> str:
 
     filename = parts[-1]
 
-    dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$', '', filename, flags=re.IGNORECASE)
+    dataset_name = re.sub(r'\.(zip|csv|tar|gz|rar|7z|bz2)$',
+                          '', filename, flags=re.IGNORECASE)
 
     return dataset_name

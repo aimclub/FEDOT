@@ -47,5 +47,6 @@ class PredictionsCache(BaseCache):
 
     def _load_prediction(self, uid: str):
         outputData = self._db.get_prediction(uid)
-        self.log.debug(f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
+        self.log.debug(
+            f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
         return outputData

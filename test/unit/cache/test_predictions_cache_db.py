@@ -27,10 +27,12 @@ def test_table_creation(tmp_cache: PredictionsCacheDB) -> None:
     with closing(sqlite3.connect(tmp_cache.db_path)) as conn:
         cursor = conn.cursor()
 
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='predictions';")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='predictions';")
         assert cursor.fetchone() is not None, "Main table 'predictions' not created."
 
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stats';")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='stats';")
         assert cursor.fetchone() is not None, "Stats table 'stats' not created."
 
 
@@ -56,7 +58,8 @@ def test_get_non_existent_prediction(tmp_cache: PredictionsCacheDB) -> None:
     assert retrieved is None, "Non-existent UID should return None."
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
-    assert stats is None or all(entry[0] != uid for entry in stats), "Stats should not track non-existent UID."
+    assert stats is None or all(
+        entry[0] != uid for entry in stats), "Stats should not track non-existent UID."
 
 
 def test_add_duplicate_prediction(tmp_cache: PredictionsCacheDB) -> None:
@@ -88,7 +91,8 @@ def test_retrieve_stats(tmp_cache: PredictionsCacheDB) -> None:
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
     expected_stats = [(uid1, 2), (uid2, 1)]
-    assert sorted(stats) == sorted(expected_stats), "Retrieve stats do not match expected counts."
+    assert sorted(stats) == sorted(
+        expected_stats), "Retrieve stats do not match expected counts."
 
 
 def test_multiple_retrieve_types(tmp_cache: PredictionsCacheDB) -> None:
@@ -102,4 +106,5 @@ def test_multiple_retrieve_types(tmp_cache: PredictionsCacheDB) -> None:
     tmp_cache.get_prediction(uid)
 
     stats: List[Tuple[str, int]] = tmp_cache.retrieve_stats()
-    assert (uid, 2) in stats, "Retrieve count should increment per UID regardless of type."
+    assert (
+        uid, 2) in stats, "Retrieve count should increment per UID regardless of type."

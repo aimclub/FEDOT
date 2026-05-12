@@ -23,7 +23,8 @@ class PolyfitImplementation(ModelImplementation):
         degree = self.params.get('degree')
         if not degree or not self.min_degree <= degree <= self.max_degree:
             # default value
-            self.log.debug(f"Change invalid parameter degree ({degree}) on default value (3)")
+            self.log.debug(
+                f"Change invalid parameter degree ({degree}) on default value (3)")
             degree = self.default_degree
             self.params.update(degree=degree)
 

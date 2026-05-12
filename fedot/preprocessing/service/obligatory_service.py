@@ -53,7 +53,8 @@ class ObligatoryService:
                                      ts_shape=features.shape)
 
         if len(self.plan.steps) > 0:
-            self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+            self.handler_mapping = update_handler_mapping(
+                self.plan, self.handler_mapping)
 
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping
@@ -71,7 +72,8 @@ class ObligatoryService:
                     prepared_data.target = prepared_data_target.features
                     continue
 
-                step.features_idx = update_indices(actual_mapping, step.features_idx)
+                step.features_idx = update_indices(
+                    actual_mapping, step.features_idx)
 
                 prepared_data = handler.fit_transform(
                     prepared_data,

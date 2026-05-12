@@ -2,7 +2,12 @@
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# PEP 735: same PyPI package as optional extra `sampling_zoo` (see setup.py and
-# other_requirements/sampling_zoo.txt). Declared here for tools that read pyproject.toml.
+# PEP 735 dependency groups (see https://peps.python.org/pep-0735/ ).
+# Install with uv, e.g.: uv sync --group sampling-zoo --group gpu
 [dependency-groups]
 sampling-zoo = ["sampling-zoo>=0.1.0"]
+# CUDA 12.x stack for Backend("gpu") and GPU tests (CuPy + cuDF).
+gpu = [
+    "cupy-cuda12x==13.5.1",
+    "cudf-cu12==25.8.0",
+]

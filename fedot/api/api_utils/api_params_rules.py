@@ -34,7 +34,8 @@ def resolve_task(problem: str,
     resolved_task_params = task_params
     if problem == 'ts_forecasting' and task_params is None:
         warning_message = f'The value of the forecast depth was set to {default_forecast_length}.'
-        resolved_task_params = TsForecastingParams(forecast_length=default_forecast_length)
+        resolved_task_params = TsForecastingParams(
+            forecast_length=default_forecast_length)
 
     task_type = _SUPPORTED_PROBLEMS[problem]
     return TaskResolution(task=Task(task_type, task_params=resolved_task_params), warning_message=warning_message)
@@ -44,7 +45,8 @@ def normalize_timeout_and_generations(timeout: Optional[float],
                                       num_of_generations: Optional[int]) -> TimeoutResolution:
     if timeout in (-1, None):
         if num_of_generations is None:
-            raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+            raise ValueError(
+                '"num_of_generations" should be specified if infinite "timeout" is given')
         return TimeoutResolution(timeout=None, num_of_generations=num_of_generations)
 
     if timeout <= 0:

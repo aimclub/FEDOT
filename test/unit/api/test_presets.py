@@ -24,12 +24,17 @@ def test_presets_by_task(task_type):
     task = Task(TaskTypesEnum(task_type))
     ops_available = get_operations_for_task(task=task, mode='all')
 
-    ops_for_best_quality = OperationsPreset(task=task, preset_name='best_quality').filter_operations_by_preset()
-    ops_for_fast_train = OperationsPreset(task=task, preset_name='fast_train').filter_operations_by_preset()
-    ops_for_auto = OperationsPreset(task=task, preset_name='auto').filter_operations_by_preset()
+    ops_for_best_quality = OperationsPreset(
+        task=task, preset_name='best_quality').filter_operations_by_preset()
+    ops_for_fast_train = OperationsPreset(
+        task=task, preset_name='fast_train').filter_operations_by_preset()
+    ops_for_auto = OperationsPreset(
+        task=task, preset_name='auto').filter_operations_by_preset()
 
-    assert len(ops_for_fast_train) < len(ops_for_best_quality) == len(ops_available) == len(ops_for_auto)
-    assert minimal_sets_for_fast_train_by_task[task_type] <= set(ops_for_fast_train)
+    assert len(ops_for_fast_train) < len(ops_for_best_quality) == len(
+        ops_available) == len(ops_for_auto)
+    assert minimal_sets_for_fast_train_by_task[task_type] <= set(
+        ops_for_fast_train)
 
 
 def test_presets_inserting_in_params_correct():
@@ -37,13 +42,16 @@ def test_presets_inserting_in_params_correct():
     Check if operations from presets are correctly included in the dictionary
     with parameters for the composer
     """
-    composer_params = ApiParamsRepository.default_params_for_task(TaskTypesEnum.regression)
+    composer_params = ApiParamsRepository.default_params_for_task(
+        TaskTypesEnum.regression)
     source_candidates = composer_params.get('available_operations')
 
     task = Task(TaskTypesEnum.regression)
 
-    preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    updated_params = preset_best_quality.composer_params_based_on_preset(composer_params)
+    preset_best_quality = OperationsPreset(
+        task=task, preset_name='best_quality')
+    updated_params = preset_best_quality.composer_params_based_on_preset(
+        composer_params)
     updated_candidates = updated_params.get('available_operations')
 
     assert source_candidates is None

@@ -35,7 +35,8 @@ def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalD
         target = np.take(origin_input_data.target, index, 0)
 
         if origin_input_data.categorical_features is not None:
-            categorical_features = np.take(origin_input_data.categorical_features, index, 0)
+            categorical_features = np.take(
+                origin_input_data.categorical_features, index, 0)
         else:
             categorical_features = origin_input_data.categorical_features
 
@@ -75,7 +76,8 @@ def _split_time_series(data: InputData,
         forecast_length *= validation_blocks
 
     target_length = len(data.target)
-    train_data = _split_input_data_by_indexes(data, index=np.arange(0, target_length - forecast_length),)
+    train_data = _split_input_data_by_indexes(
+        data, index=np.arange(0, target_length - forecast_length),)
     test_data = _split_input_data_by_indexes(data, index=np.arange(target_length - forecast_length, target_length),
                                              retain_first_target=True)
 
@@ -218,7 +220,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
     elif isinstance(data, MultiModalData):
         train_data, test_data = MultiModalData(), MultiModalData()
         for node in data.keys():
-            train_data[node], test_data[node] = train_test_data_setup(data[node], **input_arguments)
+            train_data[node], test_data[node] = train_test_data_setup(
+                data[node], **input_arguments)
     else:
         raise ValueError((f'Dataset {type(data)} is not supported. Supported types:'
                           ' InputData, MultiModalData'))

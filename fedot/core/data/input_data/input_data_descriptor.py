@@ -37,7 +37,9 @@ def build_input_data_descriptor(input_data) -> InputDataDescriptor:
         tensor_canonical_data_type=compatibility.tensor_canonical,
         input_compatible_data_type=compatibility.input_compatible,
         idx=np.asarray(input_data.idx).copy(),
-        features_names=normalize_optional_numpy_array(input_data.features_names),
-        categorical_idx=normalize_optional_numpy_array(input_data.categorical_idx),
+        features_names=normalize_optional_numpy_array(
+            input_data.features_names),
+        categorical_idx=normalize_optional_numpy_array(
+            input_data.categorical_idx),
         target_is_present=input_data.target is not None,
     )

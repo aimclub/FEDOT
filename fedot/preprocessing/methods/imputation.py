@@ -116,7 +116,8 @@ class ModeImputation(AbstractPreprocessingHandler):
             valid = column[~torch.isnan(column)]
 
             if valid.numel() == 0:
-                modes.append(torch.tensor(float('nan'), device=features.device))
+                modes.append(torch.tensor(
+                    float('nan'), device=features.device))
             else:
                 values, counts = torch.unique(valid, return_counts=True)
                 mode = values[counts.argmax()]
@@ -170,7 +171,8 @@ class ConstantImputation(AbstractPreprocessingHandler):
             column = data.features[:, col_idx]
             data.features[:, col_idx] = torch.where(
                 torch.isnan(column),
-                torch.tensor(self.constant, device=data.features.device, dtype=data.features.dtype),
+                torch.tensor(self.constant, device=data.features.device,
+                             dtype=data.features.dtype),
                 column
             )
 

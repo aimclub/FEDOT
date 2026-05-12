@@ -24,7 +24,8 @@ class FedotNNClassificationStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain custom preprocessing strategy for {operation_type}')
+            raise ValueError(
+                f'Impossible to obtain custom preprocessing strategy for {operation_type}')
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
@@ -69,7 +70,8 @@ class FedotNNTimeSeriesStrategy(FedotTsForecastingStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain custom preprocessing strategy for {operation_type}')
+            raise ValueError(
+                f'Impossible to obtain custom preprocessing strategy for {operation_type}')
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
@@ -110,7 +112,8 @@ class FedotNNTimeSeriesStrategy(FedotTsForecastingStrategy):
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.predict_for_fit(predict_data, output_mode)
+        prediction = trained_operation.predict_for_fit(
+            predict_data, output_mode)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -127,11 +130,13 @@ class IndustrialSkLearnEvaluationStrategy(IndustrialCustomPreprocessingStrategy)
         return self.multi_dim_dispatcher.fit(train_data)
 
     def predict(self, trained_operation, predict_data: InputData, output_mode: str = 'default') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data)
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data)
         return self.multi_dim_dispatcher.predict(trained_operation, predict_data, output_mode=output_mode)
 
     def predict_for_fit(self, trained_operation, predict_data: InputData, output_mode: str = 'default') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data)
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data)
         return self.multi_dim_dispatcher.predict_for_fit(trained_operation, predict_data, output_mode=output_mode)
 
 
@@ -155,11 +160,13 @@ class IndustrialSkLearnRegressionStrategy(IndustrialSkLearnEvaluationStrategy):
             else self.multi_dim_dispatcher.mode
 
     def predict(self, trained_operation, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data)
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data)
         return self.multi_dim_dispatcher.predict(trained_operation, predict_data, output_mode='labels')
 
     def predict_for_fit(self, trained_operation, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data)
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data)
         return self.multi_dim_dispatcher.predict_for_fit(
             trained_operation, predict_data, output_mode='labels')
 
@@ -179,12 +186,15 @@ class IndustrialSkLearnForecastingStrategy(IndustrialSkLearnEvaluationStrategy):
         return self.multi_dim_dispatcher.fit(train_data)
 
     def predict(self, trained_operation, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data, mode=self.multi_dim_dispatcher.mode)
-        predict_output = self.multi_dim_dispatcher.predict(trained_operation, predict_data, output_mode='labels')
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data, mode=self.multi_dim_dispatcher.mode)
+        predict_output = self.multi_dim_dispatcher.predict(
+            trained_operation, predict_data, output_mode='labels')
         return predict_output
 
     def predict_for_fit(self, trained_operation, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
-        predict_data = self.multi_dim_dispatcher._convert_input_data(predict_data, mode=self.multi_dim_dispatcher.mode)
+        predict_data = self.multi_dim_dispatcher._convert_input_data(
+            predict_data, mode=self.multi_dim_dispatcher.mode)
         predict_output = self.multi_dim_dispatcher.predict_for_fit(trained_operation,
                                                                    predict_data,
                                                                    output_mode='labels')

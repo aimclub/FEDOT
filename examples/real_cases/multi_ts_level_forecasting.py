@@ -20,7 +20,8 @@ def prepare_data(forecast_length, is_multi_ts):
     target_column = '61_91'
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
-    file_path = os.path.join(str(fedot_project_root()), 'examples/real_cases/data/arctic/topaz_multi_ts.csv')
+    file_path = os.path.join(str(fedot_project_root()),
+                             'examples/real_cases/data/arctic/topaz_multi_ts.csv')
     if is_multi_ts:
         data = InputData.from_csv_multi_time_series(
             file_path=file_path,
@@ -69,7 +70,8 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
     print(f'RMSE: {root_mean_squared_error(target, forecast)}')
     print(f'MAPE: {mean_absolute_percentage_error(target, forecast)}')
 
-    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
+    print(model.get_metrics(metric_names=[
+          'rmse', 'mae', 'mape'], target=target))
 
 
 if __name__ == '__main__':

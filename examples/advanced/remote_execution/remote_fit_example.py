@@ -16,7 +16,8 @@ def run_experiment():
     # WARNING - THIS SCRIPT CAN BE EVALUATED ONLY WITH THE ACCESS TO DATAMALL SYSTEM
 
     # LOCAL RUN
-    folder = fedot_project_root().joinpath('examples', 'real_cases', 'data', 'scoring')
+    folder = fedot_project_root().joinpath(
+        'examples', 'real_cases', 'data', 'scoring')
     path = folder.joinpath('scoring_train.csv')
 
     start = datetime.now()
@@ -46,7 +47,8 @@ def run_experiment():
         max_parallel=num_parallel
     )
 
-    client = TestClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
+    client = TestClient(connect_params, exec_params,
+                        output_path=os.path.join(folder, 'remote'))
 
     evaluator = RemoteEvaluator()
     evaluator.init(

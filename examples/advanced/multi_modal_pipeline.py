@@ -55,7 +55,8 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     img_path = os.path.join(str(fedot_project_root()), img_files_path)
 
     # import of image data
-    data_img = InputData.from_image(images=img_path, labels=class_labels, task=task, target_size=images_size)
+    data_img = InputData.from_image(
+        images=img_path, labels=class_labels, task=task, target_size=images_size)
     # import of text data
     data_text = InputData.from_json_files(path, fields_to_use=['plot'],
                                           label='genres', task=task,
@@ -76,7 +77,8 @@ def run_multi_modal_pipeline(files_path: str, timeout=15, visualization=False) -
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    fit_data, predict_data = train_test_data_setup(data, shuffle=True, split_ratio=0.6)
+    fit_data, predict_data = train_test_data_setup(
+        data, shuffle=True, split_ratio=0.6)
 
     automl_model = Fedot(problem='classification', timeout=timeout)
     pipeline = automl_model.fit(features=fit_data,
@@ -95,4 +97,5 @@ def run_multi_modal_pipeline(files_path: str, timeout=15, visualization=False) -
 
 
 if __name__ == '__main__':
-    run_multi_modal_pipeline(files_path='examples/data/multimodal', visualization=True)
+    run_multi_modal_pipeline(
+        files_path='examples/data/multimodal', visualization=True)

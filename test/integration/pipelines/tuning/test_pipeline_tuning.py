@@ -33,28 +33,32 @@ from test.unit.tasks.test_forecasting import get_ts_data
 @pytest.fixture(scope='package')
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/simple_regression_train.csv')
+    file = os.path.join(str(fedot_project_root()),
+                        'test/data/simple_regression_train.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()),
+                        'test/data/simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def tiny_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/tiny_simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()),
+                        'test/data/tiny_simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/multiclass_classification.csv')
+    file = os.path.join(str(fedot_project_root()),
+                        'test/data/multiclass_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
@@ -88,7 +92,8 @@ def get_complex_regr_pipeline():
 
 
 def get_regr_pipelines():
-    simple_pipelines = [get_simple_regr_pipeline(operation_type) for operation_type in get_regr_operation_types()]
+    simple_pipelines = [get_simple_regr_pipeline(
+        operation_type) for operation_type in get_regr_operation_types()]
 
     return simple_pipelines + [get_complex_regr_pipeline()]
 
@@ -122,13 +127,15 @@ def get_pipeline_with_no_params_to_tune():
 
 
 def get_class_pipelines():
-    simple_pipelines = [get_simple_class_pipeline(operation_type) for operation_type in get_class_operation_types()]
+    simple_pipelines = [get_simple_class_pipeline(
+        operation_type) for operation_type in get_class_operation_types()]
 
     return simple_pipelines + [get_complex_class_pipeline()]
 
 
 def get_ts_forecasting_pipelines():
-    pipelines = [ts_polyfit_ridge_pipeline(2), ts_complex_ridge_smoothing_pipeline()]
+    pipelines = [ts_polyfit_ridge_pipeline(
+        2), ts_complex_ridge_smoothing_pipeline()]
     return pipelines
 
 
@@ -225,8 +232,10 @@ def run_pipeline_tuner(train_data,
         forecast_length = train_data.task.task_params.forecast_length
         folds = cv or 1
         validation_blocks = 1
-        max_window = int(train_data.features.shape[0] / (folds + 1)) - (forecast_length * validation_blocks) - 1
-        ssp = {'window_size': {'hyperopt-dist': hp.uniformint, 'sampling-scope': [2, max_window], 'type': 'discrete'}}
+        max_window = int(
+            train_data.features.shape[0] / (folds + 1)) - (forecast_length * validation_blocks) - 1
+        ssp = {'window_size': {'hyperopt-dist': hp.uniformint,
+                               'sampling-scope': [2, max_window], 'type': 'discrete'}}
         if search_space.custom_search_space is None:
             search_space.custom_search_space = {'lagged': ssp}
         else:
@@ -286,9 +295,12 @@ def test_custom_params_setter(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
-                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
+                          ('classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('ts_forecasting_dataset',
+                           get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request, tuner):
@@ -344,9 +356,12 @@ def test_pipeline_tuner_with_initial_params(classification_dataset, tuner):
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
-                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
+                          ('classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('ts_forecasting_dataset',
+                           get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, OptunaTuner])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request, tuner):
@@ -367,9 +382,12 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_f
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
-                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
+                          ('classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('ts_forecasting_dataset',
+                           get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
@@ -390,9 +408,12 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, re
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
-                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
+                          ('classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('ts_forecasting_dataset',
+                           get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node with different search spaces """
@@ -503,9 +524,12 @@ def test_search_space_get_operation_parameter_range():
     custom_search_space_with_replace = PipelineSearchSpace(custom_search_space=custom_search_space,
                                                            replace_default_search_space=True)
 
-    default_operations = default_search_space.get_parameters_for_operation('gbr')
-    custom_without_replace_operations = custom_search_space_without_replace.get_parameters_for_operation('gbr')
-    custom_with_replace_operations = custom_search_space_with_replace.get_parameters_for_operation('gbr')
+    default_operations = default_search_space.get_parameters_for_operation(
+        'gbr')
+    custom_without_replace_operations = custom_search_space_without_replace.get_parameters_for_operation(
+        'gbr')
+    custom_with_replace_operations = custom_search_space_with_replace.get_parameters_for_operation(
+        'gbr')
 
     assert default_operations == gbr_operations
     assert custom_without_replace_operations == gbr_operations
@@ -518,7 +542,8 @@ def test_complex_search_space():
         operation_parameters = space.parameters_per_operation.get("glm")
         new_value = hp_sample(operation_parameters[NESTED_PARAMS_LABEL])
         for params in new_value['sampling-scope'][0]:
-            assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
+            assert params['link'] in GLMImplementation.family_distribution[params['family']
+                                                                           ]['available_links']
 
 
 @pytest.mark.parametrize('tuner', [SimultaneousTuner, SequentialTuner, IOptTuner, OptunaTuner])
@@ -527,7 +552,8 @@ def test_complex_search_space_tuning_correct(tuner):
     train_data, test_data = get_ts_data(n_steps=700, forecast_length=20)
 
     # ridge added because IOpt requires at least one continuous parameter
-    glm_pipeline = PipelineBuilder().add_sequence('glm', 'ridge', branch_idx=0).build()
+    glm_pipeline = PipelineBuilder().add_sequence(
+        'glm', 'ridge', branch_idx=0).build()
     initial_parameters = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task) \
         .with_tuner(tuner) \
@@ -541,9 +567,12 @@ def test_complex_search_space_tuning_correct(tuner):
 
 @pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
-                          ('classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('multi_classification_dataset', get_class_pipelines(), get_class_losses()),
-                          ('ts_forecasting_dataset', get_ts_forecasting_pipelines(), get_regr_losses()),
+                          ('classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('multi_classification_dataset',
+                           get_class_pipelines(), get_class_losses()),
+                          ('ts_forecasting_dataset',
+                           get_ts_forecasting_pipelines(), get_regr_losses()),
                           ('multimodal_dataset', get_multimodal_pipelines(), get_class_losses())])
 @pytest.mark.parametrize('tuner', [OptunaTuner])
 def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner):
@@ -559,7 +588,8 @@ def test_multiobj_tuning(data_fixture, pipelines, loss_functions, request, tuner
                                                                  loss_function=loss_functions,
                                                                  cv=cv)
             assert tuned_pipelines is not None
-            assert all([tuned_pipeline is not None for tuned_pipeline in ensure_wrapped_in_sequence(tuned_pipelines)])
+            assert all([tuned_pipeline is not None for tuned_pipeline in ensure_wrapped_in_sequence(
+                tuned_pipelines)])
             for metrics in pipeline_tuner.obtained_metric:
                 assert len(metrics) == len(loss_functions)
                 assert all(metric is not None for metric in metrics)

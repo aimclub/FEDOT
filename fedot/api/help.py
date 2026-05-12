@@ -18,8 +18,10 @@ def print_models_info(task_name):
     search_space = PipelineSearchSpace()
     for model in repository_operations_list:
         if model.id != 'custom':
-            hyperparameters = search_space.get_parameters_for_operation(str(model.id))
-            implementation_info = model.current_strategy(task)(model.id).implementation_info
+            hyperparameters = search_space.get_parameters_for_operation(
+                str(model.id))
+            implementation_info = model.current_strategy(
+                task)(model.id).implementation_info
             info_lst = [
                 f"Model name - '{model.id}'",
                 f"Available hyperparameters to optimize with tuner - {hyperparameters}",
@@ -41,8 +43,10 @@ def print_data_operations_info(task_name):
     repository_operations_list = _filter_operations_by_type(repository, task)
     search_space = PipelineSearchSpace()
     for operation in repository_operations_list:
-        hyperparameters = search_space.get_parameters_for_operation(str(operation.id))
-        implementation_info = operation.current_strategy(task)(operation.id).implementation_info
+        hyperparameters = search_space.get_parameters_for_operation(
+            str(operation.id))
+        implementation_info = operation.current_strategy(
+            task)(operation.id).implementation_info
         info_lst = [
             f"Data operation name - '{operation.id}'",
             f"Available hyperparameters to optimize with tuner - {hyperparameters}",
@@ -90,10 +94,12 @@ def operations_for_task(task_name: str):
 
     # Get models and data operations
     models_repo = OperationTypesRepository()
-    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
+    data_operations_repo = OperationTypesRepository(
+        operation_type='data_operation')
 
     appropriate_models = models_repo.suitable_operation(task_type=task)
-    appropriate_data_operations = data_operations_repo.suitable_operation(task_type=task)
+    appropriate_data_operations = data_operations_repo.suitable_operation(
+        task_type=task)
 
     dict_with_operations = {'model': appropriate_models,
                             'data operation': appropriate_data_operations}

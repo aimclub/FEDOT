@@ -35,16 +35,19 @@ class Model(Operation):
         # Add information about features
         if is_regression_task or is_ts_forecasting_task:
             if len(predict_shape) < 2:
-                col_type_ids = {'features': [TYPE_TO_ID[float]] * predict_shape[0]}
+                col_type_ids = {'features': [
+                    TYPE_TO_ID[float]] * predict_shape[0]}
             else:
-                col_type_ids = {'features': [TYPE_TO_ID[float]] * predict_shape[1]}
+                col_type_ids = {'features': [
+                    TYPE_TO_ID[float]] * predict_shape[1]}
         else:
             if len(predict_shape) < 2:
                 output_data.predict = output_data.predict.reshape((-1, 1))
                 predict_shape = output_data.predict.shape
             # Classification task or clustering
             target_type = int if output_mode == 'labels' else float
-            col_type_ids = {'features': [TYPE_TO_ID[target_type]] * predict_shape[1]}
+            col_type_ids = {'features': [
+                TYPE_TO_ID[target_type]] * predict_shape[1]}
 
         # Make feature types static to suit supplementary data contract
         col_type_ids['features'] = np.array(col_type_ids['features'])
@@ -61,7 +64,8 @@ class Model(Operation):
                 col_type_ids['target'] = [TYPE_TO_ID[float]] * target_shape[1]
             else:
                 # Array present "time series"
-                col_type_ids['target'] = [TYPE_TO_ID[float]] * len(output_data.target)
+                col_type_ids['target'] = [
+                    TYPE_TO_ID[float]] * len(output_data.target)
         else:
             # Classification task or clustering
             col_type_ids['target'] = [TYPE_TO_ID[int]] * predict_shape[1]

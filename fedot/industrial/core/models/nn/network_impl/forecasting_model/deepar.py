@@ -220,11 +220,13 @@ class DeepAR(BaseNeuralModel):
         self.device = default_device(self.device)
         # architecture settings
         self.activation = self.params.get('activation', 'tanh')
-        self.cell_type = self.params.get('cell_type', 'GRU')  # LSTM is unstable?
+        self.cell_type = self.params.get(
+            'cell_type', 'GRU')  # LSTM is unstable?
         self.hidden_size = self.params.get('hidden_size', 10)
         self.rnn_layers = self.params.get('rnn_layers', 1)
         self.dropout = self.params.get('dropout', 0.1)
-        self.expected_distribution = self.params.get('expected_distribution', 'normal')
+        self.expected_distribution = self.params.get(
+            'expected_distribution', 'normal')
         self.patch_len = self.params.get('patch_len', None)
         self.preprocess_to_lagged = False
         self.horizon = 1  # params.get('horizon', 1) for future extension
@@ -232,13 +234,15 @@ class DeepAR(BaseNeuralModel):
 
         # forecasting settings
         self.forecast_mode = self.params.get('forecast_mode', 'predictions')
-        self.quantiles = torch.tensor(self.params.get('quantiles', [0.25, 0.5, 0.75]))
+        self.quantiles = torch.tensor(
+            self.params.get('quantiles', [0.25, 0.5, 0.75]))
         self.n_samples = self.params.get('n_samples', 10)
         self.test_patch_len = None
         self.forecast_length = self.params.get('forecast_length', 1)
 
         # additional
-        self._prediction_averaging_factor = self.params.get('prediction_averaging_factor', 17)
+        self._prediction_averaging_factor = self.params.get(
+            'prediction_averaging_factor', 17)
 
     def _init_model(self, ts) -> tuple:
         self.loss_fn = DeepARModule._loss_fns[self.expected_distribution]()
@@ -254,7 +258,8 @@ class DeepAR(BaseNeuralModel):
             prediction_averaging_factor=self._prediction_averaging_factor).to(
             self.device)
         self._evaluate_num_of_epochs(ts)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.Adam(
+            self.model.parameters(), lr=self.learning_rate)
 
         return self.loss_fn, self.optimizer
 
@@ -321,13 +326,15 @@ class DeepAR(BaseNeuralModel):
                 test_data: InputData,
                 output_mode: str = None):
         forecast_idx_predict = np.arange(start=test_data.idx[-1],
-                                         stop=test_data.idx[-1] + self.forecast_length,
+                                         stop=test_data.idx[-1] +
+                                         self.forecast_length,
                                          step=1)
         # some logic to select needed ts
         if output_mode == 'quantiles':
             kwargs = dict(quantiles=self.quantiles)
         else:
-            kwargs = dict(n_samples=self.n_samples) if output_mode == 'samples' else {}
+            kwargs = dict(
+                n_samples=self.n_samples) if output_mode == 'samples' else {}
         forecast = self._predict(test_data, output_mode, **kwargs)
         return OutputData(
             idx=forecast_idx_predict,
@@ -363,7 +370,8 @@ class DeepAR(BaseNeuralModel):
 
     def predict_for_fit(self, test_data, output_mode: str = None):
         forecast_idx_predict = np.arange(start=test_data.idx[-1],
-                                         stop=test_data.idx[-1] + self.forecast_length,
+                                         stop=test_data.idx[-1] +
+                                         self.forecast_length,
                                          step=1)
         forecast = self._predict(test_data, output_mode)
         return OutputData(
@@ -384,7 +392,8 @@ class DeepAR(BaseNeuralModel):
             iter += 1
             optimizer.zero_grad()
             batch_x = (batch_x.float()).to(self.device)
-            batch_y = batch_y[:, ..., [0]].float().to(self.device)  # only first entrance
+            batch_y = batch_y[:, ..., [0]].float().to(
+                self.device)  # only first entrance
             outputs, *hidden_state = model(batch_x)
             loss = loss_fn(outputs, batch_y, self.model.scaler)
             loss.backward()
@@ -415,13 +424,16 @@ class DeepAR(BaseNeuralModel):
         for epoch in tqdm(range(self.epochs)):
             iter_count = 0
             model.train()
-            train_loss = list(map(lambda batch_tuple: train_one_batch(iter_count, batch_tuple), train_loader))
+            train_loss = list(map(lambda batch_tuple: train_one_batch(
+                iter_count, batch_tuple), train_loader))
             train_loss = np.average(train_loss)
             if val_loader is not None and epoch % val_interval == 0:
-                valid_loss = list(map(lambda batch_tuple: val_one_epoch(iter_count, batch_tuple), val_loader))
+                valid_loss = list(map(lambda batch_tuple: val_one_epoch(
+                    iter_count, batch_tuple), val_loader))
             last_lr = scheduler.get_last_lr()[0]
             if epoch % 25 == 0:
-                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f}".format(epoch + 1, train_steps, train_loss))
+                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f}".format(
+                    epoch + 1, train_steps, train_loss))
                 print('Updating learning rate to {}'.format(last_lr))
             if early_stopping.early_stop:
                 print("Early stopping")

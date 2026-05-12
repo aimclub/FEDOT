@@ -71,7 +71,8 @@ class SamplingZooProvider(SamplingProvider):
             strategy_kwargs=strategy_kwargs,
             sample_size=sample_size,
         )
-        strategy_obj = self._create_strategy(factory, strategy, strategy_kwargs)
+        strategy_obj = self._create_strategy(
+            factory, strategy, strategy_kwargs)
 
         data_frame = pd.DataFrame(features)
         self._fit_strategy(strategy_obj, data_frame, target)
@@ -126,7 +127,8 @@ class SamplingZooProvider(SamplingProvider):
             except TypeError as ex:
                 last_error = ex
 
-        raise ValueError(f'Unable to call strategy.fit(...) due to incompatible signature: {last_error}')
+        raise ValueError(
+            f'Unable to call strategy.fit(...) due to incompatible signature: {last_error}')
 
     @staticmethod
     def _extract_scores(strategy_obj: Any, selected_indices: np.ndarray) -> Optional[np.ndarray]:
@@ -147,11 +149,14 @@ class SamplingZooProvider(SamplingProvider):
     def _extract_indices(strategy_obj: Any,
                          data_frame: pd.DataFrame,
                          target: np.ndarray) -> np.ndarray:
-        indices = SamplingZooProvider._extract_indices_from_sample_method(strategy_obj)
+        indices = SamplingZooProvider._extract_indices_from_sample_method(
+            strategy_obj)
         if indices is None:
-            indices = SamplingZooProvider._extract_indices_from_attrs(strategy_obj)
+            indices = SamplingZooProvider._extract_indices_from_attrs(
+                strategy_obj)
         if indices is None:
-            indices = SamplingZooProvider._extract_indices_from_get_partitions(strategy_obj, data_frame, target)
+            indices = SamplingZooProvider._extract_indices_from_get_partitions(
+                strategy_obj, data_frame, target)
 
         if indices is None or len(indices) == 0:
             raise ValueError('Sampling strategy did not return any indices.')
@@ -274,7 +279,8 @@ class SamplingZooProvider(SamplingProvider):
                                 sample_size: int) -> Dict[str, Any]:
         updated_kwargs = dict(strategy_kwargs)
         strategy_map = getattr(factory, 'strategy_map', None)
-        strategy_cls = strategy_map.get(strategy_name) if isinstance(strategy_map, dict) else None
+        strategy_cls = strategy_map.get(strategy_name) if isinstance(
+            strategy_map, dict) else None
         if strategy_cls is None:
             return updated_kwargs
 

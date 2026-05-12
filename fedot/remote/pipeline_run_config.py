@@ -140,7 +140,8 @@ def parse_pipeline_run_config_dict(config_dict: Dict[str, Dict[str, str]]):
     if default_section is None:
         return Left(_error('missing_default_section', 'Config must contain DEFAULT section.'))
 
-    required_fields = ('pipeline_template', 'train_data', 'task', 'output_path')
+    required_fields = ('pipeline_template', 'train_data',
+                       'task', 'output_path')
     for field in required_fields:
         if field not in default_section:
             return Left(_error('missing_required_field',
@@ -151,15 +152,18 @@ def parse_pipeline_run_config_dict(config_dict: Dict[str, Dict[str, str]]):
     if task_result.is_left():
         return task_result
 
-    train_data_idx_result = _parse_optional_literal(default_section.get('train_data_idx'), 'train_data_idx')
+    train_data_idx_result = _parse_optional_literal(
+        default_section.get('train_data_idx'), 'train_data_idx')
     if train_data_idx_result.is_left():
         return train_data_idx_result
 
-    is_multi_modal_result = _parse_optional_bool(default_section.get('is_multi_modal'), default=False)
+    is_multi_modal_result = _parse_optional_bool(
+        default_section.get('is_multi_modal'), default=False)
     if is_multi_modal_result.is_left():
         return is_multi_modal_result
 
-    var_names_result = _parse_optional_literal(default_section.get('var_names'), 'var_names')
+    var_names_result = _parse_optional_literal(
+        default_section.get('var_names'), 'var_names')
     if var_names_result.is_left():
         return var_names_result
 
@@ -168,7 +172,8 @@ def parse_pipeline_run_config_dict(config_dict: Dict[str, Dict[str, str]]):
         return target_result
 
     input_data = _expand_base_path(default_section['train_data'])
-    test_data_path = _expand_base_path(optional_section.get('test_data')) if optional_section else None
+    test_data_path = _expand_base_path(optional_section.get(
+        'test_data')) if optional_section else None
 
     payload = PipelineRunConfigPayload(
         pipeline_template=default_section['pipeline_template'],

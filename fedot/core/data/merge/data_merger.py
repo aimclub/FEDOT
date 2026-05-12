@@ -26,7 +26,8 @@ class DataMerger:
     def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None):
         self.log = default_log(self)
         self.outputs = outputs
-        self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+        self.data_type = data_type or DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -42,7 +43,8 @@ class DataMerger:
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged
-        data_type = DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+        data_type = DataMerger.get_datatype_for_merge(
+            output.data_type for output in outputs)
         if data_type is None:
             raise ValueError("Can't merge different data types")
 
@@ -74,7 +76,8 @@ class DataMerger:
         merged_features = self.merge_predicts(mergeable_predicts)
         merged_features = self.postprocess_predicts(merged_features)
 
-        updated_metadata = SupplementaryDataMerger(self.outputs, self.main_output).merge()
+        updated_metadata = SupplementaryDataMerger(
+            self.outputs, self.main_output).merge()
 
         return InputData(idx=common_idx, features=merged_features, target=filtered_main_target,
                          task=self.main_output.task, data_type=self.data_type,
@@ -90,7 +93,8 @@ class DataMerger:
         # if target has the same form as index
         #  then it makes sense to extract target with common indices
         if filtered_main_target is not None and len(self.main_output.idx) == len(filtered_main_target):
-            filtered_main_target = self.select_common(self.main_output.idx, filtered_main_target)
+            filtered_main_target = self.select_common(
+                self.main_output.idx, filtered_main_target)
         return filtered_main_target
 
     def find_common_predicts(self) -> List[np.array]:
@@ -105,11 +109,14 @@ class DataMerger:
         if any(is_forecast_indices):
             # Cut prediction length to minimum length
             predict_len = min(len(output.predict) for output in self.outputs)
-            common_predicts = [output.predict[:predict_len] for output in self.outputs]
+            common_predicts = [output.predict[:predict_len]
+                               for output in self.outputs]
         else:
-            common_predicts = [self.select_common(output.idx, output.predict) for output in self.outputs]
+            common_predicts = [self.select_common(
+                output.idx, output.predict) for output in self.outputs]
             if not are_same_length(common_predicts):
-                raise ValueError('Indices of merged data are not equal and not unique. Check validity of the pipeline.')
+                raise ValueError(
+                    'Indices of merged data are not equal and not unique. Check validity of the pipeline.')
         return common_predicts
 
     def preprocess_predicts(self, predicts: List[np.array]) -> List[np.array]:
@@ -143,7 +150,8 @@ class DataMerger:
         priority_output = next((output for output in outputs
                                 if output.supplementary_data.is_main_target), None)
         if not priority_output:
-            flow_lengths = [output.supplementary_data.data_flow_length for output in outputs]
+            flow_lengths = [
+                output.supplementary_data.data_flow_length for output in outputs]
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
         return priority_output
@@ -157,9 +165,11 @@ class ImageDataMerger(DataMerger):
 
         # And check image sizes
         img_wh = [predict.shape[1:3] for predict in reshaped_predicts]
-        invalid_sizes = len(set(img_wh)) > 1  # Can merge only images of the same size
+        # Can merge only images of the same size
+        invalid_sizes = len(set(img_wh)) > 1
         if invalid_sizes:
-            raise ValueError("Can't merge images of different sizes: " + str(img_wh))
+            raise ValueError(
+                "Can't merge images of different sizes: " + str(img_wh))
 
         return reshaped_predicts
 
@@ -175,7 +185,8 @@ class TextDataMerger(DataMerger):
 
     def merge_predicts(self, predicts: List[np.array]) -> np.array:
         if any(len(pred.shape) > 2 for pred in predicts):
-            raise ValueError('Merge of arrays with more than 2 dimensions is not supported')
+            raise ValueError(
+                'Merge of arrays with more than 2 dimensions is not supported')
         if len(predicts) > 1:
             predicts = [predict.astype(str) for predict in predicts]
             result = predicts[0]

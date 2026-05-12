@@ -42,14 +42,16 @@ class RSVDDecomposition:
         self.lb_for_sampling_regime = 10000
         self.lb_ratio_for_tall_matrix = 50
         self.is_matrix_big = False
-        self.projection_rank = math.ceil(min(tensor.shape) * self.sampling_share)
+        self.projection_rank = math.ceil(
+            min(tensor.shape) * self.sampling_share)
         for dim_len in tensor.shape:
             if dim_len > self.lb_for_sampling_regime:
                 self.is_matrix_big = True
                 break
         min_dim = min(tensor.shape)
         max_dim = max(tensor.shape)
-        self.is_matrix_tall = max_dim / min_dim > self.lb_ratio_for_tall_matrix if min_dim != 0 else False
+        self.is_matrix_tall = max_dim / \
+            min_dim > self.lb_ratio_for_tall_matrix if min_dim != 0 else False
         self.big_tall_matrix = all([self.is_matrix_big, self.is_matrix_tall])
 
     def _init_random_params(self, tensor):
@@ -57,7 +59,8 @@ class RSVDDecomposition:
         # Create random matrix for projection
         if self.is_matrix_big:
             self.projection_rank = self._get_stable_rank(tensor)
-        self.random_projection = np.random.randn(tensor.shape[1], self.projection_rank)
+        self.random_projection = np.random.randn(
+            tensor.shape[1], self.projection_rank)
         self.big_tall_matrix = all([self.is_matrix_big, self.is_matrix_tall])
 
     def _get_stable_rank(self, matrix):
@@ -73,7 +76,8 @@ class RSVDDecomposition:
             the stable rank
         """
         n_samples = max(matrix.shape)
-        min_num_samples = johnson_lindenstrauss_min_dim(n_samples, eps=self.tolerance).tolist()
+        min_num_samples = johnson_lindenstrauss_min_dim(
+            n_samples, eps=self.tolerance).tolist()
         return max([x if x < n_samples else n_samples for x in min_num_samples])
 
     def compute_approximation(self, original_tensor, approx_params: dict):
@@ -102,9 +106,11 @@ class RSVDDecomposition:
         # Second step. Transform initial matrix to Gram. matrix
 
         if self.big_tall_matrix:
-            tensor_row_sampled = self.random_projection @ tensor  # For tall and big matrix we use "row-sampling" operator
+            # For tall and big matrix we use "row-sampling" operator
+            tensor_row_sampled = self.random_projection @ tensor
             grammian = tensor_row_sampled @ tensor_row_sampled.T
-            grammian_with_good_spectrum = np.linalg.matrix_power(grammian, self.poly_deg)
+            grammian_with_good_spectrum = np.linalg.matrix_power(
+                grammian, self.poly_deg)
             sampled_tensor = grammian_with_good_spectrum @ tensor_row_sampled
         else:
             # Third step. Power iteration procedure. First we raise the Gram matrix to the chosen degree.
@@ -115,10 +121,12 @@ class RSVDDecomposition:
             # in order to reduce the dimension and facilitate the procedure for
             # "large" matrices.
             grammian = tensor @ tensor.T
-            sampled_tensor = np.linalg.matrix_power(grammian, self.poly_deg) @ tensor @ self.random_projection
+            sampled_tensor = np.linalg.matrix_power(
+                grammian, self.poly_deg) @ tensor @ self.random_projection
         # Fourth step. Orthogonalization of the resulting "sampled" matrix
         # creates for us a basis of eigenvectors.
-        self.sampled_tensor_orto, _ = DEFAULT_QR_SOLVER(sampled_tensor, mode='reduced')
+        self.sampled_tensor_orto, _ = DEFAULT_QR_SOLVER(
+            sampled_tensor, mode='reduced')
         # Fifth step. Project initial Gramm matrix on new basis obtained
         # from "sampled matrix".
         M = self.sampled_tensor_orto.T @ grammian @ self.sampled_tensor_orto

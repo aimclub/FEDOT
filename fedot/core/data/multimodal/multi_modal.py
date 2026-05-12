@@ -25,7 +25,8 @@ class MultiModalData(Dict[str, InputData]):
         super().__init__(*arg, **kw)
 
         # Check if input data contains different targets
-        self.contain_side_inputs = not all(value.supplementary_data.is_main_target for value in self.values())
+        self.contain_side_inputs = not all(
+            value.supplementary_data.is_main_target for value in self.values())
 
     @property
     def idx(self):
@@ -86,7 +87,8 @@ class MultiModalData(Dict[str, InputData]):
             :param source_name: string with user-specified name of source
             :return target_data: selected source InputData
         """
-        full_target_name = [key for key, _ in self.items() if source_name == key.split('/')[-1]][0]
+        full_target_name = [key for key, _ in self.items(
+        ) if source_name == key.split('/')[-1]][0]
         source_data = self[full_target_name]
         return source_data
 
@@ -138,14 +140,17 @@ class MultiModalData(Dict[str, InputData]):
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
+        text_columns = [text_columns] if isinstance(
+            text_columns, str) else text_columns
         text_data_detector = TextDataDetector()
         if not text_columns:
             text_columns = text_data_detector.define_text_columns(data_frame)
 
-        data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
+        data_text = text_data_detector.prepare_multimodal_data(
+            data_frame, text_columns)
         data_frame_table = data_frame.drop(columns=text_columns)
-        table_features, target = process_target_and_features(data_frame_table, target_columns)
+        table_features, target = process_target_and_features(
+            data_frame_table, target_columns)
 
         data_part_transformation_func = partial(array_to_input_data,
                                                 idx=idx, target_array=target, task=task)
@@ -200,13 +205,15 @@ class MultiModalData(Dict[str, InputData]):
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
+        df = get_df_from_csv(file_path, delimiter, index_col,
+                             possible_idx_keywords, columns_to_use=columns_to_use)
         idx = df.index.to_numpy()
         if not columns_to_use:
             columns_to_use = sorted(list(set(df.columns) - {index_col}))
 
         if is_predict:
-            raise NotImplementedError('Multivariate predict not supported in this function yet.')
+            raise NotImplementedError(
+                'Multivariate predict not supported in this function yet.')
 
         ts_data_detector = TimeSeriesDataDetector()
         data = ts_data_detector.prepare_multimodal_data(dataframe=df,

@@ -42,7 +42,8 @@ def solver_last_generation_ql(train_input: InputData,
     Returns:
         dictionary with lists consisting of np.arrays for building upper and lower prediction intervals.
     """
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=horizon))
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=horizon))
     tuners = quantile_loss_tuners(up_quantile=1 - nominal_error / 2,
                                   low_quantile=nominal_error / 2,
                                   train_input=train_input,
@@ -72,11 +73,13 @@ def solver_last_generation_ql(train_input: InputData,
     elif number_models > number_avaliable_pipelines:
         index_iterations = number_avaliable_pipelines
         if show_progress:
-            logger.info('number_models > number of avaliable pipelines. ' + message)
+            logger.info(
+                'number_models > number of avaliable pipelines. ' + message)
     else:
         index_iterations = number_models
         if show_progress:
-            logger.info(f'{number_models} best pipelines will be used for training.')
+            logger.info(
+                f'{number_models} best pipelines will be used for training.')
 
     for ind in all_pipelines[:index_iterations]:
 
@@ -88,12 +91,14 @@ def solver_last_generation_ql(train_input: InputData,
 
         tuned_pipeline = up_tuner.tune(pipeline)
         tuned_pipeline.fit(train_input)
-        preds = out_of_sample_ts_forecast(pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
+        preds = out_of_sample_ts_forecast(
+            pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
         up_predictions.append(preds)
 
         tuned_pipeline = low_tuner.tune(pipeline)
         tuned_pipeline.fit(train_input)
-        preds = out_of_sample_ts_forecast(pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
+        preds = out_of_sample_ts_forecast(
+            pipeline=tuned_pipeline, input_data=train_input, horizon=horizon)
         low_predictions.append(preds)
 
     return {'up_predictions': up_predictions, 'low_predictions': low_predictions}

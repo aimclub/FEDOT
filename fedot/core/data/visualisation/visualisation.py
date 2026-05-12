@@ -28,7 +28,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     """
     if isinstance(data, MultiModalData):
         if not target:
-            raise AttributeError("Can't visualize. Target of MultiModalData not set.")
+            raise AttributeError(
+                "Can't visualize. Target of MultiModalData not set.")
         data = data.extract_data_source(target)
     if data.data_type == DataTypesEnum.multi_ts:
         actual_time_series = data.features[:, 0]
@@ -40,7 +41,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
     if in_sample:
         pred_start = len(actual_time_series) - len(predict)
     elif target_time_series is not None:
-        actual_time_series = np.concatenate([actual_time_series, target_time_series], axis=0)
+        actual_time_series = np.concatenate(
+            [actual_time_series, target_time_series], axis=0)
 
     padding = min(pred_start, 72)
 
@@ -57,7 +59,8 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, in_
              linewidth=1)
 
     if in_sample:
-        in_sample_steps = np.arange(pred_start, pred_start + len(predict), data.task.task_params.forecast_length)[1:]
+        in_sample_steps = np.arange(
+            pred_start, pred_start + len(predict), data.task.task_params.forecast_length)[1:]
         plt.vlines(in_sample_steps,
                    ymin=min(actual_time_series[first_idx:]),
                    ymax=max(actual_time_series[first_idx:]), color='red', linewidth=1)

@@ -53,7 +53,8 @@ def test_synthetic_metric():
     ground_truth = ref_pipeline.predict(test_data)
     test_data.target = ground_truth.predict
 
-    metric_func = partial(custom_metric_for_synt_data, fit_data=train_data, predict_data=test_data)
+    metric_func = partial(custom_metric_for_synt_data,
+                          fit_data=train_data, predict_data=test_data)
 
     assert metric_func(ref_pipeline) == 0.0
 
@@ -69,7 +70,8 @@ def test_synthetic_regression_automl():
 
     train_data, test_data = train_test_data_setup(input_data)
 
-    metric_func = partial(custom_metric_for_synt_data, fit_data=train_data, predict_data=test_data)
+    metric_func = partial(custom_metric_for_synt_data,
+                          fit_data=train_data, predict_data=test_data)
 
     # generate synthetic target
     ref_pipeline.fit(train_data)

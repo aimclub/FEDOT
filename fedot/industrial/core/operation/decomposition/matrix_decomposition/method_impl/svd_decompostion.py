@@ -35,7 +35,8 @@ class SVDDecomposition:
     def compute_approximation(self, tensor, low_rank):
         if self.sampling_regime is not None:
             U, S, VT = self.decompose(tensor)
-            tensor_aprox = self.sampling_method_dict[self.sampling_regime](U, S, VT, tensor, low_rank)
+            tensor_aprox = self.sampling_method_dict[self.sampling_regime](
+                U, S, VT, tensor, low_rank)
         return tensor_aprox
 
     def _column_sampling(self, U, S, V, tensor, low_rank):

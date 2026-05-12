@@ -38,7 +38,8 @@ class BaggingEnsemble(DataOperationImplementation):
             input_data.target = input_data.target[-1]
         if self.is_clf_task_with_regression_ensemble:
             # concatenate probs output from different models
-            input_data.features = input_data.features.reshape(input_data.features.shape[0], -1)
+            input_data.features = input_data.features.reshape(
+                input_data.features.shape[0], -1)
 
         return input_data
 

@@ -26,7 +26,8 @@ class FedotXGBoostImplementation(ModelImplementation):
 
         self.check_and_update_params()
 
-        self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        self.model_params = {k: v for k, v in self.params.to_dict(
+        ).items() if k not in self.__operation_params}
         self.model = None
         self.features_names = None
         self.classes_ = None
@@ -41,7 +42,8 @@ class FedotXGBoostImplementation(ModelImplementation):
             train_input, eval_input = train_test_data_setup(input_data)
 
             X_train, y_train = convert_to_dataframe(
-                train_input, identify_cats=self.params.get('enable_categorical')
+                train_input, identify_cats=self.params.get(
+                    'enable_categorical')
             )
 
             X_eval, y_eval = convert_to_dataframe(
@@ -76,7 +78,8 @@ class FedotXGBoostImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = convert_to_dataframe(
+            input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict(X)
 
         return prediction
@@ -130,7 +133,8 @@ class FedotXGBoostClassificationImplementation(FedotXGBoostImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = convert_to_dataframe(
+            input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict_proba(X)
         return prediction
 
@@ -149,7 +153,8 @@ class FedotLightGBMImplementation(ModelImplementation):
 
         self.check_and_update_params()
 
-        self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        self.model_params = {k: v for k, v in self.params.to_dict(
+        ).items() if k not in self.__operation_params}
         self.model = None
         self.features_names = None
         self.classes_ = None
@@ -164,7 +169,8 @@ class FedotLightGBMImplementation(ModelImplementation):
             train_input, eval_input = train_test_data_setup(input_data)
 
             X_train, y_train = convert_to_dataframe(
-                train_input, identify_cats=self.params.get('enable_categorical')
+                train_input, identify_cats=self.params.get(
+                    'enable_categorical')
             )
 
             X_eval, y_eval = convert_to_dataframe(
@@ -200,7 +206,8 @@ class FedotLightGBMImplementation(ModelImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, identify_cats=self.params.get('enable_categorical'))
+        X, _ = convert_to_dataframe(
+            input_data, identify_cats=self.params.get('enable_categorical'))
         prediction = self.model.predict(X)
 
         return prediction
@@ -235,7 +242,8 @@ class FedotLightGBMImplementation(ModelImplementation):
         return eval_metric
 
     def plot_feature_importance(self):
-        plot_feature_importance(self.features_names, self.model.feature_importances_)
+        plot_feature_importance(self.features_names,
+                                self.model.feature_importances_)
 
     def _convert_to_multi_output_model(self, input_data: InputData):
         if input_data.task.task_type == TaskTypesEnum.classification:
@@ -243,7 +251,8 @@ class FedotLightGBMImplementation(ModelImplementation):
         elif input_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
             multiout_func = MultiOutputRegressor
         else:
-            raise ValueError(f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
+            raise ValueError(
+                f"For task type '{input_data.task.task_type}' MultiOutput wrapper is not supported")
 
         self.model = multiout_func(self.model)
 
@@ -263,7 +272,8 @@ class FedotLightGBMClassificationImplementation(FedotLightGBMImplementation):
         if self.params.get('enable_categorical'):
             input_data = input_data.get_not_encoded_data()
 
-        X, _ = convert_to_dataframe(input_data, self.params.get('enable_categorical'))
+        X, _ = convert_to_dataframe(
+            input_data, self.params.get('enable_categorical'))
         prediction = self.model.predict_proba(X)
         return prediction
 
@@ -282,7 +292,8 @@ class FedotCatBoostImplementation(ModelImplementation):
 
         self.check_and_update_params()
 
-        self.model_params = {k: v for k, v in self.params.to_dict().items() if k not in self.__operation_params}
+        self.model_params = {k: v for k, v in self.params.to_dict(
+        ).items() if k not in self.__operation_params}
         self.model = None
         self.features_names = None
 
@@ -296,8 +307,10 @@ class FedotCatBoostImplementation(ModelImplementation):
             # TODO: Using this method for tuning
             train_input, eval_input = train_test_data_setup(input_data)
 
-            train_input = self.convert_to_pool(train_input, identify_cats=self.params.get('enable_categorical'))
-            eval_input = self.convert_to_pool(eval_input, identify_cats=self.params.get('enable_categorical'))
+            train_input = self.convert_to_pool(
+                train_input, identify_cats=self.params.get('enable_categorical'))
+            eval_input = self.convert_to_pool(
+                eval_input, identify_cats=self.params.get('enable_categorical'))
 
             self.model.fit(X=train_input, eval_set=eval_input)
         else:
@@ -331,7 +344,8 @@ class FedotCatBoostImplementation(ModelImplementation):
         use_eval_set = self.params.get('use_eval_set')
 
         if (use_best_model or isinstance(early_stopping_rounds, int)) and not use_eval_set:
-            self.params.update(use_best_model=False, early_stopping_rounds=False)
+            self.params.update(use_best_model=False,
+                               early_stopping_rounds=False)
 
     @staticmethod
     def convert_to_pool(data: Optional[InputData], identify_cats: bool):
@@ -339,11 +353,13 @@ class FedotCatBoostImplementation(ModelImplementation):
             data=data.features,
             label=data.target,
             cat_features=data.categorical_idx if identify_cats else None,
-            feature_names=data.features_names.tolist() if data.features_names is not None else None
+            feature_names=data.features_names.tolist(
+            ) if data.features_names is not None else None
         )
 
     def save_model(self, model_name: str = 'catboost'):
-        save_path = os.path.join(default_fedot_data_dir(), f'catboost/{model_name}.cbm')
+        save_path = os.path.join(
+            default_fedot_data_dir(), f'catboost/{model_name}.cbm')
         self.model.save_model(save_path, format='cbm')
 
     def load_model(self, path):
@@ -355,7 +371,8 @@ class FedotCatBoostImplementation(ModelImplementation):
         return self.model.get_feature_importance(prettified=True)
 
     def plot_feature_importance(self):
-        plot_feature_importance(self.model.feature_names_, self.model.feature_importances_)
+        plot_feature_importance(self.model.feature_names_,
+                                self.model.feature_importances_)
 
 
 class FedotCatBoostClassificationImplementation(FedotCatBoostImplementation):
@@ -439,7 +456,8 @@ def check_eval_set_condition(input_data: InputData, params: OperationParameters)
         train_input, eval_input = train_test_data_setup(input_data)
         train_classes = np.unique(train_input.target)
         eval_classes = np.unique(eval_input.target)
-        all_classes_present_in_eval = np.all(np.isin(train_classes, eval_classes))
+        all_classes_present_in_eval = np.all(
+            np.isin(train_classes, eval_classes))
         if all_classes_present_in_eval:
             return True
 

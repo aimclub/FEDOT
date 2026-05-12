@@ -37,7 +37,8 @@ def resolve_arff_target_idx(
     if target_idx is None:
         return ArffTargetResolution(target_idx=infer_arff_target_idx(data_array))
 
-    raise TypeError(f"target_idx must be int, str, or None, got {type(target_idx)}")
+    raise TypeError(
+        f"target_idx must be int, str, or None, got {type(target_idx)}")
 
 
 def split_arff_features_and_target(

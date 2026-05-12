@@ -72,7 +72,8 @@ class DataMallClient(Client):
         while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
             executions = self._get_executions()
             statuses = [execution['status'] for execution in executions]
-            self._logger.info([f"{execution['id']}={execution['status']};" for execution in executions])
+            self._logger.info(
+                [f"{execution['id']}={execution['status']};" for execution in executions])
             time.sleep(5)
         end = datetime.now()
         ex_time = end - start
@@ -88,7 +89,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to get user token. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to get user token. Reason: {response.text}')
 
         self._user_token = response.cookies['x-jwt-auth']
         self.user = json.loads(response.text)
@@ -119,7 +121,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to get execution groups. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to get execution groups. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -130,7 +133,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to get execution group. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to get execution group. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -141,7 +145,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to create execution group. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to create execution group. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -153,7 +158,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to get executions. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to get executions. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -165,7 +171,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to get execution. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to get execution. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -190,7 +197,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to create execution. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to create execution. Reason: {response.text}')
 
         return json.loads(response.text)
 
@@ -202,7 +210,8 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 204:
-            raise ValueError(f'Unable to stop execution. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to stop execution. Reason: {response.text}')
 
     def download_result(self, execution_id: int, result_cls=Pipeline) -> Pipeline:
         response = requests.get(
@@ -213,13 +222,15 @@ class DataMallClient(Client):
         )
 
         if response.status_code != 200:
-            raise ValueError(f'Unable to download results. Reason: {response.text}')
+            raise ValueError(
+                f'Unable to download results. Reason: {response.text}')
 
         tmp_path = f'_tmp_{int(datetime.utcnow().timestamp() * 1000)}'
         try:
             with open(tmp_path, 'wb') as tmp_file:
                 shutil.copyfileobj(response.raw, tmp_file)
-            shutil.unpack_archive(tmp_path, f'{self.output_path}/execution-{execution_id}', 'zip')
+            shutil.unpack_archive(
+                tmp_path, f'{self.output_path}/execution-{execution_id}', 'zip')
         finally:
             try:
                 os.remove(tmp_path)
@@ -230,7 +241,8 @@ class DataMallClient(Client):
                                         f'execution-{execution_id}',
                                         'out')
         results_folder = os.listdir(results_path_out)[0]
-        load_path = os.path.join(results_path_out, results_folder, 'fitted_pipeline.json')
+        load_path = os.path.join(
+            results_path_out, results_folder, 'fitted_pipeline.json')
         pipeline = result_cls.from_serialized(load_path)
 
         clean_dir(results_path_out)

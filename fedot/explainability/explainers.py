@@ -11,7 +11,8 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
         elif task_type == TaskTypesEnum.regression:
             surrogate = 'dtreg'
         else:
-            raise ValueError(f'Surrogate tree is not applicable for the {task_type} task')
+            raise ValueError(
+                f'Surrogate tree is not applicable for the {task_type} task')
         explainer = SurrogateExplainer(pipeline, surrogate=surrogate)
     else:
         raise ValueError(f'Explanation method {method} is not supported')

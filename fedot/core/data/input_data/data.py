@@ -52,7 +52,8 @@ class Data:
     target: Optional[np.ndarray] = None
 
     # Object with supplementary info
-    supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
+    supplementary_data: SupplementaryData = field(
+        default_factory=SupplementaryData)
 
     @classmethod
     def from_numpy(cls,
@@ -120,8 +121,10 @@ class Data:
     @classmethod
     def from_dataframe(cls,
                        features_df: Union[pd.DataFrame, pd.Series],
-                       target_df: Optional[Union[pd.DataFrame, pd.Series]] = None,
-                       categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
+                       target_df: Optional[Union[pd.DataFrame,
+                                                 pd.Series]] = None,
+                       categorical_idx: Union[list[int, str],
+                                              np.ndarray[int, str]] = None,
                        task: Union[Task, str] = 'classification',
                        data_type: DataTypesEnum = DataTypesEnum.tabular) -> InputData:
         """Import data from pandas DataFrame.
@@ -153,7 +156,8 @@ class Data:
             df = pd.concat([features_df, target_df], axis=1)
             features, target = process_target_and_features(df, target_columns)
         else:
-            features, target = process_target_and_features(features_df, target_column=None)
+            features, target = process_target_and_features(
+                features_df, target_column=None)
 
         categorical_features = None
         if categorical_idx is not None:
@@ -167,7 +171,8 @@ class Data:
 
             if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
                 categorical_idx = np.array(
-                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                    [idx for idx, column in enumerate(
+                        features_names) if column in set(categorical_idx)]
                 )
 
             if categorical_idx.size != 0:
@@ -194,7 +199,8 @@ class Data:
                  data_type: DataTypesEnum = DataTypesEnum.tabular,
                  columns_to_drop: Optional[List[Union[str, int]]] = None,
                  target_columns: Union[str, List[Union[str, int]], None] = '',
-                 categorical_idx: Union[list[int, str], np.ndarray[int, str]] = None,
+                 categorical_idx: Union[list[int, str],
+                                        np.ndarray[int, str]] = None,
                  index_col: Optional[Union[str, int]] = None,
                  possible_idx_keywords: Optional[List[str]] = None) -> InputData:
         """Import data from ``csv``.
@@ -222,7 +228,8 @@ class Data:
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
+        df = get_df_from_csv(file_path, delimiter, index_col,
+                             possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
         if target_columns:
@@ -245,7 +252,8 @@ class Data:
 
             if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
                 categorical_idx = np.array(
-                    [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                    [idx for idx, column in enumerate(
+                        features_names) if column in set(categorical_idx)]
                 )
 
             if categorical_idx.size != 0:
@@ -299,7 +307,8 @@ class Data:
         if isinstance(task, str):
             task = Task(TaskTypesEnum(task))
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_drop=columns_to_drop)
+        df = get_df_from_csv(file_path, delimiter, index_col,
+                             possible_idx_keywords, columns_to_drop=columns_to_drop)
         idx = df.index.to_numpy()
 
         if target_column is not None:
@@ -359,7 +368,8 @@ class Data:
             An instance of :class:`InputData`.
         """
 
-        df = get_df_from_csv(file_path, delimiter, index_col, possible_idx_keywords, columns_to_use=columns_to_use)
+        df = get_df_from_csv(file_path, delimiter, index_col,
+                             possible_idx_keywords, columns_to_use=columns_to_use)
         idx = df.index.to_numpy()
         if columns_to_use is not None:
             actual_df = df[columns_to_use]
@@ -512,7 +522,8 @@ class Data:
                 fields_to_combine.append(np.array(df_data[field_to_use]))
                 # Unite if the element of text data is divided into strings
                 if isinstance(df_data[field_to_use][0], list):
-                    df_data[field_to_use] = [' '.join(piece) for piece in df_data[field_to_use]]
+                    df_data[field_to_use] = [
+                        ' '.join(piece) for piece in df_data[field_to_use]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
@@ -568,7 +579,8 @@ class InputData(Data):
                 if self.categorical_idx is None:
                     self.numerical_idx = np.arange(0, self.features.shape[1])
                 else:
-                    self.numerical_idx = np.setdiff1d(np.arange(0, self.features.shape[1]), self.categorical_idx)
+                    self.numerical_idx = np.setdiff1d(
+                        np.arange(0, self.features.shape[1]), self.categorical_idx)
             else:
                 self.numerical_idx = np.array([0])
 
@@ -669,7 +681,8 @@ class InputData(Data):
         """
 
         copied_data = deepcopy(self)
-        is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
+        is_timestamp = isinstance(
+            copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
         # if fit stage-just creating range of integers
         if is_timestamp or is_numpy_datetime:
@@ -693,7 +706,8 @@ class InputData(Data):
         """
 
         copied_data = deepcopy(self)
-        is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
+        is_timestamp = isinstance(
+            copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
         # if predict stage - calculating shift from last train part index
         if is_timestamp or is_numpy_datetime:
@@ -703,7 +717,8 @@ class InputData(Data):
             # note, that string indexes do not have an order and always we think that indexes we want to predict go
             # immediately after the train indexes
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
-            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
+            copied_data.idx = pipeline.last_idx_int + \
+                np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
     def get_not_encoded_data(self):
@@ -717,12 +732,14 @@ class InputData(Data):
             if isinstance(self.features, np.ndarray):
                 num_features = self.features[:, self.numerical_idx]
             else:
-                num_features = self.features.iloc[:, self.numerical_idx].to_numpy()
+                num_features = self.features.iloc[:,
+                                                  self.numerical_idx].to_numpy()
 
             if self.features_names is not None and np.size(self.features_names):
                 num_features_names = self.features_names[self.numerical_idx]
             else:
-                num_features_names = np.array([f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
+                num_features_names = np.array(
+                    [f'num_feature_{i}' for i in range(1, num_features.shape[1] + 1)])
 
         # Checking categorical data exists
         if self.categorical_idx is not None and self.categorical_idx.size != 0:
@@ -731,11 +748,13 @@ class InputData(Data):
             if self.features_names is not None and np.size(self.features_names):
                 cat_features_names = self.features_names[self.categorical_idx]
             else:
-                cat_features_names = np.array([f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
+                cat_features_names = np.array(
+                    [f'cat_feature_{i}' for i in range(1, cat_features.shape[1] + 1)])
 
         if num_features is not None and cat_features is not None:
             new_features = np.hstack((num_features, cat_features))
-            new_features_names = np.hstack((num_features_names, cat_features_names))
+            new_features_names = np.hstack(
+                (num_features_names, cat_features_names))
             new_features_idx = np.array(range(new_features.shape[1]))
             new_num_idx = new_features_idx[:num_features.shape[1]]
             new_cat_idx = new_features_idx[-cat_features.shape[1]:]
@@ -778,8 +797,10 @@ class OutputData(Data):
     encoded_idx: Optional[np.ndarray] = None
 
     def save_predict(self, path_to_save: PathType) -> PathType:
-        prediction = self.predict.tolist() if len(self.predict.shape) >= 2 else self.predict
-        prediction_df = pd.DataFrame({'Index': self.idx, 'Prediction': prediction})
+        prediction = self.predict.tolist() if len(
+            self.predict.shape) >= 2 else self.predict
+        prediction_df = pd.DataFrame(
+            {'Index': self.idx, 'Prediction': prediction})
         try:
             prediction_df.to_csv(path_to_save, index=False)
         except (FileNotFoundError, PermissionError, OSError):
@@ -869,7 +890,8 @@ def np_datetime_to_numeric(data: np.ndarray) -> np.ndarray:
     out_dtype = np.int64 if 'datetime' in str((dt := data.dtype)) else dt
     features_df = pd.DataFrame(data, copy=False).infer_objects()
     date_cols = features_df.select_dtypes('datetime')
-    converted_cols = date_cols.to_numpy(np.int64) // 1e6  # to 'ms' unit from 'ns'
+    converted_cols = date_cols.to_numpy(
+        np.int64) // 1e6  # to 'ms' unit from 'ns'
     features_df[date_cols.columns] = converted_cols
     return features_df.to_numpy(out_dtype).reshape(orig_shape)
 
@@ -898,7 +920,8 @@ def array_to_input_data(features_array: np.ndarray,
 
         if categorical_idx.size != 0 and isinstance(categorical_idx[0], str):
             categorical_idx = np.array(
-                [idx for idx, column in enumerate(features_names) if column in set(categorical_idx)]
+                [idx for idx, column in enumerate(
+                    features_names) if column in set(categorical_idx)]
             )
 
         if categorical_idx.size != 0:
@@ -944,7 +967,8 @@ def get_df_from_csv(file_path: PathType, delimiter: str, index_col: Optional[Uni
 
     logger = default_log('CSV data extraction')
 
-    columns = pd.read_csv(file_path, sep=delimiter, index_col=False, nrows=1).columns
+    columns = pd.read_csv(file_path, sep=delimiter,
+                          index_col=False, nrows=1).columns
 
     if columns_to_drop and columns_to_use:
         raise ValueError('Incompatible arguments are used: columns_to_drop and columns_to_use. '

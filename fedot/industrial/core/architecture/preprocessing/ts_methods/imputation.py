@@ -30,7 +30,8 @@ class TSMeanImputation(AbstractPreprocessingHandler):
         self.original_shape = x.shape
 
         x_flat = flatten_if_needed(x)
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         selected = x_flat[:, self.features_idx]
         self.mean_values = torch.nanmean(selected, dim=0)
@@ -77,7 +78,8 @@ class TSMedianImputation(AbstractPreprocessingHandler):
         self.original_shape = x.shape
 
         x_flat = flatten_if_needed(x)
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         selected = x_flat[:, self.features_idx]
         self.median_values = torch.nanquantile(selected, q=0.5, dim=0)
@@ -123,7 +125,8 @@ class TSConstantImputation(AbstractPreprocessingHandler):
         x = data.features
         self.original_shape = x.shape
 
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         return self
 
@@ -164,7 +167,8 @@ class TSFillImputation(AbstractPreprocessingHandler):
     def __init__(self, direction: str = "forward"):
         """Initialize class instance."""
         if direction not in {"forward", "backward"}:
-            raise ValueError("direction must be either 'forward' or 'backward'")
+            raise ValueError(
+                "direction must be either 'forward' or 'backward'")
 
         self.direction = direction
         self.features_idx: Optional[Sequence[int]] = None
@@ -198,7 +202,8 @@ class TSFillImputation(AbstractPreprocessingHandler):
             return data
 
         n_samples = selected.shape[0]
-        row_idx = torch.arange(n_samples, device=selected.device).unsqueeze(1).expand_as(selected)
+        row_idx = torch.arange(n_samples, device=selected.device).unsqueeze(
+            1).expand_as(selected)
 
         if self.direction == "forward":
             valid_idx = torch.where(~mask, row_idx, torch.zeros_like(row_idx))
@@ -221,7 +226,8 @@ class TSFillImputation(AbstractPreprocessingHandler):
 
             has_next = (~rev_mask).cumsum(dim=0) > 0
             gathered = torch.gather(rev_selected, dim=0, index=next_valid_idx)
-            rev_selected = torch.where(rev_mask & has_next, gathered, rev_selected)
+            rev_selected = torch.where(
+                rev_mask & has_next, gathered, rev_selected)
 
             selected = torch.flip(rev_selected, dims=[0])
 
@@ -349,7 +355,8 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         """Internal helper for `nanvar` logic."""
         mean = TSKalmanImputation._nanmean(values, dim=dim)
         mask = ~torch.isnan(values)
-        centered = torch.where(mask, values - mean.unsqueeze(dim), torch.zeros_like(values))
+        centered = torch.where(
+            mask, values - mean.unsqueeze(dim), torch.zeros_like(values))
         count = mask.sum(dim=dim).clamp_min(1)
         return centered.pow(2).sum(dim=dim) / count
 
@@ -359,7 +366,8 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         self.original_shape = x.shape
 
         x_flat = flatten_if_needed(x)
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         selected = x_flat[:, self.features_idx]
         valid_mask = ~torch.isnan(selected)
@@ -369,14 +377,17 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         col_idx = torch.arange(selected.shape[1], device=selected.device)
 
         first_values = selected[first_valid_idx, col_idx]
-        first_values = torch.where(has_valid, first_values, torch.zeros_like(first_values))
+        first_values = torch.where(
+            has_valid, first_values, torch.zeros_like(first_values))
 
         diffs = selected[1:] - selected[:-1]
         diff_mask = valid_mask[1:] & valid_mask[:-1]
-        safe_diffs = torch.where(diff_mask, diffs, torch.full_like(diffs, float("nan")))
+        safe_diffs = torch.where(
+            diff_mask, diffs, torch.full_like(diffs, float("nan")))
 
         mean_diff = self._nanmean(safe_diffs, dim=0)
-        mean_diff = torch.where(diff_mask.any(dim=0), mean_diff, torch.zeros_like(mean_diff))
+        mean_diff = torch.where(diff_mask.any(
+            dim=0), mean_diff, torch.zeros_like(mean_diff))
 
         series_var = self._nanvar(selected, dim=0)
         diff_var = self._nanvar(safe_diffs, dim=0)
@@ -408,7 +419,8 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         x = data.features
 
         if x.dim() not in (2, 3):
-            raise ValueError("KalmanImputation supports only [time, features] or [time, features, channels].")
+            raise ValueError(
+                "KalmanImputation supports only [time, features] or [time, features, channels].")
 
         if not torch.is_floating_point(x):
             raise TypeError("KalmanImputation expects floating point tensor.")
@@ -416,8 +428,10 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
         x_flat = flatten_if_needed(x)
         selected = x_flat[:, self.features_idx]
 
-        level = self.init_level.to(device=selected.device, dtype=selected.dtype)
-        trend = self.init_trend.to(device=selected.device, dtype=selected.dtype)
+        level = self.init_level.to(
+            device=selected.device, dtype=selected.dtype)
+        trend = self.init_trend.to(
+            device=selected.device, dtype=selected.dtype)
 
         q_level = self.q_level.to(device=selected.device, dtype=selected.dtype)
         q_trend = self.q_trend.to(device=selected.device, dtype=selected.dtype)
@@ -450,7 +464,8 @@ class TSKalmanImputation(AbstractPreprocessingHandler):
             k0 = p00_pred * inv_s
             k1 = p10_pred * inv_s
 
-            residual = torch.where(obs_mask, y_t - level_pred, torch.zeros_like(y_t))
+            residual = torch.where(
+                obs_mask, y_t - level_pred, torch.zeros_like(y_t))
 
             level = level_pred + k0 * residual
             trend = trend_pred + k1 * residual
@@ -486,7 +501,8 @@ class TSLinearInterpolation(AbstractPreprocessingHandler):
         x = data.features
         self.original_shape = x.shape
 
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         return self
 
@@ -506,16 +522,19 @@ class TSLinearInterpolation(AbstractPreprocessingHandler):
 
         result = selected.clone()
 
-        time_idx = torch.arange(T, device=device, dtype=dtype).unsqueeze(1).expand(T, N)
+        time_idx = torch.arange(
+            T, device=device, dtype=dtype).unsqueeze(1).expand(T, N)
 
         valid_mask = ~torch.isnan(selected)
 
         # forward fill indices
-        last_valid_idx = torch.where(valid_mask, time_idx, torch.zeros_like(time_idx))
+        last_valid_idx = torch.where(
+            valid_mask, time_idx, torch.zeros_like(time_idx))
         last_valid_idx = torch.cummax(last_valid_idx, dim=0)[0]
 
         # backward fill indices
-        next_valid_idx = torch.where(valid_mask, time_idx, torch.full_like(time_idx, T - 1))
+        next_valid_idx = torch.where(
+            valid_mask, time_idx, torch.full_like(time_idx, T - 1))
         next_valid_idx = torch.flip(
             torch.cummin(torch.flip(next_valid_idx, dims=[0]), dim=0)[0],
             dims=[0]
@@ -567,7 +586,8 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
         x = data.features
         self.original_shape = x.shape
 
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         return self
 
@@ -586,7 +606,8 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
         last = torch.cummax(last, dim=0)[0]
 
         nxt = torch.where(mask, idx, torch.full_like(idx, T - 1))
-        nxt = torch.flip(torch.cummin(torch.flip(nxt, dims=[0]), dim=0)[0], dims=[0])
+        nxt = torch.flip(torch.cummin(
+            torch.flip(nxt, dims=[0]), dim=0)[0], dims=[0])
 
         prev_vals = y[last]
         next_vals = y[nxt]
@@ -644,7 +665,8 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
                     continue
 
                 if n_valid < min_points:
-                    y_result[start:end] = self._linear_fallback(y_win, mask_win)
+                    y_result[start:end] = self._linear_fallback(
+                        y_win, mask_win)
                     continue
 
                 t_win = torch.arange(end - start, device=device, dtype=dtype)
@@ -655,11 +677,14 @@ class TSPolynomialInterpolation(AbstractPreprocessingHandler):
                 t_std = t_valid.std().clamp_min(torch.finfo(dtype).eps)
                 t_valid_norm = (t_valid - t_mean) / t_std
 
-                X = torch.stack([t_valid_norm.pow(k) for k in range(deg + 1)], dim=1)
-                coef = torch.linalg.lstsq(X, y_valid.unsqueeze(1)).solution.squeeze(1)
+                X = torch.stack([t_valid_norm.pow(k)
+                                for k in range(deg + 1)], dim=1)
+                coef = torch.linalg.lstsq(
+                    X, y_valid.unsqueeze(1)).solution.squeeze(1)
 
                 t_all_norm = (t_win - t_mean) / t_std
-                X_all = torch.stack([t_all_norm.pow(k) for k in range(deg + 1)], dim=1)
+                X_all = torch.stack([t_all_norm.pow(k)
+                                    for k in range(deg + 1)], dim=1)
                 y_pred = X_all @ coef
 
                 y_result[start:end] = torch.where(mask_win, y_win, y_pred)
@@ -692,7 +717,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
         x = data.features
         self.original_shape = x.shape
 
-        self.features_idx = expand_features_idx_for_flatten(features_idx, self.original_shape)
+        self.features_idx = expand_features_idx_for_flatten(
+            features_idx, self.original_shape)
 
         return self
 
@@ -711,7 +737,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
         last = torch.cummax(last, dim=0)[0]
 
         nxt = torch.where(mask, idx, torch.full_like(idx, T - 1))
-        nxt = torch.flip(torch.cummin(torch.flip(nxt, dims=[0]), dim=0)[0], dims=[0])
+        nxt = torch.flip(torch.cummin(
+            torch.flip(nxt, dims=[0]), dim=0)[0], dims=[0])
 
         prev_vals = y[last]
         next_vals = y[nxt]
@@ -766,7 +793,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
                     continue
 
                 if n_valid < 3:
-                    y_result[start:end] = self._linear_fallback(y_win, mask_win)
+                    y_result[start:end] = self._linear_fallback(
+                        y_win, mask_win)
                     continue
 
                 t_win = torch.arange(end - start, device=device, dtype=dtype)
@@ -775,7 +803,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
 
                 h = t_valid[1:] - t_valid[:-1]
                 if torch.any(h <= 0):
-                    y_result[start:end] = self._linear_fallback(y_win, mask_win)
+                    y_result[start:end] = self._linear_fallback(
+                        y_win, mask_win)
                     continue
 
                 if n_valid == 3:
@@ -783,7 +812,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
                         [torch.ones_like(t_valid), t_valid, t_valid.pow(2)],
                         dim=1
                     )
-                    coef = torch.linalg.lstsq(X, y_valid.unsqueeze(1)).solution.squeeze(1)
+                    coef = torch.linalg.lstsq(
+                        X, y_valid.unsqueeze(1)).solution.squeeze(1)
 
                     X_all = torch.stack(
                         [torch.ones_like(t_win), t_win, t_win.pow(2)],
@@ -808,8 +838,10 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
                 A[idx, idx] = diag
 
                 if m > 1:
-                    A[torch.arange(m - 1, device=device), torch.arange(1, m, device=device)] = upper
-                    A[torch.arange(1, m, device=device), torch.arange(m - 1, device=device)] = lower
+                    A[torch.arange(m - 1, device=device),
+                      torch.arange(1, m, device=device)] = upper
+                    A[torch.arange(1, m, device=device), torch.arange(
+                        m - 1, device=device)] = lower
 
                 rhs[:] = 6 * (
                     (y_valid[2:] - y_valid[1:-1]) / h_next
@@ -825,7 +857,8 @@ class TSSplineInterpolation(AbstractPreprocessingHandler):
                 missing_idx = torch.where(~mask_win)[0]
 
                 if missing_idx.numel() > 0:
-                    interval_idx = torch.searchsorted(t_valid, t_win[missing_idx], right=True) - 1
+                    interval_idx = torch.searchsorted(
+                        t_valid, t_win[missing_idx], right=True) - 1
                     interval_idx = interval_idx.clamp(0, n_valid - 2)
 
                     x0 = t_valid[interval_idx]

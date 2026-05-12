@@ -56,7 +56,8 @@ def tpot_classification_pipeline_evaluation():
     json_path_load = create_correct_path(pipeline_path)
     new_pipeline = Pipeline.from_serialized(json_path_load)
 
-    predicted_output_after_export = new_pipeline.predict(test_data, output_mode="full_probs")
+    predicted_output_after_export = new_pipeline.predict(
+        test_data, output_mode="full_probs")
     prediction_after_export = predicted_output_after_export.predict[:, 0]
 
     print(f'After import {prediction_after_export[:4]}')

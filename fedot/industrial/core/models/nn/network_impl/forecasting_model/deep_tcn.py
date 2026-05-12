@@ -61,7 +61,8 @@ class _ResidualBlock(nn.Module):
                                kernel_size,
                                dilation=(dilation_base ** nr_blocks_below))
         if weight_norm:
-            self.conv1, self.conv2 = nn.utils.weight_norm(self.conv1), nn.utils.weight_norm(self.conv2)
+            self.conv1, self.conv2 = nn.utils.weight_norm(
+                self.conv1), nn.utils.weight_norm(self.conv2)
         if nr_blocks_below == 0 or nr_blocks_below == num_layers - 1:
             self.conv3 = nn.Conv1d(input_dim,
                                    output_dim,
@@ -71,7 +72,8 @@ class _ResidualBlock(nn.Module):
         residual = x
 
         # first step
-        left_padding = (self.dilation_base ** self.nr_blocks_below) * (self.kernel_size - 1)
+        left_padding = (self.dilation_base **
+                        self.nr_blocks_below) * (self.kernel_size - 1)
         x = F.pad(x, (left_padding, 0))
         x = self.conv1(x)
         x = F.relu(x)
@@ -191,7 +193,8 @@ class TCNModel(BaseNeuralModel):
 
     def _fit_model(self, input_data: InputData, split_data: bool):
         if self.patch_len is None:
-            window_size = WindowSizeSelector(method='hac').get_window_size(input_data.features)
+            window_size = WindowSizeSelector(
+                method='hac').get_window_size(input_data.features)
             self.patch_len = window_size * input_data.features.flatten().size // 100
         train_loader = self._prepare_data(input_data.features,
                                           self.patch_len,

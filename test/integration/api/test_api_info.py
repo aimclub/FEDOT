@@ -13,7 +13,8 @@ def test_api_help_correct():
 
 
 def test_api_print_info_correct():
-    task_types = ['regression', 'classification', 'clustering', 'ts_forecasting']
+    task_types = ['regression', 'classification',
+                  'clustering', 'ts_forecasting']
     for task_name in task_types:
         print_models_info(task_name=task_name)
         print_data_operations_info(task_name=task_name)

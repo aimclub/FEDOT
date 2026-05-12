@@ -43,7 +43,8 @@ class PipelineStructureExplorer:
         graph, node_labels = graph_structure_as_nx_graph(pipeline)
 
         # Assign information for all nodes in the graph
-        graph, info_df = PipelineStructureExplorer._enrich_with_information(graph, node_labels)
+        graph, info_df = PipelineStructureExplorer._enrich_with_information(
+            graph, node_labels)
 
         primary_df = info_df[info_df['node_type'] == 'primary']
         root_df = info_df[info_df['node_type'] == 'root']
@@ -57,7 +58,8 @@ class PipelineStructureExplorer:
             if source_name in (node_name, DEFAULT_SOURCE_NAME):
                 for path in nx.all_simple_paths(graph, source=primary_id, target=root_id):
                     # Check the path (branch) whether it has wanted operation in correct location or not
-                    path_info = PipelineStructureExplorer.check_path(graph, path, tag_to_check)
+                    path_info = PipelineStructureExplorer.check_path(
+                        graph, path, tag_to_check)
                     paths[path_id] = path_info
                     path_id += 1
 
@@ -75,7 +77,8 @@ class PipelineStructureExplorer:
         :param tag_to_check: find appropriate operation by desired tag
         """
         operation_path, is_appropriate_operation, is_independent_operation = \
-            PipelineStructureExplorer._calculate_binary_paths(graph, path, tag_to_check)
+            PipelineStructureExplorer._calculate_binary_paths(
+                graph, path, tag_to_check)
 
         # Define is branch correct or not
         is_branch_correct = PipelineStructureExplorer.is_current_branch_correct(is_appropriate_operation,
@@ -116,7 +119,8 @@ class PipelineStructureExplorer:
             attrs = {node_id: {'operation': node_label, 'type': node_type}}
             nx.set_node_attributes(graph, attrs)
 
-            info_df.append([node_id, node_type, node_label, parent_numbers, child_numbers])
+            info_df.append([node_id, node_type, node_label,
+                           parent_numbers, child_numbers])
 
         info_df = pd.DataFrame(info_df, columns=['node_id', 'node_type', 'node_label',
                                                  'parent_number', 'child_number'])
@@ -146,7 +150,8 @@ class PipelineStructureExplorer:
             errors, even if they have not been previously processed by encoding,
             e.g.
         """
-        ignore_tag = PipelineStructureExplorer._invariant_tags.get(tag_to_check)
+        ignore_tag = PipelineStructureExplorer._invariant_tags.get(
+            tag_to_check)
 
         # List with names of operations in the branch
         operations_path = []

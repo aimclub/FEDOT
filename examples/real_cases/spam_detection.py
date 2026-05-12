@@ -18,13 +18,15 @@ def execute_pipeline_for_text_problem(train_data, test_data):
 
     predicted = pipeline.predict(test_data)
 
-    roc_auc_metric = roc_auc(y_true=test_data.target, y_score=predicted.predict)
+    roc_auc_metric = roc_auc(y_true=test_data.target,
+                             y_score=predicted.predict)
 
     return roc_auc_metric
 
 
 def run_text_problem_from_meta_file():
-    data_file_abspath = os.path.abspath(os.path.join('../../examples/real_cases/data', 'spam', 'spamham.csv'))
+    data_file_abspath = os.path.abspath(os.path.join(
+        '../../examples/real_cases/data', 'spam', 'spamham.csv'))
 
     data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
 
@@ -36,7 +38,8 @@ def run_text_problem_from_meta_file():
 
 
 def run_text_problem_from_files():
-    data_abspath = os.path.abspath(os.path.join('../../examples/real_cases/data', 'spamham'))
+    data_abspath = os.path.abspath(os.path.join(
+        '../../examples/real_cases/data', 'spamham'))
 
     unpack_archived_data(data_abspath)
 

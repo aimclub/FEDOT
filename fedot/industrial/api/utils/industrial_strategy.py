@@ -44,7 +44,8 @@ class IndustrialStrategy:
     def __init__(self, industrial_strategy_params, industrial_strategy, api_config):
         self.industrial_strategy_params = industrial_strategy_params or {}
         self.finetune = self.industrial_strategy_params.get('finetune', False)
-        self.finetune_params = self.industrial_strategy_params.get('tuning_params', {})
+        self.finetune_params = self.industrial_strategy_params.get(
+            'tuning_params', {})
         self.industrial_strategy = industrial_strategy
 
         self.sampling_algorithm = {'CUR': self.__cur_sampling,
@@ -66,23 +67,28 @@ class IndustrialStrategy:
     def __cur_sampling(self, tensor, target, sampling_rate=0.7):
         projection_rank = math.ceil(max(tensor.shape) * sampling_rate)
         decomposer = CURDecomposition(rank=projection_rank)
-        sampled_tensor, sampled_target = decomposer.fit_transform(tensor, target)
+        sampled_tensor, sampled_target = decomposer.fit_transform(
+            tensor, target)
         return decomposer, sampled_tensor, sampled_target
 
     def __random_sampling(self, tensor, target, sampling_rate=0.7):
         projection_rank = math.ceil(max(tensor.shape) * sampling_rate)
         tensor = tensor.squeeze()
-        selected_rows = np.random.choice(tensor.shape[0], size=projection_rank, replace=False)
-        sampled_tensor, sampled_target = tensor[selected_rows, :], target[selected_rows, :]
+        selected_rows = np.random.choice(
+            tensor.shape[0], size=projection_rank, replace=False)
+        sampled_tensor, sampled_target = tensor[selected_rows,
+                                                :], target[selected_rows, :]
         return selected_rows, sampled_tensor, sampled_target
 
     def fit(self, input_data):
-        dispatch_plan = resolve_industrial_strategy_dispatch(self.industrial_strategy)
+        dispatch_plan = resolve_industrial_strategy_dispatch(
+            self.industrial_strategy)
         getattr(self, dispatch_plan.fit_method_name)(input_data)
         return self.solver
 
     def predict(self, input_data, predict_mode):
-        dispatch_plan = resolve_industrial_strategy_dispatch(self.industrial_strategy)
+        dispatch_plan = resolve_industrial_strategy_dispatch(
+            self.industrial_strategy)
         return getattr(self, dispatch_plan.predict_method_name)(input_data, predict_mode)
 
     def _federated_strategy(self, input_data):
@@ -122,10 +128,12 @@ class IndustrialStrategy:
     def _forecasting_strategy(self, input_data):
         self.logger.info('TS forecasting algorithm was applied')
         self.solver = {}
-        kernel_data = {model_name: input_data for model_name in FEDOT_TS_FORECASTING_ASSUMPTIONS.keys()}
+        kernel_data = {
+            model_name: input_data for model_name in FEDOT_TS_FORECASTING_ASSUMPTIONS.keys()}
         kernel_model = {model_name: model_impl.build() if 'build' in dir(model_impl) else model_impl(
             {}).fit(input_data) for model_name, model_impl in FEDOT_TS_FORECASTING_ASSUMPTIONS.items()}
-        self.solver = self._finetune_loop(kernel_model, kernel_data, self.finetune_params)
+        self.solver = self._finetune_loop(
+            kernel_model, kernel_data, self.finetune_params)
         # for model_name, init_assumption in FEDOT_TS_FORECASTING_ASSUMPTIONS.items():
         #     self.config['initial_assumption'] = init_assumption.build()
         #     industrial = Fedot(**self.config)
@@ -160,7 +168,8 @@ class IndustrialStrategy:
             Maybe(
                 value=industrial.fit(sampled_input),
                 monoid=True).maybe(
-                default_value=self.logger.info(f'Failed during fit stage - {algorithm}'),
+                default_value=self.logger.info(
+                    f'Failed during fit stage - {algorithm}'),
                 extraction_function=lambda fitted_model: self.solver.update(
                     {sampling_plan.result_key: industrial}))
             self.sampler.update({sampling_plan.result_key: decomposer})
@@ -200,7 +209,8 @@ class IndustrialStrategy:
                        kernel_data: dict,
                        tuning_params: dict = {}):
         tuned_models = {}
-        finetune_plan = build_industrial_kernel_finetune_plan(self.config['problem'], tuning_params)
+        finetune_plan = build_industrial_kernel_finetune_plan(
+            self.config['problem'], tuning_params)
         for generator, kernel_model in kernel_ensemble.items():
             model_to_tune = deepcopy(kernel_model)
             pipeline_tuner, solver = build_tuner(
@@ -209,8 +219,10 @@ class IndustrialStrategy:
         return tuned_models
 
     def _kernel_strategy(self, input_data):
-        self.kernel_ensembler = KernelEnsembler(self.industrial_strategy_params)
-        kernel_ensemble, kernel_data = self.kernel_ensembler.transform(input_data).predict
+        self.kernel_ensembler = KernelEnsembler(
+            self.industrial_strategy_params)
+        kernel_ensemble, kernel_data = self.kernel_ensembler.transform(
+            input_data).predict
         self.solver = self._finetune_loop(kernel_ensemble, kernel_data)
 
     def _lora_strategy(self, input_data):
@@ -222,13 +234,16 @@ class IndustrialStrategy:
                            input_data,
                            mode: str = 'labels'):
         valid_nodes = self.solver.current_pipeline.root_node.nodes_from
-        self.predicted_branch_probs = [x.predict(input_data).predict for x in valid_nodes]
+        self.predicted_branch_probs = [
+            x.predict(input_data).predict for x in valid_nodes]
 
         # reshape if binary
         if len(self.predicted_branch_probs[0].shape) < 2:
-            self.predicted_branch_probs = [np.array([x, 1 - x]).T for x in self.predicted_branch_probs]
+            self.predicted_branch_probs = [
+                np.array([x, 1 - x]).T for x in self.predicted_branch_probs]
 
-        self.predicted_branch_labels = [np.argmax(x, axis=1) for x in self.predicted_branch_probs]
+        self.predicted_branch_labels = [
+            np.argmax(x, axis=1) for x in self.predicted_branch_probs]
 
         n_samples = self.predicted_branch_probs[0].shape[0]
         n_channels = len(self.predicted_branch_probs)
@@ -250,7 +265,8 @@ class IndustrialStrategy:
         def _predict_function(forecasting_model):
             if isinstance(forecasting_model, dict):
                 predict_by_component = {
-                    model_name: model['composite_pipeline'].predict(model['train_fold_data'], mode).predict
+                    model_name: model['composite_pipeline'].predict(
+                        model['train_fold_data'], mode).predict
                     for model_name, model in forecasting_model.items()}
                 return np.sum(list(predict_by_component.values()), axis=0)
             else:
@@ -294,7 +310,8 @@ class IndustrialStrategy:
             copy_input = deepcopy(input_data)
             feature_space = self.sampler[sampling_rate].column_indices if predict_plan.use_cur_feature_space else None
             squeezed_features = input_data.features.squeeze()
-            copy_input.features = squeezed_features if feature_space is None else squeezed_features[:, feature_space]
+            copy_input.features = squeezed_features if feature_space is None else squeezed_features[
+                :, feature_space]
             labels_dict.update({sampling_rate: solver.predict(copy_input, mode) if predict_plan.labels_output
                                 else solver.predict_proba(copy_input)})
             del copy_input
@@ -320,7 +337,8 @@ class IndustrialStrategy:
         transformed = []
         if self.random_label is None:
             self.random_label = {
-                class_by_gen: np.random.choice(self.kernel_ensembler.classes_misses_by_generator[class_by_gen])
+                class_by_gen: np.random.choice(
+                    self.kernel_ensembler.classes_misses_by_generator[class_by_gen])
                 for class_by_gen in self.kernel_ensembler.classes_described_by_generator}
         for prob_by_gen, class_by_gen in zip(
                 list_proba, self.kernel_ensembler.classes_described_by_generator):

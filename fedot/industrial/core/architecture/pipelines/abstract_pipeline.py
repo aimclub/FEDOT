@@ -49,7 +49,8 @@ class AbstractPipeline:
             for node in nodes:
                 if isinstance(branch, int):
                     if isinstance(node, tuple):
-                        pipeline.add_node(operation_type=node[0], params=node[1], branch_idx=branch)
+                        pipeline.add_node(
+                            operation_type=node[0], params=node[1], branch_idx=branch)
                     else:
                         with open(PATH_TO_DEFAULT_PARAMS) as json_data:
                             default_operation_params = json.load(json_data)
@@ -169,11 +170,14 @@ class ApiTemplate:
              finetune: bool = False,
              initial_assumption: Union[list, dict, str] = None):
         self.train_data, self.test_data = self._prepare_dataset(dataset)
-        have_init_assumption = initial_assumption is not None and len(initial_assumption) != 0
+        have_init_assumption = initial_assumption is not None and len(
+            initial_assumption) != 0
         pipeline_to_tune = None
         if have_init_assumption:
-            pipeline_to_tune = AbstractPipeline.create_pipeline(initial_assumption, build=False)
-            return_only_fitted = pipeline_to_tune.heads[0].name in list(NEURAL_MODEL.keys())
+            pipeline_to_tune = AbstractPipeline.create_pipeline(
+                initial_assumption, build=False)
+            return_only_fitted = pipeline_to_tune.heads[0].name in list(
+                NEURAL_MODEL.keys())
         self.industrial_class = FedotIndustrial(**self.api_config)
         start_time = time.time()
         Either(
@@ -204,7 +208,8 @@ class ApiTemplate:
                                for dataset in datasets_dir]
             df_with_results = pd.concat(df_with_results)
             del df_with_results['Unnamed: 0']
-            df_with_results.columns = [f'{x}_{model_dir}' for x in df_with_results.columns]
+            df_with_results.columns = [
+                f'{x}_{model_dir}' for x in df_with_results.columns]
             df_with_results['dataset'] = datasets_dir
             result_dict.update({model_dir: df_with_results})
         return result_dict
@@ -214,17 +219,23 @@ class ApiTemplate:
             print(f'\nEvaluating {dataset} dataset')
 
             if benchmark_name.__contains__('M4'):
-                dataset_for_eval = self._prepare_forecasting_data(dataset, benchmark_name, benchmark_params)
+                dataset_for_eval = self._prepare_forecasting_data(
+                    dataset, benchmark_name, benchmark_params)
             elif benchmark_name.__contains__('SKAB'):
-                dataset_for_eval = self._prepare_skab_data(dataset, benchmark_name, benchmark_params)
+                dataset_for_eval = self._prepare_skab_data(
+                    dataset, benchmark_name, benchmark_params)
             elif benchmark_name in MONASH_FORECASTING_BENCH:
-                dataset_for_eval = self._prepare_monash_data(dataset, benchmark_name, benchmark_params)
+                dataset_for_eval = self._prepare_monash_data(
+                    dataset, benchmark_name, benchmark_params)
             else:
                 dataset_for_eval = dataset
             for model_impl, model_name, finetune_strategy in zip(*benchmark_params['model_to_compare']):
-                date_ = benchmark_params.get('experiment_date', current_date.today().isoformat())
-                benchmark_folder = benchmark_params.get('benchmark_folder', './benchmark_results')
-                output_folder = os.path.join(benchmark_folder, f'{date_}_{benchmark_name}', model_name, dataset)
+                date_ = benchmark_params.get(
+                    'experiment_date', current_date.today().isoformat())
+                benchmark_folder = benchmark_params.get(
+                    'benchmark_folder', './benchmark_results')
+                output_folder = os.path.join(
+                    benchmark_folder, f'{date_}_{benchmark_name}', model_name, dataset)
                 self.api_config['compute_config']['output_folder'] = output_folder
                 try:
                     result_dict = self.eval(
@@ -232,7 +243,8 @@ class ApiTemplate:
                         initial_assumption=model_impl,
                         finetune=finetune_strategy)
                     print(result_dict['metrics'])
-                    np.save(os.path.join(output_folder, 'results.npy'), result_dict)
+                    np.save(os.path.join(output_folder,
+                            'results.npy'), result_dict)
                 except BaseException:
                     result_dict = {}
 
@@ -249,12 +261,16 @@ class ApiTemplate:
 
     def _prepare_skab_data(self, dataset, benchmark_name, benchmark_dict):
         folder = benchmark_dict['metadata']['folder']
-        path_to_result = EXAMPLES_DATA_PATH + f'/benchmark/detection/data/{folder}/{dataset}.csv'
-        df = pd.read_csv(path_to_result, index_col='datetime', sep=';', parse_dates=True)
+        path_to_result = EXAMPLES_DATA_PATH + \
+            f'/benchmark/detection/data/{folder}/{dataset}.csv'
+        df = pd.read_csv(path_to_result, index_col='datetime',
+                         sep=';', parse_dates=True)
         train_idx = self.api_config['industrial_config']['strategy_params']['train_data_size']
         if isinstance(train_idx, str):
-            train_data = EXAMPLES_DATA_PATH + f'/benchmark/detection/data/{train_idx}/{train_idx}.csv'
-            train_data = pd.read_csv(train_data, index_col='datetime', sep=';', parse_dates=True)
+            train_data = EXAMPLES_DATA_PATH + \
+                f'/benchmark/detection/data/{train_idx}/{train_idx}.csv'
+            train_data = pd.read_csv(
+                train_data, index_col='datetime', sep=';', parse_dates=True)
             label = np.array([0 for x in range(len(train_data))])
             dataset_for_eval = {'train_data': (train_data.values, label),
                                 'test_data': (df.iloc[:, :-2].values, df.iloc[:, -2].values)}

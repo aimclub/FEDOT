@@ -38,7 +38,8 @@ def pipeline_with_pca() -> Pipeline:
 
 
 def get_synthetic_classification_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
-    synthetic_data = make_classification(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    synthetic_data = make_classification(
+        n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
                            target=synthetic_data[1].reshape((-1, 1)),
@@ -135,7 +136,8 @@ def test_classification_with_pca_pipeline_fit_correct():
                                   multi_class='ovo',
                                   average='macro')
 
-    assert roc_auc_on_test_pca > roc_auc_on_test * 0.95 > 0.5  # add a small deviation
+    assert roc_auc_on_test_pca > roc_auc_on_test * \
+        0.95 > 0.5  # add a small deviation
 
 
 def test_output_mode_labels():

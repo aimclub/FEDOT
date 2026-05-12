@@ -19,7 +19,8 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, graph_gen_params
     node_mutation_probability = get_mutation_prob(mut_id=parameters.mutation_strength,
                                                   node=pipeline.root_node)
     for node in pipeline.nodes:
-        lagged = node.operation.metadata.id in ('lagged', 'sparse_lagged', 'exog_ts')
+        lagged = node.operation.metadata.id in (
+            'lagged', 'sparse_lagged', 'exog_ts')
         do_mutation = random() < (node_mutation_probability * (0.5 if lagged else 1))
         if do_mutation:
             operation_name = node.operation.operation_type
@@ -49,7 +50,8 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
 
     all_data_operations = OperationTypesRepository('data_operation').suitable_operation(
         task_type=task_type)
-    preprocessing_primary_nodes = [n for n in existing_pipeline.nodes if str(n) in all_data_operations]
+    preprocessing_primary_nodes = [
+        n for n in existing_pipeline.nodes if str(n) in all_data_operations]
 
     if len(preprocessing_primary_nodes) > 0:
         data_source = preprocessing_primary_nodes[0]
@@ -73,7 +75,8 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
     new_model = choose_new_model(boosting_model_candidates)
 
     if task_type == TaskTypesEnum.ts_forecasting:
-        non_lagged_ts_models = OperationTypesRepository('model').operations_with_tag(['non_lagged'])
+        non_lagged_ts_models = OperationTypesRepository(
+            'model').operations_with_tag(['non_lagged'])
         is_non_lagged_ts_models_in_node = \
             str(existing_pipeline.root_node) in non_lagged_ts_models
 
@@ -82,13 +85,15 @@ def boosting_mutation(pipeline: Pipeline, requirements, graph_gen_params, **kwar
             lagged_node = PipelineNode('lagged', nodes_from=[data_source])
             decompose_parents = [existing_pipeline.root_node, lagged_node]
 
-    node_decompose = PipelineNode(decompose_operation, nodes_from=decompose_parents)
+    node_decompose = PipelineNode(
+        decompose_operation, nodes_from=decompose_parents)
 
     node_boost = PipelineNode(new_model, nodes_from=[node_decompose])
 
     node_final = PipelineNode(choice(requirements.secondary),
                               nodes_from=[existing_pipeline.root_node, node_boost])
-    pipeline = Pipeline(node_final, use_input_preprocessing=pipeline.use_input_preprocessing)
+    pipeline = Pipeline(
+        node_final, use_input_preprocessing=pipeline.use_input_preprocessing)
     return pipeline
 
 

@@ -44,10 +44,12 @@ def test_disabled_pipeline_data_preprocessing(case: Tuple[Callable[[], InputData
 
     pipeline = Pipeline(PipelineNode('ridge'), use_input_preprocessing=False)
     if is_fit_stage:
-        preprocessed_data = pipeline._preprocess(input_data, is_fit_stage=is_fit_stage)
+        preprocessed_data = pipeline._preprocess(
+            input_data, is_fit_stage=is_fit_stage)
     else:
         try:
-            preprocessed_data = pipeline._preprocess(input_data, is_fit_stage=is_fit_stage)
+            preprocessed_data = pipeline._preprocess(
+                input_data, is_fit_stage=is_fit_stage)
         except Exception as exc:
             assert False, 'Raised exception during predict preprocessing even without fit stage'
     assert id(preprocessed_data) != id(input_data)
@@ -63,12 +65,14 @@ def test_data_preprocessor_inits_supplementary_preprocessors_only_once():
 
     preprocessor._init_supplementary_preprocessors(input_data)
     prev = [
-        {k: id(v) for k, v in preprocessor.binary_categorical_processors.items()},
+        {k: id(v)
+         for k, v in preprocessor.binary_categorical_processors.items()},
         {k: id(v) for k, v in preprocessor.types_correctors.items()}
     ]
     preprocessor._init_supplementary_preprocessors(input_data)
     cur = [
-        {k: id(v) for k, v in preprocessor.binary_categorical_processors.items()},
+        {k: id(v)
+         for k, v in preprocessor.binary_categorical_processors.items()},
         {k: id(v) for k, v in preprocessor.types_correctors.items()}
     ]
     are_equal = [
@@ -85,7 +89,8 @@ def test_data_preprocessor_performs_obligatory_data_preprocessing_only_once():
     preprocessor = DataPreprocessor()
 
     preprocessed_data = preprocessor.obligatory_prepare_for_fit(input_data)
-    preprocessed_data_same = preprocessor.obligatory_prepare_for_fit(preprocessed_data)
+    preprocessed_data_same = preprocessor.obligatory_prepare_for_fit(
+        preprocessed_data)
 
     assert id(preprocessed_data) == id(preprocessed_data_same)
     _assert_equal_data(preprocessed_data, preprocessed_data_same)
@@ -96,10 +101,12 @@ def test_data_preprocessor_performs_optional_data_preprocessing_only_once():
     preprocessor = DataPreprocessor()
     pipeline = Pipeline(PipelineNode('ridge'))
 
-    preprocessed_data = preprocessor.optional_prepare_for_fit(pipeline, input_data)
+    preprocessed_data = preprocessor.optional_prepare_for_fit(
+        pipeline, input_data)
 
     other_pipeline = Pipeline(PipelineNode('dt'))
-    preprocessed_data_same = preprocessor.optional_prepare_for_fit(other_pipeline, preprocessed_data)
+    preprocessed_data_same = preprocessor.optional_prepare_for_fit(
+        other_pipeline, preprocessed_data)
 
     assert id(preprocessed_data) == id(preprocessed_data_same)
     _assert_equal_data(preprocessed_data, preprocessed_data_same)

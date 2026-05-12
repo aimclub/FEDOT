@@ -35,7 +35,8 @@ def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str
     preset_pipeline = Pipeline(svc_node_with_custom_params)
 
     start = datetime.now()
-    baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
+    baseline_model.fit(features=train_data, target='target',
+                       predefined_model=preset_pipeline)
     print(f'Completed with custom params in: {datetime.now() - start}')
 
     baseline_model.predict(features=test_data)
@@ -60,7 +61,8 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
     preset_pipeline = classification_svc_complex_pipeline()
 
     start = datetime.now()
-    baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
+    baseline_model.fit(features=train_data, target='target',
+                       predefined_model=preset_pipeline)
     finish = datetime.now() - start
     print(f'Completed in: {finish}')
 
@@ -79,7 +81,8 @@ def get_scoring_data() -> Tuple[InputData, InputData]:
 
 
 def make_moons_input_data(samples):
-    X, y = make_moons(n_samples=samples, shuffle=True, noise=0.1, random_state=137)
+    X, y = make_moons(n_samples=samples, shuffle=True,
+                      noise=0.1, random_state=137)
 
     train_data = InputData(idx=list(range(len(X))), features=X, target=y,
                            task=Task(TaskTypesEnum.classification),

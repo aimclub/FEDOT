@@ -53,7 +53,8 @@ class TextToEmbedding:
                 CUDA is used when available, otherwise CPU is used.
         """
         if device is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu")
 
         self.device = device
         SentenceTransformer = _load_sentence_transformer()

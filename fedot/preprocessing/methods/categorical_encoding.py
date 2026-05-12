@@ -101,7 +101,8 @@ class LabelEncoder(AbstractPreprocessingHandler):
 
                 matched_rows = matches.any(axis=1)
 
-                encoded[matched_rows, j] = matches.argmax(axis=1)[matched_rows].astype(float)
+                encoded[matched_rows, j] = matches.argmax(
+                    axis=1)[matched_rows].astype(float)
 
             encoded[nan_mask, j] = xp.nan
 
@@ -193,7 +194,8 @@ class OneHotEncoder(AbstractPreprocessingHandler):
 
         features = data.features
         n_rows = features.shape[0]
-        encoded = xp.full((n_rows, self.n_output_features_), xp.nan, dtype=float)
+        encoded = xp.full((n_rows, self.n_output_features_),
+                          xp.nan, dtype=float)
 
         for idx in self.categorical_idx_:
             column = features[:, idx]
@@ -205,7 +207,8 @@ class OneHotEncoder(AbstractPreprocessingHandler):
             if categories.size == 0:
                 continue
 
-            block = (column.reshape(-1, 1) == categories.reshape(1, -1)).astype(float)
+            block = (column.reshape(-1, 1) ==
+                     categories.reshape(1, -1)).astype(float)
             block[nan_mask, :] = xp.nan
 
             encoded[:, feature_slice] = block

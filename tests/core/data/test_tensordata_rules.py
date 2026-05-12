@@ -66,7 +66,8 @@ def test_normalize_optional_data_type_maps_legacy_values(raw_data_type, expected
 
 @pytest.mark.unit
 def test_normalize_optional_data_type_is_idempotent_for_canonical_values():
-    assert normalize_optional_data_type(DataTypesEnum.tabular) == DataTypesEnum.tabular
+    assert normalize_optional_data_type(
+        DataTypesEnum.tabular) == DataTypesEnum.tabular
     assert normalize_optional_data_type(DataTypesEnum.ts) == DataTypesEnum.ts
 
 
@@ -121,7 +122,8 @@ def test_resolve_registered_creator_returns_first_matching_creator():
         (lambda _: True, creator_b),
     ]
 
-    assert resolve_registered_creator(creators, source_data={'x': 1}) is creator_b
+    assert resolve_registered_creator(
+        creators, source_data={'x': 1}) is creator_b
 
 
 @pytest.mark.unit
@@ -151,7 +153,8 @@ def test_build_creation_failure_keeps_source_type_and_error_type():
 
 @pytest.mark.unit
 def test_normalize_array_target_reference_moves_integer_target_to_target_idx():
-    target, target_idx = normalize_array_target_reference(2, None, feature_width=5)
+    target, target_idx = normalize_array_target_reference(
+        2, None, feature_width=5)
 
     assert target is None
     assert target_idx == 2
@@ -159,7 +162,8 @@ def test_normalize_array_target_reference_moves_integer_target_to_target_idx():
 
 @pytest.mark.unit
 def test_normalize_array_target_reference_keeps_explicit_target_idx_priority():
-    target, target_idx = normalize_array_target_reference(2, 1, feature_width=5)
+    target, target_idx = normalize_array_target_reference(
+        2, 1, feature_width=5)
 
     assert target == 2
     assert target_idx == 1
@@ -173,7 +177,8 @@ def test_normalize_tabular_file_delimiter_infers_tsv_separator_from_suffix():
 
 @pytest.mark.unit
 def test_normalize_possible_idx_keywords_uses_defaults_when_not_provided():
-    assert normalize_possible_idx_keywords(None, ['idx', 'id']) == ['idx', 'id']
+    assert normalize_possible_idx_keywords(
+        None, ['idx', 'id']) == ['idx', 'id']
     assert normalize_possible_idx_keywords(['custom'], ['idx']) == ['custom']
 
 
@@ -210,7 +215,8 @@ def test_build_tabular_file_load_plan_rejects_missing_file(tmp_path):
 @pytest.mark.unit
 def test_normalize_optional_ts_orientation_converts_string_to_enum():
     assert normalize_optional_ts_orientation('long') == TSOrientationEnum.long
-    assert normalize_optional_ts_orientation(TSOrientationEnum.wide) == TSOrientationEnum.wide
+    assert normalize_optional_ts_orientation(
+        TSOrientationEnum.wide) == TSOrientationEnum.wide
 
 
 @pytest.mark.unit
@@ -226,6 +232,7 @@ def test_normalize_dataloader_kwargs_merges_defaults_without_mutating_input():
 @pytest.mark.unit
 def test_build_load_data_spec_normalization_is_idempotent_for_normalized_values():
     first = build_load_data_spec_normalization(
+        target=None,
         task='classification',
         data_type='table',
         state='predict',
@@ -235,6 +242,7 @@ def test_build_load_data_spec_normalization_is_idempotent_for_normalized_values(
     )
 
     second = build_load_data_spec_normalization(
+        target=None,
         task=first.task,
         data_type=first.data_type,
         state=first.state,
@@ -251,6 +259,7 @@ def test_build_load_data_spec_normalization_is_idempotent_for_normalized_values(
 @pytest.mark.unit
 def test_build_load_data_spec_normalization_keeps_empty_embedding_strategy_deterministic():
     normalization = build_load_data_spec_normalization(
+        target=None,
         task='classification',
         data_type='table',
         state='fit',
@@ -266,6 +275,7 @@ def test_build_load_data_spec_normalization_keeps_empty_embedding_strategy_deter
 @pytest.mark.unit
 def test_build_load_data_spec_normalization_normalizes_index_fields_by_default_semantics():
     normalization = build_load_data_spec_normalization(
+        target=None,
         task='classification',
         data_type='table',
         state='fit',

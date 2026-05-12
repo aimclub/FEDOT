@@ -57,7 +57,8 @@ def test_split_arff_features_and_target_extracts_selected_column():
         np.array([b'a', b'b']),
     ], dtype=object)
 
-    features, target = split_arff_features_and_target(data_array=data_array, target_idx=-1)
+    features, target = split_arff_features_and_target(
+        data_array=data_array, target_idx=-1)
 
     assert features.shape == (2, 2)
     assert target.shape == (2,)

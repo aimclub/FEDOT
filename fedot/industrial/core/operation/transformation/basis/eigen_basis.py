@@ -35,7 +35,8 @@ class EigenBasisImplementation(BasisDecompositionImplementation):
         super().__init__(params)
         self.window_size = self.params.get('window_size', 20)
         self.decomposition_type = params.get('decomposition_type', 'svd')
-        self.rank_regularization = self.params.get('rank_regularization', 'hard_thresholding')
+        self.rank_regularization = self.params.get(
+            'rank_regularization', 'hard_thresholding')
         self.logging_params.update({'WS': self.window_size})
         self.explained_dispersion = None
         self.SV_threshold = None
@@ -53,7 +54,8 @@ class EigenBasisImplementation(BasisDecompositionImplementation):
             self.SV_threshold = self.get_threshold(data=features)
             self.logging_params.update({'SV_thr': self.SV_threshold})
         if one_dim_predict:
-            evaluation_results = list(map(lambda sample: self._transform_one_sample(sample), features[:, 0, :]))
+            evaluation_results = list(
+                map(lambda sample: self._transform_one_sample(sample), features[:, 0, :]))
         else:
             evaluation_results = list(map(lambda dimension: [self._transform_one_sample(sample)
                                                              for sample in features[:, dimension, :]], number_of_dim))
@@ -65,7 +67,8 @@ class EigenBasisImplementation(BasisDecompositionImplementation):
             feature_matrix = np.array(feature_matrix)
             feature_matrix = np.swapaxes(feature_matrix, 0, 1)
 
-        predict = [[np.array(v) if len(v) > 1 else v[0] for v in feature_matrix]]
+        predict = [[np.array(v) if len(v) > 1 else v[0]
+                    for v in feature_matrix]]
         return predict
 
     def _convert_basis_to_predict(self, basis, input_data):
@@ -96,7 +99,8 @@ class EigenBasisImplementation(BasisDecompositionImplementation):
         features = DataConverter(data=input_data).convert_to_monad_data()
         features = NumpyConverter(data=features).convert_to_torch_format()
 
-        basis = np.array(Either.insert(features).then(self._tensor_decompose).value[0])
+        basis = np.array(Either.insert(features).then(
+            self._tensor_decompose).value[0])
         predict = self._convert_basis_to_predict(basis, input_data)
         return predict
 
@@ -111,7 +115,8 @@ class EigenBasisImplementation(BasisDecompositionImplementation):
             data['spectrum'] = data['spectrum'][:self.SV_threshold]
             return data
 
-        basis = Either.insert(data).then(threshold).then(inverse_transformation).value
+        basis = Either.insert(data).then(
+            threshold).then(inverse_transformation).value
         return np.swapaxes(basis, 1, 0)
 
     def _get_multidim_basis(self, data):

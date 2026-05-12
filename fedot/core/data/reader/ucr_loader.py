@@ -49,10 +49,13 @@ class TSLoader:
 
         dataset_dir = os.path.join(data_path, dataset_name)
         if mode not in ['tsv', 'csv']:
-            raise ValueError(f'Invalid mode {mode}. Should be one of "tsv" or "csv"')
+            raise ValueError(
+                f'Invalid mode {mode}. Should be one of "tsv" or "csv"')
         separator = '\t' if mode == 'tsv' else ','
-        X_train, y_train = load_process_data(dataset_dir + f'/{dataset_name}_TRAIN.{mode}', separator)
-        X_test, y_test = load_process_data(dataset_dir + f'/{dataset_name}_TEST.{mode}', separator)
+        X_train, y_train = load_process_data(
+            dataset_dir + f'/{dataset_name}_TRAIN.{mode}', separator)
+        X_test, y_test = load_process_data(
+            dataset_dir + f'/{dataset_name}_TEST.{mode}', separator)
 
         return X_train, y_train, X_test, y_test
 
@@ -100,8 +103,10 @@ class TSLoader:
             target = convert_bytes(target)
             return features, target
         dataset_dir = os.path.join(data_path, dataset_name)
-        x_train, y_train = load_process_data(dataset_dir + f'/{dataset_name}_TRAIN.arff')
-        x_test, y_test = load_process_data(dataset_dir + f'/{dataset_name}_TEST.arff')
+        x_train, y_train = load_process_data(
+            dataset_dir + f'/{dataset_name}_TRAIN.arff')
+        x_test, y_test = load_process_data(
+            dataset_dir + f'/{dataset_name}_TEST.arff')
 
         return x_train, y_train, x_test, y_test
 
@@ -124,13 +129,17 @@ class TSLoader:
         self.logger.info(f'Reading data from {dataset_dir_path}')
 
         if os.path.isfile(file_path + '.tsv'):
-            x_train, y_train, x_test, y_test = TSLoader.read_tsv_or_csv(dataset_name, data_path, mode='tsv')
+            x_train, y_train, x_test, y_test = TSLoader.read_tsv_or_csv(
+                dataset_name, data_path, mode='tsv')
         elif os.path.isfile(file_path + '.csv'):
-            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(dataset_name, data_path, mode='csv')
+            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(
+                dataset_name, data_path, mode='csv')
         elif os.path.isfile(file_path + '.txt'):
-            x_train, y_train, x_test, y_test = TSLoader.read_txt_files(dataset_name, data_path)
+            x_train, y_train, x_test, y_test = TSLoader.read_txt_files(
+                dataset_name, data_path)
         elif os.path.isfile(file_path + '.arff'):
-            x_train, y_train, x_test, y_test = self.read_arff_files(dataset_name, data_path)
+            x_train, y_train, x_test, y_test = self.read_arff_files(
+                dataset_name, data_path)
         else:
             self.logger.error(f'Data not found in {dataset_dir_path}')
             return None, None, None
@@ -186,11 +195,14 @@ class TSLoader:
 
         request.urlretrieve(url, download_path + f'temp_data_{dataset_name}')
         try:
-            zipfile.ZipFile(download_path + f'temp_data_{dataset_name}').extractall(temp_data_path + dataset_name)
+            zipfile.ZipFile(
+                download_path + f'temp_data_{dataset_name}').extractall(temp_data_path + dataset_name)
         except zipfile.BadZipFile:
-            raise FileNotFoundError(f'Cannot extract data: {dataset_name} dataset not found in {url}')
+            raise FileNotFoundError(
+                f'Cannot extract data: {dataset_name} dataset not found in {url}')
 
-        X_train, y_train, X_test, y_test = loader.extract_data(dataset_name, temp_data_path)
+        X_train, y_train, X_test, y_test = loader.extract_data(
+            dataset_name, temp_data_path)
 
         shutil.rmtree(cache_path)
 

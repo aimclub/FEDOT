@@ -48,7 +48,8 @@ def test_data_merge_images(output_images):
         return atleast_4d(output_image.predict).shape[3]
 
     img_wh = [img.predict.shape[1:3] for img in output_images]
-    invalid_sizes = len(set(img_wh)) > 1  # Can merge only images of the same size
+    # Can merge only images of the same size
+    invalid_sizes = len(set(img_wh)) > 1
     expected_channels = sum(map(get_num_channels, output_images))
     expected_shape = (*img_wh[0], expected_channels)
 

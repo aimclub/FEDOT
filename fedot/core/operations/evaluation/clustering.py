@@ -30,7 +30,8 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
+        operation_implementation = self.operation_impl(
+            **self.params_for_fit.to_dict())
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             operation_implementation.fit(train_data.features)
         return operation_implementation

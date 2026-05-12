@@ -95,10 +95,13 @@ class ApiDataProcessor:
                           target: Optional[TargetType] = None,
                           is_predict: bool = False,
                           backend_name: str = 'cpu'):
-        definition_plan = build_tensordata_definition_plan(backend_name=backend_name, is_predict=is_predict)
-        input_data = self.define_data(features=features, target=target, is_predict=is_predict)
+        definition_plan = build_tensordata_definition_plan(
+            backend_name=backend_name, is_predict=is_predict)
+        input_data = self.define_data(
+            features=features, target=target, is_predict=is_predict)
         if not isinstance(input_data, InputData):
-            raise ValueError('TensorData path currently supports only InputData. MultiModalData is not supported yet.')
+            raise ValueError(
+                'TensorData path currently supports only InputData. MultiModalData is not supported yet.')
         return self.to_tensordata(
             input_data,
             backend_name=definition_plan.backend_name,
@@ -108,7 +111,8 @@ class ApiDataProcessor:
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData],
                            in_sample: bool = False, validation_blocks: int = None) -> OutputData:
         """ Prepare predictions """
-        forecast_length = getattr(test_data.task.task_params, 'forecast_length', None)
+        forecast_length = getattr(
+            test_data.task.task_params, 'forecast_length', None)
         prediction_plan = plan_prediction(
             task_type=self.task.task_type,
             in_sample=in_sample,
@@ -120,7 +124,8 @@ class ApiDataProcessor:
             return current_pipeline.predict(test_data, output_mode=prediction_plan.output_mode)
 
         if prediction_plan.use_in_sample_forecast:
-            forecast = in_sample_ts_forecast(current_pipeline, test_data, prediction_plan.horizon)
+            forecast = in_sample_ts_forecast(
+                current_pipeline, test_data, prediction_plan.horizon)
             idx = test_data.idx[-prediction_plan.horizon:]
             return convert_forecast_to_output(test_data, forecast, idx=idx)
 
@@ -133,7 +138,8 @@ class ApiDataProcessor:
         """ Change shape for models predictions if its necessary. Apply """
         if self.task == TaskTypesEnum.ts_forecasting:
             real.target = real.target[~np.isnan(prediction.predict)]
-            prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+            prediction.predict = prediction.predict[~np.isnan(
+                prediction.predict)]
 
         if data_type_is_table(prediction):
             # Check dimensions for real and predicted values
@@ -157,7 +163,8 @@ class ApiDataProcessor:
         """
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                self.accept_and_apply_recommendations(input_data[data_source_name], recommendations[data_source_name])
+                self.accept_and_apply_recommendations(
+                    input_data[data_source_name], recommendations[data_source_name])
         else:
             for name, rec in recommendations.items():
                 # Apply desired preprocessing function
@@ -184,7 +191,8 @@ class ApiDataProcessor:
         target_shape = train_data.target.shape
         self.log.message(
             f'Train Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
-        self.log.message(f'Data preprocessing runtime = {datetime.now() - start_time}')
+        self.log.message(
+            f'Data preprocessing runtime = {datetime.now() - start_time}')
 
         return train_data
 
@@ -208,7 +216,8 @@ class ApiDataProcessor:
         target_shape = test_data.target.shape
         self.log.message(
             f'Test Data (Processed) Memory Usage: {memory_usage} Data Shape: {features_shape, target_shape}')
-        self.log.message(f'Data preprocessing runtime = {datetime.now() - start_time}')
+        self.log.message(
+            f'Data preprocessing runtime = {datetime.now() - start_time}')
 
         return test_data
 

@@ -30,4 +30,5 @@ class CategoricalEncodingDecision:
     encoder: Any = None
 
 
-EncodingStrategyType: TypeAlias = Optional[Union[Dict, CategoricalEncodingDecision]]
+EncodingStrategyType: TypeAlias = Optional[Union[Dict,
+                                                 CategoricalEncodingDecision]]

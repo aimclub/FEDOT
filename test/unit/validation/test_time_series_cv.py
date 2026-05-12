@@ -72,7 +72,8 @@ def test_tuner_cv_correct():
 
     simple_pipeline = get_simple_ts_pipeline(window_size=2)
 
-    max_window = int(time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
+    max_window = int(
+        time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
     ppl_ss = PipelineSearchSpace({'lagged': {'window_size': {'hyperopt-dist': hp.uniformint,
                                                              'sampling-scope': [2, max_window],
                                                              'type': 'discrete'}}})

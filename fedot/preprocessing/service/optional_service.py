@@ -48,7 +48,8 @@ class OptionalService:
         prepared_data = None
 
         if len(self.plan.steps) > 0:
-            self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+            self.handler_mapping = update_handler_mapping(
+                self.plan, self.handler_mapping)
 
             prepared_data = PreparedData(features=data.features,
                                          target=data.target,
@@ -57,7 +58,8 @@ class OptionalService:
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping
                 prepared_data.new_cols_dict = None
-                step.features_idx = update_indices(actual_mapping, step.features_idx)
+                step.features_idx = update_indices(
+                    actual_mapping, step.features_idx)
 
                 handler_cls = self.handler_mapping[step.step][step.method]
                 handler = handler_cls(**step.step_args)

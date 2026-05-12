@@ -55,9 +55,11 @@ class SupplementaryData:
         :param task: task to solve
         """
         if not isinstance(self.previous_operations, list) or len(self.previous_operations) == 1:
-            raise ValueError('Data was received from one node but at least two nodes are required')
+            raise ValueError(
+                'Data was received from one node but at least two nodes are required')
 
-        data_operations = OperationTypesRepository('data_operation').suitable_operation(task_type=task)
+        data_operations = OperationTypesRepository(
+            'data_operation').suitable_operation(task_type=task)
 
         # Which data operations was in pipeline before decompose operation
         previous_data_operation = None
@@ -69,9 +71,11 @@ class SupplementaryData:
 
         if previous_data_operation is not None:
             # Lagged operation by default is "Data parent"
-            data_ids = np.ravel(np.argwhere(np.array(self.previous_operations) == previous_data_operation))
+            data_ids = np.ravel(np.argwhere(
+                np.array(self.previous_operations) == previous_data_operation))
             data_parent_id = data_ids[0]
-            model_ids = np.ravel(np.argwhere(np.array(self.previous_operations) != previous_data_operation))
+            model_ids = np.ravel(np.argwhere(
+                np.array(self.previous_operations) != previous_data_operation))
             model_parent_id = model_ids[0]
         else:
             model_parent_id = 0

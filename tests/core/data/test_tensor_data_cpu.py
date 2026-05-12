@@ -10,9 +10,6 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.utils import fedot_project_root
 
-# Test loading from different sources and data types
-# --------------------------------------------------
-
 
 @pytest.mark.unit
 def test_create_from_numpy():
@@ -56,6 +53,65 @@ def test_create_from_csv():
 
 
 @pytest.mark.unit
+def test_create_from_csv_with_external_target_array(tmp_path):
+    """
+    Features come from a CSV without a label column; target is a separate NumPy array.
+    `TensorDataCreator.read_target` must not run file resolution on the array, and rows
+    must stay aligned with the feature matrix.
+    """
+    n_rows = 35
+    rng = np.random.default_rng(0)
+    feat = rng.standard_normal((n_rows, 3))
+    y = rng.integers(0, 2, size=(n_rows,), dtype=np.int64)
+
+    features_path = tmp_path / "features_only.csv"
+    pd.DataFrame(feat, columns=["f0", "f1", "f2"]).to_csv(
+        features_path, index=False)
+
+    td = TensorDataCreator.create(
+        str(features_path),
+        backend_name="cpu",
+        target=y,
+    )
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert isinstance(td.target, torch.Tensor)
+    assert td.features.shape == (n_rows, 3)
+    assert td.target.shape[0] == n_rows
+
+
+@pytest.mark.unit
+def test_create_from_csv_with_external_target_csv_path(tmp_path):
+    """
+    Features and target live in different CSV files; target path is loaded via
+    `read_target` + `DataReader.from_csv_tsv`.
+    """
+    n_rows = 28
+    rng = np.random.default_rng(1)
+    feat = rng.standard_normal((n_rows, 2))
+    y = rng.integers(0, 2, size=(n_rows,), dtype=np.int64)
+
+    features_path = tmp_path / "X.csv"
+    target_path = tmp_path / "y.csv"
+    pd.DataFrame(feat, columns=["a", "b"]).to_csv(features_path, index=False)
+    pd.DataFrame({"label": y}).to_csv(target_path, index=False)
+
+    td = TensorDataCreator.create(
+        str(features_path),
+        backend_name="cpu",
+        target=str(target_path),
+    )
+
+    assert isinstance(td, TensorData)
+    assert isinstance(td.features, torch.Tensor)
+    assert isinstance(td.target, torch.Tensor)
+    assert td.features.shape[0] == n_rows
+    assert td.features.shape[1] == 2
+    assert td.target.shape[0] == n_rows
+
+
+@pytest.mark.unit
 def test_from_tensor():
     """
     Test creation of TensorData from a torch tensor, ensuring that features are preserved,
@@ -80,7 +136,8 @@ def test_loader():
     and target tensors.
     """
     name = "AbnormalHeartbeat"
-    X_train, y_train, X_test, y_test = TSLoader.download_by_url(dataset_name=name)
+    X_train, y_train, X_test, y_test = TSLoader.download_by_url(
+        dataset_name=name)
 
     train_tensor = TensorDataCreator.create(X_train,
                                             target=y_train,
@@ -98,8 +155,6 @@ def test_loader():
     assert isinstance(test_tensor.target, torch.Tensor)
 
 
-# Test lazy tensordata
-# --------------------------------------------------
 @pytest.mark.unit
 def test_create_lazy_does_not_materialize_immediately():
     """
@@ -121,11 +176,8 @@ def test_create_lazy_does_not_materialize_immediately():
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
     assert td.features.shape == (10, 2)
-# --------------------------------------------------
 
 
-# Test some cases with types, nans. Detecting target. Testing counting memory.
-# --------------------------------------------------
 @pytest.mark.unit
 def test_datetime_features():
     """
@@ -136,7 +188,8 @@ def test_datetime_features():
                              "feature1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                              "target": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
 
-    td = TensorDataCreator.create(features, backend_name="cpu", target_idx="target")
+    td = TensorDataCreator.create(
+        features, backend_name="cpu", target_idx="target")
 
     assert isinstance(td, TensorData)
     assert isinstance(td.features, torch.Tensor)
@@ -246,11 +299,8 @@ def test_memory_count_cpu():
         + td.memory_usage["predict"]
         + td.memory_usage["metadata"]
     )
-# --------------------------------------------------
 
 
-# Test Time Series preprocessing
-# --------------------------------------------------
 @pytest.mark.unit
 def test_create_time_series():
     """
@@ -316,4 +366,3 @@ def test_is_multichannel():
     assert td.features.shape[0] == X.shape[0]
     assert td.features.shape[1] == X.shape[1]
     assert td.features.shape[2] == X.shape[2]
-# --------------------------------------------------

@@ -16,7 +16,8 @@ class DataOperation(Operation):
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        operation_info = self.operations_repo.operation_info_by_id(self.operation_type)
+        operation_info = self.operations_repo.operation_info_by_id(
+            self.operation_type)
         if not operation_info:
             raise ValueError(f'Data operation {self.operation_type} not found')
         return operation_info

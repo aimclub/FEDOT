@@ -50,7 +50,8 @@ class DaskOptunaTuner(BaseTuner):
         self.study = optuna.create_study(storage=self.storage,
                                          direction='minimize')  # ['minimize'] * self.objectives_number
         # Submit self.n_trials different optimization tasks, where each task runs self.iterations optimization trials
-        tuning_cluster_params = dict(processes=False, n_workers=1, threads_per_worker=4, memory_limit='auto')
+        tuning_cluster_params = dict(
+            processes=False, n_workers=1, threads_per_worker=4, memory_limit='auto')
         cluster = LocalCluster(**tuning_cluster_params)
         client = Client(cluster)
         futures = [client.submit(self.study.optimize,
@@ -69,10 +70,12 @@ class DaskOptunaTuner(BaseTuner):
         predefined_objective = partial(self.objective, graph=graph)
         is_multi_objective = self.objectives_number > 1
         self.init_check(graph)
-        init_parameters, has_parameters_to_optimize = self._get_initial_point(graph)
+        init_parameters, has_parameters_to_optimize = self._get_initial_point(
+            graph)
 
         if not has_parameters_to_optimize:
-            self._stop_tuning_with_message(f'Graph {graph.graph_description} has no parameters to optimize')
+            self._stop_tuning_with_message(
+                f'Graph {graph.graph_description} has no parameters to optimize')
             tuned_graphs = self.init_graph
         else:
             # Enqueue initial point to try
@@ -80,7 +83,8 @@ class DaskOptunaTuner(BaseTuner):
             optuna.logging.set_verbosity(verbosity_level)
             self._dask_backend_tune(predefined_objective, show_progress)
             tuned_graphs = self.set_arg_graph(graph, self.study.best_trials[0].params) if not is_multi_objective else \
-                [self.set_arg_graph(deepcopy(graph), best_trial.params) for best_trial in self.study.best_trials]
+                [self.set_arg_graph(deepcopy(graph), best_trial.params)
+                 for best_trial in self.study.best_trials]
             self.was_tuned = True
 
         final_graphs = self.final_check(tuned_graphs, is_multi_objective)
@@ -99,10 +103,12 @@ class DaskOptunaTuner(BaseTuner):
             operation_name = node.name
 
             # Get available parameters for operation
-            tunable_node_params = self.search_space.parameters_per_operation.get(operation_name, {})
+            tunable_node_params = self.search_space.parameters_per_operation.get(
+                operation_name, {})
 
             for parameter_name, parameter_properties in tunable_node_params.items():
-                node_op_parameter_name = get_node_operation_parameter_label(node_id, operation_name, parameter_name)
+                node_op_parameter_name = get_node_operation_parameter_label(
+                    node_id, operation_name, parameter_name)
 
                 parameter_type = parameter_properties.get('type')
                 sampling_scope = parameter_properties.get('sampling-scope')
@@ -124,7 +130,8 @@ class DaskOptunaTuner(BaseTuner):
             operation_name = node.name
 
             # Get available parameters for operation
-            tunable_node_params = self.search_space.parameters_per_operation.get(operation_name)
+            tunable_node_params = self.search_space.parameters_per_operation.get(
+                operation_name)
 
             if tunable_node_params:
                 has_parameters_to_optimize = True
@@ -138,7 +145,8 @@ class DaskOptunaTuner(BaseTuner):
         if self.early_stopping_rounds is not None:
             current_trial_number = trial.number
             best_trial_number = study.best_trial.number
-            should_stop = (current_trial_number - best_trial_number) >= self.early_stopping_rounds
+            should_stop = (current_trial_number -
+                           best_trial_number) >= self.early_stopping_rounds
             if should_stop:
                 self.log.debug('Early stopping rounds criteria was reached')
                 study.stop()
@@ -160,7 +168,8 @@ def tune_pipeline_industrial(self, train_data: InputData, pipeline_gp_composed: 
         # Tune all nodes in the pipeline
         with self.timer.launch_tuning():
             self.was_tuned = False
-            self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
+            self.log.message(
+                f'Hyperparameters tuning started with {round(timeout_for_tuning)} min. timeout')
             tuned_pipeline = tuner.tune(pipeline_gp_composed)
             self.log.message('Hyperparameters tuning finished')
     else:

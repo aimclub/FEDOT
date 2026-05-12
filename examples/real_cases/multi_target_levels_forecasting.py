@@ -25,9 +25,11 @@ def plot_averaged_forecast(actual, predicted, first_column_act, last_column_act,
     :param last_column_pr: numpy array with predicted seventh days
     """
     plt.plot(actual, label='7-day moving average actual')
-    plt.fill_between(range(0, len(actual)), first_column_act, last_column_act, alpha=0.4)
+    plt.fill_between(range(0, len(actual)), first_column_act,
+                     last_column_act, alpha=0.4)
     plt.plot(predicted, label='7-day moving average forecast')
-    plt.fill_between(range(0, len(actual)), first_column_pr, last_column_pr, alpha=0.4)
+    plt.fill_between(range(0, len(actual)), first_column_pr,
+                     last_column_pr, alpha=0.4)
     plt.ylabel('River level, cm', fontsize=14)
     plt.xlabel('Time index', fontsize=14)
     plt.grid()
@@ -78,9 +80,11 @@ def run_multi_output_case(path, vis=False):
     :param path: path to the file with table
     :param vis: is it needed to visualise pipeline and predictions
     """
-    target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
+    target_columns = ['1_day', '2_day', '3_day',
+                      '4_day', '5_day', '6_day', '7_day']
 
-    data = InputData.from_csv(path, target_columns=target_columns, columns_to_drop=['date'])
+    data = InputData.from_csv(
+        path, target_columns=target_columns, columns_to_drop=['date'])
     train, test = train_test_data_setup(data)
 
     problem = 'regression'

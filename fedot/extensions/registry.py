@@ -146,7 +146,8 @@ def smoke_test_extension(manifest: ExtensionManifest):
             return Left(ExtensionError(
                 code='invalid_factory_signature',
                 message=f'Factory for model "{model.name}" must accept zero or one positional argument.',
-                details={'required_args': [parameter.name for parameter in positional_required]},
+                details={'required_args': [
+                    parameter.name for parameter in positional_required]},
             ))
 
         try:

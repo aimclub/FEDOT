@@ -61,7 +61,8 @@ class TensorDataCreator:
         and numerical feature indices.
         """
 
-        self.spec.idx_mapping = create_index_mapping(self.spec.features, self.spec.ts_init_shape)
+        self.spec.idx_mapping = create_index_mapping(
+            self.spec.features, self.spec.ts_init_shape)
 
         self.spec.features, self.spec.target, self.spec.ts_init_shape, self.spec.ts_terms_idx = process_ts_data(self.spec.features,
                                                                                                                 self.spec.target,
@@ -162,7 +163,8 @@ class TensorDataCreator:
                 if not raw_conversion_plan.should_try_cpu_fallback:
                     raise
                 with Backend().override("cpu"):
-                    logger.info("Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
+                    logger.info(
+                        "Turning to cpu backend to get TensorData due to failed to convert features to cupy array")
                     self.spec.features = Backend().xp.array(self.spec.features)
                     if self.spec.target is not None:
                         self.spec.target = Backend().xp.array(self.spec.target)
@@ -172,19 +174,25 @@ class TensorDataCreator:
         if not raw_conversion_plan.preprocessing_done:
             self.obligatory_preprocess()
             raw_conversion_plan.preprocessing_done = True
-    
-    def read_features(self):
+
+    def read_features(self, source_data):
         """
         Read features from the source data.
         """
         reader = DataReader()
-        self.spec.features = reader.read(self.spec.features, self.spec)
+        result_data = reader.read(source_data, self.spec)
+        self.spec.features = result_data.features
+        self.spec.features_names = result_data.features_names
 
     def read_target(self):
         """
         Read target from the source data.
         """
-        self.spec.target = self.spec.target
+        if (self.spec.target is not None) and (self.spec.target_idx is None):
+            target_spec = DataSpec()
+            reader = DataReader()
+            result_data = reader.read(self.spec.target, target_spec)
+            self.spec.target = result_data.features
 
     def to_tensor_data(self) -> "TensorData":
         """
@@ -262,16 +270,16 @@ class TensorDataCreator:
         Backend().set(creation_request.backend_name)
         creator.spec = DataSpec(**kwargs)
 
-        reader = DataReader()
-
         try:
-            creator.spec = reader.read(source_data, creator.spec)
+            creator.read_features(source_data)
+            creator.read_target()
             creator.preprocess_data()
             tensor_data = creator.to_tensor_data()
             tensor_data = creator.to_backend(tensor_data)
             return tensor_data
         except Exception as e:
-            failure = build_creation_failure(source_data, creation_request.backend_name, e)
+            failure = build_creation_failure(
+                source_data, creation_request.backend_name, e)
             raise ValueError(failure.message) from e
 
     @classmethod

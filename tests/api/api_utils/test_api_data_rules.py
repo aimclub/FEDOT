@@ -27,7 +27,8 @@ class _StrategyB:
 
 
 def test_normalize_features_for_definition_extracts_shared_index_without_mutation():
-    original_features = {'idx': np.array([0, 1]), 'table': np.array([[1], [2]])}
+    original_features = {'idx': np.array(
+        [0, 1]), 'table': np.array([[1], [2]])}
 
     normalized = normalize_features_for_definition(original_features)
 
@@ -37,7 +38,8 @@ def test_normalize_features_for_definition_extracts_shared_index_without_mutatio
 
 
 def test_iter_shared_index_assignments_returns_pairs_for_multimodal_mapping():
-    assignments = iter_shared_index_assignments({'first': object(), 'second': object()}, [1, 2])
+    assignments = iter_shared_index_assignments(
+        {'first': object(), 'second': object()}, [1, 2])
     assert assignments == (('first', [1, 2]), ('second', [1, 2]))
 
 
@@ -58,30 +60,37 @@ def test_plan_preprocessing_steps_are_explicit_and_stable():
 
 
 @pytest.mark.parametrize('task_type,in_sample,validation_blocks,forecast_length,expected', [
-    (TaskTypesEnum.classification, False, None, None, ('labels', False, False, None)),
+    (TaskTypesEnum.classification, False, None,
+     None, ('labels', False, False, None)),
     (TaskTypesEnum.ts_forecasting, True, 2, 3, (None, True, False, 6)),
     (TaskTypesEnum.ts_forecasting, False, None, 3, (None, False, True, None)),
     (TaskTypesEnum.regression, False, None, None, (None, False, False, None)),
 ])
 def test_plan_prediction_returns_typed_branching_decision(
         task_type, in_sample, validation_blocks, forecast_length, expected):
-    plan = plan_prediction(task_type, in_sample, validation_blocks, forecast_length)
-    assert (plan.output_mode, plan.use_in_sample_forecast, plan.flatten_prediction, plan.horizon) == expected
+    plan = plan_prediction(task_type, in_sample,
+                           validation_blocks, forecast_length)
+    assert (plan.output_mode, plan.use_in_sample_forecast,
+            plan.flatten_prediction, plan.horizon) == expected
 
 
 def test_resolve_strategy_finds_matching_factory():
-    resolution = resolve_strategy(pd.DataFrame([[1]]), [(np.ndarray, _StrategyA), (pd.DataFrame, _StrategyB)])
+    resolution = resolve_strategy(pd.DataFrame(
+        [[1]]), [(np.ndarray, _StrategyA), (pd.DataFrame, _StrategyB)])
     assert resolution.strategy_factory is _StrategyB
 
 
 def test_resolve_strategy_raises_typed_error_for_unsupported_source():
     with pytest.raises(DataDefinitionResolutionError):
-        resolve_strategy(123, [(np.ndarray, _StrategyA), (pd.DataFrame, _StrategyB)])
+        resolve_strategy(123, [(np.ndarray, _StrategyA),
+                         (pd.DataFrame, _StrategyB)])
 
 
 def test_build_tensordata_definition_plan_is_explicit_for_backend_and_stage():
-    fit_plan = build_tensordata_definition_plan(backend_name='cpu', is_predict=False)
-    predict_plan = build_tensordata_definition_plan(backend_name='gpu', is_predict=True)
+    fit_plan = build_tensordata_definition_plan(
+        backend_name='cpu', is_predict=False)
+    predict_plan = build_tensordata_definition_plan(
+        backend_name='gpu', is_predict=True)
 
     assert fit_plan.backend_name == 'cpu'
     assert fit_plan.state == StateEnum.FIT

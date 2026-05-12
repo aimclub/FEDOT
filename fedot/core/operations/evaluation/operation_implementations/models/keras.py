@@ -90,7 +90,8 @@ def fit_cnn(train_data: InputData,
         logger = default_log(prefix=__name__)
 
     if transform_flag:
-        logger.debug('Train data set was not scaled. The data was divided by 255.')
+        logger.debug(
+            'Train data set was not scaled. The data was divided by 255.')
 
     if len(x_train.shape) == 3:
         transformed_x_train = np.expand_dims(x_train, -1)
@@ -115,7 +116,8 @@ def fit_cnn(train_data: InputData,
         verbose = 2
 
     if epochs is None:
-        logger.warning('The number of training epochs was not set. The selected number of epochs is 10.')
+        logger.warning(
+            'The number of training epochs was not set. The selected number of epochs is 10.')
 
     model.fit(transformed_x_train, y_train, batch_size=batch_size, epochs=epochs,
               validation_split=0.1, verbose=verbose)
@@ -131,7 +133,8 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
         logger = default_log(prefix=__name__)
 
     if np.max(transformed_x_test) > 1:
-        logger.warning('Test data set was not scaled. The data was divided by 255.')
+        logger.warning(
+            'Test data set was not scaled. The data was divided by 255.')
 
     if len(x_test.shape) == 3:
         transformed_x_test = np.expand_dims(x_test, -1)
@@ -148,8 +151,10 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
             num_classes = predict_data.num_classes
 
         if num_classes < 2:
-            logger.error('Data set contain only 1 target class. Please reformat your data.')
-            raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+            logger.error(
+                'Data set contain only 1 target class. Please reformat your data.')
+            raise ValueError(
+                'Data set contain only 1 target class. Please reformat your data.')
         elif num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
             prediction = prediction[:, 1]
     else:
@@ -222,6 +227,7 @@ class FedotCNNImplementation(ModelImplementation):
 
     def __deepcopy__(self, memo=None):
         clone_model = tf.keras.models.clone_model(self.model)
-        clone_model.compile(optimizer=self.model.optimizer, loss=self.model.loss, metrics=self.model.metrics)
+        clone_model.compile(optimizer=self.model.optimizer,
+                            loss=self.model.loss, metrics=self.model.metrics)
         clone_model.set_weights(self.model.get_weights())
         return clone_model

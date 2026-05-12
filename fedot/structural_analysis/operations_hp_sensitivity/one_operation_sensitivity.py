@@ -29,11 +29,14 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
                  requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
         super().__init__(pipeline, train_data, test_data, path_to_save)
 
-        requirements = SensitivityAnalysisRequirements() if requirements is None else requirements
+        requirements = SensitivityAnalysisRequirements(
+        ) if requirements is None else requirements
         self.requirements: HyperparamsAnalysisMetaParams = requirements.hp_analysis_meta
 
-        self.analyze_method = analyze_method_by_name.get(self.requirements.analyze_method)
-        self.sample_method = sample_method_by_name.get(self.requirements.sample_method)
+        self.analyze_method = analyze_method_by_name.get(
+            self.requirements.analyze_method)
+        self.sample_method = sample_method_by_name.get(
+            self.requirements.sample_method)
         self.problem = None
         self.operation_type = None
         self.data_under_lock: dict = {}
@@ -52,13 +55,15 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         # create problem
         self.operation_type = node.operation.operation_type
-        self.problem = OneOperationProblem(operation_types=[self.operation_type])
+        self.problem = OneOperationProblem(
+            operation_types=[self.operation_type])
 
         # sample
         samples = self.sample(self.requirements.sample_size, node)
 
         response_matrix = self._get_response_matrix(samples)
-        indices = self.analyze_method(self.problem.dictionary, samples, response_matrix)
+        indices = self.analyze_method(
+            self.problem.dictionary, samples, response_matrix)
         converted_to_json_indices = self._convert_indices_to_json(problem=self.problem,
                                                                   si=indices)
 
@@ -74,9 +79,11 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         """
 
         sample_size, node = args
-        samples: List[np.array] = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
+        samples: List[np.array] = self.sample_method(
+            self.problem.dictionary, num_of_samples=sample_size)
 
-        converted_samples: List[dict] = self.problem.convert_sample_to_dict(samples)
+        converted_samples: List[dict] = self.problem.convert_sample_to_dict(
+            samples)
         sampled_pipelines: List[Pipeline] = self._apply_params_to_node(params=converted_samples,
                                                                        node=node)
 
@@ -104,9 +111,11 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         return np.array(operation_response_matrix)
 
     def _dispersion_analysis(self, node: PipelineNode, sample_size: int):
-        samples: np.array = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
+        samples: np.array = self.sample_method(
+            self.problem.dictionary, num_of_samples=sample_size)
         transposed_samples = samples.T
-        converted_samples = self.problem.convert_for_dispersion_analysis(transposed_samples)
+        converted_samples = self.problem.convert_for_dispersion_analysis(
+            transposed_samples)
 
         jobs = [Thread(target=self._evaluate_variance,
                        args=(params, transposed_samples[index], node))
@@ -124,16 +133,19 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         # default values of param & loss
         param_name = list(params[0].keys())[0]
         default_param_value = extract_operation_params(node).get(param_name)
-        pipelines_with_applied_params = self._apply_params_to_node(params, node)
+        pipelines_with_applied_params = self._apply_params_to_node(
+            params, node)
 
         # percentage ratio
         samples = (samples - default_param_value) / default_param_value
-        response_matrix = self._get_response_matrix(pipelines_with_applied_params)
+        response_matrix = self._get_response_matrix(
+            pipelines_with_applied_params)
         response_matrix = (response_matrix - np.mean(response_matrix)) / \
                           (max(response_matrix) - min(response_matrix))
 
         OneOperationHPAnalyze.lock.acquire()
-        self.data_under_lock[f'{param_name}'] = [samples.reshape(1, -1)[0], response_matrix]
+        self.data_under_lock[f'{param_name}'] = [
+            samples.reshape(1, -1)[0], response_matrix]
         OneOperationHPAnalyze.lock.release()
 
     def _visualize_variance(self):
@@ -158,7 +170,8 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         ax2.set_xticks(range(1, len(x_ticks_loss) + 1))
         ax2.set_xticklabels(x_ticks_loss)
 
-        plt.savefig(join(self._path_to_save, f'{self.operation_type}_hp_sa.jpg'))
+        plt.savefig(join(self._path_to_save,
+                    f'{self.operation_type}_hp_sa.jpg'))
 
     @staticmethod
     def _convert_indices_to_json(problem: OneOperationProblem, si: dict) -> dict:

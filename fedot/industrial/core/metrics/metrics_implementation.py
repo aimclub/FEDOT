@@ -652,5 +652,6 @@ class AnomalyMetric(QualityMetric):
 
 
 def calculate_detection_metric(target, labels, **kwargs):
-    metric_dict = AnomalyMetric(target=target, predicted_labels=labels).metric()
+    metric_dict = AnomalyMetric(
+        target=target, predicted_labels=labels).metric()
     return metric_dict

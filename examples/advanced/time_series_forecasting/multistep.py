@@ -59,7 +59,8 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                  {'idx': np.arange(test_data.idx[0], test_data.idx[0] + predict.shape[0]),
                   'series': predict,
                   'label': 'Forecast'},
-                 get_border_line_info(np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
+                 get_border_line_info(
+                     np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
                  get_border_line_info(np.arange(test_data.idx[-1] + 1)[-1], predict, time_series, 'End of test',
                                       'gray')]
 
@@ -71,4 +72,5 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
 if __name__ == '__main__':
     set_random_seed(2020)
 
-    run_multistep("australia", ts_ar_pipeline(), step_forecast=10, visualisation=True)
+    run_multistep("australia", ts_ar_pipeline(),
+                  step_forecast=10, visualisation=True)

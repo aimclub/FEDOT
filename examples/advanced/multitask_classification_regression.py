@@ -20,15 +20,18 @@ from fedot.core.utils import fedot_project_root
 def get_multitask_pipeline():
     logit_node = PipelineNode('logit')
     data_source_node = PipelineNode('data_source_table/regression')
-    final_node = PipelineNode('dtreg', nodes_from=[logit_node, data_source_node])
+    final_node = PipelineNode(
+        'dtreg', nodes_from=[logit_node, data_source_node])
     return Pipeline(final_node)
 
 
 def prepare_multitask_data() -> Tuple[MultiModalData, MultiModalData]:
     """ Load data for multitask regression / classification pipeline """
     ex_data = fedot_project_root().joinpath('examples/data')
-    train_df = pd.read_csv(ex_data.joinpath('train_synthetic_regression_classification.csv'))
-    test_df = pd.read_csv(ex_data.joinpath('test_synthetic_regression_classification.csv'))
+    train_df = pd.read_csv(ex_data.joinpath(
+        'train_synthetic_regression_classification.csv'))
+    test_df = pd.read_csv(ex_data.joinpath(
+        'test_synthetic_regression_classification.csv'))
 
     # Data for classification
     class_task = Task(TaskTypesEnum.classification)
@@ -77,7 +80,8 @@ def launch_multitask_example(with_tuning: bool = False):
         multitask_pipeline = tuner.tune(multitask_pipeline)
 
     multitask_pipeline.fit(train_input)
-    side_pipeline = multitask_pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
+    side_pipeline = multitask_pipeline.pipeline_for_side_task(
+        task_type=TaskTypesEnum.classification)
 
     # Replace the name of main "data source" in preprocessor
     side_pipeline.preprocessor.main_target_source_name = 'logit'

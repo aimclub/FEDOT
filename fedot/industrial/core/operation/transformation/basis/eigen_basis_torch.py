@@ -236,7 +236,8 @@ class EigenBasisImplementationTorch(BasisDecompositionImplementation):
             return data
 
         basis = (
-            Either.insert(data).then(threshold).then(inverse_transformation).value
+            Either.insert(data).then(threshold).then(
+                inverse_transformation).value
         )
         return torch.transpose(basis, 0, 1)
 

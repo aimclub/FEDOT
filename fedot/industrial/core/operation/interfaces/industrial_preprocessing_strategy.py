@@ -52,7 +52,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
 
     def __convert_input_data(self, input_data):
         multidim_features = len(input_data.features.shape) > 2
-        converted_data = self._convert_input_data(input_data) if multidim_features else input_data
+        converted_data = self._convert_input_data(
+            input_data) if multidim_features else input_data
         return converted_data
 
     def __operation_multidim_adapter(self, trained_operation, predict_data, output_mode):
@@ -62,7 +63,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
         prediction = Either(value=trained_operation,
                             monoid=[predict_data, multidim_predict]). \
             either(left_function=lambda data: self._predict_for_ndim(data, trained_operation),
-                   right_function=lambda operation: operation.predict(predict_data, output_mode)
+                   right_function=lambda operation: operation.predict(
+                       predict_data, output_mode)
                    if not self.operation_condition.have_predict_atr else operation)
 
         return prediction
@@ -111,7 +113,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
             mode if mode is not None else self.mode)
 
     def _predict_for_ndim(self, predict_data, trained_operation: list):
-        trained_operation = trained_operation if isinstance(trained_operation, list) else [trained_operation]
+        trained_operation = trained_operation if isinstance(
+            trained_operation, list) else [trained_operation]
         self.operation_condition_for_channel_independent = ConditionConverter(
             predict_data, trained_operation[0], self.mode)
         predict_method = self.operation_condition_for_channel_independent.have_predict_method
@@ -149,7 +152,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
             then(predict_branch(trained_operation)). \
             then(transform_branch(trained_operation)).value
 
-        prediction = [pred.predict if not isinstance(pred, np.ndarray) else pred for pred in prediction]
+        prediction = [pred.predict if not isinstance(
+            pred, np.ndarray) else pred for pred in prediction]
         prediction = NumpyConverter(data=self.concat_func(prediction)).convert_to_torch_format() \
             if not isinstance(prediction[0], OutputData) else prediction
         return prediction
@@ -163,9 +167,11 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
         # evaluate logical condition
         is_model_not_support_multi = self.operation_type in OperationTypesRepository().suitable_operation(
             task_type=train_data.task.task_type, tags=['non_multi'])
-        not_fedot_input_data = len(signature(self.operation_condition.operation_implementation.fit).parameters) > 1
+        not_fedot_input_data = len(signature(
+            self.operation_condition.operation_implementation.fit).parameters) > 1
         is_multi_target = is_multi_output_target(train_data)
-        model_multi_adaptation = all([is_model_not_support_multi, is_multi_target])
+        model_multi_adaptation = all(
+            [is_model_not_support_multi, is_multi_target])
 
         operation_implementation = Either(value=train_data,
                                           monoid=[train_data, model_multi_adaptation]). \
@@ -199,10 +205,12 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
 
         self.operation_condition = Either(value=self.params_for_fit, monoid=[None, True]).then(
             lambda params: self._init_impl(params) if not list_of_params else list(map(self._init_impl, params))). \
-            then(lambda operation: ConditionConverter(train_data, operation, self.mode)).value
+            then(lambda operation: ConditionConverter(
+                train_data, operation, self.mode)).value
         operation_for_every_dim = self.operation_condition.input_data_is_list_container
         operation_for_one_dim = self.operation_condition.is_one_dim_operation
-        operation_for_multidim = not any([operation_for_one_dim, operation_for_every_dim])
+        operation_for_multidim = not any(
+            [operation_for_one_dim, operation_for_every_dim])
 
         # If model is classical sklearn model we use one_dimensional mode
         fit_one_dim = curry(2)(lambda operation, init_state: self.fit_one_sample(init_state)
@@ -217,12 +225,14 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
         fit_for_every_dim = curry(2)(lambda data, prev_state: self._list_of_fitted_model(data, prev_state)
                                      if operation_for_every_dim else prev_state)
 
-        fit_multidim = curry(2)(lambda data, prev_state: prev_state.fit(data) if operation_for_multidim else prev_state)
+        fit_multidim = curry(2)(lambda data, prev_state: prev_state.fit(
+            data) if operation_for_multidim else prev_state)
 
         trained_operation = Either.insert(train_data). \
             then(fit_one_dim(self.operation_condition.operation_implementation)). \
             then(channel_independent_branch(train_data)). \
-            then(fit_for_every_dim(train_data)).then(fit_multidim(train_data)).value
+            then(fit_for_every_dim(train_data)).then(
+                fit_multidim(train_data)).value
 
         return trained_operation
 
@@ -233,7 +243,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
         is_transform_for_fit = output_mode.__contains__('transform_fit')
 
         def multidim_predict(operation, previous_state):
-            state_is_predict = isinstance(previous_state, np.ndarray) or isinstance(previous_state, OutputData)
+            state_is_predict = isinstance(previous_state, np.ndarray) or isinstance(
+                previous_state, OutputData)
             if isinstance(previous_state, OutputData):
                 previous_state = previous_state.predict
             return previous_state if state_is_predict else self.__operation_multidim_adapter(operation,
@@ -243,7 +254,8 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
         # Elif model could be used for each dimension(channel) independently we use multidimensional predict method
         predict_for_every_dim = curry(2)(multidim_predict)
         if is_transform_for_fit:
-            prediction = trained_operation[0].transform_for_fit(predict_data[0])
+            prediction = trained_operation[0].transform_for_fit(
+                predict_data[0])
         else:
             prediction = Either.insert(predict_data). \
                 then(predict_one_dim(trained_operation)). \
@@ -256,20 +268,28 @@ class MultiDimPreprocessingStrategy(EvaluationStrategy):
             trained_operation: Union[Callable, list],
             predict_data: Union[InputData, list],
             output_mode: str = 'default') -> OutputData:
-        data_type, predict_data_copy = FedotConverter(predict_data).unwrap_list_to_output()
+        data_type, predict_data_copy = FedotConverter(
+            predict_data).unwrap_list_to_output()
         # Create data condition verifier
-        self.operation_condition = ConditionConverter(predict_data, trained_operation, self.mode)
-        prediction = self._abstract_predict(predict_data, trained_operation, output_mode)
-        converted = self._convert_to_output(prediction, predict_data_copy, data_type, output_mode)
+        self.operation_condition = ConditionConverter(
+            predict_data, trained_operation, self.mode)
+        prediction = self._abstract_predict(
+            predict_data, trained_operation, output_mode)
+        converted = self._convert_to_output(
+            prediction, predict_data_copy, data_type, output_mode)
         return converted
 
     def predict(self, trained_operation, predict_data: InputData,
                 output_mode: str = 'default') -> OutputData:
-        data_type, predict_data_copy = FedotConverter(predict_data).unwrap_list_to_output()
+        data_type, predict_data_copy = FedotConverter(
+            predict_data).unwrap_list_to_output()
         # Create data condition verifier
-        self.operation_condition = ConditionConverter(predict_data, trained_operation, self.mode)
-        prediction = self._abstract_predict(predict_data, trained_operation, output_mode)
-        converted = self._convert_to_output(prediction, predict_data_copy, data_type, output_mode)
+        self.operation_condition = ConditionConverter(
+            predict_data, trained_operation, self.mode)
+        prediction = self._abstract_predict(
+            predict_data, trained_operation, output_mode)
+        converted = self._convert_to_output(
+            prediction, predict_data_copy, data_type, output_mode)
         return converted
 
 
@@ -363,7 +383,8 @@ class IndustrialPreprocessingStrategy(IndustrialCustomPreprocessingStrategy):
         if "torch" in self.operation_type:
             predict_data.features = torch.Tensor(predict_data.features)
         prediction = trained_operation.transform(predict_data)
-        converted = self.multi_dim_dispatcher._convert_to_output(prediction, predict_data)
+        converted = self.multi_dim_dispatcher._convert_to_output(
+            prediction, predict_data)
         return converted
 
     def predict_for_fit(
@@ -372,7 +393,8 @@ class IndustrialPreprocessingStrategy(IndustrialCustomPreprocessingStrategy):
             predict_data: InputData,
             output_mode: str = 'default') -> OutputData:
         prediction = trained_operation.transform_for_fit(predict_data)
-        converted = self.multi_dim_dispatcher._convert_to_output(prediction, predict_data)
+        converted = self.multi_dim_dispatcher._convert_to_output(
+            prediction, predict_data)
         return converted
 
 

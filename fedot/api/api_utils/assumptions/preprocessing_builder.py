@@ -20,7 +20,8 @@ class PreprocessingBuilder:
                  use_input_preprocessing: bool = True):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(*initial_nodes, use_input_preprocessing=use_input_preprocessing)
+        self._builder = PipelineBuilder(
+            *initial_nodes, use_input_preprocessing=use_input_preprocessing)
 
     @classmethod
     def builder_for_data(cls,

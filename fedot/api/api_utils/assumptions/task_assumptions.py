@@ -21,9 +21,11 @@ class TaskAssumptions:
             TaskTypesEnum.regression: RegressionAssumptions,
             TaskTypesEnum.ts_forecasting: TSForecastingAssumptions,
         }
-        assumptions_cls: TaskAssumptions = assumptions_by_task.get(task.task_type)
+        assumptions_cls: TaskAssumptions = assumptions_by_task.get(
+            task.task_type)
         if not assumptions_cls:
-            raise NotImplementedError(f"Don't have assumptions for task type: {task.task_type}")
+            raise NotImplementedError(
+                f"Don't have assumptions for task type: {task.task_type}")
         return assumptions_cls(repository)
 
     @abstractmethod

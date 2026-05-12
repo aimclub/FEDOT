@@ -111,11 +111,13 @@ class JSONBatchLoader(BatchLoader):
                     label = None
                 labels.append(label)
 
-        self.meta_df[self.target_name] = pd.Series(data=labels, index=self.meta_df.index)
+        self.meta_df[self.target_name] = pd.Series(
+            data=labels, index=self.meta_df.index)
 
         for field in self.fields_to_use:
             # generate feature column for each extracted field
-            new_feature = pd.Series(data=[d[field] for d in dict_list], index=self.meta_df.index)
+            new_feature = pd.Series(
+                data=[d[field] for d in dict_list], index=self.meta_df.index)
             # add column with name 'field' and value 'new_feature'
             # to the features data frame after 'file_path' column
             self.meta_df.insert(loc=self.meta_df.columns.get_loc('file_path'),
@@ -130,7 +132,8 @@ class JSONBatchLoader(BatchLoader):
 
     def _extract_files_paths(self, extension: str = ''):
         all_files = []
-        path = os.path.join(self.path, f'*.{extension}') if extension else self.path
+        path = os.path.join(
+            self.path, f'*.{extension}') if extension else self.path
         for files in glob.glob(path):
             files_paths = []
             name = os.path.basename(files)

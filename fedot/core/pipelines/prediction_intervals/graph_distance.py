@@ -35,7 +35,8 @@ def get_distance_between(graph_1: Graph, graph_2: Graph, compare_node_params: bo
             return operations_do_match
 
         else:
-            params_do_match = node_1.content.get('params') == node_2.content.get('params')
+            params_do_match = node_1.content.get(
+                'params') == node_2.content.get('params')
             nodes_do_match = operations_do_match and params_do_match
 
         return nodes_do_match

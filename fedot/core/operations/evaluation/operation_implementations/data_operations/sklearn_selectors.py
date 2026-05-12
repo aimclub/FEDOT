@@ -78,13 +78,15 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         if len(source_features_shape) < 2:
             return output_data
         if self.features_columns_number > 1:
-            cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
+            cols_number_removed = source_features_shape[1] - \
+                output_data.predict.shape[1]
             if cols_number_removed:
                 # There are several columns, which were dropped
                 feature_type_ids = output_data.supplementary_data.col_type_ids['features']
 
                 # Calculate
-                output_data.supplementary_data.col_type_ids['features'] = feature_type_ids[self.remain_features_mask]
+                output_data.supplementary_data.col_type_ids[
+                    'features'] = feature_type_ids[self.remain_features_mask]
 
     def _make_new_table(self, features):
         """

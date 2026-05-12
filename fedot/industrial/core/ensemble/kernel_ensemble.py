@@ -41,14 +41,16 @@ class KernelEnsembler(BaseExtractor):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.distance_metric = params.get('distance_metric', KERNEL_DISTANCE_METRIC['default_metric'])
+        self.distance_metric = params.get(
+            'distance_metric', KERNEL_DISTANCE_METRIC['default_metric'])
         self.kernel_strategy = params.get('kernel_strategy ', 'one_step_cka')
         self.learning_strategy = params.get('learning_strategy', 'all_classes')
         self.head_model = params.get('head_model', 'rf')
         self.feature_extractor = params.get('feature_extractor', list(
             KERNEL_BASELINE_FEATURE_GENERATORS.keys()))
 
-        self._mapping_dict = {k: v for k, v in enumerate(self.feature_extractor)}
+        self._mapping_dict = {k: v for k,
+                              v in enumerate(self.feature_extractor)}
         self.lr = params.get('learning_rate', 0.1)
         self.patience = params.get('patience', 5)
         self.epoch = params.get('epoch', 500)
@@ -139,7 +141,8 @@ class KernelEnsembler(BaseExtractor):
         kernel_ensemble = {}
         kernel_data = {}
         for i, gen in enumerate(top_n_generators):
-            kernel_data.update({gen: self._create_kernel_data(input_data, classes_described_by_generator, gen)})
+            kernel_data.update({gen: self._create_kernel_data(
+                input_data, classes_described_by_generator, gen)})
             kernel_ensemble.update({gen: self._create_pipeline(gen)})
         return kernel_ensemble, kernel_data
 
@@ -151,12 +154,15 @@ class KernelEnsembler(BaseExtractor):
         grammian_list = self.generate_grammian(input_data)
 
         if self.kernel_strategy.__contains__('one'):
-            kernel_weight_matrix = self.__one_stage_kernel(grammian_list, input_data.target)
+            kernel_weight_matrix = self.__one_stage_kernel(
+                grammian_list, input_data.target)
 
         else:
-            kernel_weight_matrix = self.__two_stage_kernel(grammian_list, input_data.target)
+            kernel_weight_matrix = self.__two_stage_kernel(
+                grammian_list, input_data.target)
 
-        top_n_generators, classes_described_by_generator = self._select_top_feature_generators(kernel_weight_matrix)
+        top_n_generators, classes_described_by_generator = self._select_top_feature_generators(
+            kernel_weight_matrix)
 
         self.predict = self._create_kernel_ensemble(
             input_data,

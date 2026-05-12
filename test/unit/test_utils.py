@@ -11,7 +11,8 @@ from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save
 
 def test_default_fedot_data_dir():
     default_fedot_data_dir()
-    assert 'FEDOT' in os.listdir(str(Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())))
+    assert 'FEDOT' in os.listdir(
+        str(Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())))
 
 
 def test_labels_to_dummy_probs():

@@ -109,11 +109,14 @@ class Fedot:
         self.log = self._init_logger(logging_level)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
-        self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
+        self.params = ApiParams(composer_tuner_params,
+                                problem, task_params, n_jobs, timeout, seed)
 
-        default_metrics = MetricByTask.get_default_quality_metrics(self.params.task.task_type)
+        default_metrics = MetricByTask.get_default_quality_metrics(
+            self.params.task.task_type)
         passed_metrics = self.params.get('metric')
-        self.metrics = ensure_wrapped_in_sequence(passed_metrics) if passed_metrics else default_metrics
+        self.metrics = ensure_wrapped_in_sequence(
+            passed_metrics) if passed_metrics else default_metrics
 
         self.api_composer = ApiComposer(self.params, self.metrics)
 
@@ -163,8 +166,10 @@ class Fedot:
             self.target = target
             # here the main preprocessing
             with fedot_composer_timer.launch_data_definition('fit'):
-                self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-                self.params.update_available_operations_by_preset(self.train_data)
+                self.train_data = self.data_processor.define_data(
+                    features=features, target=target, is_predict=False)
+                self.params.update_available_operations_by_preset(
+                    self.train_data)
 
                 if self.params.get('use_input_preprocessing'):
                     # Launch data analyser - it gives recommendations for data preprocessing
@@ -182,20 +187,25 @@ class Fedot:
 
                 if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
                     with fedot_composer_timer.launch_preprocessing():
-                        self.train_data = self.data_processor.fit_transform(self.train_data)
+                        self.train_data = self.data_processor.fit_transform(
+                            self.train_data)
 
                 fit_plan = plan_sampling_stage(
                     requested_predefined_model=predefined_model,
-                    initial_assumption=self.params.data.get('initial_assumption'),
-                    sampling_config_present=self.params.get('sampling_config') is not None,
+                    initial_assumption=self.params.data.get(
+                        'initial_assumption'),
+                    sampling_config_present=self.params.get(
+                        'sampling_config') is not None,
                 )
                 predefined_model = fit_plan.resolved_predefined_model
                 if fit_plan.skip_metadata is not None:
                     self.sampling_stage_metadata = fit_plan.skip_metadata
                     if fit_plan.skip_metadata['reason'] == 'predefined_model':
-                        self.log.message('Sampling stage skipped because predefined_model is specified.')
+                        self.log.message(
+                            'Sampling stage skipped because predefined_model is specified.')
                     elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
-                        self.log.message('Composition for AtomizedModel currently unavailable')
+                        self.log.message(
+                            'Composition for AtomizedModel currently unavailable')
                 elif fit_plan.should_run_sampling_stage:
                     self._run_sampling_stage_if_necessary()
 
@@ -204,7 +214,8 @@ class Fedot:
                         # Fit predefined model and return it without composing
                         self.current_pipeline = PredefinedModel(
                             predefined_model, self.train_data, self.log,
-                            use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                            use_input_preprocessing=self.params.get(
+                                'use_input_preprocessing'),
                             api_preprocessor=self.data_processor.preprocessor,
                         ).fit()
                     else:
@@ -218,22 +229,26 @@ class Fedot:
                         # Final fit for obtained pipeline on full dataset
 
                         with fedot_composer_timer.launch_train_inference():
-                            final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
+                            final_fit_plan = plan_final_fit(
+                                self.history, self.current_pipeline.is_fitted)
                             if final_fit_plan.should_train_on_full_dataset:
                                 self._train_pipeline_on_full_dataset(
                                     recommendations_for_data, full_train_not_preprocessed)
                                 self.log.message('Final pipeline was fitted')
                             else:
-                                self.log.message('Already fitted initial pipeline is used')
+                                self.log.message(
+                                    'Already fitted initial pipeline is used')
 
                 # Merge API & pipelines encoders if it is required
                 self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
                     api_preprocessor=self.data_processor.preprocessor,
                     pipeline_preprocessor=self.current_pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+                    use_auto_preprocessing=self.params.get(
+                        'use_auto_preprocessing')
                 )
 
-                self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+                self.log.message(
+                    f'Final pipeline: {graph_structure(self.current_pipeline)}')
 
                 return self.current_pipeline
         finally:
@@ -249,7 +264,8 @@ class Fedot:
                     predefined_model,
                     tensor_data,
                     self.log,
-                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                    use_input_preprocessing=self.params.get(
+                        'use_input_preprocessing'),
                     api_preprocessor=self.data_processor.preprocessor,
                 ),
                 fit_plan.fit_method_name,
@@ -262,12 +278,14 @@ class Fedot:
             pipeline_preprocessor=self.current_pipeline.preprocessor,
             use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
         )
-        self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+        self.log.message(
+            f'Final pipeline: {graph_structure(self.current_pipeline)}')
         return self.current_pipeline
 
     def tune_tensordata(self,
                         tensor_data: Optional[Any] = None,
-                        metric_name: Optional[Union[str, MetricCallable]] = None,
+                        metric_name: Optional[Union[str,
+                                                    MetricCallable]] = None,
                         iterations: int = DEFAULT_TUNING_ITERATIONS_NUMBER,
                         timeout: Optional[float] = None,
                         cv_folds: Optional[int] = None,
@@ -277,7 +295,8 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         tune_plan = build_tensordata_tune_plan(
-            converted_input_data=None if tensor_data is None else self.data_processor.to_input_data(tensor_data),
+            converted_input_data=None if tensor_data is None else self.data_processor.to_input_data(
+                tensor_data),
             has_tensor_data=tensor_data is not None,
         )
 
@@ -304,7 +323,8 @@ class Fedot:
                 tensor_data if tune_plan.use_tensor_runtime else common_tune_plan.input_data
             )
 
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
+            self.current_pipeline = pipeline_tuner.tune(
+                self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             getattr(self.current_pipeline, tune_plan.refit_method_name)(
@@ -317,7 +337,8 @@ class Fedot:
                 self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
                     api_preprocessor=self.data_processor.preprocessor,
                     pipeline_preprocessor=self.current_pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing'),
+                    use_auto_preprocessing=self.params.get(
+                        'use_auto_preprocessing'),
                 )
 
         return self.current_pipeline
@@ -375,7 +396,8 @@ class Fedot:
                               .with_timeout(timeout)
                               .build(tune_input_data))
 
-            self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
+            self.current_pipeline = pipeline_tuner.tune(
+                self.current_pipeline, show_progress=show_progress)
             self.api_composer.was_tuned = pipeline_tuner.was_tuned
 
             # Tuner returns a not fitted pipeline, and it is required to fit on train dataset
@@ -407,12 +429,14 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         with fedot_composer_timer.launch_data_definition('predict'):
-            self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
+            self.test_data = self.data_processor.define_data(
+                target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
 
         if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
             with fedot_composer_timer.launch_preprocessing():
-                self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
+                self.test_data = self.data_processor.transform(
+                    self.test_data, self.current_pipeline)
 
         with fedot_composer_timer.launch_predicting():
             self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
@@ -432,7 +456,8 @@ class Fedot:
 
         self.test_data = self.data_processor.to_input_data(tensor_data)
         with fedot_composer_timer.launch_predicting():
-            predict_plan = build_tensordata_predict_plan(output_mode=output_mode)
+            predict_plan = build_tensordata_predict_plan(
+                output_mode=output_mode)
             self.prediction = self.current_pipeline.predict_tensordata(
                 tensor_data,
                 output_mode=predict_plan.output_mode,
@@ -452,7 +477,8 @@ class Fedot:
         self.test_data = self.data_processor.to_input_data(tensor_data)
         with fedot_composer_timer.launch_predicting():
             if self.params.task.task_type == TaskTypesEnum.classification:
-                predict_plan = build_tensordata_predict_proba_plan(probs_for_all_classes)
+                predict_plan = build_tensordata_predict_proba_plan(
+                    probs_for_all_classes)
                 self.prediction = self.current_pipeline.predict_tensordata(
                     tensor_data,
                     output_mode=predict_plan.output_mode,
@@ -461,7 +487,8 @@ class Fedot:
                 if path_to_save is not None:
                     self.save_predict(self.prediction, path_to_save)
             else:
-                raise ValueError('Probabilities of predictions are available only for classification')
+                raise ValueError(
+                    'Probabilities of predictions are available only for classification')
 
         return self.prediction.predict
 
@@ -490,17 +517,20 @@ class Fedot:
 
                 mode = resolve_predict_proba_mode(probs_for_all_classes)
 
-                self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
+                self.prediction = self.current_pipeline.predict(
+                    self.test_data, output_mode=mode)
 
                 if path_to_save is not None:
                     self.save_predict(self.prediction, path_to_save)
             else:
-                raise ValueError('Probabilities of predictions are available only for classification')
+                raise ValueError(
+                    'Probabilities of predictions are available only for classification')
 
         return self.prediction.predict
 
     def forecast(self,
-                 pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
+                 pre_history: Optional[Union[str, Tuple[np.ndarray,
+                                                        np.ndarray], InputData, dict]] = None,
                  horizon: Optional[int] = None,
                  path_to_save: Optional[PathType] = None) -> np.ndarray:
         """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
@@ -524,7 +554,8 @@ class Fedot:
         self.test_data = self.data_processor.define_data(target=self.target,
                                                          features=pre_history,
                                                          is_predict=True)
-        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
+        predict = out_of_sample_ts_forecast(
+            self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
         if path_to_save is not None:
@@ -544,7 +575,8 @@ class Fedot:
         self.test_data = self.data_processor.to_input_data(tensor_data)
         if forecast_plan.clear_target:
             self.test_data.target = None
-        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, forecast_plan.horizon)
+        predict = out_of_sample_ts_forecast(
+            self.current_pipeline, self.test_data, forecast_plan.horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
         if path_to_save is not None:
@@ -556,7 +588,8 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.params.task.task_type != TaskTypesEnum.ts_forecasting:
-            raise ValueError('Forecasting can be used only for the time series')
+            raise ValueError(
+                'Forecasting can be used only for the time series')
 
     def get_metrics_tensordata(self,
                                tensor_data,
@@ -577,7 +610,8 @@ class Fedot:
 
     def explain_tensordata(self, tensor_data,
                            method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
-        explain_plan = build_tensordata_explain_plan(method=method, visualization=visualization)
+        explain_plan = build_tensordata_explain_plan(
+            method=method, visualization=visualization)
         data = self.data_processor.to_input_data(tensor_data)
         return explain_pipeline(
             pipeline=self.current_pipeline,
@@ -593,7 +627,8 @@ class Fedot:
         Args:
             path: path to ``json`` file with model.
         """
-        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.get('use_input_preprocessing'))
+        self.current_pipeline = Pipeline(
+            use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
@@ -620,7 +655,8 @@ class Fedot:
         if self.prediction is not None:
             if task.task_type == TaskTypesEnum.ts_forecasting:
                 in_sample = in_sample or self._is_in_sample_prediction
-                plot_forecast(self.test_data, self.prediction, in_sample, target)
+                plot_forecast(self.test_data, self.prediction,
+                              in_sample, target)
             elif task.task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif task.task_type == TaskTypesEnum.classification:
@@ -628,7 +664,8 @@ class Fedot:
                 plot_roc_auc(self.test_data, self.prediction)
             else:
                 self.log.error('Not supported yet')
-                raise NotImplementedError(f"For task {task} plot prediction is not supported")
+                raise NotImplementedError(
+                    f"For task {task} plot prediction is not supported")
         else:
             self.log.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
@@ -659,13 +696,15 @@ class Fedot:
             if self.test_data is None:
                 self.test_data = InputData(idx=np.arange(len(self.prediction.predict)),
                                            features=None,
-                                           target=target[:len(self.prediction.predict)],
+                                           target=target[:len(
+                                               self.prediction.predict)],
                                            task=self.train_data.task,
                                            data_type=self.train_data.data_type)
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
+        metrics = ensure_wrapped_in_sequence(
+            metric_names) if metric_names else self.metrics
         metric_names = [str(metric) for metric in metrics]
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
@@ -675,7 +714,8 @@ class Fedot:
 
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
-                                             data_producer=lambda: (yield self.train_data, self.test_data),
+                                             data_producer=lambda: (
+                                                 yield self.train_data, self.test_data),
                                              validation_blocks=validation_blocks,
                                              eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
@@ -700,8 +740,10 @@ class Fedot:
         self.current_pipeline, self.train_data, self.test_data, self.history = \
             import_project_from_zip(zip_path=project_path)
         # TODO workaround to init internal fields of API and data
-        self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
-        self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
+        self.train_data = self.data_processor.define_data(
+            features=self.train_data, is_predict=False)
+        self.test_data = self.data_processor.define_data(
+            features=self.test_data, is_predict=True)
         self.predict(self.test_data)
 
     def explain(self, features: FeaturesType = None,
@@ -766,7 +808,8 @@ class Fedot:
             else:
                 task_str = f'Task({str(task.task_type)})'
             remote.remote_task_params.task_type = task_str
-            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+            remote.remote_task_params.is_multi_modal = isinstance(
+                self.train_data, MultiModalData)
 
             if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target

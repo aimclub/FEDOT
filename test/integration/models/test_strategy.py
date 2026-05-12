@@ -48,7 +48,8 @@ def test_boosting_classification_operation():
     )
 
     for model_name in model_names:
-        pipeline = PipelineBuilder().add_node(model_name, params={'n_jobs': -1}).build()
+        pipeline = PipelineBuilder().add_node(
+            model_name, params={'n_jobs': -1}).build()
         pipeline.fit(train_data)
         predicted_output = pipeline.predict(test_data, output_mode='labels')
         metric = roc_auc(test_data.target, predicted_output.predict)
@@ -60,7 +61,8 @@ def test_boosting_classification_operation():
 
 def test_boosting_regression_operation():
     n_samples = 2000
-    data = get_synthetic_regression_data(n_samples=n_samples, n_features=10, random_state=42)
+    data = get_synthetic_regression_data(
+        n_samples=n_samples, n_features=10, random_state=42)
     train_data, test_data = train_test_data_setup(data)
 
     model_names = OperationTypesRepository().suitable_operation(
@@ -118,7 +120,8 @@ def test_tabpfn_classification_operation():
 
 def test_tabpfn_regression_operation():
     n_samples = 100
-    data = get_synthetic_regression_data(n_samples=n_samples, n_features=4, random_state=42)
+    data = get_synthetic_regression_data(
+        n_samples=n_samples, n_features=4, random_state=42)
     train_data, test_data = train_test_data_setup(data)
 
     model_names = OperationTypesRepository().suitable_operation(

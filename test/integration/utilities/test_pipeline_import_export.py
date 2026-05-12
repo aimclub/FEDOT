@@ -80,10 +80,12 @@ def create_json_models_files():
     pipeline.save('test_pipeline_convert_to_json', create_subdir=False)
 
     pipeline_fitted = create_fitted_pipeline()
-    pipeline_fitted.save('test_fitted_pipeline_convert_to_json', create_subdir=False)
+    pipeline_fitted.save(
+        'test_fitted_pipeline_convert_to_json', create_subdir=False)
 
     pipeline_empty = Pipeline()
-    pipeline_empty.save('test_empty_pipeline_convert_to_json', create_subdir=False)
+    pipeline_empty.save(
+        'test_empty_pipeline_convert_to_json', create_subdir=False)
 
 
 def create_pipeline() -> Pipeline:
@@ -106,7 +108,8 @@ def create_pipeline() -> Pipeline:
 
     node_lda_second = PipelineNode('lda')
     node_lda_second.parameters = {'n_components': 1}
-    node_lda_second.nodes_from = [node_logit_second, node_knn_second, node_logit]
+    node_lda_second.nodes_from = [
+        node_logit_second, node_knn_second, node_logit]
 
     node_rf_second = PipelineNode('rf')
     node_rf_second.nodes_from = [node_logit, node_logit_second, node_knn]
@@ -153,7 +156,8 @@ def create_four_depth_pipeline():
     rf_node_second = PipelineNode('rf', nodes_from=[logit_node])
 
     qda_node_third = PipelineNode('qda', nodes_from=[rf_node_second])
-    knn_node_third = PipelineNode('knn', nodes_from=[logit_node_second, rf_node])
+    knn_node_third = PipelineNode(
+        'knn', nodes_from=[logit_node_second, rf_node])
 
     knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
@@ -167,7 +171,8 @@ def test_export_pipeline_to_json_correctly():
     json_actual, fitted_models_dict = pipeline.save('test_export_pipeline_to_json_correctly',
                                                     create_subdir=False)
 
-    json_path_load = create_correct_path('test_export_pipeline_to_json_correctly')
+    json_path_load = create_correct_path(
+        'test_export_pipeline_to_json_correctly')
 
     with open(json_path_load) as json_file:
         json_expected = json.load(json_file)
@@ -181,7 +186,8 @@ def test_pipeline_template_to_json_correctly():
 
     pipeline = create_pipeline()
     pipeline_template = PipelineTemplate(pipeline)
-    json_actual = pipeline_template.convert_to_dict(root_node=pipeline.root_node)
+    json_actual = pipeline_template.convert_to_dict(
+        root_node=pipeline.root_node)
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -194,10 +200,12 @@ def test_fitted_operations_cache_correctness_after_export_and_import():
 
     pipeline = create_classification_pipeline_with_preprocessing()
     pipeline.fit(train_data)
-    pipeline.save('test_fitted_operations_cache_correctness_after_export_and_import', create_subdir=False)
+    pipeline.save(
+        'test_fitted_operations_cache_correctness_after_export_and_import', create_subdir=False)
     prediction = pipeline.predict(test_data)
 
-    json_load_path = create_correct_path('test_fitted_operations_cache_correctness_after_export_and_import')
+    json_load_path = create_correct_path(
+        'test_fitted_operations_cache_correctness_after_export_and_import')
     new_pipeline = Pipeline.from_serialized(json_load_path)
 
     new_prediction = new_pipeline.predict(test_data)
@@ -210,10 +218,12 @@ def test_import_json_to_pipeline_correctly():
     json_path_load = create_correct_path('test_pipeline_convert_to_json')
 
     pipeline = Pipeline.from_serialized(json_path_load)
-    json_actual, _ = pipeline.save('test_import_json_to_pipeline_correctly_1', create_subdir=False)
+    json_actual, _ = pipeline.save(
+        'test_import_json_to_pipeline_correctly_1', create_subdir=False)
 
     pipeline_expected = create_pipeline()
-    json_expected, _ = pipeline_expected.save('test_import_json_to_pipeline_correctly_2', create_subdir=False)
+    json_expected, _ = pipeline_expected.save(
+        'test_import_json_to_pipeline_correctly_2', create_subdir=False)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
@@ -234,10 +244,12 @@ def test_import_json_template_to_pipeline_correctly():
 
 
 def test_import_json_to_fitted_pipeline_correctly():
-    json_path_load = create_correct_path('test_fitted_pipeline_convert_to_json')
+    json_path_load = create_correct_path(
+        'test_fitted_pipeline_convert_to_json')
 
     pipeline = Pipeline.from_serialized(json_path_load)
-    json_actual, _ = pipeline.save('test_import_json_to_fitted_pipeline_correctly', create_subdir=False)
+    json_actual, _ = pipeline.save(
+        'test_import_json_to_fitted_pipeline_correctly', create_subdir=False)
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -246,7 +258,8 @@ def test_import_json_to_fitted_pipeline_correctly():
 
 
 def test_import_json_to_fitted_pipeline_template_correctly():
-    json_path_load = create_correct_path('test_fitted_pipeline_convert_to_json')
+    json_path_load = create_correct_path(
+        'test_fitted_pipeline_convert_to_json')
 
     pipeline = Pipeline()
     pipeline_template = PipelineTemplate(pipeline)
@@ -290,12 +303,15 @@ def test_export_import_for_one_pipeline_object_correctly():
     and the last command will rewrite the pipeline object correctly.
     """
     pipeline_fitted = create_fitted_pipeline()
-    json_first, _ = pipeline_fitted.save('test_export_import_for_one_pipeline_object_correctly_2', create_subdir=False)
+    json_first, _ = pipeline_fitted.save(
+        'test_export_import_for_one_pipeline_object_correctly_2', create_subdir=False)
 
     pipeline_fitted_after = create_pipeline()
-    pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_1', create_subdir=False)
+    pipeline_fitted_after.save(
+        'test_export_import_for_one_pipeline_object_correctly_1', create_subdir=False)
 
-    json_path_load_2 = create_correct_path('test_export_import_for_one_pipeline_object_correctly_2')
+    json_path_load_2 = create_correct_path(
+        'test_export_import_for_one_pipeline_object_correctly_2')
     pipeline_fitted_after.load(json_path_load_2)
 
     json_second, dict_fitted = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3',
@@ -308,10 +324,13 @@ def test_export_import_for_one_pipeline_object_correctly():
 
 def test_absolute_relative_paths_correctly_no_exception():
     pipeline = create_pipeline()
-    pipeline.save('test_absolute_relative_paths_correctly_no_exception', create_subdir=False)
-    pipeline.save(os.path.abspath('test_absolute_relative_paths_correctly_no_exception'), create_subdir=False)
+    pipeline.save(
+        'test_absolute_relative_paths_correctly_no_exception', create_subdir=False)
+    pipeline.save(os.path.abspath(
+        'test_absolute_relative_paths_correctly_no_exception'), create_subdir=False)
 
-    json_path_load = create_correct_path('test_absolute_relative_paths_correctly_no_exception')
+    json_path_load = create_correct_path(
+        'test_absolute_relative_paths_correctly_no_exception')
     json_path_load_abs = os.path.abspath(json_path_load)
     pipeline.load(json_path_load)
     pipeline.load(json_path_load_abs)
@@ -328,19 +347,22 @@ def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
 
     pipeline.fit(train_data)
 
-    pipeline.save('test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception', create_subdir=False)
+    pipeline.save(
+        'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception', create_subdir=False)
 
 
 def test_export_without_path_correctly():
     pipeline = create_pipeline()
 
-    save_not_fitted_without_path, not_fitted_dict = pipeline.save(create_subdir=False)
+    save_not_fitted_without_path, not_fitted_dict = pipeline.save(
+        create_subdir=False)
     assert len(save_not_fitted_without_path) > 0
     assert not_fitted_dict is None
 
     fitted_pipeline = create_fitted_pipeline()
 
-    save_fitted_without_path, fitted_dict = fitted_pipeline.save(create_subdir=False)
+    save_fitted_without_path, fitted_dict = fitted_pipeline.save(
+        create_subdir=False)
     assert len(save_fitted_without_path) > 0
     assert fitted_dict is not None
 
@@ -382,7 +404,8 @@ def test_extract_subtree_root():
                                      pipeline_template=pipeline_template)
 
     sub_pipeline = Pipeline(root_node)
-    actual_types = [node.operation.operation_type for node in sub_pipeline.nodes]
+    actual_types = [
+        node.operation.operation_type for node in sub_pipeline.nodes]
 
     assertion_list = [True if expected_types[index] == actual_types[index] else False
                       for index in range(len(expected_types))]
@@ -400,18 +423,22 @@ def test_one_hot_encoder_serialization():
     pipeline.fit(train_data)
     prediction_before_export = pipeline.predict(test_data)
 
-    pipeline.save('test_export_one_hot_encoding_operation', create_subdir=False)
+    pipeline.save('test_export_one_hot_encoding_operation',
+                  create_subdir=False)
 
-    pipeline_after = Pipeline.from_serialized(create_correct_path('test_export_one_hot_encoding_operation'))
+    pipeline_after = Pipeline.from_serialized(
+        create_correct_path('test_export_one_hot_encoding_operation'))
     prediction_after_export = pipeline_after.predict(test_data)
 
-    assert np.array_equal(prediction_before_export.features, prediction_after_export.features)
+    assert np.array_equal(prediction_before_export.features,
+                          prediction_after_export.features)
 
 
 def test_save_pipeline_with_np_int_type():
     pipeline = get_simple_ts_pipeline()
     pipeline.nodes[1].parameters["test"] = np.int32(42)
-    pipeline.save(path='test_save_pipeline_with_np_int_type', create_subdir=False)
+    pipeline.save(path='test_save_pipeline_with_np_int_type',
+                  create_subdir=False)
 
 
 def test_pipeline_with_preprocessing_serialized_correctly():
@@ -423,7 +450,8 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     save_path = 'test_pipeline_with_preprocessing_serialized_correctly'
 
     scaling_node = PipelineNode('scaling')
-    single_node_pipeline = Pipeline(PipelineNode('ridge', nodes_from=[scaling_node]))
+    single_node_pipeline = Pipeline(
+        PipelineNode('ridge', nodes_from=[scaling_node]))
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -452,13 +480,16 @@ def test_multimodal_pipeline_serialized_correctly():
     mm_data, pipeline = get_single_task_multimodal_tabular_data()
 
     pipeline.fit(mm_data)
-    before_save_predicted_labels = pipeline.predict(mm_data, output_mode='labels')
+    before_save_predicted_labels = pipeline.predict(
+        mm_data, output_mode='labels')
     pipeline.save(path=save_path, create_subdir=False)
 
     pipeline_loaded = Pipeline.from_serialized(create_correct_path(save_path))
-    after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
+    after_load_predicted_labels = pipeline_loaded.predict(
+        mm_data, output_mode='labels')
 
-    assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)
+    assert np.array_equal(before_save_predicted_labels.predict,
+                          after_load_predicted_labels.predict)
 
 
 def test_old_serialized_paths_load_correctly():
@@ -467,7 +498,8 @@ def test_old_serialized_paths_load_correctly():
     The paths were represented as strings, not as lists. This test checks if the old version
     pipelines can be loaded successfully using the new logic.
     """
-    path = os.path.join(fedot_project_root(), 'test', 'data', 'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
+    path = os.path.join(fedot_project_root(), 'test', 'data',
+                        'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
 
     pipeline_loaded = Pipeline.from_serialized(path)
 
@@ -483,10 +515,12 @@ def test_load_though_api_perform_correctly():
     predictions = model.predict(input_data)
 
     # Save pipeline
-    obtained_pipeline.save('test_load_though_api_perform_correctly', create_subdir=False)
+    obtained_pipeline.save(
+        'test_load_though_api_perform_correctly', create_subdir=False)
 
     loaded_model = Fedot(problem='regression')
-    loaded_model.load(create_correct_path('test_load_though_api_perform_correctly'))
+    loaded_model.load(create_correct_path(
+        'test_load_though_api_perform_correctly'))
     loaded_predictions = loaded_model.predict(input_data)
 
     assert np.array_equal(predictions, loaded_predictions)
@@ -522,4 +556,5 @@ def test_save_options():
     path_2 = 'test_save_with_final_dir'
     pipeline.save(path=path_2, create_subdir=False)
 
-    assert 'test_save_with_final_dir.json' in os.listdir(os.path.abspath(path_2))
+    assert 'test_save_with_final_dir.json' in os.listdir(
+        os.path.abspath(path_2))

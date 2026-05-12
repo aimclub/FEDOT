@@ -2,11 +2,14 @@ import numpy as np
 import pytest
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.reader.data_reader import DataReader, from_csv_tsv, from_numpy
+from fedot.core.data.reader.data_reader import DataReader, DataReaderResult, from_csv_tsv, from_numpy
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
-from fedot.core.data.tensor_data.rules import TensorDataCreatorNotFoundError
+from fedot.core.data.tensor_data.rules import (
+    TensorDataCreatorNotFoundError,
+    resolve_registered_creator,
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -25,7 +28,8 @@ def test_data_reader_resolves_first_matching_registered_reader(monkeypatch):
         ],
     )
 
-    assert DataReader._resolve_creator({'source': 'x'}) is creator_b
+    assert resolve_registered_creator(
+        DataReader._creators, {'source': 'x'}) is creator_b
 
 
 @pytest.mark.unit
@@ -38,7 +42,7 @@ def test_data_reader_raises_when_registered_readers_do_not_match(monkeypatch):
     )
 
     with pytest.raises(TensorDataCreatorNotFoundError, match='No creator registered'):
-        DataReader._resolve_creator({'source': 'x'})
+        resolve_registered_creator(DataReader._creators, {'source': 'x'})
 
 
 @pytest.mark.unit
@@ -55,13 +59,16 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
 
     def fake_read(self, source_data, spec):
         spec.features = source_data['features']
-        return spec
+        return DataReaderResult(features=spec.features, features_names=spec.features_names)
 
     monkeypatch.setattr(Backend, 'set', fake_backend_set)
     monkeypatch.setattr(DataReader, 'read', fake_read)
-    monkeypatch.setattr(TensorDataCreator, 'preprocess_data', lambda self: None)
-    monkeypatch.setattr(TensorDataCreator, 'to_tensor_data', lambda self: self.spec)
-    monkeypatch.setattr(TensorDataCreator, 'to_backend', lambda self, tensor_data: tensor_data)
+    monkeypatch.setattr(TensorDataCreator,
+                        'preprocess_data', lambda self: None)
+    monkeypatch.setattr(TensorDataCreator, 'to_tensor_data',
+                        lambda self: self.spec)
+    monkeypatch.setattr(TensorDataCreator, 'to_backend',
+                        lambda self, tensor_data: tensor_data)
 
     spec = TensorDataCreator.create(
         {'features': np.array([[1, 2], [3, 4]])},
@@ -105,10 +112,12 @@ def test_numpy_reader_only_stores_raw_features_in_data_spec():
 
     result = from_numpy(features=features, spec=spec)
 
-    assert result is spec
+    assert isinstance(result, DataReaderResult)
     assert result.features is features
-    assert result.target == 1
-    assert result.target_idx is None
+    assert result.features_names is None
+    assert spec.features is features
+    assert spec.target == 1
+    assert spec.target_idx is None
 
 
 @pytest.mark.unit
@@ -125,7 +134,8 @@ def test_preprocess_data_converts_integer_target_reference_to_target_idx(monkeyp
         target=1,
     )
 
-    monkeypatch.setattr(TensorDataCreator, 'obligatory_preprocess', lambda self: None)
+    monkeypatch.setattr(TensorDataCreator,
+                        'obligatory_preprocess', lambda self: None)
 
     creator.preprocess_data()
 
@@ -153,18 +163,22 @@ def test_csv_tsv_reader_applies_file_load_plan_defaults(monkeypatch, tmp_path):
 
         return _Frame()
 
-    monkeypatch.setattr('fedot.core.data.reader.data_reader.get_df_from_csv', fake_get_df_from_csv)
-    monkeypatch.setattr('fedot.core.data.reader.data_reader.get_values_from_df', lambda frame: frame.values)
+    monkeypatch.setattr(
+        'fedot.core.data.reader.data_reader.get_df_from_csv', fake_get_df_from_csv)
+    monkeypatch.setattr(
+        'fedot.core.data.reader.data_reader.get_values_from_df', lambda frame: frame.values)
 
     spec = DataSpec()
 
     result = from_csv_tsv(str(csv_path), spec)
 
-    assert result is spec
+    assert isinstance(result, DataReaderResult)
     assert result.features.shape == (1, 1)
+    assert np.asarray(result.features_names).tolist() == ['value']
     assert captured['file_path'] == str(csv_path)
     assert captured['delimiter'] == '\t'
-    assert captured['possible_idx_keywords'] == ['idx', 'index', 'id', 'unnamed: 0']
+    assert captured['possible_idx_keywords'] == [
+        'idx', 'index', 'id', 'unnamed: 0']
 
 
 @pytest.mark.unit
@@ -253,7 +267,8 @@ def test_preprocess_data_autodetects_tabular_data_type_for_classification(monkey
         task='classification',
     )
 
-    monkeypatch.setattr(TensorDataCreator, 'obligatory_preprocess', lambda self: None)
+    monkeypatch.setattr(TensorDataCreator,
+                        'obligatory_preprocess', lambda self: None)
 
     creator.preprocess_data()
 
@@ -272,7 +287,8 @@ def test_preprocess_data_autodetects_time_series_data_type_for_forecasting(monke
         task=Task(TaskTypesEnum.ts_forecasting),
     )
 
-    monkeypatch.setattr(TensorDataCreator, 'obligatory_preprocess', lambda self: None)
+    monkeypatch.setattr(TensorDataCreator,
+                        'obligatory_preprocess', lambda self: None)
 
     creator.preprocess_data()
 
@@ -285,12 +301,12 @@ def test_tensor_data_creator_builds_tensor_data_container_from_spec_fields():
     """Check that TensorDataCreator copies prepared DataSpec fields into the runtime container."""
     creator = TensorDataCreator()
     creator.spec = DataSpec(
-        features=np.array([[1.0, 2.0]]),
-        target=np.array([1.0]),
+        features=np.array([[1.0, 2.0], [3.0, 4.0]]),
+        target=None,
         target_idx=1,
         categorical_idx=[0],
         numerical_idx=[1],
-        features_names=['feature', 'target'],
+        features_names=['f0', 'f1'],
     )
 
     tensor_data = creator.to_tensor_data()
@@ -300,4 +316,4 @@ def test_tensor_data_creator_builds_tensor_data_container_from_spec_fields():
     assert tensor_data.target is creator.spec.target
     assert tensor_data.target_idx == [1]
     assert tensor_data.categorical_idx == [0]
-    assert tensor_data.features_names == ['feature', 'target']
+    assert tensor_data.features_names == ['f0', 'f1']

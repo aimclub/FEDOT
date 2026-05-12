@@ -16,7 +16,8 @@ class DefaultParamValue:
         return '<default value>'  # Visible in the documentation.
 
 
-DEFAULT_VALUE = DefaultParamValue()  # Mock value used to filter out unset parameters.
+# Mock value used to filter out unset parameters.
+DEFAULT_VALUE = DefaultParamValue()
 
 
 class FedotBuilder:
@@ -67,7 +68,8 @@ class FedotBuilder:
     def __update_params(self, **new_params):
         """ Saves all parameters set by user to the dictionary ``self.api_params``. """
 
-        self.api_params = merge_builder_params(self.api_params, new_params, DEFAULT_VALUE)
+        self.api_params = merge_builder_params(
+            self.api_params, new_params, DEFAULT_VALUE)
 
     def setup_composition(
             self,
@@ -195,7 +197,8 @@ class FedotBuilder:
 
     def setup_evolution(
             self,
-            initial_assumption: Union[Pipeline, List[Pipeline]] = DEFAULT_VALUE,
+            initial_assumption: Union[Pipeline,
+                                      List[Pipeline]] = DEFAULT_VALUE,
             num_of_generations: Optional[int] = DEFAULT_VALUE,
             early_stopping_iterations: int = DEFAULT_VALUE,
             early_stopping_timeout: int = DEFAULT_VALUE,
@@ -375,7 +378,8 @@ class FedotBuilder:
 
     def setup_pipeline_evaluation(
             self,
-            metric: Union[MetricIDType, Sequence[MetricIDType]] = DEFAULT_VALUE,
+            metric: Union[MetricIDType,
+                          Sequence[MetricIDType]] = DEFAULT_VALUE,
             cv_folds: int = DEFAULT_VALUE,
             max_pipeline_fit_time: Optional[int] = DEFAULT_VALUE,
             collect_intermediate_metric: bool = DEFAULT_VALUE,

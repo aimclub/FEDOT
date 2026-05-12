@@ -66,7 +66,8 @@ def run_single(train_data,
     pipeline.fit_from_scratch(train_data)
     predicted = pipeline.predict(test_data)
 
-    roc_auc_metric = roc_auc(y_true=test_data.target, y_score=predicted.predict)
+    roc_auc_metric = roc_auc(y_true=test_data.target,
+                             y_score=predicted.predict)
     print('roc_auc=', roc_auc_metric)
 
     if visualize:
@@ -105,7 +106,8 @@ def visualize_histories(histories: Sequence[OptHistory],
 
         if with_confidence_interval:
             best_num = min(len(xs), best_num)
-            std_fitness = np.array([np.std(sorted(pop)[:best_num]) for pop in h])
+            std_fitness = np.array(
+                [np.std(sorted(pop)[:best_num]) for pop in h])
             plt.fill_between(xs, ys + std_fitness, ys - std_fitness, alpha=0.2)
 
     plt.xlabel('Поколение')
@@ -123,7 +125,8 @@ def run_experiment(train_data_path,
     train_data = InputData.from_csv(train_data_path, target_columns='target')
     test_data = InputData.from_csv(test_data_path, target_columns='target')
 
-    all_mutations = [MutationTypesEnum.simple, MutationTypesEnum.growth, MutationTypesEnum.reduce]
+    all_mutations = [MutationTypesEnum.simple,
+                     MutationTypesEnum.growth, MutationTypesEnum.reduce]
     mutation_types = [
         [MutationTypesEnum.simple],
         [MutationTypesEnum.growth],

@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional, Union, List
+import logging
 
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
-from fedot.core.data.common.types import IndexType, TensorLike
+from fedot.core.data.common.types import IndexType
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.tensor_data.tools import convert_idx_to_list
+
+logger = logging.getLogger(__name__)
 
 SUPPORTED_BACKEND_NAMES = ('cpu', 'gpu')
 
@@ -114,7 +117,8 @@ def normalize_backend_name(backend_name: str) -> str:
     normalized_name = backend_name.strip().lower()
     if normalized_name not in SUPPORTED_BACKEND_NAMES:
         supported = ', '.join(SUPPORTED_BACKEND_NAMES)
-        raise ValueError(f'Unsupported backend_name: {backend_name}. Expected one of: {supported}')
+        raise ValueError(
+            f'Unsupported backend_name: {backend_name}. Expected one of: {supported}')
 
     return normalized_name
 
@@ -145,13 +149,15 @@ def normalize_optional_data_type(data_type: Optional[Union[DataTypesEnum, str]])
         return LEGACY_DATA_TYPE_MAPPING.get(DataTypesEnum(data_type))
     if isinstance(data_type, DataTypesEnum):
         return LEGACY_DATA_TYPE_MAPPING[data_type]
-    raise TypeError(f'data_type must be DataTypesEnum, str, or None, got {type(data_type)}')
+    raise TypeError(
+        f'data_type must be DataTypesEnum, str, or None, got {type(data_type)}')
 
 
 def normalize_data_type(data_type: Union[DataTypesEnum, str]) -> DataTypesEnum:
     normalized_data_type = normalize_optional_data_type(data_type)
     if normalized_data_type is None:
-        raise ValueError('data_type must not be None for TensorData runtime instances')
+        raise ValueError(
+            'data_type must not be None for TensorData runtime instances')
     return normalized_data_type
 
 
@@ -221,6 +227,7 @@ def normalize_array_target_reference(
 
 
 def build_load_data_spec_normalization(
+    target: Any,
     task: Union[Task, str],
     data_type: Optional[Union[DataTypesEnum, str]],
     state: Union[StateEnum, str],
@@ -234,6 +241,13 @@ def build_load_data_spec_normalization(
     features_names: IndexType = None,
 ) -> LoadDataSpecNormalization:
 
+    if (target is not None) and (target_idx is not None):
+        logger.warning(
+            "Target and target_idx are provided simultaneously. target_idx will be ignored.")
+        target_idx = None
+    else:
+        target_idx = normalize_optional_idx(target_idx)
+
     return LoadDataSpecNormalization(
         task=normalize_task(task),
         data_type=normalize_optional_data_type(data_type),
@@ -241,7 +255,7 @@ def build_load_data_spec_normalization(
         ts_orientation=normalize_optional_ts_orientation(ts_orientation),
         embedding_strategy=normalize_embedding_strategy(embedding_strategy),
         dataloader_kwargs=normalize_dataloader_kwargs(dataloader_kwargs),
-        target_idx=normalize_optional_idx(target_idx),
+        target_idx=target_idx,
         categorical_idx=normalize_idx_collection(categorical_idx),
         numerical_idx=normalize_idx_collection(numerical_idx),
         ts_terms_idx=normalize_optional_idx(ts_terms_idx),

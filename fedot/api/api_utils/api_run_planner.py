@@ -37,14 +37,16 @@ def plan_sampling_stage(requested_predefined_model: Optional[Any],
         return SamplingStagePlan(
             resolved_predefined_model=requested_predefined_model,
             should_run_sampling_stage=False,
-            skip_metadata=_skip_metadata(SKIP_REASON_PREDEFINED_MODEL) if sampling_config_present else None,
+            skip_metadata=_skip_metadata(
+                SKIP_REASON_PREDEFINED_MODEL) if sampling_config_present else None,
         )
 
     if is_atomized_initial_assumption(initial_assumption):
         return SamplingStagePlan(
             resolved_predefined_model=initial_assumption,
             should_run_sampling_stage=False,
-            skip_metadata=_skip_metadata(SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION) if sampling_config_present else None,
+            skip_metadata=_skip_metadata(
+                SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION) if sampling_config_present else None,
         )
 
     return SamplingStagePlan(
@@ -56,7 +58,8 @@ def plan_sampling_stage(requested_predefined_model: Optional[Any],
 
 def plan_final_fit(history: Optional[Any], pipeline_is_fitted: bool) -> FinalFitPlan:
     return FinalFitPlan(
-        should_train_on_full_dataset=history_has_records(history) or not pipeline_is_fitted,
+        should_train_on_full_dataset=history_has_records(
+            history) or not pipeline_is_fitted,
     )
 
 

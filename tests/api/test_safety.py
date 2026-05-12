@@ -41,7 +41,8 @@ def test_safety_label_correct():
     data = get_small_cat_data()
     recs_for_data, _ = api_safety.give_recommendations(data)
     api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)
-    assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
+    assert data.features.shape[0] * \
+        data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
     assert data.features[0, 0] != 'a'
 
@@ -64,7 +65,8 @@ def test_recommendations_works_correct_in_final_fit():
 
 
 def test_no_safety_needed_correct():
-    api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
+    api_safety, api_preprocessor = get_data_analyser_with_specific_params(
+        max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
     recs_for_data, _ = api_safety.give_recommendations(data)
     api_preprocessor.accept_and_apply_recommendations(data, recs_for_data)

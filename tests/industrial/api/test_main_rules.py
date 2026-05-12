@@ -26,7 +26,8 @@ def test_build_industrial_predict_plan_tracks_solver_mode_and_forecast_tail():
         solver_is_fedot_class=False,
         solver_is_pipeline_class=True,
         has_target_encoder=True,
-        predict_task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=3)),
+        predict_task=Task(TaskTypesEnum.ts_forecasting,
+                          TsForecastingParams(forecast_length=3)),
     )
 
     assert plan.custom_predict is False
@@ -36,8 +37,10 @@ def test_build_industrial_predict_plan_tracks_solver_mode_and_forecast_tail():
 
 
 def test_build_industrial_metrics_plan_detects_mapping_and_encoder_usage():
-    dict_plan = build_industrial_metrics_plan(np.array([[1], [0]]), {'a': np.array([1, 0])}, True)
-    array_plan = build_industrial_metrics_plan(np.array([[1], [0]]), np.array([1, 0]), True)
+    dict_plan = build_industrial_metrics_plan(
+        np.array([[1], [0]]), {'a': np.array([1, 0])}, True)
+    array_plan = build_industrial_metrics_plan(
+        np.array([[1], [0]]), np.array([1, 0]), True)
 
     assert dict_plan.prediction_is_mapping is True
     assert dict_plan.use_target_encoder is False
@@ -57,8 +60,10 @@ def test_normalize_industrial_prediction_unwraps_outputdata_and_trim_forecast_is
     normalized = normalize_industrial_prediction(raw)
 
     assert np.array_equal(normalized, np.array([1, 2, 3, 4]))
-    assert np.array_equal(trim_industrial_forecast(normalized, None), normalized)
-    assert np.array_equal(trim_industrial_forecast(normalized, 2), np.array([3, 4]))
+    assert np.array_equal(trim_industrial_forecast(
+        normalized, None), normalized)
+    assert np.array_equal(trim_industrial_forecast(
+        normalized, 2), np.array([3, 4]))
 
 
 def test_build_industrial_fit_predict_proba_and_metrics_request_plans():
@@ -68,7 +73,8 @@ def test_build_industrial_fit_predict_proba_and_metrics_request_plans():
 
     fit_plan = build_industrial_fit_plan(object())
     callable_fit_plan = build_industrial_fit_plan(_CallableStrategy())
-    proba_plan = build_industrial_predict_proba_plan('probs', is_regression_task_context=True)
+    proba_plan = build_industrial_predict_proba_plan(
+        'probs', is_regression_task_context=True)
     metrics_request_plan = build_industrial_metrics_request_plan(
         problem='classification',
         probs=None,
@@ -96,8 +102,10 @@ def test_build_industrial_finetune_plan_normalizes_metric_and_tuner():
 
 def test_build_industrial_save_load_explain_and_history_plans():
     save_plan = build_industrial_save_plan(mode='all', is_fedot_solver=False)
-    load_plan = build_industrial_load_plan(path='root', dir_list=['pipeline_saved_1', 'fitted_operations'])
-    explain_plan = build_industrial_explain_plan({'method': 'recurrence', 'samples': 3})
+    load_plan = build_industrial_load_plan(
+        path='root', dir_list=['pipeline_saved_1', 'fitted_operations'])
+    explain_plan = build_industrial_explain_plan(
+        {'method': 'recurrence', 'samples': 3})
     history_plan = build_industrial_history_visualization_plan('models')
 
     assert save_plan.save_all is True

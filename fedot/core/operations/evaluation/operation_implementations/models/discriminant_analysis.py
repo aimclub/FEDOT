@@ -68,7 +68,8 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             # Problem arise when features and target are "ideally" mapping
             # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
             new_solver = 'lsqr'
-            self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
+            self.log.debug(
+                f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
 
             self.model.solver = new_solver
             self.params.update(solver=new_solver)

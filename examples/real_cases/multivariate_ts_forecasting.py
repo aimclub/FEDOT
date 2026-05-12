@@ -31,7 +31,8 @@ def plot_results(full_df: pd.DataFrame, target_column: int, forecast: np.array,
     plt.plot(datetime_xs.tail(3 * forecast_horizon),
              target_df['value'].tail(3 * forecast_horizon),
              label='Actual values')
-    plt.plot(datetime_xs.tail(forecast_horizon), forecast[-forecast_horizon:], label='Forecast')
+    plt.plot(datetime_xs.tail(forecast_horizon),
+             forecast[-forecast_horizon:], label='Forecast')
     plt.xlabel('Datetime', fontsize=13)
     plt.ylabel('Sea surface height, m', fontsize=13)
     plt.legend()
@@ -42,7 +43,8 @@ def plot_results(full_df: pd.DataFrame, target_column: int, forecast: np.array,
 def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
                              number_of_series_to_use: int = 25):
     """ Example how to launch FEDOT AutmoML for multivariate forecasting """
-    path_to_file = fedot_project_root() / 'examples' / 'real_cases' / 'data' / 'multivariate_ssh.csv'
+    path_to_file = fedot_project_root() / 'examples' / 'real_cases' / \
+        'data' / 'multivariate_ssh.csv'
     df = pd.read_csv(path_to_file, parse_dates=['datetime'])
     train_df, test_df = train_test_split(df, forecast_horizon)
 

@@ -1,8 +1,10 @@
 from typing import Any, Callable, ClassVar, List, Tuple
 import numpy as np
 import torch
+from dataclasses import dataclass
 
 from fedot.core.data.tensor_data.rules import (
+    TensorDataCreatorNotFoundError,
     build_tabular_file_load_plan,
     resolve_registered_creator,
 )
@@ -13,6 +15,8 @@ from fedot.core.data.common.types import (
     PANDAS_RUNTIME_TYPES,
     ArrayType,
     PandasType,
+    IndexType,
+    TensorLike,
 )
 from fedot.core.data.tensor_data.data_spec import DataSpec
 
@@ -20,13 +24,38 @@ from fedot.core.data.tensor_data.data_spec import DataSpec
 POSSIBLE_TABULAR_IDX_KEYWORDS = ['idx', 'index', 'id', 'unnamed: 0']
 
 
+@dataclass
+class DataReaderResult:
+    """Container returned by :meth:`DataReader.read` and registered reader functions.
+
+    Holds raw feature values read from the source (array, dataframe, or file) and
+    optional column/attribute names. Callers such as :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`
+    merge these fields into a :class:`~fedot.core.data.tensor_data.data_spec.DataSpec`
+    (``features``, ``features_names``); target handling stays in the creator pipeline.
+
+    Attributes:
+        features: Feature matrix or tensor in reader-specific layout (e.g. NumPy array
+            for CSV/ARFF after ``get_values_from_df`` / ``read_arff_file``).
+        features_names: Column names for tabular sources, ARFF attribute names, or
+            ``None`` when the source does not provide names (e.g. plain NumPy).
+    """
+
+    features: TensorLike
+    features_names: IndexType = None
+
+
 class DataReader:
     """
-    Registry-based reader that fills `DataSpec` from supported input sources.
+    Registry of lightweight readers from raw inputs to arrays and names.
 
-    `DataReader` does not build `TensorData` directly. It selects a registered
-    reader function for the input type and returns the updated `DataSpec`; the
-    creator then performs preprocessing and constructs the final `TensorData`.
+    ``DataReader`` does not build :class:`~fedot.core.data.tensor_data.tensor_data.TensorData`.
+    It dispatches ``source_data`` to the first registered predicate whose reader
+    returns a :class:`DataReaderResult`. :class:`~fedot.core.data.tensor_data.tensor_data_creator.TensorDataCreator`
+    assigns ``result.features`` / ``result.features_names`` onto its ``DataSpec`` and
+    runs preprocessing and tensor conversion.
+
+    Some readers also set ``spec.features`` for backward compatibility; the
+    authoritative read output is always the returned :class:`DataReaderResult`.
     """
 
     _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
@@ -36,15 +65,15 @@ class DataReader:
         """
         Register a reader function for a source type.
 
-        Registered functions are checked in registration order. A reader function
-        must accept `(source_data, spec)` and return the updated `DataSpec`.
+        Registered readers are tried in registration order. Each reader must accept
+        ``(source_data, spec)`` and return a :class:`DataReaderResult`.
 
         Args:
-            predicate: Function that returns `True` if the reader can handle the
-                given input.
+            predicate: Function that returns ``True`` if the reader can handle the
+                given ``source_data``.
 
         Returns:
-            Callable[[Callable], Callable]: Decorator that registers the reader.
+            Decorator that registers the reader function.
         """
         def decorator(func):
             cls._creators.append((predicate, func))
@@ -52,55 +81,60 @@ class DataReader:
         return decorator
 
     @classmethod
-    def read(cls, source_data, spec: DataSpec):
+    def read(cls, source_data, spec: DataSpec) -> DataReaderResult:
         """
-        Read raw input into `spec`.
+        Dispatch ``source_data`` to the matching registered reader.
 
         Args:
-            source_data: Raw input such as a tensor, array, dataframe, or file path.
-            spec: Creation specification to update.
+            source_data: Raw input (tensor, array, dataframe, or file path).
+            spec: Creation specification; readers may read options from it
+                (delimiter, ``index_col``, etc.) and some mutate ``spec.features``.
 
         Returns:
-            DataSpec: Updated specification with source data stored in `features`,
-            `target`, and related metadata.
+            DataReaderResult: Loaded ``features`` and ``features_names`` for the caller
+            to copy into a :class:`~fedot.core.data.tensor_data.data_spec.DataSpec`.
+
+        Raises:
+            TensorDataCreatorNotFoundError: If no registered reader matches
+                ``source_data``.
         """
         creator = resolve_registered_creator(cls._creators, source_data)
         return creator(source_data, spec)
 
 
 @DataReader.register_creator(lambda x: isinstance(x, torch.Tensor))
-def from_torch(features: torch.Tensor, spec: DataSpec) -> DataSpec:
+def from_torch(features: torch.Tensor, spec: DataSpec) -> DataReaderResult:
     """
     Read an already materialized torch tensor.
 
     Args:
         features: Input feature tensor.
-        spec: Creation specification to update.
+        spec: Creation specification (``spec.features`` is set for compatibility).
 
     Returns:
-        DataSpec: Specification with `features` set to the tensor.
+        DataReaderResult: The same tensor and optional ``spec.features_names``.
     """
     spec.features = features
-    return spec
+    return DataReaderResult(features=features, features_names=spec.features_names)
 
 
 @DataReader.register_creator(
     lambda x: isinstance(x, ARRAY_RUNTIME_TYPES)
 )
-def from_numpy(features: ArrayType, spec: DataSpec) -> DataSpec:
+def from_numpy(features: ArrayType, spec: DataSpec) -> DataReaderResult:
     """
-    Read a numpy or cupy array.
+    Read a NumPy or CuPy array.
 
     Args:
         features: Input feature array.
-        spec: Creation specification to update.
+        spec: Creation specification (``spec.features`` is set for compatibility).
 
     Returns:
-        DataSpec: Specification with `features` set to the array.
+        DataReaderResult: The array and optional ``spec.features_names``.
     """
     spec.features = features
 
-    return spec
+    return DataReaderResult(features=features, features_names=spec.features_names)
 
 
 @DataReader.register_creator(
@@ -108,27 +142,25 @@ def from_numpy(features: ArrayType, spec: DataSpec) -> DataSpec:
 )
 def from_pandas(
         features: PandasType,
-        spec: DataSpec) -> DataSpec:
+        spec: DataSpec) -> DataReaderResult:
     """
-    Read a pandas or cudf dataframe/series.
+    Read a pandas or cuDF dataframe/series.
 
     Args:
         features: Input dataframe or series.
-        spec: Creation specification to update.
+        spec: Creation specification passed through for options.
 
     Returns:
-        DataSpec: Specification with array values and detected feature names.
+        DataReaderResult: Array values from ``get_values_from_df`` and column names.
     """
 
     cols = features.columns
-    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
+    features_names = np.asarray(
+        cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
-    spec.features = get_values_from_df(features)
+    features = get_values_from_df(features)
 
-    if spec.target is not None:
-        spec.target = get_values_from_df(spec.target)
-
-    return spec
+    return DataReaderResult(features=features, features_names=features_names)
 
 
 @DataReader.register_creator(
@@ -136,20 +168,20 @@ def from_pandas(
 )
 def from_csv_tsv(
     file_path: str, spec: DataSpec
-) -> DataSpec:
+) -> DataReaderResult:
     """
     Read a CSV or TSV file path.
 
-    The delimiter is inferred from the extension unless it is explicitly provided
-    in `spec`. Index columns can be provided via `index_col` or detected from
-    `possible_idx_keywords`.
+    The delimiter is inferred from the extension unless ``spec.delimiter`` overrides it.
+    Index columns can be set via ``spec.index_col`` or detected from
+    ``spec.possible_idx_keywords`` (with defaults from this module).
 
     Args:
         file_path: Path to the CSV/TSV file.
         spec: Creation specification with file loading options.
 
     Returns:
-        DataSpec: Specification with loaded values and detected feature names.
+        DataReaderResult: Numeric feature matrix and column names from the file.
     """
 
     file_load_plan = build_tabular_file_load_plan(
@@ -158,9 +190,8 @@ def from_csv_tsv(
         possible_idx_keywords=spec.possible_idx_keywords,
         default_keywords=POSSIBLE_TABULAR_IDX_KEYWORDS,
     )
-    spec.possible_idx_keywords = file_load_plan.possible_idx_keywords
 
-    spec.features = get_df_from_csv(
+    data = get_df_from_csv(
         file_path=file_load_plan.file_path,
         delimiter=file_load_plan.delimiter,
         index_col=spec.index_col,
@@ -169,12 +200,13 @@ def from_csv_tsv(
         nrows=spec.max_rows
     )
 
-    cols = spec.features.columns
-    spec.features_names = np.asarray(cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
+    cols = data.columns
+    features_names = np.asarray(
+        cols.to_numpy() if hasattr(cols, 'to_numpy') else cols)
 
-    spec.features = get_values_from_df(spec.features)
+    features = get_values_from_df(data)
 
-    return spec
+    return DataReaderResult(features=features, features_names=features_names)
 
 
 @DataReader.register_creator(
@@ -182,18 +214,19 @@ def from_csv_tsv(
 )
 def from_arff(
     source: str, spec: DataSpec
-) -> DataSpec:
+) -> DataReaderResult:
     """
     Read an ARFF file path.
 
     Args:
         source: Path to the ARFF file.
-        spec: Creation specification with target extraction options.
+        spec: Reserved for future reader options (currently unused).
 
     Returns:
-        DataSpec: Specification with loaded features and target.
+        DataReaderResult: Stacked attribute matrix from :func:`~fedot.core.data.reader.tools.read_arff_file`
+        and attribute (field) names, or ``None`` names when the header has no attributes.
     """
 
-    spec.features, spec.target = read_arff_file(source, target_idx=spec.target_idx)
+    features, features_names = read_arff_file(source)
 
-    return spec
+    return DataReaderResult(features=features, features_names=features_names)

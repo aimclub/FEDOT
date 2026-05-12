@@ -167,13 +167,16 @@ def get_operation_perfomance(operation: OperationMetaInfo,
                                             length=length, features_count=10,
                                             random=True)
                 if data is not None:
-                    min_evaluated_time = min(fit_time_for_operation(operation, data) for _ in range(times))
+                    min_evaluated_time = min(fit_time_for_operation(
+                        operation, data) for _ in range(times))
                     perfomance_values.append(min_evaluated_time)
             if perfomance_values:
                 if len(perfomance_values) != len(data_lengths):
-                    raise ValueError('not all measurements have been proceeded')
+                    raise ValueError(
+                        'not all measurements have been proceeded')
                 return tuple(perfomance_values)
-    raise Exception(f"Fit time for operation ``{operation.id}`` cannot be measured")
+    raise Exception(
+        f"Fit time for operation ``{operation.id}`` cannot be measured")
 
 
 @pytest.fixture()
@@ -248,8 +251,10 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
-        fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
+        fitted_operation, train_predicted = model.fit(
+            params=None, data=train_data)
+        test_pred = model.predict(
+            fitted_operation=fitted_operation, data=test_data)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
         if model_name not in ['bernb', 'multinb']:
@@ -273,9 +278,12 @@ def test_regression_models_fit_predict_correct():
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
 
-        fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
-        rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
+        fitted_operation, train_predicted = model.fit(
+            params=None, data=train_data)
+        test_pred = model.predict(
+            fitted_operation=fitted_operation, data=test_data)
+        rmse_value_test = mean_squared_error(
+            y_true=test_data.target, y_pred=test_pred.predict)
 
         rmse_threshold = np.std(test_data.target) ** 2
         assert rmse_value_test < rmse_threshold
@@ -300,8 +308,10 @@ def test_ts_models_fit_predict_correct():
 
         fitted_operation, train_predicted = model.fit(params=default_params,
                                                       data=deepcopy(train_data))
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
-        mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
+        test_pred = model.predict(
+            fitted_operation=fitted_operation, data=test_data)
+        mae_value_test = mean_absolute_error(
+            y_true=test_data.target, y_pred=test_pred.predict[0])
 
         mae_threshold = np.var(test_data.target) * 2
         assert mae_value_test < mae_threshold
@@ -393,7 +403,8 @@ def test_glm_indexes_correct():
     and indexes look like [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
     input_data = generate_simple_series()
-    glm_impl = GLMImplementation(OperationParameters(**{"family": "gaussian", "link": "identity"}))
+    glm_impl = GLMImplementation(OperationParameters(
+        **{"family": "gaussian", "link": "identity"}))
     glm_impl.fit(input_data)
     predicted = glm_impl.predict_for_fit(input_data)
     pred_values = predicted.predict
@@ -433,32 +444,38 @@ def test_ts_naive_average_forecast_correctly():
     """ Check if forecasted time series has correct indices """
     train_input, predict_input, _ = synthetic_univariate_ts()
 
-    model = NaiveAverageForecastImplementation(OperationParameters(part_for_averaging=1.0))
+    model = NaiveAverageForecastImplementation(
+        OperationParameters(part_for_averaging=1.0))
     fit_forecast = model.predict_for_fit(train_input)
     predict_forecast = model.predict(predict_input)
 
     # Check correctness during pipeline fit stage
     assert (11, 4) == fit_forecast.target.shape
-    assert np.array_equal(fit_forecast.idx, np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+    assert np.array_equal(fit_forecast.idx, np.array(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
     assert np.isclose(fit_forecast.predict[0, 0], 0)
 
     # Pipeline predict stage
-    assert np.array_equal(predict_forecast.predict, np.array([[65, 65, 65, 65]]))
+    assert np.array_equal(predict_forecast.predict,
+                          np.array([[65, 65, 65, 65]]))
 
 
 def test_locf_forecast_correctly():
     """ Testing naive LOCF model """
     train_input, predict_input, _ = synthetic_univariate_ts()
-    model = RepeatLastValueImplementation(OperationParameters(part_for_repeat=0.2))
+    model = RepeatLastValueImplementation(
+        OperationParameters(part_for_repeat=0.2))
 
     model.fit(train_input)
     fit_forecast = model.predict_for_fit(train_input)
     predict_forecast = model.predict(predict_input)
 
     assert (8, 4) == fit_forecast.target.shape
-    assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))
+    assert np.array_equal(
+        fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))
     # Repeated pattern (3 elements to repeat and 4 forecast horizon)
-    assert np.array_equal(predict_forecast.predict, np.array([[110, 120, 130, 110]]))
+    assert np.array_equal(predict_forecast.predict,
+                          np.array([[110, 120, 130, 110]]))
 
 
 @pytest.mark.parametrize('operation', OperationTypesRepository('all')._repo, ids=lambda x: x.id)
@@ -537,26 +554,32 @@ def test_operations_are_fast():
 
     for operation in OperationTypesRepository('all')._repo:
         if operation.id in reference_operations:
-            perfomance_values = get_operation_perfomance(operation, data_lengths, attempt)
-            reference_time = tuple(map(min, zip(perfomance_values, reference_time)))
+            perfomance_values = get_operation_perfomance(
+                operation, data_lengths, attempt)
+            reference_time = tuple(
+                map(min, zip(perfomance_values, reference_time)))
 
     for operation in OperationTypesRepository('all')._repo:
         if operation.id not in to_skip and operation.presets and FAST_TRAIN_PRESET_NAME in operation.presets:
             for _ in range(attempt):
-                perfomance_values = get_operation_perfomance(operation, data_lengths)
+                perfomance_values = get_operation_perfomance(
+                    operation, data_lengths)
                 # if attempt is successful then stop
                 if all(x >= y for x, y in zip(reference_time, perfomance_values)):
                     break
             else:
-                raise Exception(f"Operation {operation.id} cannot have ``fast-train`` tag")
+                raise Exception(
+                    f"Operation {operation.id} cannot have ``fast-train`` tag")
 
 
 def test_all_operations_are_documented():
     # All operations and presets should be listed in `docs/source/introduction/fedot_features/automation_features.rst`
-    to_skip = {'custom', 'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts', 'exog_ts'}
+    to_skip = {'custom', 'data_source_img', 'data_source_text',
+               'data_source_table', 'data_source_ts', 'exog_ts'}
     # TODO: add documentation for dask_pca when dask will be fully implemented in Optimizers
     to_skip.add('dask_pca')
-    path_to_docs = fedot_project_root() / 'docs/source/introduction/fedot_features/automation_features.rst'
+    path_to_docs = fedot_project_root(
+    ) / 'docs/source/introduction/fedot_features/automation_features.rst'
 
     with open(path_to_docs, 'r') as docs_:
         docs_lines = docs_.readlines()

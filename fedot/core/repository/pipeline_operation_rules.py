@@ -34,7 +34,8 @@ def build_pipeline_operations_by_role(available_operations: Iterable[str],
         )
 
     ts_primary_operations = set(ts_data_operations).union(ts_primary_models)
-    primary_operations = tuple(sorted(ts_primary_operations.intersection(normalized_available_operations)))
+    primary_operations = tuple(
+        sorted(ts_primary_operations.intersection(normalized_available_operations)))
     return PipelineOperationsByRole(
         primary=primary_operations,
         secondary=normalized_available_operations,

@@ -59,4 +59,5 @@ if __name__ == '__main__':
     data = InputData.from_csv(data_path,
                               task=Task(TaskTypesEnum.regression))
     train_data, test_data = train_test_data_setup(data)
-    tuned_pipeline = tune_pipeline(pipeline, train_data, test_data, tuner_iter_num=200)
+    tuned_pipeline = tune_pipeline(
+        pipeline, train_data, test_data, tuner_iter_num=200)

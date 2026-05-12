@@ -56,7 +56,8 @@ def long_to_wide(features: ArrayType,
 
     lengths = [arr.shape[0] for arr in split_arrays]
     if len(set(lengths)) != 1:
-        raise ValueError("All series must have the same length to convert to wide format.")
+        raise ValueError(
+            "All series must have the same length to convert to wide format.")
 
     wide = xp.stack(split_arrays, axis=0).astype(xp.float32)
     return wide, unique_labels
@@ -91,7 +92,8 @@ def reshape_and_get_init_shape(features: ArrayType):
         T, B, C = features.shape
         features = features.reshape(T, B * C)
     elif features.ndim > 3:
-        raise ValueError("Multichannel time series must not have more than 3 dimensions")
+        raise ValueError(
+            "Multichannel time series must not have more than 3 dimensions")
 
     return features, init_shape
 

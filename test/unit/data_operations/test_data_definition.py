@@ -18,13 +18,16 @@ _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 @pytest.mark.parametrize('features', [
     np.array([
-        [_DATE, datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 54, 54.]
+        [_DATE, datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(
+            _DATE), pd.Timestamp(_DATE), 54, 54.]
     ]),
     np.array([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 42]
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(
+            _DATE), pd.Timestamp(_DATE), 42]
     ], dtype=object),
     np.array([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE), 54., 54]
+        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(
+            _DATE), pd.Timestamp(_DATE), 54., 54]
     ], dtype=object),
     np.array([
         [*pd.date_range(_DATE, periods=3, freq='D').to_numpy(), 54, 54.]
@@ -34,7 +37,8 @@ _DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
     ], dtype=np.datetime64),
     pd.date_range(_DATE, periods=3, freq='D').to_numpy(),
     np.array([
-        [datetime.strptime(_DATE, _DATE_FORMAT), np.datetime64(_DATE), pd.Timestamp(_DATE)]
+        [datetime.strptime(_DATE, _DATE_FORMAT),
+         np.datetime64(_DATE), pd.Timestamp(_DATE)]
     ]),
     np.array([
         ['without_datetime', 54, 54.]
@@ -55,19 +59,23 @@ def _array_to_input_data(features_array: np.ndarray,
 
 @pytest.mark.parametrize('strategy, features, task, target, expected', [
     # None target
-    (NumpyStrategy, np.array([[1]]), Task(TaskTypesEnum.regression), None, (np.array([[1]]), np.array([]))),
+    (NumpyStrategy, np.array([[1]]), Task(
+        TaskTypesEnum.regression), None, (np.array([[1]]), np.array([]))),
     (PandasStrategy, pd.DataFrame([[1]]), Task(TaskTypesEnum.regression), None,
      (np.array([[1]]), np.array([]))),
 
     # Time-series target
-    (NumpyStrategy, np.array([[1]]), Task(TaskTypesEnum.ts_forecasting), None, (np.array([[1]]), np.array([1]))),
+    (NumpyStrategy, np.array([[1]]), Task(
+        TaskTypesEnum.ts_forecasting), None, (np.array([[1]]), np.array([1]))),
     (NumpyStrategy, np.array([[1]]), Task(TaskTypesEnum.ts_forecasting), np.array([2]),
      (np.array([[1]]), np.array([[1]]))),
 
     # Index target
-    (NumpyStrategy, np.array([[1, 2]]), Task(TaskTypesEnum.regression), 1, (np.array([[1]]), np.array([2]))),
+    (NumpyStrategy, np.array([[1, 2]]), Task(
+        TaskTypesEnum.regression), 1, (np.array([[1]]), np.array([2]))),
     # Index target, features are already splitted
-    (NumpyStrategy, np.array([[1]]), Task(TaskTypesEnum.regression), 1, (np.array([[1]]), np.array([]))),
+    (NumpyStrategy, np.array([[1]]), Task(
+        TaskTypesEnum.regression), 1, (np.array([[1]]), np.array([]))),
 
     # Str target
     (PandasStrategy, pd.DataFrame([[1, 2]], columns=['0', '1']), Task(TaskTypesEnum.regression), '1',
@@ -83,14 +91,17 @@ def _array_to_input_data(features_array: np.ndarray,
      (np.array([[1, 2]]), np.array([0, 1]))),
 
     # Tuple
-    (TupleStrategy, ([1], [2]), Task(TaskTypesEnum.regression), None, ([1], [2]))
+    (TupleStrategy, ([1], [2]), Task(
+        TaskTypesEnum.regression), None, ([1], [2]))
 ])
 def test_data_strategies(strategy: StrategyDefineData, features: Union[np.ndarray, pd.DataFrame, Tuple],
                          task: Task, target: Union[None, np.ndarray], expected: Tuple[np.ndarray, np.ndarray],
                          monkeypatch):
-    monkeypatch.setattr(fedot_api_api_utils_data_definition, 'array_to_input_data', _array_to_input_data)
+    monkeypatch.setattr(fedot_api_api_utils_data_definition,
+                        'array_to_input_data', _array_to_input_data)
 
-    obtained_features, obtained_target = strategy().define_data(features=features, task=task, target=target)
+    obtained_features, obtained_target = strategy().define_data(
+        features=features, task=task, target=target)
     expected_features, expected_target = expected
 
     assert np.allclose(obtained_features, expected_features)

@@ -50,8 +50,10 @@ def test_data_from_csv_load_correctly():
     full_path_test = project_root.joinpath(path_test)
 
     data_loader = ApiDataProcessor(task)
-    train_input = data_loader.define_data(features=full_path_train, target='class')
-    test_input = data_loader.define_data(features=full_path_test, is_predict=True)
+    train_input = data_loader.define_data(
+        features=full_path_train, target='class')
+    test_input = data_loader.define_data(
+        features=full_path_test, is_predict=True)
 
     assert train_input.target.shape == (14, 1)
     assert test_input.target is None
@@ -80,8 +82,10 @@ def test_api_check_data_correct():
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
 
-    string_data_input = ApiDataProcessor(task).define_data(features=path_to_train, target='target')
-    array_data_input = ApiDataProcessor(task).define_data(features=x_train, target=x_test)
+    string_data_input = ApiDataProcessor(task).define_data(
+        features=path_to_train, target='target')
+    array_data_input = ApiDataProcessor(
+        task).define_data(features=x_train, target=x_test)
     fedot_data_input = ApiDataProcessor(task).define_data(features=train_data)
     assert (not isinstance(string_data_input, InputData) or
             isinstance(array_data_input, InputData) or
@@ -95,7 +99,8 @@ def test_api_check_multimodal_data_correct():
     # Get data
     array_data, target = load_categorical_multidata()
 
-    array_data_input = ApiDataProcessor(task).define_data(features=array_data, target=target)
+    array_data_input = ApiDataProcessor(task).define_data(
+        features=array_data, target=target)
 
     assert isinstance(array_data_input, MultiModalData)
     for data_source in array_data_input:
@@ -109,7 +114,8 @@ def test_baseline_with_api():
     baseline_model = Fedot(problem='classification')
 
     # fit model without optimisation - single XGBoost node is used
-    baseline_model.fit(features=train_data, target='target', predefined_model='xgboost')
+    baseline_model.fit(features=train_data, target='target',
+                       predefined_model='xgboost')
 
     # evaluate the prediction with test data
     prediction = baseline_model.predict_proba(features=test_data)
@@ -139,11 +145,14 @@ def test_forecast_with_multivariate_ts():
 
 
 def test_ts_from_array():
-    df = pd.read_csv(fedot_project_root().joinpath('test/data/simple_sea_level.csv'))
+    df = pd.read_csv(fedot_project_root().joinpath(
+        'test/data/simple_sea_level.csv'))
     train_array = np.array(df['Level'])
 
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=250))
-    data = ApiDataProcessor(task).define_data(features=train_array, target='target')
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=250))
+    data = ApiDataProcessor(task).define_data(
+        features=train_array, target='target')
     assert np.array_equal(data.target, data.features)
 
 
@@ -174,7 +183,8 @@ def test_default_forecast():
 def test_categorical_preprocessing_unidata_predefined():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', **TESTS_MAIN_API_DEFAULT_PARAMS)
+    auto_model = Fedot(problem='classification', **
+                       TESTS_MAIN_API_DEFAULT_PARAMS)
     auto_model.fit(features=train_data, predefined_model='rf')
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)

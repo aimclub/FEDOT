@@ -38,7 +38,8 @@ def test_time_profiler_correctly():
     run_credit_scoring_problem(full_path_train, full_path_test,
                                timeout=2, pop_size=5)
     path = os.path.abspath('time_profiler')
-    profiler.profile(path=path, node_percent=0.5, edge_percent=0.1, open_web=False)
+    profiler.profile(path=path, node_percent=0.5,
+                     edge_percent=0.1, open_web=False)
 
     assert os.path.exists(path)
 

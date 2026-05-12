@@ -66,7 +66,8 @@ def test_data_from_csv():
     df.set_index('ID', drop=True, inplace=True)
     features = df[df.columns[:-1]]
     target = df[df.columns[-1]]
-    actual_features_from_df = InputData.from_dataframe(features, target).features
+    actual_features_from_df = InputData.from_dataframe(
+        features, target).features
     assert np.array_equal(expected_features, actual_features_from_df)
 
 
@@ -131,7 +132,8 @@ def test_target_data_from_csv_correct():
                                          index_col='date', task=task)
 
     # Process multiple target columns
-    target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
+    target_columns = ['1_day', '2_day', '3_day',
+                      '4_day', '5_day', '6_day', '7_day']
     seven_columns_data = InputData.from_csv(path, target_columns=target_columns,
                                             index_col='date', task=task)
 
@@ -169,15 +171,19 @@ def test_data_convert_string_indexes_correct():
     # pipeline object need to save last_fit_idx
     dummy_pipeline = Pipeline(PipelineNode("сut"))
     train_data = train_data.convert_non_int_indexes_for_fit(dummy_pipeline)
-    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(
+        dummy_pipeline)
     test_data = test_data.convert_non_int_indexes_for_predict(dummy_pipeline)
     # check is new integer indexes correct
     assert train_data.idx[-1] == train_pred_data.idx[0] - 1
     assert train_data.idx[-1] == test_data.idx[0] - 1
     # check is non integer indexes equal
-    assert np.all(train_data.supplementary_data.non_int_idx == old_train_data_idx)
-    assert np.all(train_pred_data.supplementary_data.non_int_idx == old_train_pred_data_idx)
-    assert np.all(test_data.supplementary_data.non_int_idx == old_test_data_idx)
+    assert np.all(train_data.supplementary_data.non_int_idx ==
+                  old_train_data_idx)
+    assert np.all(train_pred_data.supplementary_data.non_int_idx ==
+                  old_train_pred_data_idx)
+    assert np.all(test_data.supplementary_data.non_int_idx ==
+                  old_test_data_idx)
 
 
 def test_data_convert_dt_indexes_correct():
@@ -192,15 +198,19 @@ def test_data_convert_dt_indexes_correct():
     # pipeline object need to save last_fit_idx
     dummy_pipeline = Pipeline(PipelineNode("сut"))
     train_data = train_data.convert_non_int_indexes_for_fit(dummy_pipeline)
-    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(
+        dummy_pipeline)
     test_data = test_data.convert_non_int_indexes_for_predict(dummy_pipeline)
     # check is new integer indexes correct (now we know order of indexes)
     assert train_data.idx[-1] == train_pred_data.idx[-1]
     assert train_data.idx[-1] == test_data.idx[0] - 1
     # check is non integer indexes equal
-    assert np.all(train_data.supplementary_data.non_int_idx == old_train_data_idx)
-    assert np.all(train_pred_data.supplementary_data.non_int_idx == old_train_pred_data_idx)
-    assert np.all(test_data.supplementary_data.non_int_idx == old_test_data_idx)
+    assert np.all(train_data.supplementary_data.non_int_idx ==
+                  old_train_data_idx)
+    assert np.all(train_pred_data.supplementary_data.non_int_idx ==
+                  old_train_pred_data_idx)
+    assert np.all(test_data.supplementary_data.non_int_idx ==
+                  old_test_data_idx)
 
 
 @pytest.mark.parametrize('columns_to_use, possible_idx_keywords',

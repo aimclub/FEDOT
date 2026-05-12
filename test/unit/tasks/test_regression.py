@@ -43,7 +43,8 @@ def generate_pipeline() -> Pipeline:
 
 
 def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
-    synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    synthetic_data = make_regression(
+        n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
                            target=synthetic_data[1].reshape((-1, 1)),
@@ -55,8 +56,10 @@ def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=No
 def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
     train_pred = pipeline.predict(input_data=train_data)
     test_pred = pipeline.predict(input_data=test_data)
-    rmse_value_test = root_mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
-    rmse_value_train = root_mean_squared_error(y_true=train_data.target, y_pred=train_pred.predict)
+    rmse_value_test = root_mean_squared_error(
+        y_true=test_data.target, y_pred=test_pred.predict)
+    rmse_value_train = root_mean_squared_error(
+        y_true=train_data.target, y_pred=train_pred.predict)
 
     return rmse_value_train, rmse_value_test
 
@@ -109,7 +112,8 @@ def test_multi_target_regression_composing_correct(data_setup):
     timeout = 0.1
     simple_composer_params = get_simple_composer_params()
 
-    automl_model = Fedot(problem=problem, timeout=timeout, **simple_composer_params)
+    automl_model = Fedot(problem=problem, timeout=timeout,
+                         **simple_composer_params)
     automl_model.fit(train)
     predicted_array = automl_model.predict(test)
     assert predicted_array is not None

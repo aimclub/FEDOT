@@ -23,7 +23,8 @@ def run_resample_example(path_to_data=None, tune=False):
         features = 10
         classes = 2
         weights = [0.45, 0.55]
-        features_options = {'informative': 1, 'redundant': 1, 'repeated': 1, 'clusters_per_class': 1}
+        features_options = {'informative': 1, 'redundant': 1,
+                            'repeated': 1, 'clusters_per_class': 1}
 
         x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
                                                                       samples,
@@ -67,7 +68,8 @@ def run_resample_example(path_to_data=None, tune=False):
     predict_labels = pipeline.predict(predict_input)
     preds = predict_labels.predict
     print('---')
-    print(f'ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n')
+    print(
+        f'ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n')
 
     # Pipeline with balancing
     pipeline = classification_pipeline_with_balancing()
@@ -98,10 +100,12 @@ def run_resample_example(path_to_data=None, tune=False):
         preds_tuned = predicted_values_tuned.predict
 
         print('Obtained metrics after tuning:')
-        print(f'ROC-AUC of tuned pipeline with balancing - {roc_auc(y_test, preds_tuned):.4f}\n')
+        print(
+            f'ROC-AUC of tuned pipeline with balancing - {roc_auc(y_test, preds_tuned):.4f}\n')
 
 
 if __name__ == '__main__':
     run_resample_example()
     print('=' * 25)
-    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tune=True)
+    run_resample_example(
+        f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tune=True)

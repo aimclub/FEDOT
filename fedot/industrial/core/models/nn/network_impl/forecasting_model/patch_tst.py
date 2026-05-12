@@ -161,7 +161,8 @@ class PatchTSTModel(BaseNeuralModel):
                          activation=self.activation).to(default_device())
         optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
         patch_pred_len = round(self.horizon / 4)
-        loss_fn = EXPONENTIAL_WEIGHTED_LOSS(time_steps=patch_pred_len, tolerance=0.3)
+        loss_fn = EXPONENTIAL_WEIGHTED_LOSS(
+            time_steps=patch_pred_len, tolerance=0.3)
         return model, loss_fn, optimizer
 
     def _fit_model(self, input_data: InputData, split_data: bool = True):

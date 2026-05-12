@@ -10,7 +10,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def get_data(data_length=300, test_length=5):
-    garmonics = [(0.1, 0.9), (0.1, 1), (0.1, 1.1), (0.05, 2), (0.05, 5), (1, 0.02)]
+    garmonics = [(0.1, 0.9), (0.1, 1), (0.1, 1.1),
+                 (0.05, 2), (0.05, 5), (1, 0.02)]
     time = np.linspace(0, 100, data_length)
     data = time * 0
     for g in garmonics:
@@ -46,9 +47,11 @@ def check_fedots(fedots: List[Fedot], test_data: InputData, are_same: bool = Tru
         :param are_same: if True then equivalence check, else nonequivalence check
         :return: None"""
     for fedot in fedots[1:]:
-        assert are_same == np.allclose(fedots[0].history.all_historical_fitness, fedot.history.all_historical_fitness)
+        assert are_same == np.allclose(
+            fedots[0].history.all_historical_fitness, fedot.history.all_historical_fitness)
         if are_same:
-            assert np.allclose(fedots[0].forecast(test_data), fedot.forecast(test_data))
+            assert np.allclose(fedots[0].forecast(
+                test_data), fedot.forecast(test_data))
 
 
 def test_result_reproducing():

@@ -49,7 +49,8 @@ def test_surrogate_explainer(data_for_task_type, method):
     train, _ = train_test_data_setup(data)
     pipeline.fit(input_data=train)
 
-    explainer = explain_pipeline(pipeline, data=train, method=method, visualization=False)
+    explainer = explain_pipeline(
+        pipeline, data=train, method=method, visualization=False)
 
     assert isinstance(explainer, SurrogateExplainer)
     assert isinstance(explainer.surrogate, Pipeline)
@@ -72,7 +73,8 @@ def test_pipeline_explain(data_for_task_type, method):
     pipeline.fit(input_data=train)
     old_pipeline = deepcopy(pipeline)
 
-    explainer = explain_pipeline(pipeline, data=train, method=method, visualization=False)
+    explainer = explain_pipeline(
+        pipeline, data=train, method=method, visualization=False)
 
     explainer.visualize()  # Check successful output.
     assert pipeline == old_pipeline

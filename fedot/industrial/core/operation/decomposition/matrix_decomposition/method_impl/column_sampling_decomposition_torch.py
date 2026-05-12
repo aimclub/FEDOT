@@ -33,7 +33,8 @@ class CURDecompositionTorch:
 
     def __init__(self, params: Optional[OperationParameters] = {}):
         self.stable_rank = params.get('rank', None)
-        self.tolerance = params.get('tolerance', torch.Tensor([0.5, 0.1, 0.05]))
+        self.tolerance = params.get(
+            'tolerance', torch.Tensor([0.5, 0.1, 0.05]))
         self.return_samples = params.get('return_samples', True)
         self.column_indices = None
         self.row_indices = None

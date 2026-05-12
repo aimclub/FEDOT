@@ -37,10 +37,13 @@ class MultiOperationsHPAnalyze:
         self._train_data = train_data
         self._test_data = test_data
         self.problem: Optional[Problem] = None
-        requirements = SensitivityAnalysisRequirements() if requirements is None else requirements
+        requirements = SensitivityAnalysisRequirements(
+        ) if requirements is None else requirements
         self.requirements: HyperparamsAnalysisMetaParams = requirements.hp_analysis_meta
-        self.analyze_method = analyze_method_by_name.get(self.requirements.analyze_method)
-        self.sample_method = sample_method_by_name.get(self.requirements.sample_method)
+        self.analyze_method = analyze_method_by_name.get(
+            self.requirements.analyze_method)
+        self.sample_method = sample_method_by_name.get(
+            self.requirements.sample_method)
 
         self.operation_types = None
         self.path_to_save = \
@@ -60,7 +63,8 @@ class MultiOperationsHPAnalyze:
             self._pipeline.fit(self._train_data)
 
         # create problem
-        self.operation_types = [node.operation.operation_type for node in self._pipeline.nodes]
+        self.operation_types = [
+            node.operation.operation_type for node in self._pipeline.nodes]
         self.problem = MultiOperationsProblem(self.operation_types)
 
         # sample
@@ -69,7 +73,8 @@ class MultiOperationsHPAnalyze:
         response_matrix = self._get_response_matrix(samples)
 
         self.log.info('Start hyperparameters structural_analysis analysis')
-        indices = self.analyze_method(self.problem.dictionary, samples, response_matrix)
+        indices = self.analyze_method(
+            self.problem.dictionary, samples, response_matrix)
         converted_to_json_indices = self.convert_results_to_json(problem=self.problem,
                                                                  si=indices)
 
@@ -87,9 +92,12 @@ class MultiOperationsHPAnalyze:
         """
 
         sample_size = args[0]
-        samples = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
-        converted_samples: List[List[dict]] = self.problem.convert_sample_to_dict(samples)
-        sampled_pipelines: List[Pipeline] = self._apply_params_to_node(params=converted_samples)
+        samples = self.sample_method(
+            self.problem.dictionary, num_of_samples=sample_size)
+        converted_samples: List[List[dict]
+                                ] = self.problem.convert_sample_to_dict(samples)
+        sampled_pipelines: List[Pipeline] = self._apply_params_to_node(
+            params=converted_samples)
 
         return sampled_pipelines
 
@@ -131,7 +139,8 @@ class MultiOperationsHPAnalyze:
         for operation_name, params_names in problem.names_per_node.items():
             if params_names is not None:
                 indices_per_operation[operation_name] = \
-                    sobol_indices[border_index:border_index + len(params_names)]
+                    sobol_indices[border_index:border_index +
+                                  len(params_names)]
                 border_index += len(params_names)
             else:
                 indices_per_operation[operation_name] = 'None'

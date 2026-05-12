@@ -25,7 +25,8 @@ def test_build_input_data_descriptor_preserves_legacy_surface_and_tensor_view():
     assert descriptor.tensor_canonical_data_type == DataTypesEnum.tabular
     assert descriptor.input_compatible_data_type == DataTypesEnum.text
     assert np.array_equal(descriptor.idx, np.array([10, 11]))
-    assert np.array_equal(descriptor.features_names, np.array(['text', 'meta']))
+    assert np.array_equal(descriptor.features_names,
+                          np.array(['text', 'meta']))
     assert np.array_equal(descriptor.categorical_idx, np.array([0]))
     assert descriptor.target_is_present is True
 

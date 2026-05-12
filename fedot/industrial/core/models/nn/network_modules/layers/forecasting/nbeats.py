@@ -56,7 +56,8 @@ class _NBeatsStack(nn.Module):
 
             seasonality_block = _NBeatsBlock(
                 input_size=input_dim,
-                theta_size=4 * int(np.ceil(n_of_harmonics / 2 * output_dim) - (n_of_harmonics - 1)),
+                theta_size=4 *
+                int(np.ceil(n_of_harmonics / 2 * output_dim) - (n_of_harmonics - 1)),
                 basis_function=_SeasonalityBasis(
                     harmonics=n_of_harmonics,
                     backcast_size=input_dim,
@@ -85,7 +86,8 @@ class _NBeatsBlock(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList(
             [nn.Linear(in_features=input_size, out_features=layer_size)] +
-            [nn.Linear(in_features=layer_size, out_features=layer_size) for _ in range(layers - 1)]
+            [nn.Linear(in_features=layer_size, out_features=layer_size)
+             for _ in range(layers - 1)]
         )
 
         self.basis_parameters = nn.Linear(

@@ -13,8 +13,10 @@ from fedot.structural_analysis.sa_requirements import SensitivityAnalysisRequire
 def run_analysis(pipeline, train_data, test_data):
     sa_requirements = SensitivityAnalysisRequirements(visualization=True,
                                                       is_save_results_to_json=True)
-    approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze, MultiOperationsHPAnalyze]
-    result_path = join(default_fedot_data_dir(), 'structural_analysis', f'{GraphStructuralAnalysis.__name__}')
+    approaches = [NodeDeletionAnalyze,
+                  NodeReplaceOperationAnalyze, MultiOperationsHPAnalyze]
+    result_path = join(default_fedot_data_dir(
+    ), 'structural_analysis', f'{GraphStructuralAnalysis.__name__}')
 
     GraphStructuralAnalysis(pipeline=pipeline, train_data=train_data,
                             test_data=test_data, approaches=approaches,

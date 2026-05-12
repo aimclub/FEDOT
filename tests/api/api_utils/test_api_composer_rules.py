@@ -19,7 +19,8 @@ def test_build_cache_init_plan_respects_input_preprocessing_boundary():
 
 
 def test_build_tuner_plan_is_deterministic_and_clamps_timeout():
-    plan = build_tuner_plan(metrics=['f1', 'roc_auc'], timeout_minutes=-3, iterations=42)
+    plan = build_tuner_plan(
+        metrics=['f1', 'roc_auc'], timeout_minutes=-3, iterations=42)
 
     assert plan.metric == 'f1'
     assert plan.iterations == 42

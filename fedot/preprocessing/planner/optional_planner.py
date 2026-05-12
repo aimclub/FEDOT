@@ -25,9 +25,11 @@ def get_steps_from_params(data: TensorData, step_name: PreprocessingStepEnum, pa
     """
     steps = []
     for step_params in params:
-        features_idx = get_idx_from_features_names(step_params['features_idx'], data.features_names)
+        features_idx = get_idx_from_features_names(
+            step_params['features_idx'], data.features_names)
         features_idx = update_indices(data.idx_mapping, features_idx)
-        step = PreprocessingStep(step_name, step_params['method'], features_idx)
+        step = PreprocessingStep(
+            step_name, step_params['method'], features_idx)
         if step_params['step_args'] is not None:
             step.step_args = step_params['step_args']
 

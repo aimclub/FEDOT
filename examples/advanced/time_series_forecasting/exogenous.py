@@ -32,7 +32,8 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
     time_series = np.array(df['Level'])
     exog_variable = np.array(df['Neighboring level'])
 
-    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=len_forecast))
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=len_forecast))
     validation_blocks = 2
 
     # Target time series for lagged transformation
@@ -63,7 +64,8 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
         })
 
         # Create a pipeline with different data sources in th nodes
-        pipeline = PipelineBuilder().add_node('lagged', 0).add_node('exog_ts', 1).join_branches('ridge').build()
+        pipeline = PipelineBuilder().add_node('lagged', 0).add_node(
+            'exog_ts', 1).join_branches('ridge').build()
     else:
         train_dataset = train_lagged
         predict_dataset = predict_lagged
@@ -77,15 +79,18 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
                   timeout=10,
                   initial_assumption=pipeline,
                   metric=['mae'],
-                  available_operations=['lagged', 'ridge', 'exog_ts', 'arima', 'knnreg', 'rfr', 'svr'],
+                  available_operations=[
+                      'lagged', 'ridge', 'exog_ts', 'arima', 'knnreg', 'rfr', 'svr'],
                   max_pipeline_fit_time=2,
                   with_tuning=False,
                   n_jobs=-1)
     fedot.fit(train_dataset)
 
     # Predict
-    predicted = fedot.predict(predict_dataset, validation_blocks=validation_blocks)
-    print(fedot.get_metrics(metric_names='mae', validation_blocks=validation_blocks))
+    predicted = fedot.predict(
+        predict_dataset, validation_blocks=validation_blocks)
+    print(fedot.get_metrics(metric_names='mae',
+          validation_blocks=validation_blocks))
 
     if visualization:
         fedot.current_pipeline.show()
@@ -96,5 +101,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True, vis
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'examples/data/ts', 'ts_sea_level.csv')
-    run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True, visualization=True)
+    data_path = os.path.join(
+        f'{fedot_project_root()}', 'examples/data/ts', 'ts_sea_level.csv')
+    run_exogenous_experiment(
+        path_to_file=data_path, len_forecast=250, with_exog=True, visualization=True)

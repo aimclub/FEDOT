@@ -94,18 +94,21 @@ class IndustrialCachableOperationImplementation(DataOperationImplementation):
             class_params = self._create_hash_descr()
             class_params['model'] = self.__repr__()
             class_params['input_data_shape'] = input_data.features.shape
-            hashed_info = self.cacher.hash_info(operation_info=class_params.__repr__())
+            hashed_info = self.cacher.hash_info(
+                operation_info=class_params.__repr__())
             try:
                 transformed_features = self.try_load_from_cache(hashed_info)
             except (FileNotFoundError, ValueError):
                 transformed_features = self._transform(input_data)
                 self.cacher.cache_data(hashed_info, transformed_features)
 
-            predict = self._convert_to_fedot_datatype(input_data, transformed_features)
+            predict = self._convert_to_fedot_datatype(
+                input_data, transformed_features)
             return predict
         else:
             transformed_features = self._transform(input_data)
-            predict = self._convert_to_fedot_datatype(input_data, transformed_features)
+            predict = self._convert_to_fedot_datatype(
+                input_data, transformed_features)
             return predict
 
     def _transform(self, input_data):

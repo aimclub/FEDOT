@@ -28,12 +28,14 @@ from test.unit.tasks.test_forecasting import get_ts_data
 def get_requirements_and_params_for_task(task: TaskTypesEnum):
     ops = get_operations_for_task(Task(task))
     req = PipelineComposerRequirements(primary=ops, secondary=ops, max_depth=2)
-    gen_params = get_pipeline_generation_params(requirements=req, task=Task(task))
+    gen_params = get_pipeline_generation_params(
+        requirements=req, task=Task(task))
     return req, gen_params
 
 
 def file_data():
-    test_file_path = Path(__file__).parents[3].joinpath('data', 'simple_classification.csv')
+    test_file_path = Path(__file__).parents[3].joinpath(
+        'data', 'simple_classification.csv')
     input_data = InputData.from_csv(test_file_path)
     input_data.idx = to_categorical_codes(categorical_ids=input_data.idx)
     return input_data
@@ -46,7 +48,8 @@ def get_mutation_obj() -> Mutation:
     task = Task(TaskTypesEnum.classification)
     operations = ['logit', 'normalization']
 
-    requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
+    requirements = PipelineComposerRequirements(
+        primary=operations, secondary=operations)
 
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
@@ -62,7 +65,8 @@ def get_simple_linear_graph() -> OptGraph:
     """
     Returns simple linear graph
     """
-    pipeline = PipelineBuilder().add_node('scaling').add_node('poly_features').add_node('rf').build()
+    pipeline = PipelineBuilder().add_node('scaling').add_node(
+        'poly_features').add_node('rf').build()
     return PipelineAdapter().adapt(pipeline)
 
 
@@ -73,7 +77,8 @@ def get_simple_linear_boosting_pipeline() -> Pipeline:
     node_scaling = PipelineNode('scaling')
     node_pf = PipelineNode('poly_features', nodes_from=[node_scaling])
     node_rf = PipelineNode('rf', nodes_from=[node_pf])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_pf, node_rf])
+    node_decompose = PipelineNode(
+        'class_decompose', nodes_from=[node_pf, node_rf])
     node_linear = PipelineNode('ridge', nodes_from=[node_decompose])
     final_node = PipelineNode('logit', nodes_from=[node_linear, node_rf])
     pipeline = Pipeline(final_node)
@@ -142,7 +147,8 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     pipeline.fit(data_train)
     result = pipeline.predict(data_test)
 
-    boosting_pipeline = PipelineAdapter().restore(get_ts_forecasting_graph_with_boosting())
+    boosting_pipeline = PipelineAdapter().restore(
+        get_ts_forecasting_graph_with_boosting())
     boosting_pipeline.fit(data_train)
 
     assert boosting_pipeline.descriptive_id == pipeline.descriptive_id
@@ -171,4 +177,5 @@ def test_no_opt_or_graph_nodes_after_mutation():
         graph = mutation._apply_mutations(new_graph=graph, mutation_type=mut)
     new_pipeline = adapter.restore(graph)
 
-    assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
+    assert not find_first(new_pipeline, lambda n: type(n)
+                          in (GraphNode, OptNode))

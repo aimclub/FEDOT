@@ -46,6 +46,8 @@ def build_input_data_tensor_bridge_plan(
         data_type=descriptor.tensor_canonical_data_type,
         state=normalized_state,
         target=normalize_bridge_target(target, normalized_state),
-        features_names=normalize_optional_numpy_array(descriptor.features_names),
-        categorical_idx=normalize_optional_numpy_array(descriptor.categorical_idx),
+        features_names=normalize_optional_numpy_array(
+            descriptor.features_names),
+        categorical_idx=normalize_optional_numpy_array(
+            descriptor.categorical_idx),
     )

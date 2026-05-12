@@ -28,7 +28,8 @@ def run_additional_learning_example():
 
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))
-    print('auto_model', auto_model.get_metrics(target=deepcopy(test_data_target)))
+    print('auto_model', auto_model.get_metrics(
+        target=deepcopy(test_data_target)))
 
     prev_model = auto_model.current_pipeline
     prev_model.show()
@@ -44,18 +45,22 @@ def run_additional_learning_example():
     auto_model_from_atomized = Fedot(problem=problem, preset='best_quality', timeout=timeout,
                                      logging_level=logging.FATAL,
                                      initial_assumption=atomized_model)
-    auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
+    auto_model_from_atomized.fit(
+        features=deepcopy(train_data), target='target')
     auto_model_from_atomized.predict_proba(features=deepcopy(test_data))
     auto_model_from_atomized.current_pipeline.show()
-    print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
+    print('auto_model_from_atomized',
+          auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
     auto_model_from_pipeline = Fedot(problem=problem, preset='best_quality', timeout=timeout,
                                      logging_level=logging.FATAL,
                                      initial_assumption=non_atomized_model)
-    auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
+    auto_model_from_pipeline.fit(
+        features=deepcopy(train_data), target='target')
     auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))
     auto_model_from_pipeline.current_pipeline.show()
-    print('auto_model_from_pipeline', auto_model_from_pipeline.get_metrics(deepcopy(test_data_target)))
+    print('auto_model_from_pipeline',
+          auto_model_from_pipeline.get_metrics(deepcopy(test_data_target)))
 
 
 if __name__ == '__main__':

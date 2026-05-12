@@ -26,14 +26,17 @@ if cp is not None:
     ArrayType: TypeAlias = Optional[Union[np.ndarray, cp.ndarray]]
     IndexType: TypeAlias = Optional[Union[int, str, np.ndarray,
                                           cp.ndarray, List[int], List[str]]]
-    TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray, cp.ndarray]]
+    TensorLike: TypeAlias = Optional[Union[torch.Tensor,
+                                           np.ndarray, cp.ndarray]]
 else:
     ArrayType: TypeAlias = Optional[np.ndarray]
-    IndexType: TypeAlias = Optional[Union[int, str, np.ndarray, List[int], List[str]]]
+    IndexType: TypeAlias = Optional[Union[int,
+                                          str, np.ndarray, List[int], List[str]]]
     TensorLike: TypeAlias = Optional[Union[torch.Tensor, np.ndarray]]
 
 if cudf is not None:
     PANDAS_RUNTIME_TYPES = (*PANDAS_RUNTIME_TYPES, cudf.DataFrame, cudf.Series)
-    PandasType: TypeAlias = Union[pd.DataFrame, pd.Series, cudf.DataFrame, cudf.Series]
+    PandasType: TypeAlias = Union[pd.DataFrame,
+                                  pd.Series, cudf.DataFrame, cudf.Series]
 else:
     PandasType: TypeAlias = Union[pd.DataFrame, pd.Series]

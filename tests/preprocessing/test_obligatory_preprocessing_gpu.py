@@ -13,7 +13,8 @@ cp = pytest.importorskip("cupy", exc_type=ImportError)
 cudf = pytest.importorskip("cudf", exc_type=ImportError)
 
 if not torch.cuda.is_available():
-    pytest.skip("CUDA is required for GPU TensorData tests", allow_module_level=True)
+    pytest.skip("CUDA is required for GPU TensorData tests",
+                allow_module_level=True)
 
 
 @pytest.mark.integration

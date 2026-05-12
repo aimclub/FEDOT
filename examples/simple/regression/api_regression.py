@@ -16,7 +16,8 @@ def run_regression_example(visualise: bool = False, with_tuning: bool = True,
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_dir': 'custom_history_dir', 'preset': preset, 'use_stats': use_stats}
+    composer_params = {'history_dir': 'custom_history_dir',
+                       'preset': preset, 'use_stats': use_stats}
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, logging_level=logging.FATAL,
                        with_tuning=with_tuning, **composer_params)
 

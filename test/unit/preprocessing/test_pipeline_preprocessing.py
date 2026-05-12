@@ -45,7 +45,8 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
                            [1, '8'],
                            [0, '9']], dtype=object)
     else:
-        target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
+        target = np.array(['label_1', 'label_1', 'label_0',
+                          'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
     input_data = InputData(idx=np.arange(9), features=features,
                            target=target, task=task, data_type=DataTypesEnum.table,
                            supplementary_data=SupplementaryData())
@@ -64,8 +65,10 @@ def correct_preprocessing_params(pipeline, categorical_max_uniques_th: int = Non
 
     if categorical_max_uniques_th is not None:
         table_corrector.categorical_max_uniques_th = categorical_max_uniques_th
-    pipeline.preprocessor.types_correctors.update({DEFAULT_SOURCE_NAME: table_corrector})
-    pipeline.preprocessor.binary_categorical_processors.update({DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
+    pipeline.preprocessor.types_correctors.update(
+        {DEFAULT_SOURCE_NAME: table_corrector})
+    pipeline.preprocessor.binary_categorical_processors.update(
+        {DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
 
     return pipeline
 
@@ -89,7 +92,8 @@ def test_nans_columns_process_correctly():
     pipeline = Pipeline(PipelineNode('ridge'))
     data_with_nans = data_with_too_much_nans()
 
-    pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=5)
+    pipeline = correct_preprocessing_params(
+        pipeline, categorical_max_uniques_th=5)
     pipeline.fit(data_with_nans)
 
     # Ridge should use only one feature to make prediction
@@ -163,7 +167,8 @@ def test_pipeline_with_imputer():
     final_node = PipelineNode('ridge', nodes_from=[imputation_node])
     pipeline = Pipeline(final_node)
 
-    pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=5)
+    pipeline = correct_preprocessing_params(
+        pipeline, categorical_max_uniques_th=5)
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -242,10 +247,12 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     processed correctly.
     """
     input_data = data_with_mixed_types_in_each_column()
-    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9, stratify=False)
+    train_data, test_data = train_test_data_setup(
+        input_data, split_ratio=0.9, stratify=False)
 
     pipeline = Pipeline(PipelineNode('dt'))
-    pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=5)
+    pipeline = correct_preprocessing_params(
+        pipeline, categorical_max_uniques_th=5)
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 

@@ -108,7 +108,8 @@ def get_values_from_df(df: PandasType) -> ArrayType:
         return features
     except Exception as e:
         features = df.to_pandas().values
-        logger.info(f"Using pandas instead of cudf. Failed to get values from cudf DataFrame.")
+        logger.info(
+            f"Using pandas instead of cudf. Failed to get values from cudf DataFrame.")
         return features
 
 
@@ -318,7 +319,8 @@ def get_idx_from_features_names(idx: IndexType,
             f"Feature name '{e.args[0]}' was not found in features_names: {features_names}"
         ) from e
     except Exception as e:
-        raise ValueError(f"Failed to get index from feature names: {idx}") from e
+        raise ValueError(
+            f"Failed to get index from feature names: {idx}") from e
 
     raise TypeError(
         f"idx must contain either integers or strings, got elements of type {type(first).__name__}"
@@ -381,7 +383,8 @@ def get_target_and_features(
             target = xp.array(target)
         else:
             if target_idx is not None:
-                target_idx = get_idx_from_features_names(target_idx, features_names)
+                target_idx = get_idx_from_features_names(
+                    target_idx, features_names)
                 target = features[:, target_idx].copy()
             else:
                 if data_type == DataTypesEnum.ts:
@@ -392,7 +395,8 @@ def get_target_and_features(
 
             features = xp.delete(features, target_idx, axis=1)
 
-            idx_mapping = update_index_mapping(idx_mapping, target_idx, features)
+            idx_mapping = update_index_mapping(
+                idx_mapping, target_idx, features)
 
         target = atleast_n_dimensions(target, 2)
         target = replace_missing_with_np_nan(target)

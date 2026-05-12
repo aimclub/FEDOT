@@ -213,12 +213,15 @@ class FedotConverter:
             with_one_element = self.data_type_condition.have_one_element
             is_original_flatten_row = self.data_type_condition.is_numpy_flatten
             is_3d_tensor = self.data_type_condition.is_numpy_tensor
-            is_3d_tensor_with_one_channel_and_one_element = all([is_3d_tensor, with_one_channel, with_one_element])
-            is_3d_tensor_with_one_channel_and_some_element = all([is_3d_tensor, with_one_channel, not with_one_element])
+            is_3d_tensor_with_one_channel_and_one_element = all(
+                [is_3d_tensor, with_one_channel, with_one_element])
+            is_3d_tensor_with_one_channel_and_some_element = all(
+                [is_3d_tensor, with_one_channel, not with_one_element])
             if is_original_flatten_row or is_3d_tensor_with_one_channel_and_one_element:  # ts preprocessing case
                 feats = feats.reshape(1, -1)  # add 1 channel using reshape
             elif is_3d_tensor_with_one_channel_and_some_element:
-                feats = feats.squeeze().swapaxes(1, 0)  # squeeze channel and swap axes for iteration
+                # squeeze channel and swap axes for iteration
+                feats = feats.squeeze().swapaxes(1, 0)
             elif not with_one_sample:
                 feats = feats.swapaxes(1, 0)
             input_data = [
@@ -494,8 +497,10 @@ class ConditionConverter:
 
     @property
     def is_lagged_regressor(self):
-        is_ridge_reg = isinstance(self.operation_implementation, SklearnRidgeReg)
-        is_lasso_reg = isinstance(self.operation_implementation, SklearnLassoReg)
+        is_ridge_reg = isinstance(
+            self.operation_implementation, SklearnRidgeReg)
+        is_lasso_reg = isinstance(
+            self.operation_implementation, SklearnLassoReg)
         return any([is_ridge_reg, is_lasso_reg])
 
     @property
@@ -570,7 +575,8 @@ class ConditionConverter:
     def output_mode_converter(self, predict_data, output_mode, n_classes):
         """Run `output_mode_converter` routine."""
         if output_mode == 'labels' and self.is_regression_of_forecasting_task:
-            prediction = self.operation_example.predict(predict_data).reshape(-1, 1)
+            prediction = self.operation_example.predict(
+                predict_data).reshape(-1, 1)
         elif output_mode == 'labels':
             prediction = self.operation_example.predict(predict_data)
         elif n_classes == 1 and output_mode in ['default', 'probs']:

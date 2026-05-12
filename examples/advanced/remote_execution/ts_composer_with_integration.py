@@ -20,7 +20,8 @@ def run_automl(data: MultiModalData, features_to_use,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
 
-    metocean_folder = fedot_project_root().joinpath('examples', 'real_cases', 'data', 'metocean')
+    metocean_folder = fedot_project_root().joinpath(
+        'examples', 'real_cases', 'data', 'metocean')
 
     connect_params = {}
     exec_params = {
@@ -30,7 +31,8 @@ def run_automl(data: MultiModalData, features_to_use,
         'container_image': "test",
         'timeout': 1
     }
-    client = TestClient(connect_params, exec_params, output_path=metocean_folder.joinpath('remote'))
+    client = TestClient(connect_params, exec_params,
+                        output_path=metocean_folder.joinpath('remote'))
 
     remote_task_params = RemoteTaskParams(
         mode='remote',
@@ -60,7 +62,8 @@ def run_automl(data: MultiModalData, features_to_use,
                        'metric': 'rmse',
                        'cv_folds': None}
 
-    automl = Fedot(problem='ts_forecasting', timeout=timeout, **composer_params)
+    automl = Fedot(problem='ts_forecasting',
+                   timeout=timeout, **composer_params)
 
     obtained_pipeline = automl.fit(data)
     forecast = automl.forecast(data)
@@ -73,7 +76,8 @@ if __name__ == '__main__':
     features_to_use = ['wind_speed', 'sea_height']
 
     data = MultiModalData.from_csv_time_series(
-        file_path=fedot_project_root().joinpath('examples/real_cases/data/metocean/metocean_data_train.csv'),
+        file_path=fedot_project_root().joinpath(
+            'examples/real_cases/data/metocean/metocean_data_train.csv'),
         columns_to_use=features_to_use,
         target_column='sea_height',
         index_col='datetime')

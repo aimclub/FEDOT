@@ -28,9 +28,11 @@ def test_input_data_to_tensordata_passes_bridge_plan_to_tensor_create(monkeypatc
         captured['kwargs'] = kwargs
         return 'tensor-data'
 
-    monkeypatch.setattr('fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
+    monkeypatch.setattr(
+        'fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
 
-    result = input_data_to_tensordata(input_data, backend_name='cpu', state='fit')
+    result = input_data_to_tensordata(
+        input_data, backend_name='cpu', state='fit')
 
     assert result == 'tensor-data'
     assert np.array_equal(captured['source_data'], input_data.features)
@@ -38,7 +40,8 @@ def test_input_data_to_tensordata_passes_bridge_plan_to_tensor_create(monkeypatc
     assert captured['kwargs']['data_type'] == DataTypesEnum.tabular
     assert captured['kwargs']['state'] == StateEnum.FIT
     assert np.array_equal(captured['kwargs']['target'], np.array([0, 1]))
-    assert np.array_equal(captured['kwargs']['features_names'], np.array(['text', 'meta']))
+    assert np.array_equal(
+        captured['kwargs']['features_names'], np.array(['text', 'meta']))
     assert np.array_equal(captured['kwargs']['categorical_idx'], np.array([0]))
 
 
@@ -58,9 +61,11 @@ def test_input_data_to_tensordata_drops_target_for_predict_state(monkeypatch):
         captured['kwargs'] = kwargs
         return 'tensor-data'
 
-    monkeypatch.setattr('fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
+    monkeypatch.setattr(
+        'fedot.core.data.bridges.input_to_tensor.TensorDataCreator.create', fake_create)
 
-    input_data_to_tensordata(input_data, backend_name='gpu', state=StateEnum.PREDICT)
+    input_data_to_tensordata(
+        input_data, backend_name='gpu', state=StateEnum.PREDICT)
 
     assert captured['kwargs']['data_type'] == DataTypesEnum.ts
     assert captured['kwargs']['state'] == StateEnum.PREDICT

@@ -31,8 +31,10 @@ def get_split_data():
     task_type = 'regression'
     train_full, test = get_split_data_paths()
     train_file = pd.read_csv(train_full)
-    x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
+    x, y = train_file.loc[:, ~train_file.columns.isin(
+        ['target'])].values, train_file['target'].values
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.15, random_state=24)
     return task_type, x_train, x_test, y_train, y_test
 
 
@@ -46,14 +48,16 @@ def get_cholesterol_dataset():
 def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_samples: int = 200,
                 n_features: int = 8, forecast_length: int = 5, iris_dataset=True):
     if task_type == 'regression':
-        data = get_synthetic_regression_data(n_samples=n_samples, n_features=n_features, random_state=42)
+        data = get_synthetic_regression_data(
+            n_samples=n_samples, n_features=n_features, random_state=42)
         train_data, test_data = train_test_data_setup(data)
         threshold = np.std(test_data.target) * 0.05
     elif task_type == 'classification':
         if iris_dataset:
             data = get_iris_data()
         else:
-            data = get_synthetic_classification_data(n_samples=n_samples, n_features=n_features, random_state=42)
+            data = get_synthetic_classification_data(
+                n_samples=n_samples, n_features=n_features, random_state=42)
         train_data, test_data = train_test_data_setup(data, shuffle=True)
         threshold = 0.95
     elif task_type == 'clustering':
@@ -61,7 +65,8 @@ def get_dataset(task_type: str, validation_blocks: Optional[int] = None, n_sampl
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=forecast_length, validation_blocks=validation_blocks)
+        train_data, test_data = get_ts_data(
+            forecast_length=forecast_length, validation_blocks=validation_blocks)
         threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -122,7 +127,8 @@ def data_with_binary_features_and_categorical_target():
                          ['green', 'blue'],
                          ['green', 'orange'],
                          ['red', 'orange']])
-    target = np.array(['red-blue', 'red-blue', 'red-blue', 'red-blue', 'green-blue', 'green-orange', 'red-orange'])
+    target = np.array(['red-blue', 'red-blue', 'red-blue',
+                      'red-blue', 'green-blue', 'green-orange', 'red-orange'])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6], features=features, target=target,
                             task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())

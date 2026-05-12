@@ -167,7 +167,8 @@ def parse_ratio_list(ratios: str) -> Tuple[float, ...]:
             continue
         value = float(raw)
         if value <= 0 or value > 1:
-            raise ValueError(f'Candidate ratio must be in (0, 1], got {value}.')
+            raise ValueError(
+                f'Candidate ratio must be in (0, 1], got {value}.')
         parsed.append(value)
 
     if not parsed:
@@ -199,7 +200,8 @@ def _json_ready(value: Any) -> Any:
 
 def _save_json(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(_json_ready(dict(payload)), ensure_ascii=False, indent=2), encoding='utf-8')
+    path.write_text(json.dumps(_json_ready(dict(payload)),
+                    ensure_ascii=False, indent=2), encoding='utf-8')
 
 
 def _resolve_dataset_specs(dataset_names: Sequence[str], amlb_categories: Sequence[str]) -> List[AMLBDatasetSpec]:
@@ -258,7 +260,8 @@ def _sanitize_features_for_fedot(features: pd.DataFrame,
 
     for column in categorical_columns:
         category_column = sanitized[column].astype('object')
-        category_column = category_column.where(~pd.isna(category_column), '__missing__')
+        category_column = category_column.where(
+            ~pd.isna(category_column), '__missing__')
         # Keep AMLB categories consistent and numeric for FEDOT assumptions stage.
         category_column = category_column.astype(str)
         codes, _ = pd.factorize(category_column, sort=True)
@@ -268,7 +271,8 @@ def _sanitize_features_for_fedot(features: pd.DataFrame,
                      column not in set(numeric_columns) | set(categorical_columns)]
     for column in extra_columns:
         fallback_column = sanitized[column].astype('object')
-        fallback_column = fallback_column.where(~pd.isna(fallback_column), '__missing__')
+        fallback_column = fallback_column.where(
+            ~pd.isna(fallback_column), '__missing__')
         fallback_column = fallback_column.astype(str)
         codes, _ = pd.factorize(fallback_column, sort=True)
         sanitized[column] = codes.astype(np.int64)
@@ -281,11 +285,14 @@ def _load_amlb_dataset(spec: AMLBDatasetSpec,
                        max_rows: int,
                        test_size: float) -> LoadedDataset:
     if spec.openml_id is not None:
-        dataset = fetch_openml(data_id=spec.openml_id, as_frame=True, parser='auto')
+        dataset = fetch_openml(data_id=spec.openml_id,
+                               as_frame=True, parser='auto')
     elif spec.openml_name is not None:
-        dataset = fetch_openml(name=spec.openml_name, as_frame=True, parser='auto')
+        dataset = fetch_openml(name=spec.openml_name,
+                               as_frame=True, parser='auto')
     else:
-        raise ValueError(f'Dataset spec {spec.name} has neither openml_name nor openml_id.')
+        raise ValueError(
+            f'Dataset spec {spec.name} has neither openml_name nor openml_id.')
 
     frame = dataset.frame.copy()
     target_name = _extract_target_name(dataset, frame)
@@ -313,12 +320,15 @@ def _load_amlb_dataset(spec: AMLBDatasetSpec,
 
     if max_rows > 0 and len(x) > max_rows:
         rng = np.random.default_rng(seed)
-        selected = np.sort(rng.choice(np.arange(len(x)), size=max_rows, replace=False))
+        selected = np.sort(rng.choice(np.arange(len(x)),
+                           size=max_rows, replace=False))
         x = x.iloc[selected].reset_index(drop=True)
         y = y.iloc[selected].reset_index(drop=True)
 
-    numeric_columns = x.select_dtypes(include=['number', 'bool']).columns.tolist()
-    categorical_columns = [column for column in x.columns if column not in numeric_columns]
+    numeric_columns = x.select_dtypes(
+        include=['number', 'bool']).columns.tolist()
+    categorical_columns = [
+        column for column in x.columns if column not in numeric_columns]
     x = _sanitize_features_for_fedot(
         features=x,
         numeric_columns=numeric_columns,
@@ -378,15 +388,19 @@ def _evaluate_metrics(task_type: str,
                 proba = np.asarray(y_proba)
                 if classes_count <= 2:
                     if proba.ndim == 2:
-                        positive_proba = proba[:, 1] if proba.shape[1] > 1 else proba[:, 0]
+                        positive_proba = proba[:,
+                                               1] if proba.shape[1] > 1 else proba[:, 0]
                     else:
                         positive_proba = proba.reshape(-1)
-                    metrics['roc_auc'] = float(roc_auc_score(y_true, positive_proba))
+                    metrics['roc_auc'] = float(
+                        roc_auc_score(y_true, positive_proba))
                 else:
                     if proba.ndim == 1:
-                        raise ValueError('Multiclass ROC-AUC requires 2D probability array.')
+                        raise ValueError(
+                            'Multiclass ROC-AUC requires 2D probability array.')
                     metrics['roc_auc_ovr_macro'] = float(
-                        roc_auc_score(y_true, proba, average='macro', multi_class='ovr')
+                        roc_auc_score(
+                            y_true, proba, average='macro', multi_class='ovr')
                     )
             except Exception as ex:
                 metrics['roc_auc_error'] = str(ex)
@@ -432,17 +446,23 @@ def _save_history_visualizations(history: Any, output_dir: Path) -> Dict[str, An
 
     tasks = [
         ('fitness_line', {'save_path': output_dir / 'fitness_line.png'}),
-        ('fitness_line_interactive', {'save_path': output_dir / 'fitness_line_interactive.html'}),
-        ('fitness_box', {'save_path': output_dir / 'fitness_box.png', 'best_fraction': 1.0}),
+        ('fitness_line_interactive', {
+         'save_path': output_dir / 'fitness_line_interactive.html'}),
+        ('fitness_box', {'save_path': output_dir /
+         'fitness_box.png', 'best_fraction': 1.0}),
         ('operations_kde', {'save_path': output_dir / 'operations_kde.png'}),
-        ('operations_animated_bar', {'save_path': output_dir / 'operations_animated_bar.gif', 'show_fitness': True}),
-        ('diversity_population', {'save_path': output_dir / 'diversity_population.gif', 'fps': 1}),
+        ('operations_animated_bar', {
+         'save_path': output_dir / 'operations_animated_bar.gif', 'show_fitness': True}),
+        ('diversity_population', {
+         'save_path': output_dir / 'diversity_population.gif', 'fps': 1}),
     ]
 
     report: Dict[str, Any] = {}
     for method_name, method_kwargs in tasks:
-        ok, error = _invoke_with_supported_kwargs(visualizer, method_name, method_kwargs)
-        method_report = {'status': 'saved' if ok else 'skipped', 'error': error}
+        ok, error = _invoke_with_supported_kwargs(
+            visualizer, method_name, method_kwargs)
+        method_report = {
+            'status': 'saved' if ok else 'skipped', 'error': error}
         if ok and 'save_path' in method_kwargs:
             method_report['artifact'] = str(method_kwargs['save_path'])
         report[method_name] = method_report
@@ -504,7 +524,8 @@ def _run_fedot_mode(dataset: LoadedDataset,
     probabilities: Optional[np.ndarray] = None
     if dataset.spec.task_type == 'classification':
         try:
-            raw_probabilities = model.predict_proba(features=dataset.x_test, probs_for_all_classes=True)
+            raw_probabilities = model.predict_proba(
+                features=dataset.x_test, probs_for_all_classes=True)
             probabilities = np.asarray(raw_probabilities)
         except Exception:
             probabilities = None
@@ -535,8 +556,10 @@ def _run_fedot_mode(dataset: LoadedDataset,
         try:
             leaderboard = model.history.get_leaderboard()
             if isinstance(leaderboard, pd.DataFrame):
-                _save_dataframe(mode_dir / 'history_leaderboard.csv', leaderboard)
-                artifacts['history_leaderboard'] = str(mode_dir / 'history_leaderboard.csv')
+                _save_dataframe(
+                    mode_dir / 'history_leaderboard.csv', leaderboard)
+                artifacts['history_leaderboard'] = str(
+                    mode_dir / 'history_leaderboard.csv')
         except Exception:
             pass
 
@@ -553,22 +576,28 @@ def _run_fedot_mode(dataset: LoadedDataset,
     try:
         pipeline_save_dir = mode_dir / 'pipeline_saved'
         pipeline_save_dir.mkdir(parents=True, exist_ok=True)
-        model.current_pipeline.save(path=str(pipeline_save_dir), create_subdir=False, is_datetime_in_path=False)
+        model.current_pipeline.save(
+            path=str(pipeline_save_dir), create_subdir=False, is_datetime_in_path=False)
         artifacts['pipeline_serialized'] = str(pipeline_save_dir)
     except Exception as ex:
-        artifacts['pipeline_serialized'] = {'status': 'skipped', 'error': str(ex)}
+        artifacts['pipeline_serialized'] = {
+            'status': 'skipped', 'error': str(ex)}
 
     try:
         report = model.return_report()
         report.to_csv(mode_dir / 'fedot_time_report.csv')
-        artifacts['fedot_time_report'] = str(mode_dir / 'fedot_time_report.csv')
+        artifacts['fedot_time_report'] = str(
+            mode_dir / 'fedot_time_report.csv')
     except Exception as ex:
-        artifacts['fedot_time_report'] = {'status': 'skipped', 'error': str(ex)}
+        artifacts['fedot_time_report'] = {
+            'status': 'skipped', 'error': str(ex)}
 
     sampling_metadata = model.sampling_stage_metadata
     if sampling_metadata is not None:
-        _save_json(mode_dir / 'sampling_stage_metadata.json', sampling_metadata)
-        artifacts['sampling_stage_metadata'] = str(mode_dir / 'sampling_stage_metadata.json')
+        _save_json(mode_dir / 'sampling_stage_metadata.json',
+                   sampling_metadata)
+        artifacts['sampling_stage_metadata'] = str(
+            mode_dir / 'sampling_stage_metadata.json')
 
     total_seconds = perf_counter() - run_started
 
@@ -623,13 +652,15 @@ def _build_markdown_report(records: Sequence[Mapping[str, Any]], report_path: Pa
 
 def run_benchmark(config: BenchmarkRunConfig) -> Dict[str, Any]:
     if not config.include_baseline and not config.include_sampling:
-        raise ValueError('At least one mode must be enabled: baseline or sampling.')
+        raise ValueError(
+            'At least one mode must be enabled: baseline or sampling.')
 
     run_id = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
     run_dir = config.output_root / f'run_amlb_fedot_sampling_{run_id}'
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    dataset_specs = _resolve_dataset_specs(config.dataset_names, config.amlb_categories)
+    dataset_specs = _resolve_dataset_specs(
+        config.dataset_names, config.amlb_categories)
 
     run_meta = {
         'run_id': run_id,
@@ -677,7 +708,8 @@ def run_benchmark(config: BenchmarkRunConfig) -> Dict[str, Any]:
         if config.include_baseline:
             mode_specs.append(('fedot_full_dataset', None))
         if config.include_sampling:
-            mode_specs.append(('fedot_sampling_stage', dict(config.sampling_config)))
+            mode_specs.append(
+                ('fedot_sampling_stage', dict(config.sampling_config)))
 
         for mode_name, sampling_config in mode_specs:
             print(f'  -> Mode: {mode_name}')
@@ -692,7 +724,8 @@ def run_benchmark(config: BenchmarkRunConfig) -> Dict[str, Any]:
                     mode_dir=mode_dir,
                 )
                 records.append(mode_result)
-                print(f"     success: fit={mode_result['timings_seconds']['fit']:.2f}s")
+                print(
+                    f"     success: fit={mode_result['timings_seconds']['fit']:.2f}s")
             except Exception as ex:
                 failed = {
                     'dataset': dataset_spec.name,
@@ -711,7 +744,8 @@ def run_benchmark(config: BenchmarkRunConfig) -> Dict[str, Any]:
     summary_csv = run_dir / 'benchmark_runs.csv'
     summary_json = run_dir / 'benchmark_runs.json'
     summary_frame.to_csv(summary_csv, index=False)
-    summary_json.write_text(summary_frame.to_json(orient='records', force_ascii=False, indent=2), encoding='utf-8')
+    summary_json.write_text(summary_frame.to_json(
+        orient='records', force_ascii=False, indent=2), encoding='utf-8')
 
     _build_markdown_report(records, run_dir / 'report.md')
 
@@ -747,9 +781,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--timeout-minutes', type=float, default=DEFAULT_TIMEOUT_MINUTES_PER_DATASET,
                         help='Time budget per dataset in minutes. Default: 15.')
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
-    parser.add_argument('--n-jobs', type=int, default=-1, help='Parallel jobs for FEDOT.')
-    parser.add_argument('--preset', type=str, default='best_quality', help='FEDOT preset.')
-    parser.add_argument('--disable-tuning', action='store_true', help='Disable post-composition tuning inside FEDOT.')
+    parser.add_argument('--n-jobs', type=int, default=-1,
+                        help='Parallel jobs for FEDOT.')
+    parser.add_argument('--preset', type=str,
+                        default='best_quality', help='FEDOT preset.')
+    parser.add_argument('--disable-tuning', action='store_true',
+                        help='Disable post-composition tuning inside FEDOT.')
     parser.add_argument('--max-rows', type=int, default=25000,
                         help='Maximum rows per dataset to keep benchmark stable in runtime.')
     parser.add_argument('--output-root', type=str, default=str(DEFAULT_RESULTS_ROOT),
@@ -783,7 +820,8 @@ def _build_config_from_args(args: argparse.Namespace) -> BenchmarkRunConfig:
         raise ValueError(f'Invalid --sampling-strategy-params-json: {ex}')
 
     if not isinstance(strategy_params, dict):
-        raise ValueError('--sampling-strategy-params-json must decode to a JSON object.')
+        raise ValueError(
+            '--sampling-strategy-params-json must decode to a JSON object.')
 
     sampling_config = _default_sampling_config(seed=args.seed)
     sampling_config['strategy'] = args.sampling_strategy

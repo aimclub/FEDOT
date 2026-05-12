@@ -83,7 +83,8 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     plot_info.append({'idx': prediction.idx,
                       'series': predict,
                       'label': 'Forecast without composing'})
-    plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
+    plot_info.append(get_border_line_info(
+        prediction.idx[0], predict, time_series, 'Border line'))
 
     # Get available_operations type
     primary_operations, secondary_operations = get_available_operations()

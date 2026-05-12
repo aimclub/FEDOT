@@ -35,7 +35,8 @@ class ExtensionModel(Model):
             user_params=user_params,
             output_mode=kwargs.get('output_mode', 'default'),
         )
-        params_for_fit = OperationParameters.from_operation_type('custom', **strategy_params)
+        params_for_fit = OperationParameters.from_operation_type(
+            'custom', **strategy_params)
         self._eval_strategy = CustomModelStrategy('custom', params_for_fit)
         if 'output_mode' in kwargs:
             self._eval_strategy.output_mode = kwargs['output_mode']
@@ -47,14 +48,17 @@ class ExtensionModel(Model):
     @property
     def metadata(self) -> OperationMetaInfo:
         data_types = list(get_extension_data_types(self.operation_type))
-        task_types = list(get_extension_acceptable_task_types(self.operation_type))
+        task_types = list(
+            get_extension_acceptable_task_types(self.operation_type))
         return OperationMetaInfo(
             id=self.operation_type,
             input_types=data_types,
             output_types=data_types,
             task_type=task_types,
-            supported_strategies={task_type: CustomModelStrategy for task_type in task_types},
+            supported_strategies={
+                task_type: CustomModelStrategy for task_type in task_types},
             allowed_positions=['any'],
             tags=['external', 'custom_model'],
-            presets=['best_quality', 'fast_train', 'stable', 'gpu', 'automl', 'ts'],
+            presets=['best_quality', 'fast_train',
+                     'stable', 'gpu', 'automl', 'ts'],
         )

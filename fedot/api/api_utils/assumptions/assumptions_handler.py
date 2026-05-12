@@ -74,7 +74,8 @@ class AssumptionsHandler:
             eval_n_jobs=eval_n_jobs,
         )
         if fit_result.is_left():
-            fit_error = fit_result.monoid[0] if getattr(fit_result, 'monoid', None) else fit_result.value
+            fit_error = fit_result.monoid[0] if getattr(
+                fit_result, 'monoid', None) else fit_result.value
             self._raise_evaluating_exception(fit_error)
         return fit_result.value
 
@@ -98,12 +99,14 @@ class AssumptionsHandler:
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
 
-            MemoryAnalytics.log(self.log, additional_info='fitting of the initial pipeline')
+            MemoryAnalytics.log(
+                self.log, additional_info='fitting of the initial pipeline')
             return Right(pipeline)
 
         except Exception as ex:
             fit_error = build_assumption_fit_error(ex)
-            self.log.exception(f'Initial pipeline fit was failed due to: {fit_error.cause}.')
+            self.log.exception(
+                f'Initial pipeline fit was failed due to: {fit_error.cause}.')
             return Left(fit_error)
 
     def _raise_evaluating_exception(self, fit_error):
@@ -127,5 +130,6 @@ class AssumptionsHandler:
             chooser=change_preset_based_on_initial_fit,
         )
         if decision.was_changed:
-            self.log.message(f"Preset was changed to {decision.preset} due to fit time estimation for initial model.")
+            self.log.message(
+                f"Preset was changed to {decision.preset} due to fit time estimation for initial model.")
         return decision.preset

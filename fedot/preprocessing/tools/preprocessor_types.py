@@ -36,7 +36,8 @@ class CategoricalEncodingDecision:
     encoder: Any = None
 
 
-EncodingStrategyType: TypeAlias = Optional[Union[Dict, CategoricalEncodingDecision]]
+EncodingStrategyType: TypeAlias = Optional[Union[Dict,
+                                                 CategoricalEncodingDecision]]
 
 
 class PreprocessingStepEnum(Enum):
@@ -105,7 +106,6 @@ class PreprocessingStep:
     step: PreprocessingStepEnum
     method: Union[Enum, str]
     features_idx: IndexType
-    # update_idx_required: bool = True
     implementation: Optional[AbstractPreprocessingHandler] = None
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)

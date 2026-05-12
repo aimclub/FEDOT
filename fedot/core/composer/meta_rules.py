@@ -53,5 +53,6 @@ def get_early_stopping_generations(input_params: ApiParams, log: LoggerAdapter) 
         if input_params.timeout:
             depending_on_timeout = int(input_params.timeout / 3)
             early_stopping_iterations = depending_on_timeout if depending_on_timeout > 5 else 5
-            log.info(f'early_stopping_iterations was set to {early_stopping_iterations}')
+            log.info(
+                f'early_stopping_iterations was set to {early_stopping_iterations}')
     return {'early_stopping_iterations': early_stopping_iterations}

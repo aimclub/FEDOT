@@ -35,7 +35,8 @@ class OperationFactory:
         elif self.operation_type == 'automl':
             operation = AutoML(operation_type=self.operation_name)
         else:
-            raise ValueError(f'Operation type {self.operation_type} is not supported')
+            raise ValueError(
+                f'Operation type {self.operation_type} is not supported')
 
         return operation
 

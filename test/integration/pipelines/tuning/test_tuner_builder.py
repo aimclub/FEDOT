@@ -35,9 +35,11 @@ def test_tuner_builder_with_default_params():
     data = get_classification_data()
     pipeline = pipeline_first_test()
     tuner = TunerBuilder(data.task).build(data)
-    objective_evaluate = get_objective_evaluate(ClassificationMetricsEnum.ROCAUC_penalty, data)
+    objective_evaluate = get_objective_evaluate(
+        ClassificationMetricsEnum.ROCAUC_penalty, data)
     assert isinstance(tuner, HyperoptTuner)
-    assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
+    assert np.isclose(tuner.objective_evaluate(pipeline).value,
+                      objective_evaluate.evaluate(pipeline).value)
     assert isinstance(tuner.search_space, PipelineSearchSpace)
     assert tuner.iterations == DEFAULT_TUNING_ITERATIONS_NUMBER
     assert tuner.algo == tpe.suggest
@@ -69,7 +71,8 @@ def test_tuner_builder_with_custom_params(tuner_class):
     )
 
     assert isinstance(tuner, tuner_class)
-    assert np.isclose(tuner.objective_evaluate(pipeline).value, objective_evaluate.evaluate(pipeline).value)
+    assert np.isclose(tuner.objective_evaluate(pipeline).value,
+                      objective_evaluate.evaluate(pipeline).value)
     assert tuner.search_space == search_space
     assert tuner.iterations == iterations
     assert tuner.timeout.seconds == int(timeout.seconds)

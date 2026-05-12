@@ -98,7 +98,8 @@ def collect_meta_rule_recommendations(input_data: InputData,
         return recommendations
 
     for rule in rules:
-        current_recommendation = evaluate_meta_rule(rule, input_data, input_params, log)
+        current_recommendation = evaluate_meta_rule(
+            rule, input_data, input_params, log)
         if any(value is not None and value is not False for value in current_recommendation.values()):
             recommendations.update(current_recommendation)
     return recommendations
@@ -131,5 +132,6 @@ def build_recommendation_bundle(input_data: InputData,
         rules=meta_rules,
         log=log,
     )
-    params_recommendations = merge_parameter_recommendations(data_recommendations, meta_recommendations)
+    params_recommendations = merge_parameter_recommendations(
+        data_recommendations, meta_recommendations)
     return RecommendationBundle(data=data_recommendations, params=params_recommendations)

@@ -51,7 +51,8 @@ def get_domain_pipeline():
 
     # For custom model params as initial approximation and model as function is necessary
     custom_node = PipelineNode('custom', nodes_from=[lagged_node])
-    custom_node.parameters = {"a": -50, "b": 500, 'model_predict': domain_model_imitation_predict}
+    custom_node.parameters = {"a": -50, "b": 500,
+                              'model_predict': domain_model_imitation_predict}
 
     node_final = PipelineNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -134,15 +135,19 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     predicted_values = pipeline.predict(predict_input).predict
     pipeline.print_structure()
 
-    plt.plot(np.arange(len(predicted_before_tuning[0])), predicted_before_tuning[0], label='Before tuning')
-    plt.plot(np.arange(len(predicted_values[0])), predicted_values[0], label='After tuning')
-    plt.plot(np.arange(len(predict_input.target)), predict_input.target, label='Real')
+    plt.plot(np.arange(len(
+        predicted_before_tuning[0])), predicted_before_tuning[0], label='Before tuning')
+    plt.plot(np.arange(len(predicted_values[0])),
+             predicted_values[0], label='After tuning')
+    plt.plot(np.arange(len(predict_input.target)),
+             predict_input.target, label='Real')
     plt.legend()
     plt.show()
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../../real_examples/real_cases/data/time_series/metocean.csv')
+    df = pd.read_csv(
+        '../../real_examples/real_cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_pipeline_tuning(time_series=time_series,
                         len_forecast=50,
