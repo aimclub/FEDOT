@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 from joblib import Parallel, delayed
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -32,9 +32,11 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         self._window_size = None
 
     def fit(self, input_data: InputData):
-        self._window_size = int(input_data.features.shape[1] * self.window_size_as_share)
+        self._window_size = int(
+            input_data.features.shape[1] * self.window_size_as_share)
         self._window_size = max(self._window_size, 2)
-        self._window_size = min(self._window_size, input_data.features.shape[1] - 2)
+        self._window_size = min(
+            self._window_size, input_data.features.shape[1] - 2)
         self._window_size = max(self._window_size, 1)
         return self
 
@@ -42,18 +44,21 @@ class TopologicalFeaturesImplementation(DataOperationImplementation):
         features = input_data.features
         with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
             topological_features = parallel(delayed(self._extract_features)
-                                            (np.mean(features[i:i + 2, ::self.stride], axis=0))
+                                            (np.mean(
+                                                features[i:i + 2, ::self.stride], axis=0))
                                             for i in range(0, features.shape[0], 2))
         if len(topological_features) * 2 < features.shape[0]:
             topological_features.append(topological_features[-1])
-        result = np.array(list(chain(*zip(topological_features, topological_features))))
+        result = np.array(
+            list(chain(*zip(topological_features, topological_features))))
         if result.shape[0] > features.shape[0]:
             result = result[:-1, :]
         np.nan_to_num(result, copy=False, nan=0, posinf=0, neginf=0)
         return result
 
     def _extract_features(self, x):
-        x_sliced = np.array([x[i:self._window_size + i] for i in range(x.shape[0] - self._window_size + 1)])
+        x_sliced = np.array([x[i:self._window_size + i]
+                            for i in range(x.shape[0] - self._window_size + 1)])
         x_processed = ripser(x_sliced,
                              maxdim=self.max_homology_dimension,
                              coeff=2,

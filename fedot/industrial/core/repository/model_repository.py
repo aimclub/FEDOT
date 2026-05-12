@@ -290,9 +290,11 @@ def default_industrial_availiable_operation(problem: str = 'regression'):
                             'regression_tabular': [operation_dict[problem],
                                                    FEDOT_PREPROC_MODEL.keys()]}
 
-    operations = [list(operation_list) for operation_list in chain(available_operations[problem])]
+    operations = [list(operation_list)
+                  for operation_list in chain(available_operations[problem])]
     operations = list(chain(*operations))
-    excluded_operations = list(chain(*[list(TEMPORARY_EXCLUDED[x]) for x in TEMPORARY_EXCLUDED.keys()]))
+    excluded_operations = list(
+        chain(*[list(TEMPORARY_EXCLUDED[x]) for x in TEMPORARY_EXCLUDED.keys()]))
     operations = [x for x in operations if x not in EXCLUDED_OPERATION_MUTATION[problem]
                   and x not in excluded_operations]
     return operations

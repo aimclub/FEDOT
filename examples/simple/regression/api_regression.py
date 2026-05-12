@@ -1,8 +1,8 @@
 import logging
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
@@ -16,7 +16,8 @@ def run_regression_example(visualise: bool = False, with_tuning: bool = True,
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_dir': 'custom_history_dir', 'preset': preset, 'use_stats': use_stats}
+    composer_params = {'history_dir': 'custom_history_dir',
+                       'preset': preset, 'use_stats': use_stats}
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, logging_level=logging.FATAL,
                        with_tuning=with_tuning, **composer_params)
 

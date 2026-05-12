@@ -5,7 +5,7 @@ from golem.utilities.data_structures import ComparableEnum
 from fedot.core.composer.metrics import (Accuracy, ComplexityMetric, ComputationTime, F1, Logloss, MAE, MAPE, MASE, MSE,
                                          MSLE, NodeNum, Precision, QualityMetric, R2, RMSE, ROCAUC, SMAPE, Silhouette,
                                          StructuralComplexity)
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 
 

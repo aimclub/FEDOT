@@ -54,7 +54,8 @@ def update_individual(cls: Type[Individual], json_obj: Dict[str, Any]):
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module: str, name: str):
         renamed_module = module
-        changed_import_list = ['fedot.industrial.core.repository.initializer_industrial_models']
+        changed_import_list = [
+            'fedot.industrial.core.repository.initializer_industrial_models']
         if module in changed_import_list:
             renamed_module = module.replace("golem.core.utilities",
                                             "fedot.industrial.core.repository.industrial_implementations.optimisation")

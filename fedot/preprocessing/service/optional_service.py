@@ -1,8 +1,9 @@
 from typing import Optional
 
-from fedot.core.data.prepared_data import PreparedData
-from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
+                                                           update_indices, create_index_mapping)
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
 from fedot.preprocessing.tools.tools import update_handler_mapping
@@ -42,19 +43,23 @@ class OptionalService:
         """
         self.plan = build_optional_plan(data, optional_steps)
 
+        optional_idx_mapping = create_index_mapping(data.features)
+
         prepared_data = None
 
         if len(self.plan.steps) > 0:
-            self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+            self.handler_mapping = update_handler_mapping(
+                self.plan, self.handler_mapping)
 
             prepared_data = PreparedData(features=data.features,
                                          target=data.target,
-                                         idx_mapping=data.idx_mapping,
+                                         idx_mapping=optional_idx_mapping,
                                          ts_shape=data.ts_init_shape)
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping
                 prepared_data.new_cols_dict = None
-                step.features_idx = update_indices(actual_mapping, step.features_idx)
+                step.features_idx = update_indices(
+                    actual_mapping, step.features_idx)
 
                 handler_cls = self.handler_mapping[step.step][step.method]
                 handler = handler_cls(**step.step_args)

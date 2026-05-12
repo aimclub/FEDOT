@@ -151,7 +151,8 @@ class FeatureSpaceReducer:
         features_corr = features_corr - identity_matrix
         correlation_mask = abs(features_corr) > corr_threshold
         correlated_features = list(set(np.where(correlation_mask)[0]))
-        percent_of_filtred_feats = (1 - (n_features - len(correlated_features)) / n_features) * 100
+        percent_of_filtred_feats = (
+            1 - (n_features - len(correlated_features)) / n_features) * 100
         return features if percent_of_filtred_feats > 50 else features
 
     def _drop_constant_features(self, features, var_threshold):
@@ -160,7 +161,8 @@ class FeatureSpaceReducer:
             variance_reducer = VarianceThreshold(threshold=var_threshold)
             variance_reducer.fit_transform(features.squeeze())
             self.feature_mask = variance_reducer.get_support()
-            features = features[:, :, self.feature_mask] if not is_2d_data else features[:, self.feature_mask]
+            features = features[:, :,
+                                self.feature_mask] if not is_2d_data else features[:, self.feature_mask]
         except ValueError:
             print(
                 'Variance reducer has not found any features with low variance')

@@ -16,4 +16,5 @@ def objective_from_json(cls: Type[Objective], json_obj: Dict[str, Any]) -> Objec
 
 def init_backward_serialize_compat():
     # backward compatibility
-    Serializer.register_coders(Objective, from_json=objective_from_json, overwrite=True)
+    Serializer.register_coders(
+        Objective, from_json=objective_from_json, overwrite=True)

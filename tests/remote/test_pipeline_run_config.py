@@ -32,7 +32,8 @@ def test_parse_pipeline_run_config_dict_parses_classification_task():
 
 def test_parse_pipeline_run_config_dict_parses_forecasting_task_with_params():
     result = parse_pipeline_run_config_dict(
-        _base_config(task='Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=3))')
+        _base_config(
+            task='Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=3))')
     )
 
     assert result.is_right()

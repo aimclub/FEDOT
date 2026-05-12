@@ -5,8 +5,8 @@ from typing import Optional, Callable
 
 import pandas as pd
 from datasets import load_dataset
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -95,7 +95,8 @@ def create_feature_generator_strategy():
                    'channel_independent': False, 'use_sliding_window': False}
     fourier_params = {'low_rank': 5, 'output_format': 'signal', 'compute_heuristic_representation': True,
                       'approximation': 'smooth', 'threshold': 0.9, 'sampling_rate': 64e3}
-    wavelet_params = {'n_components': 3, 'wavelet': 'bior3.7', 'compute_heuristic_representation': True}
+    wavelet_params = {'n_components': 3, 'wavelet': 'bior3.7',
+                      'compute_heuristic_representation': True}
     rocket_params = {'num_features': 200}
     sampling_dict = dict(samples=dict(start_idx=0, end_idx=None),
                          channels=dict(start_idx=0, end_idx=None),
@@ -186,6 +187,7 @@ def load_monash_dataset(dataset_name: str,
                 row = gapfilling_func(np.array(series['target']))
             except Exception:
                 pass
-        wide_data[label] = row if row is not None else linearly_interpolate_nans(np.array(series['target']))
+        wide_data[label] = row if row is not None else linearly_interpolate_nans(
+            np.array(series['target']))
 
     return pd.DataFrame.from_dict(wide_data, orient='index').transpose()

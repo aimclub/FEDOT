@@ -56,9 +56,13 @@ def get_mutation_prob(mut_id: MutationStrengthEnumIndustrial, node: Optional[Gra
     :param default_mutation_prob: mutation probability used when mutation_id is invalid or graph has cycles
     :return mutation_prob: mutation probability
     """
-    graph_cycled = True if node is None else distance_to_primary_level(node) < 0
-    correct_graph = mut_id in list(MutationStrengthEnumIndustrial) and not graph_cycled
-    mutation_prob = mut_id.value / (distance_to_primary_level(node) + 1) if correct_graph else default_mutation_prob
+    graph_cycled = True if node is None else distance_to_primary_level(
+        node) < 0
+    correct_graph = mut_id in list(
+        MutationStrengthEnumIndustrial) and not graph_cycled
+    mutation_prob = mut_id.value / \
+        (distance_to_primary_level(node) +
+         1) if correct_graph else default_mutation_prob
     return mutation_prob
 
 
@@ -82,7 +86,8 @@ class IndustrialMutations:
         self.primary_models = {'ts_forecasting': PRIMARY_FORECASTING_MODELS}
 
     def _define_basis_and_extractor_space(self):
-        self.basis_models = get_operations_for_task(task=self.task_type, mode='data_operation', tags=["basis"])
+        self.basis_models = get_operations_for_task(
+            task=self.task_type, mode='data_operation', tags=["basis"])
         self.ts_preproc_model = get_operations_for_task(task=self.task_type, mode='data_operation',
                                                         tags=["smoothing",
                                                               # "non_lagged"
@@ -93,7 +98,8 @@ class IndustrialMutations:
                                                    tags=["fedot_NN_forecasting"])
         self.ts_model = self.ts_model + self.nn_ts_model
         self.ts_model = [x for x in self.ts_model if x not in self.excluded]
-        extractors = get_operations_for_task(task=self.task_type, mode='data_operation', tags=["extractor"])
+        extractors = get_operations_for_task(
+            task=self.task_type, mode='data_operation', tags=["extractor"])
         self.extractors = [
             x for x in extractors if x in self.industrial_data_operations and x != 'channel_filtration']
 
@@ -113,7 +119,8 @@ class IndustrialMutations:
         node_mutation_probability = get_mutation_prob(mut_id=parameters.mutation_strength,
                                                       node=pipeline.root_node)
         for node in pipeline.nodes:
-            lagged = node.operation.metadata.id in ('lagged', 'sparse_lagged', 'exog_ts')
+            lagged = node.operation.metadata.id in (
+                'lagged', 'sparse_lagged', 'exog_ts')
             do_mutation = random() < (node_mutation_probability * (0.5 if lagged else 1))
             if do_mutation:
                 operation_name = node.operation.operation_type
@@ -339,11 +346,14 @@ class IndustrialMutations:
 
         # create subtree with basis transformation and feature extraction
         transformation_node = PipelineNode(choice(self.basis_models))
-        node_to_add_transformation = list(filter(lambda x: x.name in self.extractors, graph.nodes))
+        node_to_add_transformation = list(
+            filter(lambda x: x.name in self.extractors, graph.nodes))
         if len(node_to_add_transformation) > 0:
             node_to_add_transformation = node_to_add_transformation[0]
-            mutation_node = PipelineNode(node_to_add_transformation.name, nodes_from=[transformation_node])
-            graph.update_node(old_node=node_to_add_transformation, new_node=mutation_node)
+            mutation_node = PipelineNode(
+                node_to_add_transformation.name, nodes_from=[transformation_node])
+            graph.update_node(
+                old_node=node_to_add_transformation, new_node=mutation_node)
         return graph
 
     def __add_forecasting_preprocessing(self,
@@ -353,15 +363,18 @@ class IndustrialMutations:
         transformation_node = PipelineNode(choice(self.ts_preproc_model))
         node_to_add_transformation = list(
             filter(lambda x: x.name in self.ts_model, graph.nodes))[0]
-        mutation_node = PipelineNode(node_to_add_transformation.name, nodes_from=[transformation_node])
-        graph.update_node(old_node=node_to_add_transformation, new_node=mutation_node)
+        mutation_node = PipelineNode(
+            node_to_add_transformation.name, nodes_from=[transformation_node])
+        graph.update_node(old_node=node_to_add_transformation,
+                          new_node=mutation_node)
         return graph
 
     def add_forecasting_preprocessing(self,
                                       graph: Pipeline, **kwargs) -> Pipeline:
         mutation_dict = {'lagged_mutation': self.add_lagged,
                          'preproc_mutation': self.__add_forecasting_preprocessing}
-        type_of_mutation = np.random.choice(['lagged_mutation', 'preproc_mutation'])
+        type_of_mutation = np.random.choice(
+            ['lagged_mutation', 'preproc_mutation'])
         return mutation_dict[type_of_mutation](graph)
 
     def add_lagged(self, pipeline: Pipeline, **kwargs) -> Pipeline:
@@ -674,7 +687,8 @@ def has_no_lagged_conflicts_in_ts_pipeline(pipeline: Pipeline):
             return True
         for parent in parent_nodes:
             is_lagged = parent.name == 'lagged'
-            check_condition = all([current_operation in non_lagged_models, is_lagged])
+            check_condition = all(
+                [current_operation in non_lagged_models, is_lagged])
             if check_condition:
                 return False
     return True
@@ -724,29 +738,35 @@ def reproduce_industrial(self,
     follows required population size.
     """
     collected_next_population = {}
-    population_size_to_achieve = round(self.parameters.pop_size * self.parameters.required_valid_ratio)
+    population_size_to_achieve = round(
+        self.parameters.pop_size * self.parameters.required_valid_ratio)
     MIN_POP_SIZE = 5
     self.stop_condition = False
     for i in range(3):
         # Estimate how many individuals we need to complete new population
         # based on average success rate of valid results
-        residual_size = self.parameters.pop_size - len(collected_next_population)
-        residual_size = max(MIN_POP_SIZE, int(residual_size / self.mean_success_rate))
+        residual_size = self.parameters.pop_size - \
+            len(collected_next_population)
+        residual_size = max(MIN_POP_SIZE, int(
+            residual_size / self.mean_success_rate))
         # residual_size = min(len(population), residual_size)
 
         # Reproduce the required number of individuals that equals residual size
-        partial_next_population = self.reproduce_uncontrolled(population, evaluator, residual_size)
+        partial_next_population = self.reproduce_uncontrolled(
+            population, evaluator, residual_size)
         if partial_next_population is None:
             # timeout condition
             self.stop_condition = True
             return population
         # Avoid duplicate individuals that can come unchanged from previous population
-        collected_next_population.update({ind.uid: ind for ind in partial_next_population})
+        collected_next_population.update(
+            {ind.uid: ind for ind in partial_next_population})
 
         # Keep running average of transform success rate (if sample is big enough)
         if len(partial_next_population) >= MIN_POP_SIZE:
             valid_ratio = len(partial_next_population) / residual_size
-            self._success_rate_window = np.roll(self._success_rate_window, shift=1)
+            self._success_rate_window = np.roll(
+                self._success_rate_window, shift=1)
             self._success_rate_window[0] = valid_ratio
 
         # Successful return: got enough individuals

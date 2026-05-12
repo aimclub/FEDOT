@@ -7,7 +7,8 @@ from fedot.industrial.core.repository.constanst_repository import FEDOT_TUNER_ST
 
 
 def test_industrial_strategy_fit_and_predict_use_rule_based_dispatch(monkeypatch):
-    strategy = IndustrialStrategy({}, 'federated_automl', {'timeout': 10, 'problem': 'classification'})
+    strategy = IndustrialStrategy({}, 'federated_automl', {
+                                  'timeout': 10, 'problem': 'classification'})
     captured = {}
 
     monkeypatch.setattr(
@@ -20,7 +21,8 @@ def test_industrial_strategy_fit_and_predict_use_rule_based_dispatch(monkeypatch
 
     strategy._fit_rule_method = lambda input_data: captured.update(
         {'fit_input': input_data, 'solver': 'solver'}) or setattr(strategy, 'solver', 'solver')
-    strategy._predict_rule_method = lambda input_data, mode: {'input_data': input_data, 'mode': mode}
+    strategy._predict_rule_method = lambda input_data, mode: {
+        'input_data': input_data, 'mode': mode}
 
     fit_result = strategy.fit('train-data')
     predict_result = strategy.predict('test-data', 'labels')
@@ -78,19 +80,23 @@ def test_industrial_strategy_sampling_strategy_uses_base_input_without_mutation(
     original_target = base_input.target.copy()
 
     strategy.sampling_algorithm['CUR'] = fake_sampler
-    monkeypatch.setattr('fedot.industrial.api.utils.industrial_strategy.Fedot', FakeFedot)
+    monkeypatch.setattr(
+        'fedot.industrial.api.utils.industrial_strategy.Fedot', FakeFedot)
 
     strategy._sampling_strategy(base_input)
 
     assert np.array_equal(base_input.features, original_features)
     assert np.array_equal(base_input.target, original_target)
     assert fitted_shapes == [(2, 1, 2), (2, 1, 2)]
-    assert sorted(strategy.solver.keys()) == ['CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']
-    assert sorted(strategy.sampler.keys()) == ['CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']
+    assert sorted(strategy.solver.keys()) == [
+        'CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']
+    assert sorted(strategy.sampler.keys()) == [
+        'CUR_sampling_rate_0.2', 'CUR_sampling_rate_0.5']
 
 
 def test_industrial_strategy_finetune_loop_uses_normalized_tuning_plan(monkeypatch):
-    strategy = IndustrialStrategy({}, 'kernel_automl', {'timeout': 10, 'problem': 'classification'})
+    strategy = IndustrialStrategy(
+        {}, 'kernel_automl', {'timeout': 10, 'problem': 'classification'})
     captured = []
 
     monkeypatch.setattr(

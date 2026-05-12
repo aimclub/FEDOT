@@ -56,14 +56,17 @@ def build_industrial_context_plan(problem: str,
                                   task_params: Optional[dict] = None,
                                   regression_tasks=None) -> IndustrialContextPlan:
     strategy_name = strategy or 'default'
-    regression_task_names = regression_tasks or ['ts_forecasting', 'regression']
+    regression_task_names = regression_tasks or [
+        'ts_forecasting', 'regression']
     raw_task_params = task_params or {}
     is_default_fedot_context = 'tabular' in strategy_name
     is_regression_task_context = problem in regression_task_names
-    is_forecasting_context = problem == 'ts_forecasting' and bool(raw_task_params)
+    is_forecasting_context = problem == 'ts_forecasting' and bool(
+        raw_task_params)
     normalized_task_params = None
     if is_forecasting_context:
-        normalized_task_params = TsForecastingParams(forecast_length=raw_task_params['forecast_length'])
+        normalized_task_params = TsForecastingParams(
+            forecast_length=raw_task_params['forecast_length'])
     return IndustrialContextPlan(
         strategy_name=strategy_name,
         is_default_fedot_context=is_default_fedot_context,
@@ -100,7 +103,8 @@ def build_computational_config_plan(backend: str = 'cpu',
                                     automl_folder: Optional[str] = None,
                                     default_dask_params: Optional[dict] = None) -> ComputationalConfigPlan:
     normalized_default_dask = dict(default_dask_params or {})
-    normalized_distributed = dict(distributed) if distributed is not None else normalized_default_dask
+    normalized_distributed = dict(
+        distributed) if distributed is not None else normalized_default_dask
     normalized_cache = dict(cache_dict) if cache_dict is not None else None
     return ComputationalConfigPlan(
         backend=backend,
@@ -119,10 +123,13 @@ def build_automl_config_plan(task: Optional[str] = None,
                              optimisation_strategy: Optional[dict] = None,
                              default_available_operations_factory: Optional[Callable[[str],
                                                                                      list]] = None) -> AutomlConfigPlan:
-    normalized_task_params = dict(task_params) if task_params is not None else None
-    normalized_available_operations = list(available_operations) if available_operations is not None else None
+    normalized_task_params = dict(
+        task_params) if task_params is not None else None
+    normalized_available_operations = list(
+        available_operations) if available_operations is not None else None
     if normalized_available_operations is None and task is not None and default_available_operations_factory is not None:
-        normalized_available_operations = list(default_available_operations_factory(task))
+        normalized_available_operations = list(
+            default_available_operations_factory(task))
     return AutomlConfigPlan(
         task=task,
         task_params=normalized_task_params,

@@ -34,7 +34,8 @@ def test_extension_operation_rules_filter_registered_models():
 
     try:
         assert should_include_extensions(RepositoryKind.model) is True
-        assert should_include_extensions(RepositoryKind.data_operation) is False
+        assert should_include_extensions(
+            RepositoryKind.data_operation) is False
 
         views = filter_extension_operation_views(
             task_type=TaskTypesEnum.classification,

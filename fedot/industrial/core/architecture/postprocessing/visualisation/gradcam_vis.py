@@ -28,7 +28,9 @@ def visualise_gradcam(att_maps,
     axs[idx_plot[-2]].set_title('Observed Variables')
     axs[idx_plot[-1]].set_title('Attention by the time')
 
-    sns.heatmap(att_maps[0].numpy(), cbar=False, cmap=cmap, ax=axs[idx_plot[-2]])
-    sns.heatmap(att_maps[1].numpy(), cbar=False, cmap=cmap, ax=axs[idx_plot[-1]])
+    sns.heatmap(att_maps[0].numpy(), cbar=False,
+                cmap=cmap, ax=axs[idx_plot[-2]])
+    sns.heatmap(att_maps[1].numpy(), cbar=False,
+                cmap=cmap, ax=axs[idx_plot[-1]])
     fig.tight_layout()
     plt.show()

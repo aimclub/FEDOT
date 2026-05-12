@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Optional
 
 import numpy as np
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -22,7 +22,8 @@ class StatClassificator(LaggedAR):
         super().__init__(params)
         self.tuning_params['metric'] = ClassificationMetricsEnum.f1
         self.tuning_params['tuner'] = SequentialTuner
-        self.model_name = params.get('transformation_model', 'quantile_extractor')
+        self.model_name = params.get(
+            'transformation_model', 'quantile_extractor')
         self.tuning_params['tuning_iterations'] = 1
 
     def _define_model(self):
@@ -31,7 +32,8 @@ class StatClassificator(LaggedAR):
         self.default_model_params = self.default_operation_params[self.model_name]
         self.default_channel_model_params = self.default_operation_params[self.channel_model]
         self.model = PipelineBuilder().add_node(self.model_name, params=self.default_model_params). \
-            add_node(self.channel_model, params=self.default_channel_model_params).build()
+            add_node(self.channel_model,
+                     params=self.default_channel_model_params).build()
         return self.model
 
     def _define_tuning_data(self, train_data):

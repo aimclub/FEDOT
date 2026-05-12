@@ -17,8 +17,8 @@ from fedot.api.api_utils.api_params_rules import (
     should_update_available_operations,
 )
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline_advisor import PipelineChangeAdvisor
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -42,7 +42,8 @@ class ApiParams(UserDict):
         self.timeout = timeout
 
         self._params_repository = ApiParamsRepository(self.task.task_type)
-        parameters: dict = self._params_repository.check_and_set_default_params(input_params)
+        parameters: dict = self._params_repository.check_and_set_default_params(
+            input_params)
         parameters['seed'] = seed
         super().__init__(parameters)
         self._check_timeout_vs_generations()
@@ -55,8 +56,10 @@ class ApiParams(UserDict):
         """ Updates available_operations by preset and data type"""
         preset = self.get('preset')
         if should_update_available_operations(preset):
-            preset_operations = OperationsPreset(task=self.task, preset_name=preset)
-            self.data = preset_operations.composer_params_based_on_preset(self.data, data.data_type)
+            preset_operations = OperationsPreset(
+                task=self.task, preset_name=preset)
+            self.data = preset_operations.composer_params_based_on_preset(
+                self.data, data.data_type)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
@@ -74,7 +77,8 @@ class ApiParams(UserDict):
         else:
             if 'label_encoded' in recommendations:
                 self.log.info("Change preset due to label encoding")
-                self.change_preset_for_label_encoded_data(input_data.task, input_data.data_type)
+                self.change_preset_for_label_encoded_data(
+                    input_data.task, input_data.data_type)
 
             # update api params with recommendations obtained using meta rules
             self.data = merge_param_recommendations(self.data, recommendations)
@@ -82,10 +86,12 @@ class ApiParams(UserDict):
     def change_preset_for_label_encoded_data(self, task: Task, data_type: DataTypesEnum):
         """ Change preset on tree like preset, if data had been label encoded """
         preset_name = build_label_encoded_preset_name(self.get('preset'))
-        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
+        preset_operations = OperationsPreset(
+            task=task, preset_name=preset_name)
 
         self.pop('available_operations', None)
-        self.data = preset_operations.composer_params_based_on_preset(self.data, data_type)
+        self.data = preset_operations.composer_params_based_on_preset(
+            self.data, data_type)
 
     def _get_task_with_params(self, problem: str, task_params: Optional[TaskParams] = None) -> Task:
         """ Creates Task from problem name and task_params"""
@@ -95,7 +101,8 @@ class ApiParams(UserDict):
         return task_resolution.task
 
     def _check_timeout_vs_generations(self):
-        timeout_resolution = normalize_timeout_and_generations(self.timeout, self.get('num_of_generations'))
+        timeout_resolution = normalize_timeout_and_generations(
+            self.timeout, self.get('num_of_generations'))
         self.timeout = timeout_resolution.timeout
         self['num_of_generations'] = timeout_resolution.num_of_generations
 
@@ -104,7 +111,8 @@ class ApiParams(UserDict):
         ``GraphGenerationParams``"""
         self.init_composer_requirements(datetime_composing)
         self.init_optimizer_params(multi_objective=multi_objective)
-        self.init_graph_generation_params(requirements=self.composer_requirements)
+        self.init_graph_generation_params(
+            requirements=self.composer_requirements)
 
     def init_composer_requirements(self, datetime_composing: Optional[datetime.timedelta]) \
             -> PipelineComposerRequirements:
@@ -113,13 +121,16 @@ class ApiParams(UserDict):
 
         # define available operations
         if not self.get('available_operations'):
-            available_operations = OperationsPreset(self.task, preset).filter_operations_by_preset()
+            available_operations = OperationsPreset(
+                self.task, preset).filter_operations_by_preset()
             self['available_operations'] = available_operations
 
         primary_operations, secondary_operations = \
-            PipelineOperationRepository.divide_operations(self.get('available_operations'), self.task)
+            PipelineOperationRepository.divide_operations(
+                self.get('available_operations'), self.task)
 
-        composer_requirements_params = self._params_repository.get_params_for_composer_requirements(self.data)
+        composer_requirements_params = self._params_repository.get_params_for_composer_requirements(
+            self.data)
         self.composer_requirements = PipelineComposerRequirements(primary=primary_operations,
                                                                   secondary=secondary_operations,
                                                                   timeout=datetime_composing,
@@ -128,7 +139,8 @@ class ApiParams(UserDict):
 
     def init_optimizer_params(self, multi_objective: bool) -> GPAlgorithmParameters:
         """Method to initialize ``GPAlgorithmParameters``"""
-        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(self.data)
+        gp_algorithm_parameters = self._params_repository.get_params_for_gp_algorithm_params(
+            self.data)
 
         # workaround for "{TypeError}__init__() got an unexpected keyword argument 'seed'"
         seed = gp_algorithm_parameters['seed']
@@ -151,7 +163,8 @@ class ApiParams(UserDict):
         node_factory = (PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
                                                graph_model_repository=graph_model_repo) if requirements else None)
         self.graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                                             rules_for_constraint=rules_by_task(self.task.task_type),
+                                                             rules_for_constraint=rules_by_task(
+                                                                 self.task.task_type),
                                                              advisor=advisor,
                                                              node_factory=node_factory)
         return self.graph_generation_params

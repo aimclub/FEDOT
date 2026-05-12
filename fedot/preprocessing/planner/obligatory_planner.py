@@ -2,12 +2,12 @@ import torch
 from typing import Optional, Dict, List
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.complex_types import ArrayType, IndexType
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.common.types import ArrayType, IndexType
+from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                           PreprocessingStepEnum, EmbeddingMethodEnum,
                                                           EncodingMethodEnum)
-from fedot.core.data.data_tools import get_idx_from_features_names, convert_idx_to_list
+from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
@@ -34,7 +34,8 @@ def get_embedding_steps(parameters: Optional[List],
     if parameters is None:
         return None
 
-    features_idx_detected = all(param.get("features_idx") is not None for param in parameters)
+    features_idx_detected = all(
+        param.get("features_idx") is not None for param in parameters)
     if not features_idx_detected or features_idx_detected is None:
         raise ValueError("Features indexes is required for embedding strategy")
 
@@ -49,7 +50,8 @@ def get_embedding_steps(parameters: Optional[List],
         }
         params = {**DEFAULT_PARAMS, **param}
 
-        features_idx = get_idx_from_features_names(params["features_idx"], features_names)
+        features_idx = get_idx_from_features_names(
+            params["features_idx"], features_names)
         features_idx = convert_idx_to_list(features_idx)
 
         if "model_hash" in params.keys():
@@ -114,7 +116,8 @@ def force_categorical_determination(table: ArrayType) -> IndexType:
         )
 
         has_string_values = series.map(
-            lambda x: isinstance(x, str) and x.strip().lower() not in {"nan", "none", "null", "na", "n/a", ""}
+            lambda x: isinstance(x, str) and x.strip().lower() not in {
+                "nan", "none", "null", "na", "n/a", ""}
         ).any()
 
         if has_object_or_string_dtype or has_string_values:
@@ -204,7 +207,8 @@ def get_encoding_steps(features: ArrayType,
             if param is not None
         )
         if (not features_idx_detected or features_idx_detected is None) and len(parameters) > 1:
-            raise ValueError("More than one encoding step should have features_idx parameter")
+            raise ValueError(
+                "More than one encoding step should have features_idx parameter")
 
     cat_idx = force_categorical_determination(features)
     steps = []
@@ -388,9 +392,11 @@ def get_custom_steps(parameters: List, features_names: Optional[List[str]] = Non
     for param in parameters:
         features_idx = param.get("features_idx")
         if features_idx is None:
-            raise ValueError("Features indexes is required for custom strategy")
+            raise ValueError(
+                "Features indexes is required for custom strategy")
 
-        features_idx = get_idx_from_features_names(features_idx, features_names)
+        features_idx = get_idx_from_features_names(
+            features_idx, features_names)
         features_idx = convert_idx_to_list(features_idx)
 
         step = PreprocessingStep(PreprocessingStepEnum.custom,
@@ -425,7 +431,8 @@ def build_obligatory_plan(features: ArrayType,
 
     steps = []
 
-    custom_steps = get_custom_steps(params['custom_strategy'], params['features_names'])
+    custom_steps = get_custom_steps(
+        params['custom_strategy'], params['features_names'])
     steps = add_steps(steps, custom_steps)
 
     embedding_steps = get_embedding_steps(

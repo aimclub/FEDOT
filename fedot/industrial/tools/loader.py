@@ -49,17 +49,22 @@ class DataLoader:
 
     def load_forecast_data(self, forecast_family: Optional[str] = None, folder: Optional[Union[Path, str]] = None):
         if forecast_family not in self.forecast_data_source:
-            forecast_family = self.dataset_name.get('benchmark') if isinstance(self.dataset_name, dict) else 'M4'
+            forecast_family = self.dataset_name.get(
+                'benchmark') if isinstance(self.dataset_name, dict) else 'M4'
         if folder is None:
             folder = EXAMPLES_DATA_PATH
         loader = self.forecast_data_source[forecast_family]
-        dataset_name = self.dataset_name.get('dataset') if isinstance(self.dataset_name, dict) else self.dataset_name
-        group_df, _, _ = loader(directory=folder, group=f'{M4_PREFIX[dataset_name[0]]}')
+        dataset_name = self.dataset_name.get('dataset') if isinstance(
+            self.dataset_name, dict) else self.dataset_name
+        group_df, _, _ = loader(
+            directory=folder, group=f'{M4_PREFIX[dataset_name[0]]}')
         ts_df = group_df[group_df['unique_id'] == dataset_name]
         del ts_df['unique_id']
-        ts_df = ts_df.set_index('datetime') if 'datetime' in ts_df.columns else ts_df.set_index('ds')
+        ts_df = ts_df.set_index(
+            'datetime') if 'datetime' in ts_df.columns else ts_df.set_index('ds')
         train_data = ts_df.values.flatten()
-        target = train_data[-self.dataset_name['task_params']['forecast_length']:].flatten()
+        target = train_data[-self.dataset_name['task_params']
+                            ['forecast_length']:].flatten()
         train_data = (train_data, target)
         return train_data, train_data
 
@@ -75,12 +80,16 @@ class DataLoader:
             dataset_name = {}
         folder = dataset_name.get('benchmark', 'valve1')
         dataset = dataset_name.get('dataset', '1')
-        path_to_skab_data = EXAMPLES_DATA_PATH + f'/benchmark/detection/data/{folder}/{dataset}.csv'
-        df = pd.read_csv(path_to_skab_data, index_col='datetime', sep=';', parse_dates=True)
+        path_to_skab_data = EXAMPLES_DATA_PATH + \
+            f'/benchmark/detection/data/{folder}/{dataset}.csv'
+        df = pd.read_csv(path_to_skab_data, index_col='datetime',
+                         sep=';', parse_dates=True)
         train_idx = dataset_name.get('train_data_size', 'anomaly-free')
         if isinstance(train_idx, str):
-            train_data = EXAMPLES_DATA_PATH + f'/benchmark/detection/data/{train_idx}/{train_idx}.csv'
-            train_data = pd.read_csv(train_data, index_col='datetime', sep=';', parse_dates=True)
+            train_data = EXAMPLES_DATA_PATH + \
+                f'/benchmark/detection/data/{train_idx}/{train_idx}.csv'
+            train_data = pd.read_csv(
+                train_data, index_col='datetime', sep=';', parse_dates=True)
             label = np.array([0 for _ in range(len(train_data))])
             return (train_data.values, label), (df.iloc[:, :-2].values, df.iloc[:, -2].values)
         return None, None
@@ -108,7 +117,8 @@ class DataLoader:
             tuple: train and test data
         """
         dataset_name = self.dataset_name
-        data_path = os.path.join(PROJECT_PATH, 'fedot', 'industrial' 'data') if self.folder is None else self.folder
+        data_path = os.path.join(
+            PROJECT_PATH, 'fedot', 'industrial' 'data') if self.folder is None else self.folder
         _, train_data, test_data = self.read_train_test_files(dataset_name=dataset_name,
                                                               data_path=data_path,
                                                               shuffle=shuffle)
@@ -123,14 +133,19 @@ class DataLoader:
                 os.makedirs(_, exist_ok=True)
 
             url = self.url + f'/{dataset_name}.zip'
-            request.urlretrieve(url, download_path + f'temp_data_{dataset_name}')
+            request.urlretrieve(url, download_path +
+                                f'temp_data_{dataset_name}')
             try:
-                zipfile.ZipFile(download_path + f'temp_data_{dataset_name}').extractall(temp_data_path + dataset_name)
+                zipfile.ZipFile(
+                    download_path + f'temp_data_{dataset_name}').extractall(temp_data_path + dataset_name)
             except zipfile.BadZipFile:
-                raise FileNotFoundError(f'Cannot extract data: {dataset_name} dataset not found in {self.url}')
+                raise FileNotFoundError(
+                    f'Cannot extract data: {dataset_name} dataset not found in {self.url}')
             else:
-                self.logger.info(f'{dataset_name} data downloaded. Unpacking...')
-                train_data, test_data = self.extract_data(dataset_name, temp_data_path)
+                self.logger.info(
+                    f'{dataset_name} data downloaded. Unpacking...')
+                train_data, test_data = self.extract_data(
+                    dataset_name, temp_data_path)
                 shutil.rmtree(cache_path)
 
         self.logger.info('Data read successfully from local folder')
@@ -139,8 +154,10 @@ class DataLoader:
             def convert(arr):
                 """Transform pd.Series values to np.ndarray"""
                 return np.array([d.values for d in arr])
-            train_data = (np.apply_along_axis(convert, 1, train_data[0]), train_data[1])
-            test_data = (np.apply_along_axis(convert, 1, test_data[0]), test_data[1])
+            train_data = (np.apply_along_axis(
+                convert, 1, train_data[0]), train_data[1])
+            test_data = (np.apply_along_axis(
+                convert, 1, test_data[0]), test_data[1])
 
         return train_data, test_data
 
@@ -152,17 +169,22 @@ class DataLoader:
         self.logger.info(f'Reading data from {dataset_dir_path}')
 
         if os.path.isfile(file_path + '.tsv'):
-            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(dataset_name, data_path, mode='tsv')
+            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(
+                dataset_name, data_path, mode='tsv')
         elif os.path.isfile(file_path + '.txt'):
-            x_train, y_train, x_test, y_test = self.read_txt_files(dataset_name, data_path)
+            x_train, y_train, x_test, y_test = self.read_txt_files(
+                dataset_name, data_path)
         elif os.path.isfile(file_path + '.ts'):
-            x_train, y_train, x_test, y_test = self.read_ts_files(dataset_name, data_path)
+            x_train, y_train, x_test, y_test = self.read_ts_files(
+                dataset_name, data_path)
             is_multivariate = True
         elif os.path.isfile(file_path + '.arff'):
-            x_train, y_train, x_test, y_test = self.read_arff_files(dataset_name, data_path)
+            x_train, y_train, x_test, y_test = self.read_arff_files(
+                dataset_name, data_path)
             is_multivariate = True
         elif os.path.isfile(file_path + '.csv'):
-            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(dataset_name, data_path, mode='csv')
+            x_train, y_train, x_test, y_test = self.read_tsv_or_csv(
+                dataset_name, data_path, mode='csv')
         else:
             self.logger.error(f'Data not found in {dataset_dir_path}')
             return None, None, None
@@ -834,10 +856,13 @@ class DataLoader:
 
         dataset_dir = os.path.join(data_path, dataset_name)
         if mode not in ['tsv', 'csv']:
-            raise ValueError(f'Invalid mode {mode}. Should be one of "tsv" or "csv"')
+            raise ValueError(
+                f'Invalid mode {mode}. Should be one of "tsv" or "csv"')
         separator = '\t' if mode == 'tsv' else ','
-        x_train, y_train = load_process_data(dataset_dir + f'/{dataset_name}_TRAIN.{mode}', separator)
-        x_test, y_test = load_process_data(dataset_dir + f'/{dataset_name}_TEST.{mode}', separator)
+        x_train, y_train = load_process_data(
+            dataset_dir + f'/{dataset_name}_TRAIN.{mode}', separator)
+        x_test, y_test = load_process_data(
+            dataset_dir + f'/{dataset_name}_TEST.{mode}', separator)
 
         return x_train, y_train, x_test, y_test
 
@@ -869,14 +894,17 @@ class DataLoader:
                 features, target = load_from_tsfile_to_dataframe(path_to_dataset,
                                                                  return_separate_X_and_y=True)
             except Exception as e:
-                self.logger.info(f'Performing custom ts files reading due to {e}')
+                self.logger.info(
+                    f'Performing custom ts files reading due to {e}')
                 features, target = self._load_from_tsfile_to_dataframe(path_to_dataset,
                                                                        return_separate_X_and_y=True)
             return features, target
 
         dataset_dir = os.path.join(data_path, dataset_name)
-        x_train, y_train = load_process_data(dataset_dir + f'/{dataset_name}_TRAIN.ts')
-        x_test, y_test = load_process_data(dataset_dir + f'/{dataset_name}_TEST.ts')
+        x_train, y_train = load_process_data(
+            dataset_dir + f'/{dataset_name}_TRAIN.ts')
+        x_test, y_test = load_process_data(
+            dataset_dir + f'/{dataset_name}_TEST.ts')
 
         return x_train, y_train, x_test, y_test
 
@@ -902,14 +930,18 @@ class DataLoader:
             features, target = data_array[:-1].T.ravel(), data_array[-1]
             is_multivariate = len(features[0].shape)
             if is_multivariate:
-                void_free = pd.Series(features).apply(lambda elem: elem.view(np.float64).reshape(elem.shape[0], -1))
-                features = pd.DataFrame([[pd.Series(arr[i]) for i in range(arr.shape[0])] for arr in void_free.values])
+                void_free = pd.Series(features).apply(
+                    lambda elem: elem.view(np.float64).reshape(elem.shape[0], -1))
+                features = pd.DataFrame(
+                    [[pd.Series(arr[i]) for i in range(arr.shape[0])] for arr in void_free.values])
                 return features, target
             return features.astype('float64'), target
 
         dataset_dir = os.path.join(data_path, dataset_name)
-        x_train, y_train = load_process_data(dataset_dir + f'/{dataset_name}_TRAIN.arff')
-        x_test, y_test = load_process_data(dataset_dir + f'/{dataset_name}_TEST.arff')
+        x_train, y_train = load_process_data(
+            dataset_dir + f'/{dataset_name}_TRAIN.arff')
+        x_test, y_test = load_process_data(
+            dataset_dir + f'/{dataset_name}_TEST.arff')
 
         return x_train, y_train, x_test, y_test
 
@@ -936,7 +968,8 @@ class DataLoader:
         y_train, y_test = convert_type(y_train, y_test)
 
         # Save data to tsv files
-        new_path = os.path.join(PROJECT_PATH, 'fedot', 'industrial', 'data') if self.folder is None else self.folder
+        new_path = os.path.join(PROJECT_PATH, 'fedot', 'industrial',
+                                'data') if self.folder is None else self.folder
         new_path = os.path.join(new_path, dataset_name)
         os.makedirs(new_path, exist_ok=True)
 

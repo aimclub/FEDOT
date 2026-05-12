@@ -9,7 +9,7 @@ from golem.core.tuning.simultaneous import SimultaneousTuner
 from sklearn.metrics import mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.metrics_repository import RegressionMetricsEnum
@@ -129,7 +129,8 @@ def visualize(tuned, no_tuned, time, method_name):
 
 
 def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True):
-    file_path = os.path.join(str(fedot_project_root()), 'examples/real_cases/data/time_series/temperature.csv')
+    file_path = os.path.join(str(fedot_project_root()),
+                             'examples/real_cases/data/time_series/temperature.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
 
@@ -138,7 +139,8 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visuali
     test_part = time_series[-forecast_length:]
 
     # Prepare data for train and test
-    train_input, predict_input, task = prepare_train_test_input(train_part, forecast_length)
+    train_input, predict_input, task = prepare_train_test_input(
+        train_part, forecast_length)
 
     nodes_names = ['sparse_lagged', 'lagged']
     for name in nodes_names:
@@ -171,4 +173,5 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visuali
 
 if __name__ == '__main__':
     # On large time series the speed of sparse_lagged increase (ts_size parameter)
-    run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, visualization=True)
+    run_tuning_comparison(n_repits=10, ts_size=1000,
+                          forecast_length=50, visualization=True)

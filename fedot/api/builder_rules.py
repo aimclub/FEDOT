@@ -8,7 +8,8 @@ class BuilderParamsUpdate:
 
 
 def normalize_builder_params(new_params: Dict[str, Any], default_value: Any) -> BuilderParamsUpdate:
-    applied_params = {key: value for key, value in new_params.items() if value != default_value}
+    applied_params = {key: value for key,
+                      value in new_params.items() if value != default_value}
     return BuilderParamsUpdate(applied_params=applied_params)
 
 

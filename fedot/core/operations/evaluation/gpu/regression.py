@@ -6,7 +6,7 @@ except ModuleNotFoundError:
     warn_requirement('cudf', 'cudf / cuml')
     cudf = None
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 

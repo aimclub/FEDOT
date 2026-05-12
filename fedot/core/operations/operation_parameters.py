@@ -33,18 +33,21 @@ class OperationParameters:
     @staticmethod
     def from_operation_type(operation_type: str, **parameters):
         default_parameters = get_default_params(operation_type)
-        parameters = merge_operation_default_params(default_parameters, parameters)
+        parameters = merge_operation_default_params(
+            default_parameters, parameters)
         return OperationParameters(**parameters)
 
     def update(self, **params):
-        self._changed_keys = list(collect_changed_keys(self._parameters, params, self._changed_keys))
+        self._changed_keys = list(collect_changed_keys(
+            self._parameters, params, self._changed_keys))
         self._parameters.update(params)
 
     def get(self, key, default_value=None):
         return self._parameters.get(key, default_value)
 
     def setdefault(self, key, value):
-        resolved_value, should_update = resolve_setdefault_value(self._parameters, key, value)
+        resolved_value, should_update = resolve_setdefault_value(
+            self._parameters, key, value)
         if should_update:
             self.update(**{key: resolved_value})
         return resolved_value
@@ -57,7 +60,8 @@ class OperationParameters:
 
     @property
     def changed_parameters(self) -> dict:
-        changed_parameters = {key: self._parameters[key] for key in self._changed_keys}
+        changed_parameters = {
+            key: self._parameters[key] for key in self._changed_keys}
         return changed_parameters
 
 

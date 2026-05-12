@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.operation_parameters import OperationParameters
 
@@ -54,7 +54,8 @@ class FedotAutoMLClassificationStrategy(FedotAutoMLStrategy):
             self,
             operation_type: str,
             params: Optional[OperationParameters] = None):
-        self.operations_by_types = {'fedot_cls': FedotClassificationImplementation}
+        self.operations_by_types = {
+            'fedot_cls': FedotClassificationImplementation}
         super().__init__(operation_type, params)
 
 
@@ -64,7 +65,8 @@ class FedotAutoMLRegressionStrategy(FedotAutoMLStrategy):
             self,
             operation_type: str,
             params: Optional[OperationParameters] = None):
-        self.operations_by_types = {'fedot_regr': FedotRegressionImplementation}
+        self.operations_by_types = {
+            'fedot_regr': FedotRegressionImplementation}
         super().__init__(operation_type, params)
 
 
@@ -74,7 +76,8 @@ class FedotAutoMLForecastingStrategy(FedotAutoMLStrategy):
             self,
             operation_type: str,
             params: Optional[OperationParameters] = None):
-        self.operations_by_types = {'fedot_forecast': FedotForecastingImplementation}
+        self.operations_by_types = {
+            'fedot_forecast': FedotForecastingImplementation}
         super().__init__(operation_type, params)
 
     @use_default_fedot_client

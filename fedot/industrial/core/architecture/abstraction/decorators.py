@@ -3,7 +3,7 @@ from typing import Optional, Callable
 from weakref import WeakValueDictionary
 
 from distributed import Client, LocalCluster
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 

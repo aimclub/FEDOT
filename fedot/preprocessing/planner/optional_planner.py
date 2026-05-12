@@ -2,15 +2,17 @@ import torch
 import logging
 
 from fedot.preprocessing.planner.auto_create_step import AUTO_CREATE_STEP_MAPPING
-from fedot.core.data.tensordata import TensorData
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.tensor_data.tools import get_idx_from_features_names
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
 from fedot.preprocessing.planner.planner import PreprocessingPlan
+from fedot.preprocessing.tools.index_mapping_tools import update_indices
 
 
 logger = logging.getLogger(__name__)
 
 
-def get_steps_from_params(step_name: PreprocessingStepEnum, params):
+def get_steps_from_params(data: TensorData, step_name: PreprocessingStepEnum, params):
     """Convert user step parameters into preprocessing step objects.
 
     Args:
@@ -23,7 +25,11 @@ def get_steps_from_params(step_name: PreprocessingStepEnum, params):
     """
     steps = []
     for step_params in params:
-        step = PreprocessingStep(step_name, step_params['method'], step_params['features_idx'])
+        features_idx = get_idx_from_features_names(
+            step_params['features_idx'], data.features_names)
+        features_idx = update_indices(data.idx_mapping, features_idx)
+        step = PreprocessingStep(
+            step_name, step_params['method'], features_idx)
         if step_params['step_args'] is not None:
             step.step_args = step_params['step_args']
 
@@ -63,7 +69,7 @@ def get_imputation_step(step_name: PreprocessingStepEnum, data: TensorData, para
             logger.info(f'Getting default params for step {step_name}')
             return AUTO_CREATE_STEP_MAPPING[step_name](data)
         else:
-            steps = get_steps_from_params(step_name, params)
+            steps = get_steps_from_params(data, step_name, params)
             return steps
     else:
         return None
@@ -88,7 +94,7 @@ def get_scaling_step(step_name: PreprocessingStepEnum, data: TensorData, params=
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
     else:
-        steps = get_steps_from_params(step_name, params)
+        steps = get_steps_from_params(data, step_name, params)
         return steps
 
 
@@ -107,7 +113,7 @@ def universal_step_creating(step_name: PreprocessingStepEnum, data: TensorData, 
         logger.info(f'Getting default params for step {step_name}')
         return AUTO_CREATE_STEP_MAPPING[step_name](data)
     else:
-        steps = get_steps_from_params(step_name, params)
+        steps = get_steps_from_params(data, step_name, params)
         return steps
 
 

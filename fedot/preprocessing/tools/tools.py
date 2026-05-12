@@ -1,5 +1,8 @@
+import torch
+
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
+from fedot.preprocessing.tools.index_mapping_tools import update_indices
 
 
 def update_handler_mapping(plan: PreprocessingPlan,
@@ -44,3 +47,17 @@ def get_used_idx_from_plan(plan: PreprocessingPlan) -> list:
             continue
         used_idx.extend(step.features_idx)
     return used_idx
+
+
+def get_useful_idx(features_width: int,
+                   plan: PreprocessingPlan,
+                   categorical_idx: list,
+                   idx_mapping: dict) -> tuple:
+    """Get useful indices for the features.
+    """
+    idx = torch.arange(features_width, dtype=torch.int32)
+    preprocessed_idx = get_used_idx_from_plan(plan)
+    categorical_idx = update_indices(idx_mapping, categorical_idx)
+    categorical_idx = list(set(categorical_idx) | set(preprocessed_idx))
+    numerical_idx = list(set(range(features_width)) - set(categorical_idx))
+    return idx, categorical_idx, numerical_idx

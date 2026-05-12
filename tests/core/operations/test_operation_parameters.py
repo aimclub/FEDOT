@@ -31,7 +31,8 @@ def test_params_keeper_setdefault_and_defaults_from_repository():
     existing_value = keeper.setdefault('alpha', 2.0)
     missing_value = keeper.setdefault('beta', 3.0)
     default_params = get_default_params('ridge')
-    merged_keeper = OperationParameters.from_operation_type('ridge', alpha=0.75)
+    merged_keeper = OperationParameters.from_operation_type(
+        'ridge', alpha=0.75)
 
     assert existing_value == 1.0
     assert missing_value == 3.0

@@ -31,10 +31,14 @@ class PipelineOperationRepository(GraphOperationRepository):
     def from_available_operations(self, task: Task, preset: str,
                                   available_operations: List[str]):
         """ Initialize repository from available operations, task and preset """
-        operations_by_task_preset = OperationsPreset(task, preset).filter_operations_by_preset()
-        all_operations = filter_available_pipeline_operations(operations_by_task_preset, available_operations)
-        primary_operations, secondary_operations = self.divide_operations(list(all_operations), task)
-        self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
+        operations_by_task_preset = OperationsPreset(
+            task, preset).filter_operations_by_preset()
+        all_operations = filter_available_pipeline_operations(
+            operations_by_task_preset, available_operations)
+        primary_operations, secondary_operations = self.divide_operations(
+            list(all_operations), task)
+        self.operations_by_keys = {
+            'primary': primary_operations, 'secondary': secondary_operations}
         return self
 
     def get_operations(self, is_primary: bool) -> List[str]:

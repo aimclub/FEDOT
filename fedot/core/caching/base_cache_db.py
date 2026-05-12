@@ -32,7 +32,8 @@ class BaseCacheDB:
             self.db_path = Path(cache_dir)
 
         pid = custom_pid if custom_pid is not None else os.getpid()
-        self.db_path = self.db_path.joinpath(f'cache_{pid}').with_suffix(self._db_suffix)
+        self.db_path = self.db_path.joinpath(
+            f'cache_{pid}').with_suffix(self._db_suffix)
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats
@@ -47,7 +48,8 @@ class BaseCacheDB:
             with closing(sqlite3.connect(self.db_path)) as conn:
                 with conn:
                     cur = conn.cursor()
-                    cur.execute(f'SELECT {",".join(self._effectiveness_keys)} FROM {self._eff_table};')
+                    cur.execute(
+                        f'SELECT {",".join(self._effectiveness_keys)} FROM {self._eff_table};')
                     return cur.fetchone()
 
     def get_effectiveness_keys(self) -> Sequence:
@@ -79,14 +81,16 @@ class BaseCacheDB:
                 with conn:
                     cur = conn.cursor()
                     eff_type = ' INTEGER DEFAULT 0'
-                    fields = f'{eff_type},'.join(self._effectiveness_keys) + eff_type
+                    fields = f'{eff_type},'.join(
+                        self._effectiveness_keys) + eff_type
                     cur.execute((
                         f'CREATE TABLE IF NOT EXISTS {self._eff_table} ('
                         'id INTEGER PRIMARY KEY CHECK (id = 1),'
                         f'{fields}'
                         ');'
                     ))
-                    cur.execute(f'INSERT OR IGNORE INTO {self._eff_table} DEFAULT VALUES;')
+                    cur.execute(
+                        f'INSERT OR IGNORE INTO {self._eff_table} DEFAULT VALUES;')
 
     def _del_prev_temps(self):
         """

@@ -18,7 +18,8 @@ class SklearnCompatibleClassifier(BaseEstimator, ClassifierMixin):
         self.classes_ = None
 
     def fit(self, X, y):
-        features, target = NumpyConverter(X).numpy_data, NumpyConverter(y).numpy_data
+        features, target = NumpyConverter(
+            X).numpy_data, NumpyConverter(y).numpy_data
         self.estimator.fit(features, target)
         self.classes_ = np.unique(target)
         return self

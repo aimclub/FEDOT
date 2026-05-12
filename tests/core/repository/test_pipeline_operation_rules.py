@@ -33,4 +33,5 @@ def test_build_pipeline_operations_by_role_uses_non_lagged_ts_subset_for_primary
     )
 
     assert operations_by_role.primary == ('external_non_lagged', 'lagged')
-    assert operations_by_role.secondary == ('external_non_lagged', 'lagged', 'ridge')
+    assert operations_by_role.secondary == (
+        'external_non_lagged', 'lagged', 'ridge')

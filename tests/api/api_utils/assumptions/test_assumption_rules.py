@@ -22,20 +22,24 @@ class _FakeMultiModalData(dict):
 
 
 def test_default_repository_name_for_multi_ts():
-    assert default_repository_name_for_data(_FakeData(DataTypesEnum.multi_ts)) == 'all'
+    assert default_repository_name_for_data(
+        _FakeData(DataTypesEnum.multi_ts)) == 'all'
 
 
 def test_default_repository_name_for_regular_data():
-    assert default_repository_name_for_data(_FakeData(DataTypesEnum.table)) == 'model'
+    assert default_repository_name_for_data(
+        _FakeData(DataTypesEnum.table)) == 'model'
 
 
 def test_required_operations_for_multimodal_ts_tensor_include_time_series_source():
-    required = required_operations_for_data(_FakeMultiModalData(DataTypesEnum.ts), DataTypesEnum.ts)
+    required = required_operations_for_data(
+        _FakeMultiModalData(DataTypesEnum.ts), DataTypesEnum.ts)
     assert required == ('data_source_time_series',)
 
 
 def test_required_operations_normalize_legacy_image_to_ts():
-    required = required_operations_for_data(_FakeMultiModalData(DataTypesEnum.image), DataTypesEnum.image)
+    required = required_operations_for_data(
+        _FakeMultiModalData(DataTypesEnum.image), DataTypesEnum.image)
     assert required == ('data_source_time_series',)
 
 
@@ -75,7 +79,8 @@ def test_parse_preset_spec_extracts_stable_and_modification_flags():
 
 
 def test_merge_exclude_and_finalize_operations_are_deterministic():
-    merged = merge_preset_operations(['rf', 'xgboost', 'knn'], ['xgboost', 'rf'])
+    merged = merge_preset_operations(
+        ['rf', 'xgboost', 'knn'], ['xgboost', 'rf'])
     filtered = exclude_operations(merged, ['xgboost'])
 
     assert merged == ('rf', 'xgboost')

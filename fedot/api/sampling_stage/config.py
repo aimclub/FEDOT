@@ -52,7 +52,8 @@ def validate_sampling_config(config: Optional[Dict[str, Any]]) -> Optional[Sampl
     }
     unknown_keys = set(config.keys()) - allowed_keys
     if unknown_keys:
-        raise ValueError(f'Unknown keys in "sampling_config": {sorted(unknown_keys)}')
+        raise ValueError(
+            f'Unknown keys in "sampling_config": {sorted(unknown_keys)}')
 
     merged = SamplingConfig(**config)
     _validate_sampling_config_values(merged)
@@ -61,44 +62,57 @@ def validate_sampling_config(config: Optional[Dict[str, Any]]) -> Optional[Sampl
 
 def _validate_sampling_config_values(config: SamplingConfig) -> None:
     if not isinstance(config.provider, str) or not config.provider.strip():
-        raise ValueError('"sampling_config.provider" must be a non-empty string.')
+        raise ValueError(
+            '"sampling_config.provider" must be a non-empty string.')
 
     if not isinstance(config.strategy, str) or not config.strategy.strip():
-        raise ValueError('"sampling_config.strategy" must be a non-empty string.')
+        raise ValueError(
+            '"sampling_config.strategy" must be a non-empty string.')
 
     if not isinstance(config.strategy_params, dict):
-        raise ValueError('"sampling_config.strategy_params" must be a dictionary.')
+        raise ValueError(
+            '"sampling_config.strategy_params" must be a dictionary.')
 
     ratios = _validate_ratios(config.candidate_ratios)
     if ratios != tuple(config.candidate_ratios):
-        raise ValueError('"sampling_config.candidate_ratios" must be sorted in ascending order without duplicates.')
+        raise ValueError(
+            '"sampling_config.candidate_ratios" must be sorted in ascending order without duplicates.')
 
     if config.delta_metric_threshold < 0:
-        raise ValueError('"sampling_config.delta_metric_threshold" must be >= 0.')
+        raise ValueError(
+            '"sampling_config.delta_metric_threshold" must be >= 0.')
 
     if config.delta_type not in {'relative', 'absolute'}:
-        raise ValueError('"sampling_config.delta_type" must be one of {"relative", "absolute"}.')
+        raise ValueError(
+            '"sampling_config.delta_type" must be one of {"relative", "absolute"}.')
 
     if not 0 < config.validation_size < 1:
-        raise ValueError('"sampling_config.validation_size" must be in range (0, 1).')
+        raise ValueError(
+            '"sampling_config.validation_size" must be in range (0, 1).')
 
     if config.budget_policy != 'dynamic_cap':
-        raise ValueError('"sampling_config.budget_policy" supports only "dynamic_cap" in V1.')
+        raise ValueError(
+            '"sampling_config.budget_policy" supports only "dynamic_cap" in V1.')
 
     if not 0 < config.cap_max_timeout_share <= 1:
-        raise ValueError('"sampling_config.cap_max_timeout_share" must be in range (0, 1].')
+        raise ValueError(
+            '"sampling_config.cap_max_timeout_share" must be in range (0, 1].')
 
     if config.min_automl_time_minutes <= 0:
-        raise ValueError('"sampling_config.min_automl_time_minutes" must be > 0.')
+        raise ValueError(
+            '"sampling_config.min_automl_time_minutes" must be > 0.')
 
     if config.infinite_timeout_cap_minutes <= 0:
-        raise ValueError('"sampling_config.infinite_timeout_cap_minutes" must be > 0.')
+        raise ValueError(
+            '"sampling_config.infinite_timeout_cap_minutes" must be > 0.')
 
     if config.error_policy != 'fail_fast':
-        raise ValueError('"sampling_config.error_policy" supports only "fail_fast" in V1.')
+        raise ValueError(
+            '"sampling_config.error_policy" supports only "fail_fast" in V1.')
 
     if config.artifact_mode != 'minimal':
-        raise ValueError('"sampling_config.artifact_mode" supports only "minimal" in V1.')
+        raise ValueError(
+            '"sampling_config.artifact_mode" supports only "minimal" in V1.')
 
     if config.random_state is not None and not isinstance(config.random_state, int):
         raise ValueError('"sampling_config.random_state" must be int or None.')
@@ -112,19 +126,23 @@ def _validate_sampling_config_values(config: SamplingConfig) -> None:
 
 def _validate_ratios(ratios: Sequence[float]) -> Tuple[float, ...]:
     if not isinstance(ratios, (list, tuple)) or len(ratios) == 0:
-        raise ValueError('"sampling_config.candidate_ratios" must be a non-empty list of floats.')
+        raise ValueError(
+            '"sampling_config.candidate_ratios" must be a non-empty list of floats.')
 
     normalized = []
     for ratio in ratios:
         if not isinstance(ratio, (float, int)):
-            raise ValueError('"sampling_config.candidate_ratios" must contain only numbers.')
+            raise ValueError(
+                '"sampling_config.candidate_ratios" must contain only numbers.')
         ratio = float(ratio)
         if not 0 < ratio <= 1:
-            raise ValueError('"sampling_config.candidate_ratios" values must be in range (0, 1].')
+            raise ValueError(
+                '"sampling_config.candidate_ratios" values must be in range (0, 1].')
         normalized.append(ratio)
 
     if len(set(normalized)) != len(normalized):
-        raise ValueError('"sampling_config.candidate_ratios" must not contain duplicates.')
+        raise ValueError(
+            '"sampling_config.candidate_ratios" must not contain duplicates.')
 
     sorted_ratios = sorted(normalized)
     return tuple(sorted_ratios)
@@ -150,7 +168,8 @@ def _validate_strategy_param_guards(config: SamplingConfig) -> None:
     modes = params.get('modes')
     if modes is not None:
         if not isinstance(modes, (list, tuple)):
-            raise ValueError('"sampling_config.strategy_params.modes" must be a list/tuple.')
+            raise ValueError(
+                '"sampling_config.strategy_params.modes" must be a list/tuple.')
         if len(modes) > config.guard_max_modes:
             raise ValueError(
                 f'"sampling_config.strategy_params.modes" exceeds guard_max_modes={config.guard_max_modes}.'

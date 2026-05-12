@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
@@ -97,9 +97,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
                 if input_data.task.task_type.name == 'ts_forecasting' and input_data.features.ndim == 2:
                     features = features.reshape(-1, 1)
 
-                features_to_process = np.array(features[:, ids_to_process]) if features.ndim > 1 else features
+                features_to_process = np.array(
+                    features[:, ids_to_process]) if features.ndim > 1 else features
             else:
-                features_to_process = np.array(features.iloc[:, ids_to_process]) if features.ndim > 1 else features
+                features_to_process = np.array(
+                    features.iloc[:, ids_to_process]) if features.ndim > 1 else features
             self.operation.fit(features_to_process)
         return self.operation
 
@@ -117,7 +119,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         else:
             transformed_features = features
 
-        transformed_features = np.nan_to_num(transformed_features, copy=False, nan=0, posinf=0, neginf=0)
+        transformed_features = np.nan_to_num(
+            transformed_features, copy=False, nan=0, posinf=0, neginf=0)
 
         # Update features and column types
         output_data = self._convert_to_output(input_data, transformed_features)
@@ -133,7 +136,8 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :return transformed_features: transformed features table
         """
         if isinstance(features, np.ndarray):
-            features_to_process = np.array(features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
+            features_to_process = np.array(
+                features[:, self.ids_to_process]) if features.ndim > 1 else features.copy()
         else:
             features_to_process = np.array(
                 features.iloc[:, self.ids_to_process]
@@ -184,9 +188,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         # For every column in table make check
         for column_id in range(columns_amount):
             if isinstance(features, np.ndarray):
-                column = features[:, column_id] if columns_amount > 1 else features.copy()
+                column = features[:,
+                                  column_id] if columns_amount > 1 else features.copy()
             else:
-                column = features.iloc[:, column_id] if columns_amount > 1 else features.copy()
+                column = features.iloc[:, column_id] if columns_amount > 1 else features.copy(
+                )
 
             if (isinstance(column, pd.Series) and len(set(column)) > 2) or \
                (isinstance(column, np.ndarray) and len(np.unique(column)) > 2):

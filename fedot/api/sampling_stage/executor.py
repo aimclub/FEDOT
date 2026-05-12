@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 from fedot.api.sampling_stage.config import SamplingConfig, validate_sampling_config
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingZooProvider
-from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.input_data.data import InputData, data_type_is_table
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -33,7 +33,8 @@ class SamplingStageExecutor:
                  provider: Optional[SamplingProvider] = None):
         self.config: SamplingConfig = validate_sampling_config(sampling_config)
         if self.config is None:
-            raise ValueError('Sampling stage config must not be None when executor is created.')
+            raise ValueError(
+                'Sampling stage config must not be None when executor is created.')
 
         self.task_type = task_type
         self.total_timeout_minutes = total_timeout_minutes
@@ -47,7 +48,8 @@ class SamplingStageExecutor:
         budget_seconds = self._compute_budget_seconds()
 
         provider = self.provider or self._create_provider(self.config.provider)
-        effective_size_result = self._select_effective_ratio(train_data, provider, started_at, budget_seconds)
+        effective_size_result = self._select_effective_ratio(
+            train_data, provider, started_at, budget_seconds)
 
         self._raise_if_budget_exceeded(started_at, budget_seconds)
         remaining_budget = self._remaining_budget(started_at, budget_seconds)
@@ -62,7 +64,8 @@ class SamplingStageExecutor:
         )
 
         selected_indices = self._validate_indices(final_provider_result.sample_indices,
-                                                  upper_bound=len(train_data.idx),
+                                                  upper_bound=len(
+                                                      train_data.idx),
                                                   data_label='full train data')
         reduced_data = self._subset_by_positions(train_data, selected_indices)
 
@@ -93,19 +96,23 @@ class SamplingStageExecutor:
 
     def _validate_task_compatibility(self, train_data: InputData) -> None:
         if self.task_type not in (TaskTypesEnum.classification, TaskTypesEnum.regression):
-            raise ValueError('Sampling stage supports only classification/regression tasks in V1.')
+            raise ValueError(
+                'Sampling stage supports only classification/regression tasks in V1.')
 
         if not isinstance(train_data, InputData):
             raise ValueError('Sampling stage supports only InputData in V1.')
 
         if not data_type_is_table(train_data):
-            raise ValueError('Sampling stage supports only tabular InputData in V1.')
+            raise ValueError(
+                'Sampling stage supports only tabular InputData in V1.')
 
         if train_data.target is None:
-            raise ValueError('Sampling stage requires non-empty target in train data.')
+            raise ValueError(
+                'Sampling stage requires non-empty target in train data.')
 
         if len(train_data.idx) < 5:
-            raise ValueError('Sampling stage requires at least 5 rows in train data.')
+            raise ValueError(
+                'Sampling stage requires at least 5 rows in train data.')
 
     def _select_effective_ratio(self,
                                 train_data: InputData,
@@ -130,13 +137,17 @@ class SamplingStageExecutor:
                 strategy=self.config.strategy,
                 strategy_params=self.config.strategy_params,
                 random_state=self.config.random_state,
-                budget_seconds=self._remaining_budget(started_at, budget_seconds),
+                budget_seconds=self._remaining_budget(
+                    started_at, budget_seconds),
             )
             candidate_indices = self._validate_indices(provider_result.sample_indices,
-                                                       upper_bound=len(train_split.idx),
+                                                       upper_bound=len(
+                                                           train_split.idx),
                                                        data_label='train split')
-            candidate_split = self._subset_by_positions(train_split, candidate_indices)
-            candidate_score = self._score_light_model(candidate_split, valid_split)
+            candidate_split = self._subset_by_positions(
+                train_split, candidate_indices)
+            candidate_score = self._score_light_model(
+                candidate_split, valid_split)
             delta = self._calculate_delta(baseline_score, candidate_score)
 
             trials.append({
@@ -187,7 +198,8 @@ class SamplingStageExecutor:
         return train_split, valid_split
 
     def _score_light_model(self, train_data: InputData, valid_data: InputData) -> float:
-        x_train_df, x_valid_df = self._prepare_feature_matrices(train_data.features, valid_data.features)
+        x_train_df, x_valid_df = self._prepare_feature_matrices(
+            train_data.features, valid_data.features)
         y_train = self._flatten_target(train_data.target)
         y_valid = self._flatten_target(valid_data.target)
 
@@ -208,14 +220,18 @@ class SamplingStageExecutor:
 
     @staticmethod
     def _prepare_feature_matrices(train_features: Any, valid_features: Any) -> Sequence[pd.DataFrame]:
-        x_train_df = pd.get_dummies(pd.DataFrame(train_features), dummy_na=True)
-        x_valid_df = pd.get_dummies(pd.DataFrame(valid_features), dummy_na=True)
-        x_valid_df = x_valid_df.reindex(columns=x_train_df.columns, fill_value=0)
+        x_train_df = pd.get_dummies(
+            pd.DataFrame(train_features), dummy_na=True)
+        x_valid_df = pd.get_dummies(
+            pd.DataFrame(valid_features), dummy_na=True)
+        x_valid_df = x_valid_df.reindex(
+            columns=x_train_df.columns, fill_value=0)
         return x_train_df, x_valid_df
 
     def _compute_budget_seconds(self) -> float:
         if self.config.budget_policy != 'dynamic_cap':
-            raise ValueError(f'Unsupported budget_policy={self.config.budget_policy}')
+            raise ValueError(
+                f'Unsupported budget_policy={self.config.budget_policy}')
 
         if self.total_timeout_minutes is None:
             return float(self.config.infinite_timeout_cap_minutes * 60)
@@ -223,7 +239,8 @@ class SamplingStageExecutor:
         total_seconds = float(self.total_timeout_minutes * 60)
         max_share_seconds = total_seconds * self.config.cap_max_timeout_share
         guaranteed_remaining_seconds = self.config.min_automl_time_minutes * 60
-        max_by_remaining = max(0.0, total_seconds - guaranteed_remaining_seconds)
+        max_by_remaining = max(0.0, total_seconds -
+                               guaranteed_remaining_seconds)
         budget_seconds = min(max_share_seconds, max_by_remaining)
 
         if budget_seconds <= 0:
@@ -265,17 +282,21 @@ class SamplingStageExecutor:
     def _validate_indices(indices: np.ndarray, upper_bound: int, data_label: str) -> np.ndarray:
         values = np.asarray(indices)
         if values.ndim != 1:
-            raise ValueError(f'Sampled indices for {data_label} must be a 1D array.')
+            raise ValueError(
+                f'Sampled indices for {data_label} must be a 1D array.')
         if len(values) == 0:
-            raise ValueError(f'Sampled indices for {data_label} must not be empty.')
+            raise ValueError(
+                f'Sampled indices for {data_label} must not be empty.')
 
         try:
             values = values.astype(int)
         except Exception as ex:
-            raise ValueError(f'Sampled indices for {data_label} must be integer-like. Details: {ex}')
+            raise ValueError(
+                f'Sampled indices for {data_label} must be integer-like. Details: {ex}')
 
         if len(np.unique(values)) != len(values):
-            raise ValueError(f'Sampled indices for {data_label} must be unique.')
+            raise ValueError(
+                f'Sampled indices for {data_label} must be unique.')
 
         if values.min() < 0 or values.max() >= upper_bound:
             raise ValueError(
@@ -294,7 +315,8 @@ class SamplingStageExecutor:
 
         categorical_features = None
         if data.categorical_features is not None:
-            categorical_features = np.take(data.categorical_features, positions, axis=0)
+            categorical_features = np.take(
+                data.categorical_features, positions, axis=0)
 
         return InputData(
             idx=idx,

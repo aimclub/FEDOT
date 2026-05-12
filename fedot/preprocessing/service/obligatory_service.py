@@ -1,13 +1,13 @@
 from typing import Optional
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.obligatory_planner import build_obligatory_plan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.tools import update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
-from fedot.core.data.complex_types import ArrayType
+from fedot.core.data.common.types import ArrayType
 
 
 class ObligatoryService:
@@ -53,7 +53,8 @@ class ObligatoryService:
                                      ts_shape=features.shape)
 
         if len(self.plan.steps) > 0:
-            self.handler_mapping = update_handler_mapping(self.plan, self.handler_mapping)
+            self.handler_mapping = update_handler_mapping(
+                self.plan, self.handler_mapping)
 
             for i, step in enumerate(self.plan.steps):
                 actual_mapping = prepared_data.idx_mapping
@@ -71,7 +72,8 @@ class ObligatoryService:
                     prepared_data.target = prepared_data_target.features
                     continue
 
-                step.features_idx = update_indices(actual_mapping, step.features_idx)
+                step.features_idx = update_indices(
+                    actual_mapping, step.features_idx)
 
                 prepared_data = handler.fit_transform(
                     prepared_data,

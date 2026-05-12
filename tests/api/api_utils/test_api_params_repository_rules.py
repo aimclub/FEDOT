@@ -24,7 +24,8 @@ def test_default_cv_folds_for_task_matches_supported_tasks():
 
 
 def test_build_default_api_params_contains_expected_defaults():
-    defaults = build_default_api_params(TaskTypesEnum.classification, 'cache_dir')
+    defaults = build_default_api_params(
+        TaskTypesEnum.classification, 'cache_dir')
 
     assert defaults['preset'] == AUTO_PRESET_NAME
     assert defaults['cv_folds'] == 5
@@ -38,12 +39,14 @@ def test_validate_api_param_keys_rejects_unknown_keys():
 
 
 def test_normalize_sampling_config_uses_validator_result():
-    assert normalize_sampling_config({'strategy': 'random'}, lambda config: ValidatedConfig()) == {'strategy': 'random'}
+    assert normalize_sampling_config(
+        {'strategy': 'random'}, lambda config: ValidatedConfig()) == {'strategy': 'random'}
     assert normalize_sampling_config(None, lambda config: None) is None
 
 
 def test_apply_default_params_adds_missing_values_and_normalizes_sampling():
-    defaults = {'preset': AUTO_PRESET_NAME, 'sampling_config': None, 'show_progress': True}
+    defaults = {'preset': AUTO_PRESET_NAME,
+                'sampling_config': None, 'show_progress': True}
 
     result = apply_default_params(
         params={'sampling_config': {'strategy': 'random'}},

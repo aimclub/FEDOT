@@ -23,7 +23,8 @@ class FedotEvoOptimizer(EvoGraphOptimizer):
                  graph_optimizer_params: GPAlgorithmParameters,
                  optimisation_params: dict = None):
 
-        graph_optimizer_params = self._exclude_resample_from_mutations(graph_optimizer_params)
+        graph_optimizer_params = self._exclude_resample_from_mutations(
+            graph_optimizer_params)
         self.mutation_agent_dict = {'random': RandomAgent,
                                     'bandit': MultiArmedBanditAgent,
                                     'contextual_bandit': ContextualMultiArmedBanditAgent,
@@ -47,7 +48,8 @@ class FedotEvoOptimizer(EvoGraphOptimizer):
             mutation_agent = mutation_agent(actions=graph_optimizer_params.mutation_types,
                                             probs=mutation_probs)
         else:
-            mutation_agent = mutation_agent(actions=graph_optimizer_params.mutation_types)
+            mutation_agent = mutation_agent(
+                actions=graph_optimizer_params.mutation_types)
         return mutation_agent
 
     def _exclude_resample_from_mutations(self, graph_optimizer_params):

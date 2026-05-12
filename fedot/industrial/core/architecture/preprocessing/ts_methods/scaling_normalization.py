@@ -1,7 +1,7 @@
 from typing import Optional, Sequence
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.industrial.core.architecture.preprocessing.ts_methods.tools import (
     flatten_if_needed,
     restore_if_needed,
@@ -70,7 +70,8 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
             mask = ~torch.isnan(phase_values)
             count = mask.sum(dim=0)
 
-            safe_values = torch.where(mask, phase_values, torch.zeros_like(phase_values))
+            safe_values = torch.where(
+                mask, phase_values, torch.zeros_like(phase_values))
             sum_values = safe_values.sum(dim=0)
 
             mean = torch.where(
@@ -80,7 +81,8 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
             )
 
             if self.with_scaling:
-                centered = torch.where(mask, phase_values - mean, torch.zeros_like(phase_values))
+                centered = torch.where(
+                    mask, phase_values - mean, torch.zeros_like(phase_values))
                 var = torch.where(
                     count > 0,
                     (centered ** 2).sum(dim=0) / count.clamp(min=1).to(dtype),
@@ -108,7 +110,8 @@ class SeasonalNormalization(AbstractPreprocessingHandler):
 
         selected = flat_features[:, self.features_idx]  # [A, F]
         n_samples = selected.shape[0]
-        phase_idx = torch.arange(n_samples, device=selected.device) % self.period
+        phase_idx = torch.arange(
+            n_samples, device=selected.device) % self.period
 
         if self.with_centering and self.seasonal_mean is not None:
             selected = selected - self.seasonal_mean[phase_idx]
@@ -213,7 +216,8 @@ class RollingNormalization(AbstractPreprocessingHandler):
         if self.with_scaling:
             result = result / std
 
-        result = torch.where(enough, result, torch.full_like(result, float("nan")))
+        result = torch.where(
+            enough, result, torch.full_like(result, float("nan")))
 
         flat_features[:, self.features_idx] = result
         data.features = restore_if_needed(flat_features, self._original_shape)
@@ -280,7 +284,8 @@ class PerChannelNormalization(AbstractPreprocessingHandler):
             self.mean_values = None
 
         if self.with_scaling:
-            centered = torch.where(mask, selected - mean, torch.zeros_like(selected))
+            centered = torch.where(mask, selected - mean,
+                                   torch.zeros_like(selected))
             var = (centered ** 2).sum(dim=(0, 1)) / count.to(selected.dtype)
             std = torch.sqrt(var)
             std = torch.where(std == 0, torch.ones_like(std), std)

@@ -1,7 +1,7 @@
 from typing import Optional
 
 import numpy as np
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from pyriemann.estimation import Covariances, Shrinkage
 from pyriemann.tangentspace import TangentSpace

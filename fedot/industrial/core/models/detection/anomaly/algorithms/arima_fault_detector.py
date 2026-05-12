@@ -67,7 +67,8 @@ class ARIMAAnomalyDetector:
         """
         self.data = history_dataset
         self.indices = history_dataset.index
-        self.window_size = round(self.data.values.shape[0] * 0.1) if window is None else window
+        self.window_size = round(
+            self.data.values.shape[0] * 0.1) if window is None else window
         self.generate_tensor(self.ar_order)
         return self.proc_tensor()
 
@@ -110,7 +111,8 @@ class ARIMAAnomalyDetector:
         self.ar_order = ar_order
 
         data = self.scaler.fit_transform(data.copy())
-        tensor = np.zeros((data.shape[0] - ar_order, data.shape[1], ar_order + 1))
+        tensor = np.zeros(
+            (data.shape[0] - ar_order, data.shape[1], ar_order + 1))
         self.models = []
         self.diffrs = []
         for i in range(data.shape[1]):
@@ -129,7 +131,8 @@ class ARIMAAnomalyDetector:
         Processing tensor of weights and calcute metric and binary labels
         """
         tensor = self.tensor.copy()
-        df = pd.DataFrame(tensor.reshape(len(tensor), -1), index=self.indices[-len(tensor):])
+        df = pd.DataFrame(tensor.reshape(len(tensor), -1),
+                          index=self.indices[-len(tensor):])
         scores = (df.rolling(self.window_size).max().abs() / df.rolling(self.window_size).std().abs()). \
             bfill().mean(axis=1)
         self.upper_metric_bound = np.quantile(scores.values, 0.95)
@@ -165,21 +168,25 @@ class OnlineTANH:
         self.data = data
         np.random.seed(self.random_state)
         self.pred = np.zeros(data.shape[0] + 1) * np.nan
-        self.w = np.random.rand(self.order + 1) * 0.01 if init_w is None else init_w.copy()
+        self.w = np.random.rand(self.order + 1) * \
+            0.01 if init_w is None else init_w.copy()
         self.ww = pd.DataFrame([self.w])
         self.diff = np.zeros(len(self.w))
 
         self.dif_w = pd.DataFrame([self.w])
         for i in range(self.order, data.shape[0]):
             self.pred[i] = self.w[:-1] @ data[i - self.order:i] + self.w[-1]
-            self.diff[:-1] = np.tanh(self.pred[i] - data[i]) * data[i - self.order:i]
+            self.diff[:-1] = np.tanh(self.pred[i] -
+                                     data[i]) * data[i - self.order:i]
             self.diff[-1] = np.tanh(self.pred[i] - data[i])
             self.w -= self.lrate * self.diff
 
             if self.project:
                 self.w = self.projection(self.w)
-            self.ww = pd.concat([self.ww, pd.DataFrame([self.w])], ignore_index=True)
-            self.dif_w = pd.concat([self.dif_w, pd.DataFrame([self.diff])], ignore_index=True)
+            self.ww = pd.concat(
+                [self.ww, pd.DataFrame([self.w])], ignore_index=True)
+            self.dif_w = pd.concat(
+                [self.dif_w, pd.DataFrame([self.diff])], ignore_index=True)
         self.pred[-1] = self.w[:-1] @ data[-self.order:] + self.w[-1]
 
     def predict(self, point_get=None, predict_size=1, return_predict=True):
@@ -195,20 +202,24 @@ class OnlineTANH:
         """
         if point_get is not None:
             self.data = np.append(self.data, point_get)
-            self.diff[:-1] = np.tanh(self.pred[-1] - self.data[-1]) * self.data[-self.order - 1:-1]
+            self.diff[:-1] = np.tanh(self.pred[-1] -
+                                     self.data[-1]) * self.data[-self.order - 1:-1]
             self.diff[-1] = np.tanh(self.pred[-1] - self.data[-1])
             self.w -= self.lrate * self.diff
             if self.project:
                 self.w = self.projection(self.w)
 
-            self.ww = pd.concat([self.ww, pd.DataFrame([self.w])], ignore_index=True)
+            self.ww = pd.concat(
+                [self.ww, pd.DataFrame([self.w])], ignore_index=True)
 
             self.pred = np.append(self.pred, np.nan)
-            self.dif_w = pd.concat([self.dif_w, pd.DataFrame([self.diff])], ignore_index=True)
+            self.dif_w = pd.concat(
+                [self.dif_w, pd.DataFrame([self.diff])], ignore_index=True)
             self.pred[-1] = self.w[:-1] @ self.data[-self.order:] + self.w[-1]
 
         if predict_size > 1:
-            data_p = np.append(self.data[-self.order:], np.zeros(predict_size) * np.nan)
+            data_p = np.append(
+                self.data[-self.order:], np.zeros(predict_size) * np.nan)
 
             for i in range(self.order, self.order + predict_size):
                 data_p[i] = self.w[:-1] @ data_p[i - self.order:i] + self.w[-1]
@@ -239,7 +250,8 @@ class OnlineTANH:
             for root in new_roots:
                 whole *= (x - root)
             p = poly(whole, x)
-            new_w = np.array([float(coeff.as_real_imag()[0]) for coeff in p.all_coeffs()])
+            new_w = np.array([float(coeff.as_real_imag()[0])
+                             for coeff in p.all_coeffs()])
             return new_w[::-1]
         else:
             return w[::-1]
@@ -294,14 +306,16 @@ class DifferentialIntegrationModule:
         Returns:
             transformed: array with a shape (n_samples + n*n_points - sum_seasons,)
         """
-        transformed = self.fit_transform(np.append(self.data, point), return_diff=True)[-1]
+        transformed = self.fit_transform(
+            np.append(self.data, point), return_diff=True)[-1]
         return transformed
 
     def inverse_fit_transform0(self):
         """
         Return initial data for check class
         """
-        self.sum_instead_minuend[len(self.seasons)] = self.difference[len(self.seasons) - 1]
+        self.sum_instead_minuend[len(self.seasons)
+                                 ] = self.difference[len(self.seasons) - 1]
         j = 0
         for i in range(len(self.seasons) - 1, -1, -1):
             self.sum_instead_minuend[i] = self.sum_instead_minuend[i + 1] + self.subtrahend[i][
@@ -316,7 +330,8 @@ class DifferentialIntegrationModule:
         self.new_value = new_value
         self.sum_instead_minuend[len(self.seasons)] = self.new_value
         for i in range(len(self.seasons) - 1, -1, -1):
-            self.sum_instead_minuend[i] = self.sum_instead_minuend[i + 1] + self.additional_term[i]
+            self.sum_instead_minuend[i] = self.sum_instead_minuend[i +
+                                                                   1] + self.additional_term[i]
 
         new_value1 = float(self.sum_instead_minuend[0])
         self.fit_transform(np.append(self.data, new_value1), return_diff=False)

@@ -44,19 +44,23 @@ class RecurrenceExplainer(Explainer):
         return recurrence_extractor
 
     def explain(self, **kwargs):
-        rec_matrix = self._get_recurrence_matrix().predict if len(self.features) <= 3 else self.features
+        rec_matrix = self._get_recurrence_matrix().predict if len(
+            self.features) <= 3 else self.features
         for classes in np.unique(self.target):
             cls_idx = np.where(self.target == classes)[0]
-            self.rec_matrix_by_cls.update({classes: rec_matrix[cls_idx, :, :, :]})
+            self.rec_matrix_by_cls.update(
+                {classes: rec_matrix[cls_idx, :, :, :]})
 
     def visual(self, metric: str = 'mean', name: str = 'test', threshold: float = None):
         matplotlib.use('TkAgg')
         for classes, rec_matrix in self.rec_matrix_by_cls.items():
-            aggregated_rec_matrix = self.aggregate_func[metric](rec_matrix, axis=0)
+            aggregated_rec_matrix = self.aggregate_func[metric](
+                rec_matrix, axis=0)
             aggregated_rec_matrix = colorise(aggregated_rec_matrix)
             plt.imshow(aggregated_rec_matrix.T)
             plt.colorbar()
-            plt.savefig(f'recurrence_matrix_for_{name}_dataset_cls_{classes}.png')
+            plt.savefig(
+                f'recurrence_matrix_for_{name}_dataset_cls_{classes}.png')
             plt.close()
 
 

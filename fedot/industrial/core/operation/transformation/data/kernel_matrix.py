@@ -62,7 +62,8 @@ class TSTransformer:
                         best_threshold_flag = True
             if not best_threshold_flag:
                 threshold = self.threshold_baseline[0]
-                recurrence_matrix = (distance_matrix >= threshold).astype(float)
+                recurrence_matrix = (
+                    distance_matrix >= threshold).astype(float)
         else:
             recurrence_matrix = (distance_matrix >= threshold).astype(float)
         return recurrence_matrix
@@ -92,7 +93,8 @@ class TorchTSTransformer:
         self.p = p
 
     def ts_to_recurrence_matrix(self, threshold=None):
-        distance_matrix = torch_pdist(self.time_series.T, metric=self.rec_metric, p=self.p)
+        distance_matrix = torch_pdist(
+            self.time_series.T, metric=self.rec_metric, p=self.p)
         distance_matrix = 1 - (distance_matrix / distance_matrix.max())
         self.recurrence_matrix = self.binarization(distance_matrix, threshold)
         return self.recurrence_matrix
@@ -106,7 +108,8 @@ class TorchTSTransformer:
         tmp = (distance_matrix.unsqueeze(0) >= ths[:, None, None]).float()
         signal_ratio = torch.mean((tmp == 0).float(), dim=(1, 2))
 
-        mask = (signal_ratio > float(self.min_signal_ratio)) & (signal_ratio < float(self.max_signal_ratio))
+        mask = (signal_ratio > float(self.min_signal_ratio)) & (
+            signal_ratio < float(self.max_signal_ratio))
         if mask.any():
             neg_one = torch.tensor(-1.0,
                                    device=distance_matrix.device,

@@ -5,7 +5,7 @@ from typing import Optional
 
 # import open3d as o3d
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from gtda.homology import VietorisRipsPersistence
 from gtda.time_series import takens_embedding_optimal_parameters
@@ -59,11 +59,13 @@ class TopologicalExtractor(BaseExtractor):
 
     def __evaluate_persistence_params(self, ts_data: np.array):
         if self.feature_extractor is None:
-            te_dimension, te_time_delay = self.get_embedding_params_from_batch(ts_data=ts_data)
+            te_dimension, te_time_delay = self.get_embedding_params_from_batch(
+                ts_data=ts_data)
 
             persistence_diagram_extractor = PersistenceDiagramsExtractor(takens_embedding_dim=te_dimension,
                                                                          takens_embedding_delay=te_time_delay,
-                                                                         homology_dimensions=(0, 1, 2),
+                                                                         homology_dimensions=(
+                                                                             0, 1, 2),
                                                                          parallel=True)
 
             self.feature_extractor = TopologicalFeaturesExtractor(
@@ -74,7 +76,8 @@ class TopologicalExtractor(BaseExtractor):
         # Corresponding matrix of Euclidean pairwise distances
         pairwise_distances = squareform(pdist(pcd))
         # Default parameter for ``metric`` is "euclidean"
-        vr_graph = VietorisRipsPersistence(metric="precomputed").fit_transform([pairwise_distances])
+        vr_graph = VietorisRipsPersistence(
+            metric="precomputed").fit_transform([pairwise_distances])
         return vr_graph
 
     def _generate_pcd(self, ts_data, persistence_params):
@@ -106,7 +109,8 @@ class TopologicalExtractor(BaseExtractor):
             self.data_transformer = TopologicalTransformation(
                 persistence_params=persistence_params, window_length=round(ts_data.shape[0] * 0.01 * self.window_size))
 
-        point_cloud = self.data_transformer.time_series_to_point_cloud(input_data=ts_data, use_gtda=True)
+        point_cloud = self.data_transformer.time_series_to_point_cloud(
+            input_data=ts_data, use_gtda=True)
         topological_features = self.feature_extractor.transform(point_cloud)
         # topological_features = InputData(idx=np.arange(len(topological_features.values)),
         #                                  features=topological_features.values,
@@ -121,10 +125,12 @@ class TopologicalExtractor(BaseExtractor):
             self.__evaluate_persistence_params(ts)
 
         if len(ts.shape) == 1:
-            aggregation_df = self._generate_features_from_ts(ts, persistence_params)
+            aggregation_df = self._generate_features_from_ts(
+                ts, persistence_params)
         else:
             aggregation_df = self._get_feature_matrix(
-                partial(self._generate_features_from_ts, persistence_params=persistence_params),
+                partial(self._generate_features_from_ts,
+                        persistence_params=persistence_params),
                 ts
             )
 
@@ -152,7 +158,8 @@ class TopologicalExtractor(BaseExtractor):
 
         for _ in tqdm(range(len(ts_data)), initial=0, desc='Time series processed: ', unit='ts', colour='black'):
             ts_data = pd.DataFrame(ts_data)
-            single_time_series = ts_data.sample(1, replace=False, axis=0).squeeze()
+            single_time_series = ts_data.sample(
+                1, replace=False, axis=0).squeeze()
             delay, dim = takens_embedding_optimal_parameters(X=single_time_series,
                                                              max_time_delay=1,
                                                              max_dimension=5,

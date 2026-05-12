@@ -100,7 +100,8 @@ class MatrixDecomposerTorch:
         """
         if isinstance(tensor, dict):
             tensor_approx = (
-                self.decomposition_strategy.compute_approximation(*tensor.values())
+                self.decomposition_strategy.compute_approximation(
+                    *tensor.values())
             )
         else:
             tensor_approx = (
@@ -174,7 +175,8 @@ class MatrixDecomposer:
                                  'random_svd': RSVDDecomposition,
                                  'cur': CURDecomposition,
                                  'dmd': None}
-        self.decomposition_strategy = self.decompose_method[self.decomposition_type]()
+        self.decomposition_strategy = self.decompose_method[self.decomposition_type](
+        )
 
     def spectrum_regularization(self,
                                 spectrum: np.array,
@@ -189,9 +191,11 @@ class MatrixDecomposer:
 
     def get_tensor_approximation(self, tensor: Union[dict, np.ndarray]):
         if isinstance(tensor, dict):
-            tensor_approx = self.decomposition_strategy.compute_approximation(*tensor.values())
+            tensor_approx = self.decomposition_strategy.compute_approximation(
+                *tensor.values())
         else:
-            tensor_approx = self.decomposition_strategy.compute_approximation(tensor)
+            tensor_approx = self.decomposition_strategy.compute_approximation(
+                tensor)
         return tensor_approx
 
     def apply(self, tensor: np.ndarray):

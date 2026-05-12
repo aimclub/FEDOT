@@ -14,7 +14,7 @@ from fedot import Fedot
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -66,20 +66,26 @@ def test_random_composer(data_fixture, request):
 
     task = Task(task_type=TaskTypesEnum.classification)
 
-    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    available_model_types = OperationTypesRepository(
+    ).suitable_operation(task_type=task.task_type)
     req = PipelineComposerRequirements(num_of_generations=3,
                                        primary=available_model_types,
                                        secondary=available_model_types)
     objective = MetricsObjective(ClassificationMetricsEnum.ROCAUC)
-    pipeline_generation_params = get_pipeline_generation_params(requirements=req, task=task)
+    pipeline_generation_params = get_pipeline_generation_params(
+        requirements=req, task=task)
 
-    optimiser = RandomSearchOptimizer(objective, requirements=req, graph_generation_params=pipeline_generation_params)
+    optimiser = RandomSearchOptimizer(
+        objective, requirements=req, graph_generation_params=pipeline_generation_params)
     random_composer = RandomSearchComposer(optimiser)
 
-    opt_graph_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
-    pipeline_random_composed = pipeline_generation_params.adapter.restore(opt_graph_random_composed)
+    opt_graph_random_composed = random_composer.compose_pipeline(
+        data=dataset_to_compose)
+    pipeline_random_composed = pipeline_generation_params.adapter.restore(
+        opt_graph_random_composed)
     pipeline_random_composed.fit(input_data=dataset_to_compose)
-    predicted_random_composed = pipeline_random_composed.predict(dataset_to_validate)
+    predicted_random_composed = pipeline_random_composed.predict(
+        dataset_to_validate)
 
     roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
                                            y_score=predicted_random_composed.predict)
@@ -103,9 +109,11 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
                                        num_of_generations=1)
     params = GPAlgorithmParameters(pop_size=2)
 
-    builder = ComposerBuilder(task).with_requirements(req).with_optimizer_params(params).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(
+        req).with_optimizer_params(params).with_metrics(metric_function)
     gp_composer = builder.build()
-    pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
+    pipeline_gp_composed = gp_composer.compose_pipeline(
+        data=dataset_to_compose)
 
     pipeline_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
     predicted_gp_composed = pipeline_gp_composed.predict(dataset_to_validate)
@@ -140,14 +148,16 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, num_of_generations=3)
-    params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+    params = GPAlgorithmParameters(
+        pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
 
     gp_composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_optimizer_params(params) \
         .with_requirements(req) \
         .with_metrics(ClassificationMetricsEnum.ROCAUC) \
         .build()
-    pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
+    pipeline_gp_composed = gp_composer.compose_pipeline(
+        data=dataset_to_compose)
 
     pipeline_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
     predicted_gp_composed = pipeline_gp_composed.predict(dataset_to_validate)
@@ -156,7 +166,8 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
                                        y_score=predicted_gp_composed.predict)
 
     all_individuals = len(gp_composer.history.individuals)
-    population_len = sum([len(history) for history in gp_composer.history.individuals]) / all_individuals
+    population_len = sum(
+        [len(history) for history in gp_composer.history.individuals]) / all_individuals
 
     assert population_len != len(gp_composer.history.individuals[0])
     assert roc_on_valid_gp_composed > 0.6
@@ -169,7 +180,8 @@ def test_multi_objective_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
     task_type = TaskTypesEnum.classification
-    available_model_types = OperationTypesRepository().suitable_operation(task_type=task_type)
+    available_model_types = OperationTypesRepository(
+    ).suitable_operation(task_type=task_type)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, num_of_generations=3)
     params = GPAlgorithmParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
@@ -191,7 +203,8 @@ def test_multi_objective_composer(data_fixture, request):
 
     for pipeline_evo_composed in pipelines_evo_composed:
         pipeline_evo_composed.fit_from_scratch(input_data=dataset_to_compose)
-        predicted_gp_composed = pipeline_evo_composed.predict(dataset_to_validate)
+        predicted_gp_composed = pipeline_evo_composed.predict(
+            dataset_to_validate)
 
         roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                            y_score=predicted_gp_composed.predict)
@@ -206,7 +219,8 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_secondary_model_types = ['rf', 'knn', 'logit', 'dt']
-    available_primary_model_types = available_secondary_model_types + ['scaling', 'resample']
+    available_primary_model_types = available_secondary_model_types + \
+        ['scaling', 'resample']
 
     quality_metric = lambda *args, **kwargs: 1.0  # noqa
     max_depth = 5
@@ -230,7 +244,8 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     generations = composer.history.individuals
     current_depth = composer.optimizer.requirements.max_depth
     assert req.start_depth <= current_depth < max_depth, f"max depth couldn't have been reached in {num_gen}"
-    assert all(ind.graph.depth < max_depth for ind in generations[-1]), "last generation is too deep"
+    assert all(ind.graph.depth <
+               max_depth for ind in generations[-1]), "last generation is too deep"
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -290,7 +305,8 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
         num_of_generations=5,
     )
 
-    params = get_pipeline_generation_params(requirements=requirements, task=task)
+    params = get_pipeline_generation_params(
+        requirements=requirements, task=task)
 
     graphs = [params.random_graph_factory(requirements) for _ in range(4)]
     for graph in graphs:

@@ -5,7 +5,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def test_api_params_repository_builds_task_specific_defaults():
-    classification_repository = ApiParamsRepository(TaskTypesEnum.classification)
+    classification_repository = ApiParamsRepository(
+        TaskTypesEnum.classification)
     ts_repository = ApiParamsRepository(TaskTypesEnum.ts_forecasting)
 
     assert classification_repository.default_params['cv_folds'] == 5

@@ -1,8 +1,11 @@
 from contextlib import contextmanager
 import threading
 from typing import Any
-
+import logging
 import torch
+
+
+logger = logging.getLogger(__name__)
 
 
 def torch_to_xp(tensor: torch.Tensor, xp):
@@ -89,8 +92,11 @@ Example temporary override:
 
     def _set_backend(self, name: str):
         if name == "gpu":
-            import cupy as xp
-            import cudf as pd
+            try:
+                import cupy as xp
+                import cudf as pd
+            except Exception as e:
+                raise RuntimeError("Can't import cupy or cudf") from e
 
             self.xp = xp
             self.pd = pd

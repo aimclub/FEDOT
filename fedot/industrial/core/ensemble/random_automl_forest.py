@@ -1,7 +1,7 @@
 from copy import deepcopy
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -47,7 +47,8 @@ class RAFEnsembler:
 
     def fit(self, train_data):
         if self.n_splits is None:
-            self.n_splits = round(train_data.features.shape[0] / self.batch_size)
+            self.n_splits = round(
+                train_data.features.shape[0] / self.batch_size)
 
         new_features = np.array_split(train_data.features,
                                       self.n_splits)

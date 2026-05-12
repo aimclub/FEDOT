@@ -57,7 +57,8 @@ def test_operation_factory_returns_extension_model_for_registered_operation():
         operation = OperationFactory('external_factory_model').get_operation()
 
         assert isinstance(operation, ExtensionModel)
-        assert OperationFactory('external_factory_model').operation_type_name == 'extension_model'
+        assert OperationFactory(
+            'external_factory_model').operation_type_name == 'extension_model'
     finally:
         clear_extension_registry()
 
@@ -69,7 +70,8 @@ def test_extension_model_uses_custom_strategy_adapter_for_runtime_init():
     try:
         model = ExtensionModel('external_factory_model')
         task = Task(TaskTypesEnum.regression)
-        model._init(task, params={'alpha': 2.0}, output_mode='default', n_samples_data=4)
+        model._init(task, params={'alpha': 2.0},
+                    output_mode='default', n_samples_data=4)
 
         strategy = model._eval_strategy
         implementation = strategy.fit(type('Data', (), {

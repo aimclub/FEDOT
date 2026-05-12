@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
+from fedot.core.data.common.enums import StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing_rules import (
@@ -32,9 +32,11 @@ def _make_input_data(*, is_main_target=True):
 
 
 def test_resolve_source_names_handles_unimodal_and_multimodal():
-    unimodal_plan = resolve_source_names(_make_input_data(), DEFAULT_SOURCE_NAME)
+    unimodal_plan = resolve_source_names(
+        _make_input_data(), DEFAULT_SOURCE_NAME)
     multimodal_plan = resolve_source_names(
-        MultiModalData({'left': _make_input_data(), 'right': _make_input_data(is_main_target=False)}),
+        MultiModalData({'left': _make_input_data(),
+                       'right': _make_input_data(is_main_target=False)}),
         DEFAULT_SOURCE_NAME,
     )
 
@@ -65,7 +67,8 @@ def test_resolve_main_target_source_name_prefers_existing_then_detects_main_bran
 
 def test_iter_preprocessed_inputs_and_merge_plan_are_deterministic():
     input_data = _make_input_data()
-    multi_data = MultiModalData({'main': input_data, 'side': _make_input_data(is_main_target=False)})
+    multi_data = MultiModalData(
+        {'main': input_data, 'side': _make_input_data(is_main_target=False)})
 
     assert iter_preprocessed_inputs(input_data) == (input_data,)
     assert len(iter_preprocessed_inputs(multi_data)) == 2
@@ -89,13 +92,17 @@ def test_build_optional_preprocessing_plan_and_target_source_resolution_are_expl
 
     assert optional_plan.apply_imputation is True
     assert optional_plan.apply_encoding is False
-    assert resolve_target_encoder_source_name(None, DEFAULT_SOURCE_NAME) == DEFAULT_SOURCE_NAME
-    assert resolve_target_encoder_source_name('main', DEFAULT_SOURCE_NAME) == 'main'
+    assert resolve_target_encoder_source_name(
+        None, DEFAULT_SOURCE_NAME) == DEFAULT_SOURCE_NAME
+    assert resolve_target_encoder_source_name(
+        'main', DEFAULT_SOURCE_NAME) == 'main'
 
 
 def test_build_tensordata_preprocessing_bridge_plan_is_explicit_for_stage_and_mode():
-    fit_plan = build_tensordata_preprocessing_bridge_plan(is_fit_stage=True, is_optional=False)
-    predict_optional_plan = build_tensordata_preprocessing_bridge_plan(is_fit_stage=False, is_optional=True)
+    fit_plan = build_tensordata_preprocessing_bridge_plan(
+        is_fit_stage=True, is_optional=False)
+    predict_optional_plan = build_tensordata_preprocessing_bridge_plan(
+        is_fit_stage=False, is_optional=True)
 
     assert fit_plan.state == StateEnum.FIT
     assert fit_plan.prepare_method_name == 'obligatory_prepare_for_fit'

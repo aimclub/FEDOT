@@ -23,4 +23,5 @@ class PipelineComposerRequirements(GraphRequirements):
     def __post_init__(self):
         super().__post_init__()
         if self.cv_folds is not None and self.cv_folds <= 1:
-            raise ValueError('Number of folds for KFold cross validation must be 2 or more.')
+            raise ValueError(
+                'Number of folds for KFold cross validation must be 2 or more.')

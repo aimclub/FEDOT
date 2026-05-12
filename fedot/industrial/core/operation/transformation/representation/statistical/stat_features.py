@@ -129,7 +129,8 @@ def autocorrelation(array: np.array, axis=None) -> float:
     """Autocorrelation of the time series with its lagged version
     """
     lagged_ts = np.roll(a=array, shift=1, axis=axis)
-    corr_coef = np.apply_along_axis(np.corrcoef, axis, lagged_ts) if axis == 2 else np.corrcoef(array, lagged_ts)[0, 1]
+    corr_coef = np.apply_along_axis(
+        np.corrcoef, axis, lagged_ts) if axis == 2 else np.corrcoef(array, lagged_ts)[0, 1]
     return corr_coef
 
 
@@ -203,7 +204,8 @@ def hjorth_mobility(array, axis=None):
     # Compute the first-order differential sequence
     diff_sequence = np.diff(array, axis=axis)
     # Calculate the mean power of the first-order differential sequence
-    M2 = np.sum(np.power(diff_sequence, 2), axis=axis) / diff_sequence.shape[axis]
+    M2 = np.sum(np.power(diff_sequence, 2), axis=axis) / \
+        diff_sequence.shape[axis]
     # Calculate the total power of the time series
     TP = np.sum(np.power(array, 2), axis=axis) / array.shape[axis]
     # Calculate Hjorth mobility
@@ -218,14 +220,16 @@ def hjorth_complexity(array, axis=None):
         # Compute the first-order differential sequence
         diff_sequence = np.diff(a=array, axis=axis)
         # Calculate the mean power of the first-order differential sequence
-        M2 = np.sum(np.power(diff_sequence, 2), axis=axis) / diff_sequence.shape[axis]
+        M2 = np.sum(np.power(diff_sequence, 2), axis=axis) / \
+            diff_sequence.shape[axis]
         # Calculate the total power of the time series
         TP = np.sum(np.power(array, 2), axis=axis) / array.shape[axis]
         # Calculate the fourth central moment of the first-order differential
         # sequence
         try:
             steps = range(1, len(diff_sequence))
-            elements_squared_diff = np.array([(diff_sequence[i] - diff_sequence[i - 1]) ** 2 for i in steps])
+            elements_squared_diff = np.array(
+                [(diff_sequence[i] - diff_sequence[i - 1]) ** 2 for i in steps])
             M4 = sum(elements_squared_diff) / elements_squared_diff.shape[axis]
         except Exception:
             M4 = 1

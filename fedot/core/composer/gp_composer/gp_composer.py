@@ -12,8 +12,8 @@ from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import (
     PipelineObjectiveEvaluate,
 )
@@ -61,7 +61,8 @@ class GPComposer(Composer):
         elif parallelization_mode == 'sequential':
             n_jobs_for_evaluation = self.composer_requirements.n_jobs
         else:
-            raise ValueError(f'Unknown parallelization_mode: {parallelization_mode}')
+            raise ValueError(
+                f'Unknown parallelization_mode: {parallelization_mode}')
 
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
@@ -76,12 +77,14 @@ class GPComposer(Composer):
 
         # Define callback for computing intermediate metrics if needed
         if self.composer_requirements.collect_intermediate_metric:
-            self.optimizer.set_evaluation_callback(objective_evaluator.evaluate_intermediate_metrics)
+            self.optimizer.set_evaluation_callback(
+                objective_evaluator.evaluate_intermediate_metrics)
 
         # Finally, run optimization process
         opt_result = self.optimizer.optimise(objective_function)
 
-        best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
+        best_model, self.best_models = self._convert_opt_results_to_pipeline(
+            opt_result)
         self.log.info('GP composition finished')
 
         if is_test_session() and self.predictions_cache is not None:
@@ -108,15 +111,18 @@ class GPComposer(Composer):
 
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         uuid = uuid4()
-        directory = os.path.join(f"{str(default_fedot_data_dir())}", "saved_cache_effectiveness")
+        directory = os.path.join(
+            f"{str(default_fedot_data_dir())}", "saved_cache_effectiveness")
         os.makedirs(directory, exist_ok=True)
 
-        predictions_file_path = os.path.join(directory, f"{timestamp}_predictions_{str(uuid)}.csv")
+        predictions_file_path = os.path.join(
+            directory, f"{timestamp}_predictions_{str(uuid)}.csv")
 
         # Write predictions cache data
         with open(predictions_file_path, "w", newline="") as f:
             # Write effectiveness ratio
-            writer = csv.DictWriter(f, self.predictions_cache.effectiveness_ratio.keys())
+            writer = csv.DictWriter(
+                f, self.predictions_cache.effectiveness_ratio.keys())
             writer.writeheader()
             writer.writerow(self.predictions_cache.effectiveness_ratio)
 

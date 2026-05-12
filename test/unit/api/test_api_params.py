@@ -29,7 +29,8 @@ fedot_params_full = dict(parallelization_mode='populational',
                          optimizer=EvoGraphOptimizer,
                          collect_intermediate_metric=False,
                          max_pipeline_fit_time=7,
-                         initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
+                         initial_assumption=PipelineBuilder().add_node(
+                             'lagged').add_node('ridge').build(),
                          preset=AUTO_PRESET_NAME,
                          use_operations_cache=True,
                          use_preprocessing_cache=True,
@@ -45,16 +46,19 @@ params_with_missings = dict(parallelization_mode='populational',
                             available_operations=['lagged', 'ridge'],
                             metric=RegressionMetricsEnum.SMAPE,
                             cv_folds=None,
-                            initial_assumption=PipelineBuilder().add_node('lagged').add_node('ridge').build(),
+                            initial_assumption=PipelineBuilder().add_node(
+                                'lagged').add_node('ridge').build(),
                             preset=AUTO_PRESET_NAME,
                             use_operations_cache=True,
                             use_preprocessing_cache=True,
                             history_dir='history',
                             with_tuning=False)
 
-correct_composer_attributes = {field.name for field in dataclasses.fields(PipelineComposerRequirements)}
+correct_composer_attributes = {
+    field.name for field in dataclasses.fields(PipelineComposerRequirements)}
 
-correct_gp_algorithm_attributes = {field.name for field in dataclasses.fields(GPAlgorithmParameters)}
+correct_gp_algorithm_attributes = {
+    field.name for field in dataclasses.fields(GPAlgorithmParameters)}
 
 
 def get_api_params_repository(task_type: Optional[TaskTypesEnum] = None):
@@ -66,8 +70,10 @@ def get_api_params_repository(task_type: Optional[TaskTypesEnum] = None):
 @pytest.mark.parametrize('input_params', [fedot_params_full, params_with_missings])
 def test_correctly_sets_default_params(input_params):
     params_repository = get_api_params_repository()
-    output_params = params_repository.check_and_set_default_params(input_params)
-    default_params = params_repository.default_params_for_task(params_repository.task_type)
+    output_params = params_repository.check_and_set_default_params(
+        input_params)
+    default_params = params_repository.default_params_for_task(
+        params_repository.task_type)
     assert output_params.keys() <= default_params.keys()
     for k, v in default_params.items():
         if k not in input_params and v is not None:
@@ -86,9 +92,11 @@ def test_filter_params_correctly(input_params, case, correct_keys):
         correct_keys.add('seed')
     input_params = params_repository.check_and_set_default_params(input_params)
     if case == 'composer':
-        output_params = params_repository.get_params_for_composer_requirements(input_params)
+        output_params = params_repository.get_params_for_composer_requirements(
+            input_params)
     elif case == 'gp_algo':
-        output_params = params_repository.get_params_for_gp_algorithm_params(input_params)
+        output_params = params_repository.get_params_for_gp_algorithm_params(
+            input_params)
     assert output_params.keys() <= correct_keys
     # check all correct parameter in input params are in output params
     assert (input_params.keys() & correct_keys) <= output_params.keys()
@@ -96,17 +104,20 @@ def test_filter_params_correctly(input_params, case, correct_keys):
 
 def test_sampling_config_is_accepted_and_preserved():
     params_repository = get_api_params_repository(TaskTypesEnum.classification)
-    params = {'sampling_config': {'strategy': 'random', 'candidate_ratios': [0.2, 0.5], 'delta_metric_threshold': 0.05}}
+    params = {'sampling_config': {'strategy': 'random',
+                                  'candidate_ratios': [0.2, 0.5], 'delta_metric_threshold': 0.05}}
 
     output_params = params_repository.check_and_set_default_params(params)
 
     assert 'sampling_config' in output_params
     assert output_params['sampling_config']['strategy'] == 'random'
-    assert tuple(output_params['sampling_config']['candidate_ratios']) == (0.2, 0.5)
+    assert tuple(output_params['sampling_config']
+                 ['candidate_ratios']) == (0.2, 0.5)
 
 
 def test_sampling_config_rejects_invalid_schema_in_api_params_repository():
     params_repository = get_api_params_repository(TaskTypesEnum.classification)
 
     with pytest.raises(ValueError, match='Unknown keys'):
-        params_repository.check_and_set_default_params({'sampling_config': {'unknown': 1}})
+        params_repository.check_and_set_default_params(
+            {'sampling_config': {'unknown': 1}})

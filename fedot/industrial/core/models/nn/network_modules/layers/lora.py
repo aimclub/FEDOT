@@ -935,7 +935,8 @@ class LoRAParametrization(nn.Module):
             # Return W + (B * A) * scale if lora is enabled instead of W * x +
             # ∆W * x
             return original_weights + \
-                torch.matmul(self.lora_B, self.lora_A).view(original_weights.shape) * self.scale
+                torch.matmul(self.lora_B, self.lora_A).view(
+                    original_weights.shape) * self.scale
 
         return original_weights
 

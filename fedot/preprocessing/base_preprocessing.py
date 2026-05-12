@@ -4,8 +4,8 @@ from typing import Dict, Union, TYPE_CHECKING
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation
@@ -34,13 +34,15 @@ class BasePreprocessor(ABC):
     def __init__(self):
         # There was performed encoding for string target column or not
         self.target_encoders: Dict[str, LabelEncoder] = {}
-        self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
+        self.features_encoders: Dict[str,
+                                     Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
         self.use_label_encoder: bool = False
         self.features_imputers: Dict[str, ImputationImplementation] = {}
         self.ids_relevant_features: Dict[str, np.ndarray] = {}
 
         # Categorical preprocessor for binary categorical features
-        self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
+        self.binary_categorical_processors: Dict[str,
+                                                 BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
         self.main_target_source_name = None
 

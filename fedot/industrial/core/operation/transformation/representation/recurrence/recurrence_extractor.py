@@ -2,7 +2,7 @@ from typing import Optional
 
 import dask
 import numpy as np
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 
 # from fedot.industrial.core.metrics.metrics_implementation import *

@@ -22,7 +22,8 @@ def test_merge_builder_params_preserves_existing_values_for_default_updates():
         default_value=DEFAULT_VALUE,
     )
 
-    assert merged == {'problem': 'classification', 'timeout': 5, 'preset': 'fast_train'}
+    assert merged == {'problem': 'classification',
+                      'timeout': 5, 'preset': 'fast_train'}
 
 
 def test_build_fedot_kwargs_returns_copy():

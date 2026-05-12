@@ -186,7 +186,8 @@ class DataTypeConstant(Enum):
 class PathConstant(Enum):
     IND_DATA_OPERATION_PATH = pathlib.Path(PROJECT_PATH, 'fedot', 'industrial', 'core', 'repository', 'data',
                                            'industrial_data_operation_repository.json')
-    DEFAULT_DATA_OPERATION_PATH = pathlib.Path('data_operation_repository.json')
+    DEFAULT_DATA_OPERATION_PATH = pathlib.Path(
+        'data_operation_repository.json')
     IND_MODEL_OPERATION_PATH = pathlib.Path(PROJECT_PATH, 'fedot', 'industrial', 'core', 'repository', 'data',
                                             'industrial_model_repository.json')
     DEFAULT_MODEL_OPERATION_PATH = pathlib.Path('model_repository.json')
@@ -430,7 +431,8 @@ class FedotOperationConstant(Enum):
 
     FEDOT_ASSUMPTIONS = {
         'classification': PipelineBuilder().
-        add_node('quantile_extractor_torch', params=stat_params).add_node('catboost', params=catboost_params),
+        add_node('quantile_extractor_torch', params=stat_params).add_node(
+            'catboost', params=catboost_params),
         'classification_tabular': PipelineBuilder().add_node('rf', params=rf_params),
         'regression': PipelineBuilder().add_node('quantile_extractor_torch', params=stat_params).add_node('treg'),
         'regression_tabular': PipelineBuilder().add_node('treg'),
@@ -750,7 +752,8 @@ class BenchmarkDatasets(Enum):
         'M12452']
     M4_FORECASTING_BENCH_SMALL_QUARTERLY = ['Q10070', 'Q10262', 'Q10292',
                                             'Q10466', 'Q10598', 'Q10665', 'Q1069', 'Q10743', 'Q10800', 'Q10881']
-    M4_FORECASTING_BENCH_SMALL_WEEKLY = ['W103', 'W105', 'W106', 'W107', 'W109', 'W10', 'W110', 'W111', 'W113', 'W116']
+    M4_FORECASTING_BENCH_SMALL_WEEKLY = [
+        'W103', 'W105', 'W106', 'W107', 'W109', 'W10', 'W110', 'W111', 'W113', 'W116']
     M4_FORECASTING_BENCH_SMALL_YEARLY = [
         'Y10907',
         'Y10908',

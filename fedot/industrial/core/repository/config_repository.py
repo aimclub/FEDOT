@@ -41,15 +41,19 @@ class AutomlConfigConstant(Enum):
                                                    'optimisation_agent': 'Industrial'}}
     DEFAULT_CLF_AUTOML_CONFIG = {'task': 'classification', **DEFAULT_SUBCONFIG}
     DEFAULT_REG_AUTOML_CONFIG = {'task': 'regression', **DEFAULT_SUBCONFIG}
-    DEFAULT_TSF_AUTOML_CONFIG = {'task': 'ts_forecasting', 'task_params': {'forecast_length': 14}, **DEFAULT_SUBCONFIG}
+    DEFAULT_TSF_AUTOML_CONFIG = {'task': 'ts_forecasting', 'task_params': {
+        'forecast_length': 14}, **DEFAULT_SUBCONFIG}
 
 
 class LearningConfigConstant(Enum):
     DEFAULT_SUBCONFIG = {'learning_strategy': 'from_scratch',
                          'learning_strategy_params': AutomlLearningConfigConstant.DEFAULT_AUTOML_CONFIG.value}
-    DEFAULT_CLF_LEARNING_CONFIG = {'optimisation_loss': {'quality_loss': 'accuracy'}, **DEFAULT_SUBCONFIG}
-    DEFAULT_REG_LEARNING_CONFIG = {'optimisation_loss': {'quality_loss': 'rmse'}, **DEFAULT_SUBCONFIG}
-    DEFAULT_TSF_LEARNING_CONFIG = {'optimisation_loss': {'quality_loss': 'rmse'}, **DEFAULT_SUBCONFIG}
+    DEFAULT_CLF_LEARNING_CONFIG = {'optimisation_loss': {
+        'quality_loss': 'accuracy'}, **DEFAULT_SUBCONFIG}
+    DEFAULT_REG_LEARNING_CONFIG = {'optimisation_loss': {
+        'quality_loss': 'rmse'}, **DEFAULT_SUBCONFIG}
+    DEFAULT_TSF_LEARNING_CONFIG = {'optimisation_loss': {
+        'quality_loss': 'rmse'}, **DEFAULT_SUBCONFIG}
     TASK_MAPPING = {
         'classification': {
             'task': 'classification',

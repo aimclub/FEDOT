@@ -30,7 +30,8 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
                  graph_optimizer_params: GPAlgorithmParameters,
                  optimisation_params: dict = {'mutation_agent': 'random',
                                               'mutation_strategy': 'params_mutation_strategy'}):
-        graph_optimizer_params = self._init_industrial_optimizer_params(graph_optimizer_params, optimisation_params)
+        graph_optimizer_params = self._init_industrial_optimizer_params(
+            graph_optimizer_params, optimisation_params)
         super().__init__(objective, initial_graphs, requirements,
                          graph_generation_params, graph_optimizer_params)
         # self.operators.remove(self.crossover)
@@ -54,19 +55,22 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
         self.min_reproduce_attempt = 50
         # Max number of evaluations attempts to create graph for next pop
         self.graph_generation_attempts = 100
-        graph_optimizer_params = self._exclude_resample_from_mutations(graph_optimizer_params)
+        graph_optimizer_params = self._exclude_resample_from_mutations(
+            graph_optimizer_params)
         graph_optimizer_params.adaptive_mutation_type = self._set_optimisation_strategy(graph_optimizer_params,
                                                                                         optimisation_params)
         return graph_optimizer_params
 
     def _set_optimisation_strategy(self, graph_optimizer_params, optimisation_params):
-        self.optimisation_mutation_probs = FEDOT_MUTATION_STRATEGY[optimisation_params['mutation_strategy']]
+        self.optimisation_mutation_probs = FEDOT_MUTATION_STRATEGY[
+            optimisation_params['mutation_strategy']]
         mutation_agent = self.mutation_agent_dict[optimisation_params['mutation_agent']]
         if optimisation_params['mutation_agent'].__contains__('random'):
             mutation_agent = mutation_agent(actions=graph_optimizer_params.mutation_types,
                                             probs=self.optimisation_mutation_probs)
         else:
-            mutation_agent = mutation_agent(actions=graph_optimizer_params.mutation_types)
+            mutation_agent = mutation_agent(
+                actions=graph_optimizer_params.mutation_types)
         return mutation_agent
 
     def _exclude_resample_from_mutations(self, graph_optimizer_params):
@@ -89,16 +93,20 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
 
         if len(initial_individuals) < pop_size:  # in case we have only one init assumption
             # change strategy of init assumption creation. Set max probability to node change mutation
-            self.mutation.agent._probs = FEDOT_MUTATION_STRATEGY['initial_population_diversity_strategy']
-            initial_individuals = self._extend_population(initial_individuals, pop_size)
+            self.mutation.agent._probs = FEDOT_MUTATION_STRATEGY[
+                'initial_population_diversity_strategy']
+            initial_individuals = self._extend_population(
+                initial_individuals, pop_size)
             self.mutation.agent._probs = self.optimisation_mutation_probs
             label = 'extended_initial_assumptions'
         init_population = evaluator(initial_individuals)
-        self._update_population(next_population=init_population, evaluator=evaluator, label=label)
+        self._update_population(
+            next_population=init_population, evaluator=evaluator, label=label)
         return init_population, evaluator
 
     def _extend_population(self, pop: PopulationT, target_pop_size: int, mutation_prob: list = None) -> PopulationT:
-        verifier, new_population, new_ind = self.graph_generation_params.verifier, list(pop), 'empty'
+        verifier, new_population, new_ind = self.graph_generation_params.verifier, list(
+            pop), 'empty'
         pop_graphs = [ind.graph for ind in new_population]
         for iter_num in range(self.graph_generation_attempts):
             for repr_attempt in range(self.min_reproduce_attempt):
@@ -127,11 +135,14 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
             self._log_to_history(next_population, label, metadata)
         self._iteration_callback(next_population, self)
         self.population = next_population
-        self.log.info(f'Generation num: {self.current_generation_num} size: {len(next_population)}')
+        self.log.info(
+            f'Generation num: {self.current_generation_num} size: {len(next_population)}')
         self.log.info(f'Best individuals: {str(self.generations)}')
         if self.generations.stagnation_iter_count > 0:
-            self.log.info(f'no improvements for {self.generations.stagnation_iter_count} iterations')
-            self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+            self.log.info(
+                f'no improvements for {self.generations.stagnation_iter_count} iterations')
+            self.log.info(
+                f'spent time: {round(self.timer.minutes_from_start, 1)} min')
         return next_population
 
     def _evolve_population(self,
@@ -141,7 +152,8 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
 
         def evolve_pop(population, evaluator):
             individuals_to_select = self.regularization(population, evaluator)
-            new_population = self.reproducer.reproduce(individuals_to_select, evaluator)
+            new_population = self.reproducer.reproduce(
+                individuals_to_select, evaluator)
             if self.reproducer.stop_condition or new_population is None:
                 new_population = population
             else:
@@ -155,7 +167,8 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
 
             # Use some part of previous pop in the next pop
             new_population = self.inheritance(population, new_population)
-            new_population = self.elitism(self.generations.best_individuals, new_population)
+            new_population = self.elitism(
+                self.generations.best_individuals, new_population)
             return new_population, evaluator
 
         return evolve_pop(population, evaluator)
@@ -163,7 +176,8 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
     def get_structure_unique_population(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         """ Increases structurally uniqueness of population to prevent stagnation in optimization process.
         Returned population may be not entirely unique, if the size of unique population is lower than MIN_POP_SIZE. """
-        unique_population_with_ids = {ind.graph.descriptive_id: ind for ind in population}
+        unique_population_with_ids = {
+            ind.graph.descriptive_id: ind for ind in population}
         unique_population = list(unique_population_with_ids.values())
         is_population_too_small = len(unique_population) < self.min_pop_size
         # if size of unique population is too small, then extend it to MIN_POP_SIZE by repeating individuals
@@ -190,7 +204,8 @@ class IndustrialEvoOptimizer(EvoGraphOptimizer):
 
         # update requirements in operators
         for operator in self.operators:
-            operator.update_requirements(self.graph_optimizer_params, self.requirements)
+            operator.update_requirements(
+                self.graph_optimizer_params, self.requirements)
         return population, evaluator
 
     def _optimise_loop(self, population_to_eval, evaluator):

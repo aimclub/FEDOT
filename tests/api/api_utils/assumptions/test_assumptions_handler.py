@@ -27,8 +27,10 @@ class _FakePipeline:
 
 
 def test_try_fit_assumption_returns_right_for_success(monkeypatch):
-    monkeypatch.setattr(handler_module, 'train_test_data_setup', lambda data: ('train', 'test'))
-    monkeypatch.setattr(handler_module.MemoryAnalytics, 'log', staticmethod(lambda *args, **kwargs: None))
+    monkeypatch.setattr(handler_module, 'train_test_data_setup',
+                        lambda data: ('train', 'test'))
+    monkeypatch.setattr(handler_module.MemoryAnalytics, 'log',
+                        staticmethod(lambda *args, **kwargs: None))
 
     pipeline = _FakePipeline()
     result = AssumptionsHandler(SimpleNamespace()).try_fit_assumption(pipeline)
@@ -41,7 +43,8 @@ def test_try_fit_assumption_returns_right_for_success(monkeypatch):
 
 
 def test_try_fit_assumption_returns_left_for_expected_fit_failure(monkeypatch):
-    monkeypatch.setattr(handler_module, 'train_test_data_setup', lambda data: ('train', 'test'))
+    monkeypatch.setattr(handler_module, 'train_test_data_setup',
+                        lambda data: ('train', 'test'))
 
     pipeline = _FakePipeline(should_fail=True)
     result = AssumptionsHandler(SimpleNamespace()).try_fit_assumption(pipeline)
@@ -55,18 +58,21 @@ def test_try_fit_assumption_returns_left_for_expected_fit_failure(monkeypatch):
 def test_fit_assumption_and_check_correctness_keeps_compatibility_wrapper(monkeypatch):
     handler = AssumptionsHandler(SimpleNamespace())
     pipeline = _FakePipeline()
-    monkeypatch.setattr(handler, 'try_fit_assumption', lambda **kwargs: Right(pipeline))
+    monkeypatch.setattr(handler, 'try_fit_assumption',
+                        lambda **kwargs: Right(pipeline))
 
     assert handler.fit_assumption_and_check_correctness(pipeline) is pipeline
 
-    monkeypatch.setattr(handler, 'try_fit_assumption', lambda **kwargs: Left(SimpleNamespace(message='boom')))
+    monkeypatch.setattr(handler, 'try_fit_assumption',
+                        lambda **kwargs: Left(SimpleNamespace(message='boom')))
 
     try:
         handler.fit_assumption_and_check_correctness(pipeline)
     except ValueError as error:
         assert str(error) == 'boom'
     else:
-        raise AssertionError('Compatibility wrapper should raise ValueError for failed assumption fitting')
+        raise AssertionError(
+            'Compatibility wrapper should raise ValueError for failed assumption fitting')
 
 
 def test_fit_assumption_and_check_correctness_raises_from_original_exception(monkeypatch):
@@ -74,7 +80,8 @@ def test_fit_assumption_and_check_correctness_raises_from_original_exception(mon
     pipeline = _FakePipeline()
     original_error = RuntimeError('fit failed')
     fit_error = SimpleNamespace(message='boom', exception=original_error)
-    monkeypatch.setattr(handler, 'try_fit_assumption', lambda **kwargs: Left(fit_error))
+    monkeypatch.setattr(handler, 'try_fit_assumption',
+                        lambda **kwargs: Left(fit_error))
 
     try:
         handler.fit_assumption_and_check_correctness(pipeline)
@@ -82,4 +89,5 @@ def test_fit_assumption_and_check_correctness_raises_from_original_exception(mon
         assert str(error) == 'boom'
         assert error.__cause__ is original_error
     else:
-        raise AssertionError('Compatibility wrapper should chain original fit error')
+        raise AssertionError(
+            'Compatibility wrapper should chain original fit error')

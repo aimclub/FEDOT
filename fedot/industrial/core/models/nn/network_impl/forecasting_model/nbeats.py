@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 import torch
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     transform_features_and_target_into_lagged
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -39,7 +39,8 @@ class NBeatsModel(BaseNeuralModel):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.is_generic_architecture = self.params.get("is_generic_architecture", True)
+        self.is_generic_architecture = self.params.get(
+            "is_generic_architecture", True)
         self.epochs = self.params.get("epochs", 10)
         self.batch_size = self.params.get("batch_size", 16)
         self.loss = self.params.get("loss", 'mse')
@@ -57,7 +58,8 @@ class NBeatsModel(BaseNeuralModel):
 
         self.n_seasonality_blocks = self.params.get("n_seasonality_blocks", 3)
         self.n_seasonality_layers = self.params.get("n_seasonality_layers", 4)
-        self.seasonality_layer_size = self.params.get("seasonality_layer_size", 2048)
+        self.seasonality_layer_size = self.params.get(
+            "seasonality_layer_size", 2048)
         self.n_of_harmonics = self.params.get("n_of_harmonics", 1)
 
     def _init_model(self, ts):

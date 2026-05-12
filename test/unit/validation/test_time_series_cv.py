@@ -18,7 +18,7 @@ from fedot.core.repository.metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.split.cv_folds import cv_generator
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -72,7 +72,8 @@ def test_tuner_cv_correct():
 
     simple_pipeline = get_simple_ts_pipeline(window_size=2)
 
-    max_window = int(time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
+    max_window = int(
+        time_series.features.shape[0] / (folds + 1)) - (forecast_len * validation_blocks) - 1
     ppl_ss = PipelineSearchSpace({'lagged': {'window_size': {'hyperopt-dist': hp.uniformint,
                                                              'sampling-scope': [2, max_window],
                                                              'type': 'discrete'}}})

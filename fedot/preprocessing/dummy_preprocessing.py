@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Union
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from .base_preprocessing import BasePreprocessor
 
 if TYPE_CHECKING:

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -26,7 +26,8 @@ def get_mixed_data_with_str_and_float_values(idx: int = None):
                          [1, 0, 1],
                          [1, 1, 0],
                          [0, 0, 0]], dtype=object)
-    target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
+    target = np.array([['no'], ['yes'], ['yes'], ['yes'],
+                      ['no'], ['no'], ['no'], ['no']])
     if isinstance(idx, int):
         input_data = InputData(idx=np.arange(8),
                                features=features[:, idx], target=target, task=task, data_type=DataTypesEnum.table)
@@ -37,12 +38,14 @@ def get_mixed_data_with_str_and_float_values(idx: int = None):
 
 
 def get_data_with_string_columns():
-    file_path = fedot_project_root().joinpath('test/data/data_with_mixed_column.csv')
+    file_path = fedot_project_root().joinpath(
+        'test/data/data_with_mixed_column.csv')
     df = pd.read_csv(file_path)
 
     task = Task(TaskTypesEnum.classification)
     input_data = InputData(idx=np.arange(len(df)),
-                           features=np.array(df[['mixed_column', 'numerical_column']]),
+                           features=np.array(
+                               df[['mixed_column', 'numerical_column']]),
                            target=np.array(df['target']).reshape(-1, 1),
                            task=task,
                            data_type=DataTypesEnum.table)
@@ -92,20 +95,24 @@ def data_with_complicated_types():
 
     task = Task(TaskTypesEnum.classification)
     features = np.array([[0, np.nan, 1, 1, 1, 'monday', 'a', 'true', 1, '0', 'a'],
-                         [np.nan, 5, 2, 2, 0, 'tuesday', 'b', np.nan, 0, '1', np.inf],
+                         [np.nan, 5, 2, 2, 0, 'tuesday',
+                             'b', np.nan, 0, '1', np.inf],
                          [2, np.nan, 3, 3, np.nan, 3, 'c', 'false', 1, '?', 'c'],
                          [3, np.nan, 4, 4, 3.0, 4, 'a', 'true', 0, 'error', 'd'],
                          [4, np.nan, 5, 5.0, 0, 5, 'b', np.nan, 0, '3', 'e'],
                          [5, np.nan, 6, 6, 0, 6, 'c', 'false', 0, '4', 'f'],
                          [6, np.inf, 7, 7, 0, 7, 'a', 'true', 1, '5', 'g'],
                          [7, np.inf, 8, 8, 1.0, 1, 'b', np.nan, 0, '6', 'h'],
-                         [np.inf, np.inf, '9', '9', 2, 2, np.nan, 'true', 1, '7', 'i'],
+                         [np.inf, np.inf, '9', '9', 2, 2,
+                             np.nan, 'true', 1, '7', 'i'],
                          [9, np.inf, '10', '10', 2, 3, 'c', 'false', 0, '8', 'j'],
                          [10, np.nan, 11.0, 11.0, 0, 4, 'c', 'false', 0, '9', 'k'],
-                         [11, np.nan, 12, 12, 2.0, 5, np.nan, 'false', 1, '10', 'l'],
+                         [11, np.nan, 12, 12, 2.0, 5,
+                             np.nan, 'false', 1, '10', 'l'],
                          [12, np.nan, 1, 1.0, 1.0, 6, 'b', 'false', 0, '11', 'm'],
                          [13, np.nan, 2, 2, 1, 7, 'c', 'true', np.nan, '12', 'n'],
-                         [14, np.nan, 3, 3, 2.0, 1, 'a', 'false', np.nan, 'error', 'o'],
+                         [14, np.nan, 3, 3, 2.0, 1, 'a',
+                             'false', np.nan, 'error', 'o'],
                          [15, np.nan, 4, 4, 1, 2, 'a', 'false', np.nan, '13', 'p'],
                          [16, 2, 5, 12, 0, 3, 'd', 'true', 1, '?', 'r'],
                          [17, 3, 6, 13, 0, 4, 'd', 'false', 0, '17', 's']],
@@ -145,7 +152,8 @@ def test_column_types_process_correctly():
     """
 
     data = data_with_mixed_types_in_each_column()
-    train_data, test_data = train_test_data_setup(data, split_ratio=0.9, stratify=False)
+    train_data, test_data = train_test_data_setup(
+        data, split_ratio=0.9, stratify=False)
 
     # Remove target from test sample
     test_data.target = None
@@ -165,7 +173,8 @@ def test_complicated_table_types_processed_correctly():
     train_data, test_data = data_with_complicated_types()
 
     pipeline = Pipeline(PipelineNode('dt'))
-    pipeline = correct_preprocessing_params(pipeline, categorical_max_uniques_th=13)
+    pipeline = correct_preprocessing_params(
+        pipeline, categorical_max_uniques_th=13)
     train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
 
@@ -206,7 +215,8 @@ def test_binary_pseudo_string_column_process_correctly():
                          ['0'],
                          ['0.0'],
                          ['1']], dtype=object)
-    target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
+    target = np.array([['no'], ['yes'], ['yes'], ['yes'],
+                      ['no'], ['no'], ['no'], ['no']])
     input_data = InputData(idx=np.arange(8),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
@@ -224,12 +234,14 @@ def test_binary_pseudo_string_column_process_correctly():
 
     assert train_predicted.features.shape[1] == 1
     assert all(isinstance(el[0], types_encountered) for el in train_predicted.features) or \
-        all(isinstance(el[0], types_encountered) for el in train_predicted.features)
+        all(isinstance(el[0], types_encountered)
+            for el in train_predicted.features)
 
 
 def fit_predict_cycle_for_testing(idx: int):
     input_data = get_mixed_data_with_str_and_float_values(idx=idx)
-    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9, stratify=False)
+    train_data, test_data = train_test_data_setup(
+        input_data, split_ratio=0.9, stratify=False)
 
     pipeline = Pipeline(PipelineNode('dt'))
     pipeline = correct_preprocessing_params(pipeline)
@@ -257,7 +269,8 @@ def test_mixed_column_with_str_and_float_values():
 
     assert train_predicted.features.shape[1] == 1
     assert all(isinstance(el[0], types_encountered) for el in train_predicted.features) or \
-        all(isinstance(el[0], types_encountered) for el in train_predicted.features)
+        all(isinstance(el[0], types_encountered)
+            for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
     try:

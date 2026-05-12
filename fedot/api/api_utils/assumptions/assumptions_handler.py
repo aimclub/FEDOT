@@ -13,8 +13,8 @@ from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.memory import MemoryAnalytics
 
@@ -74,7 +74,8 @@ class AssumptionsHandler:
             eval_n_jobs=eval_n_jobs,
         )
         if fit_result.is_left():
-            fit_error = fit_result.monoid[0] if getattr(fit_result, 'monoid', None) else fit_result.value
+            fit_error = fit_result.monoid[0] if getattr(
+                fit_result, 'monoid', None) else fit_result.value
             self._raise_evaluating_exception(fit_error)
         return fit_result.value
 
@@ -98,12 +99,14 @@ class AssumptionsHandler:
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
 
-            MemoryAnalytics.log(self.log, additional_info='fitting of the initial pipeline')
+            MemoryAnalytics.log(
+                self.log, additional_info='fitting of the initial pipeline')
             return Right(pipeline)
 
         except Exception as ex:
             fit_error = build_assumption_fit_error(ex)
-            self.log.exception(f'Initial pipeline fit was failed due to: {fit_error.cause}.')
+            self.log.exception(
+                f'Initial pipeline fit was failed due to: {fit_error.cause}.')
             return Left(fit_error)
 
     def _raise_evaluating_exception(self, fit_error):
@@ -127,5 +130,6 @@ class AssumptionsHandler:
             chooser=change_preset_based_on_initial_fit,
         )
         if decision.was_changed:
-            self.log.message(f"Preset was changed to {decision.preset} due to fit time estimation for initial model.")
+            self.log.message(
+                f"Preset was changed to {decision.preset} due to fit time estimation for initial model.")
         return decision.preset

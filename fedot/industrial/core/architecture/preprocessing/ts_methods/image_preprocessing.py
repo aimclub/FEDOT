@@ -1,7 +1,7 @@
 from typing import Optional, Sequence, Tuple
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
@@ -64,7 +64,8 @@ class ContrastEqualization(AbstractPreprocessingHandler):
                         dtype=values.dtype,
                     )
                     out = ranks / (n_valid - 1)
-                    out = out * (self.max_range - self.min_range) + self.min_range
+                    out = out * (self.max_range -
+                                 self.min_range) + self.min_range
 
                 updated = values.clone()
                 updated[mask] = out

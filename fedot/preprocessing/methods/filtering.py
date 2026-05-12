@@ -1,7 +1,7 @@
 from typing import Optional, Sequence
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
@@ -95,8 +95,10 @@ class VarianceThreshold(AbstractPreprocessingHandler):
 
         mean = sum_values / count.clamp(min=1).to(selected.dtype)
 
-        centered = torch.where(mask, selected - mean, torch.zeros_like(selected))
-        var = (centered ** 2).sum(dim=0) / count.clamp(min=1).to(selected.dtype)
+        centered = torch.where(mask, selected - mean,
+                               torch.zeros_like(selected))
+        var = (centered ** 2).sum(dim=0) / \
+            count.clamp(min=1).to(selected.dtype)
 
         # Если в колонке нет ни одного валидного значения, считаем variance = 0
         var = torch.where(count > 0, var, torch.zeros_like(var))
@@ -105,7 +107,8 @@ class VarianceThreshold(AbstractPreprocessingHandler):
         selected_support = var > self.threshold
 
         n_features = features.shape[1]
-        support_mask = torch.ones(n_features, dtype=torch.bool, device=features.device)
+        support_mask = torch.ones(
+            n_features, dtype=torch.bool, device=features.device)
         support_mask[list(self.features_idx)] = selected_support
 
         self.support_mask = support_mask

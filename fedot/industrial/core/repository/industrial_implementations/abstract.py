@@ -4,12 +4,12 @@ from itertools import chain
 from typing import List, Optional, Union
 
 from fedot.core.constants import default_data_split_ratio_by_task
-from fedot.core.data.array_utilities import atleast_4d
-from fedot.core.data.cv_folds import cv_generator
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import _split_input_data_by_indexes
+from fedot.core.data.common.array_utils import atleast_4d
+from fedot.core.data.split.cv_folds import cv_generator
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.split.data_split import _split_input_data_by_indexes
 from fedot.core.data.merge.data_merger import TSDataMerger, DataMerger, ImageDataMerger, TextDataMerger
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.optimisers.objective import DataSource
 from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
@@ -260,17 +260,21 @@ def preprocess_industrial_predicts(*args) -> List[np.array]:
 def find_main_output_industrial(outputs: List['OutputData']) -> 'OutputData':
     """ Returns first output with main target or (if there are
     no main targets) the output with priority secondary target. """
-    combine_ts_and_multi_ts = outputs[0].data_type.value.__contains__('time') and len(outputs) != 1
+    combine_ts_and_multi_ts = outputs[0].data_type.value.__contains__(
+        'time') and len(outputs) != 1
     if combine_ts_and_multi_ts:
         try:
-            priority_output = [x for x in outputs if len(x.target.shape) < 2][0]
+            priority_output = [
+                x for x in outputs if len(x.target.shape) < 2][0]
         except Exception:
-            priority_output = outputs[0]  # [x for x in outputs if len(x.target.shape) < 2][0]
+            # [x for x in outputs if len(x.target.shape) < 2][0]
+            priority_output = outputs[0]
     else:
         priority_output = next((output for output in outputs
                                 if output.supplementary_data.is_main_target), None)
         if not priority_output:
-            flow_lengths = [output.supplementary_data.data_flow_length for output in outputs]
+            flow_lengths = [
+                output.supplementary_data.data_flow_length for output in outputs]
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
     return priority_output
@@ -284,7 +288,8 @@ def get_merger_industrial(outputs: List['OutputData']) -> 'DataMerger':
     if DataTypesEnum.ts in list_of_datatype:
         for output in outputs:
             output.data_type = DataTypesEnum.ts
-    data_type = DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
+    data_type = DataMerger.get_datatype_for_merge(
+        output.data_type for output in outputs)
     if data_type is None:
         raise ValueError("Can't merge different data types")
 
@@ -351,7 +356,8 @@ def transform_topo_extractor_industrial(self, input_data: InputData) -> OutputDa
         else input_data.features.reshape(1, -1)
     with Parallel(n_jobs=self.n_jobs, prefer='processes') as parallel:
         topological_features = parallel(delayed(self._extract_features)
-                                        (np.mean(features[i:i + 2, ::self.stride], axis=0))
+                                        (np.mean(
+                                            features[i:i + 2, ::self.stride], axis=0))
                                         for i in range(0, features.shape[0], 2))
     if len(topological_features) * 2 < features.shape[0]:
         topological_features.append(topological_features[-1])

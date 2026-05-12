@@ -2,7 +2,7 @@ import json
 from copy import deepcopy, copy
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -70,7 +70,8 @@ class LaggedAR(ModelImplementation):
     def build_tuner(self, model_to_tune, tuning_params, train_data):
         tuning_data = self._define_tuning_data(train_data)
         search_space = self._define_search_space()
-        pipeline_tuner = self._create_tuner(search_space, tuning_params, tuning_data)
+        pipeline_tuner = self._create_tuner(
+            search_space, tuning_params, tuning_data)
         model_to_tune = pipeline_tuner.tune(model_to_tune)
         model_to_tune.fit(train_data)
         del pipeline_tuner
@@ -98,7 +99,8 @@ class LaggedAR(ModelImplementation):
         return input_data
 
     def fit(self, input_data):
-        self.ts_patch_len = round(input_data.features.shape[0] * 0.01 * self.window_size)
+        self.ts_patch_len = round(
+            input_data.features.shape[0] * 0.01 * self.window_size)
         input_data = self._create_pcd(input_data, True)
         model_to_tune = self._define_model()
         self.tuned_model = self.build_tuner(
@@ -118,7 +120,8 @@ class LaggedAR(ModelImplementation):
         # Calculate n_rows based on actual array size to ensure exact division
         if prediction.predict.shape[0] % forecast_length != 0:
             # Trim the prediction array to make it divisible by forecast_length
-            trimmed_size = (prediction.predict.shape[0] // forecast_length) * forecast_length
+            trimmed_size = (
+                prediction.predict.shape[0] // forecast_length) * forecast_length
             if trimmed_size == 0:
                 raise ValueError(
                     "Forecast length is greater than the number of predictions, resulting in an invalid trimmed size.")

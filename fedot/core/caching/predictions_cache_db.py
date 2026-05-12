@@ -4,7 +4,7 @@ from contextlib import closing
 from typing import Optional, List, Tuple
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 
 
 class PredictionsCacheDB(BaseCacheDB):
@@ -40,7 +40,8 @@ class PredictionsCacheDB(BaseCacheDB):
         super().__init__(main_table="predictions",
                          cache_dir=cache_dir,
                          use_stats=use_stats,
-                         stats_keys=['fit_hit', 'fit_total', 'pred_hit', 'pred_total'],
+                         stats_keys=['fit_hit', 'fit_total',
+                                     'pred_hit', 'pred_total'],
                          custom_pid=custom_pid)
         self._init_db()
         if self.use_stats:
@@ -53,8 +54,10 @@ class PredictionsCacheDB(BaseCacheDB):
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                pickled_data = sqlite3.Binary(pickle.dumps(outputData, pickle.HIGHEST_PROTOCOL))
-                cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [uid, pickled_data])
+                pickled_data = sqlite3.Binary(pickle.dumps(
+                    outputData, pickle.HIGHEST_PROTOCOL))
+                cur.execute(f"INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?);", [
+                            uid, pickled_data])
 
     def get_prediction(self, uid: str) -> Optional[OutputData]:
         """
@@ -113,4 +116,5 @@ class PredictionsCacheDB(BaseCacheDB):
             with conn:
                 cur = conn.cursor()
                 cur.execute("PRAGMA journal_mode=WAL;")
-                cur.execute(self.CREATE_MAIN_TABLE_QUERY.format(table_name=self._main_table))
+                cur.execute(self.CREATE_MAIN_TABLE_QUERY.format(
+                    table_name=self._main_table))

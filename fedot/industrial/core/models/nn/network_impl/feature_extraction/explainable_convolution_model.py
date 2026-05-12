@@ -156,14 +156,17 @@ class XCM(Module):
                             **kwargs):
 
         att_maps = self.get_attribution_map(model=self,
-                                            modules=[self.conv2dblock, self.conv1dblock],
+                                            modules=[self.conv2dblock,
+                                                     self.conv1dblock],
                                             features=input_data.x,
                                             target=input_data.y,
                                             detach=detach,
                                             cpu=cpu,
                                             apply_relu=apply_relu)
-        att_maps[0] = (att_maps[0] - att_maps[0].min()) / (att_maps[0].max() - att_maps[0].min())
-        att_maps[1] = (att_maps[1] - att_maps[1].min()) / (att_maps[1].max() - att_maps[1].min())
+        att_maps[0] = (att_maps[0] - att_maps[0].min()) / \
+            (att_maps[0].max() - att_maps[0].min())
+        att_maps[1] = (att_maps[1] - att_maps[1].min()) / \
+            (att_maps[1].max() - att_maps[1].min())
 
         visualise_gradcam(att_maps,
                           input_data.supplementary_data,

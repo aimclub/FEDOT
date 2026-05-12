@@ -1,9 +1,8 @@
 from typing import Optional, Sequence
 import torch
-from sentence_transformers import SentenceTransformer
 
 from fedot.core.backend.backend import Backend, torch_to_xp
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
@@ -19,6 +18,18 @@ How to add a new embedding method
    `EMBEDDING_METHOD_MAPPING`, e.g.:
    `EmbeddingMethodEnum.my_method: my_embedding_fn`.
 """
+
+
+def _load_sentence_transformer():
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as ex:
+        raise ImportError(
+            "Transformer text embeddings require the optional dependency "
+            "`sentence-transformers`. Install it to use EmbeddingMethodEnum.transformer."
+        ) from ex
+
+    return SentenceTransformer
 
 
 class TextToEmbedding:
@@ -42,9 +53,11 @@ class TextToEmbedding:
                 CUDA is used when available, otherwise CPU is used.
         """
         if device is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu")
 
         self.device = device
+        SentenceTransformer = _load_sentence_transformer()
         self.model = SentenceTransformer(model_name, device=str(device))
 
     def __call__(self, sentences: list[str]) -> torch.Tensor:

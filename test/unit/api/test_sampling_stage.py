@@ -5,7 +5,7 @@ from sklearn.datasets import make_classification
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingProviderResult
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -123,7 +123,8 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
             return 0.97
         return 0.8
 
-    monkeypatch.setattr(SamplingStageExecutor, '_score_light_model', fake_score)
+    monkeypatch.setattr(SamplingStageExecutor,
+                        '_score_light_model', fake_score)
 
     result = executor.execute(data)
     assert result.metadata['selected_ratio'] == pytest.approx(0.5)
@@ -145,7 +146,8 @@ def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
     def missing_provider(*args, **kwargs):
         raise ModuleNotFoundError('sampling zoo not installed')
 
-    monkeypatch.setattr(SamplingStageExecutor, '_create_provider', missing_provider)
+    monkeypatch.setattr(SamplingStageExecutor,
+                        '_create_provider', missing_provider)
 
     with pytest.raises(ModuleNotFoundError):
         executor.execute(data)

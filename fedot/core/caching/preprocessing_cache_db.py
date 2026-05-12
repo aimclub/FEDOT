@@ -39,11 +39,13 @@ class PreprocessingCacheDB(BaseCacheDB):
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute(f'SELECT encoder, imputer FROM {self._main_table} WHERE id = ?;', [uid])
+                cur.execute(
+                    f'SELECT encoder, imputer FROM {self._main_table} WHERE id = ?;', [uid])
                 matched = cur.fetchone()
                 is_loaded = False
                 if matched is not None:
-                    matched = tuple([pickle.loads(matched[i]) for i in range(2)])
+                    matched = tuple([pickle.loads(matched[i])
+                                    for i in range(2)])
                     is_loaded = True
                 if self.use_stats:
                     if is_loaded:
@@ -61,8 +63,10 @@ class PreprocessingCacheDB(BaseCacheDB):
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                pickled_encoder = sqlite3.Binary(pickle.dumps(value.features_encoders, pickle.HIGHEST_PROTOCOL))
-                pickled_imputer = sqlite3.Binary(pickle.dumps(value.features_imputers, pickle.HIGHEST_PROTOCOL))
+                pickled_encoder = sqlite3.Binary(pickle.dumps(
+                    value.features_encoders, pickle.HIGHEST_PROTOCOL))
+                pickled_imputer = sqlite3.Binary(pickle.dumps(
+                    value.features_imputers, pickle.HIGHEST_PROTOCOL))
                 cur.execute(f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?, ?);',
                             [uid, pickled_encoder, pickled_imputer])
 

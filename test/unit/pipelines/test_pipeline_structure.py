@@ -9,14 +9,19 @@ def test_correct_pipeline_encoder_imputer_validation():
     take right places in the pipeline.
     """
     first_source = PipelineNode('data_source_table')
-    second_imputer = PipelineNode('simple_imputation', nodes_from=[first_source])
-    third_encoder = PipelineNode('one_hot_encoding', nodes_from=[second_imputer])
-    fourth_imputer = PipelineNode('simple_imputation', nodes_from=[third_encoder])
+    second_imputer = PipelineNode(
+        'simple_imputation', nodes_from=[first_source])
+    third_encoder = PipelineNode(
+        'one_hot_encoding', nodes_from=[second_imputer])
+    fourth_imputer = PipelineNode(
+        'simple_imputation', nodes_from=[third_encoder])
     root = PipelineNode('linear', nodes_from=[fourth_imputer])
     pipeline = Pipeline(root)
 
-    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                          tag_to_check='encoding')
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                         tag_to_check='imputation')
 
     assert encoding_correct is True
     assert imputer_correct is True
@@ -33,14 +38,19 @@ def test_non_correct_pipeline_encoder_imputer_validation():
 
     second_rfr = PipelineNode('rfr', nodes_from=[first_imputation])
     second_ridge = PipelineNode('ridge', nodes_from=[first_encoder])
-    second_encoder = PipelineNode('one_hot_encoding', nodes_from=[first_imputation])
+    second_encoder = PipelineNode(
+        'one_hot_encoding', nodes_from=[first_imputation])
 
-    third_imputer = PipelineNode('simple_imputation', nodes_from=[second_ridge])
-    root = PipelineNode('linear', nodes_from=[second_rfr, third_imputer, second_encoder])
+    third_imputer = PipelineNode(
+        'simple_imputation', nodes_from=[second_ridge])
+    root = PipelineNode('linear', nodes_from=[
+                        second_rfr, third_imputer, second_encoder])
     pipeline = Pipeline(root)
 
-    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                          tag_to_check='encoding')
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline,
+                                                                         tag_to_check='imputation')
 
     assert encoding_correct is False
     assert imputer_correct is False

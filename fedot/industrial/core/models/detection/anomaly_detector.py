@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Optional, Union
 
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -75,9 +75,11 @@ class AnomalyDetector(ModelImplementation):
     def _detect_anomaly_sample(self, score_matrix_row):
         outlier_score = score_matrix_row[0]
         if isinstance(self.contamination, str):
-            anomaly_sample = abs(outlier_score) > abs(self.anomaly_threshold) + abs(self.offset)
+            anomaly_sample = abs(outlier_score) > abs(
+                self.anomaly_threshold) + abs(self.offset)
         else:
-            anomaly_sample = outlier_score < 0 and abs(outlier_score) > self.anomaly_threshold
+            anomaly_sample = outlier_score < 0 and abs(
+                outlier_score) > self.anomaly_threshold
         return anomaly_sample
 
     def _convert_scores_to_labels(self, prob_matrix_row) -> int:
@@ -87,7 +89,8 @@ class AnomalyDetector(ModelImplementation):
     def _convert_scores_to_probs(self, prob_matrix_row) -> int:
         outlier_score = prob_matrix_row[0]
         anomaly_sample = self._detect_anomaly_sample(prob_matrix_row)
-        prob = np.array([abs(outlier_score), 0]) if not anomaly_sample else np.array([0, abs(outlier_score)])
+        prob = np.array([abs(outlier_score), 0]) if not anomaly_sample else np.array(
+            [0, abs(outlier_score)])
         return prob
 
     def _convert_to_output(self,
@@ -97,18 +100,22 @@ class AnomalyDetector(ModelImplementation):
         if input_data.features.shape[0] == predict.shape[0]:
             return predict
         else:
-            prediction = np.zeros((input_data.features.shape[0], predict.shape[1]))
+            prediction = np.zeros(
+                (input_data.features.shape[0], predict.shape[1]))
             start_idx = prediction.shape[0] - predict.shape[0]
             prediction[start_idx:, :] = predict
             return prediction
 
     def _predict(self, input_data: InputData, output_mode: str = 'default') -> np.ndarray:
-        converted_input_data = self.convert_input_data(input_data, fit_stage=False)
-        scores = self.model_impl.score_samples(converted_input_data).reshape(-1, 1)
+        converted_input_data = self.convert_input_data(
+            input_data, fit_stage=False)
+        scores = self.model_impl.score_samples(
+            converted_input_data).reshape(-1, 1)
         if output_mode in ['probs', 'default']:
             return scores
         else:
-            prediction = np.apply_along_axis(self._convert_scores_to_labels, 1, scores).reshape(-1, 1)
+            prediction = np.apply_along_axis(
+                self._convert_scores_to_labels, 1, scores).reshape(-1, 1)
             prediction = self._convert_to_output(input_data, prediction)
             return prediction
 
@@ -129,10 +136,13 @@ class AnomalyDetector(ModelImplementation):
         return self.score_samples(input_data)
 
     def score_samples(self, input_data: InputData) -> np.ndarray:
-        converted_input_data = self.convert_input_data(input_data, fit_stage=False)
-        scores = self.model_impl.score_samples(converted_input_data).reshape(-1, 1)
+        converted_input_data = self.convert_input_data(
+            input_data, fit_stage=False)
+        scores = self.model_impl.score_samples(
+            converted_input_data).reshape(-1, 1)
         self.anomaly_threshold = self.anomaly_threshold if self.anomaly_threshold is not None \
             else abs(np.quantile(scores, 0.01))
-        prediction = np.apply_along_axis(self._convert_scores_to_probs, 1, scores)
+        prediction = np.apply_along_axis(
+            self._convert_scores_to_probs, 1, scores)
         prediction = self._convert_to_output(input_data, prediction)
         return prediction

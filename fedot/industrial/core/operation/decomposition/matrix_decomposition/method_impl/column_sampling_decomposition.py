@@ -1,6 +1,6 @@
 from typing import Tuple, Union, Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from numpy import linalg as LA
@@ -84,8 +84,10 @@ class CURDecomposition:
             the stable rank
         """
         n_samples = max(matrix.shape)
-        min_num_samples = johnson_lindenstrauss_min_dim(n_samples, eps=self.tolerance).tolist()
-        self.stable_rank = min([x if x < n_samples else n_samples for x in min_num_samples])
+        min_num_samples = johnson_lindenstrauss_min_dim(
+            n_samples, eps=self.tolerance).tolist()
+        self.stable_rank = min(
+            [x if x < n_samples else n_samples for x in min_num_samples])
         if isinstance(self.stable_rank, float):
             self.stable_rank = round(max(matrix.shape) * self.stable_rank)
 
@@ -139,11 +141,13 @@ class CURDecomposition:
 
     def transform(self, input_data: InputData) -> tuple:
         if not self.fitted:
-            sampled_tensor, samplet_target = self.fit_transform(input_data.features, input_data.target)
+            sampled_tensor, samplet_target = self.fit_transform(
+                input_data.features, input_data.target)
             output_data = self._convert_to_output(sampled_tensor, input_data)
             output_data.target = samplet_target
         else:
-            output_data = self._convert_to_output(input_data.features, input_data)
+            output_data = self._convert_to_output(
+                input_data.features, input_data)
         return output_data
 
     def reconstruct_basis(self, C, U, R, ts_length):
@@ -165,7 +169,8 @@ class CURDecomposition:
             self, matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # Evaluate norms for columns and rows
         matrix = preprocessing.MinMaxScaler().fit_transform(np.nan_to_num(matrix))
-        col_norms, row_norms = np.nan_to_num(LA.norm(matrix, axis=0)), np.nan_to_num(LA.norm(matrix, axis=1))
+        col_norms, row_norms = np.nan_to_num(
+            LA.norm(matrix, axis=0)), np.nan_to_num(LA.norm(matrix, axis=1))
         matrix_norm = LA.norm(matrix, 'fro')  # np.sum(np.power(matrix, 2))
 
         # Compute the probabilities for selecting columns and rows
@@ -177,11 +182,14 @@ class CURDecomposition:
             self.row_indices = np.concatenate([np.sort(np.argsort(row_probs[cls_idx])[-row_rank:])
                                                for cls_idx in self.classes_idx])
 
-        row_scale_factors = 1 / np.sqrt(self.stable_rank * row_probs[self.row_indices])
-        col_scale_factors = 1 / np.sqrt(self.stable_rank * col_probs[self.column_indices])
+        row_scale_factors = 1 / \
+            np.sqrt(self.stable_rank * row_probs[self.row_indices])
+        col_scale_factors = 1 / \
+            np.sqrt(self.stable_rank * col_probs[self.column_indices])
 
         C_matrix = matrix[:, self.column_indices] * col_scale_factors
-        R_matrix = matrix[self.row_indices, :] * row_scale_factors[:, np.newaxis]
+        R_matrix = matrix[self.row_indices, :] * \
+            row_scale_factors[:, np.newaxis]
         W_matrix = matrix[self.row_indices, :][:, self.column_indices]
         # Select k columns and rows based on the probabilities p and q
         # row_probs = preprocessing.Normalizer(norm='l1').fit_transform(row_probs.reshape(1, -1)).flatten()

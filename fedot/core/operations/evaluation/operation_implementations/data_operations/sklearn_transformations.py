@@ -12,8 +12,8 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScal
 
 
 from fedot.core.constants import PCA_MIN_THRESHOLD_TS
-from fedot.core.data.data import InputData, OutputData, data_type_is_table
-from fedot.core.data.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
+from fedot.core.data.input_data.data import InputData, OutputData, data_type_is_table
+from fedot.preprocessing.data_preprocessing import convert_into_column, divide_data_categorical_numerical, \
     replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
@@ -47,10 +47,12 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             trained PCA model (optional output)
         """
 
-        self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
+        self.number_of_samples, self.number_of_features = np.array(
+            input_data.features).shape
 
         if self.number_of_features > 1:
-            self.check_and_correct_params(is_ts_data=input_data.data_type is DataTypesEnum.ts)
+            self.check_and_correct_params(
+                is_ts_data=input_data.data_type is DataTypesEnum.ts)
             # TODO: remove a workaround by refactoring other operations in troubled pipelines (e.g. topo)
             # workaround for NaN-containing arrays during pca fitting, especially for fast_ica
             # fast_ica cannot fit with features represented by a rather sparse matrix
@@ -58,7 +60,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             try:
                 self.pca.fit(features)
             except Exception as e:
-                self.log.info(f'Switched from {type(self.pca).__name__} to default PCA on fit stage due to {e}')
+                self.log.info(
+                    f'Switched from {type(self.pca).__name__} to default PCA on fit stage due to {e}')
                 self.pca = PCA()
                 self.pca.fit(features)
 
@@ -112,7 +115,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
                 else:
                     self.params.update(n_components=None)
         if is_ts_data and (n_components * self.number_of_features) < PCA_MIN_THRESHOLD_TS:
-            self.params.update(n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
+            self.params.update(
+                n_components=PCA_MIN_THRESHOLD_TS / self.number_of_features)
 
         self.pca.set_params(**self.params.to_dict())
 
@@ -127,7 +131,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         if output_data.supplementary_data.col_type_ids is None:
             output_data.supplementary_data.col_type_ids = {}
-        output_data.supplementary_data.col_type_ids['features'] = np.array([TYPE_TO_ID[float]] * n_cols)
+        output_data.supplementary_data.col_type_ids['features'] = np.array(
+            [TYPE_TO_ID[float]] * n_cols)
         return output_data
 
 
@@ -240,7 +245,8 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         if n_cols > self.th_columns:
             # Randomly choose subsample of features columns - 10 features
             column_indices = np.arange(n_cols)
-            self.columns_to_take = np.array(random.sample(list(column_indices), self.th_columns))
+            self.columns_to_take = np.array(random.sample(
+                list(column_indices), self.th_columns))
             input_data = input_data.subset_features(self.columns_to_take)
 
         return super().fit(input_data)
@@ -252,7 +258,8 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
         clipped_input_data = input_data
         if self.columns_to_take is not None:
-            clipped_input_data = input_data.subset_features(self.columns_to_take)
+            clipped_input_data = input_data.subset_features(
+                self.columns_to_take)
         try:
             output_data = super().transform(clipped_input_data)
         except Exception:
@@ -273,17 +280,21 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         if len(source_features_shape) < 2:
             return output_data
         else:
-            cols_number_added = output_data.predict.shape[1] - source_features_shape[1]
+            cols_number_added = output_data.predict.shape[1] - \
+                source_features_shape[1]
             if cols_number_added > 0:
                 # There are new columns in the table
                 if output_data.supplementary_data.col_type_ids is None:
                     output_data.supplementary_data.col_type_ids = {}
 
-                feature_type_ids = output_data.supplementary_data.col_type_ids.get('features')
+                feature_type_ids = output_data.supplementary_data.col_type_ids.get(
+                    'features')
                 if feature_type_ids is None:
-                    feature_type_ids = np.array([TYPE_TO_ID[float]] * source_features_shape[1])
+                    feature_type_ids = np.array(
+                        [TYPE_TO_ID[float]] * source_features_shape[1])
                 new_types = [TYPE_TO_ID[float]] * cols_number_added
-                output_data.supplementary_data.col_type_ids['features'] = np.append(feature_type_ids, new_types)
+                output_data.supplementary_data.col_type_ids['features'] = np.append(
+                    feature_type_ids, new_types)
 
 
 class ScalingImplementation(EncodedInvariantImplementation):
@@ -324,7 +335,8 @@ class ImputationImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params_categorical = {'strategy': 'most_frequent'}
-        self.params_cat = {**self.params.to_dict(), **default_params_categorical}
+        self.params_cat = {
+            **self.params.to_dict(), **default_params_categorical}
         self.params_num = self.params.to_dict()
         self.categorical_or_encoded_ids = None
         self.non_categorical_ids = None
@@ -359,7 +371,8 @@ class ImputationImplementation(DataOperationImplementation):
             )
 
             if categorical is not None and categorical.features.size > 0:
-                categorical.features = convert_into_column(categorical.features)
+                categorical.features = convert_into_column(
+                    categorical.features)
                 # Imputing for categorical values
                 self.imputer_cat.fit(categorical.features)
 
@@ -392,16 +405,20 @@ class ImputationImplementation(DataOperationImplementation):
             )
 
             if categorical is not None:
-                categorical_features = convert_into_column(categorical.features)
-                categorical_features = self.imputer_cat.transform(categorical_features)
+                categorical_features = convert_into_column(
+                    categorical.features)
+                categorical_features = self.imputer_cat.transform(
+                    categorical_features)
 
             if numerical is not None:
                 numerical_features = convert_into_column(numerical.features)
 
                 # Features with only two unique values must be filled in a specific way
                 self._find_binary_features(numerical_features)
-                numerical_features = self.imputer_num.transform(numerical_features)
-                numerical_features = self._correct_binary_ids_features(numerical_features)
+                numerical_features = self.imputer_num.transform(
+                    numerical_features)
+                numerical_features = self._correct_binary_ids_features(
+                    numerical_features)
 
             if categorical_features is not None and numerical_features is not None:
                 # Stack both categorical and numerical features
@@ -417,9 +434,11 @@ class ImputationImplementation(DataOperationImplementation):
 
         else:
             input_data.features = convert_into_column(input_data.features)
-            transformed_features = self.imputer_num.transform(input_data.features)
+            transformed_features = self.imputer_num.transform(
+                input_data.features)
 
-        output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
+        output_data = self._convert_to_output(
+            input_data, transformed_features, data_type=input_data.data_type)
         return output_data
 
     def fit_transform(self, input_data: InputData) -> OutputData:
@@ -440,8 +459,10 @@ class ImputationImplementation(DataOperationImplementation):
         """Merge numerical and categorical features in right order (as it was in source table)
         """
 
-        categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_or_encoded_ids)
-        numerical_df = pd.DataFrame(numerical_features, columns=self.non_categorical_ids)
+        categorical_df = pd.DataFrame(
+            categorical_features, columns=self.categorical_or_encoded_ids)
+        numerical_df = pd.DataFrame(
+            numerical_features, columns=self.non_categorical_ids)
         all_features_df = pd.concat([numerical_df, categorical_df], axis=1)
 
         # Sort column names

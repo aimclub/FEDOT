@@ -21,7 +21,8 @@ class ConvolutionalAutoEncoderDetector(AutoEncoderDetector):
     """
 
     def build_model(self):
-        self.params.update(**{'n_steps': self.n_steps, 'learning_rate': self.learning_rate})
+        self.params.update(
+            **{'n_steps': self.n_steps, 'learning_rate': self.learning_rate})
         return ConvolutionalAutoEncoder(self.params).to(device)
 
 
@@ -95,8 +96,10 @@ class ConvolutionalAutoEncoder(Module):
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
 
-        train_loader = DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
-        valid_loader = DataLoader(dataset, batch_size=batch_size, sampler=valid_sampler)
+        train_loader = DataLoader(
+            dataset, batch_size=batch_size, sampler=train_sampler)
+        valid_loader = DataLoader(
+            dataset, batch_size=batch_size, sampler=valid_sampler)
         return train_loader, valid_loader
 
     def forward(self, x):
@@ -110,7 +113,8 @@ class ConvolutionalAutoEncoder(Module):
             batch_size: int = 32,
             validation_split: float = 0.1):
         self._init_model()
-        train_loader, valid_loader = self._create_dataloader(data, batch_size, validation_split)
+        train_loader, valid_loader = self._create_dataloader(
+            data, batch_size, validation_split)
         train_steps, early_stopping, best_model, best_val_loss = max(1, len(train_loader)), EarlyStopping(), \
             None, float('inf')
         scheduler = lr_scheduler.OneCycleLR(optimizer=self.optimizer,
@@ -135,11 +139,13 @@ class ConvolutionalAutoEncoder(Module):
 
         for epoch in tqdm(range(epochs)):
             self.train()
-            train_loss = list(map(lambda batch_tuple: train_one_batch(batch_tuple), train_loader))
+            train_loss = list(
+                map(lambda batch_tuple: train_one_batch(batch_tuple), train_loader))
             train_loss = np.average(train_loss)
             if valid_loader is not None:
                 self.eval()
-                valid_loss = list(map(lambda batch_tuple: val_one_epoch(batch_tuple), valid_loader))
+                valid_loss = list(
+                    map(lambda batch_tuple: val_one_epoch(batch_tuple), valid_loader))
                 valid_loss = np.average(valid_loss)
             last_lr = scheduler.get_last_lr()[0]
             if epoch % 25 == 0:

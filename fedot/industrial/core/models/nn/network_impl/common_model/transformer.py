@@ -52,7 +52,8 @@ class TransformerModule(Module):
         self.outlinear = nn.Linear(d_model, output_dim)
 
     def forward(self, x):
-        x = self.permute(x.squeeze())  # bs x nvars x seq_len -> seq_len x bs x nvars
+        # bs x nvars x seq_len -> seq_len x bs x nvars
+        x = self.permute(x.squeeze())
         x = self.inlinear(x)  # seq_len x bs x nvars -> seq_len x bs x d_model
         x = self.relu(x)
         x = self.transformer_encoder(x)

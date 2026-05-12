@@ -7,12 +7,13 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.api_data_rules import resolve_strategy
-from fedot.core.data.data import InputData, array_to_input_data
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, array_to_input_data
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-FeaturesType = Union[str, PathLike, np.ndarray, pd.DataFrame, InputData, MultiModalData, dict, tuple]
+FeaturesType = Union[str, PathLike, np.ndarray,
+                     pd.DataFrame, InputData, MultiModalData, dict, tuple]
 TargetType = Union[str, PathLike, np.ndarray, pd.Series, dict]
 
 
@@ -175,7 +176,8 @@ class MultimodalStrategy(StrategyDefineData):
 
 def data_strategy_selector(features: FeaturesType, target: Optional[str] = None, task: Task = None,
                            is_predict: bool = None) -> Union[InputData, MultiModalData]:
-    strategy_resolution = resolve_strategy(features, _strategy_dispatch.items())
+    strategy_resolution = resolve_strategy(
+        features, _strategy_dispatch.items())
     data = DataDefiner(strategy_resolution.strategy_factory())
     return data.define_data(features, task, target, is_predict)
 

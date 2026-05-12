@@ -13,7 +13,7 @@ from golem.structural_analysis.graph_sa.sa_requirements import StructuralAnalysi
 
 from examples.advanced.structural_analysis.dataset_access import get_scoring_data
 from examples.advanced.structural_analysis.pipelines_access import get_three_depth_manual_class_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.adapters import PipelineAdapter
@@ -36,7 +36,8 @@ class SAObjective(Objective):
     def __init__(self,
                  objective: Callable,
                  quality_metrics: Dict[QualityMetricsEnum, QualityMetricCallable],
-                 complexity_metrics: Optional[Dict[ComplexityMetricsEnum, ComplexityMetricCallable]] = None,
+                 complexity_metrics: Optional[Dict[ComplexityMetricsEnum,
+                                                   ComplexityMetricCallable]] = None,
                  is_multi_objective: bool = False,
                  ):
         self.objective = objective
@@ -65,21 +66,26 @@ def structural_analysis_set_up(train_data: InputData, test_data: InputData,
         data_producer = DataSourceSplitter().build(data=data)
         objective_function = PipelineObjectiveEvaluate(objective=Objective(quality_metrics=get_value),
                                                        data_producer=data_producer)
-        objective = SAObjective(objective=objective_function, quality_metrics=metrics_)
+        objective = SAObjective(
+            objective=objective_function, quality_metrics=metrics_)
         return objective
 
     task = Task(task)
     advisor = PipelineChangeAdvisor(task)
-    primary_operations = primary_operations or ['rf', 'pca', 'normalization', 'scaling']
+    primary_operations = primary_operations or [
+        'rf', 'pca', 'normalization', 'scaling']
     secondary_operations = secondary_operations or ['dt', 'logit', 'rf', 'knn']
     requirements = PipelineComposerRequirements(primary=primary_operations,
                                                 secondary=secondary_operations)
-    node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor)
+    node_factory = PipelineOptNodeFactory(
+        requirements=requirements, advisor=advisor)
 
     # build objective function with fit and predict functions inside
     optimization_metric = metric
-    train_objective = _construct_objective(data=train_data, metric=optimization_metric)
-    test_objective = _construct_objective(data=test_data, metric=optimization_metric)
+    train_objective = _construct_objective(
+        data=train_data, metric=optimization_metric)
+    test_objective = _construct_objective(
+        data=test_data, metric=optimization_metric)
     return node_factory, train_objective, test_objective
 
 
@@ -89,7 +95,8 @@ if __name__ == '__main__':
 
     main_metric_idx = 0
 
-    node_factory, train_objective, test_objective = structural_analysis_set_up(train_data, test_data)
+    node_factory, train_objective, test_objective = structural_analysis_set_up(
+        train_data, test_data)
 
     print(f'INITIAL METRIC: {test_objective(initial_graph)}')
 
@@ -110,7 +117,8 @@ if __name__ == '__main__':
                                  path_to_save=path_to_save,
                                  is_visualize_per_iteration=False)
 
-    optimized_graph, results = sa.optimize(graph=deepcopy(initial_graph), n_jobs=1, max_iter=2)
+    optimized_graph, results = sa.optimize(
+        graph=deepcopy(initial_graph), n_jobs=1, max_iter=2)
 
     print(f'FINAL METRIC: {test_objective(optimized_graph)}')
 

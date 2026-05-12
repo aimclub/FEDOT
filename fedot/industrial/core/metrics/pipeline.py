@@ -6,7 +6,7 @@ from typing import Callable, Iterable, Tuple
 from uuid import uuid4
 
 import numpy as np
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from golem.core.optimisers.fitness import Fitness
 from golem.core.optimisers.objective.objective import to_fitness
@@ -54,13 +54,16 @@ def industrial_evaluate_pipeline(self, graph: Pipeline) -> Fitness:
     val_blocks = self._validation_blocks
     for fold_id, (train_data, test_data) in folds_list:
         try:
-            prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
+            prepared_pipeline = self.prepare_graph(
+                graph, train_data, fold_id, self._eval_n_jobs)
         except Exception as ex:
             self._log.warning(f'Unsuccessful pipeline fit during fitness evaluation. '
                               f'Skipping the pipeline. Exception <{ex}> on {graph_id}')
             stack_trace = traceback.format_exc()
-            prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
-            save_pipeline_for_debug(graph, train_data, test_data, ex, stack_trace)
+            prepared_pipeline = self.prepare_graph(
+                graph, train_data, fold_id, self._eval_n_jobs)
+            save_pipeline_for_debug(
+                graph, train_data, test_data, ex, stack_trace)
             break  # if even one fold fails, the evaluation stops
         evaluated_fitness = self._objective(prepared_pipeline,
                                             reference_data=test_data,
@@ -73,8 +76,10 @@ def industrial_evaluate_pipeline(self, graph: Pipeline) -> Fitness:
         if self._do_unfit:
             graph.unfit()
     if folds_metrics:
-        folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
-        self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
+        # averages for each metric over folds
+        folds_metrics = tuple(np.mean(folds_metrics, axis=0))
+        self._log.debug(
+            f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
     else:
         folds_metrics = None
 

@@ -37,7 +37,8 @@ def test_plan_sampling_stage_skips_for_explicit_predefined_model():
 
     assert plan.resolved_predefined_model == 'rf'
     assert plan.should_run_sampling_stage is False
-    assert plan.skip_metadata == {'status': 'skipped', 'reason': SKIP_REASON_PREDEFINED_MODEL}
+    assert plan.skip_metadata == {
+        'status': 'skipped', 'reason': SKIP_REASON_PREDEFINED_MODEL}
 
 
 def test_plan_sampling_stage_skips_for_atomized_initial_assumption():
@@ -50,7 +51,8 @@ def test_plan_sampling_stage_skips_for_atomized_initial_assumption():
 
     assert plan.resolved_predefined_model is atomized
     assert plan.should_run_sampling_stage is False
-    assert plan.skip_metadata == {'status': 'skipped', 'reason': SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION}
+    assert plan.skip_metadata == {'status': 'skipped',
+                                  'reason': SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION}
 
 
 def test_plan_sampling_stage_runs_only_when_sampling_config_present():
@@ -75,10 +77,12 @@ def test_plan_final_fit_respects_history_and_pipeline_fit_state():
     assert history_has_records(_FakeHistory(is_empty_value=True)) is False
     assert history_has_records(_FakeHistory(is_empty_value=False)) is True
 
-    assert plan_final_fit(None, pipeline_is_fitted=True).should_train_on_full_dataset is False
+    assert plan_final_fit(
+        None, pipeline_is_fitted=True).should_train_on_full_dataset is False
     assert plan_final_fit(_FakeHistory(is_empty_value=False),
                           pipeline_is_fitted=True).should_train_on_full_dataset is True
-    assert plan_final_fit(None, pipeline_is_fitted=False).should_train_on_full_dataset is True
+    assert plan_final_fit(
+        None, pipeline_is_fitted=False).should_train_on_full_dataset is True
 
 
 def test_build_composer_execution_plan_is_typed_and_deterministic():

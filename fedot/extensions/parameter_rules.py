@@ -24,8 +24,10 @@ def find_missing_required_params(required: Tuple[str, ...], params: Dict[str, An
 def resolve_extension_params(model_spec: ExternalModelSpec,
                              user_params: Optional[Dict[str, Any]] = None):
     normalized_user_params = normalize_extension_user_params(user_params)
-    resolved_params = apply_extension_defaults(model_spec.hyperparams_schema.defaults, normalized_user_params)
-    missing_required_params = find_missing_required_params(model_spec.hyperparams_schema.required, resolved_params)
+    resolved_params = apply_extension_defaults(
+        model_spec.hyperparams_schema.defaults, normalized_user_params)
+    missing_required_params = find_missing_required_params(
+        model_spec.hyperparams_schema.required, resolved_params)
 
     if missing_required_params:
         return Left(ExtensionError(

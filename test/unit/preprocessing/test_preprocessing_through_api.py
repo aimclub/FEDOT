@@ -1,9 +1,9 @@
 import numpy as np
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
@@ -11,7 +11,8 @@ from fedot.preprocessing.data_types import TYPE_TO_ID
 
 def data_with_only_categorical_features():
     """ Generate tabular data with only categorical features. All of them are binary. """
-    supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[str]] * 3)})
+    supp_data = SupplementaryData(
+        col_type_ids={'features': np.array([TYPE_TO_ID[str]] * 3)})
     task = Task(TaskTypesEnum.regression)
     features = np.array([["'a'", "0", "1"],
                          ["'b'", "1", "0"],
@@ -102,7 +103,8 @@ def data_with_nans_in_multi_target():
                          [2, 3],
                          [3, 4],
                          [1, 3]])
-    target = np.array([[0, 2], [1, 3], [np.nan, np.nan], [3, np.nan], [4, 4], [5, 6]])
+    target = np.array([[0, 2], [1, 3], [np.nan, np.nan],
+                      [3, np.nan], [4, 4], [5, 6]])
     train_input = InputData(idx=np.array([0, 1, 2, 3, 4, 5]), features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData())
@@ -264,11 +266,15 @@ def test_auto_preprocessing_mode():
     # Check for all datasets
     for data_generator in funcs:
         input_data = data_generator()
-        single_processing = Fedot(problem='regression', use_auto_preprocessing=True)
-        multi_processing = Fedot(problem='regression', use_auto_preprocessing=False)
+        single_processing = Fedot(
+            problem='regression', use_auto_preprocessing=True)
+        multi_processing = Fedot(problem='regression',
+                                 use_auto_preprocessing=False)
 
-        pipeline_single = single_processing.fit(input_data, predefined_model='auto')
-        pipeline_multi = multi_processing.fit(input_data, predefined_model='auto')
+        pipeline_single = single_processing.fit(
+            input_data, predefined_model='auto')
+        pipeline_multi = multi_processing.fit(
+            input_data, predefined_model='auto')
 
         prediction_single = pipeline_single.predict(input_data)
         prediction_multi = pipeline_multi.predict(input_data)

@@ -24,7 +24,8 @@ def test_parse_ratio_list_rejects_invalid_range():
 
 
 def test_resolve_dataset_specs_from_category_profile():
-    specs = _resolve_dataset_specs(dataset_names=(), amlb_categories=('small_samples_many_classes',))
+    specs = _resolve_dataset_specs(
+        dataset_names=(), amlb_categories=('small_samples_many_classes',))
 
     assert len(specs) > 0
     assert specs[0].name.startswith('amlb_')
@@ -32,7 +33,8 @@ def test_resolve_dataset_specs_from_category_profile():
 
 def test_resolve_dataset_specs_rejects_unknown_dataset_name():
     with pytest.raises(ValueError, match='Unknown AMLB dataset profile'):
-        _resolve_dataset_specs(dataset_names=('amlb_unknown_dataset',), amlb_categories=())
+        _resolve_dataset_specs(dataset_names=(
+            'amlb_unknown_dataset',), amlb_categories=())
 
 
 def test_json_ready_converts_numpy_scalars_and_arrays():

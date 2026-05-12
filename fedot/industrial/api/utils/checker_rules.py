@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from fedot.core.data.data_compatibility_rules import build_data_type_compatibility
+from fedot.core.data.common.compatibility_rules import build_data_type_compatibility
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.core.repository.constanst_repository import FEDOT_DATA_TYPE
@@ -29,7 +29,8 @@ class IndustrialLearningStrategyFlags:
 
 
 def resolve_industrial_data_type_plan(strategy_params: Optional[dict]) -> IndustrialDataTypePlan:
-    requested_name = 'tensor' if strategy_params is None else strategy_params.get('data_type', 'tensor')
+    requested_name = 'tensor' if strategy_params is None else strategy_params.get(
+        'data_type', 'tensor')
     if requested_name not in FEDOT_DATA_TYPE:
         raise ValueError(f'Unsupported industrial data_type: {requested_name}')
     fedot_data_type = FEDOT_DATA_TYPE[requested_name]
@@ -54,23 +55,28 @@ def build_industrial_task_plan(task_name: str, strategy_params: Optional[dict]) 
     have_predict_horizon = should_use_predict_horizon(strategy_params)
     if have_predict_horizon:
         detection_window = strategy_params['detection_window']
-        task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=detection_window))
+        task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(
+            forecast_length=detection_window))
     elif task_name == 'classification':
         task = Task(TaskTypesEnum.classification)
     elif task_name == 'regression':
         task = Task(TaskTypesEnum.regression)
     elif task_name == 'ts_forecasting':
-        forecast_length = None if strategy_params is None else strategy_params.get('forecast_length')
-        task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=forecast_length or 1))
+        forecast_length = None if strategy_params is None else strategy_params.get(
+            'forecast_length')
+        task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(
+            forecast_length=forecast_length or 1))
     else:
         raise ValueError(f'Unsupported industrial task: {task_name}')
     return IndustrialTaskPlan(task=task, have_predict_horizon=have_predict_horizon)
 
 
 def resolve_learning_strategy_flags(strategy_params: Optional[dict]) -> IndustrialLearningStrategyFlags:
-    strategy_name = None if strategy_params is None else strategy_params.get('learning_strategy')
+    strategy_name = None if strategy_params is None else strategy_params.get(
+        'learning_strategy')
     return IndustrialLearningStrategyFlags(
         strategy_name=strategy_name,
         is_big_data=bool(strategy_name and 'big' in strategy_name),
-        is_default_fedot_context=bool(strategy_name and 'tabular' in strategy_name),
+        is_default_fedot_context=bool(
+            strategy_name and 'tabular' in strategy_name),
     )

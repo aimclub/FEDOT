@@ -16,7 +16,7 @@ from sklearn.metrics import (accuracy_score, auc, f1_score, log_loss, mean_absol
 from sktime.performance_metrics.forecasting import mean_absolute_scaled_error
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -80,7 +80,8 @@ class QualityMetric(Metric):
             # if results is None:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                reference_data, results = cls._simple_prediction(pipeline, reference_data, predictions_cache, fold_id)
+                reference_data, results = cls._simple_prediction(
+                    pipeline, reference_data, predictions_cache, fold_id)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_prediction(
@@ -91,7 +92,8 @@ class QualityMetric(Metric):
                 from fedot.core.data.visualisation import plot_forecast
 
                 pipeline_id = str(uuid4())
-                save_path = Path(default_fedot_data_dir(), 'ts_forecasting_debug', pipeline_id)
+                save_path = Path(default_fedot_data_dir(),
+                                 'ts_forecasting_debug', pipeline_id)
                 if not os.path.exists(save_path):
                     os.makedirs(save_path)
                 pipeline.show(save_path=Path(save_path, 'pipeline.png'))
@@ -100,7 +102,8 @@ class QualityMetric(Metric):
                               save_path=Path(save_path, 'forecast.png'))
 
         except Exception:
-            pipeline.log.log_or_raise('info', ValueError('Metric can not be evaluated'))
+            pipeline.log.log_or_raise(
+                'info', ValueError('Metric can not be evaluated'))
 
         return metric
 
@@ -128,7 +131,8 @@ class QualityMetric(Metric):
                                        fold_id=fold_id)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
-        penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
+        penalty = abs(structural_metric *
+                      quality_metric * cls.max_penalty_part)
         metric_with_penalty = (quality_metric +
                                min(penalty, abs(quality_metric * cls.max_penalty_part)))
         return metric_with_penalty
@@ -141,7 +145,8 @@ class QualityMetric(Metric):
                               fold_id: Optional[int] = None) -> Tuple[InputData, OutputData]:
         """ Performs in-sample pipeline validation for time series prediction """
 
-        horizon = int(validation_blocks * data.task.task_params.forecast_length)
+        horizon = int(validation_blocks *
+                      data.task.task_params.forecast_length)
 
         actual_values = data.target[-horizon:]
 
@@ -232,7 +237,8 @@ class F1(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         if reference.num_classes == 2:
             pos_label = QualityMetric._get_least_frequent_val(reference.target)
-            additional_params = dict(average=F1.binary_averaging_mode, pos_label=pos_label)
+            additional_params = dict(
+                average=F1.binary_averaging_mode, pos_label=pos_label)
         else:
             additional_params = dict(average=F1.multiclass_averaging_mode)
         return f1_score(y_true=reference.target, y_pred=predicted.predict, **additional_params)
@@ -299,10 +305,12 @@ class Precision(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         n_classes = reference.num_classes
         if n_classes > 2:
-            additional_params = dict(average=Precision.multiclass_averaging_mode)
+            additional_params = dict(
+                average=Precision.multiclass_averaging_mode)
         else:
             pos_label = QualityMetric._get_least_frequent_val(reference.target)
-            additional_params = dict(pos_label=pos_label, average=Precision.binary_averaging_mode)
+            additional_params = dict(
+                pos_label=pos_label, average=Precision.binary_averaging_mode)
         return precision_score(y_true=reference.target, y_pred=predicted.predict, **additional_params)
 
 

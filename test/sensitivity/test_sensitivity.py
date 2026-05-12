@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch
 
 from examples.real_cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.structural_analysis.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze

@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.industrial.api.main import FedotIndustrial
@@ -20,7 +20,8 @@ class _DummyEncoder:
 def test_industrial_main_abstract_predict_uses_rule_based_pipeline_path(monkeypatch):
     industrial = FedotIndustrial.__new__(FedotIndustrial)
     predict_data = SimpleNamespace(
-        task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+        task=Task(TaskTypesEnum.ts_forecasting,
+                  TsForecastingParams(forecast_length=2)),
         target=np.array([1, 2, 3, 4]),
     )
     industrial.predict_data = predict_data
@@ -30,7 +31,8 @@ def test_industrial_main_abstract_predict_uses_rule_based_pipeline_path(monkeypa
             idx=np.arange(4),
             predict=np.array([1, 2, 3, 4]),
             target=None,
-            task=Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=2)),
+            task=Task(TaskTypesEnum.ts_forecasting,
+                      TsForecastingParams(forecast_length=2)),
             data_type=DataTypesEnum.ts,
         )),
         condition_check=SimpleNamespace(
@@ -40,23 +42,27 @@ def test_industrial_main_abstract_predict_uses_rule_based_pipeline_path(monkeypa
         ),
     )
 
-    result = industrial._FedotIndustrial__abstract_predict(predict_data, 'labels')
+    result = industrial._FedotIndustrial__abstract_predict(
+        predict_data, 'labels')
 
     assert np.array_equal(result, np.array([13, 14]))
-    assert np.array_equal(industrial.predict_data.target, np.array([11, 12, 13, 14]))
+    assert np.array_equal(industrial.predict_data.target,
+                          np.array([11, 12, 13, 14]))
 
 
 def test_industrial_main_metric_evaluation_loop_uses_rule_based_shape_and_encoder(monkeypatch):
     industrial = FedotIndustrial.__new__(FedotIndustrial)
     industrial.target_encoder = _DummyEncoder()
     industrial.manager = SimpleNamespace(
-        condition_check=SimpleNamespace(solver_have_target_encoder=lambda encoder: True),
+        condition_check=SimpleNamespace(
+            solver_have_target_encoder=lambda encoder: True),
     )
     captured = {}
 
     monkeypatch.setattr(
         'fedot.industrial.api.main.FEDOT_GET_METRICS',
-        {'classification': lambda **kwargs: captured.update(kwargs) or {'f1': 0.8}},
+        {'classification': lambda **
+            kwargs: captured.update(kwargs) or {'f1': 0.8}},
     )
 
     result = industrial._metric_evaluation_loop(
@@ -82,7 +88,8 @@ def test_industrial_main_fit_uses_rule_based_solver_path(monkeypatch):
     captured = {}
     industrial.manager = SimpleNamespace(
         industrial_config=SimpleNamespace(strategy=object()),
-        solver=SimpleNamespace(fit=lambda data: captured.update(path='solver', data=data)),
+        solver=SimpleNamespace(
+            fit=lambda data: captured.update(path='solver', data=data)),
     )
     industrial._process_input_data = lambda data: 'processed-train'
     industrial._FedotIndustrial__init_industrial_backend = lambda data: data
@@ -106,7 +113,8 @@ def test_industrial_main_fit_uses_rule_based_strategy_path(monkeypatch):
 
     industrial.manager = SimpleNamespace(
         industrial_config=SimpleNamespace(strategy=_CallableStrategy()),
-        solver=SimpleNamespace(fit=lambda data: captured.update(path='solver', data=data)),
+        solver=SimpleNamespace(
+            fit=lambda data: captured.update(path='solver', data=data)),
     )
     industrial._process_input_data = lambda data: 'processed-train'
     industrial._FedotIndustrial__init_industrial_backend = lambda data: data
@@ -133,7 +141,8 @@ def test_industrial_main_predict_proba_uses_rule_based_mode_normalization(monkey
         lambda: SimpleNamespace(
             setup_repository=lambda backend=None: f'repo:{backend}'))
 
-    result = industrial.predict_proba(('features', 'target'), predict_mode='probs')
+    result = industrial.predict_proba(
+        ('features', 'target'), predict_mode='probs')
 
     assert result == 'predicted-probs'
     assert captured == {'data': 'processed-predict', 'mode': 'labels'}
@@ -153,7 +162,8 @@ def test_industrial_main_finetune_uses_rule_based_tuning_plan(monkeypatch):
             return _BuiltModel()
 
     industrial.manager = SimpleNamespace(
-        condition_check=SimpleNamespace(input_data_is_fedot_type=lambda data: False),
+        condition_check=SimpleNamespace(
+            input_data_is_fedot_type=lambda data: False),
         automl_config=SimpleNamespace(config={'task': 'classification'}),
         is_finetuned=False,
         solver=None,
@@ -183,8 +193,10 @@ def test_industrial_main_finetune_uses_rule_based_tuning_plan(monkeypatch):
 def test_industrial_main_get_metrics_warns_when_roc_auc_has_no_probabilities(monkeypatch):
     industrial = FedotIndustrial.__new__(FedotIndustrial)
     logs = []
-    industrial.logger = SimpleNamespace(info=lambda message: logs.append(message))
-    industrial.manager = SimpleNamespace(automl_config=SimpleNamespace(task='classification'))
+    industrial.logger = SimpleNamespace(
+        info=lambda message: logs.append(message))
+    industrial.manager = SimpleNamespace(
+        automl_config=SimpleNamespace(task='classification'))
     industrial._metric_evaluation_loop = lambda **kwargs: {'roc_auc': 0.7}
 
     result = industrial.get_metrics(
@@ -195,7 +207,8 @@ def test_industrial_main_get_metrics_warns_when_roc_auc_has_no_probabilities(mon
     )
 
     assert result == {'roc_auc': 0.7}
-    assert logs == ['Predicted probabilities are not available. Use `predict_proba()` method first']
+    assert logs == [
+        'Predicted probabilities are not available. Use `predict_proba()` method first']
 
 
 def test_industrial_main_explain_uses_rule_based_config():
@@ -214,8 +227,10 @@ def test_industrial_main_explain_uses_rule_based_config():
             captured['visual'] = (metric, threshold, name)
 
     industrial.manager = SimpleNamespace(
-        industrial_config=SimpleNamespace(explain_methods={'recurrence': FakeExplainer}),
-        predict_data=SimpleNamespace(features=np.arange(6).reshape(1, 2, 3), target=np.array([1, 2])),
+        industrial_config=SimpleNamespace(
+            explain_methods={'recurrence': FakeExplainer}),
+        predict_data=SimpleNamespace(features=np.arange(
+            6).reshape(1, 2, 3), target=np.array([1, 2])),
     )
 
     industrial.explain({'method': 'recurrence', 'samples': 3, 'window': 7,
@@ -233,7 +248,8 @@ def test_industrial_main_load_uses_rule_based_path_resolution(monkeypatch):
 
     monkeypatch.setattr('fedot.industrial.api.main.IndustrialModels',
                         lambda: SimpleNamespace(setup_repository=lambda backend=None: 'repo'))
-    monkeypatch.setattr('fedot.industrial.api.main.os.listdir', lambda path: ['pipeline_saved_1', 'fitted_operations'])
+    monkeypatch.setattr('fedot.industrial.api.main.os.listdir', lambda path: [
+                        'pipeline_saved_1', 'fitted_operations'])
     monkeypatch.setattr(
         'fedot.industrial.api.main.Pipeline',
         lambda: SimpleNamespace(
@@ -254,15 +270,18 @@ def test_industrial_main_save_uses_rule_based_mode_selection(monkeypatch):
             self.solver = SimpleNamespace(current_pipeline=SimpleNamespace(
                 save=lambda **kwargs: captured.append(('model', kwargs))))
             self.compute_config = SimpleNamespace(output_folder='out')
-            self.condition_check = SimpleNamespace(solver_is_fedot_class=lambda solver: False)
-            self.logger = SimpleNamespace(info=lambda msg: captured.append(('log', msg)))
+            self.condition_check = SimpleNamespace(
+                solver_is_fedot_class=lambda solver: False)
+            self.logger = SimpleNamespace(
+                info=lambda msg: captured.append(('log', msg)))
             self.predicted_labels = np.array([1, 0])
 
         def create_folder(self, output_folder):
             captured.append(('folder', output_folder))
 
     industrial.manager = FakeManager()
-    industrial.metric_dict = SimpleNamespace(to_csv=lambda path: captured.append(('metrics', path)))
+    industrial.metric_dict = SimpleNamespace(
+        to_csv=lambda path: captured.append(('metrics', path)))
 
     monkeypatch.setattr(
         'fedot.industrial.api.main.pd.DataFrame', lambda values: SimpleNamespace(
@@ -292,10 +311,14 @@ def test_industrial_main_vis_history_uses_rule_based_mode(monkeypatch):
         def diversity_population(self, **kwargs):
             captured.append(('diversity', kwargs))
 
-    monkeypatch.setattr('fedot.industrial.api.main.OptHistory.load', lambda path: 'loaded-history')
-    monkeypatch.setattr('fedot.industrial.api.main.PipelineHistoryVisualizer', FakeHistoryVisualizer)
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.OptHistory.load', lambda path: 'loaded-history')
+    monkeypatch.setattr(
+        'fedot.industrial.api.main.PipelineHistoryVisualizer', FakeHistoryVisualizer)
 
-    result = industrial.vis_optimisation_history(opt_history_path='history', mode='models', return_history=True)
+    result = industrial.vis_optimisation_history(
+        opt_history_path='history', mode='models', return_history=True)
 
     assert result == 'history-object'
-    assert captured == [('models', {'save_path': 'operations_animated_bar.gif', 'show_fitness': True})]
+    assert captured == [
+        ('models', {'save_path': 'operations_animated_bar.gif', 'show_fitness': True})]
