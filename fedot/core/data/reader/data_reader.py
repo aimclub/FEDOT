@@ -32,25 +32,6 @@ class DataReader:
     _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
 
     @classmethod
-    def _resolve_creator(cls, source_data: Any) -> Callable:
-        """
-        Resolve the appropriate creator function for a given `source_data`.
-
-        Registered creators are checked in the order they were added.
-
-        Args:
-            source_data (Any): Input data to be handled.
-
-        Returns:
-            Callable: Creator function that accepts `(source_data, spec)`.
-
-        Raises:
-            ValueError: If no creator matches the input.
-            TypeError: If a predicate returns a non-boolean value.
-        """
-        return resolve_registered_creator(cls._creators, source_data)
-
-    @classmethod
     def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
         """
         Register a reader function for a source type.
@@ -83,7 +64,7 @@ class DataReader:
             DataSpec: Updated specification with source data stored in `features`,
             `target`, and related metadata.
         """
-        creator = cls._resolve_creator(source_data)
+        creator = resolve_registered_creator(cls._creators, source_data)
         return creator(source_data, spec)
 
 

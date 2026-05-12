@@ -3,7 +3,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from importlib import import_module
 from typing import Any, Dict, Optional
-# from sampling_zoo.core.api.api_main import SamplingStrategyFactory
+
+try:
+    from sampling_zoo.core.api.api_main import SamplingStrategyFactory
+except ImportError:
+    SamplingStrategyFactory = None  # type: ignore[misc, assignment]
 
 import numpy as np
 import pandas as pd
@@ -37,8 +41,11 @@ class SamplingZooProvider(SamplingProvider):
     )
 
     def __init__(self):
-        # self._factory_cls = SamplingStrategyFactory
-        self._factory_cls = self._load_factory()
+        self._factory_cls = (
+            SamplingStrategyFactory
+            if SamplingStrategyFactory is not None
+            else self._load_factory()
+        )
 
     def sample(self,
                features: np.ndarray,

@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# PEP 735: same PyPI package as optional extra `sampling_zoo` (see setup.py and
+# other_requirements/sampling_zoo.txt). Declared here for tools that read pyproject.toml.
+[dependency-groups]
+sampling-zoo = ["sampling-zoo>=0.1.0"]

@@ -96,7 +96,7 @@ Example temporary override:
                 import cupy as xp
                 import cudf as pd
             except Exception as e:
-                raise RuntimeError("Can't import cupy or cudf: {e}")
+                raise RuntimeError("Can't import cupy or cudf") from e
 
             self.xp = xp
             self.pd = pd

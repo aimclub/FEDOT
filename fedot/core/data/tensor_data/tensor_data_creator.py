@@ -172,6 +172,19 @@ class TensorDataCreator:
         if not raw_conversion_plan.preprocessing_done:
             self.obligatory_preprocess()
             raw_conversion_plan.preprocessing_done = True
+    
+    def read_features(self):
+        """
+        Read features from the source data.
+        """
+        reader = DataReader()
+        self.spec.features = reader.read(self.spec.features, self.spec)
+
+    def read_target(self):
+        """
+        Read target from the source data.
+        """
+        self.spec.target = self.spec.target
 
     def to_tensor_data(self) -> "TensorData":
         """
@@ -187,7 +200,8 @@ class TensorDataCreator:
             idx=self.spec.idx,
             features=self.spec.features,
             target=self.spec.target,
-            predict=self.spec.predict,
+            # TODO romankuklo: is predict needed?
+            # predict=self.spec.predict,
             target_idx=self.spec.target_idx,
             categorical_idx=self.spec.categorical_idx,
             numerical_idx=self.spec.numerical_idx,

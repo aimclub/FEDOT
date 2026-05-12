@@ -71,7 +71,8 @@ class DataSpec:
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[Tuple[int]] = None
 
-    predict: TensorLike = None
+    # TODO romankuklo: is predict needed?
+    # predict: TensorLike = None
     idx: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
 
