@@ -16,6 +16,8 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
 
+from fedot.core.context.context import ExecutionContext
+
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
 

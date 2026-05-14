@@ -164,17 +164,3 @@ def smoke_test_extension(manifest: ExtensionManifest):
 
     return Right(manifest)
 
-def get_protocol_factory(protocol_group: str) -> Optional[Callable[..., Any]]:
-    from fedot.extensions.registry import get_registered_extensions
-    for ext in get_registered_extensions():
-        factory = ext.manifest.protocols.get(protocol_group)
-        if factory is not None:
-            return factory
-    return None
-
-def resolve_protocol_instance(protocol_group: str, backend: str = "default", **kwargs) -> Optional[Any]:
-    factory = get_protocol_factory(protocol_group)
-    if factory:
-        return factory(backend=backend, **kwargs)
-    return None
-

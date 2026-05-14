@@ -11,7 +11,7 @@ from golem.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.context import ExecutionContext
+from fedot.core.context.context import ExecutionContext
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -43,7 +43,7 @@ class GPComposer(Composer):
                  operations_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
                  predictions_cache: Optional[PredictionsCache] = None,
-                 context: Optional[ExectuionContext] = None):
+                 context: Optional[ExecutionContext] = None):
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.operations_cache: Optional[OperationsCache] = operations_cache

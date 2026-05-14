@@ -1,169 +1,150 @@
-from fedot.core.data.merge.data_merger import ImageDataMerger, TSDataMerger, DataMerger
-from fedot.core.operations.evaluation.operation_implementations.data_operations.topological.fast_topological_extractor import (
-    TopologicalFeaturesImplementation, )
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
-    LaggedImplementation,
-    TsSmoothingImplementation,
-)
-from fedot.core.operations.operation import Operation
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
-from fedot.core.pipelines.verification import class_rules, ts_rules, common_rules
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.data.data_split import _split_any, _split_time_series
-from fedot.api.api_utils.api_params_repository import ApiParamsRepository
-from fedot.api.api_utils.api_composer import ApiComposer
-from golem.core.tuning.optuna_tuner import OptunaTuner
-from golem.core.optimisers.genetic.operators.reproduction import ReproductionController
+from typing import Dict, Any, Optional, Callable
+from fedot.extensions.registry import get_registered_extension, register_extension
+from fedot.core.context.industrial_manifest import FEDOT_INDUSTRIAL_MANIFEST
 
-import fedot.core.data.data_split as fedot_data_split
-import golem.core.tuning.optuna_tuner as OptunaImpl
-
-def resolve_context(context_name: str = "core", backend: str = "default") -> ExecutionContext:
-    if context_name == "core":
-        return ExecutionContext(backend=backend)
-
-    from fedot.extensions.registry import get_registered_extension, get_registered_extensions
-
-    ext = get_registered_extension(context_name)
-    if ext is not None:
-        factory = ext.value.manifest.protocols.get("context_factory")
-        if factory:
-            return factory(backend=backend)
-
-    raise ValueError(f"Unknown context: {context_name}")
+register_extension(FEDOT_INDUSTRIAL_MANIFEST)
 
 class ExecutionContext:
-    def __init__(self, backend: str = "default") -> None:
-        """Initializes ExecutionContext with default configuration."""
-        self.backend = backend
-        self._init_defaults()
-        self._apply_protocols()
+    def __init__(self, extension_name: str = "core", extra_params: Optional[Dict[str, Any]] = None):
+        self.extension_name = extension_name
+        self.extra_params = extra_params or {}
+        self._instances: Dict[str, Any] = {}
+        self._overridden: Dict[str, Any] = {}
 
-    def _init_defaults(self):
-        """Sets default implementations for all pipeline components."""
-        self.evaluator_evaluate = PipelineObjectiveEvaluate.evaluate
-        self.search_space_get_parameters_dict = PipelineSearchSpace.get_parameters_dict
-        self.api_params_repository__get_default_mutations = ApiParamsRepository._get_default_mutations
-        self.merger_find_main_output = DataMerger.find_main_output
-        self.merger_get = DataMerger.get
-        self.merger_merge_predicts = DataMerger.merge_predicts
-        self.image_merger_preprocess_predicts = ImageDataMerger.preprocess_predicts
-        self.image_merger_merge_predicts = ImageDataMerger.merge_predicts
-        self.ts_merger_merge_predicts = TSDataMerger.merge_predicts
-        self.ts_merger_merge_targets = TSDataMerger.merge_targets
-        self.ts_merger_postprocess_predicts = TSDataMerger.postprocess_predicts
-        self.ts_merger_preprocess_predicts = TSDataMerger.preprocess_predicts
-        self.data_source_splitter_build = DataSourceSplitter.build
-        self.data_split__split_any = fedot_data_split._split_any
-        self.data_split__split_time_series = fedot_data_split._split_time_series
-        self.operation__predict = Operation._predict
-        self.operation_predict = Operation.predict
-        self.operation_predict_for_fit = Operation.predict_for_fit
-        self.lagged__update_column_types = LaggedImplementation._update_column_types
-        self.lagged_transform = LaggedImplementation.transform
-        self.lagged_transform_for_fit = LaggedImplementation.transform_for_fit
-        self.lagged__check_and_correct_window_size = LaggedImplementation._check_and_correct_window_size
-        self.topo_features_fit = TopologicalFeaturesImplementation.fit
-        self.topo_features_transform = TopologicalFeaturesImplementation.transform
-        self.ts_smoothing_transform = TsSmoothingImplementation.transform
-        self.optuna_optuna_tuner = OptunaImpl.OptunaTuner
-        self.api_composer_tune_final_pipeline = ApiComposer.tune_final_pipeline
-        self.reproduction_reproduce = ReproductionController.reproduce
-        self.reproduction_reproduce_uncontrolled = ReproductionController.reproduce_uncontrolled
-        self.class_rules = class_rules.copy()
-        self.ts_rules = ts_rules.copy()
-        self.common_rules = common_rules.copy()
+        self._manifest = None
+        if extension_name != "core":
+            from fedot.extensions.registry import _REGISTERED_EXTENSIONS
+            manifest = _REGISTERED_EXTENSIONS.get(extension_name)
+            if manifest is None:
+                raise ValueError(f"Extension '{extension_name}' not registered")
+            self._manifest = manifest
 
-    def _apply_protocols(self):
-        # Splitters
-        splitters = resolve_protocol_instance("splitters", backend=self.backend)
-        if splitters:
-            self.data_split__split_any = splitters.split_any
-            self.data_split__split_time_series = splitters.split_time_series
+        self._core_implementations = self._get_core_implementations()
 
-        # Mergers
-        mergers = resolve_protocol_instance("mergers", backend=self.backend)
-        if mergers:
-            self.merger_find_main_output = mergers.find_main_output
-            self.merger_get = mergers.get
-            self.merger_merge_predicts = mergers.merge_predicts
-            if hasattr(mergers, 'preprocess_predicts'):
-                self.image_merger_preprocess_predicts = mergers.preprocess_predicts
-                self.ts_merger_preprocess_predicts = mergers.preprocess_predicts
-            if hasattr(mergers, 'postprocess_predicts'):
-                self.ts_merger_postprocess_predicts = mergers.postprocess_predicts
-            if hasattr(mergers, 'merge_targets'):
-                self.ts_merger_merge_targets = mergers.merge_targets
-            # Image merge обычно совпадает с основным
-            self.image_merger_merge_predicts = mergers.merge_predicts
+        self._protocol_classes = self._core_implementations.copy()
+        if self._manifest and self._manifest.protocols:
+            self._protocol_classes.update(self._manifest.protocols)
 
-        # DataSourceSplitter
-        splitter_builder = resolve_protocol_instance("data_source_splitter", backend=self.backend)
-        if splitter_builder:
-            self.data_source_splitter_build = splitter_builder.build
+    def _get_core_implementations(self) -> Dict[str, Callable]:
+        from fedot.core.context.default_backend import (
+            CoreSplitter, CoreDataMerger, CoreImageMerger,
+            CoreTSMerger, CoreTextMerger, CoreTuner,
+            CoreDataSourceSplitter, CoreOperationPredict,
+            CoreLaggedTransformer, CoreTopologicalFeatures,
+            CoreTsSmoothing, CoreApiComposerTune, CoreReproduction,
+            CoreSearchSpace, CoreDefaultMutations, CoreEvaluator
+        )
+        return {
+            "splitter": CoreSplitter,
+            "data_merger": CoreDataMerger,
+            "image_merger": CoreImageMerger,
+            "ts_merger": CoreTSMerger,
+            "text_merger": CoreTextMerger,
+            "tuner_class": CoreTuner,
+            "data_source_splitter": CoreDataSourceSplitter,
+            "operation_predict": CoreOperationPredict,
+            "lagged_transformer": CoreLaggedTransformer,
+            "topological_features": CoreTopologicalFeatures,
+            "ts_smoothing": CoreTsSmoothing,
+            "api_composer_tune": CoreApiComposerTune,
+            "reproduction": CoreReproduction,
+            "search_space": CoreSearchSpace,
+            "default_mutations": CoreDefaultMutations,
+            "evaluator": CoreEvaluator,
+        }
 
-        # Tuner class
-        tuner_class = resolve_protocol_instance("tuner_class", backend=self.backend)
-        if tuner_class:
-            self.optuna_optuna_tuner = tuner_class
+    def _get_protocol_class(self, protocol_name: str) -> Callable:
+        if self._manifest and self._manifest.protocols:
+            if protocol_name in self._manifest.protocols:
+                return self._manifest.protocols[protocol_name]
 
-        # Reproduction
-        reproduction = resolve_protocol_instance("reproduction", backend=self.backend)
-        if reproduction:
-            self.reproduction_reproduce = reproduction.reproduce
-            if hasattr(reproduction, 'reproduce_uncontrolled'):
-                self.reproduction_reproduce_uncontrolled = reproduction.reproduce_uncontrolled
+        if protocol_name in self._core_implementations:
+            return self._core_implementations[protocol_name]
 
-        # Evaluator
-        evaluator = resolve_protocol_instance("evaluator", backend=self.backend)
-        if evaluator:
-            self.evaluator_evaluate = evaluator.evaluate
+        raise ValueError(f"No implementation for protocol '{protocol_name}'")
 
-        # Search space
-        search_space = resolve_protocol_instance("search_space", backend=self.backend)
-        if search_space:
-            self.search_space_get_parameters_dict = search_space.get_parameters_dict
+    def _get_instance(self, protocol_name: str) -> Any:
+        if protocol_name not in self._instances:
+            protocol_class = self._get_protocol_class(protocol_name)
+            self._instances[protocol_name] = protocol_class(**self.extra_params)
+        return self._instances[protocol_name]
 
-        # Mutations
-        mutations = resolve_protocol_instance("default_mutations", backend=self.backend)
-        if mutations:
-            self.api_params_repository__get_default_mutations = mutations
+    @property
+    def splitter(self):
+        return self._get_instance("splitter")
 
-        # Operation predict
-        op_predict = resolve_protocol_instance("operation_predict", backend=self.backend)
-        if op_predict:
-            self.operation_predict = op_predict.predict
-            self.operation_predict_for_fit = op_predict.predict_for_fit
-            if hasattr(op_predict, '_predict'):
-                self.operation__predict = op_predict._predict
+    @property
+    def data_merger(self):
+        return self._get_instance("data_merger")
 
-        # Lagged transformer
-        lagged = resolve_protocol_instance("lagged_transformer", backend=self.backend)
-        if lagged:
-            self.lagged__update_column_types = lagged._update_column_types
-            self.lagged_transform = lagged.transform
-            self.lagged_transform_for_fit = lagged.transform_for_fit
-            self.lagged__check_and_correct_window_size = lagged._check_and_correct_window_size
+    @property
+    def image_merger(self):
+        return self._get_instance("image_merger")
 
-        # Topological features
-        topo = resolve_protocol_instance("topological_features", backend=self.backend)
-        if topo:
-            self.topo_features_fit = topo.fit
-            self.topo_features_transform = topo.transform
+    @property
+    def ts_merger(self):
+        return self._get_instance("ts_merger")
 
-        # TS Smoothing
-        smoothing = resolve_protocol_instance("ts_smoothing", backend=self.backend)
-        if smoothing:
-            self.ts_smoothing_transform = smoothing.transform
+    @property
+    def text_merger(self):
+        return self._get_instance("text_merger")
 
-        # ApiComposer tune
-        tune = resolve_protocol_instance("api_composer_tune", backend=self.backend)
-        if tune:
-            self.api_composer_tune_final_pipeline = tune
+    @property
+    def tuner_class(self):
+        return self._get_instance("tuner_class")
 
-        @cached_property
-        def set_operation_registry(self) -> OperationTypesRepository:
-            return OperationTypesRepository()
+    @property
+    def data_source_splitter(self):
+        return self._get_instance("data_source_splitter")
+
+    @property
+    def operation_predict(self):
+        return self._get_instance("operation_predict")
+
+    @property
+    def lagged_transformer(self):
+        return self._get_instance("lagged_transformer")
+
+    @property
+    def topological_features(self):
+        return self._get_instance("topological_features")
+
+    @property
+    def ts_smoothing(self):
+        return self._get_instance("ts_smoothing")
+
+    @property
+    def api_composer_tune(self):
+        return self._get_instance("api_composer_tune")
+
+    @property
+    def reproduction(self):
+        return self._get_instance("reproduction")
+
+    @property
+    def search_space(self):
+        return self._get_instance("search_space")
+
+    @property
+    def default_mutations(self):
+        return self._get_instance("default_mutations")
+
+    @property
+    def evaluator(self):
+        return self._get_instance("evaluator")
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in ('extra_params', '_instances', '_overridden', '_protocol_classes',
+                    '_manifest', '_core_implementations', 'extension_name'):
+            super().__setattr__(name, value)
+        else:
+            self._overridden[name] = value
+
+    def __getattr__(self, name: str):
+        if name in self._overridden:
+            return self._overridden[name]
+
+        if name in ('_protocol_classes', '_instances', '_manifest', '_core_implementations'):
+            return super().__getattribute__(name)
+
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
