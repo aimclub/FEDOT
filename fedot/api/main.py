@@ -110,12 +110,7 @@ class Fedot:
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
 
-        if isinstance(context, str):
-            if context == "core" or None:
-                self.context = ExecutionContext()
-            elif context == "industrial":
-                from fedot.core.context.context import create_context
-                self.context = create_context(context)
+        self.context = ExecutionContext(extension_name=context)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
