@@ -99,6 +99,7 @@ class TensorData:
     predict: TensorLike = None
     target_idx: IndexType = None
     categorical_idx: IndexType = field(default_factory=list)
+    # TODO romankuklo: delete strategies
     numerical_idx: IndexType = field(default_factory=list)
     encoding_strategy: Optional[Union[Dict]] = None
     embedding_strategy: Optional[Union[Dict]] = None
@@ -111,6 +112,12 @@ class TensorData:
     ts_init_shape: Optional[Tuple[int]] = None
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=dict)
+
+    # hashes 
+    raw_fingerprint: Optional[str] = None
+    ready_fingerprint: Optional[str] = None
+    parent_raw_fingerprint: Optional[str] = None
+    parent_ready_fingerprint: Optional[str] = None
 
     @property
     def memory_usage(self) -> Dict[str, int]:

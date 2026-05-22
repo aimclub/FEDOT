@@ -109,4 +109,5 @@ class PreprocessingStep:
     implementation: Optional[AbstractPreprocessingHandler] = None
     state: StateEnum = StateEnum.FIT
     step_args: dict[str, Any] = field(default_factory=dict)
-    model_hash: Optional[str] = None
+    # TODO romankuklo: is it needed?
+    # model_hash: Optional[str] = None
