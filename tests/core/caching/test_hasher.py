@@ -3,7 +3,8 @@ import pytest
 import torch
 
 from fedot.core.caching import Hasher
-from fedot.core.caching.hashing.tools import tensor_features_for_hash
+from fedot.core.caching.rules import HasherNotFoundError
+from fedot.core.caching.tools import tensor_features_for_hash
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -37,6 +38,37 @@ def _make_scaling_step(
         features_idx=features_idx or [0, 1],
         implementation=implementation,
     )
+
+
+@pytest.mark.unit
+def test_hasher_resolves_first_matching_registered_creator(monkeypatch):
+    """Check that Hasher scans registered predicates in order and returns the first matching creator."""
+    creator_a = object()
+    creator_b = object()
+
+    monkeypatch.setattr(
+        Hasher,
+        '_creators',
+        [
+            (lambda _: False, creator_a),
+            (lambda _: True, creator_b),
+        ],
+    )
+
+    assert Hasher.resolve_creator({'source': 'x'}) is creator_b
+
+
+@pytest.mark.unit
+def test_hasher_raises_when_registered_creators_do_not_match(monkeypatch):
+    """Check that unknown input types fail with the domain-specific creator lookup error."""
+    monkeypatch.setattr(
+        Hasher,
+        '_creators',
+        [(lambda _: False, object())],
+    )
+
+    with pytest.raises(HasherNotFoundError, match='No hashing function registered'):
+        Hasher.resolve_creator({'source': 'x'})
 
 
 @pytest.mark.unit
@@ -150,5 +182,5 @@ def test_preprocessing_plan_hash_changes_for_step_configuration_and_implementati
 
 @pytest.mark.unit
 def test_hasher_raises_for_unsupported_objects():
-    with pytest.raises(ValueError, match="No hashing function registered"):
+    with pytest.raises(HasherNotFoundError, match="No hashing function registered"):
         Hasher.hash(object())

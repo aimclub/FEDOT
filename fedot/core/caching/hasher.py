@@ -1,7 +1,8 @@
 import inspect
-from typing import Any, Callable, ClassVar
+from typing import Any
 
-from fedot.core.caching.hashing.tools import (
+from fedot.core.common.registry import Registry
+from fedot.core.caching.tools import (
     get_hash_preprocessing_plan,
     get_hash_raw_features,
     get_hash_tensordata,
@@ -9,33 +10,18 @@ from fedot.core.caching.hashing.tools import (
     sample_row_positions,
     stable_hash,
 )
+from fedot.core.caching.rules import HasherNotFoundError
 from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.planner import PreprocessingPlan
 
 
-class Hasher:
+class Hasher(Registry):
     """Registry-based dispatcher for cache fingerprint builders."""
 
-    _creators: ClassVar[list[tuple[Callable[[Any], bool], Callable[..., str]]]] = []
-
-    @classmethod
-    def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable[..., str]], Callable[..., str]]:
-        """
-        Register a hashing function for values matching `predicate`.
-
-        Args:
-            predicate: Function that returns `True` for supported values.
-
-        Returns:
-            Decorator that stores the hashing function in the registry.
-        """
-        def decorator(func: Callable[..., str]) -> Callable[..., str]:
-            cls._creators.append((predicate, func))
-            return func
-
-        return decorator
+    not_found_error = HasherNotFoundError
+    not_found_message = 'No hashing function registered for data type: {source_type}'
 
     @classmethod
     def hash(cls, data: Any, **kwargs: Any) -> str:
@@ -50,13 +36,10 @@ class Hasher:
             Hexadecimal hash string.
 
         Raises:
-            ValueError: If no hash function is registered for `data`.
+            HasherNotFoundError: If no hash function is registered for `data`.
         """
-        for predicate, hashing_func in cls._creators:
-            if predicate(data):
-                return hashing_func(data, **kwargs)
-
-        raise ValueError(f"No hashing function registered for data type: {type(data)}")
+        hashing_func = cls.resolve_creator(data)
+        return hashing_func(data, **kwargs)
 
 
 @Hasher.register_creator(lambda data: isinstance(data, ARRAY_RUNTIME_TYPES))

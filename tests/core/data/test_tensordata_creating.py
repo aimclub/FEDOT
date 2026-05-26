@@ -6,10 +6,7 @@ from fedot.core.data.reader.data_reader import DataReader, DataReaderResult, fro
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
-from fedot.core.data.tensor_data.rules import (
-    TensorDataCreatorNotFoundError,
-    resolve_registered_creator,
-)
+from fedot.core.data.tensor_data.rules import DataReaderNotFoundError
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -28,8 +25,7 @@ def test_data_reader_resolves_first_matching_registered_reader(monkeypatch):
         ],
     )
 
-    assert resolve_registered_creator(
-        DataReader._creators, {'source': 'x'}) is creator_b
+    assert DataReader.resolve_creator({'source': 'x'}) is creator_b
 
 
 @pytest.mark.unit
@@ -41,8 +37,8 @@ def test_data_reader_raises_when_registered_readers_do_not_match(monkeypatch):
         [(lambda _: False, object())],
     )
 
-    with pytest.raises(TensorDataCreatorNotFoundError, match='No creator registered'):
-        resolve_registered_creator(DataReader._creators, {'source': 'x'})
+    with pytest.raises(DataReaderNotFoundError, match='No reading function registered'):
+        DataReader.resolve_creator({'source': 'x'})
 
 
 @pytest.mark.unit

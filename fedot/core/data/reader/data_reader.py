@@ -1,12 +1,11 @@
-from typing import Any, Callable, ClassVar, List, Tuple
 import numpy as np
 import torch
 from dataclasses import dataclass
 
+from fedot.core.common.registry import Registry
 from fedot.core.data.tensor_data.rules import (
-    TensorDataCreatorNotFoundError,
+    DataReaderNotFoundError,
     build_tabular_file_load_plan,
-    resolve_registered_creator,
 )
 from fedot.core.data.tensor_data.tools import get_values_from_df
 from fedot.core.data.reader.tools import get_df_from_csv, read_arff_file
@@ -44,7 +43,7 @@ class DataReaderResult:
     features_names: IndexType = None
 
 
-class DataReader:
+class DataReader(Registry):
     """
     Registry of lightweight readers from raw inputs to arrays and names.
 
@@ -58,27 +57,8 @@ class DataReader:
     authoritative read output is always the returned :class:`DataReaderResult`.
     """
 
-    _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
-
-    @classmethod
-    def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
-        """
-        Register a reader function for a source type.
-
-        Registered readers are tried in registration order. Each reader must accept
-        ``(source_data, spec)`` and return a :class:`DataReaderResult`.
-
-        Args:
-            predicate: Function that returns ``True`` if the reader can handle the
-                given ``source_data``.
-
-        Returns:
-            Decorator that registers the reader function.
-        """
-        def decorator(func):
-            cls._creators.append((predicate, func))
-            return func
-        return decorator
+    not_found_error = DataReaderNotFoundError
+    not_found_message = 'No reading function registered for data type: {source_type}'
 
     @classmethod
     def read(cls, source_data, spec: DataSpec) -> DataReaderResult:
@@ -95,10 +75,10 @@ class DataReader:
             to copy into a :class:`~fedot.core.data.tensor_data.data_spec.DataSpec`.
 
         Raises:
-            TensorDataCreatorNotFoundError: If no registered reader matches
+            DataReaderNotFoundError: If no registered reader matches
                 ``source_data``.
         """
-        creator = resolve_registered_creator(cls._creators, source_data)
+        creator = cls.resolve_creator(source_data)
         return creator(source_data, spec)
 
 

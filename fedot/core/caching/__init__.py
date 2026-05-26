@@ -1,3 +1,3 @@
-from fedot.core.caching.hashing.hasher import Hasher
+from fedot.core.caching.hasher import Hasher, HasherNotFoundError
 
-__all__ = ["Hasher"]
+__all__ = ["Hasher", "HasherNotFoundError"]

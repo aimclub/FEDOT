@@ -1,9 +1,9 @@
 import pytest
 
+from fedot.core.common.registry import Registry
 from fedot.core.data.tensor_data.rules import (
-    TensorDataCreatorNotFoundError,
+    DataReaderNotFoundError,
     DEFAULT_DATALOADER_KWARGS,
-    TensorDataCreatorResolutionError,
     build_backend_plan,
     build_creation_failure,
     build_creation_request,
@@ -19,8 +19,6 @@ from fedot.core.data.tensor_data.rules import (
     normalize_tabular_file_delimiter,
     normalize_optional_data_type,
     normalize_tensordata_identity,
-    resolve_registered_creator,
-    validate_creator_predicate_result,
 )
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -85,12 +83,15 @@ def test_normalize_tensordata_identity_converts_strings_to_typed_values():
 
 
 @pytest.mark.unit
-def test_validate_creator_predicate_result_rejects_non_boolean_result():
+def test_registry_validate_creator_predicate_result_rejects_non_boolean_result():
     def bad_predicate(_):
         return 'yes'
 
-    with pytest.raises(TensorDataCreatorResolutionError, match='must return bool'):
-        validate_creator_predicate_result(bad_predicate, bad_predicate(None))
+    with pytest.raises(TypeError, match='must return bool'):
+        Registry.validate_creator_predicate_result(
+            bad_predicate,
+            bad_predicate(None),
+        )
 
 
 @pytest.mark.unit
@@ -113,7 +114,7 @@ def test_build_device_sync_plan_detects_when_move_is_needed():
 
 
 @pytest.mark.unit
-def test_resolve_registered_creator_returns_first_matching_creator():
+def test_registry_resolve_registered_creator_returns_first_matching_creator():
     creator_a = object()
     creator_b = object()
 
@@ -122,16 +123,20 @@ def test_resolve_registered_creator_returns_first_matching_creator():
         (lambda _: True, creator_b),
     ]
 
-    assert resolve_registered_creator(
+    assert Registry.resolve_registered_creator(
         creators, source_data={'x': 1}) is creator_b
 
 
 @pytest.mark.unit
-def test_resolve_registered_creator_rejects_missing_creator():
+def test_registry_resolve_registered_creator_rejects_missing_creator():
     creators = [(lambda _: False, object())]
 
-    with pytest.raises(TensorDataCreatorNotFoundError, match='No creator registered'):
-        resolve_registered_creator(creators, source_data={'x': 1})
+    with pytest.raises(DataReaderNotFoundError, match='No creator registered'):
+        Registry.resolve_registered_creator(
+            creators,
+            source_data={'x': 1},
+            not_found_error=DataReaderNotFoundError,
+        )
 
 
 @pytest.mark.unit
