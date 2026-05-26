@@ -2,13 +2,15 @@ import inspect
 from typing import Any
 
 from fedot.core.common.registry import Registry
-from fedot.core.caching.tools import (
+from fedot.core.caching.fingerprints import (
     get_hash_preprocessing_plan,
     get_hash_raw_features,
     get_hash_tensordata,
     get_model_attributes,
+)
+from fedot.core.caching.normalization import stable_hash
+from fedot.core.caching.sampling import (
     sample_row_positions,
-    stable_hash,
 )
 from fedot.core.caching.rules import HasherNotFoundError
 from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES

@@ -5,14 +5,10 @@ import pytest
 import torch
 
 from fedot.core.caching import Hasher
+from fedot.core.caching.fingerprints import build_tensordata_metadata, tensor_features_for_hash
+from fedot.core.caching.normalization import normalize_for_hash, stable_hash
 from fedot.core.caching.rules import HasherNotFoundError
-from fedot.core.caching.tools import (
-    build_tensordata_metadata,
-    deterministic_positions,
-    normalize_for_hash,
-    stable_hash,
-    tensor_features_for_hash,
-)
+from fedot.core.caching.sampling import deterministic_positions
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
