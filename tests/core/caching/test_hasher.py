@@ -1,10 +1,18 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 import torch
 
 from fedot.core.caching import Hasher
 from fedot.core.caching.rules import HasherNotFoundError
-from fedot.core.caching.tools import tensor_features_for_hash
+from fedot.core.caching.tools import (
+    build_tensordata_metadata,
+    deterministic_positions,
+    normalize_for_hash,
+    stable_hash,
+    tensor_features_for_hash,
+)
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -72,6 +80,105 @@ def test_hasher_raises_when_registered_creators_do_not_match(monkeypatch):
 
 
 @pytest.mark.unit
+def test_stable_hash_rejects_unsupported_objects():
+    class UnsupportedState:
+        pass
+
+    with pytest.raises(TypeError, match='Unsupported type for cache hashing'):
+        stable_hash({'state': UnsupportedState()})
+
+
+@pytest.mark.unit
+def test_normalize_for_hash_rejects_cyclic_containers():
+    cyclic_list = []
+    cyclic_list.append(cyclic_list)
+
+    cyclic_dict = {}
+    cyclic_dict['self'] = cyclic_dict
+
+    tuple_ref = []
+    cyclic_tuple = (tuple_ref,)
+    tuple_ref.append(cyclic_tuple)
+
+    for obj in (cyclic_list, cyclic_dict, cyclic_tuple):
+        with pytest.raises(TypeError, match='Cycle detected'):
+            normalize_for_hash(obj)
+
+
+@pytest.mark.unit
+def test_stable_hash_is_deterministic_and_dict_order_independent():
+    first = {'b': [2, 3], 'a': {'nested': True}}
+    same_with_different_order = {'a': {'nested': True}, 'b': [2, 3]}
+    changed = {'a': {'nested': False}, 'b': [2, 3]}
+
+    assert stable_hash(first) == stable_hash(same_with_different_order)
+    assert stable_hash(first) != stable_hash(changed)
+
+
+@pytest.mark.unit
+def test_normalize_for_hash_converts_supported_runtime_values():
+    features = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    tensor = torch.tensor([[1.0, 2.0]])
+
+    normalized = normalize_for_hash({
+        'path': Path('data/file.csv'),
+        'method': ScalingMethodEnum.standard,
+        'features': features,
+        'tensor': tensor,
+    })
+
+    assert normalized['path'] == 'data/file.csv'
+    assert normalized['method'] == ScalingMethodEnum.standard.value
+    assert normalized['features']['shape'] == (2, 2)
+    assert normalized['features']['dtype'] == 'int64'
+    assert normalized['tensor']['shape'] == (1, 2)
+    assert normalized['tensor']['dtype'] == 'torch.float32'
+
+
+@pytest.mark.unit
+def test_deterministic_positions_are_stable_sorted_and_include_anchors():
+    seed_data = {'shape': (128, 8), 'dtype': 'float32'}
+
+    positions = deterministic_positions(
+        total_rows=128,
+        n_samples=16,
+        seed_data=seed_data,
+    )
+    same_positions = deterministic_positions(
+        total_rows=128,
+        n_samples=16,
+        seed_data=seed_data,
+    )
+
+    assert positions == same_positions
+    assert positions == sorted(positions)
+    assert len(positions) == 16
+    assert {0, 64, 127}.issubset(positions)
+
+
+@pytest.mark.unit
+def test_build_tensordata_metadata_includes_shape_dtype_and_indices():
+    features = torch.zeros((3, 2), dtype=torch.float64)
+    target = torch.ones(3, dtype=torch.float32)
+    td = _make_tensor_data(features, categorical_idx=[1])
+    td.target = target
+    td.numerical_idx = [0]
+    td.features_names = np.array(['a', 'b'])
+    td.idx_mapping = {0: 10, 1: 11, 2: 12}
+
+    metadata = build_tensordata_metadata(td)
+
+    assert metadata['features_shape'] == (3, 2)
+    assert metadata['features_dtype'] == 'torch.float64'
+    assert metadata['target_shape'] == (3,)
+    assert metadata['target_dtype'] == 'torch.float32'
+    assert metadata['categorical_idx'] == [1]
+    assert metadata['numerical_idx'] == [0]
+    assert np.asarray(metadata['features_names']).tolist() == ['a', 'b']
+    assert metadata['idx_mapping'] == {0: 10, 1: 11, 2: 12}
+
+
+@pytest.mark.unit
 def test_raw_array_hash_is_stable_for_equal_numpy_arrays():
     features = np.array([[1.0, 2.0], [3.0, np.nan], [5.0, 6.0]])
     same_features = features.copy()
@@ -81,9 +188,9 @@ def test_raw_array_hash_is_stable_for_equal_numpy_arrays():
 
 @pytest.mark.unit
 def test_raw_array_hash_changes_for_different_values_and_dtype():
-    features = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
+    features = np.arange(256 * 16, dtype=np.int64).reshape(256, 16)
     changed_values = features.copy()
-    changed_values[1, 0] = 30
+    changed_values[128, 0] = -1
     changed_dtype = features.astype(np.float64)
 
     assert Hasher.hash(features) != Hasher.hash(changed_values)
@@ -111,6 +218,16 @@ def test_tensordata_hash_changes_for_feature_values_and_metadata():
 
     assert Hasher.hash(td) != Hasher.hash(changed_features)
     assert Hasher.hash(td) != Hasher.hash(changed_metadata)
+
+
+@pytest.mark.unit
+def test_tensordata_hash_changes_for_idx_mapping_metadata():
+    features = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    td = _make_tensor_data(features)
+    same_features_changed_mapping = _make_tensor_data(features.clone())
+    same_features_changed_mapping.idx_mapping = {0: 10, 1: 11}
+
+    assert Hasher.hash(td) != Hasher.hash(same_features_changed_mapping)
 
 
 @pytest.mark.unit

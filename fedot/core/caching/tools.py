@@ -1,15 +1,16 @@
-from dataclasses import asdict, is_dataclass
+from dataclasses import fields, is_dataclass
 from enum import Enum
 import hashlib
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Set
 
 import numpy as np
 import torch
 
 from fedot.core.backend.backend import Backend
+from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
 from fedot.core.data.tensor_data import TensorData
 
 
@@ -145,10 +146,6 @@ def _array_to_bytes(array: Any) -> bytes:
     if array.dtype.hasobject:
         return _stable_bytes(array.tolist())
 
-    if np.issubdtype(array.dtype, np.floating):
-        array = np.array(array, copy=True)
-        array[np.isnan(array)] = np.nan
-
     return np.ascontiguousarray(array).tobytes()
 
 
@@ -190,10 +187,6 @@ def _tensor_to_bytes(tensor: torch.Tensor) -> bytes:
         tensor = tensor.to_dense()
 
     tensor = tensor.cpu().contiguous()
-
-    if torch.is_floating_point(tensor):
-        tensor = tensor.clone()
-        tensor[torch.isnan(tensor)] = float("nan")
 
     return tensor.numpy().tobytes()
 
@@ -244,6 +237,7 @@ def build_tensordata_metadata(td: TensorData) -> dict[str, Any]:
         "categorical_idx": td.categorical_idx,
         "numerical_idx": td.numerical_idx,
         "features_names": td.features_names,
+        "idx_mapping": td.idx_mapping,
         "ts_orientation": td.ts_orientation,
         "ts_terms_idx": td.ts_terms_idx,
         "ts_forecast_horizon": td.ts_forecast_horizon,
@@ -336,21 +330,24 @@ def get_hash_preprocessing_plan(plan: Any, digest_size: int = 16) -> str:
     return stable_hash(steps, digest_size=digest_size)
 
 
-DEFAULT_EXCLUDED_MODEL_FIELDS = {
-    "logger",
-    "cache",
-    "cacher",
-    "device_context",
-}
+DEFAULT_EXCLUDED_MODEL_FIELDS = frozenset({
+    "logger",          # logging handles are runtime-only and not model state
+    "cache",           # caches are derived runtime data, not fitted parameters
+    "cacher",          # cache helpers can include non-deterministic/runtime state
+    "device_context",  # backend/device context should not affect fitted model hash
+})
 
 
-def normalize_for_hash(obj: Any) -> Any:
+def normalize_for_hash(obj: Any, _seen: Optional[Set[int]] = None) -> Any:
     """
     Convert arbitrary runtime state to a stable JSON-compatible structure.
 
     Large tensors and arrays are represented by metadata plus a content hash
     instead of expanding them to nested lists.
     """
+    if _seen is None:
+        _seen = set()
+
     if obj is None:
         return None
 
@@ -375,36 +372,61 @@ def normalize_for_hash(obj: Any) -> Any:
     if isinstance(obj, torch.Tensor):
         return tensor_state_fingerprint(obj)
 
-    if isinstance(obj, np.ndarray) or type(obj).__module__.split(".", maxsplit=1)[0] == "cupy":
+    if isinstance(obj, ARRAY_RUNTIME_TYPES):
         return ndarray_state_fingerprint(obj)
 
     if isinstance(obj, np.generic):
         return obj.item()
 
     if isinstance(obj, tuple):
-        return [normalize_for_hash(x) for x in obj]
+        return _normalize_sequence_for_hash(obj, _seen)
 
     if isinstance(obj, list):
-        return [normalize_for_hash(x) for x in obj]
+        return _normalize_sequence_for_hash(obj, _seen)
 
     if isinstance(obj, set):
-        return sorted(normalize_for_hash(x) for x in obj)
+        return sorted(normalize_for_hash(x, _seen) for x in obj)
 
     if isinstance(obj, dict):
+        _check_cycle(obj, _seen)
         normalized_items = {}
-        for key, value in obj.items():
-            normalized_key = str(normalize_for_hash(key))
-            normalized_items[normalized_key] = normalize_for_hash(value)
-        return {key: normalized_items[key] for key in sorted(normalized_items)}
+        try:
+            for key, value in obj.items():
+                normalized_key = str(normalize_for_hash(key, _seen))
+                normalized_items[normalized_key] = normalize_for_hash(value, _seen)
+            return {key: normalized_items[key] for key in sorted(normalized_items)}
+        finally:
+            _seen.remove(id(obj))
 
-    if is_dataclass(obj):
-        return normalize_for_hash(asdict(obj))
+    if is_dataclass(obj) and not inspect.isclass(obj):
+        _check_cycle(obj, _seen)
+        try:
+            return {
+                field.name: normalize_for_hash(getattr(obj, field.name), _seen)
+                for field in fields(obj)
+            }
+        finally:
+            _seen.remove(id(obj))
 
     cls = obj.__class__
-    return {
-        "__object__": f"{cls.__module__}.{cls.__qualname__}",
-        "__str__": str(obj),
-    }
+    raise TypeError(
+        f"Unsupported type for cache hashing: {cls.__module__}.{cls.__qualname__}"
+    )
+
+
+def _check_cycle(obj: Any, seen: Set[int]) -> None:
+    obj_id = id(obj)
+    if obj_id in seen:
+        raise TypeError(f"Cycle detected during cache hash normalization: {type(obj)}")
+    seen.add(obj_id)
+
+
+def _normalize_sequence_for_hash(obj: Any, seen: Set[int]) -> list[Any]:
+    _check_cycle(obj, seen)
+    try:
+        return [normalize_for_hash(x, seen) for x in obj]
+    finally:
+        seen.remove(id(obj))
 
 
 def get_model_attributes(
