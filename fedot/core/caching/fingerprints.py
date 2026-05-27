@@ -9,20 +9,12 @@ from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.caching.normalization import _stable_bytes, normalize_for_hash, stable_hash
 from fedot.core.caching.sampling import sample_row_positions
+from fedot.core.common.tools import to_numpy
 
 
 def _blake_hash_bytes(data: bytes, digest_size: int = 16) -> str:
     """Return a Blake2b hash for already prepared bytes."""
     return hashlib.blake2b(data, digest_size=digest_size).hexdigest()
-
-
-def _to_numpy(array: Any) -> np.ndarray:
-    """Convert arrays from the active backend to a NumPy array for byte hashing."""
-    backend = Backend()
-
-    if backend.device.type != "cpu":
-        return backend.xp.asnumpy(array)
-    return np.asarray(array)
 
 
 def _array_to_bytes(array: Any) -> bytes:
@@ -32,7 +24,7 @@ def _array_to_bytes(array: Any) -> bytes:
     Numeric arrays are hashed by raw contiguous bytes. Object arrays are routed
     through canonical JSON to support strings/categories/mixed values.
     """
-    array = _to_numpy(array)
+    array = to_numpy(array)
 
     if array.dtype.hasobject:
         return _stable_bytes(array.tolist())
@@ -272,7 +264,7 @@ def ndarray_state_fingerprint(array: Any, digest_size: int = 16) -> dict[str, An
     Returns:
         JSON-compatible array fingerprint.
     """
-    array = _to_numpy(array)
+    array = to_numpy(array)
     return {
         "kind": "ndarray",
         "shape": tuple(int(dim) for dim in array.shape),

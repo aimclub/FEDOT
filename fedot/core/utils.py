@@ -15,6 +15,10 @@ from sklearn.model_selection import train_test_split
 
 from fedot.core.data.input_data.data import InputData
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
 
@@ -37,6 +41,9 @@ def default_fedot_data_dir() -> str:
 
     return default_data_path
 
+
+def cache_dir() -> Path:
+    return default_fedot_data_dir() / Path(os.getenv("CACHE_PATH"))
 
 def labels_to_dummy_probs(prediction: np.array):
     """ Returns converted predictions using one-hot probability encoding """

@@ -131,3 +131,141 @@ def _normalize_sequence_for_hash(obj: Any, seen: Set[int]) -> list[Any]:
         return [normalize_for_hash(x, seen) for x in obj]
     finally:
         seen.remove(id(obj))
+
+
+def _is_cupy_array(data: Any) -> bool:
+    return "cupy" in type(data).__module__
+
+
+def prepare_value_for_torch_save(value: Any) -> Any:
+    """
+    Convert runtime values to cache-safe values.
+
+    Main rule:
+    - torch.Tensor -> detached CPU tensor
+    - cupy.ndarray -> numpy.ndarray
+    - dataclass -> dict with normalized fields
+    - list/tuple/dict -> recursively processed
+    - primitive metadata -> JSON/torch-save friendly values
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, (str, int, float, bool, bytes)):
+        return value
+
+    if isinstance(value, Path):
+        return str(value)
+
+    if isinstance(value, torch.device):
+        return str(value)
+
+    if isinstance(value, torch.dtype):
+        return str(value)
+
+    if isinstance(value, np.dtype):
+        return str(value)
+
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu()
+
+    if isinstance(value, np.ndarray):
+        return value
+
+    if isinstance(value, np.generic):
+        return value.item()
+
+    if _is_cupy_array(value):
+        return value.get()
+
+    if isinstance(value, dict):
+        return {
+            prepare_value_for_torch_save(k): prepare_value_for_torch_save(v)
+            for k, v in value.items()
+        }
+
+    if isinstance(value, list):
+        return [prepare_value_for_torch_save(v) for v in value]
+
+    if isinstance(value, tuple):
+        return tuple(prepare_value_for_torch_save(v) for v in value)
+
+    if isinstance(value, (set, frozenset)):
+        return [prepare_value_for_torch_save(v) for v in value]
+
+    if is_dataclass(value) and not inspect.isclass(value):
+        return {
+            "class_path": f"{value.__class__.__module__}.{value.__class__.__qualname__}",
+            "fields": {
+                field.name: prepare_value_for_torch_save(getattr(value, field.name))
+                for field in fields(value)
+            },
+        }
+
+    raise TypeError(
+        "Unsupported type for torch cache saving: "
+        f"{value.__class__.__module__}.{value.__class__.__qualname__}"
+    )
+
+
+def build_tensor_data_payload(td: Any) -> dict[str, Any]:
+    """
+    Build TensorData payload automatically from dataclass fields.
+
+    This avoids hardcoding TensorData field names.
+    """
+    if not is_dataclass(td):
+        raise TypeError(f"Expected dataclass TensorData, got {type(td)}")
+
+    payload_fields = {}
+
+    for field in fields(td):
+        value = getattr(td, field.name)
+        payload_fields[field.name] = prepare_value_for_torch_save(value)
+
+    return {
+        "format": "fedot-tensor-data-cache-v1",
+        "class_path": f"{td.__class__.__module__}.{td.__class__.__qualname__}",
+        "fields": payload_fields,
+    }
+
+
+def _prepare_preprocessing_state_value(value: Any) -> Any:
+    """Best-effort state preparation that keeps arbitrary custom attributes pickleable."""
+    if isinstance(value, dict):
+        return {
+            _prepare_preprocessing_state_value(key): _prepare_preprocessing_state_value(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list):
+        return [_prepare_preprocessing_state_value(item) for item in value]
+
+    if isinstance(value, tuple):
+        return tuple(_prepare_preprocessing_state_value(item) for item in value)
+
+    if isinstance(value, (set, frozenset)):
+        return [_prepare_preprocessing_state_value(item) for item in value]
+
+    try:
+        return prepare_value_for_torch_save(value)
+    except TypeError:
+        return value
+
+
+def build_preprocessing_model_payload(data: Any) -> Any:
+    """Prepare fitted preprocessing state for pickle without mutating the source model."""
+    if inspect.isclass(data) or not hasattr(data, "__dict__"):
+        return data
+
+    payload = data.__class__.__new__(data.__class__)
+    prepared_state = {}
+
+    for field_name, field_value in data.__dict__.items():
+        prepared_state[field_name] = _prepare_preprocessing_state_value(field_value)
+
+    payload.__dict__.update(prepared_state)
+    return payload

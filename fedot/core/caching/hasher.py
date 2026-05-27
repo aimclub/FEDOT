@@ -17,6 +17,7 @@ from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.planner import PreprocessingPlan
+from fedot.core.common.registry_predicates import *
 
 
 class Hasher(Registry):
@@ -44,27 +45,7 @@ class Hasher(Registry):
         return hashing_func(data, **kwargs)
 
 
-def _is_array_runtime(data: Any) -> bool:
-    return isinstance(data, ARRAY_RUNTIME_TYPES)
-
-
-def _is_tensor_data(data: Any) -> bool:
-    return isinstance(data, TensorData)
-
-
-def _is_preprocessing_plan(data: Any) -> bool:
-    return isinstance(data, PreprocessingPlan)
-
-
-def _is_preprocessing_handler(data: Any) -> bool:
-    """Return `True` for preprocessing handler instances and handler classes."""
-    if inspect.isclass(data):
-        return issubclass(data, AbstractPreprocessingHandler)
-
-    return isinstance(data, AbstractPreprocessingHandler)
-
-
-@Hasher.register_creator(_is_array_runtime)
+@Hasher.register_creator(is_array_runtime)
 def raw_fingerprint(
     data: Any,
     min_rows: int = 8,
@@ -86,7 +67,7 @@ def raw_fingerprint(
     return get_hash_raw_features(data, row_positions, digest_size=digest_size)
 
 
-@Hasher.register_creator(_is_tensor_data)
+@Hasher.register_creator(is_tensor_data)
 def ready_fingerprint(
     td: TensorData,
     min_rows: int = 8,
@@ -105,7 +86,7 @@ def ready_fingerprint(
     return get_hash_tensordata(td, min_rows=min_rows, max_rows=max_rows, digest_size=digest_size)
 
 
-@Hasher.register_creator(_is_preprocessing_plan)
+@Hasher.register_creator(is_preprocessing_plan)
 def preprocessing_plan_hash(plan: PreprocessingPlan, digest_size: int = 16) -> str:
     """
     Build a fingerprint for a preprocessing plan.
@@ -116,7 +97,7 @@ def preprocessing_plan_hash(plan: PreprocessingPlan, digest_size: int = 16) -> s
     return get_hash_preprocessing_plan(plan, digest_size=digest_size)
 
 
-@Hasher.register_creator(_is_preprocessing_handler)
+@Hasher.register_creator(is_preprocessing_handler)
 def preprocessing_model_hash(model: Any, digest_size: int = 16) -> str:
     """
     Build a fingerprint for a preprocessing handler class or fitted instance.
