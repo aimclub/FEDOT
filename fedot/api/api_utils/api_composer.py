@@ -23,11 +23,13 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import MetricIDType
 from fedot.utilities.composer_timer import fedot_composer_timer
+from fedot.core.context.context import ExecutionContext
 
 
 class ApiComposer:
 
-    def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]]):
+    def __init__(self, api_params: ApiParams, metrics: Union[MetricIDType, Sequence[MetricIDType]],
+                 context: Optional[ExecutionContext] = None):
         self.log = default_log(self)
         self.params = api_params
         self.metrics = metrics
@@ -39,6 +41,7 @@ class ApiComposer:
         self.was_optimised = False
         # status flag indicating that tuner step was applied`
         self.was_tuned = False
+        self.context = context
         self.init_cache()
 
     def init_cache(self):
@@ -155,6 +158,7 @@ class ApiComposer:
                                    .with_optimizer(self.params.get('optimizer'))
                                    .with_optimizer_params(parameters=self.params.optimizer_params)
                                    .with_metrics(self.metrics)
+                                   .with_context(self.context)
                                    .with_cache(self.operations_cache, self.preprocessing_cache, self.predictions_cache)
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
@@ -204,6 +208,7 @@ class ApiComposer:
                  .with_timeout(datetime.timedelta(minutes=tuner_plan.timeout_minutes))
                  .with_eval_time_constraint(self.params.composer_requirements.max_graph_fit_time)
                  .with_requirements(self.params.composer_requirements)
+                 .with_context(self.context)
                  .build(train_data))
 
         with self.timer.launch_tuning():

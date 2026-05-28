@@ -62,23 +62,8 @@ class IndustrialImageMerger(ImageMergerProtocol):
         from fedot.industrial.core.repository.industrial_implementations.abstract import preprocess_industrial_predicts
         return preprocess_industrial_predicts(predicts)
 
-    def merge_predicts(self, predicts: List[np.ndarray]) -> np.ndarray:
-        from fedot.industrial.core.repository.industrial_implementations.abstract import merge_industrial_predicts
-        return merge_industrial_predicts(predicts)
-
 
 class IndustrialTSMerger(TSMergerProtocol):
-    def merge_predicts(self, predicts: List[np.ndarray]) -> np.ndarray:
-        from fedot.industrial.core.repository.industrial_implementations.abstract import merge_industrial_predicts
-        return merge_industrial_predicts(predicts)
-
-    def merge_targets(self, targets: List[np.ndarray]) -> np.ndarray:
-        from fedot.industrial.core.repository.industrial_implementations.abstract import merge_industrial_targets
-        return merge_industrial_targets(targets)
-
-    def preprocess_predicts(self, predicts: List[np.ndarray]) -> List[np.ndarray]:
-        from fedot.industrial.core.repository.industrial_implementations.abstract import preprocess_industrial_predicts
-        return preprocess_industrial_predicts(predicts)
 
     def postprocess_predicts(self, merged: np.ndarray) -> np.ndarray:
         from fedot.industrial.core.repository.industrial_implementations.abstract import postprocess_industrial_predicts
@@ -89,9 +74,6 @@ class IndustrialTextMerger(TextMergerProtocol):
     def merge_predicts(self, predicts: List[np.ndarray]) -> np.ndarray:
         from fedot.industrial.core.repository.industrial_implementations.abstract import merge_industrial_predicts
         return merge_industrial_predicts(predicts)
-
-    def postprocess_predicts(self, merged: np.ndarray) -> np.ndarray:
-        return merged
 
 
 class IndustrialDataSourceSplitterBuilder(DataSourceSplitterProtocol):
@@ -104,7 +86,7 @@ class IndustrialTunerClass(TunerClassProtocol):
     def __init__(self, **kwargs):
         self.backend = kwargs.get("backend", "default")
 
-    def __call__(self, objective_evaluate, task, iterations, max_lead_time=None, **kwargs):
+    def optuna_tuner(self, objective_evaluate, task, iterations, max_lead_time=None, **kwargs):
         from golem.core.tuning.optuna_tuner import OptunaTuner
         from fedot.industrial.core.repository.industrial_implementations.ml_optimisation import DaskOptunaTuner
 
@@ -139,7 +121,7 @@ class IndustrialSearchSpace(SearchSpaceProtocol):
 
 class IndustrialDefaultMutations(DefaultMutationsProtocol):
     @staticmethod
-    def __call__(task_type: 'TaskTypesEnum', params):
+    def get_default_mutations(task_type: 'TaskTypesEnum', params):
         from fedot.industrial.core.repository.industrial_implementations.optimisation import \
             _get_default_industrial_mutations
         return _get_default_industrial_mutations(task_type, params)
@@ -165,7 +147,7 @@ class IndustrialLaggedTransformer(LaggedTransformerProtocol):
     def _update_column_types(self, output_data: 'OutputData'):
         from fedot.industrial.core.repository.industrial_implementations.data_transformation import \
             update_column_types_industrial
-        update_column_types_industrial(output_data)
+        return update_column_types_industrial(output_data)
 
     def transform(self, input_data: 'InputData') -> 'OutputData':
         from fedot.industrial.core.repository.industrial_implementations.data_transformation import \
@@ -180,7 +162,7 @@ class IndustrialLaggedTransformer(LaggedTransformerProtocol):
     def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
         from fedot.industrial.core.repository.industrial_implementations.data_transformation import \
             _check_and_correct_window_size_industrial
-        _check_and_correct_window_size_industrial(time_series, forecast_length)
+        return _check_and_correct_window_size_industrial(time_series, forecast_length)
 
 
 class IndustrialTopologicalFeatures(TopologicalFeaturesProtocol):
@@ -202,6 +184,6 @@ class IndustrialTsSmoothing(TsSmoothingProtocol):
 
 
 class IndustrialApiComposerTune(ApiComposerTuneProtocol):
-    def __call__(self, train_data: 'InputData', pipeline: 'Pipeline', execution_plan=None) -> 'Pipeline':
+    def tune_pipeline(self, train_data: 'InputData', pipeline: 'Pipeline', execution_plan=None) -> 'Pipeline':
         from fedot.industrial.core.repository.industrial_implementations.ml_optimisation import tune_pipeline_industrial
         return tune_pipeline_industrial(train_data, pipeline, execution_plan)

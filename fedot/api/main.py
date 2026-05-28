@@ -51,7 +51,7 @@ from fedot.utilities.composer_timer import fedot_composer_timer
 from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
-from fedot.core.context.context import ExecutionContext
+from fedot.core.contex.context import ExecutionContext
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -107,10 +107,10 @@ class Fedot:
                  **composer_tuner_params
                  ):
 
+        self.context = ExecutionContext(extension_name=context)
+
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
-
-        self.context = ExecutionContext(extension_name=context)
 
         # Attributes for dealing with metrics, data sources and hyperparameters
         self.params = ApiParams(composer_tuner_params, problem, task_params, n_jobs, timeout, seed)
@@ -303,7 +303,8 @@ class Fedot:
                               .with_n_jobs(common_tune_plan.n_jobs)
                               .with_metric(common_tune_plan.metric)
                               .with_iterations(iterations)
-                              .with_timeout(timeout))
+                              .with_timeout(timeout)
+                              .with_context(self.context))
             pipeline_tuner = getattr(pipeline_tuner, tune_plan.builder_method_name)(
                 tensor_data if tune_plan.use_tensor_runtime else common_tune_plan.input_data
             )
@@ -377,6 +378,7 @@ class Fedot:
                               .with_metric(tune_plan.metric)
                               .with_iterations(iterations)
                               .with_timeout(timeout)
+                              .with_context(self.context)
                               .build(tune_input_data))
 
             self.current_pipeline = pipeline_tuner.tune(self.current_pipeline, show_progress=show_progress)
@@ -682,7 +684,8 @@ class Fedot:
                                              data_producer=lambda: (yield self.train_data, self.test_data),
                                              validation_blocks=validation_blocks,
                                              eval_n_jobs=self.params.n_jobs,
-                                             do_unfit=False)
+                                             do_unfit=False,
+                                             context=self.context)
 
         metrics = obj_eval.evaluate(self.current_pipeline).values
         metrics = {metric_name: round(abs(metric), rounding_order) for (metric_name, metric) in

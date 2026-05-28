@@ -11,20 +11,17 @@ from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.context import ExecutionContext
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TYPE_TO_ID
-
+from fedot.core.context.context import ExecutionContext
 
 class LaggedImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[OperationParameters], context: Optional[ExecutionContext] = None):
         super().__init__(params)
-
-        self.context = context or ExecutionContext()
 
         self.window_size_minimum = None
         self.sparse_transform = False
@@ -33,6 +30,7 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Define logger object
         self.log = default_log(self)
+        self.context = context
 
     @property
     def window_size(self) -> Optional[int]:
@@ -54,7 +52,13 @@ class LaggedImplementation(DataOperationImplementation):
 
         pass
 
-    def transform(self, input_data: InputData) -> OutputData:
+    def tranfsorm(self, input_data: InputData) -> OutputData:
+        if self.context:
+            return self.context.lagged_transformer.transform(input_data)
+        else:
+            return self.transform_core(input_data)
+
+    def transform_core(self, input_data: InputData) -> OutputData:
         """ Method for transformation of time series to lagged form for predict stage
 
         Args:
@@ -75,11 +79,10 @@ class LaggedImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
-        # self._update_column_types(output_data)
-        self.context.lagged__update_column_types(self, output_data)
+        self._update_column_types(output_data)
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
+    def transform_for_fit_core(self, input_data: InputData) -> OutputData:
         """Method for transformation of time series to lagged form for fit stage
 
         Args:
@@ -107,11 +110,17 @@ class LaggedImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
-        # self._update_column_types(output_data)
-        self.context.lagged__update_column_types(self, output_data)
+        self._update_column_types(output_data)
         return output_data
 
-    def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        if self.context:
+            return self.context.lagged_transformer.transform_for_fit(input_data)
+        else:
+            return self.transform_for_fit_core(input_data)
+
+
+    def _check_and_correct_window_size_core(self, time_series: np.ndarray, forecast_length: int):
         """ Method check if the length of the time series is not enough for
             lagged transformation
 
@@ -147,7 +156,19 @@ class LaggedImplementation(DataOperationImplementation):
                            f"from {self.params.get('window_size')} to {self.window_size_minimum}"))
             self.params.update(window_size=self.window_size_minimum)
 
+    def _check_and_correct_window_size(self, time_series: np.ndarray, forecast_length: int):
+        if self.context:
+            return self.context.lagged_transformer._check_and_correct_window_size(time_series, forecast_length)
+        else:
+            return self._check_and_correct_window_size_core(time_series, forecast_length)
+
     def _update_column_types(self, output_data: OutputData):
+        if self.context:
+            return self.context.lagged_transformer._update_column_types(output_data)
+        else:
+            return self._update_column_types_core(output_data)
+
+    def _update_column_types_core(self, output_data: OutputData):
         """Update column types after lagged transformation. All features becomes ``float``
         """
 
@@ -376,8 +397,9 @@ class LaggedTransformationImplementation(LaggedImplementation):
 
 class TsSmoothingImplementation(DataOperationImplementation):
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters], context: Optional[ExecutionContext] = None):
         super().__init__(params)
+        self.context = context
 
     @property
     def window_size(self) -> int:
@@ -392,7 +414,13 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
         pass
 
-    def transform(self, input_data: InputData) -> OutputData:
+    def transform(self, input_data: InputData):
+        if self.context:
+            self.context.ts_smoothing.transform(input_data)
+        else:
+            return self.transform_core(input_data)
+
+    def transform_core(self, input_data: InputData) -> OutputData:
         """Method for smoothing time series
 
         Args:

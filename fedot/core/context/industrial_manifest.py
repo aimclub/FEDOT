@@ -1,4 +1,5 @@
 from fedot.extensions.contracts import ExtensionManifest
+from fedot.extensions.registry import get_registered_extension, register_extension
 from fedot.core.context.industrial_backend import (
     IndustrialSplitter,
     IndustrialDataMerger,
@@ -42,3 +43,5 @@ FEDOT_INDUSTRIAL_MANIFEST = ExtensionManifest(
         "api_composer_tune": IndustrialApiComposerTune,
     }
 )
+
+register_extension(FEDOT_INDUSTRIAL_MANIFEST)

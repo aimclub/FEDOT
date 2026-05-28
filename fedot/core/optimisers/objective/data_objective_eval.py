@@ -15,7 +15,6 @@ from fedot.core.data.data import InputData
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.debug import is_recording_mode, save_debug_info_for_pipeline
-
 from fedot.core.context.context import ExecutionContext
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
@@ -47,7 +46,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  predictions_cache: Optional[PredictionsCache] = None,
                  eval_n_jobs: int = 1,
                  do_unfit: bool = True,
-                 context: Optional[ExecutionContext] = None):
+                 context: Optional[ExecutionContext] = None
+                 ):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
@@ -55,12 +55,21 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._operations_cache = operations_cache
         self._preprocessing_cache = preprocessing_cache
         self._predictions_cache = predictions_cache
+        self.context = context
         self._log = default_log(self)
         self._do_unfit = do_unfit
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
         #  when adapting and restoring it to/from OptGraph.
+
+        if self.context:
+            return self.context.evaluator.evaluate(graph)
+
+        else:
+            return self.evaluation_core(graph)
+
+    def evaluation_core(self, graph: Pipeline) -> Fitness:
         graph.log = self._log
 
         graph_id = graph.root_node.descriptive_id

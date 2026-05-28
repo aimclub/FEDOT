@@ -8,8 +8,8 @@ from golem.utilities.data_structures import are_same_length
 from fedot.core.data.array_utilities import find_common_elements, atleast_2d, atleast_4d, flatten_extra_dim
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
-from fedot.core.context import ExecutionContext
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.context.context import ExecutionContext
 
 
 class DataMerger:
@@ -24,12 +24,11 @@ class DataMerger:
     :param outputs: list with OutputData from parent nodes for merging
     """
 
-    def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None,
-                 context: Optional[ExecutionContext] = None):
+    def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None, context: Optional[ExecutionContext] = None,):
         self.log = default_log(self)
         self.outputs = outputs
         self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
-        self.context = context or ExecutionContext()
+        self.context = context
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -38,11 +37,10 @@ class DataMerger:
             raise ValueError('There are no common indices for outputs')
 
         # Find first output with the main target & resulting task
-        # self.main_output = DataMerger.find_main_output(outputs)
-        self.main_output = self.context.merger_find_main_output(outputs)
+        self.main_output = DataMerger.find_main_output(outputs, self.context)
 
     @staticmethod
-    def get(outputs: List['OutputData']) -> 'DataMerger':
+    def get_core(outputs: List['OutputData']) -> 'DataMerger':
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged
@@ -75,8 +73,7 @@ class DataMerger:
 
         common_predicts = self.find_common_predicts()
         mergeable_predicts = self.preprocess_predicts(common_predicts)
-        # merged_features = self.merge_predicts(mergeable_predicts)
-        merged_features = self.context.merger_merge_predicts(mergeable_predicts)
+        merged_features = self.merge_predicts(mergeable_predicts)
         merged_features = self.postprocess_predicts(merged_features)
 
         updated_metadata = SupplementaryDataMerger(self.outputs, self.main_output).merge()
@@ -121,7 +118,7 @@ class DataMerger:
         """ Pre-process (e.g. equalizes sizes, reshapes) and return list of arrays that can be merged. """
         return list(map(atleast_2d, predicts))
 
-    def merge_predicts(self, predicts: List[np.array]) -> np.array:
+    def merge_predicts_core(self, predicts: List[np.array]) -> np.array:
         # Finally, merge predictions into features for the next stage
         return np.concatenate(predicts, axis=-1)
 
@@ -142,7 +139,7 @@ class DataMerger:
         return len(output.idx) != len(output.predict)
 
     @staticmethod
-    def find_main_output(outputs: List['OutputData']) -> 'OutputData':
+    def find_main_output_core(outputs: List['OutputData']) -> 'OutputData':
         """ Returns first output with main target or (if there are
         no main targets) the output with priority secondary target. """
         priority_output = next((output for output in outputs
@@ -152,11 +149,35 @@ class DataMerger:
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
         return priority_output
+    @staticmethod
+    def find_main_output(outputs: List['OutputData'], context: Optional[ExecutionContext] = None) -> 'OutputData':
+        if context:
+            return context.data_merger.find_main_output(outputs)
+        else:
+            return find_main_output_core(outputs)
+    @staticmethod
+    def get(outputs: List['OutputData'], context: Optional[ExecutionContext] = None) -> 'DataMerger':
+        if context:
+            return context.data_merger.get(outputs)
+        else:
+            return get_core(outputs)
+
+    def merge_predicts(self, predicts: List[np.array]) -> np.array:
+        if self.context:
+            return self.context.data_merger.merge_predicts(predicts)
+        else:
+            return self.merge_predicts_core(predicts)
 
 
 class ImageDataMerger(DataMerger):
 
     def preprocess_predicts(self, predicts: List[np.array]) -> List[np.array]:
+        if self.context:
+            return self.context.image_merger.preprocess_predicts(predicts)
+        else:
+            return self.preprocess_predicts_core(predicts)
+
+    def preprocess_predicts_core(self, predicts: List[np.array]) -> List[np.array]:
         # Reshape predicts to 4d (idx, width, height, channels)
         reshaped_predicts = list(map(atleast_4d, predicts))
 
@@ -172,6 +193,12 @@ class ImageDataMerger(DataMerger):
 class TSDataMerger(DataMerger):
 
     def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
+        if self.context:
+            return self.context.ts_merger.postprocess_predicts(merged_predicts)
+        else:
+            return self.postprocess_predicts_core(merged_predicts)
+
+    def postprocess_predicts_core(self, merged_predicts: np.array) -> np.array:
         # Ensure that 1d-column timeseries remains 1d timeseries
         return flatten_extra_dim(merged_predicts)
 

@@ -39,7 +39,8 @@ class DataSourceSplitter:
                  split_ratio: Optional[float] = None,
                  shuffle: bool = False,
                  stratify: bool = True,
-                 random_seed: int = 42):
+                 random_seed: int = 42,
+                 context: Optional[ExecutionContext] = None):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
@@ -47,12 +48,19 @@ class DataSourceSplitter:
         self.stratify = stratify
         self.random_seed = random_seed
         self.log = default_log(self)
+        self.context = context
 
     def build_tensordata(self, tensor_data) -> DataSource:
         input_data = tensordata_to_input_data(tensor_data)
         return self.build(input_data)
 
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
+        if self.context:
+            return self.context.data_source_splitter.build(data)
+        else:
+            return self.build_core(data)
+
+    def build_core(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio
         self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
 

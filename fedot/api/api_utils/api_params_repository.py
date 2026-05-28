@@ -25,9 +25,10 @@ class ApiParamsRepository:
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
 
-    def __init__(self, task_type: TaskTypesEnum):
+    def __init__(self, task_type: TaskTypesEnum, context: Optional[ExecutionContext] = None):
         self.task_type = task_type
         self.default_params = ApiParamsRepository.default_params_for_task(self.task_type)
+        self.context = context
 
     @staticmethod
     def default_params_for_task(task_type: TaskTypesEnum) -> dict:
@@ -75,14 +76,21 @@ class ApiParamsRepository:
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
-        # gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
-        gp_algorithm_params['mutation_types'] = context.api_params_repository__get_default_mutations(self.task_type,
-                                                                                                     params)
+        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params,
+                                                                                           self.context)
         gp_algorithm_params['seed'] = params['seed']
         return gp_algorithm_params
 
+
     @staticmethod
-    def _get_default_mutations(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
+    def _get_default_mutations(task_type: TaskTypesEnum, params, context: Optional[ExecutionContext] = None) -> Sequence[MutationTypesEnum]:
+        if context:
+            return context.default_mutations.get_default_mutation(task_type, params)
+        else:
+            return _get_default_mutations_core(task_type, params)
+
+    @staticmethod
+    def _get_default_mutations_core(task_type: TaskTypesEnum, params) -> Sequence[MutationTypesEnum]:
         mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,

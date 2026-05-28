@@ -27,7 +27,7 @@ class Operation:
         operation_type: name of the operation
     """
 
-    def __init__(self, operation_type: str, **kwargs):
+    def __init__(self, operation_type: str, context: Optional[ExecutionContext] = None, **kwargs):
         self.operation_type = operation_type
 
         self._eval_strategy = None
@@ -35,6 +35,7 @@ class Operation:
         self.fitted_operation = None
 
         self.log = default_log(self)
+        self.context = context
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
@@ -110,6 +111,48 @@ class Operation:
                 predictions_cache: Optional[PredictionsCache] = None,
                 fold_id: Optional[int] = None,
                 descriptive_id: Optional[str] = None):
+        if self.context:
+            return self.context.operation_predict.predict(fitted_operation, data, params, output_mode, predictions_cache, fold_id, descriptive_id)
+        else:
+            return self.predict_core(fitted_operation, data, params, output_mode, predictions_cache, fold_id, descriptive_id)
+
+    def predict_for_fit(self,
+                        fitted_operation,
+                        data: InputData,
+                        params: Optional[OperationParameters] = None,
+                        output_mode: str = 'default',
+                        predictions_cache: Optional[PredictionsCache] = None,
+                        fold_id: Optional[int] = None,
+                        descriptive_id: Optional[str] = None):
+        if self.context:
+            return self.context.operation_predict.predict_for_fit(fitted_operation, data, params, output_mode, predictions_cache, fold_id, descriptive_id)
+        else:
+            return self.predict_for_fit_core(fitted_operation, data, params, output_mode, predictions_cache, fold_id, descriptive_id)
+
+    def _predict(self,
+                 fitted_operation,
+                 data: InputData,
+                 params: Optional[OperationParameters] = None,
+                 output_mode: str = 'default',
+                 is_fit_stage: bool = False,
+                 predictions_cache: Optional[PredictionsCache] = None,
+                 fold_id: Optional[int] = None,
+                 descriptive_id: Optional[str] = None):
+        if self.context:
+            return self.context.operation_predict._predict(fitted_operation, data, params, output_mode,
+                                                                  is_fit_stage, predictions_cache, fold_id, descriptive_id)
+        else:
+            return self._predict_core(fitted_operation, data, params, output_mode, is_fit_stage,
+                                             predictions_cache, fold_id, descriptive_id)
+
+    def predict_core(self,
+                fitted_operation,
+                data: InputData,
+                params: Optional[Union[OperationParameters, dict]] = None,
+                output_mode: str = 'default',
+                predictions_cache: Optional[PredictionsCache] = None,
+                fold_id: Optional[int] = None,
+                descriptive_id: Optional[str] = None):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
@@ -120,10 +163,10 @@ class Operation:
             output_mode: string with information about output of operation,
             for example, is the operation predict probabilities or class labels
         """
-        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False,
+        return self._predict_core(fitted_operation, data, params, output_mode, is_fit_stage=False,
                              predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def predict_for_fit(self,
+    def predict_for_fit_core(self,
                         fitted_operation,
                         data: InputData,
                         params: Optional[OperationParameters] = None,
@@ -144,7 +187,7 @@ class Operation:
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True,
                              predictions_cache=predictions_cache, fold_id=fold_id, descriptive_id=descriptive_id)
 
-    def _predict(self,
+    def _predict_core(self,
                  fitted_operation,
                  data: InputData,
                  params: Optional[OperationParameters] = None,
