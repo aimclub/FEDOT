@@ -1,13 +1,14 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 import sys
 from typing import Optional, Union, Dict, Any, Tuple
 from fedot.core.data.common.types import IndexType
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
+import numpy as np
 import torch
 import logging
-from fedot.core.data.tensor_data.tools import get_device_from_str, tensor_memory_usage
+from fedot.core.data.tensor_data.tools import get_device_from_str, tensor_memory_usage, td_values_equal
 from fedot.core.data.common.types import TensorLike
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,15 @@ class TensorData:
     parent_raw_fingerprint: Optional[str] = None
     parent_ready_fingerprint: Optional[str] = None
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, TensorData):
+            return False
+
+        return all(
+            td_values_equal(getattr(self, field.name), getattr(other, field.name))
+            for field in fields(self)
+        )
+
     @property
     def memory_usage(self) -> Dict[str, int]:
         """
@@ -183,3 +193,39 @@ class TensorData:
         if self.target is not None:
             self.target = self.target.to(device)
         return self
+
+
+def td_values_equal(first: Any, second: Any) -> bool:
+    if isinstance(first, torch.Tensor) or isinstance(second, torch.Tensor):
+        if not isinstance(first, torch.Tensor) or not isinstance(second, torch.Tensor):
+            return False
+        if first.shape != second.shape or first.dtype != second.dtype:
+            return False
+        if first.is_floating_point() or second.is_floating_point():
+            return torch.allclose(
+                first.detach().cpu(),
+                second.detach().cpu(),
+                rtol=0,
+                atol=0,
+                equal_nan=True,
+            )
+        return torch.equal(first.detach().cpu(), second.detach().cpu())
+
+    if isinstance(first, np.ndarray) or isinstance(second, np.ndarray):
+        if not isinstance(first, np.ndarray) or not isinstance(second, np.ndarray):
+            return False
+        return np.array_equal(first, second, equal_nan=True)
+
+    if isinstance(first, dict) or isinstance(second, dict):
+        if not isinstance(first, dict) or not isinstance(second, dict):
+            return False
+        if first.keys() != second.keys():
+            return False
+        return all(td_values_equal(first[key], second[key]) for key in first)
+
+    if isinstance(first, (list, tuple)) or isinstance(second, (list, tuple)):
+        if not isinstance(first, type(second)) or len(first) != len(second):
+            return False
+        return all(td_values_equal(left, right) for left, right in zip(first, second))
+
+    return first == second

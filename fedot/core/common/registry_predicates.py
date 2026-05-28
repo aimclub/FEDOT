@@ -30,3 +30,11 @@ def is_preprocessing_handler(data: Any) -> bool:
         return issubclass(data, AbstractPreprocessingHandler)
 
     return isinstance(data, AbstractPreprocessingHandler)
+
+
+def is_pt_filepath(source: Any) -> bool:
+    return isinstance(source, str) and source.endswith('.pt')
+
+
+def is_pkl_filepath(source: Any) -> bool:
+    return isinstance(source, str) and source.endswith('.pkl')

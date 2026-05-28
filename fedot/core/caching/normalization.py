@@ -1,15 +1,25 @@
 from dataclasses import fields, is_dataclass
 from enum import Enum
 import hashlib
+import importlib
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Optional, Set
+from typing import Any, Optional, Set, Union, get_args, get_origin
 
 import numpy as np
 import torch
 
+from fedot.core.backend.backend import Backend
 from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
+from fedot.core.data.tensor_data import TensorData
+
+
+TENSOR_DATA_CACHE_FORMAT = "fedot-tensor-data-cache"
+TENSOR_DATA_CACHE_FORMATS = frozenset({
+    TENSOR_DATA_CACHE_FORMAT,
+    "fedot-tensor-data-cache-v1",
+})
 
 
 def normalize_for_hash(obj: Any, _seen: Optional[Set[int]] = None) -> Any:
@@ -227,7 +237,7 @@ def build_tensor_data_payload(td: Any) -> dict[str, Any]:
         payload_fields[field.name] = prepare_value_for_torch_save(value)
 
     return {
-        "format": "fedot-tensor-data-cache-v1",
+        "format": TENSOR_DATA_CACHE_FORMAT,
         "class_path": f"{td.__class__.__module__}.{td.__class__.__qualname__}",
         "fields": payload_fields,
     }
@@ -269,3 +279,134 @@ def build_preprocessing_model_payload(data: Any) -> Any:
 
     payload.__dict__.update(prepared_state)
     return payload
+
+
+def restore_tensor_data_payload(payload: dict[str, Any]) -> TensorData:
+    """Restore `TensorData` from a normalized torch-save payload."""
+    if isinstance(payload, TensorData):
+        return payload.to(Backend().device)
+
+    if not isinstance(payload, dict):
+        raise ValueError(
+            f"Unsupported TensorData cache payload type: {type(payload).__name__}"
+        )
+
+    payload_format = payload.get("format")
+    if payload_format not in TENSOR_DATA_CACHE_FORMATS:
+        raise ValueError(
+            f"Unsupported TensorData cache payload format: {payload_format!r}"
+        )
+
+    payload_fields = payload.get("fields")
+    if not isinstance(payload_fields, dict):
+        raise ValueError("TensorData cache payload must contain a fields mapping.")
+
+    restored_fields = {}
+    for field in fields(TensorData):
+        if field.name in payload_fields:
+            restored_fields[field.name] = _restore_value_for_field(
+                payload_fields[field.name],
+                field.type,
+            )
+
+    tensor_data = TensorData(**restored_fields)
+    return tensor_data.to(Backend().device)
+
+
+def prepare_loaded_preprocessing_model(data: Any) -> Any:
+    """Move loaded preprocessing model tensor state to the active backend device."""
+    return _move_tensors_to_backend(data)
+
+
+def _restore_value_for_field(value: Any, expected_type: Any = None) -> Any:
+    if isinstance(value, torch.Tensor):
+        return value
+
+    enum_type = _extract_enum_type(expected_type)
+    if enum_type is not None and value is not None:
+        return enum_type(value)
+
+    if isinstance(value, dict) and "class_path" in value and "fields" in value:
+        cls = _import_class(value["class_path"])
+        dataclass_fields = value["fields"]
+        if not is_dataclass(cls):
+            return dataclass_fields
+        return cls(**{
+            field.name: _restore_value_for_field(
+                dataclass_fields.get(field.name),
+                field.type,
+            )
+            for field in fields(cls)
+            if field.name in dataclass_fields
+        })
+
+    if isinstance(value, dict):
+        return {
+            _restore_value_for_field(key): _restore_value_for_field(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list):
+        return [_restore_value_for_field(item) for item in value]
+
+    if isinstance(value, tuple):
+        return tuple(_restore_value_for_field(item) for item in value)
+
+    return value
+
+
+def _extract_enum_type(expected_type: Any) -> Optional[type[Enum]]:
+    if _is_enum_type(expected_type):
+        return expected_type
+
+    origin = get_origin(expected_type)
+    if origin is Union:
+        for arg in get_args(expected_type):
+            if _is_enum_type(arg):
+                return arg
+
+    return None
+
+
+def _is_enum_type(value: Any) -> bool:
+    return inspect.isclass(value) and issubclass(value, Enum)
+
+
+def _import_class(class_path: str) -> type:
+    module_name, _, class_name = class_path.rpartition(".")
+    if not module_name:
+        raise ValueError(f"Invalid class path in cache payload: {class_path}")
+
+    module = importlib.import_module(module_name)
+    return getattr(module, class_name)
+
+
+def _move_tensors_to_backend(value: Any) -> Any:
+    device = Backend().device
+
+    if isinstance(value, torch.Tensor):
+        return value.to(device)
+
+    if isinstance(value, dict):
+        return {
+            _move_tensors_to_backend(key): _move_tensors_to_backend(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, list):
+        return [_move_tensors_to_backend(item) for item in value]
+
+    if isinstance(value, tuple):
+        return tuple(_move_tensors_to_backend(item) for item in value)
+
+    if isinstance(value, set):
+        return {_move_tensors_to_backend(item) for item in value}
+
+    if isinstance(value, frozenset):
+        return frozenset(_move_tensors_to_backend(item) for item in value)
+
+    if hasattr(value, "__dict__") and not inspect.isclass(value):
+        for field_name, field_value in value.__dict__.items():
+            setattr(value, field_name, _move_tensors_to_backend(field_value))
+
+    return value

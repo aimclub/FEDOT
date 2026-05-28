@@ -71,7 +71,7 @@ def test_saver_saves_tensor_data_as_normalized_torch_payload():
     assert response.success is True
     assert response.kind == "tensor_data"
     assert response.path.exists()
-    assert payload["format"] == "fedot-tensor-data-cache-v1"
+    assert payload["format"] == "fedot-tensor-data-cache"
     assert payload["class_path"].endswith(".TensorData")
     assert fields["features"].device.type == "cpu"
     assert fields["features"].requires_grad is False

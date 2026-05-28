@@ -474,3 +474,39 @@ def to_tensor(array: ArrayType, dtype=None) -> torch.Tensor:
 
     array = array.astype(xp.float64)
     return torch.tensor(array, dtype=dtype, device=device)
+
+
+def td_values_equal(first: Any, second: Any) -> bool:
+    if isinstance(first, torch.Tensor) or isinstance(second, torch.Tensor):
+        if not isinstance(first, torch.Tensor) or not isinstance(second, torch.Tensor):
+            return False
+        if first.shape != second.shape or first.dtype != second.dtype:
+            return False
+        if first.is_floating_point() or second.is_floating_point():
+            return torch.allclose(
+                first.detach().cpu(),
+                second.detach().cpu(),
+                rtol=0,
+                atol=0,
+                equal_nan=True,
+            )
+        return torch.equal(first.detach().cpu(), second.detach().cpu())
+
+    if isinstance(first, np.ndarray) or isinstance(second, np.ndarray):
+        if not isinstance(first, np.ndarray) or not isinstance(second, np.ndarray):
+            return False
+        return np.array_equal(first, second, equal_nan=True)
+
+    if isinstance(first, dict) or isinstance(second, dict):
+        if not isinstance(first, dict) or not isinstance(second, dict):
+            return False
+        if first.keys() != second.keys():
+            return False
+        return all(td_values_equal(first[key], second[key]) for key in first)
+
+    if isinstance(first, (list, tuple)) or isinstance(second, (list, tuple)):
+        if not isinstance(first, type(second)) or len(first) != len(second):
+            return False
+        return all(td_values_equal(left, right) for left, right in zip(first, second))
+
+    return first == second

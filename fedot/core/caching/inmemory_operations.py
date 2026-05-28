@@ -10,7 +10,10 @@ from fedot.core.caching.tools import ensure_cache_dirs
 from fedot.core.caching.responses import SaverResponse
 from fedot.core.caching.normalization import (
     build_tensor_data_payload,
-    build_preprocessing_model_payload)
+    build_preprocessing_model_payload,
+    prepare_loaded_preprocessing_model,
+    restore_tensor_data_payload,
+)
 from fedot.core.utils import CACHE_DIR
 from fedot.core.data.tensor_data import TensorData
 
@@ -104,3 +107,47 @@ def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
         path=final_path,
         success=written,
     )
+
+
+def load_pt_file(source: str, hash: str = None, kind: str = None) -> Any:
+    if kind not in (None, "tensor_data"):
+        raise ValueError(f"Unsupported .pt cache kind: {kind}")
+
+    payload = _torch_load(source)
+    data = restore_tensor_data_payload(payload)
+    _validate_loaded_hash(data, hash)
+    logger.info(f"Loaded cached tensor data from {source}")
+    return data
+
+
+def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
+    if kind not in (None, "preprocessing_model"):
+        raise ValueError(f"Unsupported .pkl cache kind: {kind}")
+
+    with open(source, "rb") as file:
+        data = pickle.load(file)
+
+    data = prepare_loaded_preprocessing_model(data)
+    _validate_loaded_hash(data, hash)
+    logger.info(f"Loaded cached preprocessing model from {source}")
+    return data
+
+
+def _torch_load(source: str) -> Any:
+    try:
+        return torch.load(source, map_location="cpu", weights_only=False)
+    except TypeError:
+        return torch.load(source, map_location="cpu")
+
+
+def _validate_loaded_hash(data: Any, expected_hash: str = None) -> None:
+    if expected_hash is None:
+        return
+
+    from fedot.core.caching.hasher import Hasher
+
+    actual_hash = Hasher.hash(data)
+    if actual_hash != expected_hash:
+        raise ValueError(
+            f"Loaded cache hash mismatch: expected {expected_hash}, got {actual_hash}"
+        )

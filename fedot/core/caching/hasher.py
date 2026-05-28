@@ -107,3 +107,16 @@ def preprocessing_model_hash(model: Any, digest_size: int = 16) -> str:
     """
     attributes = get_model_attributes(model)
     return stable_hash(attributes, digest_size=digest_size)
+
+
+def _validate_loaded_hash(data: Any, expected_hash: str = None) -> None:
+    if expected_hash is None:
+        return
+
+    from fedot.core.caching.hasher import Hasher
+
+    actual_hash = Hasher.hash(data)
+    if actual_hash != expected_hash:
+        raise ValueError(
+            f"Loaded cache hash mismatch: expected {expected_hash}, got {actual_hash}"
+        )
