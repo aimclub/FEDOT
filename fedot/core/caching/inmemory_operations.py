@@ -11,11 +11,9 @@ from fedot.core.caching.responses import SaverResponse
 from fedot.core.caching.normalization import (
     build_tensor_data_payload,
     build_preprocessing_model_payload)
-from fedot.core.utils import cache_dir
+from fedot.core.utils import CACHE_DIR
 from fedot.core.data.tensor_data import TensorData
 
-
-CACHE_DIR = cache_dir()
 
 logger = logging.getLogger(__name__)
 

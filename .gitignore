@@ -92,3 +92,6 @@ sampling_zoo/
 # Result for AMLB experiments
 **/results/
 **/*.json
+
+# Cache
+cache/

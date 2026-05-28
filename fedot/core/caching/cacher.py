@@ -1,7 +1,7 @@
 from typing import Any
 
 from fedot.core.caching.hasher import Hasher
-from fedot.core.caching.saver import Saver
+from fedot.core.caching.cache_saver import Saver
 
 
 class Cacher:

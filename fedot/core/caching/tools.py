@@ -1,6 +1,5 @@
-from fedot.core.utils import cache_dir
+from fedot.core.utils import CACHE_DIR
 
-CACHE_DIR = cache_dir()
 
 def ensure_cache_dirs() -> None:
     for subdir in (

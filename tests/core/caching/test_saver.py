@@ -8,7 +8,7 @@ import torch
 from fedot.core.caching.inmemory_operations import save_preprocessing_model
 from fedot.core.caching.normalization import prepare_value_for_torch_save
 from fedot.core.caching.rules import SaverNotFoundError
-from fedot.core.caching.saver import Saver
+from fedot.core.caching.cache_saver import Saver
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
