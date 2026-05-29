@@ -39,70 +39,8 @@ from fedot.industrial.core.repository.model_repository import SKLEARN_REG_MODELS
 from fedot.industrial.core.repository.model_repository import overload_model_implementation
 from fedot.industrial.core.tuning.search_space import get_industrial_search_space
 
-FEDOT_METHOD_TO_REPLACE = [(PipelineObjectiveEvaluate, "evaluate"),
-                           (PipelineSearchSpace, "get_parameters_dict"),
-                           (ApiParamsRepository, "_get_default_mutations"),
-                           (DataMerger, "find_main_output"),
-                           (DataMerger, "get"),
-                           (DataMerger, "merge_predicts"),
-                           (ImageDataMerger, "preprocess_predicts"),
-                           (ImageDataMerger, "merge_predicts"),
-                           (TSDataMerger, "merge_predicts"),
-                           (TSDataMerger, "merge_targets"),
-                           (TSDataMerger, 'postprocess_predicts'),
-                           (TSDataMerger, 'preprocess_predicts'),
-                           (DataSourceSplitter, "build"),
-                           (fedot_data_split, "_split_any"),
-                           (fedot_data_split, "_split_time_series"),
-                           (Operation, "_predict"),
-                           (Operation, "predict"),
-                           (Operation, "predict_for_fit"),
-                           (LaggedImplementation, '_update_column_types'),
-                           (LaggedImplementation, 'transform'),
-                           (TopologicalFeaturesImplementation, 'fit'),
-                           (TopologicalFeaturesImplementation, 'transform'),
-                           (LaggedImplementation, 'transform_for_fit'),
-                           (LaggedImplementation, '_check_and_correct_window_size'),
-                           (TsSmoothingImplementation, 'transform'),
-                           (OptunaImpl, 'OptunaTuner'),
-                           (ApiComposer, 'tune_final_pipeline'),
-                           (ReproductionController, 'reproduce_uncontrolled'),
-                           (ReproductionController, 'reproduce')]
-INDUSTRIAL_REPLACE_METHODS = [industrial_evaluate_pipeline,
-                              get_industrial_search_space,
-                              _get_default_industrial_mutations,
-                              find_main_output_industrial,
-                              get_merger_industrial,
-                              merge_industrial_predicts,
-                              preprocess_industrial_predicts,
-                              merge_industrial_predicts,
-                              merge_industrial_predicts,
-                              merge_industrial_targets,
-                              postprocess_industrial_predicts,
-                              preprocess_industrial_predicts,
-                              build_industrial,
-                              split_any_industrial,
-                              split_time_series_industrial,
-                              predict_operation_industrial,
-                              predict_industrial,
-                              predict_for_fit_industrial,
-                              update_column_types_industrial,
-                              transform_lagged_industrial,
-                              fit_topo_extractor_industrial,
-                              transform_topo_extractor_industrial,
-                              transform_lagged_for_fit_industrial,
-                              _check_and_correct_window_size_industrial,
-                              transform_smoothing_industrial,
-                              DaskOptunaTuner,
-                              tune_pipeline_industrial,
-                              reproduce_controlled_industrial,
-                              reproduce_industrial]
-
-DEFAULT_METHODS = [getattr(class_impl[0], class_impl[1])
-                   for class_impl in FEDOT_METHOD_TO_REPLACE]
-DEFAULT_MODELS_TO_REPLACE = [(MODEL_REPO, 'SKLEARN_REG_MODELS'),
-                             (MODEL_REPO, 'SKLEARN_CLF_MODELS'),
-                             (MODEL_REPO, 'FEDOT_PREPROC_MODEL')]
+from fedot.core.context import ExecutionContext
+from fedot.industrial.industrial_extension import IndustrialExtension
 
 
 def has_no_resample(pipeline: Pipeline):
@@ -113,111 +51,85 @@ def has_no_resample(pipeline: Pipeline):
     """
     for node in pipeline.nodes:
         if node.name == 'resample':
-            raise ValueError(
-                f'Pipeline can not have resample operation')
+            raise ValueError("Pipeline can not have resample operation")
     return True
 
 
-class IndustrialModels:
-    def __init__(self):
+def initialize_industrial_context(backend: str = "default") -> ExecutionContext:
+    context = ExecutionContext()
+    extension = IndustrialExtension(backend=backend)
+    extension.apply(context)
+    return context
 
+
+class IndustrialModels:
+    def __init__(self, backend: str = "default"):
         self.industrial_data_operation_path = IND_DATA_OPERATION_PATH
         self.industrial_model_path = IND_MODEL_OPERATION_PATH
-
         self.base_data_operation_path = DEFAULT_DATA_OPERATION_PATH
         self.base_model_path = DEFAULT_MODEL_OPERATION_PATH
 
-    def _replace_operation(self, to_industrial=True, backend: str = 'default'):
-        method = INDUSTRIAL_REPLACE_METHODS if to_industrial else DEFAULT_METHODS
-        for class_impl, method_to_replace in zip(FEDOT_METHOD_TO_REPLACE, method):
-            setattr(class_impl[0], class_impl[1], method_to_replace)
-        if backend.__contains__('dask'):
-            model_to_overload = [SKLEARN_REG_MODELS, SKLEARN_CLF_MODELS, FEDOT_PREPROC_MODEL]
-            overloaded_model = overload_model_implementation(model_to_overload, backend=backend)
-            for model_impl, new_backend_impl in zip(DEFAULT_MODELS_TO_REPLACE, overloaded_model):
-                setattr(model_impl[0], model_impl[1], new_backend_impl)
+        self.backend = backend
+        self.extension = IndustrialExtension(backend=backend)
+        self.context: ExecutionContext | None = None
 
-    def setup_repository(self, backend: str = 'default'):
-        OperationTypesRepository.__repository_dict__.update(
-            {'data_operation': {'file': self.industrial_data_operation_path,
-                                'initialized_repo': True,
-                                'default_tags': []}})
+    def get_industrial_context(self) -> ExecutionContext:
+        self.context = ExecutionContext()
+        self.extension.apply(self.context)
+        return self.context
 
-        OperationTypesRepository.assign_repo(
-            'data_operation', self.industrial_data_operation_path)
+    def setup_repository(self) -> OperationTypesRepository:
+        OperationTypesRepository.__repository_dict__.update({
+            'data_operation': {
+                'file': self.industrial_data_operation_path,
+                'initialized_repo': True,
+                'default_tags': []
+            }
+        })
+        OperationTypesRepository.assign_repo('data_operation', self.industrial_data_operation_path)
 
-        OperationTypesRepository.__repository_dict__.update(
-            {'model': {'file': self.industrial_model_path,
-                       'initialized_repo': True,
-                       'default_tags': []}})
-        OperationTypesRepository.assign_repo(
-            'model', self.industrial_model_path)
-        # replace mutations
-        self._replace_operation(to_industrial=True, backend=backend)
+        OperationTypesRepository.__repository_dict__.update({
+            'model': {
+                'file': self.industrial_model_path,
+                'initialized_repo': True,
+                'default_tags': []
+            }
+        })
+        OperationTypesRepository.assign_repo('model', self.industrial_model_path)
 
-        class_rules.append(has_no_data_flow_conflicts_in_industrial_pipeline)
-        ts_rules.append(has_no_lagged_conflicts_in_ts_pipeline)
+        self.get_industrial_context()
+        self.context.class_rules.append(has_no_data_flow_conflicts_in_industrial_pipeline)
+        self.context.ts_rules.append(has_no_lagged_conflicts_in_ts_pipeline)
+
         return OperationTypesRepository
 
-    def setup_default_repository(self, backend: str = 'default'):
-        """
-        Switching to fedot models.
-        """
-        OperationTypesRepository.__repository_dict__.update(
-            {'data_operation': {'file': self.base_data_operation_path,
-                                'initialized_repo': None,
-                                'default_tags': [
-                                    OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]}})
-        OperationTypesRepository.assign_repo(
-            'data_operation', self.base_data_operation_path)
+    def setup_default_repository(self) -> OperationTypesRepository:
+        OperationTypesRepository.__repository_dict__.update({
+            'data_operation': {
+                'file': self.base_data_operation_path,
+                'initialized_repo': None,
+                'default_tags': [OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+            }
+        })
+        OperationTypesRepository.assign_repo('data_operation', self.base_data_operation_path)
 
-        OperationTypesRepository.__repository_dict__.update(
-            {'model': {'file': self.base_model_path,
-                       'initialized_repo': None,
-                       'default_tags': []}})
+        OperationTypesRepository.__repository_dict__.update({
+            'model': {
+                'file': self.base_model_path,
+                'initialized_repo': None,
+                'default_tags': []
+            }
+        })
         OperationTypesRepository.assign_repo('model', self.base_model_path)
-        self._replace_operation(to_industrial=False, backend=backend)
-        common_rules.append(has_no_resample)
+        self.context = ExecutionContext()
+        self.context.common_rules.append(has_no_resample)
+
         return OperationTypesRepository
 
-    def __enter__(self):
-        """
-        Switching to industrial models
-        """
-        OperationTypesRepository.__repository_dict__.update(
-            {'data_operation': {'file': self.industrial_data_operation_path,
-                                'initialized_repo': True,
-                                'default_tags': []}})
-
-        OperationTypesRepository.assign_repo(
-            'data_operation', self.industrial_data_operation_path)
-
-        OperationTypesRepository.__repository_dict__.update(
-            {'model': {'file': self.industrial_model_path,
-                       'initialized_repo': True,
-                       'default_tags': []}})
-        OperationTypesRepository.assign_repo(
-            'model', self.industrial_model_path)
-
-        setattr(PipelineSearchSpace, "get_parameters_dict",
-                get_industrial_search_space)
-        setattr(ApiComposer, "_get_default_mutations",
-                _get_default_industrial_mutations)
+    def __enter__(self) -> ExecutionContext:
+        self.setup_repository()
+        return self.context
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        Switching to fedot models.
-        """
-        OperationTypesRepository.__repository_dict__.update(
-            {'data_operation': {'file': self.base_data_operation_path,
-                                'initialized_repo': None,
-                                'default_tags': [
-                                    OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]}})
-        OperationTypesRepository.assign_repo(
-            'data_operation', self.base_data_operation_path)
-
-        OperationTypesRepository.__repository_dict__.update(
-            {'model': {'file': self.base_model_path,
-                       'initialized_repo': None,
-                       'default_tags': []}})
-        OperationTypesRepository.assign_repo('model', self.base_model_path)
+        self.setup_default_repository()
+        self.context = None

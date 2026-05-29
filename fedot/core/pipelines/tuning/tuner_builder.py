@@ -37,6 +37,11 @@ class TunerBuilder:
         self.eval_time_constraint = None
         self.additional_params = {}
         self.adapter = PipelineAdapter()
+        self.context: Optional[ExecutionContext] = None
+
+    def with_context(self, context: ExecutionContext):  # ← добавить метод
+        self.context = context
+        return self
 
     def with_tuner(self, tuner: Type[BaseTuner]):
         self.tuner_class = tuner
@@ -110,6 +115,7 @@ class TunerBuilder:
             time_constraint=self.eval_time_constraint,
             eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
             validation_blocks=validation_blocks,
+            context=context
         )
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  adapter=self.adapter,
@@ -122,11 +128,11 @@ class TunerBuilder:
         return tuner
 
     def build(self, data: InputData) -> BaseTuner:
-        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
+        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks, context=self.context)
         data_producer = data_splitter.build(data)
         return self._build_tuner(data_producer, data_splitter.validation_blocks)
 
     def build_tensordata(self, tensor_data) -> BaseTuner:
-        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
+        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks, context=self.context)
         data_producer = data_splitter.build_tensordata(tensor_data)
         return self._build_tuner(data_producer, data_splitter.validation_blocks)

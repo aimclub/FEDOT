@@ -15,6 +15,7 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
+from fedot.core.context.context import ExecutionContext
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -57,6 +58,13 @@ class ComposerBuilder:
         self.operations_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.predictions_cache: Optional[PredictionsCache] = None
+
+        self.context: Optional[ExecutionContext] = None
+
+    def with_context(self, context):
+        if context:
+            self.context = context
+        return self
 
     def with_composer(self, composer_cls: Optional[Type[Composer]]):
         if composer_cls is not None:

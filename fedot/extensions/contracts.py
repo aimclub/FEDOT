@@ -37,6 +37,7 @@ class ExtensionManifest:
     version: str
     models: Tuple[ExternalModelSpec, ...]
     module: Optional[str] = None
+    protocols: Optional[Dict[str, Callable[..., Any]]] = None
     description: str = ''
 
 

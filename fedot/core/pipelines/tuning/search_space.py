@@ -6,6 +6,8 @@ from hyperopt import hp
 
 from fedot.core.utils import NESTED_PARAMS_LABEL
 
+from fedot.core.context.context import ExecutionContext
+
 
 class PipelineSearchSpace(SearchSpace):
     """
@@ -18,13 +20,21 @@ class PipelineSearchSpace(SearchSpace):
 
     def __init__(self,
                  custom_search_space: Optional[OperationParametersMapping] = None,
-                 replace_default_search_space: bool = False):
+                 replace_default_search_space: bool = False,
+                 context: Optional[ExecutionContext] = None):
         self.custom_search_space = custom_search_space
         self.replace_default_search_space = replace_default_search_space
+        self.context = context
         parameters_per_operation = self.get_parameters_dict()
         super().__init__(parameters_per_operation)
 
     def get_parameters_dict(self):
+        if self.context:
+            return self.context.search_space.get_parameters_dict()
+        else:
+            return self.get_parameters_dict_core()
+
+    def get_parameters_dict_core(self):
         parameters_per_operation = {
             'kmeans': {
                 'n_clusters': {

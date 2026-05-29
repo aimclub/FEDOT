@@ -163,3 +163,4 @@ def smoke_test_extension(manifest: ExtensionManifest):
                                        message=f'Factory for model "{model.name}" returned None.'))
 
     return Right(manifest)
+

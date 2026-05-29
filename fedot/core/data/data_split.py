@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.context.context import ExecutionContext
 
 
 def _split_input_data_by_indexes(origin_input_data: Union[InputData, MultiModalData],
@@ -173,7 +174,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                           shuffle_flag: bool = False,
                           stratify: bool = True,
                           random_seed: int = 42,
-                          validation_blocks: Optional[int] = None) -> Tuple[Union[InputData, MultiModalData],
+                          validation_blocks: Optional[int] = None,
+                          context: Optional[ExecutionContext] = None) -> Tuple[Union[InputData, MultiModalData],
                                                                             Union[InputData, MultiModalData]]:
     """ Function for train and test split for both InputData and MultiModalData
 
@@ -203,11 +205,18 @@ def train_test_data_setup(data: Union[InputData, MultiModalData],
                        'random_seed': random_seed,
                        'validation_blocks': validation_blocks}
     if isinstance(data, InputData):
-        split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
-                           DataTypesEnum.ts: _split_time_series,
-                           DataTypesEnum.table: _split_any,
-                           DataTypesEnum.image: _split_any,
-                           DataTypesEnum.text: _split_any}
+        if context:
+            split_func_dict = {DataTypesEnum.multi_ts: context.splitter.split_time_series,
+                               DataTypesEnum.ts:  context.splitter.split_time_series,
+                               DataTypesEnum.table:  context.splitter.split_any,
+                               DataTypesEnum.image: context.splitter.split_any,
+                               DataTypesEnum.text: context.splitter.split_any,}
+        else:
+            split_func_dict = {DataTypesEnum.multi_ts: _split_time_series,
+                               DataTypesEnum.ts: _split_time_series,
+                               DataTypesEnum.table: _split_any,
+                               DataTypesEnum.image: _split_any,
+                               DataTypesEnum.text: _split_any}
 
         if data.data_type not in split_func_dict:
             raise TypeError((f'Unknown data type {type(data)}. Supported data types:'
