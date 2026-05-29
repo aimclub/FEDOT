@@ -107,7 +107,10 @@ class Fedot:
                  **composer_tuner_params
                  ):
 
-        self.context = ExecutionContext(extension_name=context)
+        if context is None:
+            self.context = None
+        elif isinstance(context, str):
+            self.context = ExecutionContext(extension_name=context)
 
         set_random_seed(seed)
         self.log = self._init_logger(logging_level)
