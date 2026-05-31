@@ -624,6 +624,35 @@ class InputData(Data):
                          target=new_target,
                          task=self.task, data_type=self.data_type)
 
+    def subset_by_positions(self, positions: np.ndarray) -> InputData:
+        positions = np.asarray(positions, dtype=int)
+        features = _take_rows(self.features, positions)
+        target = _take_rows(self.target, positions) if self.target is not None else None
+        idx = np.take(np.asarray(self.idx), positions, axis=0)
+
+        categorical_features = None
+        if self.categorical_features is not None:
+            categorical_features = _take_rows(self.categorical_features, positions)
+
+        return InputData(
+            idx=idx,
+            features=features,
+            target=target,
+            task=deepcopy(self.task),
+            data_type=self.data_type,
+            supplementary_data=self.supplementary_data,
+            categorical_features=categorical_features,
+            categorical_idx=self.categorical_idx,
+            numerical_idx=self.numerical_idx,
+            encoded_idx=self.encoded_idx,
+            features_names=self.features_names,
+        )
+
+    def to_dataframe(self) -> pd.DataFrame:
+        if isinstance(self.features, pd.DataFrame):
+            return self.features.copy()
+        return pd.DataFrame(np.asarray(self.features), columns=self.features_names)
+
     def subset_features(self, feature_ids: np.array) -> Optional[InputData]:
         """
         Return new :obj:`InputData` with subset of features based on non-empty ``features_ids`` list or `None` otherwise
@@ -798,6 +827,14 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
         img = cv2.resize(img, (target_size[0], target_size[1]))
         cv2.imwrite(file_path, img)
     return img
+
+
+def _take_rows(values: Any, positions: np.ndarray) -> Any:
+    if isinstance(values, pd.DataFrame):
+        return values.iloc[positions].copy()
+    if isinstance(values, pd.Series):
+        return values.iloc[positions].to_numpy()
+    return np.take(np.asarray(values), positions, axis=0)
 
 
 def process_target_and_features(data_frame: pd.DataFrame,

@@ -267,8 +267,6 @@
   },
   "tabiclreg": {
     "n_estimators": 8,
-    "softmax_temperature": 0.9,
-    "average_logits": true,
     "outlier_threshold": 4.0,
     "device": "cpu",
     "max_samples": 5000,
@@ -318,8 +316,6 @@
   },
   "tabiclreg_gpu": {
     "n_estimators": 8,
-    "softmax_temperature": 0.9,
-    "average_logits": true,
     "outlier_threshold": 4.0,
     "device": "cuda",
     "max_samples": 30000,

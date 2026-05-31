@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from fedot.api.sampling_stage.config import SamplingConfig, validate_sampling_config
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingZooProvider
 from fedot.core.data.data import InputData, InputDataList, data_type_is_table
+from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -22,6 +23,7 @@ class SamplingStageOutput:
     metadata: Dict[str, Any]
     elapsed_seconds: float
     updated_timeout_minutes: Optional[float]
+    routing_context: Optional[SamplingRoutingContext] = None
 
 
 class SamplingStageExecutor:
@@ -46,16 +48,17 @@ class SamplingStageExecutor:
         started_at = time.perf_counter()
         budget_seconds = self._compute_budget_seconds(self.config, self.total_timeout_minutes)
 
-        available_methods = {
-            'chunking': lambda: SamplingStageExecutor._execute_chunking(
+        if self.config.strategy_kind == 'chunking':
+            return SamplingStageExecutor._execute_chunking(
                 train_data=train_data,
                 started_at=started_at,
                 budget_seconds=budget_seconds,
                 provider=self.provider,
                 config=self.config,
                 total_timeout_minutes=self.total_timeout_minutes
-            ),
-            'subset': lambda: SamplingStageExecutor._execute_subset(
+            )
+        if self.config.strategy_kind == 'subset':
+            return SamplingStageExecutor._execute_subset(
                 train_data=train_data,
                 started_at=started_at,
                 budget_seconds=budget_seconds,
@@ -63,12 +66,8 @@ class SamplingStageExecutor:
                 config=self.config,
                 task_type=self.task_type,
                 total_timeout_minutes=self.total_timeout_minutes
-            ),
-        }
-        execute_method = available_methods.get(self.config.strategy_kind)
-        if execute_method is None:
-            raise ValueError(f'Unknown strategy_kind: {self.config.strategy_kind}')
-        return execute_method()
+            )
+        raise ValueError(f'Unknown strategy_kind: {self.config.strategy_kind}')
 
     @staticmethod
     def _execute_subset(train_data: InputData,
@@ -88,14 +87,11 @@ class SamplingStageExecutor:
         )
 
         SamplingStageExecutor._raise_if_budget_exceeded(started_at, budget_seconds)
-        remaining_budget_value = SamplingStageExecutor._remaining_budget(started_at, budget_seconds)
         final_provider_result = provider.sample(
-            features=np.asarray(train_data.features),
+            features=train_data.to_dataframe(),
             target=SamplingStageExecutor._flatten_target(train_data.target),
             strategy=config.strategy,
             strategy_params=config.strategy_params,
-            random_state=config.random_state,
-            budget_seconds=remaining_budget_value,
             strategy_kind=config.strategy_kind,
             injectable_params={'ratio': effective_size_result['selected_ratio']},
         )
@@ -122,7 +118,6 @@ class SamplingStageExecutor:
             'rows_after': int(len(reduced_data.idx)),
             'elapsed_seconds': elapsed_seconds,
             'budget_seconds': budget_seconds,
-            'artifact_mode': config.artifact_mode,
             'protocol_trials': effective_size_result['trials'],
             'provider_meta': final_provider_result.meta,
         }
@@ -140,15 +135,11 @@ class SamplingStageExecutor:
                           config: SamplingConfig,
                           total_timeout_minutes: Optional[float]) -> SamplingStageOutput:
         SamplingStageExecutor._raise_if_budget_exceeded(started_at, budget_seconds)
-        remaining_budget_value = SamplingStageExecutor._remaining_budget(started_at, budget_seconds)
-
         provider_result = provider.sample(
-            features=np.asarray(train_data.features),
+            features=train_data.to_dataframe(),
             target=SamplingStageExecutor._flatten_target(train_data.target),
             strategy=config.strategy,
             strategy_params=config.strategy_params,
-            random_state=config.random_state,
-            budget_seconds=remaining_budget_value,
             strategy_kind=config.strategy_kind,
             injectable_params=None,
         )
@@ -156,6 +147,10 @@ class SamplingStageExecutor:
         partitions = provider_result.partitions
 
         chunked_data = SamplingStageExecutor._partitions_to_input_data_list(partitions, train_data)
+        routing_context = SamplingStageExecutor._build_routing_context(
+            provider_result=provider_result,
+            partition_names=tuple(str(name) for name in partitions.keys()),
+        )
         rows_after = sum(len(chunk.idx) for chunk in chunked_data)
 
         elapsed_seconds = time.perf_counter() - started_at
@@ -171,7 +166,6 @@ class SamplingStageExecutor:
             'rows_after': rows_after,
             'elapsed_seconds': elapsed_seconds,
             'budget_seconds': budget_seconds,
-            'artifact_mode': config.artifact_mode,
             'n_partitions': len(partitions),
             'provider_meta': provider_result.meta,
         }
@@ -179,7 +173,8 @@ class SamplingStageExecutor:
         return SamplingStageOutput(train_data=chunked_data,
                                    metadata=metadata,
                                    elapsed_seconds=elapsed_seconds,
-                                   updated_timeout_minutes=timeout_after_stage)
+                                   updated_timeout_minutes=timeout_after_stage,
+                                   routing_context=routing_context)
 
     def _validate_task_compatibility(self, train_data: InputData) -> None:
         if self.task_type not in (TaskTypesEnum.classification, TaskTypesEnum.regression):
@@ -218,12 +213,10 @@ class SamplingStageExecutor:
         for ratio in sorted_ratios:
             SamplingStageExecutor._raise_if_budget_exceeded(started_at, budget_seconds)
             provider_result = provider.sample(
-                features=np.asarray(train_split.features),
+                features=train_split.to_dataframe(),
                 target=SamplingStageExecutor._flatten_target(train_split.target),
                 strategy=config.strategy,
                 strategy_params=config.strategy_params,
-                random_state=config.random_state,
-                budget_seconds=SamplingStageExecutor._remaining_budget(started_at, budget_seconds),
                 strategy_kind=config.strategy_kind,
                 injectable_params={'ratio': ratio},
             )
@@ -234,7 +227,7 @@ class SamplingStageExecutor:
             candidate_score = SamplingStageExecutor._score_light_model(
                 candidate_split, valid_split, task_type, config.random_state
             )
-            delta = SamplingStageExecutor._calculate_delta(baseline_score, candidate_score, config.delta_type)
+            delta = SamplingStageExecutor._calculate_relative_delta(baseline_score, candidate_score)
 
             trials.append({
                 'ratio': float(ratio),
@@ -322,9 +315,6 @@ class SamplingStageExecutor:
     @staticmethod
     def _compute_budget_seconds(config: SamplingConfig,
                                 total_timeout_minutes: Optional[float]) -> float:
-        if config.budget_policy != 'dynamic_cap':
-            raise ValueError(f'Unsupported budget_policy={config.budget_policy}')
-
         if total_timeout_minutes is None:
             return float(config.infinite_timeout_cap_minutes * 60)
 
@@ -365,11 +355,8 @@ class SamplingStageExecutor:
         return values
 
     @staticmethod
-    def _calculate_delta(baseline_score: float, sampled_score: float, delta_type: str) -> float:
+    def _calculate_relative_delta(baseline_score: float, sampled_score: float) -> float:
         score_drop = max(0.0, baseline_score - sampled_score)
-        if delta_type == 'absolute':
-            return float(score_drop)
-
         denominator = max(abs(baseline_score), 1e-12)
         return float(score_drop / denominator)
 
@@ -399,39 +386,7 @@ class SamplingStageExecutor:
 
     @staticmethod
     def _subset_by_positions(data: InputData, positions: np.ndarray) -> InputData:
-        positions = np.asarray(positions, dtype=int)
-        features = np.take(data.features, positions, axis=0)
-        target = np.take(data.target, positions, axis=0)
-        idx = np.take(data.idx, positions, axis=0)
-
-        categorical_features = None
-        if data.categorical_features is not None:
-            categorical_features = np.take(data.categorical_features, positions, axis=0)
-
-        return InputData(
-            idx=idx,
-            features=features,
-            target=target,
-            task=deepcopy(data.task),
-            data_type=data.data_type,
-            supplementary_data=data.supplementary_data,
-            categorical_features=categorical_features,
-            categorical_idx=data.categorical_idx,
-            numerical_idx=data.numerical_idx,
-            encoded_idx=data.encoded_idx,
-            features_names=data.features_names,
-        )
-
-    @staticmethod
-    def _take_target_slice(target: Any, indices: Any) -> Any:
-        if target is None:
-            return None
-        if isinstance(target, (pd.Series, pd.DataFrame)):
-            try:
-                return target.loc[indices].to_numpy()
-            except Exception:
-                return target.iloc[indices].to_numpy()
-        return np.asarray(target)[indices]
+        return data.subset_by_positions(positions)
 
     @staticmethod
     def _partitions_to_input_data_list(partitions: Dict[str, Any],
@@ -439,29 +394,18 @@ class SamplingStageExecutor:
         input_data_list: InputDataList = []
 
         for partition_name, partition_data in partitions.items():
-            if isinstance(partition_data, dict):
-                X_partition = partition_data['feature']
-                y_partition = partition_data['target']
+            X_partition = partition_data['feature']
+            y_partition = partition_data['target']
 
-                if isinstance(X_partition, pd.DataFrame):
-                    indices = X_partition.index.values
-                    X_values = X_partition.to_numpy()
-                else:
-                    indices = np.arange(len(X_partition))
-                    X_values = np.asarray(X_partition)
-
-                if isinstance(y_partition, (pd.Series, pd.DataFrame)):
-                    y_partition = y_partition.to_numpy()
+            if isinstance(X_partition, pd.DataFrame):
+                indices = X_partition.index.values
+                X_values = X_partition.to_numpy()
             else:
-                indices = partition_data
-                if isinstance(original_input_data.features, pd.DataFrame):
-                    X_values = original_input_data.features.loc[indices].to_numpy()
-                else:
-                    X_values = np.asarray(original_input_data.features)[indices]
-                if isinstance(original_input_data.target, (pd.Series, pd.DataFrame)):
-                    y_partition = original_input_data.target.to_numpy()[indices]
-                else:
-                    y_partition = original_input_data.target[indices]
+                indices = np.arange(len(X_partition))
+                X_values = np.asarray(X_partition)
+
+            if isinstance(y_partition, (pd.Series, pd.DataFrame)):
+                y_partition = y_partition.to_numpy()
 
             categorical_features = None
             if original_input_data.categorical_idx is not None and len(original_input_data.categorical_idx) > 0:
@@ -486,14 +430,23 @@ class SamplingStageExecutor:
         return input_data_list
 
     @staticmethod
+    def _build_routing_context(provider_result: Any,
+                               partition_names: Sequence[str]) -> Optional[SamplingRoutingContext]:
+        predictor = getattr(provider_result, 'partition_predictor', None)
+        if predictor is None:
+            return None
+        if not callable(getattr(predictor, 'predict_partition_proba', None)) \
+                and not callable(getattr(predictor, 'predict_partitions', None)):
+            return None
+        return SamplingRoutingContext.from_predictor(
+            predictor=predictor,
+            partition_names=partition_names,
+        )
+
+    @staticmethod
     def _raise_if_budget_exceeded(started_at: float, budget_seconds: float) -> None:
         elapsed = time.perf_counter() - started_at
         if elapsed > budget_seconds:
             raise TimeoutError(
                 f'Sampling stage exceeded its dynamic cap: elapsed={elapsed:.2f}s, budget={budget_seconds:.2f}s.'
             )
-
-    @staticmethod
-    def _remaining_budget(started_at: float, budget_seconds: float) -> float:
-        elapsed = time.perf_counter() - started_at
-        return max(0.0, budget_seconds - elapsed)

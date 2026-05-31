@@ -36,6 +36,29 @@ def test_data_subset_correct(data_setup):
     assert len(subset.target) == subset_size
 
 
+def test_data_subset_by_positions_preserves_metadata(data_setup):
+    positions = np.array([2, 4, 6])
+    data_setup.features_names = np.array(['a', 'b', 'c', 'd'])
+
+    subset = data_setup.subset_by_positions(positions)
+
+    assert np.array_equal(subset.idx, data_setup.idx[positions])
+    assert np.array_equal(subset.features, data_setup.features[positions])
+    assert np.array_equal(subset.target, data_setup.target[positions])
+    assert subset.task.task_type is data_setup.task.task_type
+    assert np.array_equal(subset.features_names, data_setup.features_names)
+
+
+def test_data_to_dataframe_returns_feature_frame(data_setup):
+    data_setup.features_names = np.array(['a', 'b', 'c', 'd'])
+
+    frame = data_setup.to_dataframe()
+
+    assert isinstance(frame, pd.DataFrame)
+    assert np.array_equal(frame.to_numpy(), data_setup.features)
+    assert list(frame.columns) == ['a', 'b', 'c', 'd']
+
+
 def test_data_subset_incorrect(data_setup):
     subset_size = 105
     with pytest.raises(ValueError):

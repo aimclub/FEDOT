@@ -12,7 +12,12 @@ from golem.utilities.data_structures import ensure_wrapped_in_sequence
 from golem.visualisation.opt_viz_extra import visualise_pareto
 
 from fedot.api.api_utils.api_composer import ApiComposer
-from fedot.api.api_utils.api_run_planner import plan_final_fit, plan_sampling_stage
+from fedot.api.api_utils.api_run_planner import (
+    FinalFitAction,
+    plan_chunked_ensemble,
+    plan_final_fit,
+    plan_sampling_stage,
+)
 from fedot.api.api_utils.api_service_rules import (
     build_tensordata_explain_plan,
     build_tensordata_fit_plan,
@@ -37,7 +42,9 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
-from fedot.core.pipelines.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
+from fedot.core.pipelines.ensembling.utils import prepare_chunked_ensemble_validation
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import convert_forecast_to_output, out_of_sample_ts_forecast
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -134,6 +141,7 @@ class Fedot:
         self.best_models: Sequence[Union[Pipeline, Sequence[Pipeline]]] = ()
         self.history: Optional[Union[OptHistory, Sequence[OptHistory]]] = None
         self.sampling_stage_metadata: Optional[dict] = None
+        self.sampling_routing_context: Optional[SamplingRoutingContext] = None
 
         fedot_composer_timer.reset_timer()
 
@@ -185,23 +193,52 @@ class Fedot:
                     with fedot_composer_timer.launch_preprocessing():
                         self.train_data = self.data_processor.fit_transform(self.train_data)
 
-                fit_plan = plan_sampling_stage(
-                    requested_predefined_model=predefined_model,
+                sampling_config = self.params.get('sampling_config') or {}
+                strategy_kind = sampling_config.get('strategy_kind')
+
+                sampling_stage_plan = plan_sampling_stage(
                     initial_assumption=self.params.data.get('initial_assumption'),
                     sampling_config_present=self.params.get('sampling_config') is not None,
                 )
-                predefined_model = fit_plan.resolved_predefined_model
-                if fit_plan.skip_metadata is not None:
-                    self.sampling_stage_metadata = fit_plan.skip_metadata
-                    if fit_plan.skip_metadata['reason'] == 'predefined_model':
-                        self.log.message('Sampling stage skipped because predefined_model is specified.')
-                    elif fit_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
+                ensemble_validation_data = None
+                class_representatives = None
+                chunked_ensemble_plan = plan_chunked_ensemble(
+                    should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
+                    strategy_kind=strategy_kind,
+                    task_type=self.params.task.task_type,
+                    chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
+                )
+                if chunked_ensemble_plan.should_use_chunked_ensemble:
+                    prepared_validation = prepare_chunked_ensemble_validation(
+                        train_data=self.train_data,
+                        plan=chunked_ensemble_plan,
+                    )
+                    self.train_data = prepared_validation.train_data
+                    ensemble_validation_data = prepared_validation.validation_data
+                    class_representatives = prepared_validation.class_representatives
+                if sampling_stage_plan.skip_metadata is not None:
+                    self.sampling_stage_metadata = sampling_stage_plan.skip_metadata
+                    if sampling_stage_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
                         self.log.message('Composition for AtomizedModel currently unavailable')
-                elif fit_plan.should_run_sampling_stage:
+                elif sampling_stage_plan.should_run_sampling_stage:
                     self._run_sampling_stage_if_necessary()
 
                 with fedot_composer_timer.launch_fitting():
-                    if predefined_model is not None:
+                    if chunked_ensemble_plan.should_use_chunked_ensemble:
+                        chunked_ensemble_config = chunked_ensemble_plan.require_config()
+                        self.current_pipeline, self.best_models, self.history = \
+                            self.api_composer.obtain_ensemble_model(
+                                self.train_data,
+                                predefined_model=predefined_model,
+                                validation_data=ensemble_validation_data,
+                                class_representatives=class_representatives,
+                                api_preprocessor=self.data_processor.preprocessor,
+                                ensemble_method=chunked_ensemble_config.ensemble_method.value,
+                                ensemble_params=chunked_ensemble_config.ensemble_params,
+                                ensemble_batch_size=chunked_ensemble_config.batch_size,
+                                routing_context=self.sampling_routing_context,
+                            )
+                    elif predefined_model is not None:
                         # Fit predefined model and return it without composing
                         self.current_pipeline = PredefinedModel(
                             predefined_model, self.train_data, self.log,
@@ -209,38 +246,36 @@ class Fedot:
                             api_preprocessor=self.data_processor.preprocessor,
                         ).fit()
                     else:
-                        if isinstance(self.train_data, list) and all(isinstance(x, InputData) for x in self.train_data):
-                            self.current_pipeline, self.best_models, self.history = \
-                                self.api_composer.obtain_ensemble_model(self.train_data)
-                        else:
-                            self.current_pipeline, self.best_models, self.history = \
-                                self.api_composer.obtain_model(self.train_data)
+                        self.current_pipeline, self.best_models, self.history = \
+                            self.api_composer.obtain_model(self.train_data)
 
-                        if self.current_pipeline is None:
-                            raise ValueError('No models were found')
+                    if self.current_pipeline is None:
+                        raise ValueError('No models were found')
 
+                    if predefined_model is None or isinstance(self.current_pipeline, PipelineEnsemble):
                         full_train_not_preprocessed = deepcopy(self.train_data)
-                        # Final fit for obtained pipeline on full dataset
+                        # Final training for a pipeline on full dataset or finalization for an ensemble.
 
                         with fedot_composer_timer.launch_train_inference():
-                            final_fit_plan = plan_final_fit(self.history, self.current_pipeline.is_fitted)
-                            if final_fit_plan.should_train_on_full_dataset:
-                                self._train_pipeline_on_full_dataset(
-                                    recommendations_for_data, full_train_not_preprocessed)
+                            final_fit_plan = plan_final_fit(
+                                history=self.history,
+                                pipeline_is_fitted=self.current_pipeline.is_fitted,
+                                is_pipeline_ensemble=isinstance(self.current_pipeline, PipelineEnsemble),
+                            )
+                            if final_fit_plan.action is FinalFitAction.fit_pipeline_on_full_data:
+                                self._fit_final_pipeline(
+                                    recommendations_for_data,
+                                    full_train_not_preprocessed,
+                                )
                                 self.log.message('Final pipeline was fitted')
+                            elif final_fit_plan.action is FinalFitAction.finalize_ensemble:
+                                self._finalize_pipeline_ensemble(validation_data=ensemble_validation_data)
+                                self.log.message('Pipeline ensemble was finalized')
                             else:
                                 self.log.message('Already fitted initial pipeline is used')
 
                 # Merge API & pipelines encoders if it is required
-                merged_preprocessor = BasePreprocessor.merge_preprocessors(
-                    api_preprocessor=self.data_processor.preprocessor,
-                    pipeline_preprocessor=self.current_pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-                )
-                self.current_pipeline.preprocessor = merged_preprocessor
-                if isinstance(self.current_pipeline, PipelineEnsemble):
-                    for pipeline in self.current_pipeline.pipelines:
-                        pipeline.preprocessor = merged_preprocessor
+                self._merge_current_pipeline_preprocessors()
 
                 if isinstance(self.current_pipeline, Pipeline):
                     self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
@@ -361,7 +396,8 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
         if isinstance(self.current_pipeline, PipelineEnsemble):
-            raise ValueError('Tuning for pipeline ensembles is not supported yet.')
+            self.log.warning('Tuning for pipeline ensembles is not supported yet. Existing ensemble is returned.')
+            return self.current_pipeline
 
         with fedot_composer_timer.launch_tuning('post'):
             tune_plan = build_tune_execution_plan(
@@ -801,6 +837,7 @@ class Fedot:
         stage_result = executor.execute(self.train_data)
         self.train_data = stage_result.train_data
         self.sampling_stage_metadata = stage_result.metadata
+        self.sampling_routing_context = stage_result.routing_context
 
         if self.params.timeout is not None:
             self.params.timeout = stage_result.updated_timeout_minutes
@@ -811,20 +848,34 @@ class Fedot:
             f'Updated timeout: {self.params.timeout} min.'
         )
 
-    def _train_pipeline_on_full_dataset(self, recommendations: Optional[dict],
-                                        full_train_not_preprocessed: Union[InputData, InputDataList, MultiModalData]):
-        """Applies training procedure for obtained pipeline if dataset was clipped
-        """
-
+    def _fit_final_pipeline(self,
+                            recommendations: Optional[dict],
+                            full_train_not_preprocessed: Union[InputData, MultiModalData]):
         if recommendations is not None:
             # if data was cut we need to refit pipeline on full data
-            cleaned_recommendations = {k: v for k, v in recommendations.items() if k != 'cut'}
-            if isinstance(full_train_not_preprocessed, list):
-                for chunk_data in full_train_not_preprocessed:
-                    self.data_processor.accept_and_apply_recommendations(chunk_data, cleaned_recommendations)
-            else:
-                self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed, cleaned_recommendations)
+            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                 {k: v for k, v in recommendations.items()
+                                                                  if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
             n_jobs=self.params.n_jobs
+        )
+
+    def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
+        self.current_pipeline.finalize(validation_data=validation_data)
+
+    def _merge_current_pipeline_preprocessors(self):
+        if isinstance(self.current_pipeline, PipelineEnsemble):
+            for pipeline in self.current_pipeline.pipelines:
+                pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+                    api_preprocessor=deepcopy(self.data_processor.preprocessor),
+                    pipeline_preprocessor=pipeline.preprocessor,
+                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+                )
+            return
+
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
         )

@@ -20,7 +20,7 @@ from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
 from fedot.core.data.tools import StateEnum
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum

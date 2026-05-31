@@ -24,8 +24,41 @@ def test_api_params_repository_preserves_valid_sampling_config():
     assert tuple(result['sampling_config']['candidate_ratios']) == (0.2, 0.5)
 
 
+def test_api_params_repository_preserves_valid_chunked_ensemble_config():
+    repository = ApiParamsRepository(TaskTypesEnum.classification)
+
+    result = repository.check_and_set_default_params({
+        'chunked_ensemble_config': {
+            'validation_size': 0.25,
+            'validation_split_seed': 7,
+            'ensemble_method': 'weighted',
+            'ensemble_params': {'alpha': 0.5},
+            'batch_size': 512,
+        },
+    })
+
+    assert result['chunked_ensemble_config'] == {
+        'validation_size': 0.25,
+        'validation_split_seed': 7,
+        'ensemble_method': 'weighted',
+        'ensemble_params': {'alpha': 0.5},
+        'batch_size': 512,
+    }
+
+
 def test_api_params_repository_rejects_unknown_param_key():
     repository = ApiParamsRepository(TaskTypesEnum.classification)
 
     with pytest.raises(KeyError, match='Invalid key parameters'):
         repository.check_and_set_default_params({'unknown': 1})
+
+
+def test_params_for_composer_requirements_excludes_runtime_cv_folds():
+    result = ApiParamsRepository.get_params_for_composer_requirements({
+        'cv_folds': 5,
+        'max_depth': 3,
+        'use_input_preprocessing': True,
+    })
+
+    assert result['max_depth'] == 3
+    assert 'cv_folds' not in result

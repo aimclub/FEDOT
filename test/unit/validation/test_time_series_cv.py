@@ -12,6 +12,7 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import \
@@ -119,7 +120,10 @@ def test_composer_cv_correct():
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=time_series)
+    obtained_pipeline = composer.compose_pipeline(
+        data=time_series,
+        data_source_context=build_internal_composer_data_source_context(time_series, cv_folds=2),
+    )
     assert isinstance(obtained_pipeline, Pipeline)
 
 

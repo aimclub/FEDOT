@@ -4,6 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -32,7 +33,10 @@ def test_composer_with_cv_optimization_correct():
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
-    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)[0]
+    pipeline_evo_composed = composer.compose_pipeline(
+        data=dataset_to_compose,
+        data_source_context=build_internal_composer_data_source_context(dataset_to_compose, cv_folds=5),
+    )[0]
 
     assert isinstance(pipeline_evo_composed, Pipeline)
 

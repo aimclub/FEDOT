@@ -120,8 +120,7 @@ class FedotTabPFNRegressionImplementation(FedotTabPFNImplementation):
 class FedotTabICLImplementation(BaseFoundationalImplementation):
     _excluded_model_params = [
         'max_samples',
-        'max_features',
-        'device'
+        'max_features'
     ]
 
 

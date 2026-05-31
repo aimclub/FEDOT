@@ -17,12 +17,12 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import (
     PipelineObjectiveEvaluate,
 )
-from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import (
     PipelineComposerRequirements,
 )
 from fedot.core.utils import default_fedot_data_dir
+from fedot.core.optimisers.objective.data_source_context import ComposerDataSourceContext
 
 
 class GPComposer(Composer):
@@ -49,12 +49,9 @@ class GPComposer(Composer):
 
         self.best_models: Collection[Pipeline] = ()
 
-    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
-        # Define data source
-        data_splitter = DataSourceSplitter(self.composer_requirements.cv_folds,
-                                           shuffle=True)
-        data_producer = data_splitter.build(data)
-
+    def compose_pipeline(self,
+                         data: Union[InputData, MultiModalData],
+                         data_source_context: ComposerDataSourceContext) -> Union[Pipeline, Sequence[Pipeline]]:
         parallelization_mode = self.composer_requirements.parallelization_mode
         if parallelization_mode == 'populational':
             n_jobs_for_evaluation = 1
@@ -65,12 +62,12 @@ class GPComposer(Composer):
 
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(objective=self.optimizer.objective,
-                                                        data_producer=data_producer,
+                                                        data_producer=data_source_context.data_producer,
                                                         time_constraint=self.composer_requirements.max_graph_fit_time,
                                                         operations_cache=self.operations_cache,
                                                         preprocessing_cache=self.preprocessing_cache,
                                                         predictions_cache=self.predictions_cache,
-                                                        validation_blocks=data_splitter.validation_blocks,
+                                                        validation_blocks=data_source_context.validation_blocks,
                                                         eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 

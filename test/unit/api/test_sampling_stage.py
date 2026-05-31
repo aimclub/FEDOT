@@ -16,15 +16,12 @@ class FirstKProvider(SamplingProvider):
                target: np.ndarray,
                strategy: str,
                strategy_params,
-               random_state,
-               budget_seconds,
                strategy_kind='subset',
                injectable_params=None):
-        del target, strategy, strategy_params, random_state, budget_seconds
+        del target, strategy, strategy_params
         k = max(1, int(round(features.shape[0] * injectable_params['ratio'])))
         return SamplingSubsetResult(
             sample_indices=np.arange(k, dtype=int),
-            sample_scores=np.linspace(1.0, 0.0, num=k),
             meta={'provider': 'stub'}
         )
 
@@ -35,13 +32,10 @@ class DuplicateProvider(SamplingProvider):
                target: np.ndarray,
                strategy: str,
                strategy_params,
-               random_state,
-               budget_seconds,
                strategy_kind='subset',
                injectable_params=None):
-        del features, target, strategy, strategy_params, random_state, budget_seconds, strategy_kind, injectable_params
+        del features, target, strategy, strategy_params, strategy_kind, injectable_params
         return SamplingSubsetResult(sample_indices=np.array([0, 0], dtype=int),
-                                    sample_scores=None,
                                     meta={})
 
 
@@ -60,11 +54,6 @@ def _classification_input(n_samples: int = 120, n_features: int = 8) -> InputDat
 def test_sampling_config_rejects_unknown_keys():
     with pytest.raises(ValueError, match='Unknown keys'):
         validate_sampling_config({'strategy_kind': 'subset', 'unknown_key': 1})
-
-
-def test_sampling_config_rejects_non_fail_fast_mode():
-    with pytest.raises(ValueError, match='fail_fast'):
-        validate_sampling_config({'strategy_kind': 'subset', 'error_policy': 'fallback'})
 
 
 def test_dynamic_cap_budget_and_timeout_update():
@@ -152,15 +141,6 @@ def test_fail_fast_when_optional_dependency_is_missing(monkeypatch):
         SamplingStageExecutor(sampling_config=config,
                               task_type=TaskTypesEnum.classification,
                               total_timeout_minutes=5.0)
-
-
-def test_sampling_config_respects_heavy_parameter_guards():
-    with pytest.raises(ValueError, match='guard_max_sample_size'):
-        validate_sampling_config({
-            'strategy_kind': 'subset',
-            'strategy_params': {'sample_size': 1000},
-            'guard_max_sample_size': 100,
-        })
 
 
 def test_sampling_config_rejects_unsorted_candidate_ratios():

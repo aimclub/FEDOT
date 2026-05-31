@@ -1,14 +1,16 @@
 ﻿from types import SimpleNamespace
 
 from fedot.api.api_utils.api_run_planner import (
+    FinalFitAction,
     SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION,
-    SKIP_REASON_PREDEFINED_MODEL,
     build_composer_execution_plan,
     history_has_records,
     is_atomized_initial_assumption,
+    plan_chunked_ensemble,
     plan_final_fit,
     plan_sampling_stage,
 )
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class _FakeHistory:
@@ -28,46 +30,101 @@ def test_is_atomized_initial_assumption_detects_atomized_pipeline():
     assert is_atomized_initial_assumption(None) is False
 
 
-def test_plan_sampling_stage_skips_for_explicit_predefined_model():
+def test_plan_sampling_stage_runs_when_sampling_config_present():
     plan = plan_sampling_stage(
-        requested_predefined_model='rf',
         initial_assumption=None,
         sampling_config_present=True,
     )
 
-    assert plan.resolved_predefined_model == 'rf'
+    assert plan.should_run_sampling_stage is True
+    assert plan.skip_metadata is None
+
+
+def test_plan_sampling_stage_does_not_run_without_sampling_config():
+    plan = plan_sampling_stage(
+        initial_assumption=None,
+        sampling_config_present=False,
+    )
+
     assert plan.should_run_sampling_stage is False
-    assert plan.skip_metadata == {'status': 'skipped', 'reason': SKIP_REASON_PREDEFINED_MODEL}
+    assert plan.skip_metadata is None
 
 
 def test_plan_sampling_stage_skips_for_atomized_initial_assumption():
     atomized = SimpleNamespace(descriptive_id='my_atomized_pipeline')
     plan = plan_sampling_stage(
-        requested_predefined_model=None,
         initial_assumption=atomized,
         sampling_config_present=True,
     )
 
-    assert plan.resolved_predefined_model is atomized
     assert plan.should_run_sampling_stage is False
     assert plan.skip_metadata == {'status': 'skipped', 'reason': SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION}
 
 
-def test_plan_sampling_stage_runs_only_when_sampling_config_present():
+def test_plan_sampling_stage_atomized_initial_assumption_skip_does_not_need_sampling_config():
+    atomized = SimpleNamespace(descriptive_id='my_atomized_pipeline')
     plan = plan_sampling_stage(
-        requested_predefined_model=None,
-        initial_assumption=None,
-        sampling_config_present=True,
-    )
-    no_sampling_plan = plan_sampling_stage(
-        requested_predefined_model=None,
-        initial_assumption=None,
+        initial_assumption=atomized,
         sampling_config_present=False,
     )
 
-    assert plan.should_run_sampling_stage is True
+    assert plan.should_run_sampling_stage is False
     assert plan.skip_metadata is None
-    assert no_sampling_plan.should_run_sampling_stage is False
+
+
+def test_plan_chunked_ensemble_uses_holdout_for_supported_chunking_tasks():
+    classification_plan = plan_chunked_ensemble(
+        should_run_sampling_stage=True,
+        strategy_kind='chunking',
+        task_type=TaskTypesEnum.classification,
+    )
+    regression_plan = plan_chunked_ensemble(
+        should_run_sampling_stage=True,
+        strategy_kind='chunking',
+        task_type=TaskTypesEnum.regression,
+    )
+
+    assert classification_plan.should_use_chunked_ensemble is True
+    assert classification_plan.require_config().validation_size == 0.2
+    assert classification_plan.train_split_ratio == 0.8
+    assert classification_plan.should_select_class_representatives is True
+    assert regression_plan.should_use_chunked_ensemble is True
+    assert regression_plan.should_select_class_representatives is False
+
+
+def test_plan_chunked_ensemble_uses_config_values():
+    plan = plan_chunked_ensemble(
+        should_run_sampling_stage=True,
+        strategy_kind='chunking',
+        task_type=TaskTypesEnum.regression,
+        chunked_ensemble_config={
+            'validation_size': 0.25,
+            'validation_split_seed': 7,
+            'ensemble_method': 'weighted',
+        },
+    )
+
+    assert plan.should_use_chunked_ensemble is True
+    assert plan.train_split_ratio == 0.75
+    assert plan.validation_split_seed == 7
+    assert plan.require_config().ensemble_method.value == 'weighted'
+
+
+def test_plan_chunked_ensemble_skips_non_chunking_paths():
+    plan = plan_chunked_ensemble(
+        should_run_sampling_stage=True,
+        strategy_kind='subset',
+        task_type=TaskTypesEnum.classification,
+    )
+    no_sampling_plan = plan_chunked_ensemble(
+        should_run_sampling_stage=False,
+        strategy_kind='chunking',
+        task_type=TaskTypesEnum.classification,
+    )
+
+    assert plan.should_use_chunked_ensemble is False
+    assert plan.config is None
+    assert no_sampling_plan.should_use_chunked_ensemble is False
 
 
 def test_plan_final_fit_respects_history_and_pipeline_fit_state():
@@ -75,10 +132,15 @@ def test_plan_final_fit_respects_history_and_pipeline_fit_state():
     assert history_has_records(_FakeHistory(is_empty_value=True)) is False
     assert history_has_records(_FakeHistory(is_empty_value=False)) is True
 
-    assert plan_final_fit(None, pipeline_is_fitted=True).should_train_on_full_dataset is False
+    assert plan_final_fit(None, pipeline_is_fitted=True).action is FinalFitAction.skip
     assert plan_final_fit(_FakeHistory(is_empty_value=False),
-                          pipeline_is_fitted=True).should_train_on_full_dataset is True
-    assert plan_final_fit(None, pipeline_is_fitted=False).should_train_on_full_dataset is True
+                          pipeline_is_fitted=True).action is FinalFitAction.fit_pipeline_on_full_data
+    assert plan_final_fit(None, pipeline_is_fitted=False).action is FinalFitAction.fit_pipeline_on_full_data
+    assert plan_final_fit(
+        _FakeHistory(is_empty_value=False),
+        pipeline_is_fitted=False,
+        is_pipeline_ensemble=True,
+    ).action is FinalFitAction.finalize_ensemble
 
 
 def test_build_composer_execution_plan_is_typed_and_deterministic():

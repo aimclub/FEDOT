@@ -5,6 +5,7 @@ from fedot import Fedot
 from fedot.core.data.data import OutputData
 from fedot.core.data.tensordata import TensorData
 from fedot.core.data.tools import StateEnum
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -291,6 +292,32 @@ def test_main_facade_tune_tensordata_uses_tensor_tuner_runtime_path(monkeypatch)
     assert model.train_data is converted_input
     assert model.target == 'converted-target'
     assert model.current_pipeline.preprocessor is merged_preprocessor
+
+
+def test_main_facade_merges_ensemble_preprocessors_per_pipeline(monkeypatch):
+    model = Fedot(problem='classification')
+    model.data_processor.preprocessor = type('ApiPreprocessor', (), {'name': 'api'})()
+    pipeline_a = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-a'})()
+    pipeline_b = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-b'})()
+    model.current_pipeline = PipelineEnsemble(
+        pipelines=[pipeline_a, pipeline_b],
+        validation_metric='rmse',
+    )
+    captured = []
+
+    def fake_merge_preprocessors(api_preprocessor, pipeline_preprocessor, use_auto_preprocessing):
+        captured.append((api_preprocessor, pipeline_preprocessor, use_auto_preprocessing))
+        return f'merged-{pipeline_preprocessor}'
+
+    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', fake_merge_preprocessors)
+
+    model._merge_current_pipeline_preprocessors()
+
+    assert [item[1] for item in captured] == ['preprocessor-a', 'preprocessor-b']
+    assert all(item[0] is not model.data_processor.preprocessor for item in captured)
+    assert captured[0][0] is not captured[1][0]
+    assert pipeline_a.preprocessor == 'merged-preprocessor-a'
+    assert pipeline_b.preprocessor == 'merged-preprocessor-b'
 
 
 def test_main_facade_get_metrics_tensordata_uses_tensor_prediction_and_legacy_metrics_flow():
