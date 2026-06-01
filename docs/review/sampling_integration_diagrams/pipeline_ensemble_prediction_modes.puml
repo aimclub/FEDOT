@@ -1,0 +1,85 @@
+@startuml pipeline_ensemble_prediction_modes
+title PipelineEnsemble: режимы агрегации предсказаний
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+class PipelineEnsemble {
+  +predict(input_data, output_mode)
+  +finalize(validation_data)
+  +select_best_models(validation_data, metric)
+  -_predict_ensemble(...)
+  -_aggregate_classification_predictions(...)
+  -_compute_aggregation_weights(...)
+  -_compute_model_weights(...)
+  -_compute_base_routing_weights(...)
+  -_compute_gated_weights(...)
+}
+
+class PipelineInfo {
+  +name: partition name
+  +pipeline: Pipeline
+  +metrics: validation metrics
+  +val_predictions
+  +val_probabilities
+}
+
+class SamplingRoutingContext {
+  +partition_names
+  +base_weights(input_data, active_names)
+  +transform_features(input_data)
+}
+
+class ConstrainedGatingRouter {
+  +fit(features, prior_weights, predictions, target)
+  +weights(features)
+}
+
+class "Chunk Pipeline" as ChunkPipeline {
+  +predict(input_data, output_mode)
+  +is_fitted
+}
+
+enum EnsembleMethod {
+  voting
+  weighted
+  routed_weighted
+  gated_weighted
+}
+
+PipelineEnsemble "1" *-- "many" PipelineInfo
+PipelineInfo --> ChunkPipeline
+PipelineEnsemble --> EnsembleMethod
+PipelineEnsemble --> SamplingRoutingContext : routed/gated modes
+PipelineEnsemble --> ConstrainedGatingRouter : gated_weighted
+
+note right of PipelineEnsemble
+  finalization:
+  1. remove unfitted pipelines
+  2. evaluate subsets on common validation data
+  3. keep best subset
+end note
+
+note bottom of EnsembleMethod
+  voting:
+  regression = mean predictions
+  classification = mean probabilities
+
+  weighted:
+  global weights from validation metrics
+
+  routed_weighted:
+  per-sample partition weights from Sampling Zoo predictor,
+  combined with validation weights
+
+  gated_weighted:
+  learned per-sample weights from validation data,
+  routing prior and pipeline predictions
+end note
+
+PipelineEnsemble --> PipelineInfo : requests predictions
+PipelineEnsemble --> SamplingRoutingContext : base routing weights
+SamplingRoutingContext --> "Sampling Zoo fitted strategy" : predict_partition_proba / predict_partitions / transform_embedding
+
+@enduml

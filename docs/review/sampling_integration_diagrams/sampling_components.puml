@@ -1,0 +1,153 @@
+@startuml sampling_components
+title FEDOT + Sampling Zoo: основные классы и связи
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+package "API layer" {
+  class Fedot {
+    +fit(...)
+    -_run_sampling_stage_if_necessary()
+    -_finalize_pipeline_ensemble(validation_data)
+    -_merge_current_pipeline_preprocessors()
+  }
+
+  class ApiComposer {
+    +obtain_model(train_data)
+    +obtain_model_with_external_validation(train_data, validation_data)
+    +obtain_ensemble_model(train_data_list, validation_data, routing_context)
+  }
+
+  class SamplingStageExecutor {
+    +execute(train_data): SamplingStageOutput
+    -_execute_subset(...)
+    -_execute_chunking(...)
+    -_select_effective_ratio(...)
+  }
+
+  class SamplingStageOutput {
+    +train_data: InputData | InputDataList
+    +metadata: dict
+    +updated_timeout_minutes: float
+    +routing_context: SamplingRoutingContext?
+  }
+
+  class SamplingProvider <<interface>> {
+    +sample(...): SamplingProviderResult
+  }
+
+  class SamplingZooProvider {
+    +sample(...)
+    -_sample_subset(...)
+    -_sample_chunking(...)
+  }
+
+  class SamplingSubsetResult {
+    +sample_indices: ndarray
+    +meta: dict
+  }
+
+  class SamplingChunkingResult {
+    +partitions: dict
+    +meta: dict
+    +partition_predictor: Any?
+  }
+}
+
+package "Composer validation" {
+  enum ComposerDataSourceMode {
+    internal_split
+    external_holdout
+  }
+
+  class ComposerDataSourceContext {
+    +mode: ComposerDataSourceMode
+    +data_producer
+    +validation_blocks
+  }
+
+  class DataSourceSplitter {
+    +build(data)
+    +build_external_holdout(train_data, validation_data)
+  }
+
+  class GPComposer {
+    +compose_pipeline(data, data_source_context)
+  }
+}
+
+package "Ensembling" {
+  class PipelineEnsemble {
+    +predict(input_data, output_mode)
+    +finalize(validation_data)
+    +select_best_models(validation_data, metric)
+    -_predict_ensemble(...)
+    -_compute_aggregation_weights(...)
+  }
+
+  class ChunkedEnsembleConfig {
+    +validation_size: float
+    +validation_split_seed: int
+    +ensemble_method: EnsembleMethod
+    +ensemble_params: dict
+    +batch_size: int
+  }
+
+  enum EnsembleMethod {
+    voting
+    weighted
+    routed_weighted
+    gated_weighted
+  }
+
+  class SamplingRoutingContext {
+    +partition_names: Sequence[str]
+    +base_weights(input_data, active_names)
+    +transform_features(input_data)
+  }
+
+  class ConstrainedGatingRouter {
+    +fit(features, prior_weights, predictions, target)
+    +weights(features)
+  }
+}
+
+package "Sampling Zoo" {
+  class SamplingStrategyFactory {
+    +fit_transform(..., return_strategy=True)
+    +is_subset_strategy(strategy)
+    +is_chunking_strategy(strategy)
+  }
+
+  class "Fitted sampling strategy" as FittedStrategy {
+    +predict_partitions(X)?
+    +predict_partition_proba(X)?
+    +transform_embedding(X)?
+  }
+}
+
+Fedot --> SamplingStageExecutor : runs sampling stage
+Fedot --> ApiComposer : obtains pipeline or ensemble
+Fedot --> PipelineEnsemble : finalizes and predicts
+Fedot --> ChunkedEnsembleConfig : reads config
+
+SamplingStageExecutor --> SamplingProvider : calls sample()
+SamplingProvider <|.. SamplingZooProvider
+SamplingZooProvider --> SamplingStrategyFactory : fit_transform()
+SamplingZooProvider --> SamplingSubsetResult : returns for subset
+SamplingZooProvider --> SamplingChunkingResult : returns for chunking
+SamplingChunkingResult --> FittedStrategy : partition_predictor
+
+SamplingStageOutput --> SamplingRoutingContext : optional
+SamplingRoutingContext --> FittedStrategy : routes new samples
+PipelineEnsemble --> SamplingRoutingContext : routed/gated modes
+PipelineEnsemble --> ConstrainedGatingRouter : gated_weighted
+
+ApiComposer --> GPComposer : per-pipeline composition
+ApiComposer --> PipelineEnsemble : builds chunked ensemble
+GPComposer --> ComposerDataSourceContext : objective data source
+ComposerDataSourceContext --> DataSourceSplitter
+
+@enduml
