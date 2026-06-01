@@ -11,6 +11,7 @@ class ObligatoryTabularService(ObligatoryService):
     Example of usage and creating custom steps in tests/preprocessing/test_obligatory_preprocessing.py.
 
     Example:
-        prepared = ObligatoryTabularService().fit_transform(features, target, params)
+        result = ObligatoryTabularService().fit_transform(features, target, params)
+        prepared = result.prepared_data
     """
     handler_mapping = PREPROCESSING_OBLIGATORY_MAPPING

@@ -102,21 +102,17 @@ def build_tensordata_metadata(td: TensorData) -> dict[str, Any]:
     }
 
 
-def get_hash_raw_features(features: Any, row_positions: list[int], digest_size: int = 16) -> str:
-    """
-    Hash raw NumPy/CuPy feature metadata and sampled rows.
-
-    Args:
-        features: Raw feature array.
-        row_positions: Row positions selected from the first axis.
-        digest_size: Blake2b digest size in bytes.
-
-    Returns:
-        Hexadecimal hash string.
-    """
+def get_hash_raw_features(
+    features: Any,
+    row_positions: list[int],
+    target: Any = None,
+    digest_size: int = 16,
+) -> str:
     metadata = {
-        "shape": tuple(int(dim) for dim in features.shape),
-        "dtype": str(features.dtype),
+        "features_shape": tuple(int(dim) for dim in features.shape),
+        "features_dtype": str(features.dtype),
+        "target_shape": None if target is None else tuple(int(dim) for dim in target.shape),
+        "target_dtype": None if target is None else str(target.dtype),
     }
 
     h = hashlib.blake2b(digest_size=digest_size)
@@ -124,6 +120,9 @@ def get_hash_raw_features(features: Any, row_positions: list[int], digest_size: 
 
     if row_positions:
         h.update(_array_to_bytes(features[row_positions]))
+
+    if target is not None:
+        h.update(_array_to_bytes(target))
 
     return h.hexdigest()
 
@@ -163,6 +162,10 @@ def get_hash_tensordata(
         index = torch.as_tensor(row_positions, device=features.device, dtype=torch.long)
         sample = features.index_select(dim=0, index=index)
         h.update(_tensor_to_bytes(sample))
+    
+    target = td.target
+    if target is not None:
+        h.update(_tensor_to_bytes(target))
 
     return h.hexdigest()
 

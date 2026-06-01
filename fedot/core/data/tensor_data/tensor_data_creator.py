@@ -22,6 +22,8 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.reader.data_reader import DataReader
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
+from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -93,19 +95,24 @@ class TensorDataCreator:
             "data_type": self.spec.data_type
         }
         if self.spec.state == StateEnum.FIT:
-            prepared_data = service.fit_transform(
+            preprocess_result = service.fit_transform(
                 self.spec.features,
                 self.spec.target,
                 service_params
             )
-            # TODO romankuklo: how to save steps?
+            self.spec.plan_hash = preprocess_result.plan_hash
+            self.spec.raw_fingerprint = preprocess_result.raw_fingerprint
         else:
             # TODO romankuklo: how to get from cache?
-            prepared_data = service.transform(
+            preprocess_result = service.transform(
                 self.spec.features,
                 self.spec.target,
                 self.spec.idx_mapping
             )
+        if preprocess_result.has_tensor_data:
+            return preprocess_result.tensor_data
+
+        prepared_data = preprocess_result.prepared_data
         self.spec.features = prepared_data.features
         self.spec.target = prepared_data.target
         self.spec.idx_mapping = prepared_data.idx_mapping
@@ -118,6 +125,7 @@ class TensorDataCreator:
                                                                                            service.plan,
                                                                                            self.spec.categorical_idx,
                                                                                            self.spec.idx_mapping)
+        return None
 
     def preprocess_data(self):
         """
@@ -168,12 +176,18 @@ class TensorDataCreator:
                     self.spec.features = Backend().xp.array(self.spec.features)
                     if self.spec.target is not None:
                         self.spec.target = Backend().xp.array(self.spec.target)
-                    self.obligatory_preprocess()
+                    tensor_data = self.obligatory_preprocess()
                     raw_conversion_plan.preprocessing_done = True
+                    if tensor_data is not None:
+                        return tensor_data
 
         if not raw_conversion_plan.preprocessing_done:
-            self.obligatory_preprocess()
+            tensor_data = self.obligatory_preprocess()
             raw_conversion_plan.preprocessing_done = True
+            if tensor_data is not None:
+                return tensor_data
+
+        return None
 
     def read_features(self, source_data):
         """
@@ -222,7 +236,8 @@ class TensorDataCreator:
             ts_terms_idx=self.spec.ts_terms_idx,
             ts_forecast_horizon=self.spec.ts_forecast_horizon,
             ts_init_shape=self.spec.ts_init_shape,
-            dataloader_kwargs=self.spec.dataloader_kwargs
+            dataloader_kwargs=self.spec.dataloader_kwargs,
+            raw_fingerprint=self.spec.raw_fingerprint,
         )
 
     def to_backend(self, tensor_data: "TensorData") -> "TensorData":
@@ -273,8 +288,20 @@ class TensorDataCreator:
         try:
             creator.read_features(source_data)
             creator.read_target()
-            creator.preprocess_data()
+            tensor_data = creator.preprocess_data()
+            if tensor_data is not None:
+                return creator.to_backend(tensor_data)
+
             tensor_data = creator.to_tensor_data()
+            output_hash = Hasher.hash(tensor_data)
+            tensor_data.ready_fingerprint = output_hash
+
+            Cacher().cache_tensor_data(
+                output_data=tensor_data,
+                output_hash=output_hash,
+                input_hash=creator.spec.raw_fingerprint, 
+                operation_hash=creator.spec.plan_hash
+            )
             tensor_data = creator.to_backend(tensor_data)
             return tensor_data
         except Exception as e:

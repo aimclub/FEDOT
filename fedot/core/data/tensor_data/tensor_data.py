@@ -117,8 +117,6 @@ class TensorData:
     # hashes 
     raw_fingerprint: Optional[str] = None
     ready_fingerprint: Optional[str] = None
-    parent_raw_fingerprint: Optional[str] = None
-    parent_ready_fingerprint: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TensorData):

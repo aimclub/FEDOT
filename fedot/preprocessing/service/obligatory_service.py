@@ -1,4 +1,5 @@
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, TYPE_CHECKING
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.tools.index_mapping_tools import update_index_mapping, update_indices
@@ -8,6 +9,30 @@ from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.tools import update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.core.data.common.types import ArrayType
+from fedot.core.caching.cacher import Cacher
+
+if TYPE_CHECKING:
+    from fedot.core.data.tensor_data.tensor_data import TensorData
+
+
+@dataclass
+class ObligatoryPreprocessResult:
+    prepared_data: Optional[PreparedData] = None
+    tensor_data: Optional["TensorData"] = None
+    plan_hash: Optional[str] = None
+    raw_fingerprint: Optional[str] = None
+
+    @classmethod
+    def from_prepared_data(cls, prepared_data: PreparedData) -> "ObligatoryPreprocessResult":
+        return cls(prepared_data=prepared_data)
+
+    @classmethod
+    def from_tensor_data(cls, tensor_data: "TensorData") -> "ObligatoryPreprocessResult":
+        return cls(tensor_data=tensor_data)
+
+    @property
+    def has_tensor_data(self) -> bool:
+        return self.tensor_data is not None
 
 
 class ObligatoryService:
@@ -31,7 +56,7 @@ class ObligatoryService:
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
 
-    def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> PreparedData:
+    def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> ObligatoryPreprocessResult:
         """Build and execute obligatory preprocessing plan.
 
         Args:
@@ -41,11 +66,23 @@ class ObligatoryService:
                 metadata (including feature names and index mapping).
 
         Returns:
-            Prepared data after all obligatory preprocessing steps.
+            Result with either prepared data after preprocessing or ready
+            TensorData restored from cache.
         """
         prepared_data = None
 
         self.plan = build_obligatory_plan(features, target, params)
+
+        cacher = Cacher()
+        cached_data = cacher.load_tensor_data(input_data=features, target=target, operation=self.plan)
+        raw_fingerprint = cached_data.input_hash
+        plan_hash = cached_data.operation_hash
+        if cached_data.success:
+            return ObligatoryPreprocessResult(
+                tensor_data=cached_data.data,
+                plan_hash=plan_hash,
+                raw_fingerprint=raw_fingerprint,
+            )
 
         prepared_data = PreparedData(features=features,
                                      target=target,
@@ -70,6 +107,12 @@ class ObligatoryService:
                         step.features_idx
                     )
                     prepared_data.target = prepared_data_target.features
+
+                    cacher.cache_preprocessing_model(
+                        input_hash=raw_fingerprint,
+                        model=handler,
+                        operation_hash=plan_hash,
+                    )
                     continue
 
                 step.features_idx = update_indices(
@@ -86,6 +129,15 @@ class ObligatoryService:
                     prepared_data.features,
                     prepared_data.new_cols_dict
                 )
-                # TODO romankuklo: caching handler
-                # self.plan.steps[i]["model_hash"] = model_hash
-        return prepared_data
+
+                cacher.cache_preprocessing_model(
+                    input_hash=raw_fingerprint,
+                    model=handler,
+                    operation_hash=plan_hash,
+                )
+
+        return ObligatoryPreprocessResult(
+            prepared_data=prepared_data,
+            plan_hash=plan_hash,
+            raw_fingerprint=raw_fingerprint,
+        )

@@ -1,0 +1,109 @@
+import sqlite3
+
+import numpy as np
+import pytest
+import torch
+
+import fedot.core.caching.index_db as index_db_module
+import fedot.core.caching.inmemory_operations as inmemory_operations
+import fedot.core.caching.tools as cache_tools
+from fedot.core.caching.index_db import CacheIndexDB
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+
+
+@pytest.fixture()
+def isolated_cache_dir(tmp_path, monkeypatch):
+    cache_dir = tmp_path / "cache"
+    monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
+    return cache_dir
+
+
+def _make_features() -> np.ndarray:
+    return np.array(
+        [
+            [0.0, 10.0, 0.0],
+            [1.0, 11.0, 1.0],
+            [2.0, 12.0, 0.0],
+            [3.0, 13.0, 1.0],
+        ],
+        dtype=np.float32,
+    )
+
+
+def _tensor_cache_rows(cache_dir):
+    with sqlite3.connect(cache_dir / "index.sqlite3") as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT input_hash, output_hash, operation_hash, path
+            FROM tensor_data_cache;
+            """
+        )
+        return cur.fetchall()
+
+
+@pytest.mark.unit
+def test_tensor_data_creator_first_run_writes_tensor_data_cache(isolated_cache_dir):
+    tensor_data = TensorDataCreator.create(_make_features(), backend_name="cpu")
+
+    rows = _tensor_cache_rows(isolated_cache_dir)
+
+    assert isinstance(tensor_data, TensorData)
+    assert len(rows) == 1
+    _, output_hash, _, path = rows[0]
+    assert output_hash
+    assert path.endswith(".pt")
+    assert (isolated_cache_dir / "tensor_data").exists()
+    assert rows[0][3] and tensor_data.features.device.type == "cpu"
+
+
+@pytest.mark.unit
+def test_tensor_data_creator_second_run_returns_cached_tensor_data(isolated_cache_dir, monkeypatch):
+    features = _make_features()
+    first = TensorDataCreator.create(features, backend_name="cpu")
+
+    def fail_if_regular_tensor_data_build_is_used(self):
+        raise AssertionError("TensorData should be loaded from cache on the second create call")
+
+    monkeypatch.setattr(TensorDataCreator, "to_tensor_data", fail_if_regular_tensor_data_build_is_used)
+
+    second = TensorDataCreator.create(features.copy(), backend_name="cpu")
+
+    assert second == first
+    assert len(_tensor_cache_rows(isolated_cache_dir)) == 1
+
+
+@pytest.mark.unit
+def test_tensor_data_creator_different_input_creates_separate_cache_record(isolated_cache_dir):
+    first_features = _make_features()
+    second_features = first_features.copy()
+    second_features[0, 0] = 42.0
+
+    first = TensorDataCreator.create(first_features, backend_name="cpu")
+    second = TensorDataCreator.create(second_features, backend_name="cpu")
+
+    rows = _tensor_cache_rows(isolated_cache_dir)
+    input_hashes = {row[0] for row in rows}
+    paths = {row[3] for row in rows}
+
+    assert first != second
+    assert len(rows) == 2
+    assert len(input_hashes) == 2
+    assert len(paths) == 2
+
+
+@pytest.mark.unit
+def test_cache_index_db_is_created_with_tensor_and_model_tables(isolated_cache_dir):
+    db = CacheIndexDB()
+
+    with sqlite3.connect(db.db_path) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
+        tables = {name for (name,) in cur.fetchall()}
+
+    assert db.db_path == isolated_cache_dir / "index.sqlite3"
+    assert CacheIndexDB.TENSOR_DATA_TABLE in tables
+    assert CacheIndexDB.PREPROCESSING_MODELS_TABLE in tables

@@ -48,6 +48,7 @@ class Hasher(Registry):
 @Hasher.register_creator(is_array_runtime)
 def raw_fingerprint(
     data: Any,
+    target: Any = None,
     min_rows: int = 8,
     max_rows: int = 64,
     digest_size: int = 16,
@@ -64,7 +65,12 @@ def raw_fingerprint(
         min_rows=min_rows,
         max_rows=max_rows,
     )
-    return get_hash_raw_features(data, row_positions, digest_size=digest_size)
+    return get_hash_raw_features(
+        features=data,
+        row_positions=row_positions,
+        target=target,
+        digest_size=digest_size,
+    )
 
 
 @Hasher.register_creator(is_tensor_data)
