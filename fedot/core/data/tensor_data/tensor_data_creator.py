@@ -24,6 +24,7 @@ from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
+from fedot.core.caching.tracer import TraceBuilder
 
 
 logger = logging.getLogger(__name__)
@@ -296,12 +297,22 @@ class TensorDataCreator:
             output_hash = Hasher.hash(tensor_data)
             tensor_data.ready_fingerprint = output_hash
 
-            Cacher().cache_tensor_data(
-                output_data=tensor_data,
-                output_hash=output_hash,
-                input_hash=creator.spec.raw_fingerprint, 
-                operation_hash=creator.spec.plan_hash
-            )
+            if creator.spec.state == StateEnum.FIT:
+                Cacher().cache_tensor_data(
+                    output_data=tensor_data,
+                    output_hash=output_hash,
+                    input_hash=creator.spec.raw_fingerprint,
+                    operation_hash=creator.spec.plan_hash,
+                    state=creator.spec.state.value if hasattr(creator.spec.state, "value") else str(creator.spec.state),
+                )
+                trace_builder = TraceBuilder(creator.spec.raw_fingerprint)
+                trace_builder.add_stage(
+                    stage="obligatory_preprocessing",
+                    input_hash=creator.spec.raw_fingerprint,
+                    operation_hash=creator.spec.plan_hash,
+                )
+                trace_builder.save(final_output_hash=output_hash)
+                tensor_data.trace_builder = trace_builder
             tensor_data = creator.to_backend(tensor_data)
             return tensor_data
         except Exception as e:

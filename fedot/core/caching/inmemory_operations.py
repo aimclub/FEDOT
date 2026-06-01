@@ -1,4 +1,5 @@
 import torch
+import cloudpickle
 from pathlib import Path
 from typing import Any, Callable
 import pickle
@@ -16,6 +17,7 @@ from fedot.core.caching.normalization import (
 )
 from fedot.core.utils import CACHE_DIR
 from fedot.core.data.tensor_data import TensorData
+from fedot.preprocessing.planner import PreprocessingPlan
 
 
 logger = logging.getLogger(__name__)
@@ -89,6 +91,25 @@ def save_tensor_data(data: TensorData, key: str) -> SaverResponse:
     )
 
 
+def save_preprocessing_plan(data: PreprocessingPlan, key: str) -> SaverResponse:
+    ensure_cache_dirs()
+
+    final_path = CACHE_DIR / "preprocessing_plans" / f"{key}.pkl"
+
+    def writer(tmp_path: Path) -> None:
+        with open(tmp_path, "wb") as file:
+            cloudpickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    written = _atomic_save(final_path, writer)
+
+    return SaverResponse(
+        key=key,
+        kind="preprocessing_plan",
+        path=final_path,
+        success=written,
+    )
+
+
 def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
     ensure_cache_dirs()
 
@@ -121,15 +142,16 @@ def load_pt_file(source: str, hash: str = None, kind: str = None) -> Any:
 
 
 def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
-    if kind not in (None, "preprocessing_model"):
+    if kind not in (None, "preprocessing_model", "preprocessing_plan"):
         raise ValueError(f"Unsupported .pkl cache kind: {kind}")
 
     with open(source, "rb") as file:
         data = pickle.load(file)
 
-    data = prepare_loaded_preprocessing_model(data)
+    if kind in (None, "preprocessing_model"):
+        data = prepare_loaded_preprocessing_model(data)
     _validate_loaded_hash(data, hash)
-    logger.info(f"Loaded cached preprocessing model from {source}")
+    logger.info(f"Loaded cached {kind or 'preprocessing_model'} from {source}")
     return data
 
 

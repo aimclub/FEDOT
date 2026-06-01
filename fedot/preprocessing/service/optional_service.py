@@ -1,6 +1,10 @@
 from typing import Optional
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.hasher import Hasher
+from fedot.core.caching.tracer import TraceBuilder
+from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -30,7 +34,12 @@ class OptionalService:
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
 
-    def fit_transform(self, data: TensorData, optional_steps) -> PreparedData:
+    def fit_transform(
+        self,
+        data: TensorData,
+        optional_steps,
+        trace_builder: Optional[TraceBuilder] = None,
+    ) -> PreparedData:
         """Build and execute optional preprocessing plan.
 
         Args:
@@ -42,12 +51,17 @@ class OptionalService:
             Prepared data after executing optional preprocessing steps.
         """
         self.plan = build_optional_plan(data, optional_steps)
+        trace_builder = trace_builder or getattr(data, "trace_builder", None)
+        cacher = Cacher()
+        input_hash = data.ready_fingerprint or Hasher.hash(data)
+        operation_hash = Hasher.hash(self.plan)
 
         optional_idx_mapping = create_index_mapping(data.features)
 
         prepared_data = None
 
         if len(self.plan.steps) > 0:
+            cacher.cache_preprocessing_plan(plan=self.plan, plan_hash=operation_hash)
             self.handler_mapping = update_handler_mapping(
                 self.plan, self.handler_mapping)
 

@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 import numpy as np
 import pytest
@@ -7,6 +8,7 @@ import torch
 import fedot.core.caching.index_db as index_db_module
 import fedot.core.caching.inmemory_operations as inmemory_operations
 import fedot.core.caching.tools as cache_tools
+import fedot.core.caching.tracer as tracer_module
 from fedot.core.caching.index_db import CacheIndexDB
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
@@ -18,6 +20,7 @@ def isolated_cache_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
     monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
     monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(tracer_module, "CACHE_DIR", cache_dir)
     return cache_dir
 
 
@@ -107,3 +110,23 @@ def test_cache_index_db_is_created_with_tensor_and_model_tables(isolated_cache_d
     assert db.db_path == isolated_cache_dir / "index.sqlite3"
     assert CacheIndexDB.TENSOR_DATA_TABLE in tables
     assert CacheIndexDB.PREPROCESSING_MODELS_TABLE in tables
+
+
+@pytest.mark.unit
+def test_tensor_data_creator_writes_trace_manifest_for_fit_state(isolated_cache_dir):
+    tensor_data = TensorDataCreator.create(_make_features(), backend_name="cpu")
+    trace_paths = list((isolated_cache_dir / "traces").glob("*.json"))
+
+    assert len(trace_paths) == 1
+
+    with open(trace_paths[0], encoding="utf-8") as file:
+        trace = json.load(file)
+
+    assert trace["raw_fingerprint"] == tensor_data.raw_fingerprint
+    assert trace["final_output_hash"] == tensor_data.ready_fingerprint
+    assert len(trace["stages"]) == 1
+    assert trace["stages"][0]["stage"] == "obligatory_preprocessing"
+    assert trace["stages"][0]["input_hash"] == tensor_data.raw_fingerprint
+    assert trace["stages"][0]["output_hash"] == tensor_data.ready_fingerprint
+    assert trace["stages"][0]["tensor_data_path"].endswith(".pt")
+    assert trace["stages"][0]["operation_path"].endswith(".pkl")

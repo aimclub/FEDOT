@@ -84,6 +84,8 @@ class ObligatoryService:
                 raw_fingerprint=raw_fingerprint,
             )
 
+        cacher.cache_preprocessing_plan(plan=self.plan, plan_hash=plan_hash)
+
         prepared_data = PreparedData(features=features,
                                      target=target,
                                      idx_mapping=params['idx_mapping'],
@@ -112,6 +114,10 @@ class ObligatoryService:
                         input_hash=raw_fingerprint,
                         model=handler,
                         operation_hash=plan_hash,
+                        step_order=i,
+                        step_name=step.step.value,
+                        method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                        features_idx=step.features_idx,
                     )
                     continue
 
@@ -134,6 +140,10 @@ class ObligatoryService:
                     input_hash=raw_fingerprint,
                     model=handler,
                     operation_hash=plan_hash,
+                    step_order=i,
+                    step_name=step.step.value,
+                    method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                    features_idx=step.features_idx,
                 )
 
         return ObligatoryPreprocessResult(
@@ -141,3 +151,7 @@ class ObligatoryService:
             plan_hash=plan_hash,
             raw_fingerprint=raw_fingerprint,
         )
+
+
+    def transform(self, features: ArrayType, target: ArrayType, train_fingerprint: str) -> ObligatoryPreprocessResult:
+        cacher = Cacher()

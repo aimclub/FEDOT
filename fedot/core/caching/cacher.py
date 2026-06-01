@@ -6,10 +6,12 @@ from fedot.core.caching.index_db import (
     CacheIndexDB,
     PreprocessingModelCacheIndexRecord,
     TensorDataCacheIndexRecord,
+    PreprocessingPlanCacheIndexRecord,
 )
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.cache_saver import Saver
 from fedot.core.caching.responses import DataCacherLoaderResponse
+from fedot.preprocessing.planner import PreprocessingPlan
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +28,7 @@ class Cacher:
         input_hash: str=None,
         operation: Any=None,
         operation_hash: str=None,
+        state: str = "fit",
     ) -> TensorDataCacheIndexRecord:
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
@@ -45,6 +48,7 @@ class Cacher:
             output_hash=output_hash,
             operation_hash=operation_hash,
             path=saver_response.path,
+            state=state,
         )
 
         return result
@@ -83,6 +87,10 @@ class Cacher:
         model_hash: str=None,
         operation_hash: str=None,
         operation: Any=None,
+        step_order: int = 0,
+        step_name: str = None,
+        method: str = None,
+        features_idx: Any = None,
     ) -> PreprocessingModelCacheIndexRecord:
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
@@ -93,14 +101,19 @@ class Cacher:
 
         cached_record = self.index_db.get_preprocessing_model_by_model_hash(model_hash)
         if cached_record is not None and cached_record.path.exists():
-            return cached_record
-
-        response = Saver.save(model, model_hash)
+            model_path = cached_record.path
+        else:
+            response = Saver.save(model, model_hash)
+            model_path = response.path
         return self.index_db.add_preprocessing_model(
             model_hash=model_hash,
             operation_hash=operation_hash,
             input_hash=input_hash,
-            path=response.path,
+            path=model_path,
+            step_order=step_order,
+            step_name=step_name,
+            method=method,
+            features_idx=features_idx,
         )
 
     def load_preprocessing_model(self, 
@@ -127,3 +140,21 @@ class Cacher:
             )
 
         return Loader.load(str(record.path), record.model_hash, "preprocessing_model")
+
+
+    def cache_preprocessing_plan(
+        self,
+        plan: PreprocessingPlan,
+        plan_hash: str=None,
+    ) -> PreprocessingPlanCacheIndexRecord:
+        if plan_hash is None:
+            plan_hash = Hasher.hash(plan)
+
+        cached_record = self.index_db.get_preprocessing_plan(plan_hash=plan_hash)
+        if cached_record is not None and cached_record.path.exists():
+            return cached_record
+
+        response = Saver.save(plan, plan_hash)
+        return self.index_db.add_preprocessing_plan(
+            plan_hash=plan_hash,
+            path=response.path)

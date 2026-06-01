@@ -9,6 +9,8 @@ from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.cache_saver import Saver
 from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.inmemory_operations import load_pkl_file
+from fedot.preprocessing.planner import PreprocessingPlan
+from fedot.preprocessing.tools.preprocessor_types import PreprocessingStep, PreprocessingStepEnum
 from fedot.core.data.tensor_data import TensorData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -79,3 +81,37 @@ def test_load_pkl_file_restores_preprocessing_model_to_backend_and_validates_has
     assert loaded.nested_state["tensor"].device == Backend().device
     assert torch.equal(loaded.fitted_tensor.cpu(), source_tensor)
     assert Hasher.hash(loaded) == expected_hash
+
+
+@pytest.mark.unit
+def test_loader_restores_preprocessing_plan_with_local_custom_handler():
+    class LocalCustomPreprocessor(AbstractPreprocessingHandler):
+        def fit(self, data, features_idx):
+            return self
+
+        def transform(self, data):
+            return data
+
+    plan = PreprocessingPlan([
+        PreprocessingStep(
+            step=PreprocessingStepEnum.custom,
+            method="local_custom",
+            features_idx=[0],
+            implementation=LocalCustomPreprocessor,
+            step_args={"flag": True},
+        )
+    ])
+    expected_hash = Hasher.hash(plan)
+    response = Saver.save(plan, _make_key("plan"))
+
+    loaded = Loader.load(str(response.path), hash=expected_hash, kind="preprocessing_plan")
+
+    assert response.success is True
+    assert response.kind == "preprocessing_plan"
+    assert isinstance(loaded, PreprocessingPlan)
+    assert Hasher.hash(loaded) == expected_hash
+    assert loaded.steps[0].step == PreprocessingStepEnum.custom
+    assert loaded.steps[0].method == "local_custom"
+    assert loaded.steps[0].features_idx == [0]
+    assert loaded.steps[0].step_args == {"flag": True}
+    assert issubclass(loaded.steps[0].implementation, AbstractPreprocessingHandler)
