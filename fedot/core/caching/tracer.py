@@ -50,11 +50,41 @@ class TraceBuilder:
     indexed metadata after cache writes complete and stores a readable manifest.
     """
 
-    def __init__(self, raw_fingerprint: str, index_db: Optional[CacheIndexDB] = None):
-        self.trace_id = str(uuid.uuid4())
+    def __init__(
+        self,
+        raw_fingerprint: str,
+        index_db: Optional[CacheIndexDB] = None,
+        trace_id: Optional[str] = None,
+        stages: Optional[list[TraceStage]] = None,
+        created_at: Optional[str] = None,
+    ):
+        self.trace_id = trace_id or str(uuid.uuid4())
         self.raw_fingerprint = raw_fingerprint
         self.index_db = index_db or CacheIndexDB()
-        self.stages: list[TraceStage] = []
+        self.created_at = created_at or datetime.now(timezone.utc).isoformat()
+        self.stages: list[TraceStage] = stages or []
+
+    @classmethod
+    def from_trace_uuid(
+        cls,
+        trace_uuid: str,
+        index_db: Optional[CacheIndexDB] = None,
+    ) -> "TraceBuilder":
+        trace_path = cls._trace_path(trace_uuid)
+        with open(trace_path, encoding="utf-8") as file:
+            manifest = json.load(file)
+
+        stages = [
+            cls._stage_from_dict(stage_data)
+            for stage_data in manifest.get("stages", [])
+        ]
+        return cls(
+            raw_fingerprint=manifest["raw_fingerprint"],
+            index_db=index_db,
+            trace_id=manifest["trace_id"],
+            stages=stages,
+            created_at=manifest.get("created_at"),
+        )
 
     def add_stage(self, stage: str, input_hash: str, operation_hash: str) -> TraceStage:
         tensor_record = self.index_db.get_tensor_data(input_hash, operation_hash)
@@ -94,12 +124,11 @@ class TraceBuilder:
         if final_output_hash is None:
             final_output_hash = self.stages[-1].output_hash if self.stages else self.raw_fingerprint
 
-        created_at = datetime.now(timezone.utc).isoformat()
         trace_payload = {
             "trace_id": self.trace_id,
             "raw_fingerprint": self.raw_fingerprint,
             "final_output_hash": final_output_hash,
-            "created_at": created_at,
+            "created_at": self.created_at,
             "stages": [asdict(stage) for stage in self.stages],
         }
         trace_hash = stable_hash(trace_payload)
@@ -109,16 +138,15 @@ class TraceBuilder:
             trace_hash=trace_hash,
             raw_fingerprint=self.raw_fingerprint,
             final_output_hash=final_output_hash,
-            created_at=created_at,
+            created_at=self.created_at,
             stages=self.stages,
         )
 
     def save(self, final_output_hash: Optional[str] = None) -> Path:
         ensure_cache_dirs()
         manifest = self.finalize(final_output_hash)
-        trace_dir = CACHE_DIR / "traces"
-        trace_dir.mkdir(parents=True, exist_ok=True)
-        trace_path = trace_dir / f"{self.trace_id}.json"
+        trace_path = self._trace_path(self.trace_id)
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(trace_path, "w", encoding="utf-8") as file:
             json.dump(
@@ -130,3 +158,22 @@ class TraceBuilder:
             )
 
         return trace_path
+
+    @staticmethod
+    def _trace_path(trace_uuid: str) -> Path:
+        return CACHE_DIR / "traces" / f"{trace_uuid}.json"
+
+    @staticmethod
+    def _stage_from_dict(stage_data: dict[str, Any]) -> TraceStage:
+        return TraceStage(
+            stage=stage_data["stage"],
+            operation_hash=stage_data["operation_hash"],
+            input_hash=stage_data["input_hash"],
+            output_hash=stage_data["output_hash"],
+            tensor_data_path=stage_data.get("tensor_data_path"),
+            operation_path=stage_data.get("operation_path"),
+            models=[
+                TraceModelRef(**model_data)
+                for model_data in stage_data.get("models", [])
+            ],
+        )

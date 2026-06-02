@@ -223,14 +223,9 @@ class TensorDataCreator:
             idx=self.spec.idx,
             features=self.spec.features,
             target=self.spec.target,
-            # TODO romankuklo: is predict needed?
-            # predict=self.spec.predict,
             target_idx=self.spec.target_idx,
             categorical_idx=self.spec.categorical_idx,
             numerical_idx=self.spec.numerical_idx,
-            encoding_strategy=self.spec.encoding_strategy,
-            embedding_strategy=self.spec.embedding_strategy,
-            custom_strategy=self.spec.custom_strategy,
             features_names=self.spec.features_names,
             idx_mapping=self.spec.idx_mapping,
             ts_orientation=self.spec.ts_orientation,
@@ -238,7 +233,7 @@ class TensorDataCreator:
             ts_forecast_horizon=self.spec.ts_forecast_horizon,
             ts_init_shape=self.spec.ts_init_shape,
             dataloader_kwargs=self.spec.dataloader_kwargs,
-            raw_fingerprint=self.spec.raw_fingerprint,
+            fingerprint=self.spec.raw_fingerprint,
         )
 
     def to_backend(self, tensor_data: "TensorData") -> "TensorData":
@@ -298,6 +293,8 @@ class TensorDataCreator:
             tensor_data.ready_fingerprint = output_hash
 
             if creator.spec.state == StateEnum.FIT:
+                trace_builder = TraceBuilder(creator.spec.raw_fingerprint)
+                tensor_data.trace_uuid = trace_builder.trace_id
                 Cacher().cache_tensor_data(
                     output_data=tensor_data,
                     output_hash=output_hash,
@@ -305,14 +302,12 @@ class TensorDataCreator:
                     operation_hash=creator.spec.plan_hash,
                     state=creator.spec.state.value if hasattr(creator.spec.state, "value") else str(creator.spec.state),
                 )
-                trace_builder = TraceBuilder(creator.spec.raw_fingerprint)
                 trace_builder.add_stage(
                     stage="obligatory_preprocessing",
                     input_hash=creator.spec.raw_fingerprint,
                     operation_hash=creator.spec.plan_hash,
                 )
                 trace_builder.save(final_output_hash=output_hash)
-                tensor_data.trace_builder = trace_builder
             tensor_data = creator.to_backend(tensor_data)
             return tensor_data
         except Exception as e:

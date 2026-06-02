@@ -4,13 +4,12 @@ from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder
-from fedot.core.data.common.enums import StateEnum
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
-from fedot.preprocessing.tools.tools import update_handler_mapping
+from fedot.preprocessing.tools.tools import update_handler_mapping, update_tensor_data
 
 
 class OptionalService:
@@ -50,18 +49,23 @@ class OptionalService:
         Returns:
             Prepared data after executing optional preprocessing steps.
         """
+
         self.plan = build_optional_plan(data, optional_steps)
-        trace_builder = trace_builder or getattr(data, "trace_builder", None)
+
+        trace_uuid = getattr(data, "trace_uuid", None)
+        if trace_builder is None and trace_uuid is not None:
+            trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
         cacher = Cacher()
-        input_hash = data.ready_fingerprint or Hasher.hash(data)
-        operation_hash = Hasher.hash(self.plan)
+        cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
+        input_hash = cached_data.input_hash
+        plan_hash = cached_data.operation_hash
 
         optional_idx_mapping = create_index_mapping(data.features)
 
         prepared_data = None
 
         if len(self.plan.steps) > 0:
-            cacher.cache_preprocessing_plan(plan=self.plan, plan_hash=operation_hash)
+            cacher.cache_preprocessing_plan(plan=self.plan, plan_hash=plan_hash)
             self.handler_mapping = update_handler_mapping(
                 self.plan, self.handler_mapping)
 
@@ -88,9 +92,37 @@ class OptionalService:
                     prepared_data.features,
                     prepared_data.new_cols_dict
                 )
-                # TODO:caching handler
-                # self.plan.steps[i]["model_hash"] = model_hash
-        return prepared_data
+
+                cacher.cache_preprocessing_model(
+                    input_hash=input_hash,
+                    model=handler,
+                    operation_hash=plan_hash,
+                    step_order=i,
+                    step_name=step.step.value,
+                    method=step.method.value if hasattr(step.method, "value") else str(step.method),
+                    features_idx=step.features_idx,
+                )
+        
+        result_tensor_data = update_tensor_data(data, prepared_data)
+        
+        responce = cacher.cache_tensor_data(
+            output_data=result_tensor_data,
+            input_hash=input_hash,
+            operation_hash=plan_hash,
+            state=result_tensor_data.state,
+        )
+        result_tensor_data.fingerprint = responce.output_hash
+
+        if trace_builder is None:
+            trace_builder = TraceBuilder(input_hash)
+        trace_builder.add_stage(
+            stage="optional_preprocessing",
+            input_hash=input_hash,
+            operation_hash=plan_hash,
+        )
+        trace_builder.save(final_output_hash=responce.output_hash)
+
+        return result_tensor_data
 
     def transform(self, data, optional_steps, plan) -> PreparedData:
         """Placeholder for transform-only execution with cached plan/handlers.

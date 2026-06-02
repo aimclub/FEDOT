@@ -3,6 +3,8 @@ import torch
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.tools.preprocessor_types import PreprocessingStepEnum
 from fedot.preprocessing.tools.index_mapping_tools import update_indices
+from fedot.core.data.tensor_data.tensor_data import TensorData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 
 
 def update_handler_mapping(plan: PreprocessingPlan,
@@ -61,3 +63,12 @@ def get_useful_idx(features_width: int,
     categorical_idx = list(set(categorical_idx) | set(preprocessed_idx))
     numerical_idx = list(set(range(features_width)) - set(categorical_idx))
     return idx, categorical_idx, numerical_idx
+
+
+def update_tensor_data(data: TensorData, prepared_data: PreparedData) -> TensorData:
+    """Update tensor data with prepared data.
+    """
+    data.features = prepared_data.features
+    data.target = prepared_data.target
+    data.idx_mapping = prepared_data.idx_mapping
+    return data

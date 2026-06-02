@@ -55,12 +55,6 @@ class TensorData:
             merged with indices used by preprocessing plans.
         numerical_idx: Indices of final feature columns not listed in
             `categorical_idx`.
-        encoding_strategy: Optional categorical encoding strategy used by
-            obligatory tabular preprocessing.
-        embedding_strategy: Optional text embedding strategy used by obligatory
-            tabular preprocessing.
-        custom_strategy: Optional custom preprocessing strategy passed to
-            obligatory tabular preprocessing.
         features_names: Source feature names used to resolve string indices such as
             `target_idx`, `categorical_idx`, and `ts_terms_idx`.
         idx_mapping: Mapping between original row positions and rows kept after
@@ -75,6 +69,8 @@ class TensorData:
             preprocessing and reused when converting data to tensors.
         dataloader_kwargs: Options for future dataloader construction, such as
             batch size, shuffling, worker count, and `drop_last`.
+        fingerprint: Fingerprint of the data used for caching and tracing.
+        trace_uuid: UUID of the trace used for tracing.
 
     Examples:
         Create `TensorData` from a numpy array using the creator:
@@ -100,11 +96,7 @@ class TensorData:
     predict: TensorLike = None
     target_idx: IndexType = None
     categorical_idx: IndexType = field(default_factory=list)
-    # TODO romankuklo: delete strategies
     numerical_idx: IndexType = field(default_factory=list)
-    encoding_strategy: Optional[Union[Dict]] = None
-    embedding_strategy: Optional[Union[Dict]] = None
-    custom_strategy: Optional[Dict] = None
     features_names: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
     ts_orientation: Union[TSOrientationEnum, str] = None
@@ -115,8 +107,8 @@ class TensorData:
     dataloader_kwargs: Dict[str, Any] = field(default_factory=dict)
 
     # hashes 
-    raw_fingerprint: Optional[str] = None
-    ready_fingerprint: Optional[str] = None
+    fingerprint: Optional[str] = None
+    trace_uuid: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, TensorData):
@@ -158,9 +150,6 @@ class TensorData:
             self.target_idx,
             self.categorical_idx,
             self.numerical_idx,
-            self.encoding_strategy,
-            self.embedding_strategy,
-            self.custom_strategy,
             self.features_names,
             self.idx_mapping,
             self.ts_orientation,

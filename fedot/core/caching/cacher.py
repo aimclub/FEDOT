@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import logging
 from fedot.core.caching.hasher import Hasher
@@ -12,9 +12,11 @@ from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.cache_saver import Saver
 from fedot.core.caching.responses import DataCacherLoaderResponse
 from fedot.preprocessing.planner import PreprocessingPlan
+from fedot.core.data.common.enums import StateEnum
 
 
 logger = logging.getLogger(__name__)
+
 
 class Cacher:
     def __init__(self, index_db: Optional[CacheIndexDB] = None):
@@ -28,14 +30,20 @@ class Cacher:
         input_hash: str=None,
         operation: Any=None,
         operation_hash: str=None,
-        state: str = "fit",
+        state: Union[str, StateEnum] = "fit",
     ) -> TensorDataCacheIndexRecord:
+
+        state=state.value if hasattr(state, "value") else str(state)
+
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
         if operation_hash is None:
             operation_hash = Hasher.hash(operation)
         if output_hash is None:
             output_hash = Hasher.hash(output_data)
+        
+        if output_data.fingerprint != output_hash:
+            output_data.fingerprint = output_hash
 
         saver_response = Saver.save(output_data, output_hash)
 
@@ -53,8 +61,8 @@ class Cacher:
 
         return result
 
-    def load_tensor_data(self, input_data: Any, target: Any, operation: Any) -> Optional[Any]:
-        input_hash = Hasher.hash(input_data, target=target)
+    def load_tensor_data(self, input_data: Any, operation: Any, target: Any = None) -> Optional[Any]:
+        input_hash = Hasher.hash(input_data, target=target) if target is not None else Hasher.hash(input_data)
         operation_hash = Hasher.hash(operation)
         record = self.index_db.get_tensor_data(input_hash, operation_hash)
 

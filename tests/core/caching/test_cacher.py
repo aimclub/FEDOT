@@ -10,6 +10,7 @@ import fedot.core.caching.inmemory_operations as inmemory_operations
 import fedot.core.caching.tools as cache_tools
 import fedot.core.caching.tracer as tracer_module
 from fedot.core.caching.index_db import CacheIndexDB
+from fedot.core.caching.tracer import TraceBuilder
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 
@@ -130,3 +131,43 @@ def test_tensor_data_creator_writes_trace_manifest_for_fit_state(isolated_cache_
     assert trace["stages"][0]["output_hash"] == tensor_data.ready_fingerprint
     assert trace["stages"][0]["tensor_data_path"].endswith(".pt")
     assert trace["stages"][0]["operation_path"].endswith(".pkl")
+
+
+@pytest.mark.unit
+def test_trace_builder_updates_existing_manifest_by_trace_uuid(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    index_db.add_preprocessing_plan("plan-1", isolated_cache_dir / "plans" / "plan-1.pkl")
+    index_db.add_preprocessing_plan("plan-2", isolated_cache_dir / "plans" / "plan-2.pkl")
+    index_db.add_tensor_data(
+        input_hash="raw",
+        output_hash="after-obligatory",
+        operation_hash="plan-1",
+        path=isolated_cache_dir / "tensor_data" / "after-obligatory.pt",
+    )
+    index_db.add_tensor_data(
+        input_hash="after-obligatory",
+        output_hash="after-optional",
+        operation_hash="plan-2",
+        path=isolated_cache_dir / "tensor_data" / "after-optional.pt",
+    )
+
+    trace_builder = TraceBuilder("raw", index_db=index_db)
+    trace_builder.add_stage("obligatory_preprocessing", "raw", "plan-1")
+    trace_path = trace_builder.save(final_output_hash="after-obligatory")
+
+    loaded_builder = TraceBuilder.from_trace_uuid(trace_builder.trace_id, index_db=index_db)
+    loaded_builder.add_stage("optional_preprocessing", "after-obligatory", "plan-2")
+    updated_trace_path = loaded_builder.save(final_output_hash="after-optional")
+
+    assert updated_trace_path == trace_path
+    assert len(list((isolated_cache_dir / "traces").glob("*.json"))) == 1
+
+    with open(updated_trace_path, encoding="utf-8") as file:
+        trace = json.load(file)
+
+    assert trace["trace_id"] == trace_builder.trace_id
+    assert trace["final_output_hash"] == "after-optional"
+    assert [stage["stage"] for stage in trace["stages"]] == [
+        "obligatory_preprocessing",
+        "optional_preprocessing",
+    ]
