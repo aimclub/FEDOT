@@ -2,14 +2,14 @@ from typing import Optional
 
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.core.caching.cacher import Cacher
-from fedot.core.caching.hasher import Hasher
-from fedot.core.caching.tracer import TraceBuilder
 from fedot.preprocessing.tools.index_mapping_tools import (update_index_mapping,
                                                            update_indices, create_index_mapping)
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
 from fedot.preprocessing.tools.tools import update_handler_mapping, update_tensor_data
+from fedot.core.caching.tracer import TraceBuilder, TraceStage
+from fedot.core.caching.cache_loader import Loader
 
 
 class OptionalService:
@@ -37,8 +37,7 @@ class OptionalService:
         self,
         data: TensorData,
         optional_steps,
-        trace_builder: Optional[TraceBuilder] = None,
-    ) -> PreparedData:
+    ) -> TensorData:
         """Build and execute optional preprocessing plan.
 
         Args:
@@ -47,14 +46,11 @@ class OptionalService:
                 type. Each step can be configured explicitly or auto-generated.
 
         Returns:
-            Prepared data after executing optional preprocessing steps.
+            TensorData updated after executing optional preprocessing steps.
         """
 
         self.plan = build_optional_plan(data, optional_steps)
 
-        trace_uuid = getattr(data, "trace_uuid", None)
-        if trace_builder is None and trace_uuid is not None:
-            trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
         cacher = Cacher()
         cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
         input_hash = cached_data.input_hash
@@ -110,34 +106,67 @@ class OptionalService:
             input_hash=input_hash,
             operation_hash=plan_hash,
             state=result_tensor_data.state,
+            trace_stage="optional_preprocessing",
         )
         result_tensor_data.fingerprint = responce.output_hash
 
-        if trace_builder is None:
-            trace_builder = TraceBuilder(input_hash)
-        trace_builder.add_stage(
-            stage="optional_preprocessing",
-            input_hash=input_hash,
-            operation_hash=plan_hash,
+        return result_tensor_data
+
+    def transform(self, data) -> TensorData:
+        trace_uuid = getattr(data, "trace_uuid", None)
+        if trace_uuid is None:
+            raise ValueError("trace_uuid is required for optional preprocessing in predict state.")
+
+        cacher = Cacher()
+        trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
+        train_stage = self._get_train_optional_stage(trace_builder)
+        self.plan = Loader.load(
+            train_stage.operation_path,
+            kind="preprocessing_plan",
         )
-        trace_builder.save(final_output_hash=responce.output_hash)
+
+        optional_idx_mapping = create_index_mapping(data.features)
+        prepared_data = PreparedData(features=data.features,
+                                     target=data.target,
+                                     idx_mapping=optional_idx_mapping,
+                                     ts_shape=data.ts_init_shape)
+        
+        model_refs = sorted(train_stage.models, key=lambda model_ref: model_ref.step_order)
+        for model_ref in model_refs:
+            step = self.plan.steps[model_ref.step_order]
+            actual_mapping = prepared_data.idx_mapping
+            prepared_data.new_cols_dict = None
+
+            handler = Loader.load(
+                model_ref.model_path,
+                kind="preprocessing_model",
+            )
+            prepared_data = handler.transform(prepared_data)
+
+            prepared_data.idx_mapping = update_index_mapping(
+                actual_mapping,
+                step.features_idx,
+                prepared_data.features,
+                prepared_data.new_cols_dict,
+            )
+
+        result_tensor_data = update_tensor_data(data, prepared_data)
+        responce = cacher.cache_tensor_data(
+            output_data=result_tensor_data,
+            input_hash=data.fingerprint,
+            operation_hash=train_stage.operation_hash,
+            state=result_tensor_data.state,
+            trace_stage="optional_preprocessing",
+        )
+        result_tensor_data.fingerprint = responce.output_hash
 
         return result_tensor_data
 
-    def transform(self, data, optional_steps, plan) -> PreparedData:
-        """Placeholder for transform-only execution with cached plan/handlers.
-
-        Args:
-            data: Input data to transform.
-            optional_steps: Optional strategy configuration.
-            plan: Pre-built preprocessing plan.
-
-        Returns:
-            Transformed prepared data when implementation is completed.
-        """
-        for step in self.plan.steps:
-            # TODO romankuklo: get cached params
-            # handler = PREPROCESSING_OPTIONAL_MAPPING[step.step][step.method](**params)
-            # prepared = handler.transform(data)
-            ...
-        # return prepared
+    @staticmethod
+    def _get_train_optional_stage(trace_builder: TraceBuilder) -> TraceStage:
+        for stage in trace_builder.stages:
+            if stage.stage == "optional_preprocessing":
+                return stage
+        raise ValueError(
+            f"Trace {trace_builder.trace_id} does not contain obligatory preprocessing stage."
+        )

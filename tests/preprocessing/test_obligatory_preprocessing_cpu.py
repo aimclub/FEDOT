@@ -85,32 +85,6 @@ def test_from_tensor():
     assert td.features.device.type == "cpu"
 
 
-# TODO romankuklo: add after cache is implemented
-# def test_loader():
-#     """Test TensorData conversion for a dataset loaded by `TSLoader`.
-
-#     Checks that both train and test parts of the UCR dataset are converted into
-#     TensorData objects with torch feature and target tensors.
-#     Also checks that target is encoded automatically."""
-#     name = "AbnormalHeartbeat"
-#     X_train, y_train, X_test, y_test = TSLoader().download_by_url(dataset_name=name)
-
-#     train_tensor = TensorDataCreator.create(X_train,
-#                                      target=y_train,
-#                                      backend_name="cpu",)
-#     test_tensor = TensorDataCreator.create(X_test,
-#                                     target=y_test,
-#                                     backend_name="cpu",)
-
-#     assert isinstance(train_tensor, TensorData)
-#     assert isinstance(test_tensor, TensorData)
-
-#     assert isinstance(train_tensor.features, torch.Tensor)
-#     assert isinstance(train_tensor.target, torch.Tensor)
-#     assert isinstance(test_tensor.features, torch.Tensor)
-#     assert isinstance(test_tensor.target, torch.Tensor)
-
-
 @pytest.mark.integration
 def test_categorical_text():
     """Test combined text embedding and categorical encoding.
@@ -579,3 +553,92 @@ def test_custom_encoders_automatic_encoding():
 
     assert isinstance(td, TensorData)
     assert np.allclose(np_features, ref_X, atol=1e-5)
+
+
+@pytest.mark.unit
+def test_create_predict_uses_train_obligatory_trace_without_target_split():
+    train = np.array([
+        [1.0, "A", 10.0, 0],
+        [2.0, "B", 20.0, 1],
+        [3.0, "A", 30.0, 0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, "B", 40.0],
+        [5.0, "A", 50.0],
+    ], dtype=object)
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.ohe,
+        "features_idx": [1],
+    }]
+
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name="cpu",
+        encoding_strategy=encoding_strategy,
+    )
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+    )
+
+    expected = np.array([
+        [4.0, 40.0, 0.0, 1.0],
+        [5.0, 50.0, 1.0, 0.0],
+    ], dtype=np.float32)
+
+    assert test_td.trace_uuid == train_td.trace_uuid
+    assert test_td.target is None
+    assert test_td.features.shape == (2, 4)
+    assert np.allclose(test_td.features.numpy(), expected, atol=1e-6)
+
+
+@pytest.mark.unit
+def test_create_predict_restores_custom_obligatory_model_from_trace():
+    class LearnedMeanFiller(AbstractPreprocessingHandler):
+        def __init__(self):
+            self.features_idx = None
+            self.mean_value = None
+
+        def fit(self, data: PreparedData, features_idx: Sequence[int]):
+            self.features_idx = list(features_idx)
+            column = data.features[:, self.features_idx[0]].astype(float)
+            self.mean_value = float(np.nanmean(column))
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            data.features[:, self.features_idx] = self.mean_value
+            return data
+
+    train = np.array([
+        [1.0, 2.0, 0],
+        [3.0, 4.0, 1],
+    ], dtype=object)
+    test = np.array([
+        [10.0, 100.0],
+        [20.0, 200.0],
+    ], dtype=object)
+    custom_strategy = [{
+        "method": "learned_mean",
+        "features_idx": [1],
+        "implementation": LearnedMeanFiller,
+        "step_args": None,
+    }]
+
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name="cpu",
+        custom_strategy=custom_strategy,
+    )
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+    )
+
+    assert test_td.trace_uuid == train_td.trace_uuid
+    assert np.allclose(test_td.features[:, 1].numpy(), np.array([3.0, 3.0], dtype=np.float32))

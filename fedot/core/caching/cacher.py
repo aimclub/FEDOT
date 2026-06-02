@@ -11,6 +11,7 @@ from fedot.core.caching.index_db import (
 from fedot.core.caching.cache_loader import Loader
 from fedot.core.caching.cache_saver import Saver
 from fedot.core.caching.responses import DataCacherLoaderResponse
+from fedot.core.caching.tracer import TraceBuilder
 from fedot.preprocessing.planner import PreprocessingPlan
 from fedot.core.data.common.enums import StateEnum
 
@@ -31,6 +32,7 @@ class Cacher:
         operation: Any=None,
         operation_hash: str=None,
         state: Union[str, StateEnum] = "fit",
+        trace_stage: str = None,
     ) -> TensorDataCacheIndexRecord:
 
         state=state.value if hasattr(state, "value") else str(state)
@@ -45,6 +47,11 @@ class Cacher:
         if output_data.fingerprint != output_hash:
             output_data.fingerprint = output_hash
 
+        trace_builder = None
+        if trace_stage is not None and state == StateEnum.FIT.value:
+            trace_builder = self._get_trace_builder(output_data, input_hash)
+            output_data.trace_uuid = trace_builder.trace_id
+
         saver_response = Saver.save(output_data, output_hash)
 
         if not saver_response.success:
@@ -58,6 +65,14 @@ class Cacher:
             path=saver_response.path,
             state=state,
         )
+
+        if trace_builder is not None:
+            trace_builder.add_stage(
+                stage=trace_stage,
+                input_hash=input_hash,
+                operation_hash=operation_hash,
+            )
+            trace_builder.save(final_output_hash=output_hash)
 
         return result
 
@@ -166,3 +181,10 @@ class Cacher:
         return self.index_db.add_preprocessing_plan(
             plan_hash=plan_hash,
             path=response.path)
+
+    def _get_trace_builder(self, output_data: Any, raw_fingerprint: str) -> TraceBuilder:
+        trace_uuid = getattr(output_data, "trace_uuid", None)
+        if trace_uuid is not None:
+            return TraceBuilder.from_trace_uuid(trace_uuid, index_db=self.index_db)
+
+        return TraceBuilder(raw_fingerprint=raw_fingerprint, index_db=self.index_db)

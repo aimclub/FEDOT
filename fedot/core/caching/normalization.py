@@ -53,6 +53,13 @@ def normalize_for_hash(obj: Any, _seen: Optional[Set[int]] = None) -> Any:
     if isinstance(obj, Path):
         return str(obj)
 
+    if isinstance(obj, slice):
+        return {
+            "start": normalize_for_hash(obj.start, _seen),
+            "stop": normalize_for_hash(obj.stop, _seen),
+            "step": normalize_for_hash(obj.step, _seen),
+        }
+
     if isinstance(obj, torch.Tensor):
         from fedot.core.caching.fingerprints import tensor_state_fingerprint
 

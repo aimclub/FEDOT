@@ -118,7 +118,7 @@ def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
     def writer(tmp_path: Path) -> None:
         payload = build_preprocessing_model_payload(data)
         with open(tmp_path, "wb") as file:
-            pickle.dump(payload, file, protocol=pickle.HIGHEST_PROTOCOL)
+            cloudpickle.dump(payload, file, protocol=pickle.HIGHEST_PROTOCOL)
 
     written = _atomic_save(final_path, writer)
 

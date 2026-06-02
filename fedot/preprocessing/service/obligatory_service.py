@@ -10,6 +10,9 @@ from fedot.preprocessing.tools.tools import update_handler_mapping
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OBLIGATORY_MAPPING
 from fedot.core.data.common.types import ArrayType
 from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.cache_loader import Loader
+from fedot.core.caching.hasher import Hasher
+from fedot.core.caching.tracer import TraceBuilder, TraceStage
 
 if TYPE_CHECKING:
     from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -78,6 +81,7 @@ class ObligatoryService:
         raw_fingerprint = cached_data.input_hash
         plan_hash = cached_data.operation_hash
         if cached_data.success:
+            cached_data.data.features_names = params.get('features_names')
             return ObligatoryPreprocessResult(
                 tensor_data=cached_data.data,
                 plan_hash=plan_hash,
@@ -153,5 +157,65 @@ class ObligatoryService:
         )
 
 
-    def transform(self, features: ArrayType, target: ArrayType, train_fingerprint: str) -> ObligatoryPreprocessResult:
-        cacher = Cacher()
+    def transform(
+        self,
+        features: ArrayType,
+        target: ArrayType,
+        idx_mapping: dict[int, int],
+        trace_uuid: str,
+    ) -> ObligatoryPreprocessResult:
+        if trace_uuid is None:
+            raise ValueError("trace_uuid is required for obligatory preprocessing in predict state.")
+
+        trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
+        train_stage = self._get_train_obligatory_stage(trace_builder)
+        self.plan = Loader.load(
+            train_stage.operation_path,
+            kind="preprocessing_plan",
+        )
+
+        raw_fingerprint = Hasher.hash(features, target=target)
+        prepared_data = PreparedData(
+            features=features,
+            target=target,
+            idx_mapping=idx_mapping,
+            ts_shape=features.shape,
+        )
+
+        model_refs = sorted(train_stage.models, key=lambda model_ref: model_ref.step_order)
+        for model_ref in model_refs:
+            step = self.plan.steps[model_ref.step_order]
+            actual_mapping = prepared_data.idx_mapping
+            prepared_data.new_cols_dict = None
+
+            handler = Loader.load(
+                model_ref.model_path,
+                kind="preprocessing_model",
+            )
+            prepared_data = handler.transform(prepared_data)
+
+            if step.step == PreprocessingStepEnum.target_encoding:
+                continue
+
+            features_idx = model_ref.features_idx if model_ref.features_idx is not None else step.features_idx
+            prepared_data.idx_mapping = update_index_mapping(
+                actual_mapping,
+                features_idx,
+                prepared_data.features,
+                prepared_data.new_cols_dict,
+            )
+
+        return ObligatoryPreprocessResult(
+            prepared_data=prepared_data,
+            plan_hash=train_stage.operation_hash,
+            raw_fingerprint=raw_fingerprint,
+        )
+
+    @staticmethod
+    def _get_train_obligatory_stage(trace_builder: TraceBuilder) -> TraceStage:
+        for stage in trace_builder.stages:
+            if stage.stage == "obligatory_preprocessing":
+                return stage
+        raise ValueError(
+            f"Trace {trace_builder.trace_id} does not contain obligatory preprocessing stage."
+        )

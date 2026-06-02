@@ -24,7 +24,6 @@ from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.lazy_tensor import LazyTensor
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
-from fedot.core.caching.tracer import TraceBuilder
 
 
 logger = logging.getLogger(__name__)
@@ -104,12 +103,14 @@ class TensorDataCreator:
             self.spec.plan_hash = preprocess_result.plan_hash
             self.spec.raw_fingerprint = preprocess_result.raw_fingerprint
         else:
-            # TODO romankuklo: how to get from cache?
             preprocess_result = service.transform(
                 self.spec.features,
                 self.spec.target,
-                self.spec.idx_mapping
+                self.spec.idx_mapping,
+                self.spec.trace_uuid,
             )
+            self.spec.plan_hash = preprocess_result.plan_hash
+            self.spec.raw_fingerprint = preprocess_result.raw_fingerprint
         if preprocess_result.has_tensor_data:
             return preprocess_result.tensor_data
 
@@ -234,6 +235,7 @@ class TensorDataCreator:
             ts_init_shape=self.spec.ts_init_shape,
             dataloader_kwargs=self.spec.dataloader_kwargs,
             fingerprint=self.spec.raw_fingerprint,
+            trace_uuid=self.spec.trace_uuid,
         )
 
     def to_backend(self, tensor_data: "TensorData") -> "TensorData":
@@ -292,22 +294,14 @@ class TensorDataCreator:
             output_hash = Hasher.hash(tensor_data)
             tensor_data.ready_fingerprint = output_hash
 
-            if creator.spec.state == StateEnum.FIT:
-                trace_builder = TraceBuilder(creator.spec.raw_fingerprint)
-                tensor_data.trace_uuid = trace_builder.trace_id
-                Cacher().cache_tensor_data(
-                    output_data=tensor_data,
-                    output_hash=output_hash,
-                    input_hash=creator.spec.raw_fingerprint,
-                    operation_hash=creator.spec.plan_hash,
-                    state=creator.spec.state.value if hasattr(creator.spec.state, "value") else str(creator.spec.state),
-                )
-                trace_builder.add_stage(
-                    stage="obligatory_preprocessing",
-                    input_hash=creator.spec.raw_fingerprint,
-                    operation_hash=creator.spec.plan_hash,
-                )
-                trace_builder.save(final_output_hash=output_hash)
+            Cacher().cache_tensor_data(
+                output_data=tensor_data,
+                output_hash=output_hash,
+                input_hash=creator.spec.raw_fingerprint,
+                operation_hash=creator.spec.plan_hash,
+                state=creator.spec.state.value if hasattr(creator.spec.state, "value") else str(creator.spec.state),
+                trace_stage="obligatory_preprocessing" if creator.spec.state == StateEnum.FIT else None,
+            )
             tensor_data = creator.to_backend(tensor_data)
             return tensor_data
         except Exception as e:

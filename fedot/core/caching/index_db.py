@@ -282,7 +282,6 @@ class CacheIndexDB:
 
     def _init_db(self) -> None:
         with closing(sqlite3.connect(self.db_path)) as conn:
-            # TODO romankuklo: primary_key !!!!
             with conn:
                 cur = conn.cursor()
                 cur.execute("PRAGMA journal_mode=WAL;")
