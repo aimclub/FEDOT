@@ -85,7 +85,7 @@ class TensorDataCreator:
                                                                                               self.spec.idx_mapping,
                                                                                               self.spec.without_target)
 
-        service = ObligatoryTabularService()
+        service = ObligatoryTabularService(use_cache=self.spec.use_cache)
         service_params = {
             "encoding_strategy": self.spec.encoding_strategy,
             "embedding_strategy": self.spec.embedding_strategy,
@@ -234,7 +234,6 @@ class TensorDataCreator:
             ts_forecast_horizon=self.spec.ts_forecast_horizon,
             ts_init_shape=self.spec.ts_init_shape,
             dataloader_kwargs=self.spec.dataloader_kwargs,
-            fingerprint=self.spec.raw_fingerprint,
             trace_uuid=self.spec.trace_uuid,
         )
 
@@ -292,9 +291,9 @@ class TensorDataCreator:
 
             tensor_data = creator.to_tensor_data()
             output_hash = Hasher.hash(tensor_data)
-            tensor_data.ready_fingerprint = output_hash
+            tensor_data.fingerprint = output_hash
 
-            Cacher().cache_tensor_data(
+            Cacher(use_cache=creator.spec.use_cache).cache_tensor_data(
                 output_data=tensor_data,
                 output_hash=output_hash,
                 input_hash=creator.spec.raw_fingerprint,

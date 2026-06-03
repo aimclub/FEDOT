@@ -1,3 +1,4 @@
+import json
 from typing import Sequence
 
 import numpy as np
@@ -5,12 +6,26 @@ import pandas as pd
 import pytest
 import torch
 
+import fedot.core.caching.index_db as index_db_module
+import fedot.core.caching.inmemory_operations as inmemory_operations
+import fedot.core.caching.tools as cache_tools
+import fedot.core.caching.tracer as tracer_module
 from fedot.core.backend.backend import Backend
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.tools.preprocessor_types import EncodingMethodEnum, EmbeddingMethodEnum
+
+
+@pytest.fixture()
+def isolated_cache_dir(tmp_path, monkeypatch):
+    cache_dir = tmp_path / "cache"
+    monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(tracer_module, "CACHE_DIR", cache_dir)
+    return cache_dir
 
 
 @pytest.mark.unit
@@ -642,3 +657,46 @@ def test_create_predict_restores_custom_obligatory_model_from_trace():
 
     assert test_td.trace_uuid == train_td.trace_uuid
     assert np.allclose(test_td.features[:, 1].numpy(), np.array([3.0, 3.0], dtype=np.float32))
+
+
+@pytest.mark.unit
+def test_create_fit_predict_without_tensor_cache_keeps_trace_and_models(isolated_cache_dir):
+    train = np.array([
+        [1.0, "A", 0.0],
+        [2.0, "B", 1.0],
+        [3.0, "A", 0.0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, "B"],
+        [5.0, "A"],
+    ], dtype=object)
+    encoding_strategy = [{
+        "method": EncodingMethodEnum.label,
+        "features_idx": [1],
+    }]
+
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name="cpu",
+        encoding_strategy=encoding_strategy,
+        use_cache=False,
+    )
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=train_td.trace_uuid,
+        use_cache=False,
+    )
+
+    with open(isolated_cache_dir / "traces" / f"{train_td.trace_uuid}.json", encoding="utf-8") as file:
+        trace = json.load(file)
+
+    obligatory_stage = trace["stages"][0]
+    assert obligatory_stage["stage"] == "obligatory_preprocessing"
+    assert obligatory_stage["tensor_data_path"] is None
+    assert obligatory_stage["operation_path"].endswith(".pkl")
+    assert obligatory_stage["models"][0]["model_path"].endswith(".pkl")
+    assert test_td.trace_uuid == train_td.trace_uuid
+    assert np.allclose(test_td.features.numpy(), np.array([[4.0, 1.0], [5.0, 0.0]], dtype=np.float32))

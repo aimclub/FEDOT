@@ -58,6 +58,10 @@ class ObligatoryService:
     """
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
+    use_cache: bool = True
+
+    def __init__(self, use_cache: bool = True):
+        self.use_cache = use_cache
 
     def fit_transform(self, features: ArrayType, target: ArrayType, params: dict) -> ObligatoryPreprocessResult:
         """Build and execute obligatory preprocessing plan.
@@ -76,7 +80,7 @@ class ObligatoryService:
 
         self.plan = build_obligatory_plan(features, target, params)
 
-        cacher = Cacher()
+        cacher = Cacher(use_cache=self.use_cache)
         cached_data = cacher.load_tensor_data(input_data=features, target=target, operation=self.plan)
         raw_fingerprint = cached_data.input_hash
         plan_hash = cached_data.operation_hash

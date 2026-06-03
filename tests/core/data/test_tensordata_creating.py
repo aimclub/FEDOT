@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 
 from fedot.core.backend.backend import Backend
+from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.hasher import Hasher
 from fedot.core.data.reader.data_reader import DataReader, DataReaderResult, from_csv_tsv, from_numpy
 from fedot.core.data.tensor_data.data_spec import DataSpec
 from fedot.core.data.tensor_data.tensor_data import TensorData
@@ -57,14 +59,21 @@ def test_tensor_data_creator_normalizes_backend_and_initializes_data_spec(monkey
         spec.features = source_data['features']
         return DataReaderResult(features=spec.features, features_names=spec.features_names)
 
+    def fake_preprocess_data(self):
+        self.spec.raw_fingerprint = 'raw-test-hash'
+        self.spec.plan_hash = 'plan-test-hash'
+        return None
+
     monkeypatch.setattr(Backend, 'set', fake_backend_set)
     monkeypatch.setattr(DataReader, 'read', fake_read)
     monkeypatch.setattr(TensorDataCreator,
-                        'preprocess_data', lambda self: None)
+                        'preprocess_data', fake_preprocess_data)
     monkeypatch.setattr(TensorDataCreator, 'to_tensor_data',
                         lambda self: self.spec)
     monkeypatch.setattr(TensorDataCreator, 'to_backend',
                         lambda self, tensor_data: tensor_data)
+    monkeypatch.setattr(Hasher, 'hash', lambda data, **kwargs: 'test-hash')
+    monkeypatch.setattr(Cacher, 'cache_tensor_data', lambda self, **kwargs: None)
 
     spec = TensorDataCreator.create(
         {'features': np.array([[1, 2], [3, 4]])},

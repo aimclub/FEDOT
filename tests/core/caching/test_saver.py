@@ -5,6 +5,8 @@ import numpy as np
 import pytest
 import torch
 
+import fedot.core.caching.inmemory_operations as inmemory_operations
+import fedot.core.caching.tools as cache_tools
 from fedot.core.caching.inmemory_operations import save_preprocessing_model
 from fedot.core.caching.normalization import prepare_value_for_torch_save
 from fedot.core.caching.rules import SaverNotFoundError
@@ -26,6 +28,14 @@ class PickleableCustomPreprocessor(AbstractPreprocessingHandler):
 
     def transform(self, data):
         return data
+
+
+@pytest.fixture(autouse=True)
+def isolated_cache_dir(tmp_path, monkeypatch):
+    cache_dir = tmp_path / "cache"
+    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
+    return cache_dir
 
 
 def _torch_load(path: Path):
@@ -82,9 +92,7 @@ def test_saver_saves_tensor_data_as_normalized_torch_payload():
     assert fields["task"]["fields"]["task_type"] == TaskTypesEnum.classification.value
     assert fields["data_type"] == DataTypesEnum.table.value
     assert np.array_equal(fields["features_names"], tensor_data.features_names)
-    assert fields["custom_strategy"]["path"] == "data/source.csv"
-    assert fields["custom_strategy"]["dtype"] == "torch.float32"
-    assert fields["custom_strategy"]["device"] == "cpu"
+    assert "custom_strategy" not in fields
 
 
 @pytest.mark.unit
@@ -124,7 +132,7 @@ def test_saver_raises_for_unknown_data_type(monkeypatch):
 @pytest.mark.unit
 def test_saver_returns_failed_response_for_unsupported_tensor_data_field():
     tensor_data = _make_tensor_data()
-    tensor_data.custom_strategy = {"unsupported": object()}
+    tensor_data.dataloader_kwargs = {"unsupported": object()}
 
     response = Saver.save(tensor_data, "bad-tensor-key")
 
@@ -157,7 +165,7 @@ def test_save_preprocessing_model_saves_custom_instance_with_cpu_tensor_state():
 
 
 @pytest.mark.unit
-def test_save_preprocessing_model_returns_failed_response_for_unpickleable_custom_class():
+def test_save_preprocessing_model_saves_local_custom_class_with_cloudpickle():
 
     class LocalCustomPreprocessor(AbstractPreprocessingHandler):
         def fit(self, data, features_idx):
@@ -166,8 +174,12 @@ def test_save_preprocessing_model_returns_failed_response_for_unpickleable_custo
         def transform(self, data):
             return data
 
-    response = save_preprocessing_model(LocalCustomPreprocessor(), "bad-preprocessor-key")
+    response = save_preprocessing_model(LocalCustomPreprocessor(), "local-preprocessor-key")
 
-    assert response.success is False
+    with open(response.path, "rb") as file:
+        restored = pickle.load(file)
+
+    assert response.success is True
     assert response.kind == "preprocessing_model"
-    assert not response.path.exists()
+    assert response.path.exists()
+    assert restored.__class__.__name__ == "LocalCustomPreprocessor"

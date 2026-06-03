@@ -83,6 +83,7 @@ class DataSpec:
     index_col: IndexType = None
     possible_idx_keywords: Optional[List[str]] = None
     trace_uuid: Optional[str] = None
+    use_cache: bool = True
 
     def __post_init__(self):
         """

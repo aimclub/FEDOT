@@ -32,6 +32,10 @@ class OptionalService:
     """
     handler_mapping = {}
     plan: Optional[PreprocessingPlan] = None
+    use_cache: bool = True
+
+    def __init__(self, use_cache: bool = True):
+        self.use_cache = use_cache
 
     def fit_transform(
         self,
@@ -51,7 +55,7 @@ class OptionalService:
 
         self.plan = build_optional_plan(data, optional_steps)
 
-        cacher = Cacher()
+        cacher = Cacher(use_cache=self.use_cache)
         cached_data = cacher.load_tensor_data(input_data=data, operation=self.plan)
         input_hash = cached_data.input_hash
         plan_hash = cached_data.operation_hash
@@ -117,7 +121,7 @@ class OptionalService:
         if trace_uuid is None:
             raise ValueError("trace_uuid is required for optional preprocessing in predict state.")
 
-        cacher = Cacher()
+        cacher = Cacher(use_cache=self.use_cache)
         trace_builder = TraceBuilder.from_trace_uuid(trace_uuid)
         train_stage = self._get_train_optional_stage(trace_builder)
         self.plan = Loader.load(

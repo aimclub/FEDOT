@@ -113,7 +113,7 @@ class TraceBuilder:
             operation_hash=operation_hash,
             input_hash=input_hash,
             output_hash=tensor_record.output_hash,
-            tensor_data_path=str(tensor_record.path),
+            tensor_data_path=None if tensor_record.path is None else str(tensor_record.path),
             operation_path=None if plan_record is None else str(plan_record.path),
             models=models,
         )

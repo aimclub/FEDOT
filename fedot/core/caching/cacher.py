@@ -20,8 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 class Cacher:
-    def __init__(self, index_db: Optional[CacheIndexDB] = None):
+    def __init__(
+        self, 
+        index_db: Optional[CacheIndexDB] = None, 
+        use_cache: bool = True,
+    ):
         self.index_db = index_db or CacheIndexDB()
+        self.use_cache = use_cache
 
     def cache_tensor_data(
         self,
@@ -52,17 +57,21 @@ class Cacher:
             trace_builder = self._get_trace_builder(output_data, input_hash)
             output_data.trace_uuid = trace_builder.trace_id
 
-        saver_response = Saver.save(output_data, output_hash)
+        if self.use_cache:
+            saver_response = Saver.save(output_data, output_hash)
+            if not saver_response.success:
+                logger.error(f"Failed to add index due to failed save TensorData: {input_hash} {operation_hash}")
+                return None
+            path = saver_response.path
+        else:
+            path = None
 
-        if not saver_response.success:
-            logger.error(f"Failed to add index due to failed save TensorData: {input_hash} {operation_hash}")
-            return None
 
         result = self.index_db.add_tensor_data(
             input_hash=input_hash,
             output_hash=output_hash,
             operation_hash=operation_hash,
-            path=saver_response.path,
+            path=path,
             state=state,
         )
 
@@ -79,9 +88,16 @@ class Cacher:
     def load_tensor_data(self, input_data: Any, operation: Any, target: Any = None) -> Optional[Any]:
         input_hash = Hasher.hash(input_data, target=target) if target is not None else Hasher.hash(input_data)
         operation_hash = Hasher.hash(operation)
+        if not self.use_cache:
+            return DataCacherLoaderResponse(
+                data=None,
+                input_hash=input_hash,
+                operation_hash=operation_hash,
+                success=False,
+            )
         record = self.index_db.get_tensor_data(input_hash, operation_hash)
 
-        if record is None or not record.path.exists():
+        if record is None or record.path is None or not record.path.exists():
             return DataCacherLoaderResponse(
                 data=None,
                 input_hash=input_hash,

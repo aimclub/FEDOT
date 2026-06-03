@@ -1,7 +1,13 @@
+import json
+
 import numpy as np
 import pytest
 import torch
 
+import fedot.core.caching.index_db as index_db_module
+import fedot.core.caching.inmemory_operations as inmemory_operations
+import fedot.core.caching.tools as cache_tools
+import fedot.core.caching.tracer as tracer_module
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           ImputationMethodEnum,
@@ -15,6 +21,16 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
+
+
+@pytest.fixture()
+def isolated_cache_dir(tmp_path, monkeypatch):
+    cache_dir = tmp_path / "cache"
+    monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
+    monkeypatch.setattr(tracer_module, "CACHE_DIR", cache_dir)
+    return cache_dir
 
 
 @pytest.mark.unit
@@ -747,3 +763,41 @@ def test_optional_predict_restores_local_custom_handler_from_trace():
     assert predicted_td.trace_uuid == fitted_td.trace_uuid
     assert predicted_td.features[0, 1] == 10.0
     assert predicted_td.features[1, 1] == 10.0
+
+
+@pytest.mark.unit
+def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(isolated_cache_dir):
+    train = np.array([
+        [0.0, 10.0, "A", 0.0],
+        [1.0, 10.0, "B", 1.0],
+        [2.0, np.nan, "C", 0.0],
+        [3.0, 13.0, "A", 2.0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, np.nan, "B"],
+        [5.0, 15.0, "A"],
+    ], dtype=object)
+
+    train_td = TensorDataCreator.create(train, backend_name="cpu", use_cache=False)
+    service = OptionalTabularService(use_cache=False)
+    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=fitted_td.trace_uuid,
+        use_cache=False,
+    )
+    predicted_td = service.transform(test_td)
+
+    with open(isolated_cache_dir / "traces" / f"{fitted_td.trace_uuid}.json", encoding="utf-8") as file:
+        trace = json.load(file)
+
+    optional_stage = next(stage for stage in trace["stages"] if stage["stage"] == "optional_preprocessing")
+    assert optional_stage["tensor_data_path"] is None
+    assert optional_stage["operation_path"].endswith(".pkl")
+    assert optional_stage["models"][0]["model_path"].endswith(".pkl")
+    assert predicted_td.trace_uuid == fitted_td.trace_uuid
+    assert not torch.isnan(predicted_td.features[:, 1]).any()

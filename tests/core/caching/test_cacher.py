@@ -10,9 +10,14 @@ import fedot.core.caching.inmemory_operations as inmemory_operations
 import fedot.core.caching.tools as cache_tools
 import fedot.core.caching.tracer as tracer_module
 from fedot.core.caching.index_db import CacheIndexDB
+from fedot.core.caching.cacher import Cacher
+from fedot.core.caching.hasher import Hasher
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.planner import PreprocessingPlan
 
 
 @pytest.fixture()
@@ -47,6 +52,15 @@ def _tensor_cache_rows(cache_dir):
             """
         )
         return cur.fetchall()
+
+
+def _make_tensor_data_for_cache() -> TensorData:
+    return TensorData(
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+        features=torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
+        target=torch.tensor([0.0, 1.0]),
+    )
 
 
 @pytest.mark.unit
@@ -123,12 +137,12 @@ def test_tensor_data_creator_writes_trace_manifest_for_fit_state(isolated_cache_
     with open(trace_paths[0], encoding="utf-8") as file:
         trace = json.load(file)
 
-    assert trace["raw_fingerprint"] == tensor_data.raw_fingerprint
-    assert trace["final_output_hash"] == tensor_data.ready_fingerprint
+    assert trace["raw_fingerprint"] == trace["stages"][0]["input_hash"]
+    assert trace["final_output_hash"] == tensor_data.fingerprint
     assert len(trace["stages"]) == 1
     assert trace["stages"][0]["stage"] == "obligatory_preprocessing"
-    assert trace["stages"][0]["input_hash"] == tensor_data.raw_fingerprint
-    assert trace["stages"][0]["output_hash"] == tensor_data.ready_fingerprint
+    assert trace["stages"][0]["input_hash"] == trace["raw_fingerprint"]
+    assert trace["stages"][0]["output_hash"] == tensor_data.fingerprint
     assert trace["stages"][0]["tensor_data_path"].endswith(".pt")
     assert trace["stages"][0]["operation_path"].endswith(".pkl")
 
@@ -171,3 +185,112 @@ def test_trace_builder_updates_existing_manifest_by_trace_uuid(isolated_cache_di
         "obligatory_preprocessing",
         "optional_preprocessing",
     ]
+
+
+@pytest.mark.unit
+def test_index_db_does_not_overwrite_existing_tensor_record_with_null_path(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    saved_record = index_db.add_tensor_data(
+        input_hash="input",
+        output_hash="saved-output",
+        operation_hash="operation",
+        path=isolated_cache_dir / "tensor_data" / "saved-output.pt",
+    )
+
+    null_path_record = index_db.add_tensor_data(
+        input_hash="input",
+        output_hash="new-output",
+        operation_hash="operation",
+        path=None,
+    )
+
+    assert null_path_record == saved_record
+    assert index_db.get_tensor_data("input", "operation") == saved_record
+
+
+@pytest.mark.unit
+def test_cacher_with_disabled_tensor_cache_does_not_overwrite_saved_path(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    tensor_data = _make_tensor_data_for_cache()
+    output_hash = Hasher.hash(tensor_data)
+    saved_record = index_db.add_tensor_data(
+        input_hash="input",
+        output_hash=output_hash,
+        operation_hash="operation",
+        path=isolated_cache_dir / "tensor_data" / f"{output_hash}.pt",
+    )
+
+    null_path_record = Cacher(index_db=index_db, use_cache=False).cache_tensor_data(
+        output_data=tensor_data,
+        output_hash=output_hash,
+        input_hash="input",
+        operation_hash="operation",
+    )
+
+    assert null_path_record == saved_record
+    assert index_db.get_tensor_data("input", "operation") == saved_record
+
+
+@pytest.mark.unit
+def test_cacher_with_enabled_tensor_cache_updates_null_path_record(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    tensor_data = _make_tensor_data_for_cache()
+    output_hash = Hasher.hash(tensor_data)
+    null_path_record = index_db.add_tensor_data(
+        input_hash="input",
+        output_hash=output_hash,
+        operation_hash="operation",
+        path=None,
+    )
+
+    saved_record = Cacher(index_db=index_db, use_cache=True).cache_tensor_data(
+        output_data=tensor_data,
+        output_hash=output_hash,
+        input_hash="input",
+        operation_hash="operation",
+    )
+
+    assert null_path_record.path is None
+    assert saved_record.path is not None
+    assert saved_record.path.exists()
+    assert index_db.get_tensor_data("input", "operation").path == saved_record.path
+
+
+@pytest.mark.unit
+def test_cacher_indexes_and_traces_tensor_data_without_saving_tensor_artifact(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    cacher = Cacher(index_db=index_db, use_cache=False)
+    raw_features = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    tensor_data = _make_tensor_data_for_cache()
+    output_hash = Hasher.hash(tensor_data)
+    input_hash = Hasher.hash(raw_features)
+    operation = PreprocessingPlan()
+    operation_hash = Hasher.hash(operation)
+    index_db.add_preprocessing_plan(operation_hash, isolated_cache_dir / "preprocessing_plans" / "plan.pkl")
+
+    record = cacher.cache_tensor_data(
+        output_data=tensor_data,
+        output_hash=output_hash,
+        input_hash=input_hash,
+        operation_hash=operation_hash,
+        trace_stage="obligatory_preprocessing",
+    )
+    load_response = cacher.load_tensor_data(
+        input_data=raw_features,
+        operation=operation,
+    )
+    indexed_record = index_db.get_tensor_data(input_hash, operation_hash)
+    trace_paths = list((isolated_cache_dir / "traces").glob("*.json"))
+
+    assert record.path is None
+    assert indexed_record.path is None
+    assert tensor_data.trace_uuid is not None
+    assert not list((isolated_cache_dir / "tensor_data").glob("*.pt"))
+    assert load_response.success is False
+    assert len(trace_paths) == 1
+
+    with open(trace_paths[0], encoding="utf-8") as file:
+        trace = json.load(file)
+
+    assert trace["stages"][0]["tensor_data_path"] is None
+    assert trace["stages"][0]["output_hash"] == output_hash

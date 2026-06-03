@@ -16,7 +16,7 @@ class TensorDataCacheIndexRecord:
     output_hash: str
     operation_hash: str
     state: str
-    path: Path
+    path: Optional[Path]
     created_at: str
 
 
@@ -63,26 +63,42 @@ class CacheIndexDB:
         input_hash: str,
         output_hash: str,
         operation_hash: str,
-        path: Union[str, Path],
+        path: Optional[Union[str, Path]],
         state: str = "fit",
         created_at: Optional[str] = None,
     ) -> TensorDataCacheIndexRecord:
+        if path is None:
+            existing_record = self.get_tensor_data(input_hash, operation_hash)
+            if existing_record is not None:
+                return existing_record
+
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute(
-                    f"""
-                    INSERT INTO {self.TENSOR_DATA_TABLE}
-                        (input_hash, output_hash, operation_hash, state, path, created_at)
-                    VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
-                    ON CONFLICT(input_hash, operation_hash) DO UPDATE SET
-                        output_hash = excluded.output_hash,
-                        state = excluded.state,
-                        path = excluded.path,
-                        created_at = excluded.created_at;
-                    """,
-                    (input_hash, output_hash, operation_hash, state, str(path), created_at),
-                )
+                if path is None:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.TENSOR_DATA_TABLE}
+                            (input_hash, output_hash, operation_hash, state, path, created_at)
+                        VALUES (?, ?, ?, ?, NULL, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash) DO NOTHING;
+                        """,
+                        (input_hash, output_hash, operation_hash, state, created_at),
+                    )
+                else:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {self.TENSOR_DATA_TABLE}
+                            (input_hash, output_hash, operation_hash, state, path, created_at)
+                        VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))
+                        ON CONFLICT(input_hash, operation_hash) DO UPDATE SET
+                            output_hash = excluded.output_hash,
+                            state = excluded.state,
+                            path = excluded.path,
+                            created_at = excluded.created_at;
+                        """,
+                        (input_hash, output_hash, operation_hash, state, str(path), created_at),
+                    )
 
         record = self.get_tensor_data(input_hash, operation_hash)
         if record is None:
@@ -292,7 +308,7 @@ class CacheIndexDB:
                         output_hash TEXT NOT NULL,
                         operation_hash TEXT NOT NULL,
                         state TEXT NOT NULL,
-                        path TEXT NOT NULL,
+                        path TEXT,
                         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (input_hash, operation_hash)
                     );
@@ -351,12 +367,13 @@ class CacheIndexDB:
             return None
 
         input_hash, output_hash, operation_hash, state, path, created_at = row
+        path = Path(path) if path is not None else None
         return TensorDataCacheIndexRecord(
             input_hash=input_hash,
             output_hash=output_hash,
             operation_hash=operation_hash,
             state=state,
-            path=Path(path),
+            path=path,
             created_at=created_at,
         )
 
@@ -386,7 +403,7 @@ class CacheIndexDB:
         plan_hash, path, created_at = row
         return PreprocessingPlanCacheIndexRecord(
             plan_hash=plan_hash,
-            path=Path(path),
+            path=None if path is None else Path(path),
             created_at=created_at,
         )
 
