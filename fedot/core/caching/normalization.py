@@ -25,10 +25,6 @@ from fedot.core.utils import CACHE_DIR
 logger = logging.getLogger(__name__)
 
 TENSOR_DATA_CACHE_FORMAT = "fedot-tensor-data-cache"
-TENSOR_DATA_CACHE_FORMATS = frozenset({
-    TENSOR_DATA_CACHE_FORMAT,
-    "fedot-tensor-data-cache-v1",
-})
 DEFAULT_N_FIRST_TENSOR_DATA = 0.3
 
 
@@ -308,10 +304,9 @@ def restore_tensor_data_payload(payload: dict[str, Any]) -> TensorData:
             f"Unsupported TensorData cache payload type: {type(payload).__name__}"
         )
 
-    payload_format = payload.get("format")
-    if payload_format not in TENSOR_DATA_CACHE_FORMATS:
+    if payload.get("format") != TENSOR_DATA_CACHE_FORMAT:
         raise ValueError(
-            f"Unsupported TensorData cache payload format: {payload_format!r}"
+            f"Unsupported TensorData cache payload format: {payload.get('format')!r}"
         )
 
     payload_fields = payload.get("fields")

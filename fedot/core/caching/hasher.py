@@ -1,4 +1,3 @@
-import inspect
 from typing import Any
 
 from fedot.core.common.registry import Registry
@@ -13,11 +12,11 @@ from fedot.core.caching.sampling import (
     sample_row_positions,
 )
 from fedot.core.caching.rules import HasherNotFoundError
-from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
 from fedot.core.data.tensor_data.tensor_data import TensorData
-from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.planner import PreprocessingPlan
-from fedot.core.common.registry_predicates import *
+from fedot.core.common.registry_predicates import (
+    is_array_runtime, is_tensor_data,
+    is_preprocessing_plan, is_preprocessing_handler)
 
 
 class Hasher(Registry):
@@ -113,16 +112,3 @@ def preprocessing_model_hash(model: Any, digest_size: int = 16) -> str:
     """
     attributes = get_model_attributes(model)
     return stable_hash(attributes, digest_size=digest_size)
-
-
-def _validate_loaded_hash(data: Any, expected_hash: str = None) -> None:
-    if expected_hash is None:
-        return
-
-    from fedot.core.caching.hasher import Hasher
-
-    actual_hash = Hasher.hash(data)
-    if actual_hash != expected_hash:
-        raise ValueError(
-            f"Loaded cache hash mismatch: expected {expected_hash}, got {actual_hash}"
-        )
