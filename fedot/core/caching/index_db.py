@@ -58,6 +58,17 @@ class CacheIndexDB:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(
+            self.db_path,
+            timeout=30.0,
+        )
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA busy_timeout=30000;")
+        conn.execute("PRAGMA foreign_keys=ON;")
+        return conn
+
     def add_tensor_data(
         self,
         input_hash: str,
@@ -72,7 +83,7 @@ class CacheIndexDB:
             if existing_record is not None:
                 return existing_record
 
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 if path is None:
@@ -110,7 +121,7 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> Optional[TensorDataCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -128,7 +139,7 @@ class CacheIndexDB:
         self,
         output_hash: str,
     ) -> Optional[TensorDataCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -158,7 +169,7 @@ class CacheIndexDB:
         created_at: Optional[str] = None,
     ) -> PreprocessingModelCacheIndexRecord:
         features_idx_json = self._features_idx_to_json(features_idx)
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(
@@ -193,7 +204,7 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> Optional[PreprocessingModelCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -213,7 +224,7 @@ class CacheIndexDB:
         self,
         model_hash: str,
     ) -> Optional[PreprocessingModelCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -234,7 +245,7 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> list[PreprocessingModelCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -258,7 +269,7 @@ class CacheIndexDB:
         return self.get_preprocessing_model(input_hash, operation_hash) is not None
 
     def delete_tensor_data_by_output_hash(self, output_hash: str) -> bool:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(
@@ -271,7 +282,7 @@ class CacheIndexDB:
                 return cur.rowcount > 0
 
     def clear_all_records(self) -> None:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(f"DELETE FROM {self.TENSOR_DATA_TABLE};")
@@ -284,7 +295,7 @@ class CacheIndexDB:
         path: Union[str, Path],
         created_at: Optional[str] = None,
     ) -> PreprocessingPlanCacheIndexRecord:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute(
@@ -305,7 +316,7 @@ class CacheIndexDB:
         return record
     
     def get_preprocessing_plan(self, plan_hash: str) -> Optional[PreprocessingPlanCacheIndexRecord]:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
                 f"""
@@ -318,10 +329,9 @@ class CacheIndexDB:
         return self._preprocessing_plan_record_from_row(row)
 
     def _init_db(self) -> None:
-        with closing(sqlite3.connect(self.db_path)) as conn:
+        with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute("PRAGMA journal_mode=WAL;")
                 cur.execute(
                     f"""
                     CREATE TABLE IF NOT EXISTS {self.TENSOR_DATA_TABLE} (
