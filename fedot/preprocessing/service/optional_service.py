@@ -102,9 +102,9 @@ class OptionalService:
                     method=step.method.value if hasattr(step.method, "value") else str(step.method),
                     features_idx=step.features_idx,
                 )
-        
+
         result_tensor_data = update_tensor_data(data, prepared_data)
-        
+
         responce = cacher.cache_tensor_data(
             output_data=result_tensor_data,
             input_hash=input_hash,
@@ -134,7 +134,7 @@ class OptionalService:
                                      target=data.target,
                                      idx_mapping=optional_idx_mapping,
                                      ts_shape=data.ts_init_shape)
-        
+
         model_refs = sorted(train_stage.models, key=lambda model_ref: model_ref.step_order)
         for model_ref in model_refs:
             step = self.plan.steps[model_ref.step_order]

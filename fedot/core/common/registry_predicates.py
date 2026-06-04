@@ -13,6 +13,7 @@ __all__ = [
     'is_preprocessing_handler',
 ]
 
+
 def is_array_runtime(data: Any) -> bool:
     """
     Return whether ``data`` is a supported in-memory feature array.

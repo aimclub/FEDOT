@@ -36,8 +36,8 @@ class TraceStage:
         operation_path: On-disk path to the cached preprocessing plan.
         models: Fitted preprocessing models used within the stage.
     """
-    stage: str # obligatory_preprocessing/optional_preprocessing
-    operation_hash: str # plan_hash
+    stage: str  # obligatory_preprocessing/optional_preprocessing
+    operation_hash: str  # plan_hash
     input_hash: str
     output_hash: str
     tensor_data_path: Optional[str]
@@ -223,7 +223,7 @@ class TraceBuilder:
             )
 
         return trace_path
-    
+
     @staticmethod
     def update_according_to_cache(tensor_data_hashes: List[str]) -> None:
         """

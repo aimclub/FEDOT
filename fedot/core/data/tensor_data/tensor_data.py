@@ -106,7 +106,7 @@ class TensorData:
 
     dataloader_kwargs: Dict[str, Any] = field(default_factory=dict)
 
-    # hashes 
+    # hashes
     fingerprint: Optional[str] = None
     trace_uuid: Optional[str] = None
 

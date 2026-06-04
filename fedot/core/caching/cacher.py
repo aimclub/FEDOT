@@ -52,11 +52,11 @@ class Cacher:
     def cache_tensor_data(
         self,
         output_data: Any,
-        output_hash: str=None,
-        input_data: Any=None,
-        input_hash: str=None,
-        operation: Any=None,
-        operation_hash: str=None,
+        output_hash: str = None,
+        input_data: Any = None,
+        input_hash: str = None,
+        operation: Any = None,
+        operation_hash: str = None,
         state: Union[str, StateEnum] = "fit",
         trace_stage: str = None,
     ) -> TensorDataCacheIndexRecord:
@@ -79,7 +79,7 @@ class Cacher:
         Returns:
             Saved index record, or ``None`` if the tensor file could not be written.
         """
-        state=state.value if hasattr(state, "value") else str(state)
+        state = state.value if hasattr(state, "value") else str(state)
 
         if input_hash is None:
             input_hash = Hasher.hash(input_data)
@@ -87,7 +87,7 @@ class Cacher:
             operation_hash = Hasher.hash(operation)
         if output_hash is None:
             output_hash = Hasher.hash(output_data)
-        
+
         if output_data.fingerprint != output_hash:
             output_data.fingerprint = output_hash
 
@@ -104,7 +104,6 @@ class Cacher:
             path = saver_response.path
         else:
             path = None
-
 
         result = self.index_db.add_tensor_data(
             input_hash=input_hash,
@@ -171,12 +170,12 @@ class Cacher:
 
     def cache_preprocessing_model(
         self,
-        input_data: Any=None,
-        input_hash: str=None,
-        model: Any=None,
-        model_hash: str=None,
-        operation_hash: str=None,
-        operation: Any=None,
+        input_data: Any = None,
+        input_hash: str = None,
+        model: Any = None,
+        model_hash: str = None,
+        operation_hash: str = None,
+        operation: Any = None,
         step_order: int = 0,
         step_name: str = None,
         method: str = None,
@@ -227,12 +226,12 @@ class Cacher:
             features_idx=features_idx,
         )
 
-    def load_preprocessing_model(self, 
-        input_data: Any=None, 
-        input_hash: str=None,
-        operation: Any=None, 
-        operation_hash: str=None,
-    ) -> Optional[Any]:
+    def load_preprocessing_model(self,
+                                 input_data: Any = None,
+                                 input_hash: str = None,
+                                 operation: Any = None,
+                                 operation_hash: str = None,
+                                 ) -> Optional[Any]:
         """
         Load a cached preprocessing model for an input/operation pair.
 
@@ -268,7 +267,7 @@ class Cacher:
     def cache_preprocessing_plan(
         self,
         plan: PreprocessingPlan,
-        plan_hash: str=None,
+        plan_hash: str = None,
     ) -> PreprocessingPlanCacheIndexRecord:
         """
         Save a preprocessing plan and register it in the cache index.
@@ -291,7 +290,7 @@ class Cacher:
         return self.index_db.add_preprocessing_plan(
             plan_hash=plan_hash,
             path=response.path)
-    
+
     def clear_cache(
         self,
         mode: Union[CacheModeEnum, str] = CacheModeEnum.TENSOR_DATA,

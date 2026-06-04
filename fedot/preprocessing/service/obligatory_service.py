@@ -160,7 +160,6 @@ class ObligatoryService:
             raw_fingerprint=raw_fingerprint,
         )
 
-
     def transform(
         self,
         features: ArrayType,

@@ -174,7 +174,7 @@ def get_hash_tensordata(
         index = torch.as_tensor(row_positions, device=features.device, dtype=torch.long)
         sample = features.index_select(dim=0, index=index)
         h.update(_tensor_to_bytes(sample))
-    
+
     target = td.target
     if target is not None:
         h.update(_tensor_to_bytes(target))

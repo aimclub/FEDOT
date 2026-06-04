@@ -392,7 +392,7 @@ class CacheIndexDB:
         if record is None:
             raise RuntimeError("Preprocessing plan cache index record was not saved.")
         return record
-    
+
     def get_preprocessing_plan(self, plan_hash: str) -> Optional[PreprocessingPlanCacheIndexRecord]:
         """Return the preprocessing-plan row for ``plan_hash``, if present."""
         with closing(self._connect()) as conn:
@@ -505,7 +505,7 @@ class CacheIndexDB:
             method=method,
             features_idx=CacheIndexDB._features_idx_from_json(features_idx),
         )
-    
+
     @staticmethod
     def _preprocessing_plan_record_from_row(row: Optional[tuple]) -> Optional[PreprocessingPlanCacheIndexRecord]:
         if row is None:
