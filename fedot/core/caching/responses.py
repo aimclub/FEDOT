@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Optional
+
+from fedot.core.caching.enums import CacheModeEnum
 
 
 @dataclass
@@ -21,3 +23,10 @@ class DataCacherLoaderResponse:
     success: bool = False
     data: Any = None
     model: Any = None
+
+
+@dataclass
+class NormalizedCleaningStrategyResponse:
+    mode: CacheModeEnum
+    tensor_data_hashes: Optional[List[str]]
+    ratio_first_tensor_data: Optional[int]

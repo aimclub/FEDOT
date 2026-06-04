@@ -5,8 +5,6 @@ import numpy as np
 import pytest
 import torch
 
-import fedot.core.caching.inmemory_operations as inmemory_operations
-import fedot.core.caching.tools as cache_tools
 from fedot.core.caching.inmemory_operations import save_preprocessing_model
 from fedot.core.caching.normalization import prepare_value_for_torch_save
 from fedot.core.caching.rules import SaverNotFoundError
@@ -28,14 +26,6 @@ class PickleableCustomPreprocessor(AbstractPreprocessingHandler):
 
     def transform(self, data):
         return data
-
-
-@pytest.fixture(autouse=True)
-def isolated_cache_dir(tmp_path, monkeypatch):
-    cache_dir = tmp_path / "cache"
-    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
-    return cache_dir
 
 
 def _torch_load(path: Path):

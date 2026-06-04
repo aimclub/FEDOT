@@ -5,21 +5,31 @@ import importlib
 import inspect
 import json
 from pathlib import Path
-from typing import Any, Optional, Set, Union, get_args, get_origin
+from typing import (
+    Any, Optional, Set,
+    Union, get_args, get_origin, List, Tuple
+)
 
+import logging
 import numpy as np
 import torch
 
 from fedot.core.backend.backend import Backend
 from fedot.core.data.common.types import ARRAY_RUNTIME_TYPES
 from fedot.core.data.tensor_data import TensorData
+from fedot.core.caching.enums import CacheModeEnum
+from fedot.core.caching.responses import NormalizedCleaningStrategyResponse
+from fedot.core.utils import CACHE_DIR
 
+
+logger = logging.getLogger(__name__)
 
 TENSOR_DATA_CACHE_FORMAT = "fedot-tensor-data-cache"
 TENSOR_DATA_CACHE_FORMATS = frozenset({
     TENSOR_DATA_CACHE_FORMAT,
     "fedot-tensor-data-cache-v1",
 })
+DEFAULT_N_FIRST_TENSOR_DATA = 0.3
 
 
 def normalize_for_hash(obj: Any, _seen: Optional[Set[int]] = None) -> Any:
@@ -417,3 +427,61 @@ def _move_tensors_to_backend(value: Any) -> Any:
             setattr(value, field_name, _move_tensors_to_backend(field_value))
 
     return value
+
+
+def normilize_cleaning_strategy(
+    mode: Union[CacheModeEnum, str],
+    tensor_data_hashes: Optional[Union[str, List[str]]],
+    ratio_first_tensor_data: Optional[int],
+) -> NormalizedCleaningStrategyResponse:
+
+    try:
+        mode = CacheModeEnum(mode) if isinstance(mode, str) else mode
+    except ValueError:
+        logger.warning(
+            f"Invalid cache mode: {mode}, using default mode: {CacheModeEnum.TENSOR_DATA}"
+        )
+        mode = CacheModeEnum.TENSOR_DATA
+
+    if mode == CacheModeEnum.ALL:
+        return NormalizedCleaningStrategyResponse(
+            mode=mode,
+            tensor_data_hashes=None,
+            ratio_first_tensor_data=None,
+        )
+
+    if mode == CacheModeEnum.TENSOR_DATA:
+        if tensor_data_hashes is None:
+            tensor_data_hashes = get_all_tensor_data_hashes()
+        tensor_data_hashes = (
+            tensor_data_hashes
+            if isinstance(tensor_data_hashes, list)
+            else [tensor_data_hashes]
+        )
+        return NormalizedCleaningStrategyResponse(
+            mode=mode,
+            tensor_data_hashes=tensor_data_hashes,
+            ratio_first_tensor_data=None,
+        )
+
+    number_of_existing_tensor_data = len(get_all_tensor_data_hashes())
+    if ratio_first_tensor_data is None:
+        ratio_first_tensor_data = min(number_of_existing_tensor_data, DEFAULT_N_FIRST_TENSOR_DATA)
+    else:
+        if isinstance(ratio_first_tensor_data, float):
+            if ratio_first_tensor_data < 1:
+                ratio_first_tensor_data = int(ratio_first_tensor_data * number_of_existing_tensor_data)
+            else:
+                ratio_first_tensor_data = int(ratio_first_tensor_data / 100 * number_of_existing_tensor_data)
+        else:
+            ratio_first_tensor_data = int(ratio_first_tensor_data)
+        ratio_first_tensor_data = min(ratio_first_tensor_data, number_of_existing_tensor_data)
+    return NormalizedCleaningStrategyResponse(
+        mode=mode,
+        tensor_data_hashes=None,
+        ratio_first_tensor_data=ratio_first_tensor_data,
+    )
+
+
+def get_all_tensor_data_hashes() -> List[str]:
+    return [path.name.split(".")[0] for path in (CACHE_DIR / "tensor_data").glob("*.pt")]

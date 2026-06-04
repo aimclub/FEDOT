@@ -3,7 +3,7 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, List, Optional
 
 from fedot.core.caching.index_db import CacheIndexDB
 from fedot.core.caching.normalization import normalize_for_hash, stable_hash
@@ -158,6 +158,61 @@ class TraceBuilder:
             )
 
         return trace_path
+    
+    @staticmethod
+    def update_according_to_cache(tensor_data_hashes: List[str]) -> None:
+        """
+        Sync trace manifests after TensorData cache entries were removed.
+
+        For each stage whose ``output_hash`` was cleared, drop ``tensor_data_path``
+        when the referenced file is missing and refresh ``trace_hash``.
+        """
+        if not tensor_data_hashes:
+            return
+
+        ensure_cache_dirs()
+        cleared_hashes = set(tensor_data_hashes)
+        traces_dir = CACHE_DIR / "traces"
+        if not traces_dir.exists():
+            return
+
+        for trace_path in traces_dir.glob("*.json"):
+            with open(trace_path, encoding="utf-8") as file:
+                manifest = json.load(file)
+
+            modified = False
+            for stage in manifest.get("stages", []):
+                if stage.get("output_hash") not in cleared_hashes:
+                    continue
+
+                tensor_data_path = stage.get("tensor_data_path")
+                if tensor_data_path and Path(tensor_data_path).is_file():
+                    continue
+
+                if tensor_data_path != "":
+                    stage["tensor_data_path"] = ""
+                    modified = True
+
+            if not modified:
+                continue
+
+            trace_payload = {
+                "trace_id": manifest["trace_id"],
+                "raw_fingerprint": manifest["raw_fingerprint"],
+                "final_output_hash": manifest["final_output_hash"],
+                "created_at": manifest["created_at"],
+                "stages": manifest["stages"],
+            }
+            manifest["trace_hash"] = stable_hash(trace_payload)
+
+            with open(trace_path, "w", encoding="utf-8") as file:
+                json.dump(
+                    normalize_for_hash(manifest),
+                    file,
+                    ensure_ascii=False,
+                    indent=2,
+                    sort_keys=True,
+                )
 
     @staticmethod
     def _trace_path(trace_uuid: str) -> Path:

@@ -5,10 +5,6 @@ import numpy as np
 import pytest
 import torch
 
-import fedot.core.caching.index_db as index_db_module
-import fedot.core.caching.inmemory_operations as inmemory_operations
-import fedot.core.caching.tools as cache_tools
-import fedot.core.caching.tracer as tracer_module
 from fedot.core.caching.index_db import CacheIndexDB
 from fedot.core.caching.cacher import Cacher
 from fedot.core.caching.hasher import Hasher
@@ -18,16 +14,6 @@ from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.planner import PreprocessingPlan
-
-
-@pytest.fixture()
-def isolated_cache_dir(tmp_path, monkeypatch):
-    cache_dir = tmp_path / "cache"
-    monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(tracer_module, "CACHE_DIR", cache_dir)
-    return cache_dir
 
 
 def _make_features() -> np.ndarray:
@@ -294,3 +280,20 @@ def test_cacher_indexes_and_traces_tensor_data_without_saving_tensor_artifact(is
 
     assert trace["stages"][0]["tensor_data_path"] is None
     assert trace["stages"][0]["output_hash"] == output_hash
+
+
+@pytest.mark.unit
+def test_cacher_clears_cache(isolated_cache_dir):
+    index_db = CacheIndexDB()
+    cacher = Cacher(index_db=index_db, use_cache=False)
+    cacher.cache_tensor_data(
+        output_data=TensorDataCreator.create(np.random.rand(10, 10), backend_name="cpu"),
+        output_hash="tensor-hash",
+        input_hash="input-hash",
+        operation_hash="operation-hash",
+    )
+    cacher.clear_cache(mode="all")
+
+    assert not (isolated_cache_dir / "tensor_data" / "tensor-hash.pt").exists()
+    assert not (isolated_cache_dir / "traces" / "trace-hash.json").exists()
+    assert not (isolated_cache_dir / "index.sqlite3").exists()

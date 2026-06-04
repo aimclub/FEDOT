@@ -257,6 +257,27 @@ class CacheIndexDB:
     def has_preprocessing_model(self, input_hash: str, operation_hash: str) -> bool:
         return self.get_preprocessing_model(input_hash, operation_hash) is not None
 
+    def delete_tensor_data_by_output_hash(self, output_hash: str) -> bool:
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                cur.execute(
+                    f"""
+                    DELETE FROM {self.TENSOR_DATA_TABLE}
+                    WHERE output_hash = ?;
+                    """,
+                    (output_hash,),
+                )
+                return cur.rowcount > 0
+
+    def clear_all_records(self) -> None:
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                cur.execute(f"DELETE FROM {self.TENSOR_DATA_TABLE};")
+                cur.execute(f"DELETE FROM {self.PREPROCESSING_MODELS_TABLE};")
+                cur.execute(f"DELETE FROM {self.PREPROCESSING_PLANS_TABLE};")
+
     def add_preprocessing_plan(
         self,
         plan_hash: str,

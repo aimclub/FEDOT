@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, List
 
 import logging
 from fedot.core.caching.hasher import Hasher
@@ -14,6 +14,9 @@ from fedot.core.caching.responses import DataCacherLoaderResponse
 from fedot.core.caching.tracer import TraceBuilder
 from fedot.preprocessing.planner import PreprocessingPlan
 from fedot.core.data.common.enums import StateEnum
+from fedot.core.caching.enums import CacheModeEnum
+from fedot.core.caching.normalization import normilize_cleaning_strategy
+from fedot.core.caching.cache_cleaner import CacheCleaner
 
 
 logger = logging.getLogger(__name__)
@@ -180,7 +183,6 @@ class Cacher:
 
         return Loader.load(str(record.path), record.model_hash, "preprocessing_model")
 
-
     def cache_preprocessing_plan(
         self,
         plan: PreprocessingPlan,
@@ -197,6 +199,26 @@ class Cacher:
         return self.index_db.add_preprocessing_plan(
             plan_hash=plan_hash,
             path=response.path)
+    
+    def clear_cache(
+        self,
+        mode: Union[CacheModeEnum, str] = CacheModeEnum.TENSOR_DATA,
+        tensor_data_hashes: Optional[Union[str, List[str]]] = None,
+        ratio_first_tensor_data: Optional[int] = None,
+    ):
+        norm_params = normilize_cleaning_strategy(
+            mode=mode,
+            tensor_data_hashes=tensor_data_hashes,
+            ratio_first_tensor_data=ratio_first_tensor_data,
+        )
+
+        cleaner = CacheCleaner(self.index_db)
+        if norm_params.mode == CacheModeEnum.ALL:
+            cleaner.clear_all()
+        elif norm_params.mode == CacheModeEnum.TENSOR_DATA:
+            cleaner.clear_tensor_data(norm_params.tensor_data_hashes)
+        else:
+            cleaner.clear_first_n_tensor_data(norm_params.ratio_first_tensor_data)
 
     def _get_trace_builder(self, output_data: Any, raw_fingerprint: str) -> TraceBuilder:
         trace_uuid = getattr(output_data, "trace_uuid", None)

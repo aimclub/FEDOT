@@ -4,10 +4,6 @@ import numpy as np
 import pytest
 import torch
 
-import fedot.core.caching.index_db as index_db_module
-import fedot.core.caching.inmemory_operations as inmemory_operations
-import fedot.core.caching.tools as cache_tools
-import fedot.core.caching.tracer as tracer_module
 from fedot.preprocessing.tools.methods_mapping import PREPROCESSING_OPTIONAL_MAPPING
 from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
                                                           ImputationMethodEnum,
@@ -21,16 +17,6 @@ from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
-
-
-@pytest.fixture()
-def isolated_cache_dir(tmp_path, monkeypatch):
-    cache_dir = tmp_path / "cache"
-    monkeypatch.setattr(index_db_module, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(inmemory_operations, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(cache_tools, "CACHE_DIR", cache_dir)
-    monkeypatch.setattr(tracer_module, "CACHE_DIR", cache_dir)
-    return cache_dir
 
 
 @pytest.mark.unit
