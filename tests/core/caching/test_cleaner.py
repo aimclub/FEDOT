@@ -32,7 +32,12 @@ def _seed_tensor_artifact(cache_dir, output_hash: str, input_hash: str = "input"
     return path
 
 
-def _seed_tensor_index(index_db: CacheIndexDB, cache_dir, output_hash: str, input_hash: str = "input", operation_hash: str = "op"):
+def _seed_tensor_index(
+        index_db: CacheIndexDB,
+        cache_dir,
+        output_hash: str,
+        input_hash: str = "input",
+        operation_hash: str = "op"):
     path = _seed_tensor_artifact(cache_dir, output_hash, input_hash, operation_hash)
     return index_db.add_tensor_data(
         input_hash=input_hash,
