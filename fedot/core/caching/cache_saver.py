@@ -3,12 +3,16 @@ from typing import Any
 from fedot.core.common.registry import Registry
 from fedot.core.caching.rules import SaverNotFoundError
 from fedot.core.common.registry_predicates import (
-    is_tensor_data, is_preprocessing_handler, is_preprocessing_plan)
+    is_tensor_data,
+    is_preprocessing_handler,
+    is_preprocessing_plan,
+)
 from fedot.core.caching.inmemory_operations import (
-    save_tensor_data, save_preprocessing_model, save_preprocessing_plan
+    save_tensor_data,
+    save_preprocessing_model,
+    save_preprocessing_plan,
 )
 from fedot.core.caching.responses import SaverResponse
-from fedot.core.data.tensor_data import TensorData
 
 
 class Saver(Registry):
@@ -21,22 +25,6 @@ class Saver(Registry):
         return saver_func(data, hash)
 
 
-@Saver.register_creator(is_tensor_data)
-def save_tensor_data_registered(data: TensorData, hash: str) -> SaverResponse:
-    return save_tensor_data(data, hash)
-
-
-@Saver.register_creator(is_preprocessing_handler)
-def save_preprocessing_model_registered(
-    data: Any,
-    hash: str,
-) -> SaverResponse:
-    return save_preprocessing_model(data, hash)
-
-
-@Saver.register_creator(is_preprocessing_plan)
-def save_preprocessing_plan_registered(
-    data: Any,
-    hash: str,
-) -> SaverResponse:
-    return save_preprocessing_plan(data, hash)
+Saver.register_creator(is_tensor_data)(save_tensor_data)
+Saver.register_creator(is_preprocessing_handler)(save_preprocessing_model)
+Saver.register_creator(is_preprocessing_plan)(save_preprocessing_plan)
