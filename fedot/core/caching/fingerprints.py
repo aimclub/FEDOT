@@ -108,6 +108,18 @@ def get_hash_raw_features(
     target: Any = None,
     digest_size: int = 16,
 ) -> str:
+    """
+    Hash raw feature array metadata and sampled rows.
+
+    Args:
+        features: NumPy or CuPy feature array.
+        row_positions: Row indices selected from the first axis.
+        target: Optional target array included in the fingerprint.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
+    """
     metadata = {
         "features_shape": tuple(int(dim) for dim in features.shape),
         "features_dtype": str(features.dtype),

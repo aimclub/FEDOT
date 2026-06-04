@@ -3,7 +3,10 @@ from golem.utilities.data_structures import ComparableEnum as Enum
 
 class CacheModeEnum(Enum):
     """
-    Mode of cache clearing.
+    Strategy for ``Cacher.clear_cache``.
+
+    Values select whether the full cache tree, explicit tensor hashes, or the
+    oldest tensor artifacts are removed.
     """
     ALL = "all"
     TENSOR_DATA = "tensor_data"

@@ -30,11 +30,16 @@ def _atomic_save(
     attempts: int = 2,
 ) -> bool:
     """
-    Safely write file to final_path.
+    Safely write a cache artifact using a temporary file and ``os.replace``.
+
+    Args:
+        final_path: Destination path under ``CACHE_DIR``.
+        writer: Callable that writes content to a temporary path.
+        attempts: Number of write attempts before giving up.
 
     Returns:
-        True  - file was written by this call
-        False - file already existed
+        ``True`` when this call created ``final_path`` or it already existed.
+        ``False`` when a concurrent writer won the race or all attempts failed.
     """
     final_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -73,6 +78,16 @@ def _atomic_save(
 
 
 def save_tensor_data(data: TensorData, key: str) -> SaverResponse:
+    """
+    Serialize ``TensorData`` to ``CACHE_DIR/tensor_data/{key}.pt``.
+
+    Args:
+        data: Prepared tensor container to persist.
+        key: Content hash used as the file stem.
+
+    Returns:
+        ``SaverResponse`` with the final path and write status.
+    """
     ensure_cache_dirs()
 
     final_path = CACHE_DIR / "tensor_data" / f"{key}.pt"
@@ -92,6 +107,16 @@ def save_tensor_data(data: TensorData, key: str) -> SaverResponse:
 
 
 def save_preprocessing_plan(data: PreprocessingPlan, key: str) -> SaverResponse:
+    """
+    Pickle a preprocessing plan to ``CACHE_DIR/preprocessing_plans/{key}.pkl``.
+
+    Args:
+        data: Preprocessing plan instance.
+        key: Content hash used as the file stem.
+
+    Returns:
+        ``SaverResponse`` with the final path and write status.
+    """
     ensure_cache_dirs()
 
     final_path = CACHE_DIR / "preprocessing_plans" / f"{key}.pkl"
@@ -111,6 +136,19 @@ def save_preprocessing_plan(data: PreprocessingPlan, key: str) -> SaverResponse:
 
 
 def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
+    """
+    Pickle a fitted preprocessing model to ``CACHE_DIR/preprocessing_models/{key}.pkl``.
+
+    The model state is normalized before pickling so torch tensors and nested
+    dataclasses are cache-safe.
+
+    Args:
+        data: Fitted preprocessing handler instance.
+        key: Content hash used as the file stem.
+
+    Returns:
+        ``SaverResponse`` with the final path and write status.
+    """
     ensure_cache_dirs()
 
     final_path = CACHE_DIR / "preprocessing_models" / f"{key}.pkl"
@@ -131,6 +169,20 @@ def save_preprocessing_model(data: Any, key: str) -> SaverResponse:
 
 
 def load_pt_file(source: str, hash: str = None, kind: str = None) -> Any:
+    """
+    Load cached ``TensorData`` from a ``.pt`` file.
+
+    Args:
+        source: Path to the torch cache file.
+        hash: Expected fingerprint validated after restore.
+        kind: Optional artifact kind; only ``tensor_data`` is supported.
+
+    Returns:
+        Restored ``TensorData`` on the active backend device.
+
+    Raises:
+        ValueError: For unsupported ``kind`` or hash mismatch.
+    """
     if kind not in (None, "tensor_data"):
         raise ValueError(f"Unsupported .pt cache kind: {kind}")
 
@@ -142,6 +194,20 @@ def load_pt_file(source: str, hash: str = None, kind: str = None) -> Any:
 
 
 def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
+    """
+    Load a pickled preprocessing artifact from a ``.pkl`` file.
+
+    Args:
+        source: Path to the pickle cache file.
+        hash: Expected fingerprint validated after loading.
+        kind: Artifact kind (`preprocessing_model` or `preprocessing_plan`).
+
+    Returns:
+        Restored Python object, with tensors moved to the active backend for models.
+
+    Raises:
+        ValueError: For unsupported ``kind`` or hash mismatch.
+    """
     if kind not in (None, "preprocessing_model", "preprocessing_plan"):
         raise ValueError(f"Unsupported .pkl cache kind: {kind}")
 
@@ -156,6 +222,7 @@ def load_pkl_file(source: str, hash: str = None, kind: str = None) -> Any:
 
 
 def _torch_load(source: str) -> Any:
+    """Load a torch-serialized payload from disk on CPU."""
     try:
         return torch.load(source, map_location="cpu", weights_only=False)
     except TypeError:
@@ -163,6 +230,16 @@ def _torch_load(source: str) -> Any:
 
 
 def _validate_loaded_hash(data: Any, expected_hash: str = None) -> None:
+    """
+    Verify that a loaded cache object matches the expected content hash.
+
+    Args:
+        data: Object restored from disk.
+        expected_hash: Expected ``Hasher.hash`` value. Skipped when ``None``.
+
+    Raises:
+        ValueError: When the recomputed hash differs from ``expected_hash``.
+    """
     if expected_hash is None:
         return
 

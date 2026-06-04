@@ -13,6 +13,7 @@ from fedot.core.utils import CACHE_DIR
 
 @dataclass
 class TraceModelRef:
+    """Reference to one cached preprocessing model inside a trace stage."""
     step_order: int
     model_hash: str
     model_path: str
@@ -23,6 +24,18 @@ class TraceModelRef:
 
 @dataclass
 class TraceStage:
+    """
+    One preprocessing stage recorded in a trace manifest.
+
+    Attributes:
+        stage: Stage label such as ``obligatory_preprocessing``.
+        operation_hash: Hash of the preprocessing plan applied at this stage.
+        input_hash: Fingerprint of the stage input tensor data.
+        output_hash: Fingerprint of the stage output tensor data.
+        tensor_data_path: On-disk path to cached output ``TensorData``.
+        operation_path: On-disk path to the cached preprocessing plan.
+        models: Fitted preprocessing models used within the stage.
+    """
     stage: str # obligatory_preprocessing/optional_preprocessing
     operation_hash: str # plan_hash
     input_hash: str
@@ -34,6 +47,7 @@ class TraceStage:
 
 @dataclass
 class TraceManifest:
+    """Serializable manifest describing one end-to-end preprocessing trace."""
     trace_id: str
     trace_hash: str
     raw_fingerprint: str
@@ -58,6 +72,14 @@ class TraceBuilder:
         stages: Optional[list[TraceStage]] = None,
         created_at: Optional[str] = None,
     ):
+        """
+        Args:
+            raw_fingerprint: Fingerprint of the raw input at the first stage.
+            index_db: SQLite index used to resolve cached artifact paths.
+            trace_id: Existing trace UUID or a newly generated value.
+            stages: Previously recorded stages when reloading a manifest.
+            created_at: ISO timestamp stored in the manifest.
+        """
         self.trace_id = trace_id or str(uuid.uuid4())
         self.raw_fingerprint = raw_fingerprint
         self.index_db = index_db or CacheIndexDB()
@@ -70,6 +92,16 @@ class TraceBuilder:
         trace_uuid: str,
         index_db: Optional[CacheIndexDB] = None,
     ) -> "TraceBuilder":
+        """
+        Restore a builder from an on-disk trace manifest.
+
+        Args:
+            trace_uuid: Identifier of the trace JSON file in ``CACHE_DIR/traces``.
+            index_db: SQLite index used to resolve artifact metadata.
+
+        Returns:
+            Builder primed with stages loaded from the manifest.
+        """
         trace_path = cls._trace_path(trace_uuid)
         with open(trace_path, encoding="utf-8") as file:
             manifest = json.load(file)
@@ -87,6 +119,20 @@ class TraceBuilder:
         )
 
     def add_stage(self, stage: str, input_hash: str, operation_hash: str) -> TraceStage:
+        """
+        Append a preprocessing stage using metadata already stored in the index.
+
+        Args:
+            stage: Stage label written to the manifest.
+            input_hash: Fingerprint of the stage input.
+            operation_hash: Fingerprint of the preprocessing plan.
+
+        Returns:
+            Newly created ``TraceStage`` instance.
+
+        Raises:
+            ValueError: When the tensor-data index row is missing.
+        """
         tensor_record = self.index_db.get_tensor_data(input_hash, operation_hash)
         if tensor_record is None:
             raise ValueError(
@@ -121,6 +167,16 @@ class TraceBuilder:
         return trace_stage
 
     def finalize(self, final_output_hash: Optional[str] = None) -> TraceManifest:
+        """
+        Build an in-memory manifest and compute its content hash.
+
+        Args:
+            final_output_hash: Output fingerprint of the last stage. When omitted,
+                the last stage output or ``raw_fingerprint`` is used.
+
+        Returns:
+            ``TraceManifest`` ready for JSON serialization.
+        """
         if final_output_hash is None:
             final_output_hash = self.stages[-1].output_hash if self.stages else self.raw_fingerprint
 
@@ -143,6 +199,15 @@ class TraceBuilder:
         )
 
     def save(self, final_output_hash: Optional[str] = None) -> Path:
+        """
+        Write the trace manifest to ``CACHE_DIR/traces/{trace_id}.json``.
+
+        Args:
+            final_output_hash: Output fingerprint stored in the manifest.
+
+        Returns:
+            Path to the saved JSON file.
+        """
         ensure_cache_dirs()
         manifest = self.finalize(final_output_hash)
         trace_path = self._trace_path(self.trace_id)
@@ -216,10 +281,12 @@ class TraceBuilder:
 
     @staticmethod
     def _trace_path(trace_uuid: str) -> Path:
+        """Return the filesystem path of a trace manifest."""
         return CACHE_DIR / "traces" / f"{trace_uuid}.json"
 
     @staticmethod
     def _stage_from_dict(stage_data: dict[str, Any]) -> TraceStage:
+        """Deserialize one trace stage from manifest JSON."""
         return TraceStage(
             stage=stage_data["stage"],
             operation_hash=stage_data["operation_hash"],

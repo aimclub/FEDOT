@@ -57,6 +57,16 @@ def raw_fingerprint(
 
     The hash combines array shape, dtype and a deterministic sample of rows from
     the first axis. It is intended for row-oriented feature containers.
+
+    Args:
+        data: Raw feature array.
+        target: Optional target array included in the fingerprint.
+        min_rows: Lower bound for the row sample size.
+        max_rows: Upper bound for the row sample size.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
     """
     row_positions = sample_row_positions(
         shape=tuple(data.shape),
@@ -84,6 +94,18 @@ def ready_fingerprint(
 
     The hash combines selected `TensorData` metadata with a deterministic sample
     of `td.features` rows. Target and prediction values are not sampled.
+
+    Args:
+        td: Prepared tensor container.
+        min_rows: Lower bound for the feature row sample size.
+        max_rows: Upper bound for the feature row sample size.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
+
+    Raises:
+        ValueError: When ``td.features`` is missing.
     """
     if td.features is None:
         raise ValueError("TensorData features are required for ready fingerprint.")
@@ -98,6 +120,13 @@ def preprocessing_plan_hash(plan: PreprocessingPlan, digest_size: int = 16) -> s
 
     Plan steps are hashed in order, including step configuration and fitted
     implementation state when it is present.
+
+    Args:
+        plan: Preprocessing plan instance.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
     """
     return get_hash_preprocessing_plan(plan, digest_size=digest_size)
 
@@ -109,6 +138,13 @@ def preprocessing_model_hash(model: Any, digest_size: int = 16) -> str:
 
     For fitted instances, the hash includes the class path and normalized
     attributes from `__dict__`. For classes, only the class path is used.
+
+    Args:
+        model: Handler class or fitted instance.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
     """
     attributes = get_model_attributes(model)
     return stable_hash(attributes, digest_size=digest_size)

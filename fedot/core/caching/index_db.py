@@ -12,6 +12,7 @@ from fedot.core.utils import CACHE_DIR
 
 @dataclass(frozen=True)
 class TensorDataCacheIndexRecord:
+    """SQLite index row describing one cached ``TensorData`` artifact."""
     input_hash: str
     output_hash: str
     operation_hash: str
@@ -22,6 +23,7 @@ class TensorDataCacheIndexRecord:
 
 @dataclass(frozen=True)
 class PreprocessingModelCacheIndexRecord:
+    """SQLite index row describing one cached preprocessing model artifact."""
     model_hash: str
     operation_hash: str
     input_hash: str
@@ -35,6 +37,7 @@ class PreprocessingModelCacheIndexRecord:
 
 @dataclass(frozen=True)
 class PreprocessingPlanCacheIndexRecord:
+    """SQLite index row describing one cached preprocessing plan artifact."""
     plan_hash: str
     path: Path
     created_at: str
@@ -53,12 +56,24 @@ class CacheIndexDB:
     PREPROCESSING_PLANS_TABLE = "preprocessing_plan_cache"
 
     def __init__(self, db_path: Optional[Union[str, Path]] = None):
+        """
+        Open or create the cache index database.
+
+        Args:
+            db_path: Optional path to ``index.sqlite3``. Defaults to
+                ``CACHE_DIR / "index.sqlite3"``.
+        """
         ensure_cache_dirs()
         self.db_path = Path(db_path) if db_path is not None else CACHE_DIR / "index.sqlite3"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
+        """
+        Open a SQLite connection configured for concurrent cache access.
+
+        Enables WAL mode, busy timeout, and foreign keys for each operation.
+        """
         conn = sqlite3.connect(
             self.db_path,
             timeout=30.0,
@@ -78,6 +93,26 @@ class CacheIndexDB:
         state: str = "fit",
         created_at: Optional[str] = None,
     ) -> TensorDataCacheIndexRecord:
+        """
+        Insert or update a tensor-data index row.
+
+        When ``path`` is ``None``, an existing row is preserved and no update is
+        performed.
+
+        Args:
+            input_hash: Fingerprint of preprocessing input.
+            output_hash: Fingerprint of cached output ``TensorData``.
+            operation_hash: Fingerprint of the preprocessing operation/plan.
+            path: On-disk artifact path, or ``None`` for index-only records.
+            state: Pipeline state label stored in the index.
+            created_at: Optional ISO timestamp override.
+
+        Returns:
+            Persisted index record.
+
+        Raises:
+            RuntimeError: When the row cannot be read back after insert.
+        """
         if path is None:
             existing_record = self.get_tensor_data(input_hash, operation_hash)
             if existing_record is not None:
@@ -121,6 +156,7 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> Optional[TensorDataCacheIndexRecord]:
+        """Return the tensor-data row for an input/operation pair, if present."""
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -139,6 +175,7 @@ class CacheIndexDB:
         self,
         output_hash: str,
     ) -> Optional[TensorDataCacheIndexRecord]:
+        """Return the tensor-data row matching ``output_hash``, if present."""
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -154,6 +191,7 @@ class CacheIndexDB:
         return self._tensor_data_record_from_row(row)
 
     def has_tensor_data(self, input_hash: str, operation_hash: str) -> bool:
+        """Return whether a tensor-data row exists for the given hashes."""
         return self.get_tensor_data(input_hash, operation_hash) is not None
 
     def add_preprocessing_model(
@@ -168,6 +206,18 @@ class CacheIndexDB:
         features_idx: Optional[Any] = None,
         created_at: Optional[str] = None,
     ) -> PreprocessingModelCacheIndexRecord:
+        """
+        Insert or update a preprocessing-model index row.
+
+        Multiple models may share the same ``input_hash`` and ``operation_hash``
+        when they differ by ``model_hash``.
+
+        Returns:
+            Persisted index record.
+
+        Raises:
+            RuntimeError: When the row cannot be read back after insert.
+        """
         features_idx_json = self._features_idx_to_json(features_idx)
         with closing(self._connect()) as conn:
             with conn:
@@ -204,6 +254,11 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> Optional[PreprocessingModelCacheIndexRecord]:
+        """
+        Return the first preprocessing-model row for an input/operation pair.
+
+        Prefer ``get_preprocessing_models`` when multiple fitted models exist.
+        """
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -224,6 +279,7 @@ class CacheIndexDB:
         self,
         model_hash: str,
     ) -> Optional[PreprocessingModelCacheIndexRecord]:
+        """Return the preprocessing-model row identified by ``model_hash``."""
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -245,6 +301,11 @@ class CacheIndexDB:
         input_hash: str,
         operation_hash: str,
     ) -> list[PreprocessingModelCacheIndexRecord]:
+        """
+        Return all preprocessing models for one input/operation pair.
+
+        Rows are ordered by ``step_order``, ``created_at``, and ``model_hash``.
+        """
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -266,9 +327,16 @@ class CacheIndexDB:
         ]
 
     def has_preprocessing_model(self, input_hash: str, operation_hash: str) -> bool:
+        """Return whether at least one preprocessing-model row exists."""
         return self.get_preprocessing_model(input_hash, operation_hash) is not None
 
     def delete_tensor_data_by_output_hash(self, output_hash: str) -> bool:
+        """
+        Delete tensor-data rows matching ``output_hash``.
+
+        Returns:
+            ``True`` when at least one row was removed.
+        """
         with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
@@ -282,6 +350,7 @@ class CacheIndexDB:
                 return cur.rowcount > 0
 
     def clear_all_records(self) -> None:
+        """Delete all rows from cache index tables without removing the database file."""
         with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
@@ -295,6 +364,15 @@ class CacheIndexDB:
         path: Union[str, Path],
         created_at: Optional[str] = None,
     ) -> PreprocessingPlanCacheIndexRecord:
+        """
+        Insert or update a preprocessing-plan index row.
+
+        Returns:
+            Persisted index record.
+
+        Raises:
+            RuntimeError: When the row cannot be read back after insert.
+        """
         with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
@@ -316,6 +394,7 @@ class CacheIndexDB:
         return record
     
     def get_preprocessing_plan(self, plan_hash: str) -> Optional[PreprocessingPlanCacheIndexRecord]:
+        """Return the preprocessing-plan row for ``plan_hash``, if present."""
         with closing(self._connect()) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -329,6 +408,7 @@ class CacheIndexDB:
         return self._preprocessing_plan_record_from_row(row)
 
     def _init_db(self) -> None:
+        """Create cache index tables and apply lightweight schema migrations."""
         with closing(self._connect()) as conn:
             with conn:
                 cur = conn.cursor()
@@ -439,6 +519,7 @@ class CacheIndexDB:
         )
 
     def _ensure_tensor_table_schema(self, cur: sqlite3.Cursor) -> None:
+        """Add legacy columns missing from early tensor-data index schemas."""
         columns = self._table_columns(cur, self.TENSOR_DATA_TABLE)
         if "state" not in columns:
             cur.execute(
@@ -447,6 +528,12 @@ class CacheIndexDB:
             )
 
     def _ensure_preprocessing_models_table_schema(self, cur: sqlite3.Cursor) -> None:
+        """
+        Recreate the preprocessing-model table when an outdated schema is detected.
+
+        Existing model index rows are dropped because primary-key layout cannot be
+        migrated in place.
+        """
         columns = self._table_columns(cur, self.PREPROCESSING_MODELS_TABLE)
         required_columns = {"step_order", "step_name", "method", "features_idx"}
         primary_key_columns = {
@@ -496,12 +583,14 @@ class CacheIndexDB:
 
     @staticmethod
     def _features_idx_to_json(features_idx: Optional[Any]) -> Optional[str]:
+        """Serialize feature-index metadata for SQLite storage."""
         if features_idx is None:
             return None
         return json.dumps(normalize_for_hash(features_idx), ensure_ascii=False, sort_keys=True)
 
     @staticmethod
     def _features_idx_from_json(features_idx: Optional[str]) -> Optional[Any]:
+        """Deserialize feature-index metadata loaded from SQLite."""
         if features_idx is None:
             return None
         return json.loads(features_idx)

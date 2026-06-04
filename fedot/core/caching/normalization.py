@@ -136,6 +136,13 @@ def stable_hash(obj: Any, *, digest_size: int = 16) -> str:
 
     Common runtime values such as tensors, arrays, enums, dataclasses and paths
     are converted to JSON-compatible values before hashing.
+
+    Args:
+        obj: Object to fingerprint through ``normalize_for_hash``.
+        digest_size: Blake2b digest size in bytes.
+
+    Returns:
+        Hexadecimal hash string.
     """
     data = _stable_bytes(obj)
     return hashlib.blake2b(data, digest_size=digest_size).hexdigest()
@@ -236,9 +243,19 @@ def prepare_value_for_torch_save(value: Any) -> Any:
 
 def build_tensor_data_payload(td: Any) -> dict[str, Any]:
     """
-    Build TensorData payload automatically from dataclass fields.
+    Build a torch-save payload for ``TensorData`` from dataclass fields.
 
-    This avoids hardcoding TensorData field names.
+    Field values are normalized for disk persistence without hard-coding
+    ``TensorData`` attribute names.
+
+    Args:
+        td: ``TensorData`` instance to serialize.
+
+    Returns:
+        Dictionary with ``format``, ``class_path``, and ``fields`` entries.
+
+    Raises:
+        TypeError: When ``td`` is not a dataclass instance.
     """
     if not is_dataclass(td):
         raise TypeError(f"Expected dataclass TensorData, got {type(td)}")
@@ -280,7 +297,16 @@ def _prepare_preprocessing_state_value(value: Any) -> Any:
 
 
 def build_preprocessing_model_payload(data: Any) -> Any:
-    """Prepare fitted preprocessing state for pickle without mutating the source model."""
+    """
+    Prepare fitted preprocessing state for pickle without mutating the source model.
+
+    Args:
+        data: Fitted preprocessing handler or class.
+
+    Returns:
+        Shallow clone with normalized ``__dict__`` values, or the original object
+        when no instance state is available.
+    """
     if inspect.isclass(data) or not hasattr(data, "__dict__"):
         return data
 
@@ -295,7 +321,19 @@ def build_preprocessing_model_payload(data: Any) -> Any:
 
 
 def restore_tensor_data_payload(payload: dict[str, Any]) -> TensorData:
-    """Restore `TensorData` from a normalized torch-save payload."""
+    """
+    Restore ``TensorData`` from a normalized torch-save payload.
+
+    Args:
+        payload: Dictionary saved by ``build_tensor_data_payload`` or a legacy
+            ``TensorData`` instance.
+
+    Returns:
+        ``TensorData`` moved to the active FEDOT backend device.
+
+    Raises:
+        ValueError: When the payload format or structure is unsupported.
+    """
     if isinstance(payload, TensorData):
         return payload.to(Backend().device)
 
@@ -429,7 +467,20 @@ def normilize_cleaning_strategy(
     tensor_data_hashes: Optional[Union[str, List[str]]],
     ratio_first_tensor_data: Optional[int],
 ) -> NormalizedCleaningStrategyResponse:
+    """
+    Normalize cache-cleaning arguments into a resolved strategy object.
 
+    Relative ``ratio_first_tensor_data`` values below ``1`` are treated as a
+    fraction of existing artifacts; values ``>= 1`` are treated as percents.
+
+    Args:
+        mode: Requested cleaning mode or its string value.
+        tensor_data_hashes: Explicit tensor output hashes for ``tensor_data`` mode.
+        ratio_first_tensor_data: Count or ratio for ``first_n_tensor_data`` mode.
+
+    Returns:
+        ``NormalizedCleaningStrategyResponse`` consumed by ``CacheCleaner``.
+    """
     try:
         mode = CacheModeEnum(mode) if isinstance(mode, str) else mode
     except ValueError:
@@ -479,4 +530,10 @@ def normilize_cleaning_strategy(
 
 
 def get_all_tensor_data_hashes() -> List[str]:
+    """
+    List output hashes for all ``.pt`` files in ``CACHE_DIR/tensor_data``.
+
+    Returns:
+        File stems without the ``.pt`` extension.
+    """
     return [path.name.split(".")[0] for path in (CACHE_DIR / "tensor_data").glob("*.pt")]
