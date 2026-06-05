@@ -62,23 +62,20 @@ class BenchmarkRunConfig:
     include_baseline: bool = True
     include_sampling: bool = True
     sampling_config: Dict[str, Any] = field(default_factory=dict)
+    chunked_ensemble_config: Dict[str, Any] = field(default_factory=dict)
 
 
 def _default_sampling_config(seed: int) -> Dict[str, Any]:
     return {
+        'strategy_kind': 'chunking',
         'provider': 'sampling_zoo',
         'strategy': 'random',
         'strategy_params': {},
         'candidate_ratios': [0.15, 0.2, 0.3, 0.5],
         'delta_metric_threshold': 0.03,
-        'delta_type': 'relative',
-        'validation_size': 0.2,
-        'budget_policy': 'dynamic_cap',
         'cap_max_timeout_share': 0.35,
         'min_automl_time_minutes': 0.1,
         'infinite_timeout_cap_minutes': 5.0,
-        'error_policy': 'fail_fast',
-        'artifact_mode': 'minimal',
         'random_state': seed,
     }
 
@@ -494,6 +491,11 @@ def _run_fedot_mode(dataset: LoadedDataset,
     history_dir = mode_dir / 'composer_history'
     history_dir.mkdir(parents=True, exist_ok=True)
 
+    chunked_ensemble_config = (
+        dict(config.chunked_ensemble_config)
+        if sampling_config is not None and sampling_config.get('strategy_kind') == 'chunking'
+        else None
+    )
     fedot_params: Dict[str, Any] = {
         'problem': dataset.spec.task_type,
         'timeout': config.timeout_minutes_per_dataset,
@@ -506,6 +508,7 @@ def _run_fedot_mode(dataset: LoadedDataset,
         'history_dir': str(history_dir),
         'keep_history': True,
         'sampling_config': dict(sampling_config) if sampling_config is not None else None,
+        'chunked_ensemble_config': chunked_ensemble_config,
     }
 
     run_started = perf_counter()
@@ -843,6 +846,7 @@ def _build_config_from_args(args: argparse.Namespace) -> BenchmarkRunConfig:
         include_baseline=not args.disable_baseline,
         include_sampling=not args.disable_sampling,
         sampling_config=sampling_config,
+        chunked_ensemble_config={'validation_size': 0.2},
     )
 
 

@@ -16,6 +16,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective.data_source_context import build_internal_composer_data_source_context
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
 from fedot.core.pipelines.node import PipelineNode
@@ -28,6 +29,10 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
+
+
+def _composer_context(data, cv_folds=None):
+    return build_internal_composer_data_source_context(data, cv_folds=cv_folds)
 
 
 def to_categorical_codes(categorical_ids: np.ndarray):
@@ -113,7 +118,9 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
         req).with_optimizer_params(params).with_metrics(metric_function)
     gp_composer = builder.build()
     pipeline_gp_composed = gp_composer.compose_pipeline(
-        data=dataset_to_compose)
+        data=dataset_to_compose,
+        data_source_context=_composer_context(dataset_to_compose),
+    )
 
     pipeline_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
     predicted_gp_composed = pipeline_gp_composed.predict(dataset_to_validate)
@@ -157,7 +164,9 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
         .with_metrics(ClassificationMetricsEnum.ROCAUC) \
         .build()
     pipeline_gp_composed = gp_composer.compose_pipeline(
-        data=dataset_to_compose)
+        data=dataset_to_compose,
+        data_source_context=_composer_context(dataset_to_compose),
+    )
 
     pipeline_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
     predicted_gp_composed = pipeline_gp_composed.predict(dataset_to_validate)
@@ -194,7 +203,10 @@ def test_multi_objective_composer(data_fixture, request):
         .with_optimizer_params(params)
         .build()
     )
-    pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
+    pipelines_evo_composed = composer.compose_pipeline(
+        data=dataset_to_compose,
+        data_source_context=_composer_context(dataset_to_compose),
+    )
     pipelines_roc_auc = []
 
     assert isinstance(pipelines_evo_composed, list)
@@ -239,7 +251,10 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
         .build()
     )
 
-    composer.compose_pipeline(data=dataset_to_compose)
+    composer.compose_pipeline(
+        data=dataset_to_compose,
+        data_source_context=_composer_context(dataset_to_compose),
+    )
 
     generations = composer.history.individuals
     current_depth = composer.optimizer.requirements.max_depth

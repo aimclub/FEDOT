@@ -123,3 +123,7 @@ class MetricsRepository:
     @staticmethod
     def get_metric_class(metric_name: MetricsEnum) -> Union[QualityMetric, ComplexityMetric]:
         return MetricsRepository._metrics_classes[metric_name]
+
+
+def metric_name(metric: MetricIDType) -> str:
+    return str(getattr(metric, 'value', metric)).lower()

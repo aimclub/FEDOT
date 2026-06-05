@@ -70,7 +70,7 @@
       "description": "TabPFN implementations for classification problems",
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.tabpfn",
+        "fedot.core.operations.evaluation.foundational",
         "TabPFNClassificationStrategy"
       ],
       "tags": [
@@ -91,13 +91,55 @@
       "description": "TabPFN implementations for regression problems",
       "forbidden_node_types": "[]",
       "strategies": [
-        "fedot.core.operations.evaluation.tabpfn",
+        "fedot.core.operations.evaluation.foundational",
         "TabPFNRegressionStrategy"
       ],
       "tags": [
         "neural",
         "non_linear",
         "tabpfn",
+        "non-default",
+        "gpu"
+      ]
+    },
+    "tabicl_gpu_class": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabICL implementations for classification problems",
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.foundational",
+        "TabICLClassificationStrategy"
+      ],
+      "tags": [
+        "neural",
+        "non_linear",
+        "tabicl",
+        "non-default",
+        "gpu"
+      ]
+    },
+    "tabicl_gpu_regr": {
+      "tasks": "[TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "TabICL implementations for regression problems",
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.foundational",
+        "TabICLRegressionStrategy"
+      ],
+      "tags": [
+        "neural",
+        "non_linear",
+        "tabicl",
         "non-default",
         "gpu"
       ]
@@ -184,6 +226,16 @@
     },
     "tabpfnreg_gpu": {
       "meta": "tabpfn_gpu_regr",
+      "presets": ["gpu"],
+      "tags": ["non_auto"]
+    },
+    "tabicl_gpu": {
+      "meta": "tabicl_gpu_class",
+      "presets": ["gpu"],
+      "tags": ["non_auto"]
+    },
+    "tabiclreg_gpu": {
+      "meta": "tabicl_gpu_regr",
       "presets": ["gpu"],
       "tags": ["non_auto"]
     }

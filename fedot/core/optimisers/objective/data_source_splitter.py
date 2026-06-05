@@ -113,6 +113,13 @@ class DataSourceSplitter:
     def _data_producer(train_data: InputData, test_data: InputData):
         yield train_data, test_data
 
+    @staticmethod
+    def build_holdout_producer_from_split(train_data: InputData, test_data: InputData) -> DataSource:
+        if RemoteEvaluator().is_enabled:
+            init_data_for_remote_execution(train_data)
+
+        return partial(DataSourceSplitter._data_producer, train_data, test_data)
+
     def _build_holdout_producer(self, data: InputData) -> DataSource:
         """
         Build trivial data producer for hold-out validation
@@ -126,10 +133,7 @@ class DataSourceSplitter:
                                                       shuffle=self.shuffle,
                                                       validation_blocks=self.validation_blocks)
 
-        if RemoteEvaluator().is_enabled:
-            init_data_for_remote_execution(train_data)
-
-        return partial(self._data_producer, train_data, test_data)
+        return self.build_holdout_producer_from_split(train_data, test_data)
 
     def _propose_cv_folds_and_validation_blocks(self, data, expected_window_size=20):
         data_shape = data.target.shape[0]

@@ -2,9 +2,12 @@ import numpy as np
 import pytest
 
 from fedot import Fedot
+from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.common.enums import StateEnum
+from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig, EnsembleMethod
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -15,7 +18,7 @@ class _StubPipeline(Pipeline):
         super().__init__()
         self.calls = []
 
-    def predict(self, test_data, output_mode='default'):
+    def predict(self, test_data, output_mode='default', predictions_cache=None, fold_id=None):
         self.calls.append(('predict', output_mode))
         return OutputData(
             idx=np.arange(2),
@@ -108,6 +111,86 @@ def test_main_facade_uses_service_rule_for_predict_proba_mode_selection():
         [[1.0], [2.0]]), probs_for_all_classes=True)
 
     assert model.current_pipeline.calls == [('predict', 'full_probs')]
+
+
+def test_main_facade_predict_skips_shared_auto_preprocessing_for_pipeline_ensemble():
+    model = Fedot(problem='classification', use_auto_preprocessing=True)
+    model.current_pipeline = PipelineEnsemble(
+        pipelines=[_StubPipeline()],
+        validation_metric='f1',
+    )
+    model.target = 'target'
+    model.data_processor.define_data = lambda **kwargs: type(
+        'Input',
+        (),
+        {
+            'task': Task(TaskTypesEnum.classification),
+            'idx': np.arange(2),
+            'features': np.array([[1.0], [2.0]]),
+            'target': None,
+            'data_type': DataTypesEnum.table,
+        },
+    )()
+
+    def fail_transform(*args, **kwargs):
+        raise AssertionError('Shared API preprocessing must not run for PipelineEnsemble predict path.')
+
+    model.data_processor.transform = fail_transform
+
+    prediction = model.predict(features=np.array([[1.0], [2.0]]))
+
+    assert prediction.shape == (2,)
+    assert model.current_pipeline.pipelines[0].calls == [('predict', 'labels'), ('predict', 'probs')]
+
+
+def test_log_applied_sampling_config_reports_full_applied_config():
+    model = Fedot(problem='classification')
+    captured = {'info': [], 'warning': []}
+    model.log.info = captured['info'].append
+    model.log.warning = captured['warning'].append
+
+    model._log_applied_config(
+        SamplingChunkingConfig(
+            strategy_kind='chunking',
+            strategy='rmt',
+            strategy_params={'n_partitions': 4},
+            random_state=7,
+        ),
+        label='sampling',
+    )
+
+    assert captured['info'] == [
+        "Applied sampling config: {'strategy_kind': 'chunking', 'provider': 'sampling_zoo', "
+        "'strategy': 'rmt', 'strategy_params': {'n_partitions': 4}, 'cap_max_timeout_share': 0.35, "
+        "'min_automl_time_minutes': 0.1, 'infinite_timeout_cap_minutes': 5.0, 'random_state': 7}"
+    ]
+    assert captured['warning'] == []
+
+
+def test_log_applied_chunked_ensemble_config_reports_full_applied_config():
+    model = Fedot(problem='classification')
+    captured = {'info': [], 'warning': []}
+    model.log.info = captured['info'].append
+    model.log.warning = captured['warning'].append
+
+    model._log_applied_config(
+        ChunkedEnsembleConfig(
+            validation_size=0.3,
+            validation_split_seed=11,
+            ensemble_method=EnsembleMethod.weighted,
+            ensemble_params={'temperature': 0.5},
+            batch_size=2048,
+            min_successful_chunks=2,
+        ),
+        label='chunked ensemble',
+    )
+
+    assert captured['info'] == [
+        "Applied chunked ensemble config: {'validation_size': 0.3, 'validation_split_seed': 11, "
+        "'ensemble_method': 'weighted', 'ensemble_params': {'temperature': 0.5}, "
+        "'batch_size': 2048, 'min_successful_chunks': 2}"
+    ]
+    assert captured['warning'] == []
 
 
 def test_main_facade_forecast_requires_time_series_task():
@@ -304,6 +387,32 @@ def test_main_facade_tune_tensordata_uses_tensor_tuner_runtime_path(monkeypatch)
     assert model.train_data is converted_input
     assert model.target == 'converted-target'
     assert model.current_pipeline.preprocessor is merged_preprocessor
+
+
+def test_main_facade_merges_ensemble_preprocessors_per_pipeline(monkeypatch):
+    model = Fedot(problem='classification')
+    model.data_processor.preprocessor = type('ApiPreprocessor', (), {'name': 'api'})()
+    pipeline_a = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-a'})()
+    pipeline_b = type('PipelineStub', (), {'use_input_preprocessing': True, 'preprocessor': 'preprocessor-b'})()
+    model.current_pipeline = PipelineEnsemble(
+        pipelines=[pipeline_a, pipeline_b],
+        validation_metric='rmse',
+    )
+    captured = []
+
+    def fake_merge_preprocessors(api_preprocessor, pipeline_preprocessor, use_auto_preprocessing):
+        captured.append((api_preprocessor, pipeline_preprocessor, use_auto_preprocessing))
+        return f'merged-{pipeline_preprocessor}'
+
+    monkeypatch.setattr('fedot.api.main.BasePreprocessor.merge_preprocessors', fake_merge_preprocessors)
+
+    model._merge_current_pipeline_preprocessors()
+
+    assert [item[1] for item in captured] == ['preprocessor-a', 'preprocessor-b']
+    assert all(item[0] is not model.data_processor.preprocessor for item in captured)
+    assert captured[0][0] is not captured[1][0]
+    assert pipeline_a.preprocessor == 'merged-preprocessor-a'
+    assert pipeline_b.preprocessor == 'merged-preprocessor-b'
 
 
 def test_main_facade_get_metrics_tensordata_uses_tensor_prediction_and_legacy_metrics_flow():

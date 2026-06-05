@@ -1,4 +1,4 @@
-﻿from dataclasses import asdict
+from dataclasses import asdict
 from typing import Any, Callable, Dict
 
 from fedot.core.constants import AUTO_PRESET_NAME
@@ -46,6 +46,7 @@ def build_default_api_params(task_type: TaskTypesEnum, default_data_dir: str) ->
         with_tuning=True,
         seed=None,
         sampling_config=None,
+        chunked_ensemble_config=None,
     )
 
 
@@ -60,9 +61,16 @@ def normalize_sampling_config(config: Any, validator: Callable[[Any], Any]):
     return asdict(validated_sampling_config) if validated_sampling_config else None
 
 
+def normalize_chunked_ensemble_config(config: Any, validator: Callable[[Any], Any]):
+    if config is None:
+        return None
+    return validator(config).to_dict()
+
+
 def apply_default_params(params: Dict[str, Any],
                          default_params: Dict[str, Any],
-                         sampling_validator: Callable[[Any], Any]) -> Dict[str, Any]:
+                         sampling_validator: Callable[[Any], Any],
+                         chunked_ensemble_validator: Callable[[Any], Any]) -> Dict[str, Any]:
     validate_api_param_keys(params, default_params.keys())
 
     normalized_params = dict(params)
@@ -70,6 +78,11 @@ def apply_default_params(params: Dict[str, Any],
         normalized_params['sampling_config'] = normalize_sampling_config(
             normalized_params['sampling_config'],
             sampling_validator,
+        )
+    if 'chunked_ensemble_config' in normalized_params:
+        normalized_params['chunked_ensemble_config'] = normalize_chunked_ensemble_config(
+            normalized_params['chunked_ensemble_config'],
+            chunked_ensemble_validator,
         )
 
     for key, value in default_params.items():

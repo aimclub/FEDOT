@@ -7,6 +7,7 @@ from golem.core.optimisers.genetic.operators.mutation import MutationTypesEnum
 from fedot.api.api_utils.api_params_repository_rules import apply_default_params, build_default_api_params
 from fedot.api.sampling_stage.config import validate_sampling_config
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, add_resample_mutation
+from fedot.core.pipelines.ensembling.config import validate_chunked_ensemble_config
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir
 
@@ -21,7 +22,7 @@ class ApiParamsRepository:
                                   'early_stopping_iterations', 'early_stopping_timeout',
                                   'parallelization_mode', 'use_input_preprocessing',
                                   'show_progress', 'collect_intermediate_metric', 'keep_n_best',
-                                  'keep_history', 'history_dir', 'cv_folds'}
+                                  'keep_history', 'history_dir'}
 
     STATIC_INDIVIDUAL_METADATA_KEYS = {'use_input_preprocessing'}
 
@@ -42,6 +43,7 @@ class ApiParamsRepository:
             params=params,
             default_params=self.default_params,
             sampling_validator=validate_sampling_config,
+            chunked_ensemble_validator=validate_chunked_ensemble_config,
         )
 
     @staticmethod
