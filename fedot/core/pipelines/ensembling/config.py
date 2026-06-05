@@ -17,6 +17,7 @@ class ChunkedEnsembleConfig:
     ensemble_method: EnsembleMethod = EnsembleMethod.voting
     ensemble_params: Dict[str, Any] = field(default_factory=dict)
     batch_size: int = 10000
+    min_successful_chunks: int = 1
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -25,6 +26,7 @@ class ChunkedEnsembleConfig:
             'ensemble_method': self.ensemble_method.value,
             'ensemble_params': self.ensemble_params,
             'batch_size': self.batch_size,
+            'min_successful_chunks': self.min_successful_chunks,
         }
 
 
@@ -62,6 +64,8 @@ def _validate_chunked_ensemble_config_values(config: ChunkedEnsembleConfig) -> N
         raise ValueError('"chunked_ensemble_config.ensemble_params" must be a dictionary.')
     if config.batch_size <= 0:
         raise ValueError('"chunked_ensemble_config.batch_size" must be > 0.')
+    if config.min_successful_chunks <= 0:
+        raise ValueError('"chunked_ensemble_config.min_successful_chunks" must be > 0.')
 
 
 def _validate_ensemble_method(value: Any) -> EnsembleMethod:

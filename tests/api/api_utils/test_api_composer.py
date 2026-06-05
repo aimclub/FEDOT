@@ -5,6 +5,7 @@ import numpy as np
 import fedot.api.api_utils.api_composer as composer_module
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -175,6 +176,84 @@ def test_obtain_ensemble_model_uses_external_validation_for_chunk_composition(mo
     assert [call.validation_data for call in captured_calls] == [validation_data, validation_data]
     assert len(ensemble.pipelines) == len(chunks)
     assert len(best_models) == len(chunks)
+    assert histories == []
+
+
+def test_obtain_ensemble_model_raises_when_successful_chunk_threshold_is_not_met(monkeypatch):
+    class _FakeEnsemble:
+        def __init__(self, pipelines, validation_metric, ensemble_method, pipeline_infos, **kwargs):
+            self.pipelines = pipelines
+            self.pipeline_infos = pipeline_infos
+            self.validation_metric = validation_metric
+
+    monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
+
+    params = _FakeParams(use_input_preprocessing=False)
+    composer = ApiComposer(params, metrics=['f1'])
+
+    def _fake_obtain_model_with_external_validation(train_data, validation_data):
+        if train_data.idx[0] == 0:
+            raise ValueError('synthetic chunk failure')
+        return _FakePipeline(), [_FakePipeline()], None
+
+    monkeypatch.setattr(composer, 'obtain_model_with_external_validation',
+                        _fake_obtain_model_with_external_validation)
+
+    first_chunk = _FakeChunk()
+    second_chunk = _FakeChunk()
+    second_chunk.idx = [10, 11, 12]
+    validation_data = _FakeChunk(size=2)
+
+    try:
+        composer.obtain_ensemble_model(
+            [first_chunk, second_chunk],
+            validation_data=validation_data,
+            chunked_ensemble_config=ChunkedEnsembleConfig(min_successful_chunks=2),
+        )
+    except ValueError as ex:
+        message = str(ex)
+    else:
+        raise AssertionError('Expected ValueError when successful chunk threshold is not met')
+
+    assert 'at least 2 successful chunks' in message
+    assert 'synthetic chunk failure' in message
+    assert "'chunk_idx': 0" in message
+
+
+def test_obtain_ensemble_model_accepts_single_success_when_threshold_is_met(monkeypatch):
+    class _FakeEnsemble:
+        def __init__(self, pipelines, validation_metric, ensemble_method, pipeline_infos, **kwargs):
+            self.pipelines = pipelines
+            self.pipeline_infos = pipeline_infos
+            self.validation_metric = validation_metric
+
+    monkeypatch.setattr(composer_module, 'PipelineEnsemble', _FakeEnsemble)
+    monkeypatch.setattr(composer_module, 'calculate_validation_metrics', lambda **kwargs: {'f1': -1.0})
+
+    params = _FakeParams(use_input_preprocessing=False)
+    composer = ApiComposer(params, metrics=['f1'])
+
+    def _fake_obtain_model_with_external_validation(train_data, validation_data):
+        if train_data.idx[0] == 0:
+            raise ValueError('synthetic chunk failure')
+        return _FakePipeline(), [_FakePipeline()], None
+
+    monkeypatch.setattr(composer, 'obtain_model_with_external_validation',
+                        _fake_obtain_model_with_external_validation)
+
+    first_chunk = _FakeChunk()
+    second_chunk = _FakeChunk()
+    second_chunk.idx = [10, 11, 12]
+    validation_data = _FakeChunk(size=2)
+
+    ensemble, best_models, histories = composer.obtain_ensemble_model(
+        [first_chunk, second_chunk],
+        validation_data=validation_data,
+        chunked_ensemble_config=ChunkedEnsembleConfig(min_successful_chunks=1),
+    )
+
+    assert len(ensemble.pipelines) == 1
+    assert len(best_models) == 1
     assert histories == []
 
 

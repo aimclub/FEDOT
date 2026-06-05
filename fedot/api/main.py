@@ -218,8 +218,7 @@ class Fedot:
                     class_representatives = prepared_validation.class_representatives
                 if sampling_stage_plan.skip_metadata is not None:
                     self.sampling_stage_metadata = sampling_stage_plan.skip_metadata
-                    if sampling_stage_plan.skip_metadata['reason'] == 'atomized_initial_assumption':
-                        self.log.message('Composition for AtomizedModel currently unavailable')
+                    self.log.message('Composition for AtomizedModel currently unavailable')
                 elif sampling_stage_plan.should_run_sampling_stage:
                     self._run_sampling_stage_if_necessary()
 
@@ -233,9 +232,7 @@ class Fedot:
                                 validation_data=ensemble_validation_data,
                                 class_representatives=class_representatives,
                                 api_preprocessor=self.data_processor.preprocessor,
-                                ensemble_method=chunked_ensemble_config.ensemble_method.value,
-                                ensemble_params=chunked_ensemble_config.ensemble_params,
-                                ensemble_batch_size=chunked_ensemble_config.batch_size,
+                                chunked_ensemble_config=chunked_ensemble_config,
                                 routing_context=self.sampling_routing_context,
                             )
                     elif predefined_model is not None:

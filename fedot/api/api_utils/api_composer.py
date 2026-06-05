@@ -26,6 +26,7 @@ from fedot.core.optimisers.objective.data_source_context import (
     build_external_holdout_composer_data_source_context,
     build_internal_composer_data_source_context,
 )
+from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.ensembling.utils import (
     calculate_validation_metrics,
@@ -166,9 +167,7 @@ class ApiComposer:
                               validation_data: Optional[InputData] = None,
                               class_representatives: Optional[dict] = None,
                               api_preprocessor=None,
-                              ensemble_method: str = 'voting',
-                              ensemble_params: Optional[dict] = None,
-                              ensemble_batch_size: int = 10000,
+                              chunked_ensemble_config: Optional[ChunkedEnsembleConfig] = None,
                               routing_context: Optional[SamplingRoutingContext] = None) -> \
             Tuple[PipelineEnsemble, Sequence[Sequence[Pipeline]], List[OptHistory]]:
         if not train_data_list:
@@ -180,12 +179,13 @@ class ApiComposer:
         pipeline_infos = []
         best_models: List[Sequence[Pipeline]] = []
         histories: List[OptHistory] = []
+        chunk_failures = []
         initial_timeout = self.params.timeout
         started_at = time.perf_counter()
 
         task_type = train_data_list[0].task.task_type
         validation_metric = metric_name(self.metrics[0])
-        ensemble_params = ensemble_params or {}
+        chunked_ensemble_config = chunked_ensemble_config or ChunkedEnsembleConfig()
 
         for chunk_idx, chunk_data in enumerate(train_data_list):
             current_chunk = chunk_data
@@ -226,13 +226,31 @@ class ApiComposer:
                     else 'Failed to build chunk pipeline'
                 )
                 self.log.message(f'{error_message} #{chunk_idx}: {ex}')
+                chunk_failures.append({
+                    'chunk_idx': chunk_idx,
+                    'status': 'failed',
+                    'reason': 'exception',
+                    'message': str(ex),
+                })
                 continue
             if pipeline is None:
                 self.log.message(f'No models were found for chunk #{chunk_idx}. Chunk is skipped.')
+                chunk_failures.append({
+                    'chunk_idx': chunk_idx,
+                    'status': 'failed',
+                    'reason': 'no_models_found',
+                    'message': 'No models were found for chunk.',
+                })
                 continue
             self._fit_chunk_pipeline_for_ensemble(pipeline, current_chunk, history)
             if not pipeline.is_fitted:
                 self.log.message(f'Chunk pipeline #{chunk_idx} was not fitted after final fit stage. Chunk is skipped.')
+                chunk_failures.append({
+                    'chunk_idx': chunk_idx,
+                    'status': 'failed',
+                    'reason': 'pipeline_not_fitted',
+                    'message': 'Chunk pipeline was not fitted after final fit stage.',
+                })
                 continue
 
             pipelines.append(pipeline)
@@ -277,17 +295,21 @@ class ApiComposer:
             )
 
         self.params.timeout = initial_timeout
-        if not pipelines:
-            raise ValueError('No models were found for ensemble chunks.')
+        if len(pipelines) < chunked_ensemble_config.min_successful_chunks:
+            raise ValueError(
+                f'Chunked ensemble requires at least {chunked_ensemble_config.min_successful_chunks} '
+                f'successful chunks, '
+                f'but got {len(pipelines)}. Failure report: {chunk_failures}'
+            )
 
         ensemble = PipelineEnsemble(
             pipelines=pipelines,
             validation_metric=validation_metric,
-            ensemble_method=ensemble_method,
+            ensemble_method=chunked_ensemble_config.ensemble_method.value,
             pipeline_infos=pipeline_infos,
             routing_context=routing_context,
-            ensemble_params=ensemble_params,
-            batch_size=ensemble_batch_size,
+            ensemble_params=chunked_ensemble_config.ensemble_params,
+            batch_size=chunked_ensemble_config.batch_size,
         )
 
         return ensemble, best_models, histories

@@ -61,6 +61,7 @@ def test_normalize_chunked_ensemble_config_uses_validator_result():
         'ensemble_method': 'weighted',
         'ensemble_params': {'alpha': 0.5},
         'batch_size': 512,
+        'min_successful_chunks': 1,
     }
     assert normalize_chunked_ensemble_config(None, lambda _: config) is None
 

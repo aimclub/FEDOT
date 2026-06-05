@@ -44,6 +44,7 @@ def test_api_params_repository_preserves_valid_chunked_ensemble_config():
         'ensemble_method': 'weighted',
         'ensemble_params': {'alpha': 0.5},
         'batch_size': 512,
+        'min_successful_chunks': 1,
     }
 
 
