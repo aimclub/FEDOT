@@ -23,7 +23,8 @@ def single_detecting_boundaries(target_series,
     """
 
     if (target_series is not None) and (target_list_ts is not None):
-        raise ValueError('Cannot perform boundaries extraction from both the series and the list of timestamps')
+        raise ValueError(
+            'Cannot perform boundaries extraction from both the series and the list of timestamps')
     elif target_series is not None:
         target_timestamps = target_series[target_series == 1].index
     elif target_list_ts is not None:
@@ -32,7 +33,8 @@ def single_detecting_boundaries(target_series,
         else:
             target_timestamps = target_list_ts
     else:
-        raise ValueError('Cannot perform boundaries extraction: should extract from series or list of timestamps')
+        raise ValueError(
+            'Cannot perform boundaries extraction: should extract from series or list of timestamps')
 
     detecting_boundaries = []
     td = pd.Timedelta(window_width) if window_width is not None else pd.Timedelta(
@@ -45,7 +47,8 @@ def single_detecting_boundaries(target_series,
         elif anomaly_window_destination == 'center':
             detecting_boundaries.append([val - td / 2, val + td / 2])
         else:
-            raise ValueError('Parameter anomaly_window_destination should be either "lefter", "righter" or "center"')
+            raise ValueError(
+                'Parameter anomaly_window_destination should be either "lefter", "righter" or "center"')
 
     # block for resolving intersection problem:
     # important to watch right boundary to be never included to avoid windows intersection

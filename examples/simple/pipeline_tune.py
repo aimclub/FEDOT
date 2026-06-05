@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.real_cases.data.data_utils import get_scoring_case_data_paths
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum
@@ -78,6 +78,7 @@ if __name__ == '__main__':
                                                                    local_iter=local_iter)
 
     print(f'Several test scores {several_iter_scores_test}')
-    print(f'Maximal test score over {local_iter} iterations: {after_tune_roc_auc}')
+    print(
+        f'Maximal test score over {local_iter} iterations: {after_tune_roc_auc}')
     print(f'ROC-AUC before tuning {round(bfr_tun_roc_auc, 3)}')
     print(f'ROC-AUC after tuning {round(after_tune_roc_auc, 3)}')

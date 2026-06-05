@@ -85,7 +85,8 @@ class IndustrialConfig(ConfigTemplate):
             task_params=kwargs.get('task_params', {}),
             regression_tasks=self.regression_tasks,
         )
-        self.task_params = context_plan.normalized_task_params or kwargs.get('task_params', {})
+        self.task_params = context_plan.normalized_task_params or kwargs.get(
+            'task_params', {})
         self.is_forecasting_context = context_plan.is_forecasting_context
         return self.is_forecasting_context
 
@@ -106,7 +107,8 @@ class IndustrialConfig(ConfigTemplate):
         return self.industrial_opt
 
     def with_input_preprocessing(self, kwargs):
-        self.use_input_preprocessing = kwargs.get('use_input_preprocessing', False)
+        self.use_input_preprocessing = kwargs.get(
+            'use_input_preprocessing', False)
         return self.use_input_preprocessing
 
     def build(self, config: dict = None):
@@ -130,7 +132,8 @@ class ComputationalConfig(ConfigTemplate):
                      'automl_folder': self.with_automl_folder}
         self.default_dask_params = dict(processes=False,
                                         n_workers=1,
-                                        threads_per_worker=round(cpu_count() / 2),
+                                        threads_per_worker=round(
+                                            cpu_count() / 2),
                                         memory_limit=0.3
                                         )
 
@@ -208,7 +211,8 @@ class AutomlConfig(ConfigTemplate):
     def with_available_operations(self, available_operations: List[str] = None):
         self.available_operations = available_operations
         if self.available_operations is None:
-            self.available_operations = default_industrial_availiable_operation(self.task)
+            self.available_operations = default_industrial_availiable_operation(
+                self.task)
         return self.available_operations
 
     def with_optimisation_strategy(self, optimisation_strategy: dict = None):

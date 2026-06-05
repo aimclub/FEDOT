@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.ensembling.utils import calculate_validation_metrics

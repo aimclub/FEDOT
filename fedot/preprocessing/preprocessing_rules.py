@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Any, Iterable, Tuple
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.tools import StateEnum
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.common.enums import StateEnum
 
 
 @dataclass(frozen=True)

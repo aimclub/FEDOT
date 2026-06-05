@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.industrial.core.repository.constanst_repository import (
     FEDOT_TUNER_STRATEGY,
     FEDOT_TUNING_METRICS,
@@ -76,7 +76,8 @@ def build_industrial_metrics_plan(target, predicted_labels, has_target_encoder: 
     return IndustrialMetricsPlan(
         valid_shape=target.shape,
         prediction_is_mapping=isinstance(predicted_labels, dict),
-        use_target_encoder=has_target_encoder and not isinstance(predicted_labels, dict),
+        use_target_encoder=has_target_encoder and not isinstance(
+            predicted_labels, dict),
     )
 
 
@@ -155,7 +156,8 @@ def build_industrial_save_plan(mode: str, is_fedot_solver: bool) -> IndustrialSa
 def build_industrial_load_plan(path: str, dir_list) -> IndustrialLoadPlan:
     resolved_path = path
     if 'pipeline_saved' not in path:
-        saved_pipes = [entry for entry in dir_list if 'pipeline_saved' in entry]
+        saved_pipes = [
+            entry for entry in dir_list if 'pipeline_saved' in entry]
         if saved_pipes:
             resolved_path = f'{path}/{saved_pipes[0]}'
     return IndustrialLoadPlan(

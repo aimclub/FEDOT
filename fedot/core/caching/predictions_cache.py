@@ -2,7 +2,7 @@ from typing import Optional
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.predictions_cache_db import PredictionsCacheDB
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 
 
 class PredictionsCache(BaseCache):
@@ -47,5 +47,6 @@ class PredictionsCache(BaseCache):
 
     def _load_prediction(self, uid: str):
         outputData = self._db.get_prediction(uid)
-        self.log.debug(f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
+        self.log.debug(
+            f"--- {'MISS' if outputData is None else 'HIT'} prediction cache: {uid}")
         return outputData

@@ -49,7 +49,8 @@ class OperationsPreset:
         preset_spec = parse_preset_spec(self.preset_name)
 
         if preset_spec.use_auto:
-            available_operations = get_operations_for_task(self.task, data_type, mode='all')
+            available_operations = get_operations_for_task(
+                self.task, data_type, mode='all')
             return available_operations
 
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
@@ -59,8 +60,10 @@ class OperationsPreset:
 
         self.modification_using = preset_spec.modification is not None
         if preset_spec.use_gpu:
-            repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
-            available_operations = repository.suitable_operation(task_type=self.task.task_type, data_type=data_type)
+            repository = OperationTypesRepository().assign_repo(
+                'model', 'gpu_models_repository.json')
+            available_operations = repository.suitable_operation(
+                task_type=self.task.task_type, data_type=data_type)
         else:
             base_operations = get_operations_for_task(
                 self.task,
@@ -75,12 +78,14 @@ class OperationsPreset:
                     mode='all',
                     preset=preset_spec.modification,
                 )
-                available_operations = list(merge_preset_operations(base_operations, mod_operations))
+                available_operations = list(
+                    merge_preset_operations(base_operations, mod_operations))
             else:
                 available_operations = base_operations
 
         if preset_spec.use_stable:
-            available_operations = list(exclude_operations(available_operations, excluded))
+            available_operations = list(
+                exclude_operations(available_operations, excluded))
 
         return finalize_operations(available_operations, excluded_tree)
 

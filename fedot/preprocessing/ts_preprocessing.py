@@ -2,11 +2,12 @@
 from typing import Optional, List
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.data_tools import get_idx_from_features_names
-from fedot.core.data.complex_types import ArrayType, IndexType
+from fedot.core.data.tensor_data.tools import get_idx_from_features_names
+from fedot.core.data.common.types import ArrayType, IndexType
 
-from fedot.core.data.tools import TSOrientationEnum, StateEnum
+from fedot.core.data.common.enums import TSOrientationEnum, StateEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.tensor_data.tools import replace_missing_with_np_nan
 
 
 def long_to_wide(features: ArrayType,
@@ -55,7 +56,8 @@ def long_to_wide(features: ArrayType,
 
     lengths = [arr.shape[0] for arr in split_arrays]
     if len(set(lengths)) != 1:
-        raise ValueError("All series must have the same length to convert to wide format.")
+        raise ValueError(
+            "All series must have the same length to convert to wide format.")
 
     wide = xp.stack(split_arrays, axis=0).astype(xp.float32)
     return wide, unique_labels
@@ -90,7 +92,8 @@ def reshape_and_get_init_shape(features: ArrayType):
         T, B, C = features.shape
         features = features.reshape(T, B * C)
     elif features.ndim > 3:
-        raise ValueError("Multichannel time series must not have more than 3 dimensions")
+        raise ValueError(
+            "Multichannel time series must not have more than 3 dimensions")
 
     return features, init_shape
 
@@ -103,7 +106,8 @@ def process_ts_data(
     ts_orientation: Optional[TSOrientationEnum] = None,
     terms_idx: int = None,
     forecast_horizon: int = None,
-    data_type: DataTypesEnum = DataTypesEnum.ts
+    data_type: DataTypesEnum = DataTypesEnum.ts,
+    without_target: bool = False
 ):
     """
     Apply time-series preprocessing and optional forecasting split.
@@ -143,6 +147,8 @@ def process_ts_data(
 
     features, init_shape = reshape_and_get_init_shape(features)
 
+    features = replace_missing_with_np_nan(features)
+
     if isinstance(ts_orientation, str):
         ts_orientation = TSOrientationEnum(ts_orientation)
 
@@ -150,6 +156,9 @@ def process_ts_data(
         ts_orientation = TSOrientationEnum.wide
     elif ts_orientation == TSOrientationEnum.long:
         features, terms_idx = long_to_wide(features, features_names, terms_idx)
+
+    if without_target:
+        return features, target, init_shape, terms_idx
 
     if state == StateEnum.FIT and forecast_horizon is not None:
         target = features[features.shape[1] - forecast_horizon:, :]

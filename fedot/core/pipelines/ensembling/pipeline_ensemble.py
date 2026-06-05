@@ -6,8 +6,8 @@ from typing import Any, Dict, List, Optional, Sequence, Union, Literal
 import numpy as np
 from golem.core.log import default_log
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.ensembling.utils import (
     calculate_validation_metrics,
 )

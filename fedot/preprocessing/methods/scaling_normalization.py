@@ -1,7 +1,7 @@
 from typing import Optional, Sequence
 import torch
 
-from fedot.core.data.prepared_data import PreparedData
+from fedot.core.data.prepared_data.prepared_data import PreparedData
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 
 
@@ -37,7 +37,8 @@ class StandartScaling(AbstractPreprocessingHandler):
             mask = ~torch.isnan(selected)
 
         if self.with_mean:
-            sum_vals = torch.where(mask, selected, torch.zeros_like(selected)).sum(dim=0)
+            sum_vals = torch.where(
+                mask, selected, torch.zeros_like(selected)).sum(dim=0)
             count = mask.sum(dim=0).clamp(min=1)
             mean = sum_vals / count
             self.mean_values = mean
@@ -48,7 +49,8 @@ class StandartScaling(AbstractPreprocessingHandler):
             if self.mean_values is not None:
                 mean = self.mean_values
             else:
-                sum_vals = torch.where(mask, selected, torch.zeros_like(selected)).sum(dim=0)
+                sum_vals = torch.where(
+                    mask, selected, torch.zeros_like(selected)).sum(dim=0)
                 count = mask.sum(dim=0).clamp(min=1)
                 mean = sum_vals / count
 
@@ -125,7 +127,8 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
 
         data_range = self.data_max - self.data_min
 
-        data_range = torch.where(data_range == 0, torch.ones_like(data_range), data_range)
+        data_range = torch.where(
+            data_range == 0, torch.ones_like(data_range), data_range)
 
         self.scale = (self.max_range - self.min_range) / data_range
 
@@ -134,7 +137,8 @@ class MinMaxNormalization(AbstractPreprocessingHandler):
     def transform(self, data: PreparedData) -> PreparedData:
         """Transform input data with fitted state."""
         if self.features_idx is None:
-            raise RuntimeError("NormalizationImplementation is not fitted yet.")
+            raise RuntimeError(
+                "NormalizationImplementation is not fitted yet.")
 
         selected = data.features[:, self.features_idx]
 

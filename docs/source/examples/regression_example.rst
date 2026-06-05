@@ -19,7 +19,7 @@ You also can find another ways of data passing in  `this example <data>`.
 
 .. code-block:: python
 
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
 
     data = InputData.from_dataframe(features_df,
                                     target_df,

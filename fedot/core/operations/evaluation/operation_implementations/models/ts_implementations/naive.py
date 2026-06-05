@@ -2,7 +2,7 @@ from copy import copy
 
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
     transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -32,7 +32,8 @@ class RepeatLastValueImplementation(ModelImplementation):
             self.elements_to_repeat = 1
             return self
 
-        elements_to_repeat = round(len(input_data.features) * self.part_for_repeat)
+        elements_to_repeat = round(
+            len(input_data.features) * self.part_for_repeat)
         if elements_to_repeat < 1:
             # Minimum number of elements is one
             self.elements_to_repeat = 1
@@ -48,8 +49,10 @@ class RepeatLastValueImplementation(ModelImplementation):
         forecast_length = input_data.task.task_params.forecast_length
 
         # Get last known value from history
-        last_observations = input_data.features[-self.elements_to_repeat:].reshape(1, -1)
-        forecast = self._generate_repeated_forecast(last_observations, forecast_length)
+        last_observations = input_data.features[-self.elements_to_repeat:].reshape(
+            1, -1)
+        forecast = self._generate_repeated_forecast(
+            last_observations, forecast_length)
 
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
@@ -65,7 +68,8 @@ class RepeatLastValueImplementation(ModelImplementation):
                                                                                           self.elements_to_repeat)
         input_data.idx = new_idx
         input_data.target = new_target
-        forecast = self._generate_repeated_forecast(transformed_cols, forecast_length)
+        forecast = self._generate_repeated_forecast(
+            transformed_cols, forecast_length)
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
                                               data_type=DataTypesEnum.table)
@@ -120,9 +124,11 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         shape = features.shape[0]
 
         window = self._window(features)
-        mean_values = np.array([np.mean(features[-window - shape + i:i + 1]) for i in range(shape)])
+        mean_values = np.array(
+            [np.mean(features[-window - shape + i:i + 1]) for i in range(shape)])
 
-        forecast = np.repeat(mean_values.reshape((-1, 1)), forecast_length, axis=1)
+        forecast = np.repeat(mean_values.reshape(
+            (-1, 1)), forecast_length, axis=1)
 
         # Update target
         new_idx, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,

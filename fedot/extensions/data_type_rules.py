@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-from fedot.core.data.data_compatibility_rules import (
+from fedot.core.data.common.compatibility_rules import (
     to_input_compatible_data_type,
     to_tensor_canonical_data_type,
 )

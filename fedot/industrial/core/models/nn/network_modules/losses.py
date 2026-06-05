@@ -353,7 +353,8 @@ class DistributionLoss(nn.Module):
             target -= loc
             target += C
             distribution = distributions.TransformedDistribution(
-                distribution, [distributions.AffineTransform(loc=-loc + C, scale=1)]
+                distribution, [distributions.AffineTransform(
+                    loc=-loc + C, scale=1)]
             )
 
         loss = -distribution.log_prob(target)

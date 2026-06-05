@@ -207,10 +207,12 @@ def mean_ptp_distance_torch(X: torch.Tensor, axis=-1):
     B = dd.shape[0]
     count_peaks = torch.bincount(rows, minlength=B)
     max_count = int(count_peaks.max().item())
-    offsets = torch.cumsum(torch.cat([count_peaks[:1] * 0, count_peaks[:-1]]), dim=0)
+    offsets = torch.cumsum(
+        torch.cat([count_peaks[:1] * 0, count_peaks[:-1]]), dim=0)
     idx_global = torch.arange(len(rows), device=rows.device)
     idx_in_row = idx_global - offsets[rows]
-    peak_indices = torch.zeros((B, max_count), device=X.device, dtype=torch.long)
+    peak_indices = torch.zeros(
+        (B, max_count), device=X.device, dtype=torch.long)
     peak_indices[rows, idx_in_row] = cols + 1
 
     if peak_indices.numel() == 0:
@@ -245,7 +247,8 @@ def slope_torch(array: torch.Tensor, axis=-1) -> float | torch.Tensor:
     x = torch.arange(n, device=y.device, dtype=torch.float32)
     x_mean = x.mean()
     y_mean = y.mean(dim=axis, keepdim=True)
-    slope = torch.sum((x - x_mean) * (y - y_mean), dim=axis) / (torch.sum((x - x_mean) ** 2 + 1e-12))
+    slope = torch.sum((x - x_mean) * (y - y_mean), dim=axis) / \
+        (torch.sum((x - x_mean) ** 2 + 1e-12))
     return slope.item() if slope.numel() == 1 else slope
 
 
@@ -422,7 +425,8 @@ def shannon_entropy_torch(X: torch.Tensor, axis=None):
         torch.ones(B, 1, device=x.device, dtype=torch.bool),
         x_sorted[:, 1:] != x_sorted[:, :-1]
     ], dim=axis)
-    group_starts_list = [row.nonzero(as_tuple=False).squeeze(1) for row in new_group]
+    group_starts_list = [row.nonzero(
+        as_tuple=False).squeeze(1) for row in new_group]
     group_sizes_list = []
     for starts in group_starts_list:
         ends = torch.cat([starts[1:], torch.tensor([N], device=x.device)])
@@ -522,7 +526,8 @@ def mean_ema_torch(x: torch.Tensor, axis: int = -1) -> float | torch.Tensor:
     T = x.shape[axis]
     span = max(int(T / 10), 2)
     alpha = 2 / (span + 1)
-    weights = (1 - alpha) ** torch.arange(T - 1, -1, -1, device=x.device, dtype=x.dtype)
+    weights = (1 - alpha) ** torch.arange(T - 1, -
+                                          1, -1, device=x.device, dtype=x.dtype)
     weights = weights / weights.sum()
     ema = torch.sum(x * weights, dim=axis)
     return ema.item() if ema.numel() == 1 else ema

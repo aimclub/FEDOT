@@ -28,7 +28,8 @@ class ApiParamsRepository:
 
     def __init__(self, task_type: TaskTypesEnum):
         self.task_type = task_type
-        self.default_params = ApiParamsRepository.default_params_for_task(self.task_type)
+        self.default_params = ApiParamsRepository.default_params_for_task(
+            self.task_type)
 
     @staticmethod
     def default_params_for_task(task_type: TaskTypesEnum) -> dict:
@@ -53,9 +54,11 @@ class ApiParamsRepository:
 
         max_pipeline_fit_time = params.get('max_pipeline_fit_time')
         if max_pipeline_fit_time:
-            composer_requirements_params['max_graph_fit_time'] = datetime.timedelta(minutes=max_pipeline_fit_time)
+            composer_requirements_params['max_graph_fit_time'] = datetime.timedelta(
+                minutes=max_pipeline_fit_time)
 
-        composer_requirements_params = ApiParamsRepository.set_static_individual_metadata(composer_requirements_params)
+        composer_requirements_params = ApiParamsRepository.set_static_individual_metadata(
+            composer_requirements_params)
 
         return composer_requirements_params
 
@@ -77,7 +80,8 @@ class ApiParamsRepository:
         if params.get('genetic_scheme') == 'steady_state':
             gp_algorithm_params['genetic_scheme_type'] = GeneticSchemeTypesEnum.steady_state
 
-        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(self.task_type, params)
+        gp_algorithm_params['mutation_types'] = ApiParamsRepository._get_default_mutations(
+            self.task_type, params)
         gp_algorithm_params['seed'] = params['seed']
         return gp_algorithm_params
 

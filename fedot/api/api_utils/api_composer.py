@@ -20,7 +20,7 @@ from fedot.core.caching.predictions_cache import PredictionsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData, InputDataList
+from fedot.core.data.input_data.data import InputData, InputDataList
 from fedot.core.optimisers.objective.data_source_context import (
     ComposerDataSourceContext,
     build_external_holdout_composer_data_source_context,
@@ -66,14 +66,16 @@ class ApiComposer:
         )
 
         if cache_plan.use_operations_cache:
-            self.operations_cache = OperationsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
+            self.operations_cache = OperationsCache(
+                cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.operations_cache.reset()
         if cache_plan.use_preprocessing_cache:
             self.preprocessing_cache = PreprocessingCache(
                 cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.preprocessing_cache.reset()
         if cache_plan.use_predictions_cache:
-            self.predictions_cache = PredictionsCache(cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
+            self.predictions_cache = PredictionsCache(
+                cache_dir=cache_plan.cache_dir, use_stats=cache_plan.use_stats)
             self.predictions_cache.reset()
 
     def obtain_model(self, train_data: InputData) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
@@ -107,9 +109,11 @@ class ApiComposer:
             timeout: float = self.params.timeout
             with_tuning = self.params.get('with_tuning')
 
-            self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
+            self.timer = ApiTime(time_for_automl=timeout,
+                                 with_tuning=with_tuning)
 
-            initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(train_data)
+            initial_assumption, fitted_assumption = self.propose_and_fit_initial_assumption(
+                train_data)
 
             multi_objective = len(self.metrics) > 1
             self.params.init_params_for_composing(self.timer.timedelta_composing, multi_objective)
@@ -127,7 +131,8 @@ class ApiComposer:
                 data_source_context,
             )
 
-        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
+        timeout_for_tuning = abs(
+            self.timer.determine_resources_for_tuning()) / 60
         execution_plan = build_composer_execution_plan(
             with_tuning=with_tuning,
             have_time_for_composing=self.was_optimised,
@@ -137,7 +142,8 @@ class ApiComposer:
 
         if execution_plan.should_tune:
             with fedot_composer_timer.launch_tuning('composing'):
-                best_pipeline = self.tune_final_pipeline(train_data, best_pipeline, execution_plan)
+                best_pipeline = self.tune_final_pipeline(
+                    train_data, best_pipeline, execution_plan)
         elif with_tuning:
             self.log.message(
                 f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
@@ -334,7 +340,8 @@ class ApiComposer:
             f'Taking into account n_folds={self.params.data["cv_folds"]}, estimated fit time for initial assumption '
             f'is {round(self.timer.assumption_fit_spend_time.total_seconds(), 1)} sec.')
 
-        self.params.update(preset=assumption_handler.propose_preset(preset, self.timer, n_jobs=self.params.n_jobs))
+        self.params.update(preset=assumption_handler.propose_preset(
+            preset, self.timer, n_jobs=self.params.n_jobs))
 
         return initial_assumption, fitted_assumption
 
@@ -354,7 +361,8 @@ class ApiComposer:
                                    .with_graph_generation_param(self.params.graph_generation_params)
                                    .build())
 
-        have_time_for_composing = self.timer.have_time_for_composing(self.params.get('pop_size'), self.params.n_jobs)
+        have_time_for_composing = self.timer.have_time_for_composing(
+            self.params.get('pop_size'), self.params.n_jobs)
         execution_plan = build_composer_execution_plan(
             with_tuning=self.params.get('with_tuning'),
             have_time_for_composing=have_time_for_composing,
@@ -381,7 +389,8 @@ class ApiComposer:
 
         for pipeline in best_pipeline_candidates:
             pipeline.log = self.log
-        best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
+        best_pipeline = best_pipelines[0] if isinstance(
+            best_pipelines, Sequence) else best_pipelines
         return best_pipeline, best_pipeline_candidates, gp_composer
 
     def tune_final_pipeline(self, train_data: InputData,
@@ -407,7 +416,8 @@ class ApiComposer:
 
         with self.timer.launch_tuning():
             self.was_tuned = False
-            self.log.message(f'Hyperparameters tuning started with {round(tuner_plan.timeout_minutes)} min. timeout')
+            self.log.message(
+                f'Hyperparameters tuning started with {round(tuner_plan.timeout_minutes)} min. timeout')
             tuned_pipeline = tuner.tune(pipeline_gp_composed)
             self.log.message('Hyperparameters tuning finished')
         self.was_tuned = tuner.was_tuned

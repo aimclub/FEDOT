@@ -1,7 +1,7 @@
 import torch
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.industrial.core.models.base_extractor import BaseExtractor
 
@@ -44,20 +44,24 @@ class TorchQuantileExtractor(BaseExtractor):
         """
         global_features = self.get_statistical_features_torch(
             ts, add_global_features=self.add_global_features, axis=axis)
-        global_features = [feature for feature in global_features if feature is not None]
+        global_features = [
+            feature for feature in global_features if feature is not None]
         if ts.ndim == 4:
             global_features = torch.cat(global_features, dim=1).to(ts.device)
         elif ts.squeeze().ndim == 1:
             global_features = torch.Tensor(global_features).to(ts.device)
         else:
-            global_features = torch.stack(global_features, dim=0).T.to(ts.device)
+            global_features = torch.stack(
+                global_features, dim=0).T.to(ts.device)
         if self.window_size == 0:
             window_stat_features = self.get_statistical_features_torch(ts,
                                                                        axis=axis)
             if ts.squeeze().ndim == 1:
-                window_stat_features = torch.Tensor(window_stat_features).to(ts.device)
+                window_stat_features = torch.Tensor(
+                    window_stat_features).to(ts.device)
             else:
-                window_stat_features = torch.stack(window_stat_features, dim=0).T.to(ts.device)
+                window_stat_features = torch.stack(
+                    window_stat_features, dim=0).T.to(ts.device)
         else:
             window_stat_features = self.apply_window_for_stat_feature_torch(
                 ts_data=ts, feature_generator=self.get_statistical_features_torch, window_size=self.window_size)

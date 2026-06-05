@@ -52,7 +52,8 @@ class TensorExplainExecutionPlan:
 
 def build_tensordata_fit_plan(predefined_model: Any) -> TensorFitExecutionPlan:
     if predefined_model is None:
-        raise ValueError('TensorData fit currently supports only predefined models or pipelines.')
+        raise ValueError(
+            'TensorData fit currently supports only predefined models or pipelines.')
     if predefined_model == 'auto':
         raise ValueError(
             'TensorData fit does not support auto assumption generation yet. '

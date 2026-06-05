@@ -3,8 +3,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from fedot.core.data.data import InputData
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

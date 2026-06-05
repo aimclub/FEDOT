@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.api.api_utils.api_run_planner import plan_chunked_ensemble
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.ensembling.utils import prepare_chunked_ensemble_validation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

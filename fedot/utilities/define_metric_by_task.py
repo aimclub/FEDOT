@@ -1,6 +1,6 @@
 from typing import List
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.metrics_repository import (
     MetricsEnum,
     RegressionMetricsEnum,

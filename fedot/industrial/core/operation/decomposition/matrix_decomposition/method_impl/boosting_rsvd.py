@@ -1,11 +1,22 @@
+from __future__ import annotations
+
+import logging
 from typing import Optional
 
-import cupy as cp
+from fedot.core.data.common.types import cp
 from fedot.core.operations.operation_parameters import OperationParameters
 from py_boost.multioutput.sketching import GradSketch
 
 from fedot.industrial.core.operation.decomposition.matrix_decomposition.method_impl.power_iteration_decomposition import \
     RSVDDecomposition
+
+logger = logging.getLogger(__name__)
+
+if cp is None:
+    logger.warning(
+        "CuPy is not installed: %s requires CuPy for GPU sketching (RandomSVD.apply_sketch).",
+        __name__,
+    )
 
 
 class RandomSVD(GradSketch):
@@ -28,7 +39,8 @@ class RandomSVD(GradSketch):
 
     def _define_approximation_regime(self, tensor):
         max_num_rows = 10000
-        is_matrix_big = any([tensor.shape[0] > max_num_rows, tensor.shape[1] > max_num_rows])
+        is_matrix_big = any([tensor.shape[0] > max_num_rows,
+                            tensor.shape[1] > max_num_rows])
         if is_matrix_big:
             self.approximation = True
         else:

@@ -61,7 +61,8 @@ def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_par
 
     try:
         spec = get_extension_model_spec('external_runtime_model')
-        params = build_extension_strategy_params('external_runtime_model', {'alpha': 1.0}, output_mode='labels')
+        params = build_extension_strategy_params(
+            'external_runtime_model', {'alpha': 1.0}, output_mode='labels')
 
         assert spec is not None
         assert spec.name == 'external_runtime_model'
@@ -71,8 +72,10 @@ def test_runtime_rules_resolve_registered_extension_model_and_build_strategy_par
         assert params['_extension_output_mode'] == 'labels'
         assert params['alpha'] == 1.0
         assert params['beta'] == 0.5
-        assert get_extension_data_types('external_runtime_model') == (DataTypesEnum.table,)
-        assert get_extension_tensor_data_types('external_runtime_model') == (DataTypesEnum.tabular,)
+        assert get_extension_data_types(
+            'external_runtime_model') == (DataTypesEnum.table,)
+        assert get_extension_tensor_data_types(
+            'external_runtime_model') == (DataTypesEnum.tabular,)
     finally:
         clear_extension_registry()
 
@@ -82,7 +85,8 @@ def test_runtime_rules_return_left_when_required_extension_params_are_missing():
     register_extension(_make_manifest())
 
     try:
-        params = try_build_extension_strategy_params('external_runtime_model', {'beta': 1.5})
+        params = try_build_extension_strategy_params(
+            'external_runtime_model', {'beta': 1.5})
 
         assert params.is_left()
         assert params.monoid[0].code == 'missing_required_hyperparams'

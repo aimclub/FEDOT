@@ -48,4 +48,5 @@ def test_small_preset_and_recommendation_helpers_are_deterministic():
     assert build_label_encoded_preset_name(None) == '*tree'
     assert should_update_available_operations(AUTO_PRESET_NAME) is False
     assert should_update_available_operations('fast_train') is True
-    assert merge_param_recommendations({'a': 1}, {'b': 2, 'a': 3}) == {'a': 3, 'b': 2}
+    assert merge_param_recommendations(
+        {'a': 1}, {'b': 2, 'a': 3}) == {'a': 3, 'b': 2}

@@ -23,11 +23,13 @@ def is_extension_operation_name(operation_name: str) -> bool:
 
 
 def try_build_extension_strategy_params(operation_name: str,
-                                        user_params: Optional[Dict[str, Any]] = None,
+                                        user_params: Optional[Dict[str,
+                                                                   Any]] = None,
                                         output_mode: str = 'default'):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
-        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+        raise ValueError(
+            f'Extension model "{operation_name}" is not registered.')
 
     params_resolution = resolve_extension_params(model_spec, user_params)
     if params_resolution.is_left():
@@ -43,9 +45,11 @@ def try_build_extension_strategy_params(operation_name: str,
 
 
 def build_extension_strategy_params(operation_name: str,
-                                    user_params: Optional[Dict[str, Any]] = None,
+                                    user_params: Optional[Dict[str,
+                                                               Any]] = None,
                                     output_mode: str = 'default') -> Dict[str, Any]:
-    strategy_params = try_build_extension_strategy_params(operation_name, user_params, output_mode)
+    strategy_params = try_build_extension_strategy_params(
+        operation_name, user_params, output_mode)
     if strategy_params.is_left():
         raise ValueError(strategy_params.monoid[0].message)
     return strategy_params.value
@@ -54,21 +58,24 @@ def build_extension_strategy_params(operation_name: str,
 def get_extension_acceptable_task_types(operation_name: str):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
-        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+        raise ValueError(
+            f'Extension model "{operation_name}" is not registered.')
     return model_spec.capabilities.tasks
 
 
 def get_extension_data_types(operation_name: str):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
-        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+        raise ValueError(
+            f'Extension model "{operation_name}" is not registered.')
     return build_extension_data_type_view(model_spec.capabilities.data_types).input_types
 
 
 def get_extension_tensor_data_types(operation_name: str):
     model_spec = get_extension_model_spec(operation_name)
     if model_spec is None:
-        raise ValueError(f'Extension model "{operation_name}" is not registered.')
+        raise ValueError(
+            f'Extension model "{operation_name}" is not registered.')
     return build_extension_data_type_view(model_spec.capabilities.data_types).tensor_types
 
 
@@ -91,7 +98,8 @@ def _build_model_fit(model_spec: ExternalModelSpec):
 
 def _build_model_predict(model_spec: ExternalModelSpec):
     def _predict(fitted_model, idx, features, params):
-        model = fitted_model if fitted_model is not None else _instantiate_model(model_spec, params)
+        model = fitted_model if fitted_model is not None else _instantiate_model(
+            model_spec, params)
         output_mode = params.get('_extension_output_mode', 'default')
 
         if output_mode in ('probs', 'full_probs', 'default') and hasattr(model, 'predict_proba'):
@@ -120,7 +128,8 @@ def _build_model_predict(model_spec: ExternalModelSpec):
                 (idx, features),
             )
         else:
-            raise TypeError(f'Extension model "{model_spec.name}" must define predict, predict_proba, or transform.')
+            raise TypeError(
+                f'Extension model "{model_spec.name}" must define predict, predict_proba, or transform.')
 
         output_type = _infer_output_type_name(model_spec)
         return prediction, output_type
@@ -149,7 +158,8 @@ def _call_with_supported_signature(method, *candidate_args):
         except TypeError as error:
             last_error = error
             continue
-    raise last_error or TypeError('No supported signature found for extension model method.')
+    raise last_error or TypeError(
+        'No supported signature found for extension model method.')
 
 
 def _infer_output_type_name(model_spec: ExternalModelSpec) -> str:

@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Union
 
 import pandas as pd
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 from pymonad.either import Either
 from sklearn.preprocessing import LabelEncoder
@@ -52,7 +52,8 @@ class DataCheck:
         if hasattr(industrial_task_params, 'strategy_params'):
             self.strategy_params = industrial_task_params.strategy_params
             self.manager = industrial_task_params
-        self.data_type_plan = resolve_industrial_data_type_plan(self.strategy_params)
+        self.data_type_plan = resolve_industrial_data_type_plan(
+            self.strategy_params)
         self.data_type = self.data_type_plan.fedot_data_type
 
         self.input_data = input_data
@@ -75,7 +76,8 @@ class DataCheck:
         multi_features, features = check_multivariate_data(X)
         multi_target = len(y.shape) > 1 and y.shape[1] > 2
         target = y.values if isinstance(y, (pd.DataFrame, pd.Series)) else y
-        target = target.reshape(-1, 1) if multi_features and not multi_target else np.ravel(target).reshape(-1, 1)
+        target = target.reshape(
+            -1, 1) if multi_features and not multi_target else np.ravel(target).reshape(-1, 1)
         data_dict = dict(features=features,
                          target=target,
                          multi_features=multi_features,
@@ -84,7 +86,8 @@ class DataCheck:
 
     def _encode_target(self, data_dict):
         self.label_encoder = LabelEncoder()
-        data_dict['target'] = self.label_encoder.fit_transform(data_dict['target'])
+        data_dict['target'] = self.label_encoder.fit_transform(
+            data_dict['target'])
         return data_dict
 
     def _transformation_for_ts_forecasting(self, data_dict):
@@ -97,7 +100,8 @@ class DataCheck:
             features_array = self.data_convertor.numpy_data
 
         if self.fit_stage:
-            features_array = features_array[:-self.task_params['forecast_length']]
+            features_array = features_array[:-
+                                            self.task_params['forecast_length']]
             target = features_array[-self.task_params['forecast_length']:]
         else:
             features_array = features_array
@@ -117,11 +121,13 @@ class DataCheck:
         def encode_idx(dict_with_target): return Either(value=dict_with_target,
                                                         monoid=[dict_with_target,
                                                                 not self.data_convertor.is_torchvision_dataset]).either(
-            right_function=lambda dict: dict | {'idx': np.arange(dict['features'].shape[0])},
+            right_function=lambda dict: dict | {
+                'idx': np.arange(dict['features'].shape[0])},
             left_function=lambda dict: dict | {'idx': np.arange(len(dict['features'][0]))})
 
         def define_horizon(dict_with_idx):
-            task_plan = build_industrial_task_plan(self.task, self.strategy_params)
+            task_plan = build_industrial_task_plan(
+                self.task, self.strategy_params)
             return dict_with_idx | {'have_predict_horizon': task_plan.have_predict_horizon, 'task': task_plan.task}
 
         encoded_dict = Either.insert(data_dict). \
@@ -149,7 +155,8 @@ class DataCheck:
 
         def non_forecasting_transformation(data): return \
             Either(value=data, monoid=[data, self.data_convertor.is_tuple]).either(
-                right_function=lambda r: self.__check_features_and_target(r, 'tuple'),
+                right_function=lambda r: self.__check_features_and_target(
+                    r, 'tuple'),
                 left_function=lambda l: self.__check_features_and_target(l, 'torchvision'))
 
         self.input_data = Either(value=dict(features=self.input_data,
@@ -157,7 +164,8 @@ class DataCheck:
                                             target=self.input_data),
                                  monoid=[non_forecasting_transformation,
                                          self.task == 'ts_forecasting']).either(
-            right_function=lambda data_dict: self._transformation_for_ts_forecasting(data_dict),
+            right_function=lambda data_dict: self._transformation_for_ts_forecasting(
+                data_dict),
             left_function=lambda transformation_func: self._transformation_for_other_task(
                 transformation_func(self.input_data)))
 
@@ -191,21 +199,26 @@ class DataCheck:
     def _check_fedot_context(self):
         if self.strategy_params is not None:
             IndustrialModels().setup_repository()
-            strategy_flags = resolve_learning_strategy_flags(self.strategy_params)
+            strategy_flags = resolve_learning_strategy_flags(
+                self.strategy_params)
             output_data = Either(value=strategy_flags.strategy_name,
                                  monoid=[self.input_data, strategy_flags.is_default_fedot_context]).either(
                 left_function=lambda x: x.features,
                 right_function=lambda strategy: self.convert_ts_method[strategy]
                 (self.input_data, self.strategy_params.get('sampling_strategy', None)))
-            self.input_data.features = output_data.predict if hasattr(output_data, 'predict') else output_data
+            self.input_data.features = output_data.predict if hasattr(
+                output_data, 'predict') else output_data
             if strategy_flags.is_big_data and hasattr(output_data, 'target'):
                 self.input_data.target = output_data.target
 
     def _convert_ts2tabular(self, input_data, sampling_strategy):
         if sampling_strategy is not None:
-            sample_start, sample_end = list(sampling_strategy['samples'].values())
-            channel_start, channel_end = list(sampling_strategy['channels'].values())
-            element_start, element_end = list(sampling_strategy['elements'].values())
+            sample_start, sample_end = list(
+                sampling_strategy['samples'].values())
+            channel_start, channel_end = list(
+                sampling_strategy['channels'].values())
+            element_start, element_end = list(
+                sampling_strategy['elements'].values())
             input_data.features = self.input_data.features[
                 sample_start:sample_end,
                 channel_start:channel_end,
@@ -274,11 +287,13 @@ class ApiConfigCheck:
                 if isinstance(orig_val, dict) and isinstance(upd_val, dict):
                     recursive_compare(orig_val, upd_val, path + [key])
                 elif orig_val != upd_val:
-                    changes.append(f"{' -> '.join(map(str, path + [key]))} -> Changed value {orig_val} to {upd_val}")
+                    changes.append(
+                        f"{' -> '.join(map(str, path + [key]))} -> Changed value {orig_val} to {upd_val}")
 
         for sub_config in original.keys():
             if sub_config in updated:
-                recursive_compare(original[sub_config], updated[sub_config], [sub_config])
+                recursive_compare(
+                    original[sub_config], updated[sub_config], [sub_config])
             else:
                 changes.append(f"{sub_config} -> Removed completely")
 

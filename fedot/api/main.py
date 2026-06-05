@@ -37,8 +37,8 @@ from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData, InputDataList, OutputData, PathType
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -574,7 +574,8 @@ class Fedot:
         self.test_data = self.data_processor.define_data(target=self.target,
                                                          features=pre_history,
                                                          is_predict=True)
-        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
+        predict = out_of_sample_ts_forecast(
+            self.current_pipeline, self.test_data, horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
         if path_to_save is not None:
@@ -594,7 +595,8 @@ class Fedot:
         self.test_data = self.data_processor.to_input_data(tensor_data)
         if forecast_plan.clear_target:
             self.test_data.target = None
-        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, forecast_plan.horizon)
+        predict = out_of_sample_ts_forecast(
+            self.current_pipeline, self.test_data, forecast_plan.horizon)
         self.prediction = convert_forecast_to_output(self.test_data, predict)
         self._is_in_sample_prediction = False
         if path_to_save is not None:
@@ -606,7 +608,8 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.params.task.task_type != TaskTypesEnum.ts_forecasting:
-            raise ValueError('Forecasting can be used only for the time series')
+            raise ValueError(
+                'Forecasting can be used only for the time series')
 
     def get_metrics_tensordata(self,
                                tensor_data,
@@ -627,7 +630,8 @@ class Fedot:
 
     def explain_tensordata(self, tensor_data,
                            method: str = 'surrogate_dt', visualization: bool = True, **kwargs) -> Explainer:
-        explain_plan = build_tensordata_explain_plan(method=method, visualization=visualization)
+        explain_plan = build_tensordata_explain_plan(
+            method=method, visualization=visualization)
         data = self.data_processor.to_input_data(tensor_data)
         return explain_pipeline(
             pipeline=self.current_pipeline,
@@ -643,7 +647,8 @@ class Fedot:
         Args:
             path: path to ``json`` file with model.
         """
-        self.current_pipeline = Pipeline(use_input_preprocessing=self.params.get('use_input_preprocessing'))
+        self.current_pipeline = Pipeline(
+            use_input_preprocessing=self.params.get('use_input_preprocessing'))
         self.current_pipeline.load(path)
         self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
@@ -670,7 +675,8 @@ class Fedot:
         if self.prediction is not None:
             if task.task_type == TaskTypesEnum.ts_forecasting:
                 in_sample = in_sample or self._is_in_sample_prediction
-                plot_forecast(self.test_data, self.prediction, in_sample, target)
+                plot_forecast(self.test_data, self.prediction,
+                              in_sample, target)
             elif task.task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif task.task_type == TaskTypesEnum.classification:
@@ -678,7 +684,8 @@ class Fedot:
                 plot_roc_auc(self.test_data, self.prediction)
             else:
                 self.log.error('Not supported yet')
-                raise NotImplementedError(f"For task {task} plot prediction is not supported")
+                raise NotImplementedError(
+                    f"For task {task} plot prediction is not supported")
         else:
             self.log.error('No prediction to visualize')
             raise ValueError('Prediction from model is empty')
@@ -709,13 +716,15 @@ class Fedot:
             if self.test_data is None:
                 self.test_data = InputData(idx=np.arange(len(self.prediction.predict)),
                                            features=None,
-                                           target=target[:len(self.prediction.predict)],
+                                           target=target[:len(
+                                               self.prediction.predict)],
                                            task=self.train_data.task,
                                            data_type=self.train_data.data_type)
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
-        metrics = ensure_wrapped_in_sequence(metric_names) if metric_names else self.metrics
+        metrics = ensure_wrapped_in_sequence(
+            metric_names) if metric_names else self.metrics
         metric_names = [str(metric) for metric in metrics]
 
         in_sample = in_sample if in_sample is not None else self._is_in_sample_prediction
@@ -725,7 +734,8 @@ class Fedot:
 
         objective = MetricsObjective(metrics)
         obj_eval = PipelineObjectiveEvaluate(objective=objective,
-                                             data_producer=lambda: (yield self.train_data, self.test_data),
+                                             data_producer=lambda: (
+                                                 yield self.train_data, self.test_data),
                                              validation_blocks=validation_blocks,
                                              eval_n_jobs=self.params.n_jobs,
                                              do_unfit=False)
@@ -750,8 +760,10 @@ class Fedot:
         self.current_pipeline, self.train_data, self.test_data, self.history = \
             import_project_from_zip(zip_path=project_path)
         # TODO workaround to init internal fields of API and data
-        self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
-        self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
+        self.train_data = self.data_processor.define_data(
+            features=self.train_data, is_predict=False)
+        self.test_data = self.data_processor.define_data(
+            features=self.test_data, is_predict=True)
         self.predict(self.test_data)
 
     def explain(self, features: FeaturesType = None,
@@ -816,7 +828,8 @@ class Fedot:
             else:
                 task_str = f'Task({str(task.task_type)})'
             remote.remote_task_params.task_type = task_str
-            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+            remote.remote_task_params.is_multi_modal = isinstance(
+                self.train_data, MultiModalData)
 
             if isinstance(self.target, str) and remote.remote_task_params.target is None:
                 remote.remote_task_params.target = self.target

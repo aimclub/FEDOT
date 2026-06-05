@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -10,7 +10,8 @@ from fedot.core.utils import fedot_project_root
 
 
 def load_sample_text(file_path=None, label_col='label'):
-    file_path = file_path or fedot_project_root().joinpath('examples', 'real_cases', 'data', 'spam', 'spamham.csv')
+    file_path = file_path or fedot_project_root().joinpath(
+        'examples', 'real_cases', 'data', 'spam', 'spamham.csv')
     df_text = pd.read_csv(file_path)
     df_text = df_text.sample(frac=1).reset_index(drop=True)
 
@@ -39,7 +40,8 @@ def generate_output_texts(length=10, num_columns=1):
                 ids=lambda cols: f'texts with {cols} columns')
 def output_texts(request):
     all_num_columns = request.param
-    outputs = [generate_output_texts(num_columns=num_columns) for num_columns in all_num_columns]
+    outputs = [generate_output_texts(num_columns=num_columns)
+               for num_columns in all_num_columns]
     return outputs
 
 
@@ -56,7 +58,9 @@ def test_data_merge_texts(output_texts):
         merged_data = DataMerger.get(output_texts).merge()
 
         assert np.equal(merged_data.idx, first_output.idx).all()
-        expected_num_columns = sum(get_num_columns(output.predict) for output in output_texts)
+        expected_num_columns = sum(get_num_columns(
+            output.predict) for output in output_texts)
         assert merged_data.features.shape[0] == len(first_output.predict)
         assert get_num_columns(merged_data.features) == 1
-        assert len(merged_data.features[0][0]) >= len(output_texts[0].features[0][0]) * expected_num_columns
+        assert len(merged_data.features[0][0]) >= len(
+            output_texts[0].features[0][0]) * expected_num_columns

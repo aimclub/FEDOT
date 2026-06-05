@@ -14,7 +14,8 @@ class ManifoldClassificator(StatClassificator):
 
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.transformation_model = params.get('transformation_model', 'riemann_extractor')
+        self.transformation_model = params.get(
+            'transformation_model', 'riemann_extractor')
 
     def _define_model(self):
         with open(PATH_TO_DEFAULT_PARAMS) as json_data:
@@ -22,5 +23,6 @@ class ManifoldClassificator(StatClassificator):
         self.default_model_params = self.default_operation_params[self.transformation_model]
         self.default_channel_model_params = self.default_operation_params[self.channel_model]
         self.model = PipelineBuilder().add_node(self.transformation_model, params=self.default_model_params). \
-            add_node(self.channel_model, params=self.default_channel_model_params).build()
+            add_node(self.channel_model,
+                     params=self.default_channel_model_params).build()
         return self.model

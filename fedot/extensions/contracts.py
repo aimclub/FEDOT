@@ -27,7 +27,8 @@ class ExternalModelSpec:
     name: str
     factory: ModelFactory
     capabilities: ModelCapabilities
-    hyperparams_schema: ModelHyperparamsSchema = field(default_factory=ModelHyperparamsSchema)
+    hyperparams_schema: ModelHyperparamsSchema = field(
+        default_factory=ModelHyperparamsSchema)
     description: str = ''
 
 

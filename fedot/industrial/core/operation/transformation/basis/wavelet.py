@@ -31,7 +31,8 @@ class WaveletBasisImplementation(BasisDecompositionImplementation):
         self.basis = None
         self.discrete_wavelets = DISCRETE_WAVELETS
         self.continuous_wavelets = CONTINUOUS_WAVELETS
-        self.return_feature_vector = params.get('compute_heuristic_representation', False)
+        self.return_feature_vector = params.get(
+            'compute_heuristic_representation', False)
 
     def __repr__(self):
         return 'WaveletBasisImplementation'
@@ -55,7 +56,8 @@ class WaveletBasisImplementation(BasisDecompositionImplementation):
             return self._compute_heuristic_features(input_data)
         else:
             if self.wavelet in self.discrete_wavelets:
-                high_freq, low_freq = pywt.dwt(input_data, self.wavelet, 'smooth')
+                high_freq, low_freq = pywt.dwt(
+                    input_data, self.wavelet, 'smooth')
 
             else:
                 high_freq, low_freq = pywt.cwt(data=input_data,

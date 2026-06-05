@@ -65,9 +65,12 @@ def eigencorr_matrix(U, S, V,
     X_elem = np.array([S[i] * np.outer(U[:, i], V[i, :]) for i in range(0, d)])
 
     w = np.array(
-        list(np.arange(L) + 1) +  # returns the sequence 1 to L (first line in definition of w)
-        [L] * (K - L - 1) +  # repeats L K-L-1 times (second line in w definition)
-        list(np.arange(L) + 1)[::-1]  # reverses the first list (equivalent to the third line)
+        # returns the sequence 1 to L (first line in definition of w)
+        list(np.arange(L) + 1) +
+        # repeats L K-L-1 times (second line in w definition)
+        [L] * (K - L - 1) +
+        # reverses the first list (equivalent to the third line)
+        list(np.arange(L) + 1)[::-1]
     )
 
     # Get all the components of the toy series, store them as columns in F_elem array.
@@ -209,7 +212,8 @@ def reconstruct_basis(U, Sigma, VT, ts_length):
         TS_comps = np.zeros((ts_length, rank))
         U, S, V = U[0], U[1], U[2]
         for idx, (comp, eigen_idx) in enumerate(VT.items()):
-            X_dominant = np.sum([S[i] * np.outer(U[:, i], V[i, :]) for i in eigen_idx], axis=0)
+            X_dominant = np.sum([S[i] * np.outer(U[:, i], V[i, :])
+                                for i in eigen_idx], axis=0)
             grouped_eigenvector = transform_eigen_to_ts(X_dominant)
             if idx == rank:
                 break
@@ -289,7 +293,8 @@ def reconstruct_basis_torch(U: torch.Tensor,
         diag_sum = torch.zeros(ts_length, device=device, dtype=dtype)
         diag_cnt = torch.zeros(ts_length, device=device, dtype=dtype)
         diag_sum.scatter_add_(0, diag_idx.flatten(), X_rev.flatten())
-        diag_cnt.scatter_add_(0, diag_idx.flatten(), torch.ones_like(X_rev).flatten())
+        diag_cnt.scatter_add_(0, diag_idx.flatten(),
+                              torch.ones_like(X_rev).flatten())
         TS_comps[:, i] = diag_sum / diag_cnt
 
     return TS_comps

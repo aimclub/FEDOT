@@ -6,8 +6,8 @@ from typing import Any, Optional, Sequence
 import numpy as np
 import torch
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 
 
 @dataclass(frozen=True)

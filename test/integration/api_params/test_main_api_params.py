@@ -20,7 +20,8 @@ class TimeoutParams:
 TIMEOUT_CASES = [
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1 + 2  # num of gens + initial and final gens
+        # num of gens + initial and final gens
+        test_answer=lambda hist: len(hist.individuals) == 1 + 2
     ),
     TimeoutParams(
         test_input={'timeout': None, 'num_of_generations': 1},

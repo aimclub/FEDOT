@@ -103,7 +103,8 @@ def Conv1d(ni,
            bias_std=0.01,
            **kwargs):
     """conv1d layer with padding='same', 'causal', 'valid', or any integer (defaults to 'same')"""
-    assert not (kernel_size and ks), 'use kernel_size or ks but not both simultaneously'
+    assert not (
+        kernel_size and ks), 'use kernel_size or ks but not both simultaneously'
     assert kernel_size is not None or ks is not None, 'you need to pass a ks'
 
     kernel_size = kernel_size or ks

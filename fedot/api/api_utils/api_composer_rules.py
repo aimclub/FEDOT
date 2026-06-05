@@ -26,7 +26,8 @@ def build_cache_init_plan(use_operations_cache: bool,
                           use_stats: bool) -> CacheInitPlan:
     return CacheInitPlan(
         use_operations_cache=bool(use_operations_cache),
-        use_preprocessing_cache=bool(use_input_preprocessing and use_preprocessing_cache),
+        use_preprocessing_cache=bool(
+            use_input_preprocessing and use_preprocessing_cache),
         use_predictions_cache=bool(use_predictions_cache),
         cache_dir=cache_dir,
         use_stats=bool(use_stats),

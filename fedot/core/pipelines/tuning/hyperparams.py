@@ -71,7 +71,8 @@ class ParametersChanger:
         try:
             current_value = self.current_params.get(parameter_name)
         except Exception as exec:
-            self.logger.warning(f'The following error occurred during the hyperparameter configuration.{exec}')
+            self.logger.warning(
+                f'The following error occurred during the hyperparameter configuration.{exec}')
             current_value = None
 
         return current_value

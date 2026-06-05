@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -56,7 +56,8 @@ def test_lagged_with_invalid_params_fit_correctly():
 
     # Fit it
     pipeline.fit(ts_input)
-    assert 1 <= pipeline.nodes[-1].parameters['window_size'] <= len(time_series) - len_forecast
+    assert 1 <= pipeline.nodes[-1].parameters['window_size'] <= len(
+        time_series) - len_forecast
 
 
 def test_ransac_with_invalid_params_fit_correctly():
@@ -109,7 +110,8 @@ def test_params_filter_with_non_default():
 @pytest.mark.parametrize(('length', 'features_count', 'target_count', 'window_size'),
                          [(40, 1, 1, 10), (5, 1, 1, 10), (4, 1, 1, 10), (2, 1, 1, 10), (1, 1, 1, 10)])
 def test_positive_window_size_in_fast_topo(length, features_count, target_count, window_size):
-    data = get_timeseries(length=length, features_count=features_count, target_count=target_count, random=True)
+    data = get_timeseries(length=length, features_count=features_count,
+                          target_count=target_count, random=True)
     lagged_node = PipelineNode('lagged')
     lagged_node.parameters = {'window_size': window_size}
     lagged_data = lagged_node.fit(data)

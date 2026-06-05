@@ -49,19 +49,29 @@ class RecurrenceFeatureExtractorTorch:
         recurrence_rate = torch.sum(self.recurrence_matrix) / (n_vectors ** 2)
 
         diagonal_frequency_dist = self.calculate_diagonal_frequency(n_vectors)
-        vertical_frequency_dist = self.calculate_vertical_frequency(n_vectors, not_white=1)
-        white_vertical_frequency_dist = self.calculate_vertical_frequency(n_vectors, not_white=0)
+        vertical_frequency_dist = self.calculate_vertical_frequency(
+            n_vectors, not_white=1)
+        white_vertical_frequency_dist = self.calculate_vertical_frequency(
+            n_vectors, not_white=0)
 
-        determinism = self.laminarity_or_determinism(MDL, n_vectors, diagonal_frequency_dist, lam=False)
-        laminarity = self.laminarity_or_determinism(MVL, n_vectors, vertical_frequency_dist, lam=True)
+        determinism = self.laminarity_or_determinism(
+            MDL, n_vectors, diagonal_frequency_dist, lam=False)
+        laminarity = self.laminarity_or_determinism(
+            MVL, n_vectors, vertical_frequency_dist, lam=True)
 
-        average_diagonal_line_length = self.average_line_length(MDL, n_vectors, diagonal_frequency_dist)
-        average_vertical_line_length = self.average_line_length(MVL, n_vectors, vertical_frequency_dist)
-        average_white_vertical_line_length = self.average_line_length(MWVL, n_vectors, white_vertical_frequency_dist)
+        average_diagonal_line_length = self.average_line_length(
+            MDL, n_vectors, diagonal_frequency_dist)
+        average_vertical_line_length = self.average_line_length(
+            MVL, n_vectors, vertical_frequency_dist)
+        average_white_vertical_line_length = self.average_line_length(
+            MWVL, n_vectors, white_vertical_frequency_dist)
 
-        longest_diagonal_line_length = self.longest_line_length(diagonal_frequency_dist, n_vectors)
-        longest_vertical_line_length = self.longest_line_length(vertical_frequency_dist, n_vectors)
-        longest_white_vertical_line_length = self.longest_line_length(white_vertical_frequency_dist, n_vectors)
+        longest_diagonal_line_length = self.longest_line_length(
+            diagonal_frequency_dist, n_vectors)
+        longest_vertical_line_length = self.longest_line_length(
+            vertical_frequency_dist, n_vectors)
+        longest_white_vertical_line_length = self.longest_line_length(
+            white_vertical_frequency_dist, n_vectors)
 
         entropy_diagonal_lines = self.entropy_lines(
             MDL, n_vectors, diagonal_frequency_dist, diag=True)
@@ -187,8 +197,10 @@ class RecurrenceFeatureExtractorTorch:
         """
         if lam:
             number_of_vectors = number_of_vectors + 1
-        idx = torch.arange(1, number_of_vectors, device=distribution.device, dtype=distribution.dtype)
-        numerator = torch.sum(idx[factor - 1:] * distribution[factor:number_of_vectors])
+        idx = torch.arange(1, number_of_vectors,
+                           device=distribution.device, dtype=distribution.dtype)
+        numerator = torch.sum(
+            idx[factor - 1:] * distribution[factor:number_of_vectors])
         denominator = torch.sum(idx * distribution[1:number_of_vectors])
         return numerator / denominator
 

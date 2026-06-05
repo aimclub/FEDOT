@@ -4,7 +4,7 @@ from typing import List
 from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot import Fedot
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from golem.core.optimisers.opt_history_objects.individual import Individual
 
 from fedot.core.pipelines.prediction_intervals.params import PredictionIntervalsParams
@@ -50,8 +50,10 @@ def get_last_generations(model: Fedot):
     # TODO: in the future we should take here a copy. The problem is that Individual object is not copied.
     generations = model.history.generations
     if len(generations) < 2:
-        raise ValueError('Model has < 2 generations. Please fit model and try again.')
-    sorted_final_generation = sorted(generations[-1], key=lambda x: x.fitness.value)
+        raise ValueError(
+            'Model has < 2 generations. Please fit model and try again.')
+    sorted_final_generation = sorted(
+        generations[-1], key=lambda x: x.fitness.value)
     return {'final_choice': sorted_final_generation[0], 'last_generation': generations[-2]}
 
 
@@ -94,50 +96,64 @@ def check_init_params(model: Fedot,
 
     if horizon is not None:
         if not isinstance(horizon, int) or horizon < 1:
-            raise ValueError('Argument horizon must be None or positive integer number.')
+            raise ValueError(
+                'Argument horizon must be None or positive integer number.')
 
     if type(nominal_error) not in [int, float] or not (0 <= nominal_error <= 1):
-        raise ValueError('Argument nominal_error must be float number between 0 and 1.')
+        raise ValueError(
+            'Argument nominal_error must be float number between 0 and 1.')
 
-    avaliable_methods = ['last_generation_ql', 'best_pipelines_quantiles', 'mutation_of_best_pipeline']
+    avaliable_methods = ['last_generation_ql',
+                         'best_pipelines_quantiles', 'mutation_of_best_pipeline']
     if method not in avaliable_methods:
         raise ValueError('''Argument 'method' is incorrect. Possible options: 'last_generation_ql',
 'best_pipelines_quantiles', 'mutation_of_best_pipeline'.''')
 
     if params.logging_level not in [0, 10, 20, 30, 40, 50]:
-        raise ValueError('Argument logging_level must be in [0, 10, 20, 30, 40, 50].')
+        raise ValueError(
+            'Argument logging_level must be in [0, 10, 20, 30, 40, 50].')
 
     if not isinstance(params.n_jobs, int) or params.n_jobs == 0 or params.n_jobs < -1:
-        raise ValueError('Argument n_jobs must be -1 or positive integer number.')
+        raise ValueError(
+            'Argument n_jobs must be -1 or positive integer number.')
 
     if not isinstance(params.show_progress, bool):
         raise ValueError('Argument show_progress must be boolean.')
 
     if not isinstance(params.number_mutations, int) or params.number_mutations < 1:
-        raise ValueError('Argument number_mutations must be positive integer number.')
+        raise ValueError(
+            'Argument number_mutations must be positive integer number.')
 
     if params.mutations_choice not in ['different', 'with_replacement']:
-        raise ValueError("Arument mutations_choice is incorrect. Options: 'different' and 'with_replacement'.")
+        raise ValueError(
+            "Arument mutations_choice is incorrect. Options: 'different' and 'with_replacement'.")
 
     if not isinstance(params.mutations_discard_inapropriate_pipelines, bool):
-        raise ValueError('Argument mutations_discard_inapropriate_pipelines must be boolean.')
+        raise ValueError(
+            'Argument mutations_discard_inapropriate_pipelines must be boolean.')
 
     if type(params.mutations_keep_percentage) not in [int, float] or not (0 <= params.mutations_keep_percentage <= 1):
-        raise ValueError('Argument mutation_keep_percentage must be float number between 0 and 1.')
+        raise ValueError(
+            'Argument mutation_keep_percentage must be float number between 0 and 1.')
 
     if not isinstance(params.mutations_operations, list):
-        raise ValueError('Argument mutations_operations must be list of strings.')
+        raise ValueError(
+            'Argument mutations_operations must be list of strings.')
 
     if params.ql_number_models != 'max':
         if not isinstance(params.ql_number_models, int) or params.ql_number_models < 1:
-            raise ValueError("Argument ql_number_models must be positive integer number or 'max'.")
+            raise ValueError(
+                "Argument ql_number_models must be positive integer number or 'max'.")
 
     if not isinstance(params.ql_tuner_iterations, int) or params.ql_tuner_iterations < 1:
-        raise ValueError('Argument ql_tuner_iterations must be positive integer number.')
+        raise ValueError(
+            'Argument ql_tuner_iterations must be positive integer number.')
 
     if type(params.ql_tuner_minutes) not in [int, float] or params.ql_tuner_minutes <= 0:
-        raise ValueError('Argument ql_tuner_minutes must be positive real number.')
+        raise ValueError(
+            'Argument ql_tuner_minutes must be positive real number.')
 
     if params.bpq_number_models != 'max':
         if not isinstance(params.bpq_number_models, int) or params.bpq_number_models < 1:
-            raise ValueError("Argument bpq_number_models must be positive integer number or 'max'.")
+            raise ValueError(
+                "Argument bpq_number_models must be positive integer number or 'max'.")

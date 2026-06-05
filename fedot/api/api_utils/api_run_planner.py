@@ -57,7 +57,8 @@ def plan_sampling_stage(initial_assumption: Optional[Any],
     if is_atomized_initial_assumption(initial_assumption):
         return SamplingStagePlan(
             should_run_sampling_stage=False,
-            skip_metadata=_skip_metadata(SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION) if sampling_config_present else None,
+            skip_metadata=_skip_metadata(
+                SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION) if sampling_config_present else None,
         )
 
     return SamplingStagePlan(

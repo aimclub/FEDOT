@@ -4,7 +4,7 @@ from multiprocessing import cpu_count
 
 import dask
 import torch
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from numpy.lib import stride_tricks as stride_repr
 from pymonad.either import Either
@@ -38,7 +38,8 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
         self.add_global_features = params.get('add_global_features', True)
 
         self.stride = 3
-        self.n_processes = math.ceil(cpu_count() * 0.7) if cpu_count() > 1 else 1
+        self.n_processes = math.ceil(
+            cpu_count() * 0.7) if cpu_count() > 1 else 1
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logging_params = {'jobs': self.n_processes}
@@ -53,16 +54,19 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
         is_channel_overrated = feature_tensor[1] > 100
         is_sample_overrated = feature_tensor[0] > 500000
         is_elements_overrated = feature_tensor[2] > 1000
-        change_compute_mode = any([is_elements_overrated, is_channel_overrated, is_sample_overrated])
+        change_compute_mode = any(
+            [is_elements_overrated, is_channel_overrated, is_sample_overrated])
         if change_compute_mode:
             self.channel_extraction = False
 
     def __check_filter_model(self):
         if self.use_feature_filter and self.feature_filter is not None:
             if not self.feature_filter.is_fitted:
-                self.predict = self.feature_filter.reduce_feature_space(self.predict)
+                self.predict = self.feature_filter.reduce_feature_space(
+                    self.predict)
             else:
-                self.predict = self.predict[:, :, self.feature_filter.feature_mask]
+                self.predict = self.predict[:, :,
+                                            self.feature_filter.feature_mask]
 
     def fit(self, input_data: InputData):
         pass
@@ -83,11 +87,13 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
         """
         is_tensor_input = isinstance(input_data.features, torch.Tensor)
         if is_tensor_input:
-            evaluation_results = self.generate_features_from_ts(input_data.features)
+            evaluation_results = self.generate_features_from_ts(
+                input_data.features)
         else:
             evaluation_results = Either(
                 value=input_data.features, monoid=[input_data.features, self.channel_extraction]).either(
-                left_function=lambda ts_array: self.generate_features_from_array(ts_array),
+                left_function=lambda ts_array: self.generate_features_from_array(
+                    ts_array),
                 right_function=lambda
                 ts_array: list(map(lambda sample: self.generate_features_from_ts(sample),
                                    ts_array)))
@@ -110,10 +116,12 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
         multi_output = len(feature_matrix[0].shape) > 1
         self.predict = Either(value=feature_matrix,
                               monoid=[feature_matrix, multi_output]).either(
-            left_function=lambda ts_array: self._clean_predict(np.array(feature_matrix)),
+            left_function=lambda ts_array: self._clean_predict(
+                np.array(feature_matrix)),
             right_function=lambda matrix: self._clean_predict(np.stack(matrix) if self.channel_extraction
                                                               else np.hstack(feature_matrix)[:, None, :]))
-        self.predict = self.predict.reshape(self.predict.shape[0], -1) if not multi_output else self.predict
+        self.predict = self.predict.reshape(
+            self.predict.shape[0], -1) if not multi_output else self.predict
         self.__check_filter_model()
         return self.predict
 
@@ -149,7 +157,8 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
 
         """
         time_series = time_series.flatten() if axis != 2 else time_series
-        list_of_methods = [*STAT_METHODS_GLOBAL.items()] if add_global_features else [*STAT_METHODS.items()]
+        list_of_methods = [
+            *STAT_METHODS_GLOBAL.items()] if add_global_features else [*STAT_METHODS.items()]
         return list(map(lambda method: method[1](time_series, axis), list_of_methods))
 
     def get_statistical_features_torch(
@@ -205,7 +214,8 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
         for parts in accumulators:
             if isinstance(parts[0], (float, int)):
                 merged.append(
-                    torch.tensor(parts) if isinstance(parts[0], torch.Tensor) else parts
+                    torch.tensor(parts) if isinstance(
+                        parts[0], torch.Tensor) else parts
                 )
             else:
                 merged.append(torch.cat(parts, dim=0))
@@ -229,7 +239,8 @@ class BaseExtractor(IndustrialCachableOperationImplementation):
                                           strides=self.stride).trajectory_matrix
             else:
                 subseq_set = stride_repr.sliding_window_view(ts_data,
-                                                             ts_data.shape[axis] - window_size,
+                                                             ts_data.shape[axis] -
+                                                             window_size,
                                                              axis=axis)
         else:
             subseq_set = None

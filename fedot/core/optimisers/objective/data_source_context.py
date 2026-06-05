@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Union
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 

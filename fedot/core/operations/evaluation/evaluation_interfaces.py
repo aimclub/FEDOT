@@ -27,7 +27,7 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
@@ -101,7 +101,8 @@ class EvaluationStrategy:
         if operation_type in self._operations_by_types:
             return self._operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain {self.__class__} strategy for {operation_type}')
+            raise ValueError(
+                f'Impossible to obtain {self.__class__} strategy for {operation_type}')
 
     @property
     def implementation_info(self) -> str:
@@ -212,7 +213,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
+        operation_implementation = self.operation_impl(
+            **self.params_for_fit.to_dict())
 
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
@@ -228,9 +230,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         with ImplementationRandomStateHandler(implementation=operation_implementation):
             if is_model_not_support_multi and is_multi_target:
                 # Manually wrap the regressor into multi-output model
-                operation_implementation = convert_to_multivariate_model(operation_implementation, train_data)
+                operation_implementation = convert_to_multivariate_model(
+                    operation_implementation, train_data)
             else:
-                operation_implementation.fit(train_data.features, train_data.target)
+                operation_implementation.fit(
+                    train_data.features, train_data.target)
 
         return operation_implementation
 
@@ -267,14 +271,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = trained_operation.predict_proba(features)
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs':
                 if is_multi_output_model(self.operation_impl):
-                    prediction = np.stack([pred[:, 1] for pred in prediction]).T
+                    prediction = np.stack([pred[:, 1]
+                                          for pred in prediction]).T
                 else:
                     prediction = prediction[:, 1]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output model {self.output_mode} is not supported')
 
         return prediction
 
@@ -295,7 +302,8 @@ def convert_to_multivariate_model(sklearn_model, train_data: InputData):
     elif train_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
         multiout_func = MultiOutputRegressor
     else:
-        raise ValueError(f"For task type '{train_data.task.task_type}' MultiOutput wrapper is not supported")
+        raise ValueError(
+            f"For task type '{train_data.task.task_type}' MultiOutput wrapper is not supported")
 
     # Apply MultiOutput
     sklearn_model = multiout_func(sklearn_model)

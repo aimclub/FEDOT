@@ -4,7 +4,7 @@ from typing import Optional, Union
 import numpy as np
 import pandas as pd
 import sklearn.base
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from pymonad.either import Either
 from scipy.special import softmax
@@ -42,11 +42,14 @@ class PairwiseDifferenceEstimator:
             columns={f'{column}_x': f'{column}_y' for column in X1.columns})
         x1_pair_sym = X_pair[[f'{column}_y' for column in X1.columns]].rename(
             columns={f'{column}_y': f'{column}_x' for column in X1.columns})
-        X_pair_sym = pd.concat([x1_pair_sym, x2_pair_sym, x2_pair - x1_pair], axis='columns')
+        X_pair_sym = pd.concat(
+            [x1_pair_sym, x2_pair_sym, x2_pair - x1_pair], axis='columns')
 
         if y1 is not None:
-            assert isinstance(y1, pd.Series) or y1.shape[1] == 1, f"Didn't expect more than one output {y1.shape}"
-            assert isinstance(y2, pd.Series) or y2.shape[1] == 1, f"Didn't expect more than one output {y2.shape}"
+            assert isinstance(
+                y1, pd.Series) or y1.shape[1] == 1, f"Didn't expect more than one output {y1.shape}"
+            assert isinstance(
+                y2, pd.Series) or y2.shape[1] == 1, f"Didn't expect more than one output {y2.shape}"
 
             y_pair = pd.DataFrame(y1).merge(y2, how="cross")
             y_pair_diff = y_pair.iloc[:, 0] - y_pair.iloc[:, 1]
@@ -83,7 +86,8 @@ class PairwiseDifferenceEstimator:
                                                                                        for column in X1.columns})
         x1_pair_sym = X_pair[[f'{column}_y' for column in X1.columns]].rename(columns={f'{column}_y': f'{column}_x'
                                                                                        for column in X1.columns})
-        X_pair_sym = pd.concat([x1_pair_sym, x2_pair_sym, x2_pair - x1_pair], axis='columns')
+        X_pair_sym = pd.concat(
+            [x1_pair_sym, x2_pair_sym, x2_pair - x1_pair], axis='columns')
         # distances = cdist(X1, cluster_centers)
         return X_pair, X_pair_sym
 
@@ -105,7 +109,8 @@ class PairwiseDifferenceEstimator:
         y1, y2 = self._convert_to_pandas(y1, y2)
         y_pair = pd.DataFrame(y1).merge(y2, how="cross")
         y_pair_diff = (y_pair.iloc[:, 1] != y_pair.iloc[:, 0]).astype(int)
-        assert y_pair_diff.nunique() <= 2, f'should only be 0s and 1s {y_pair_diff.unique()}'
+        assert y_pair_diff.nunique(
+        ) <= 2, f'should only be 0s and 1s {y_pair_diff.unique()}'
         return y_pair_diff.values
 
     @staticmethod
@@ -118,7 +123,8 @@ class PairwiseDifferenceEstimator:
         assert y is not None
         assert isinstance(y, pd.Series)
         assert 'uint' not in str(y.dtype), y.dtype
-        assert isinstance(y, pd.Series) or y.shape[1] == 1, f"Didn't expect more than one output {y.shape}"
+        assert isinstance(
+            y, pd.Series) or y.shape[1] == 1, f"Didn't expect more than one output {y.shape}"
         assert y.nunique() > 1, y.nunique()
         if y.name is None:
             # just put any name to the output to avoid a bug later
@@ -137,7 +143,8 @@ class PairwiseDifferenceEstimator:
                 raise ValueError(
                     f'sample_weight and y_train must have the same index\n{sample_weight.index}\n{y_train.index}')
             if all(sample_weight.fillna(0) <= 0):
-                raise ValueError(f'sample_weight are all negative/Nans.\n{sample_weight}')
+                raise ValueError(
+                    f'sample_weight are all negative/Nans.\n{sample_weight}')
 
             # norm
             class_sums = np.bincount(y_train, sample_weight)
@@ -174,9 +181,11 @@ class PairwiseDifferenceClassifier:
     def __init__(self, params: Optional[OperationParameters] = None):
         self.base_model_params = deepcopy(params._parameters)
         del self.base_model_params['model']
-        self.base_model = SKLEARN_CLF_IMP[params.get('model', 'rf')](**self.base_model_params)
+        self.base_model = SKLEARN_CLF_IMP[params.get(
+            'model', 'rf')](**self.base_model_params)
         self.pde = PairwiseDifferenceEstimator()
-        self.is_model_have_prob_output = hasattr(self.base_model, 'predict_proba')
+        self.is_model_have_prob_output = hasattr(
+            self.base_model, 'predict_proba')
         self.prior = None
         self.use_prior = False
         self.proba_aggregate_method = 'norm'
@@ -204,12 +213,15 @@ class PairwiseDifferenceClassifier:
         self.target = input_data.target
         self.task_type = input_data.task
         self.is_regression_task = self.task_type.task_type.value == 'regression'
-        self.classes_ = sklearn.utils.multiclass.unique_labels(input_data.target)
+        self.classes_ = sklearn.utils.multiclass.unique_labels(
+            input_data.target)
         self.train_features = input_data.features  # Store the classes seen during fit
         self._estimate_prior()
         self._check_target()
-        X_pair, _ = self.pde.pair_input(input_data.features, input_data.features)
-        y_pair_diff = self.pde.pair_output_difference(self.target, self.target, self.num_classes)
+        X_pair, _ = self.pde.pair_input(
+            input_data.features, input_data.features)
+        y_pair_diff = self.pde.pair_output_difference(
+            self.target, self.target, self.num_classes)
 
         self.base_model.fit(X_pair, y_pair_diff)
         return self
@@ -234,28 +246,35 @@ class PairwiseDifferenceClassifier:
                 return proba
 
         predictions_proba_difference: np.ndarray = predict_proba(X_pair)
-        predictions_proba_difference_sym: np.ndarray = predict_proba(X_pair_sym)
+        predictions_proba_difference_sym: np.ndarray = predict_proba(
+            X_pair_sym)
         # np.testing.assert_array_equal(predictions_proba_difference.shape, (len(X_pair), 2))
         predictions_proba_similarity_ab = predictions_proba_difference[:, 0]
         predictions_proba_similarity_ba = predictions_proba_difference_sym[:, 0]
-        predictions_proba_similarity = (predictions_proba_similarity_ab + predictions_proba_similarity_ba) / 2.
+        predictions_proba_similarity = (
+            predictions_proba_similarity_ab + predictions_proba_similarity_ba) / 2.
 
         predictions_proba_similarity_df = pd.DataFrame(
-            predictions_proba_similarity.reshape((-1, len(self.train_features))),
+            predictions_proba_similarity.reshape(
+                (-1, len(self.train_features))),
             index=pd.DataFrame(X).index, columns=pd.DataFrame(self.train_features).index)
         return predictions_proba_similarity_df
 
     def __predict_with_prior(self, input_data: np.ndarray, sample_weight):
-        tests_trains_classes_likelihood = self.predict_proba_samples(input_data)
-        tests_classes_likelihood = self._apply_weights(tests_trains_classes_likelihood, sample_weight)
+        tests_trains_classes_likelihood = self.predict_proba_samples(
+            input_data)
+        tests_classes_likelihood = self._apply_weights(
+            tests_trains_classes_likelihood, sample_weight)
         np.finfo(tests_classes_likelihood.dtype).eps
-        tests_classes_likelihood = tests_classes_likelihood / tests_classes_likelihood.sum(axis=1)[:, np.newaxis]
+        tests_classes_likelihood = tests_classes_likelihood / \
+            tests_classes_likelihood.sum(axis=1)[:, np.newaxis]
         tests_classes_likelihood = tests_classes_likelihood.clip(0, 1)
         return tests_classes_likelihood
 
     def __predict_without_prior(self, input_data: np.ndarray, sample_weight=None):
         X = pd.DataFrame(input_data)
-        predictions_proba_similarity_df: pd.DataFrame = pd.DataFrame(self.predict_similarity_samples(X))
+        predictions_proba_similarity_df: pd.DataFrame = pd.DataFrame(
+            self.predict_similarity_samples(X))
 
         def f(predictions_proba_similarity: pd.Series) -> pd.Series:
             target = pd.Series(self.target.squeeze())
@@ -265,20 +284,23 @@ class PairwiseDifferenceClassifier:
             mean = df.groupby('start', observed=False).mean()['similarity']
             return mean
 
-        tests_classes_likelihood_np = predictions_proba_similarity_df.apply(f, axis='columns')
+        tests_classes_likelihood_np = predictions_proba_similarity_df.apply(
+            f, axis='columns')
         # without this normalization it should work for multiclass-multilabel
         if self.proba_aggregate_method == 'norm':
             tests_classes_likelihood_np = tests_classes_likelihood_np.values \
                 / tests_classes_likelihood_np.values.sum(axis=-1)[:, np.newaxis]
         elif self.proba_aggregate_method == 'softmax':
-            tests_classes_likelihood_np = softmax(tests_classes_likelihood_np, axis=-1)
+            tests_classes_likelihood_np = softmax(
+                tests_classes_likelihood_np, axis=-1)
         return tests_classes_likelihood_np
 
     def predict_proba_samples(self, X: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
         # todo add unit test with weight ==[1 1 1 ] and weights = None
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
-        predictions_proba_similarity: pd.DataFrame = self.predict_similarity_samples(X)
+        predictions_proba_similarity: pd.DataFrame = self.predict_similarity_samples(
+            X)
 
         def g(anchor_class: np.ndarray, predicted_similarity: np.ndarray) -> np.ndarray:
             """
@@ -288,10 +310,12 @@ class PairwiseDifferenceClassifier:
             :return:
             """
             prior_cls_probs = (1 - self.prior[anchor_class])
-            likelyhood_per_anchor = ((1 - predicted_similarity) / prior_cls_probs)
+            likelyhood_per_anchor = (
+                (1 - predicted_similarity) / prior_cls_probs)
             likelyhood_per_anchor = likelyhood_per_anchor * self.prior
             n_samples = np.arange(len(likelyhood_per_anchor))
-            likelyhood_per_anchor[n_samples, anchor_class] = predicted_similarity
+            likelyhood_per_anchor[n_samples,
+                                  anchor_class] = predicted_similarity
             return likelyhood_per_anchor
 
         anchor_class = self.target.astype(int)
@@ -300,11 +324,14 @@ class PairwiseDifferenceClassifier:
             """ Here we focus on one test point.
             Given its similarity probabilities.
             Return the probability for each class"""
-            test_i_trains_classes = g(anchor_class=anchor_class, predicted_similarity=predictions_proba_similarity)
-            np.testing.assert_array_equal(test_i_trains_classes.shape, (len(self.target), self.num_classes))
+            test_i_trains_classes = g(
+                anchor_class=anchor_class, predicted_similarity=predictions_proba_similarity)
+            np.testing.assert_array_equal(
+                test_i_trains_classes.shape, (len(self.target), self.num_classes))
             return test_i_trains_classes
 
-        tests_trains_classes_likelihood = np.apply_along_axis(f, axis=1, arr=predictions_proba_similarity.values)
+        tests_trains_classes_likelihood = np.apply_along_axis(
+            f, axis=1, arr=predictions_proba_similarity.values)
         return tests_trains_classes_likelihood
 
     def _apply_weights(self,
@@ -323,7 +350,8 @@ class PairwiseDifferenceClassifier:
 
         predict_output = Either(value=input_data.features,
                                 monoid=[input_data.features, self.use_prior]).either(
-            left_function=lambda features: self.__predict_without_prior(features, sample_weight),
+            left_function=lambda features: self.__predict_without_prior(
+                features, sample_weight),
             right_function=lambda features: self.__predict_with_prior(features, sample_weight))
         return self.pde.predict(predict_output, output_mode, self.target_start_zero)
 
@@ -370,7 +398,8 @@ class PairwiseDifferenceRegressor:
     def __init__(self, params: Optional[OperationParameters] = None):
         self.base_model_params = deepcopy(params._parameters)
         del self.base_model_params['model']
-        self.base_model = SKLEARN_REG_IMP[params.get('model', 'treg')](**self.base_model_params)
+        self.base_model = SKLEARN_REG_IMP[params.get(
+            'model', 'treg')](**self.base_model_params)
         self.pde = PairwiseDifferenceEstimator()
         self.prior = None
         self.use_prior = False
@@ -416,21 +445,26 @@ class PairwiseDifferenceRegressor:
         X = pd.DataFrame(input_data.features)
         final_shape = (-1, len(self.train_features))
         # Create pairs of the new instance each anchor (training instance)
-        X_pair, X_pair_sym, _ = self.pde._pair_data_regression(X, self.train_features, None, None)
+        X_pair, X_pair_sym, _ = self.pde._pair_data_regression(
+            X, self.train_features, None, None)
         # Estimator predicts the difference between each anchor (training instance) and each prediction instance:
         predictions_difference: np.ndarray = self.base_model.predict(X_pair)
         if force_symmetry:
             difference_sym: np.ndarray = self.base_model.predict(X_pair_sym)
-            predictions_difference = (predictions_difference - difference_sym) / 2.
+            predictions_difference = (
+                predictions_difference - difference_sym) / 2.
 
         # The known y for the training instances
-        predictions_start: np.ndarray = repeat(pd.Series(self.target), n_times=len(X))
+        predictions_start: np.ndarray = repeat(
+            pd.Series(self.target), n_times=len(X))
         # Combine the difference predicted by the model with the known y => train_y + predicted difference
         predictions: np.ndarray = predictions_start + predictions_difference
         # Set of absolute predictions for each anchor for each prediction instance:
-        prediction_samples_df = pd.DataFrame(predictions.reshape(final_shape), index=X.index)
+        prediction_samples_df = pd.DataFrame(
+            predictions.reshape(final_shape), index=X.index)
         # The predicted difference to the anchors:
-        pred_diff_samples_df = pd.DataFrame(predictions_difference.reshape(final_shape), index=X.index)
+        pred_diff_samples_df = pd.DataFrame(
+            predictions_difference.reshape(final_shape), index=X.index)
         return prediction_samples_df, pred_diff_samples_df
 
     def __predict_with_weight(self, input_data, prediction_samples_df):
@@ -446,16 +480,22 @@ class PairwiseDifferenceRegressor:
             )
         else:
             self.sample_weight_[self.sample_weight_ < 0] = np.nan
-            summed = pd.Series(np.nansum(self.sample_weight_, axis=1), index=input_data.index)
-            self.sample_weight_ = self.sample_weight_.apply(lambda row: row / summed)
-            np.testing.assert_array_almost_equal(self.sample_weight_.sum(axis=1), 1.)
-            prediction = (prediction_samples_df * self.sample_weight_).sum(axis=1)
+            summed = pd.Series(np.nansum(self.sample_weight_,
+                               axis=1), index=input_data.index)
+            self.sample_weight_ = self.sample_weight_.apply(
+                lambda row: row / summed)
+            np.testing.assert_array_almost_equal(
+                self.sample_weight_.sum(axis=1), 1.)
+            prediction = (prediction_samples_df *
+                          self.sample_weight_).sum(axis=1)
         return prediction
 
     def _abstract_predict(self, input_data: InputData, force_symmetry=True) -> pd.Series:
         """ For each input sample, output one prediction, the mean of the predicted samples. """
-        prediction_samples_df, _ = self._predict_samples(input_data=input_data, force_symmetry=force_symmetry)
-        have_weights = isinstance(self.sample_weight_, pd.Series) or isinstance(self.sample_weight_, pd.DataFrame)
+        prediction_samples_df, _ = self._predict_samples(
+            input_data=input_data, force_symmetry=force_symmetry)
+        have_weights = isinstance(self.sample_weight_, pd.Series) or isinstance(
+            self.sample_weight_, pd.DataFrame)
 
         predict_output = Either(value=pd.DataFrame(input_data.features),
                                 monoid=[prediction_samples_df, have_weights]).either(
@@ -488,7 +528,8 @@ class PairwiseDifferenceRegressor:
         - 'KmeansClusterCenters': Calculate weights as the distance to the cluster centers of the KMeans algorithm.
         """
         if y_val is not None:
-            old_validation_error = sklearn.metrics.mean_absolute_error(self.predict(X_val), y_val)
+            old_validation_error = sklearn.metrics.mean_absolute_error(
+                self.predict(X_val), y_val)
         else:
             old_validation_error = 0
 
@@ -498,12 +539,15 @@ class PairwiseDifferenceRegressor:
 
         sample_weight: pd.Series = self._name_to_method_mapping[method](X_val=X_val, y_val=y_val, X_test=X_test,
                                                                         **kwargs)
-        assert not sample_weight.isna().any(), f'Nans values in sample_weights using {method}\n {sample_weight}'
+        assert not sample_weight.isna().any(
+        ), f'Nans values in sample_weights using {method}\n {sample_weight}'
         self.set_sample_weight(sample_weight)
         if y_val is not None:
-            new_validation_error = sklearn.metrics.mean_absolute_error(self.predict(X_val), y_val)
+            new_validation_error = sklearn.metrics.mean_absolute_error(
+                self.predict(X_val), y_val)
             if new_validation_error > old_validation_error and enable_warnings:
-                print(f'WARNING: \t new val MAE: {new_validation_error} \t old val MAE:  {old_validation_error}')
+                print(
+                    f'WARNING: \t new val MAE: {new_validation_error} \t old val MAE:  {old_validation_error}')
         return self
 
     def set_sample_weight(self, sample_weight: pd.Series):
@@ -527,9 +571,11 @@ class PairwiseDifferenceRegressor:
                 sample_weight = pd.Series(1, index=self.y_train_.index)
 
             if all(sample_weight.fillna(0) < 0):
-                raise ValueError(f'sample_weight are all negative/Nans.\n{sample_weight}')
+                raise ValueError(
+                    f'sample_weight are all negative/Nans.\n{sample_weight}')
             if any(pd.isna(sample_weight)):
-                raise ValueError(f'sample_weight contains NaNs.\n{sample_weight}')
+                raise ValueError(
+                    f'sample_weight contains NaNs.\n{sample_weight}')
         else:
             raise ValueError('sample_weight must be a pd.Series')
 

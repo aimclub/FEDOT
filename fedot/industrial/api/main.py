@@ -7,7 +7,7 @@ from typing import Union, Optional
 import numpy as np
 import pandas as pd
 from fedot.api.main import Fedot
-from fedot.core.data.data import OutputData, InputData
+from fedot.core.data.input_data.data import OutputData, InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.visualisation.pipeline_specific_visuals import PipelineHistoryVisualizer
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
@@ -104,16 +104,24 @@ class FedotIndustrial(Fedot):
         self.logger.info('-' * 50)
         self.logger.info('Initialising Industrial Repository')
         if self.manager.industrial_config.is_default_fedot_context:
-            self.logger.info(f'-------------------------------------------------')
-            self.logger.info('Initialising Fedot Evolutionary Optimisation params')
+            self.logger.info(
+                f'-------------------------------------------------')
+            self.logger.info(
+                'Initialising Fedot Evolutionary Optimisation params')
             self.repo = IndustrialModels().setup_default_repository()
-            self.manager.automl_config.optimisation_strategy = self.manager.optimisation_agent['Fedot']
+            self.manager.automl_config.optimisation_strategy = self.manager.optimisation_agent[
+                'Fedot']
         else:
-            self.logger.info(f'-------------------------------------------------')
-            self.logger.info('Initialising Industrial Evolutionary Optimisation params')
-            self.repo = IndustrialModels().setup_repository(backend=self.manager.compute_config.backend)
-            optimisation_agent = self.manager.automl_config.optimisation_strategy['optimisation_agent']
-            optimisation_params = self.manager.automl_config.optimisation_strategy['optimisation_strategy']
+            self.logger.info(
+                f'-------------------------------------------------')
+            self.logger.info(
+                'Initialising Industrial Evolutionary Optimisation params')
+            self.repo = IndustrialModels().setup_repository(
+                backend=self.manager.compute_config.backend)
+            optimisation_agent = self.manager.automl_config.optimisation_strategy[
+                'optimisation_agent']
+            optimisation_params = self.manager.automl_config.optimisation_strategy[
+                'optimisation_strategy']
             self.manager.automl_config.optimisation_strategy = partial(
                 self.manager.optimisation_agent[optimisation_agent],
                 optimisation_params=optimisation_params)
@@ -124,14 +132,16 @@ class FedotIndustrial(Fedot):
         self.logger.info('Initialising Dask Server')
         if self.manager.automl_config.config['initial_assumption'] is None:
             self.manager.automl_config.config['initial_assumption'] = \
-                self.manager.industrial_config.config['initial_assumption'].build()
+                self.manager.industrial_config.config['initial_assumption'].build(
+            )
         else:
             self.manager.automl_config.config['initial_assumption'] = \
                 self.manager.automl_config.config['initial_assumption'].build()
         dask_server = DaskServer(self.manager.compute_config.distributed)
         self.manager.dask_client = dask_server.client
         self.manager.dask_cluster = dask_server.cluster
-        self.logger.info(f'Link Dask Server - {self.manager.dask_client.dashboard_link}')
+        self.logger.info(
+            f'Link Dask Server - {self.manager.dask_client.dashboard_link}')
         self.logger.info('-' * 50)
         self.logger.info('Initialising solver')
         self.manager.solver = Fedot(
@@ -148,9 +158,11 @@ class FedotIndustrial(Fedot):
     def _process_input_data(self, input_data):
         train_data, self.target_encoder = Either.insert(input_data).then(lambda data: deepcopy(data)). \
             then(lambda data: DataCheck(input_data=data, task=self.manager.automl_config.config['task'],
-                                        task_params=self.manager.automl_config.config['task_params'], fit_stage=True,
+                                        task_params=self.manager.automl_config.config[
+                                            'task_params'], fit_stage=True,
                                         industrial_task_params=self.manager.industrial_config.strategy_params)). \
-            then(lambda data_cls: (data_cls.check_input_data(), data_cls.get_target_encoder())).value
+            then(lambda data_cls: (data_cls.check_input_data(),
+                 data_cls.get_target_encoder())).value
         train_data.features = train_data.features.squeeze() if self.manager.industrial_config.is_default_fedot_context \
             else train_data.features
         return train_data
@@ -162,28 +174,36 @@ class FedotIndustrial(Fedot):
                                                     test_size=0.2,
                                                     random_state=42,
                                                     shuffle=True)
-        X_train, y_train = self.train_data.features[train_idx, :, :], self.train_data.target[train_idx]
-        X_val, y_val = self.train_data.features[test_idx, :, :], self.train_data.target[test_idx]
+        X_train, y_train = self.train_data.features[train_idx,
+                                                    :, :], self.train_data.target[train_idx]
+        X_val, y_val = self.train_data.features[test_idx,
+                                                :, :], self.train_data.target[test_idx]
         train_data_for_calibration = (X_train, y_train)
         val_data = (X_val, y_val)
-        model_sklearn.fit(train_data_for_calibration[0], train_data_for_calibration[1])
-        cal_clf = CalibratedClassifierCV(model_sklearn, method="sigmoid", cv="prefit")
+        model_sklearn.fit(
+            train_data_for_calibration[0], train_data_for_calibration[1])
+        cal_clf = CalibratedClassifierCV(
+            model_sklearn, method="sigmoid", cv="prefit")
         cal_clf.fit(val_data[0], val_data[1])
         # calibrated prediction
         calibrated_proba = cal_clf.predict_proba(predict_data.features)
         return calibrated_proba
 
     def __predict_for_ensemble(self):
-        predict = self.manager.industrial_config.strategy.predict(self.predict_data, 'probs')
+        predict = self.manager.industrial_config.strategy.predict(
+            self.predict_data, 'probs')
         ensemble_strat = self.manager.industrial_config.strategy.ensemble_strategy
         predict = {strategy: np.argmax(self.manager.industrial_config.strategy.ensemble_predictions(
             predict, strategy), axis=1) for strategy in ensemble_strat}
         return predict
 
     def __abstract_predict(self, predict_data, predict_mode):
-        solver_is_fedot = self.manager.condition_check.solver_is_fedot_class(self.manager.solver)
-        solver_is_pipeline = self.manager.condition_check.solver_is_pipeline_class(self.manager.solver)
-        have_encoder = self.manager.condition_check.solver_have_target_encoder(self.target_encoder)
+        solver_is_fedot = self.manager.condition_check.solver_is_fedot_class(
+            self.manager.solver)
+        solver_is_pipeline = self.manager.condition_check.solver_is_pipeline_class(
+            self.manager.solver)
+        have_encoder = self.manager.condition_check.solver_have_target_encoder(
+            self.target_encoder)
         predict_plan = build_industrial_predict_plan(
             predict_mode=predict_mode,
             solver_is_fedot_class=solver_is_fedot,
@@ -194,7 +214,8 @@ class FedotIndustrial(Fedot):
 
         def _inverse_encoder_transform(predict):
             predicted_labels = self.target_encoder.inverse_transform(predict)
-            self.predict_data.target = self.target_encoder.inverse_transform(self.predict_data.target)
+            self.predict_data.target = self.target_encoder.inverse_transform(
+                self.predict_data.target)
             return predicted_labels
 
         def predict_func(predict_from_solver):
@@ -206,7 +227,8 @@ class FedotIndustrial(Fedot):
 
         raw_predict = Either(value=predict_data,
                              monoid=[predict_data, predict_plan.custom_predict]).either(
-            left_function=lambda predict_from_solver: predict_func(predict_from_solver),
+            left_function=lambda predict_from_solver: predict_func(
+                predict_from_solver),
             right_function=lambda predict_from_custom: self.manager.solver.predict(predict_from_custom))
         normalized_predict = normalize_industrial_prediction(raw_predict)
         if have_encoder:
@@ -225,7 +247,8 @@ class FedotIndustrial(Fedot):
         metrics_plan = build_industrial_metrics_plan(
             target=target,
             predicted_labels=predicted_labels,
-            has_target_encoder=self.manager.condition_check.solver_have_target_encoder(self.target_encoder),
+            has_target_encoder=self.manager.condition_check.solver_have_target_encoder(
+                self.target_encoder),
         )
         if metrics_plan.prediction_is_mapping:
             metric_dict = {model_name: FEDOT_GET_METRICS[problem](target=target,
@@ -238,7 +261,8 @@ class FedotIndustrial(Fedot):
 
         if metrics_plan.use_target_encoder:
             new_target = self.target_encoder.transform(target.flatten())
-            labels = self.target_encoder.transform(predicted_labels).reshape(metrics_plan.valid_shape)
+            labels = self.target_encoder.transform(
+                predicted_labels).reshape(metrics_plan.valid_shape)
         else:
             new_target = target.flatten()
             labels = predicted_labels.reshape(metrics_plan.valid_shape)
@@ -262,7 +286,8 @@ class FedotIndustrial(Fedot):
             **kwargs: additional parameters
 
         """
-        fit_plan = build_industrial_fit_plan(self.manager.industrial_config.strategy)
+        fit_plan = build_industrial_fit_plan(
+            self.manager.industrial_config.strategy)
 
         with exception_handler(Exception, on_exception=self.shutdown, suppress=False):
             train_data = self._process_input_data(input_data)
@@ -288,10 +313,12 @@ class FedotIndustrial(Fedot):
             the array with prediction values
 
         """
-        self.repo = IndustrialModels().setup_repository(backend=self.manager.compute_config.backend)
+        self.repo = IndustrialModels().setup_repository(
+            backend=self.manager.compute_config.backend)
         processed_input = self._process_input_data(predict_data)
         self.manager.predict_data = processed_input
-        self.manager.predicted_labels = self.__abstract_predict(processed_input, predict_mode)
+        self.manager.predicted_labels = self.__abstract_predict(
+            processed_input, predict_mode)
 
         return self.manager.predicted_labels
 
@@ -312,13 +339,15 @@ class FedotIndustrial(Fedot):
             the array with prediction probabilities
 
         """
-        self.repo = IndustrialModels().setup_repository(backend=self.manager.compute_config.backend)
+        self.repo = IndustrialModels().setup_repository(
+            backend=self.manager.compute_config.backend)
         predict_proba_plan = build_industrial_predict_proba_plan(
             predict_mode=predict_mode,
             is_regression_task_context=self.manager.industrial_config.is_regression_task_context,
         )
         processed_input = self._process_input_data(predict_data)
-        self.manager.predicted_probs = self.__abstract_predict(processed_input, predict_proba_plan.normalized_mode)
+        self.manager.predicted_probs = self.__abstract_predict(
+            processed_input, predict_proba_plan.normalized_mode)
 
         return self.manager.predicted_probs
 
@@ -341,7 +370,8 @@ class FedotIndustrial(Fedot):
             data_dict['model_to_tune'].fit(data_dict['train_data'])
             return data_dict
 
-        is_fedot_datatype = self.manager.condition_check.input_data_is_fedot_type(train_data)
+        is_fedot_datatype = self.manager.condition_check.input_data_is_fedot_type(
+            train_data)
         finetune_plan = build_industrial_finetune_plan(
             is_fedot_datatype=is_fedot_datatype,
             task_name=self.manager.automl_config.config['task'],
@@ -351,8 +381,10 @@ class FedotIndustrial(Fedot):
         with exception_handler(Exception, on_exception=self.shutdown, suppress=False):
             processed_train_data = train_data
             if finetune_plan.should_process_input:
-                processed_train_data = self._process_input_data(processed_train_data)
-            processed_train_data = self.__init_industrial_backend(processed_train_data)
+                processed_train_data = self._process_input_data(
+                    processed_train_data)
+            processed_train_data = self.__init_industrial_backend(
+                processed_train_data)
             tuning_context = {
                 'train_data': processed_train_data,
                 'model_to_tune': model_to_tune.build(),
@@ -396,7 +428,8 @@ class FedotIndustrial(Fedot):
             metric_names=metric_names,
         )
         if metrics_request_plan.warn_missing_probabilities:
-            self.logger.info('Predicted probabilities are not available. Use `predict_proba()` method first')
+            self.logger.info(
+                'Predicted probabilities are not available. Use `predict_proba()` method first')
 
         self.metric_dict = self._metric_evaluation_loop(
             target=target,
@@ -412,7 +445,8 @@ class FedotIndustrial(Fedot):
     def save(self, mode: str = 'all', **kwargs):
         save_plan = build_industrial_save_plan(
             mode=mode,
-            is_fedot_solver=self.manager.condition_check.solver_is_fedot_class(self.manager.solver),
+            is_fedot_solver=self.manager.condition_check.solver_is_fedot_class(
+                self.manager.solver),
         )
 
         def save_model(api_manager):
@@ -450,7 +484,8 @@ class FedotIndustrial(Fedot):
                 try:
                     method(api_manager)
                 except Exception as ex:
-                    self.manager.logger.info(f'Error during saving. Exception - {ex}')
+                    self.manager.logger.info(
+                        f'Error during saving. Exception - {ex}')
 
         Either(value=self.manager, monoid=[self.manager, save_plan.save_all]). \
             either(left_function=lambda api_manager: method_dict[save_plan.selected_mode](self.manager),
@@ -487,8 +522,10 @@ class FedotIndustrial(Fedot):
             target=self.manager.predict_data.target
         )
 
-        explainer.explain(n_samples=explain_plan.samples, window=explain_plan.window, method=explain_plan.metric)
-        explainer.visual(metric=explain_plan.metric, threshold=explain_plan.threshold, name=explain_plan.name)
+        explainer.explain(n_samples=explain_plan.samples,
+                          window=explain_plan.window, method=explain_plan.metric)
+        explainer.visual(metric=explain_plan.metric,
+                         threshold=explain_plan.threshold, name=explain_plan.name)
 
     def return_report(self) -> pd.DataFrame:
         return self.manager.solver.return_report() if isinstance(self.manager.solver, Fedot) else None
@@ -517,8 +554,10 @@ class FedotIndustrial(Fedot):
 
         Either(value=vis_func,
                monoid=[history_plan.selected_mode, history_plan.visualize_all]).either(
-            left_function=lambda _vis_func: plot_func(history_plan.selected_mode),
-            right_function=lambda _vis_func: [func(**params) for func, params in vis_func.values()]
+            left_function=lambda _vis_func: plot_func(
+                history_plan.selected_mode),
+            right_function=lambda _vis_func: [
+                func(**params) for func, params in vis_func.values()]
         )
         return history_visualizer.history if return_history else None
 

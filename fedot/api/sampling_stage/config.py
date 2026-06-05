@@ -50,7 +50,8 @@ def validate_sampling_config(config: Optional[Dict[str, Any]]) -> Optional[Sampl
     allowed_keys = _field_names(config_cls)
     unknown_keys = set(config.keys()) - allowed_keys
     if unknown_keys:
-        raise ValueError(f'Unknown keys in "sampling_config": {sorted(unknown_keys)}')
+        raise ValueError(
+            f'Unknown keys in "sampling_config": {sorted(unknown_keys)}')
 
     if strategy_kind == 'subset':
         merged = SamplingSubsetConfig(**config)
@@ -70,22 +71,28 @@ def _field_names(config_cls: Any) -> set:
 
 def _validate_base_config_values(config: SamplingConfigBase) -> None:
     if not isinstance(config.provider, str) or not config.provider.strip():
-        raise ValueError('"sampling_config.provider" must be a non-empty string.')
+        raise ValueError(
+            '"sampling_config.provider" must be a non-empty string.')
 
     if not isinstance(config.strategy, str) or not config.strategy.strip():
-        raise ValueError('"sampling_config.strategy" must be a non-empty string.')
+        raise ValueError(
+            '"sampling_config.strategy" must be a non-empty string.')
 
     if not isinstance(config.strategy_params, dict):
-        raise ValueError('"sampling_config.strategy_params" must be a dictionary.')
+        raise ValueError(
+            '"sampling_config.strategy_params" must be a dictionary.')
 
     if not 0 < config.cap_max_timeout_share <= 1:
-        raise ValueError('"sampling_config.cap_max_timeout_share" must be in range (0, 1].')
+        raise ValueError(
+            '"sampling_config.cap_max_timeout_share" must be in range (0, 1].')
 
     if config.min_automl_time_minutes <= 0:
-        raise ValueError('"sampling_config.min_automl_time_minutes" must be > 0.')
+        raise ValueError(
+            '"sampling_config.min_automl_time_minutes" must be > 0.')
 
     if config.infinite_timeout_cap_minutes <= 0:
-        raise ValueError('"sampling_config.infinite_timeout_cap_minutes" must be > 0.')
+        raise ValueError(
+            '"sampling_config.infinite_timeout_cap_minutes" must be > 0.')
 
     if config.random_state is not None and not isinstance(config.random_state, int):
         raise ValueError('"sampling_config.random_state" must be int or None.')
@@ -109,19 +116,23 @@ def _validate_chunking_config_values(config: SamplingChunkingConfig) -> None:
 
 def _validate_ratios(ratios: Sequence[float]) -> Tuple[float, ...]:
     if not isinstance(ratios, (list, tuple)) or len(ratios) == 0:
-        raise ValueError('"sampling_config.candidate_ratios" must be a non-empty list of floats.')
+        raise ValueError(
+            '"sampling_config.candidate_ratios" must be a non-empty list of floats.')
 
     normalized = []
     for ratio in ratios:
         if not isinstance(ratio, (float, int)):
-            raise ValueError('"sampling_config.candidate_ratios" must contain only numbers.')
+            raise ValueError(
+                '"sampling_config.candidate_ratios" must contain only numbers.')
         ratio = float(ratio)
         if not 0 < ratio <= 1:
-            raise ValueError('"sampling_config.candidate_ratios" values must be in range (0, 1].')
+            raise ValueError(
+                '"sampling_config.candidate_ratios" values must be in range (0, 1].')
         normalized.append(ratio)
 
     if len(set(normalized)) != len(normalized):
-        raise ValueError('"sampling_config.candidate_ratios" must not contain duplicates.')
+        raise ValueError(
+            '"sampling_config.candidate_ratios" must not contain duplicates.')
 
     sorted_ratios = sorted(normalized)
     return tuple(sorted_ratios)

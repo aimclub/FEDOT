@@ -1,7 +1,7 @@
 from typing import Union
 import torch
 import math
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 
 
 def park_transform_torch(

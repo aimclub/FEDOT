@@ -7,7 +7,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from fedot.core.composer.metrics import root_mean_squared_error
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -24,7 +24,8 @@ def get_refinement_pipeline():
     node_encoding = PipelineNode('one_hot_encoding')
     node_scaling = PipelineNode('scaling', nodes_from=[node_encoding])
     node_lasso = PipelineNode('lasso', nodes_from=[node_scaling])
-    node_decompose = PipelineNode('decompose', nodes_from=[node_scaling, node_lasso])
+    node_decompose = PipelineNode('decompose', nodes_from=[
+                                  node_scaling, node_lasso])
     node_dtreg = PipelineNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.parameters = {'max_depth': 3}
     final_node = PipelineNode('ridge', nodes_from=[node_lasso, node_dtreg])
@@ -85,7 +86,8 @@ def run_river_experiment(file_path, with_tuning=False):
 
     # Read dataframe and prepare train and test data
     df = pd.read_csv(file_path)
-    features = np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']])
+    features = np.array(
+        df[['level_station_1', 'mean_temp', 'month', 'precip']])
     target = np.array(df['level_station_2']).reshape((-1, 1))
 
     # Prepare InputData for train and test

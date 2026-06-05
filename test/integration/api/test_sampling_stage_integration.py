@@ -248,7 +248,8 @@ def _build_sampling_config(spec: StrategySpec) -> Dict[str, object]:
 
 
 def test_fit_with_sampling_config_none_preserves_default_behavior():
-    train_data, _, _ = get_dataset('classification', n_samples=120, n_features=6, iris_dataset=False)
+    train_data, _, _ = get_dataset(
+        'classification', n_samples=120, n_features=6, iris_dataset=False)
 
     model = Fedot(problem='classification',
                   timeout=0.1,
@@ -263,7 +264,8 @@ def test_fit_with_sampling_config_none_preserves_default_behavior():
 
 
 def test_fit_with_sampling_enabled_reduces_train_size_and_exposes_metadata(monkeypatch):
-    train_data, _, _ = get_dataset('classification', n_samples=120, n_features=6, iris_dataset=False)
+    train_data, _, _ = get_dataset(
+        'classification', n_samples=120, n_features=6, iris_dataset=False)
     original_size = len(train_data.idx)
 
     monkeypatch.setattr(SamplingStageExecutor,
@@ -292,7 +294,8 @@ def test_fit_with_sampling_enabled_reduces_train_size_and_exposes_metadata(monke
 
 
 def test_fail_fast_for_unsupported_ts_task_with_sampling_stage():
-    train_data, _, _ = get_dataset('ts_forecasting', validation_blocks=1, forecast_length=5)
+    train_data, _, _ = get_dataset(
+        'ts_forecasting', validation_blocks=1, forecast_length=5)
 
     model = Fedot(problem='ts_forecasting',
                   timeout=0.1,
@@ -309,7 +312,8 @@ def test_fail_fast_for_unsupported_ts_task_with_sampling_stage():
 
 
 def test_fail_fast_when_sampling_provider_dependency_missing(monkeypatch):
-    train_data, _, _ = get_dataset('classification', n_samples=80, n_features=6, iris_dataset=False)
+    train_data, _, _ = get_dataset(
+        'classification', n_samples=80, n_features=6, iris_dataset=False)
 
     monkeypatch.setattr(SamplingStageExecutor,
                         '_create_provider',
@@ -333,7 +337,8 @@ def test_fail_fast_when_sampling_provider_dependency_missing(monkeypatch):
 
 
 def test_sampling_stage_does_not_persist_timeout_mutation(monkeypatch):
-    train_data, _, _ = get_dataset('classification', n_samples=100, n_features=6, iris_dataset=False)
+    train_data, _, _ = get_dataset(
+        'classification', n_samples=100, n_features=6, iris_dataset=False)
 
     def fake_sampling_stage(self):
         self.params.timeout = 0.01
@@ -343,7 +348,8 @@ def test_sampling_stage_does_not_persist_timeout_mutation(monkeypatch):
             'rows_after': len(self.train_data.idx),
         }
 
-    monkeypatch.setattr(Fedot, '_run_sampling_stage_if_necessary', fake_sampling_stage)
+    monkeypatch.setattr(
+        Fedot, '_run_sampling_stage_if_necessary', fake_sampling_stage)
 
     model = Fedot(problem='classification',
                   timeout=0.2,
@@ -454,7 +460,8 @@ def test_sampling_stage_runs_available_strategies(spec: StrategySpec,
 
 
 def test_timeout_restored_after_sampling_stage_real_path(monkeypatch):
-    train_data, _, _ = get_dataset('classification', n_samples=90, n_features=6, iris_dataset=False)
+    train_data, _, _ = get_dataset(
+        'classification', n_samples=90, n_features=6, iris_dataset=False)
 
     def fake_execute(self, train_data_input):
         return SamplingStageOutput(

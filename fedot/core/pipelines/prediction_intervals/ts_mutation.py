@@ -26,8 +26,10 @@ def get_ts_mutation(individual: Individual, operations: List[str]):
     """
 
     task_type = TaskTypesEnum.ts_forecasting
-    parameters = GPAlgorithmParameters(mutation_strength=MutationStrengthEnum.strong, mutation_prob=1)
-    requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
+    parameters = GPAlgorithmParameters(
+        mutation_strength=MutationStrengthEnum.strong, mutation_prob=1)
+    requirements = PipelineComposerRequirements(
+        primary=operations, secondary=operations)
     rules = rules_by_task(task_type=task_type)
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=rules,
@@ -48,7 +50,8 @@ def get_mutations(individual: Individual, number_mutations: int, operations: Lis
     Returns:
         list of mutations of given individual. Mutations can be identical.
     """
-    mutations = [get_ts_mutation(individual, operations) for _ in range(number_mutations)]
+    mutations = [get_ts_mutation(individual, operations)
+                 for _ in range(number_mutations)]
     return [x for x in mutations if x is not None]
 
 
@@ -79,7 +82,9 @@ def get_different_mutations(individual: Individual,
             break
 
     if len(mutations) != number_mutations:
-        logger.warning(f"Maximal number attempts {maximal_number_iterations} to build different mutations used.")
+        logger.warning(
+            f"Maximal number attempts {maximal_number_iterations} to build different mutations used.")
     else:
-        logger.info(f"{number_mutations} different mutations are succesfully created.")
+        logger.info(
+            f"{number_mutations} different mutations are succesfully created.")
     return mutations

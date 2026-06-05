@@ -3,7 +3,7 @@ from typing import Optional, Union
 import dask
 import pandas as pd
 import torch
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.operations.operation_parameters import OperationParameters
 from pymonad.either import Either
 from pymonad.list import ListMonad
@@ -76,10 +76,12 @@ class BasisDecompositionImplementation(
 
         """
         features = DataConverter(data=input_data).convert_to_monad_data()
-        evaluation_results = list(map(lambda sample: self._transform_one_sample(sample), features))
+        evaluation_results = list(
+            map(lambda sample: self._transform_one_sample(sample), features))
         with TqdmCallback(desc=f"compute_transformation_to_{self.__repr__()}"):
             evaluation_results = dask.compute(*evaluation_results)
-        predict = NumpyConverter(data=np.array(evaluation_results)).convert_to_torch_format()
+        predict = NumpyConverter(data=np.array(
+            evaluation_results)).convert_to_torch_format()
         return predict
 
     def _get_multidim_basis(self, input_data):

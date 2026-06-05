@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.composer.metrics import Accuracy, F1, Logloss, MSE, R2, RMSE, ROCAUC
-from fedot.core.data.data import InputData
-from fedot.core.data.data import OutputData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.input_data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter

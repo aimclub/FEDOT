@@ -1,5 +1,5 @@
 from fedot.core.composer.metrics import from_maximised_metric
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from sklearn.metrics import accuracy_score, f1_score
 
 from fedot.industrial.core.architecture.settings.computational import backend_methods as np

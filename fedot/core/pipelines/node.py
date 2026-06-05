@@ -10,7 +10,7 @@ from golem.core.optimisers.timer import Timer
 from golem.serializers.serializer import register_serializable
 
 from fedot.core.caching.predictions_cache import PredictionsCache
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
@@ -92,7 +92,8 @@ class PipelineNode(LinkedGraphNode):
         """ Updating content in the node """
         if isinstance(passed_content['name'], str):
             # Need to convert name of operation into operation class object
-            operation_factory = OperationFactory(operation_name=passed_content['name'])
+            operation_factory = OperationFactory(
+                operation_name=passed_content['name'])
             operation = operation_factory.get_operation()
 
             passed_content.update({'name': operation})
@@ -129,7 +130,8 @@ class PipelineNode(LinkedGraphNode):
         """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
-        updated_parameters = merge_node_parameters(self.parameters, changed_parameters)
+        updated_parameters = merge_node_parameters(
+            self.parameters, changed_parameters)
         self.parameters = updated_parameters
 
     @property
@@ -200,11 +202,14 @@ class PipelineNode(LinkedGraphNode):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
-        self.log.debug(f'Trying to fit pipeline node with operation: {self.operation}')
+        self.log.debug(
+            f'Trying to fit pipeline node with operation: {self.operation}')
         try:
-            input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+            input_data = self._get_input_data(
+                input_data=input_data, parent_operation='fit')
         except Exception:
-            input_data = self._get_input_data(input_data=input_data, parent_operation='fit')
+            input_data = self._get_input_data(
+                input_data=input_data, parent_operation='fit')
 
         if self.fitted_operation is None:
             with Timer() as t:
@@ -241,7 +246,8 @@ class PipelineNode(LinkedGraphNode):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
-        self.log.debug(f'Obtain prediction in pipeline node by operation: {self.operation}')
+        self.log.debug(
+            f'Obtain prediction in pipeline node by operation: {self.operation}')
 
         input_data = self._get_input_data(input_data=input_data, parent_operation='predict',
                                           predictions_cache=predictions_cache, fold_id=fold_id)
@@ -324,7 +330,8 @@ class PipelineNode(LinkedGraphNode):
         if len(self.nodes_from) == 0:
             raise ValueError('No parent nodes found')
 
-        self.log.debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
+        self.log.debug(
+            f'Fit all parent nodes in secondary node with operation: {self.operation}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
@@ -332,7 +339,8 @@ class PipelineNode(LinkedGraphNode):
                                              parent_operation, predictions_cache=predictions_cache, fold_id=fold_id)
         secondary_input = DataMerger.get(parent_results).merge()
         # Update info about visited nodes
-        parent_operations = [node.operation.operation_type for node in parent_nodes]
+        parent_operations = [
+            node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_operations
         return secondary_input
 
@@ -360,8 +368,10 @@ class PipelineNode(LinkedGraphNode):
         Args:
             params: new parameters to be placed instead of existing
         """
-        normalized_params = normalize_node_parameters(params, DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL)
-        self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **normalized_params)
+        normalized_params = normalize_node_parameters(
+            params, DEFAULT_PARAMS_STUB, NESTED_PARAMS_LABEL)
+        self._parameters = OperationParameters.from_operation_type(
+            self.operation.operation_type, **normalized_params)
         self.content['params'] = self._parameters.to_dict()
 
     def __str__(self) -> str:
@@ -385,7 +395,8 @@ class PipelineNode(LinkedGraphNode):
             # There are no tags for atomized operation
             return []
 
-        info = OperationTypesRepository(operation_type='all').operation_info_by_id(self.operation.operation_type)
+        info = OperationTypesRepository(operation_type='all').operation_info_by_id(
+            self.operation.operation_type)
         if info is not None:
             return info.tags
 
@@ -413,17 +424,21 @@ def _combine_parents(parent_nodes: List[PipelineNode],
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            prediction = parent.predict(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+            prediction = parent.predict(
+                input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
             try:
-                prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+                prediction = parent.fit(
+                    input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
                 parent_results.append(prediction)
             except Exception:
-                prediction = parent.fit(input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
+                prediction = parent.fit(
+                    input_data=input_data, predictions_cache=predictions_cache, fold_id=fold_id)
                 parent_results.append(prediction)
         else:
-            raise ValueError("Value parent_operation should be 'fit' or 'predict'")
+            raise ValueError(
+                "Value parent_operation should be 'fit' or 'predict'")
         if input_data is None:
             # InputData was set to primary nodes
             target = prediction.target

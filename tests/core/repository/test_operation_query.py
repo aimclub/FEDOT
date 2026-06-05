@@ -42,7 +42,8 @@ TS_OPERATION = FakeOperation(
 def test_contains_tags_supports_partial_and_full_match():
     assert contains_tags(('tree',), ('tree', 'simple'), False) is True
     assert contains_tags(('tree', 'simple'), ('tree', 'simple'), True) is True
-    assert contains_tags(('tree', 'missing'), ('tree', 'simple'), True) is False
+    assert contains_tags(('tree', 'missing'),
+                         ('tree', 'simple'), True) is False
 
 
 def test_normalize_preset_name_resets_auto_like_presets():

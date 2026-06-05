@@ -1,8 +1,8 @@
 from typing import Optional, Union
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import data_has_text_features
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.preprocessing.data_preprocessing import data_has_text_features
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -20,7 +20,8 @@ class PreprocessingBuilder:
                  use_input_preprocessing: bool = True):
         self.task_type = task_type
         self.data_type = data_type
-        self._builder = PipelineBuilder(*initial_nodes, use_input_preprocessing=use_input_preprocessing)
+        self._builder = PipelineBuilder(
+            *initial_nodes, use_input_preprocessing=use_input_preprocessing)
 
     @classmethod
     def builder_for_data(cls,

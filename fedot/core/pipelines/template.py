@@ -79,7 +79,8 @@ class PipelineTemplate:
                 else:
                     visited_nodes.append(node_parent)
                     nodes_from.append(len(visited_nodes))
-                    self._extract_pipeline_structure(node_parent, len(visited_nodes), visited_nodes)
+                    self._extract_pipeline_structure(
+                        node_parent, len(visited_nodes), visited_nodes)
         else:
             nodes_from = []
 
@@ -87,9 +88,11 @@ class PipelineTemplate:
         if hasattr(node, 'operation'):
             if (not isinstance(node.operation, str) and
                     node.operation.operation_type == atomized_model_type()):
-                operation_template = AtomizedModelTemplate(node, operation_id, sorted(nodes_from))
+                operation_template = AtomizedModelTemplate(
+                    node, operation_id, sorted(nodes_from))
             else:
-                operation_template = OperationTemplate(node, operation_id, sorted(nodes_from))
+                operation_template = OperationTemplate(
+                    node, operation_id, sorted(nodes_from))
 
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
@@ -124,7 +127,8 @@ class PipelineTemplate:
                         saved_key = None
                     pipeline_template_dict['fitted_operation_path'] = saved_key
 
-        json_data = json.dumps(pipeline_template_dict, indent=4, cls=NumpyIntEncoder)
+        json_data = json.dumps(pipeline_template_dict,
+                               indent=4, cls=NumpyIntEncoder)
 
         if path is None:
             return json_data, fitted_ops
@@ -142,7 +146,8 @@ class PipelineTemplate:
     def convert_to_dict(self, root_node: PipelineNode = None) -> dict:
         """ Generate pipeline description in a form of dictionary """
 
-        json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
+        json_nodes = list(
+            map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
         for node in json_nodes:
             if 'custom_params' in node and isinstance(node['custom_params'], dict):
                 for key in node['custom_params']:
@@ -167,7 +172,8 @@ class PipelineTemplate:
         """ Create .pkl files for operations using absolute path """
         dict_fitted_operations = {}
         for operation in self.operation_templates:
-            dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(path)
+            dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(
+                path)
 
         if all(val is None for val in dict_fitted_operations.values()):
             return None
@@ -176,7 +182,8 @@ class PipelineTemplate:
         preprocessing_path = self.export_preprocessing(path)
         if isinstance(preprocessing_path, str):
             preprocessing_splitted = os.path.split(preprocessing_path)
-            preprocessing_path = [preprocessing_splitted[-2], preprocessing_splitted[-1]]
+            preprocessing_path = [
+                preprocessing_splitted[-2], preprocessing_splitted[-1]]
         dict_fitted_operations['preprocessing'] = preprocessing_path
         return dict_fitted_operations
 
@@ -275,10 +282,12 @@ class PipelineTemplate:
 
             with open(path_to_json_pipe) as json_file:
                 json_object_pipeline = json.load(json_file)
-                self.log.debug(f'The pipeline was imported from the path: {path_to_json_pipe}.')
+                self.log.debug(
+                    f'The pipeline was imported from the path: {path_to_json_pipe}.')
 
         self._extract_operations(json_object_pipeline, path_to_json_pipe)
-        self.convert_to_pipeline(self.link_to_empty_pipeline, path_to_json_pipe, dict_fitted_operations)
+        self.convert_to_pipeline(
+            self.link_to_empty_pipeline, path_to_json_pipe, dict_fitted_operations)
         self.depth = self.link_to_empty_pipeline.depth
 
     def _extract_operations(self, pipeline_json: dict, path: str):
@@ -288,7 +297,8 @@ class PipelineTemplate:
         for operation_object in operation_objects:
             if operation_object['operation_type'] == atomized_model_type():
                 filename = operation_object['atomized_model_json_path'] + '.json'
-                curr_path = os.path.join(os.path.dirname(path), operation_object['atomized_model_json_path'], filename)
+                curr_path = os.path.join(os.path.dirname(
+                    path), operation_object['atomized_model_json_path'], filename)
                 operation_template = AtomizedModelTemplate(path=curr_path)
             else:
                 operation_template = OperationTemplate()
@@ -301,16 +311,19 @@ class PipelineTemplate:
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
-        root_template = [op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
+        root_template = [
+            op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
 
-        root_node = self.roll_pipeline_structure(root_template, visited_nodes, path, dict_fitted_operations)
+        root_node = self.roll_pipeline_structure(
+            root_template, visited_nodes, path, dict_fitted_operations)
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
 
         preprocessor_file = None
         if path is not None and 'preprocessing' in os.listdir(path):
             # Load data preprocessor and store it into the
-            preprocessor_file = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
+            preprocessor_file = os.path.join(
+                path, 'preprocessing', 'data_preprocessor.pkl')
         elif dict_fitted_operations and 'preprocessing' in dict_fitted_operations:
             preprocessor_file = dict_fitted_operations['preprocessing']
         if preprocessor_file:
@@ -321,7 +334,8 @@ class PipelineTemplate:
                                  f'due to legacy incompatibility. Please refit the preprocessor.')
         else:
             pipeline.preprocessor = \
-                DataPreprocessor() if self.metadata['use_input_preprocessing'] else DummyPreprocessor()
+                DataPreprocessor(
+                ) if self.metadata['use_input_preprocessing'] else DummyPreprocessor()
 
     def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
@@ -348,7 +362,8 @@ class PipelineTemplate:
 
         if hasattr(operation_object,
                    'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
-            path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
+            path_to_operation = os.path.join(
+                path, operation_object.fitted_operation_path)
 
             if 'h2o' in operation_object.operation_type:
                 fitted_operation = load_h2o(path, self.log)
@@ -364,7 +379,8 @@ class PipelineTemplate:
                 self.log.error(message)
                 raise TypeError(message)
             else:
-                fitted_operation = joblib.load(dict_fitted_operations[f'operation_{operation_object.operation_id}'])
+                fitted_operation = joblib.load(
+                    dict_fitted_operations[f'operation_{operation_object.operation_id}'])
 
         operation_object.fitted_operation = fitted_operation
         node.fitted_operation = fitted_operation
@@ -384,7 +400,8 @@ class PipelineTemplate:
             path_fitted_preprocessing = os.path.join(path, 'preprocessing')
             check_existing_path(path_fitted_preprocessing)
 
-            data_preprocessor_path = os.path.join(path_fitted_preprocessing, 'data_preprocessor.pkl')
+            data_preprocessor_path = os.path.join(
+                path_fitted_preprocessing, 'data_preprocessor.pkl')
             if self.data_preprocessor is not None:
                 joblib.dump(self.data_preprocessor, data_preprocessor_path)
                 return data_preprocessor_path

@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective.data_source_context import (
     ComposerDataSourceMode,
     build_external_holdout_composer_data_source_context,

@@ -40,7 +40,8 @@ class PCA_learning_layer(Module):
         pca = PCA_transformation(explained_variance=self.explained_variance)
         if not self.pca_fitted:
             pca.fit(X)
-        self.W = nn.Parameter(pca.components.clone().T.to(X.device), requires_grad=False)
+        self.W = nn.Parameter(pca.components.clone().T.to(
+            X.device), requires_grad=False)
         self.mean.copy_(X.mean(dim=0))
         self.fitted = True
 

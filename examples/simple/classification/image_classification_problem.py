@@ -8,7 +8,7 @@ except ModuleNotFoundError:
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.classification_pipelines import cnn_composite_pipeline
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import set_random_seed
 
@@ -47,7 +47,8 @@ def run_image_classification_problem(train_dataset: tuple,
 if __name__ == '__main__':
     set_random_seed(1)
 
-    training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
+    training_set, testing_set = tf.keras.datasets.mnist.load_data(
+        path='mnist.npz')
     roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
         train_dataset=training_set,
         test_dataset=testing_set)

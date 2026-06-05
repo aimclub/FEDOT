@@ -11,7 +11,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -60,7 +60,8 @@ class FilterImplementation(DataOperationImplementation):
         if mask is not None:
             input_data = update_data(input_data, mask)
         else:
-            self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
+            self.log.info(
+                "Filtering Algorithm: didn't fit correctly. Return all objects")
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data
@@ -75,7 +76,8 @@ class RegRANSACImplementation(FilterImplementation):
     def fit(self, input_data: InputData):
         iter_ = 0
         residual_threshold = self.params.get('residual_threshold')
-        residual_threshold_step = np.mean(np.abs(input_data.target - np.mean(input_data.target))) / self.max_iter
+        residual_threshold_step = np.mean(
+            np.abs(input_data.target - np.mean(input_data.target))) / self.max_iter
 
         while iter_ < self.max_iter:
             try:
@@ -83,13 +85,15 @@ class RegRANSACImplementation(FilterImplementation):
                 self.params.update(residual_threshold=residual_threshold)
                 self.operation.residual_threshold = residual_threshold
 
-                self.operation.fit(input_data.features, input_data.target.squeeze())
+                self.operation.fit(input_data.features,
+                                   input_data.target.squeeze())
                 if self.operation.inlier_mask_.mean() >= self.min_inliers_ratio:
                     return self.operation
             except ValueError:
                 pass
 
-            self.log.info(f"RANSAC: increased residual_threshold by {residual_threshold_step}")
+            self.log.info(
+                f"RANSAC: increased residual_threshold by {residual_threshold_step}")
             residual_threshold = residual_threshold + residual_threshold_step
             iter_ += 1
 
@@ -104,13 +108,16 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
+        self.inner_model = make_pipeline(
+            StandardScaler(with_mean=False), LinearRegression())
 
         # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
         if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(
+                base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(
+                estimator=self.inner_model, **self.params.to_dict())
 
 
 class NonLinearRegRANSACImplementation(RegRANSACImplementation):
@@ -125,9 +132,11 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
 
         # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
         if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(
+                base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
+            self.operation = RANSACRegressor(
+                estimator=self.inner_model, **self.params.to_dict())
 
 
 class IsolationForestRegImplementation(DataOperationImplementation):

@@ -26,7 +26,8 @@ def _fake_categorical_detector(_table):
 
 
 def test_estimate_size_cut_border_returns_border_only_for_large_tables():
-    input_data = SimpleNamespace(data_type=DataTypesEnum.table, features=np.zeros((10, 4)))
+    input_data = SimpleNamespace(
+        data_type=DataTypesEnum.table, features=np.zeros((10, 4)))
 
     assert estimate_size_cut_border(input_data, max_size=30) == 7
     assert estimate_size_cut_border(input_data, max_size=100) is None
@@ -42,13 +43,16 @@ def test_estimate_categorical_cardinality_and_label_encoding_decision():
         ], dtype=object),
     )
 
-    cardinality = estimate_categorical_cardinality(input_data, _fake_categorical_detector)
+    cardinality = estimate_categorical_cardinality(
+        input_data, _fake_categorical_detector)
     assert cardinality == 6
-    assert should_use_label_encoding(input_data, max_cat_cardinality=5, categorical_detector=_fake_categorical_detector)
+    assert should_use_label_encoding(
+        input_data, max_cat_cardinality=5, categorical_detector=_fake_categorical_detector)
 
 
 def test_build_safe_data_recommendations_is_empty_when_safe_mode_disabled():
-    input_data = SimpleNamespace(data_type=DataTypesEnum.table, features=np.zeros((10, 4)))
+    input_data = SimpleNamespace(
+        data_type=DataTypesEnum.table, features=np.zeros((10, 4)))
 
     recommendations = build_safe_data_recommendations(
         input_data=input_data,

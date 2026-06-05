@@ -4,7 +4,7 @@ import numpy as np
 
 import fedot.api.api_utils.api_composer as composer_module
 from fedot.api.api_utils.api_composer import ApiComposer
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

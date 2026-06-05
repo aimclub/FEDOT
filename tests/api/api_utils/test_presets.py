@@ -11,7 +11,8 @@ class _FakeRepository:
 def test_new_operations_without_heavy_uses_pure_exclusion_rule():
     preset = OperationsPreset(Task(TaskTypesEnum.regression), 'best_quality')
 
-    assert preset.new_operations_without_heavy(['heavy'], ['light', 'heavy']) == ['light']
+    assert preset.new_operations_without_heavy(
+        ['heavy'], ['light', 'heavy']) == ['light']
 
 
 def test_filter_operations_by_preset_intersects_modification(monkeypatch):
@@ -22,9 +23,11 @@ def test_filter_operations_by_preset_intersects_modification(monkeypatch):
             return ['rf', 'xgboost']
         raise AssertionError(f'unexpected preset: {preset}')
 
-    monkeypatch.setattr(presets_module, 'get_operations_for_task', fake_get_operations_for_task)
+    monkeypatch.setattr(
+        presets_module, 'get_operations_for_task', fake_get_operations_for_task)
 
-    preset = OperationsPreset(Task(TaskTypesEnum.classification), 'best_quality*tree')
+    preset = OperationsPreset(
+        Task(TaskTypesEnum.classification), 'best_quality*tree')
     assert preset.filter_operations_by_preset() == ['rf', 'xgboost']
 
 
@@ -32,7 +35,8 @@ def test_filter_operations_by_preset_uses_gpu_repository(monkeypatch):
     monkeypatch.setattr(
         presets_module.OperationTypesRepository,
         'assign_repo',
-        staticmethod(lambda repo_name='model', path='gpu_models_repository.json': _FakeRepository()),
+        staticmethod(lambda repo_name='model',
+                     path='gpu_models_repository.json': _FakeRepository()),
     )
 
     preset = OperationsPreset(Task(TaskTypesEnum.classification), 'gpu')

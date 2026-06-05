@@ -8,18 +8,18 @@ from golem.core.paths import copy_doc
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.backend.backend import Backend
-from fedot.core.data.data import InputData, np_datetime_to_numeric
-from fedot.core.data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
-from fedot.core.data.data_preprocessing import (
+from fedot.core.data.input_data.data import InputData, np_datetime_to_numeric
+from fedot.core.data.input_data.data import OutputData, data_type_is_table, data_type_is_text, data_type_is_ts
+from fedot.preprocessing.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
     find_categorical_columns,
     replace_inf_with_nans,
     replace_nans_with_empty_strings
 )
-from fedot.core.data.input_data_bridge import input_data_to_tensordata
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.tensor_data_bridge import tensordata_to_input_data
+from fedot.core.data.bridges.input_to_tensor import input_data_to_tensordata
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation
@@ -91,7 +91,8 @@ class DataPreprocessor(BasePreprocessor):
 
         source_plan = resolve_source_names(data, DEFAULT_SOURCE_NAME)
         for data_source in source_plan.source_names:
-            self.binary_categorical_processors[data_source] = BinaryCategoricalPreprocessor()
+            self.binary_categorical_processors[data_source] = BinaryCategoricalPreprocessor(
+            )
             self.types_correctors[data_source] = TableTypesCorrector()
 
     def _init_main_target_source_name(self, multi_data: MultiModalData):
@@ -101,7 +102,8 @@ class DataPreprocessor(BasePreprocessor):
         Args:
             multi_data: `MultiModalData`
         """
-        self.main_target_source_name = resolve_main_target_source_name(self.main_target_source_name, multi_data)
+        self.main_target_source_name = resolve_main_target_source_name(
+            self.main_target_source_name, multi_data)
 
     @copy_doc(BasePreprocessor.obligatory_prepare_for_fit)
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
@@ -109,12 +111,14 @@ class DataPreprocessor(BasePreprocessor):
         self._init_supplementary_preprocessors(data)
 
         if isinstance(data, InputData):
-            data = self._prepare_obligatory_unimodal(data, source_name=DEFAULT_SOURCE_NAME)
+            data = self._prepare_obligatory_unimodal(
+                data, source_name=DEFAULT_SOURCE_NAME)
 
         elif isinstance(data, MultiModalData):
             self._init_main_target_source_name(data)
             for data_source_name, values in data.items():
-                data[data_source_name] = self._prepare_obligatory_unimodal(values, source_name=data_source_name)
+                data[data_source_name] = self._prepare_obligatory_unimodal(
+                    values, source_name=data_source_name)
 
         BasePreprocessor.mark_as_preprocessed(data)
         return data
@@ -123,7 +127,8 @@ class DataPreprocessor(BasePreprocessor):
     def obligatory_prepare_for_predict(self,
                                        data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
-            data = self._prepare_obligatory_unimodal(data, source_name=DEFAULT_SOURCE_NAME, is_fit_stage=False)
+            data = self._prepare_obligatory_unimodal(
+                data, source_name=DEFAULT_SOURCE_NAME, is_fit_stage=False)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
@@ -248,7 +253,8 @@ class DataPreprocessor(BasePreprocessor):
                 data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
-            self.log.debug('-- Applying the Label Encoder to Target due to the presence of categories')
+            self.log.debug(
+                '-- Applying the Label Encoder to Target due to the presence of categories')
             if source_name not in self.target_encoders:
                 self._train_target_encoder(data, source_name)
 
@@ -259,7 +265,8 @@ class DataPreprocessor(BasePreprocessor):
             self.types_correctors[source_name].convert_data_for_predict(data)
 
         feature_type_ids = data.supplementary_data.col_type_ids['features']
-        data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
+        data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(
+            feature_type_ids)
 
         # TODO andreygetmanov target encoding must be obligatory for all data types
         if data_type_is_text(data):
@@ -268,13 +275,17 @@ class DataPreprocessor(BasePreprocessor):
 
         elif data_type_is_table(data):
             if is_fit_stage:
-                self.log.debug('-- Searching binary categorical features to encode them')
-                data = self.binary_categorical_processors[source_name].fit_transform(data)
+                self.log.debug(
+                    '-- Searching binary categorical features to encode them')
+                data = self.binary_categorical_processors[source_name].fit_transform(
+                    data)
             else:
-                data = self.binary_categorical_processors[source_name].transform(data)
+                data = self.binary_categorical_processors[source_name].transform(
+                    data)
 
             feature_type_ids = data.supplementary_data.col_type_ids['features']
-            data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(feature_type_ids)
+            data.numerical_idx, data.categorical_idx = self._update_num_and_cats_ids(
+                feature_type_ids)
 
         return data
 
@@ -323,7 +334,8 @@ class DataPreprocessor(BasePreprocessor):
         """
         features = data.features
         axes_except_cols = (0,) + tuple(range(2, features.ndim))
-        are_allowed = np.mean(pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
+        are_allowed = np.mean(
+            pd.isna(features), axis=axes_except_cols) < ALLOWED_NAN_PERCENT
         self.log.debug(
             f'--- The number of features with an acceptable nan\'s percent value was taken '
             f'{len(are_allowed)} / {data.features.shape[1]}'
@@ -351,7 +363,8 @@ class DataPreprocessor(BasePreprocessor):
         non_nan_row_ids = np.ravel(np.argwhere(number_nans_per_rows == 0))
 
         if len(non_nan_row_ids) == 0:
-            raise ValueError('Data contains too much nans in the target column(s)')
+            raise ValueError(
+                'Data contains too much nans in the target column(s)')
         data.features = features[non_nan_row_ids, :]
         data.target = target[non_nan_row_ids, :]
         data.idx = np.array(data.idx)[non_nan_row_ids]
@@ -428,11 +441,13 @@ class DataPreprocessor(BasePreprocessor):
         encoder = self.features_encoders.get(source_name)
 
         if encoder is None:
-            encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
+            encoder = LabelEncodingImplementation(
+            ) if self.use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
 
-        self.log.debug(f'--- {encoder.__class__.__name__} was chosen as categorical encoder')
+        self.log.debug(
+            f'--- {encoder.__class__.__name__} was chosen as categorical encoder')
         self.log.debug('--- Fitting and transforming data')
         output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
@@ -449,7 +464,8 @@ class DataPreprocessor(BasePreprocessor):
             data: data to be encoded
             source_name: name of the data source node
         """
-        categorical_ids, _ = find_categorical_columns(data.target, data.supplementary_data.col_type_ids.get('target'))
+        categorical_ids, _ = find_categorical_columns(
+            data.target, data.supplementary_data.col_type_ids.get('target'))
 
         if categorical_ids:
             # Target is categorical
@@ -475,7 +491,8 @@ class DataPreprocessor(BasePreprocessor):
         encoded_target = data.target
         if encoder is not None:
             # Target encoders have already been fitted
-            data.supplementary_data.col_type_ids['target'] = np.array([TYPE_TO_ID[int]])
+            data.supplementary_data.col_type_ids['target'] = np.array(
+                [TYPE_TO_ID[int]])
             encoded_target = encoder.transform(encoded_target)
             if len(encoded_target.shape) == 1:
                 encoded_target = encoded_target.reshape((-1, 1))
@@ -492,7 +509,8 @@ class DataPreprocessor(BasePreprocessor):
                 # There is no need to perform converting (it was performed already)
                 return column_to_transform
             # It is needed to apply fitted encoder to apply inverse transformation
-            transformed = self.target_encoders[main_target_source_name].inverse_transform(column_to_transform)
+            transformed = self.target_encoders[main_target_source_name].inverse_transform(
+                column_to_transform)
 
             # Convert one-dimensional array into column
             if len(transformed.shape) == 1:
@@ -544,7 +562,8 @@ class DataPreprocessor(BasePreprocessor):
         if isinstance(data, MultiModalData):
             for data_source_name in data:
                 if data_type_is_ts(data[data_source_name]):
-                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(pipeline)
+                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(
+                        pipeline)
             return data
         elif data_type_is_ts(data):
             return data.convert_non_int_indexes_for_fit(pipeline)
@@ -557,7 +576,8 @@ class DataPreprocessor(BasePreprocessor):
         if isinstance(data, MultiModalData):
             for data_source_name in data:
                 if data_type_is_ts(data[data_source_name]):
-                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_predict(pipeline)
+                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_predict(
+                        pipeline)
             return data
         elif data_type_is_ts(data):
             return data.convert_non_int_indexes_for_predict(pipeline)
@@ -577,12 +597,14 @@ class DataPreprocessor(BasePreprocessor):
         if test_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             return test_data
 
-        values = [test_data] if isinstance(test_data, InputData) else test_data.values()
+        values = [test_data] if isinstance(
+            test_data, InputData) else test_data.values()
         for input_data in values:
             forecast_len = input_data.task.task_params.forecast_length
             if forecast_len < len(input_data.idx):
                 last_id = len(input_data.idx)
-                input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
+                input_data.idx = np.arange(
+                    last_id, last_id + input_data.task.task_params.forecast_length)
         return test_data
 
     @copy_doc(BasePreprocessor.reduce_memory_size)
@@ -595,21 +617,26 @@ class DataPreprocessor(BasePreprocessor):
             else:
                 if data.data_type == DataTypesEnum.table:
                     self.log.debug('-- Reduce memory in features')
-                    was_features_in_numpy = isinstance(data.features, np.ndarray)
-                    data.features = reduce_mem_usage(data.features, data.supplementary_data.col_type_ids['features'])
+                    was_features_in_numpy = isinstance(
+                        data.features, np.ndarray)
+                    data.features = reduce_mem_usage(
+                        data.features, data.supplementary_data.col_type_ids['features'])
                     data.features = data.features.to_numpy() if was_features_in_numpy else data.features
 
                     if data.target is not None:
                         self.log.debug('-- Reduce memory in target')
-                        data.target = reduce_mem_usage(data.target, data.supplementary_data.col_type_ids['target'])
+                        data.target = reduce_mem_usage(
+                            data.target, data.supplementary_data.col_type_ids['target'])
                         data.target = data.target.to_numpy()
 
         return data
 
     def _update_num_and_cats_ids(self, feature_type_ids):
         numerical_idx = np.flatnonzero(
-            np.isin(feature_type_ids, [TYPE_TO_ID[int], TYPE_TO_ID[float], TYPE_TO_ID[bool]])
+            np.isin(feature_type_ids, [TYPE_TO_ID[int],
+                    TYPE_TO_ID[float], TYPE_TO_ID[bool]])
         )
-        categorical_idx = np.flatnonzero(np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
+        categorical_idx = np.flatnonzero(
+            np.isin(feature_type_ids, [TYPE_TO_ID[str]]))
 
         return numerical_idx, categorical_idx

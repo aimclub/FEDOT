@@ -5,7 +5,7 @@ from typing import List
 
 from golem.core.log import LoggerAdapter
 from golem.core.optimisers.opt_history_objects.individual import Individual
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.composer.metrics import RMSE
 from fedot.core.pipelines.adapters import PipelineAdapter
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
@@ -77,8 +77,10 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
             pipeline.fit(train_input)
         except Exception:
             continue
-        pred = out_of_sample_ts_forecast(pipeline=pipeline, input_data=train_input, horizon=horizon)
-        metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
+        pred = out_of_sample_ts_forecast(
+            pipeline=pipeline, input_data=train_input, horizon=horizon)
+        metric_value = RMSE.get_value(
+            pipeline=pipeline, reference_data=train_input, validation_blocks=2)
         if show_progress:
             end_time = time.time()
             logger.info(f'fitting time {end_time-start_time} sec')
@@ -89,9 +91,12 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
 
         # for each mutation we compute its charactersitcs that used later on to eliminate aproiri bad pipelines
         if discard_inapropriate_pipelines:
-            fpc = first_prediction_constraint(ts_train=train_input.features, forecast=forecast, prediction=pred)
-            dc = deviance_constraint(ts_train=train_input.features, prediction=pred)
-            metric_value = RMSE.get_value(pipeline=pipeline, reference_data=train_input, validation_blocks=2)
+            fpc = first_prediction_constraint(
+                ts_train=train_input.features, forecast=forecast, prediction=pred)
+            dc = deviance_constraint(
+                ts_train=train_input.features, prediction=pred)
+            metric_value = RMSE.get_value(
+                pipeline=pipeline, reference_data=train_input, validation_blocks=2)
             metric_values.append(metric_value)
             first_pred_constraints.append(fpc)
             deviance_pred_constraints.append(dc)
@@ -102,7 +107,8 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
     # we remove a specified percentage of pipelines with biggest RMSE metric.
     if discard_inapropriate_pipelines:
         predictions = []
-        maximal_metric_value = np.quantile(np.array(metric_values), keep_percentage)
+        maximal_metric_value = np.quantile(
+            np.array(metric_values), keep_percentage)
         for i in range(len(first_pred_constraints)):
             if first_pred_constraints[i] and deviance_pred_constraints[i] and metric_values[i] < maximal_metric_value:
                 predictions.append(raw_predictions[i])
@@ -110,6 +116,7 @@ def solver_mutation_of_best_pipeline(train_input: InputData,
         predictions = raw_predictions
 
     if len(predictions) == 0:
-        raise ValueError('Variable predictions is empty list. Try to increase number_mutations to solve this problem.')
+        raise ValueError(
+            'Variable predictions is empty list. Try to increase number_mutations to solve this problem.')
 
     return predictions

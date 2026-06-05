@@ -39,7 +39,8 @@ def test_image_classification_quality():
     roc_auc_on_valid, _, _ = get_image_classification_data()
     deviation_composite = roc_auc_on_valid - 0.5
 
-    roc_auc_on_valid, _, _ = get_image_classification_data(composite_flag=False)
+    roc_auc_on_valid, _, _ = get_image_classification_data(
+        composite_flag=False)
     deviation_simple = roc_auc_on_valid - 0.5
 
     assert abs(deviation_composite) < 0.25
@@ -56,7 +57,8 @@ def test_cnn_methods():
     cnn_model = create_deep_cnn(input_shape=image_shape,
                                 num_classes=num_classes)
 
-    transformed_x_train, transform_flag = check_input_array(x_train=dataset_to_train.features)
+    transformed_x_train, transform_flag = check_input_array(
+        x_train=dataset_to_train.features)
 
     model = fit_cnn(train_data=dataset_to_train,
                     model=cnn_model,

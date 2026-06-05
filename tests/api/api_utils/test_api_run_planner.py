@@ -58,7 +58,8 @@ def test_plan_sampling_stage_skips_for_atomized_initial_assumption():
     )
 
     assert plan.should_run_sampling_stage is False
-    assert plan.skip_metadata == {'status': 'skipped', 'reason': SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION}
+    assert plan.skip_metadata == {'status': 'skipped',
+                                  'reason': SKIP_REASON_ATOMIZED_INITIAL_ASSUMPTION}
 
 
 def test_plan_sampling_stage_atomized_initial_assumption_skip_does_not_need_sampling_config():
