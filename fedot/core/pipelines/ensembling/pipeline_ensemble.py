@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from itertools import combinations
-from typing import Any, Dict, List, Optional, Sequence, Union, Literal
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 from golem.core.log import default_log
 
 from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.pipelines.ensembling.config import EnsembleMethod
 from fedot.core.pipelines.ensembling.utils import (
     calculate_validation_metrics,
 )
@@ -16,12 +18,23 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+@dataclass
+class PipelineInfo:
+    pipeline: Pipeline
+    name: str
+    source_chunk_idx: Optional[int] = None
+    data_size: Optional[int] = None
+    metrics: Dict[str, float] = field(default_factory=dict)
+    val_predictions: Optional[np.ndarray] = None
+    val_probabilities: Optional[np.ndarray] = None
+
+
 class PipelineEnsemble:
     def __init__(self,
                  pipelines: Sequence[Pipeline],
                  validation_metric: str,
-                 ensemble_method: Literal['weighted', 'voting', 'routed_weighted', 'gated_weighted'] = 'voting',
-                 pipeline_infos: Optional[List[Dict[str, Any]]] = None,
+                 ensemble_method: EnsembleMethod = EnsembleMethod.voting,
+                 pipeline_infos: Optional[List[PipelineInfo]] = None,
                  routing_context: Optional[SamplingRoutingContext] = None,
                  ensemble_params: Optional[Dict[str, Any]] = None,
                  batch_size: int = 10000):
@@ -43,14 +56,10 @@ class PipelineEnsemble:
             self._sync_pipelines_from_infos()
         else:
             self.pipeline_infos = [
-                {
-                    'name': f'chunk_{idx}',
-                    'pipeline': pipeline,
-                    'data_size': None,
-                    'metrics': {},
-                    'val_predictions': None,
-                    'val_probabilities': None,
-                }
+                PipelineInfo(
+                    name=f'chunk_{idx}',
+                    pipeline=pipeline,
+                )
                 for idx, pipeline in enumerate(self.pipelines)
             ]
 
@@ -86,7 +95,7 @@ class PipelineEnsemble:
                                      input_data: InputData,
                                      stage: str,
                                      output_mode: str,
-                                     pipeline_infos: Optional[List[Dict[str, Any]]] = None,
+                                     pipeline_infos: Optional[List[PipelineInfo]] = None,
                                      predictions_cache=None,
                                      fold_id: Optional[int] = None) -> np.ndarray:
         batch_predictions = []
@@ -113,7 +122,7 @@ class PipelineEnsemble:
 
     def evaluate_on_data(self,
                          validation_data: InputData,
-                         pipeline_infos: Optional[List[Dict[str, Any]]] = None,
+                         pipeline_infos: Optional[List[PipelineInfo]] = None,
                          stage: str = 'validation') -> Dict[str, float]:
         labels, proba = self._predict_ensemble_with_proba(
             input_data=validation_data,
@@ -143,7 +152,7 @@ class PipelineEnsemble:
         for subset_size in range(1, len(self.pipeline_infos) + 1):
             for candidate in combinations(pipeline_indices, subset_size):
                 subset_infos = [self.pipeline_infos[idx] for idx in candidate]
-                if self.ensemble_method == 'gated_weighted':
+                if self.ensemble_method is EnsembleMethod.gated_weighted:
                     self._fit_gating_router(validation_data, subset_infos)
                 metrics = self.evaluate_on_data(validation_data=validation_data, pipeline_infos=subset_infos)
                 score = float(metrics[validation_metric])
@@ -157,7 +166,7 @@ class PipelineEnsemble:
         selected_infos = [self.pipeline_infos[idx] for idx in best_subset]
         self.pipeline_infos = selected_infos
         self._sync_pipelines_from_infos()
-        if self.ensemble_method == 'gated_weighted':
+        if self.ensemble_method is EnsembleMethod.gated_weighted:
             self._gating_router = best_gating_router
             self._gating_partition_names = best_gating_partition_names
         self.log.message(
@@ -169,7 +178,7 @@ class PipelineEnsemble:
         self._keep_only_fitted_pipeline_infos()
 
         if validation_data is not None:
-            if self.ensemble_method == 'gated_weighted':
+            if self.ensemble_method is EnsembleMethod.gated_weighted:
                 self._fit_gating_router(validation_data, self.pipeline_infos)
             full_metrics = self.evaluate_on_data(validation_data=validation_data, stage='validation')
             self.log.message(f'Ensemble metrics before subset selection: {full_metrics}')
@@ -193,7 +202,7 @@ class PipelineEnsemble:
                           input_data: Union[InputData, MultiModalData],
                           stage: str,
                           output_mode: str,
-                          pipeline_infos: Optional[List[Dict[str, Any]]] = None,
+                          pipeline_infos: Optional[List[PipelineInfo]] = None,
                           predictions_cache=None,
                           fold_id: Optional[int] = None) -> np.ndarray:
         predictions, _ = self._predict_ensemble_with_proba(
@@ -210,7 +219,7 @@ class PipelineEnsemble:
                                      input_data: Union[InputData, MultiModalData],
                                      stage: str,
                                      output_mode: str,
-                                     pipeline_infos: Optional[List[Dict[str, Any]]] = None,
+                                     pipeline_infos: Optional[List[PipelineInfo]] = None,
                                      predictions_cache=None,
                                      fold_id: Optional[int] = None) -> tuple[np.ndarray, Optional[np.ndarray]]:
         active_infos = self._resolve_active_infos(pipeline_infos)
@@ -265,16 +274,16 @@ class PipelineEnsemble:
         return aggregated, None
 
     def _get_pipeline_predictions(self,
-                                  info: Dict[str, Any],
+                                  info: PipelineInfo,
                                   input_data: Union[InputData, MultiModalData],
                                   stage: str,
                                   predictions_cache=None,
                                   fold_id: Optional[int] = None) -> tuple[np.ndarray, Optional[np.ndarray]]:
-        if stage == 'validation' and info.get('val_predictions') is not None:
-            val_pred = np.ravel(np.asarray(info.get('val_predictions')))
-            return val_pred, np.asarray(info.get('val_probabilities'))
+        if stage == 'validation' and info.val_predictions is not None:
+            val_pred = np.ravel(np.asarray(info.val_predictions))
+            return val_pred, None if info.val_probabilities is None else np.asarray(info.val_probabilities)
 
-        pipeline: Pipeline = info['pipeline']
+        pipeline = info.pipeline
         output_mode = 'labels' if input_data.task.task_type == TaskTypesEnum.classification else 'default'
         labels_output = pipeline.predict(input_data,
                                          output_mode=output_mode,
@@ -297,7 +306,11 @@ class PipelineEnsemble:
                                               weights: np.ndarray,
                                               output_mode: str) -> tuple[np.ndarray, Optional[np.ndarray]]:
         stacked_proba = np.stack([np.asarray(proba) for proba in proba_per_pipeline], axis=0)
-        if self.ensemble_method in ('weighted', 'routed_weighted', 'gated_weighted'):
+        if self.ensemble_method in (
+            EnsembleMethod.weighted,
+            EnsembleMethod.routed_weighted,
+            EnsembleMethod.gated_weighted,
+        ):
             aggregated_proba = self._aggregate_probability_matrix(stacked_proba, weights)
         else:
             aggregated_proba = np.mean(stacked_proba, axis=0)
@@ -312,21 +325,21 @@ class PipelineEnsemble:
 
     def _compute_aggregation_weights(self,
                                      input_data: Union[InputData, MultiModalData],
-                                     active_infos: Sequence[Dict[str, Any]]) -> np.ndarray:
-        if self.ensemble_method == 'weighted':
+                                     active_infos: Sequence[PipelineInfo]) -> np.ndarray:
+        if self.ensemble_method is EnsembleMethod.weighted:
             return self._compute_model_weights(active_infos)
-        if self.ensemble_method == 'routed_weighted':
+        if self.ensemble_method is EnsembleMethod.routed_weighted:
             base_weights = self._compute_base_routing_weights(input_data, active_infos)
             validation_weights = self._compute_model_weights(active_infos)
             return self._normalize_weight_rows(base_weights * validation_weights.reshape(1, -1))
-        if self.ensemble_method == 'gated_weighted':
+        if self.ensemble_method is EnsembleMethod.gated_weighted:
             return self._compute_gated_weights(input_data, active_infos)
         return np.ones(len(active_infos), dtype=float) / float(len(active_infos))
 
-    def _compute_model_weights(self, active_infos: Sequence[Dict[str, Any]]) -> np.ndarray:
+    def _compute_model_weights(self, active_infos: Sequence[PipelineInfo]) -> np.ndarray:
         raw_scores = []
         for info in active_infos:
-            value = info.get('metrics', {}).get(self.validation_metric)
+            value = info.metrics.get(self.validation_metric)
             if value is None or not np.isfinite(value):
                 raw_scores.append(np.nan)
             else:
@@ -348,13 +361,13 @@ class PipelineEnsemble:
 
     def _compute_base_routing_weights(self,
                                       input_data: Union[InputData, MultiModalData],
-                                      active_infos: Sequence[Dict[str, Any]]) -> np.ndarray:
+                                      active_infos: Sequence[PipelineInfo]) -> np.ndarray:
         context = self._require_routing_context()
         return context.base_weights(input_data, self._partition_names(active_infos))
 
     def _compute_gated_weights(self,
                                input_data: Union[InputData, MultiModalData],
-                               active_infos: Sequence[Dict[str, Any]]) -> np.ndarray:
+                               active_infos: Sequence[PipelineInfo]) -> np.ndarray:
         partition_names = self._partition_names(active_infos)
         if self._gating_router is None or partition_names != self._gating_partition_names:
             raise ValueError('Gated ensemble router is not fitted for the active pipelines.')
@@ -363,7 +376,7 @@ class PipelineEnsemble:
 
     def _fit_gating_router(self,
                            validation_data: InputData,
-                           active_infos: Sequence[Dict[str, Any]]) -> None:
+                           active_infos: Sequence[PipelineInfo]) -> None:
         if validation_data.task.task_type != TaskTypesEnum.regression:
             raise ValueError('Gated ensemble currently supports regression tasks only.')
         routing_context = self._require_routing_context()
@@ -371,7 +384,7 @@ class PipelineEnsemble:
         features = routing_context.transform_features(validation_data)
         prior_weights = routing_context.base_weights(validation_data, partition_names)
         predictions = np.column_stack([
-            np.ravel(np.asarray(info.get('val_predictions'))).astype(float)
+            np.ravel(np.asarray(info.val_predictions)).astype(float)
             for info in active_infos
         ])
         router = ConstrainedGatingRouter(
@@ -398,8 +411,8 @@ class PipelineEnsemble:
         return self.routing_context
 
     @staticmethod
-    def _partition_names(active_infos: Sequence[Dict[str, Any]]) -> List[str]:
-        return [str(info.get('name')) for info in active_infos]
+    def _partition_names(active_infos: Sequence[PipelineInfo]) -> List[str]:
+        return [str(info.name) for info in active_infos]
 
     @staticmethod
     def _normalize_weight_rows(weights: np.ndarray) -> np.ndarray:
@@ -414,18 +427,18 @@ class PipelineEnsemble:
             return np.average(stacked_proba, axis=0, weights=weights)
         return np.sum(stacked_proba * weights.T[:, :, None], axis=0)
 
-    def _resolve_active_infos(self, pipeline_infos: Optional[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    def _resolve_active_infos(self, pipeline_infos: Optional[List[PipelineInfo]]) -> List[PipelineInfo]:
         if pipeline_infos is not None:
             return list(pipeline_infos)
         if self.pipeline_infos:
             return list(self.pipeline_infos)
-        return [{'pipeline': pipeline, 'metrics': {}} for pipeline in self.pipelines]
+        return [PipelineInfo(name=f'chunk_{idx}', pipeline=pipeline) for idx, pipeline in enumerate(self.pipelines)]
 
     def _sync_pipelines_from_infos(self) -> None:
-        self.pipelines = [info['pipeline'] for info in self.pipeline_infos]
+        self.pipelines = [info.pipeline for info in self.pipeline_infos]
 
     def _keep_only_fitted_pipeline_infos(self) -> None:
-        fitted_infos = [info for info in self.pipeline_infos if info['pipeline'].is_fitted]
+        fitted_infos = [info for info in self.pipeline_infos if info.pipeline.is_fitted]
         skipped = len(self.pipeline_infos) - len(fitted_infos)
         if skipped:
             self.log.message(f'Skipped unfitted ensemble pipelines: {skipped}')

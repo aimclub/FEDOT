@@ -1,6 +1,7 @@
 import logging
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+from enum import Enum
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -38,6 +39,7 @@ from fedot.api.api_utils.data_definition import FeaturesType, TargetType
 from fedot.api.api_utils.input_analyser import InputAnalyser
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
+from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.api.sampling_stage.executor import SamplingStageExecutor
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.input_data.data import InputData, InputDataList, OutputData, PathType
@@ -45,6 +47,7 @@ from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
+from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
 from fedot.core.pipelines.ensembling.utils import prepare_chunked_ensemble_validation
@@ -68,6 +71,8 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 @dataclass(frozen=True)
 class FitDataContext:
+    """Planning artefacts prepared before fitting starts and reused across fit stages."""
+
     recommendations_for_data: Optional[dict]
     sampling_stage_plan: SamplingStagePlan
     chunked_ensemble_plan: ChunkedEnsemblePlan
@@ -181,6 +186,7 @@ class Fedot:
 
         try:
             fit_context, train_data = self._prepare_fit_context(features=features, target=target)
+            # Sampling may replace a single train dataset with sampled rows or chunk partitions.
             fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
             self.train_data = train_data
             self._obtain_pipeline(
@@ -263,12 +269,16 @@ class Fedot:
             ensemble_validation_data = None
             class_representatives = None
             if chunked_ensemble_plan.should_use_chunked_ensemble:
+                # Chunked ensembles reserve a shared holdout split before sampling so all chunks are
+                # compared and pruned against the same validation data.
                 prepared_validation = prepare_chunked_ensemble_validation(
                     train_data=train_data,
                     plan=chunked_ensemble_plan,
                 )
                 train_data = prepared_validation.train_data
                 ensemble_validation_data = prepared_validation.validation_data
+                # Some chunking strategies can drop a class from an individual chunk, so we keep
+                # one representative per class and append it later only to the affected chunks.
                 class_representatives = prepared_validation.class_representatives
 
         return FitDataContext(
@@ -305,8 +315,13 @@ class Fedot:
             total_timeout_minutes=self.params.timeout,
             log=self.log,
         )
+        self._log_applied_config(
+            config=executor.config,
+            label='sampling',
+        )
         stage_result = executor.execute(train_data)
         self.sampling_stage_metadata = stage_result.metadata
+        # Routed/gated ensemble modes reuse the strategy predictor fitted by sampling_zoo.
         self.sampling_routing_context = stage_result.routing_context
 
         if self.params.timeout is not None:
@@ -324,6 +339,10 @@ class Fedot:
                          predefined_model: Union[str, Pipeline, None]):
         with fedot_composer_timer.launch_fitting():
             if fit_context.chunked_ensemble_plan.should_use_chunked_ensemble:
+                self._log_applied_config(
+                    config=fit_context.chunked_ensemble_plan.require_config(),
+                    label='chunked ensemble',
+                )
                 self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_ensemble_model(
                     self.train_data,
                     predefined_model=predefined_model,
@@ -350,6 +369,17 @@ class Fedot:
 
             if self.current_pipeline is None:
                 raise ValueError('No models were found')
+
+    def _log_applied_config(self, config: Any, label: str):
+        config_payload = {
+            field.name: (
+                getattr(config, field.name).value
+                if isinstance(getattr(config, field.name), Enum)
+                else getattr(config, field.name)
+            )
+            for field in fields(config)
+        }
+        self.log.info(f'Applied {label} config: {config_payload}')
 
     def _finalize_fit_model_if_required(self,
                                         fit_context: FitDataContext,
@@ -581,7 +611,11 @@ class Fedot:
             self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
         self._is_in_sample_prediction = in_sample
 
-        if isinstance(self.test_data, InputData) and self.params.get('use_auto_preprocessing'):
+        if (
+            isinstance(self.test_data, InputData)
+            and self.params.get('use_auto_preprocessing')
+            and not isinstance(self.current_pipeline, PipelineEnsemble)
+        ):
             with fedot_composer_timer.launch_preprocessing():
                 self.test_data = self.data_processor.transform(self.test_data, self.current_pipeline)
 

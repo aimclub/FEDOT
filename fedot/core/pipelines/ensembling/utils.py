@@ -17,6 +17,8 @@ from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplit
 
 @dataclass(frozen=True)
 class ChunkedEnsembleValidationData:
+    """Train/validation split and auxiliary data needed to fit chunked ensembles."""
+
     train_data: InputData
     validation_data: InputData
     class_representatives: Optional[dict]
@@ -78,6 +80,7 @@ def prepare_chunked_ensemble_validation(train_data: InputData, plan: Any) -> Chu
 
 
 def select_one_sample_per_class(train_data: InputData, random_state: int = 42) -> Dict[Any, Dict[str, Any]]:
+    """Pick one representative per class for chunk repair when sampling drops rare classes."""
     target = np.ravel(np.asarray(train_data.target))
     rng = np.random.default_rng(random_state)
     representatives: Dict[Any, Dict[str, Any]] = {}

@@ -1,8 +1,9 @@
 import numpy as np
 
 from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.pipelines.ensembling.config import EnsembleMethod
 from fedot.core.pipelines.ensembling.routing import SamplingRoutingContext
-from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble, PipelineInfo
 from fedot.core.pipelines.ensembling.utils import calculate_validation_metrics
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -64,7 +65,7 @@ def test_pipeline_ensemble_predict_builds_output_without_template_prediction():
     ensemble = PipelineEnsemble(
         pipelines=[first, second],
         validation_metric='rmse',
-        ensemble_method='voting',
+        ensemble_method=EnsembleMethod.voting,
     )
 
     output = ensemble.predict(input_data)
@@ -84,7 +85,7 @@ def test_classification_ensemble_aggregates_pipeline_probabilities():
     ensemble = PipelineEnsemble(
         pipelines=[first, second],
         validation_metric='f1',
-        ensemble_method='voting',
+        ensemble_method=EnsembleMethod.voting,
     )
 
     output = ensemble.predict(input_data)
@@ -120,7 +121,7 @@ def test_pipeline_ensemble_predict_uses_batches_for_large_input():
     ensemble = PipelineEnsemble(
         pipelines=[first, second],
         validation_metric='rmse',
-        ensemble_method='voting',
+        ensemble_method=EnsembleMethod.voting,
         batch_size=2,
     )
 
@@ -139,11 +140,11 @@ def test_select_best_models_checks_all_pipeline_subsets_without_repredicting():
     ensemble = PipelineEnsemble(
         pipelines=[first, second, third],
         validation_metric='rmse',
-        ensemble_method='voting',
+        ensemble_method=EnsembleMethod.voting,
         pipeline_infos=[
-            {'pipeline': first, 'metrics': {'rmse': 1.0}, 'val_predictions': first.prediction},
-            {'pipeline': second, 'metrics': {'rmse': 1.0}, 'val_predictions': second.prediction},
-            {'pipeline': third, 'metrics': {'rmse': 2.0}, 'val_predictions': third.prediction},
+            PipelineInfo(name='chunk_0', pipeline=first, metrics={'rmse': 1.0}, val_predictions=first.prediction),
+            PipelineInfo(name='chunk_1', pipeline=second, metrics={'rmse': 1.0}, val_predictions=second.prediction),
+            PipelineInfo(name='chunk_2', pipeline=third, metrics={'rmse': 2.0}, val_predictions=third.prediction),
         ],
     )
 
@@ -165,11 +166,11 @@ def test_pipeline_ensemble_finalize_drops_unfitted_candidates_and_selects_best_s
     ensemble = PipelineEnsemble(
         pipelines=[first, second, unfitted],
         validation_metric='rmse',
-        ensemble_method='voting',
+        ensemble_method=EnsembleMethod.voting,
         pipeline_infos=[
-            {'pipeline': first, 'metrics': {'rmse': 1.0}, 'val_predictions': first.prediction},
-            {'pipeline': second, 'metrics': {'rmse': 1.0}, 'val_predictions': second.prediction},
-            {'pipeline': unfitted, 'metrics': {'rmse': 2.0}, 'val_predictions': unfitted.prediction},
+            PipelineInfo(name='chunk_0', pipeline=first, metrics={'rmse': 1.0}, val_predictions=first.prediction),
+            PipelineInfo(name='chunk_1', pipeline=second, metrics={'rmse': 1.0}, val_predictions=second.prediction),
+            PipelineInfo(name='chunk_2', pipeline=unfitted, metrics={'rmse': 2.0}, val_predictions=unfitted.prediction),
         ],
     )
 
@@ -185,10 +186,10 @@ def test_weighted_ensemble_uses_lower_fedot_metric_value_as_better():
     ensemble = PipelineEnsemble(
         pipelines=[first, second],
         validation_metric='f1',
-        ensemble_method='weighted',
+        ensemble_method=EnsembleMethod.weighted,
         pipeline_infos=[
-            {'pipeline': first, 'metrics': {'f1': -0.9}},
-            {'pipeline': second, 'metrics': {'f1': -0.7}},
+            PipelineInfo(name='chunk_0', pipeline=first, metrics={'f1': -0.9}),
+            PipelineInfo(name='chunk_1', pipeline=second, metrics={'f1': -0.7}),
         ],
     )
 
@@ -215,11 +216,11 @@ def test_routed_weighted_ensemble_uses_sample_wise_partition_weights():
     ensemble = PipelineEnsemble(
         pipelines=[first, second],
         validation_metric='rmse',
-        ensemble_method='routed_weighted',
+        ensemble_method=EnsembleMethod.routed_weighted,
         routing_context=routing_context,
         pipeline_infos=[
-            {'name': 'chunk_0', 'pipeline': first, 'metrics': {'rmse': 1.0}, 'val_predictions': first.prediction},
-            {'name': 'chunk_1', 'pipeline': second, 'metrics': {'rmse': 1.0}, 'val_predictions': second.prediction},
+            PipelineInfo(name='chunk_0', pipeline=first, metrics={'rmse': 1.0}, val_predictions=first.prediction),
+            PipelineInfo(name='chunk_1', pipeline=second, metrics={'rmse': 1.0}, val_predictions=second.prediction),
         ],
     )
 

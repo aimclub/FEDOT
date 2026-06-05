@@ -27,7 +27,7 @@ from fedot.core.optimisers.objective.data_source_context import (
     build_internal_composer_data_source_context,
 )
 from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig
-from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
+from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble, PipelineInfo
 from fedot.core.pipelines.ensembling.utils import (
     calculate_validation_metrics,
     ensure_all_classes_in_chunk,
@@ -283,15 +283,15 @@ class ApiComposer:
                     val_probabilities = None
 
             pipeline_infos.append(
-                {
-                    'name': self._resolve_chunk_name(chunk_idx, routing_context),
-                    'source_chunk_idx': chunk_idx,
-                    'pipeline': pipeline,
-                    'data_size': int(len(current_chunk.idx)),
-                    'metrics': model_metrics,
-                    'val_predictions': val_predictions,
-                    'val_probabilities': val_probabilities,
-                }
+                PipelineInfo(
+                    name=self._resolve_chunk_name(chunk_idx, routing_context),
+                    source_chunk_idx=chunk_idx,
+                    pipeline=pipeline,
+                    data_size=int(len(current_chunk.idx)),
+                    metrics=model_metrics,
+                    val_predictions=val_predictions,
+                    val_probabilities=val_probabilities,
+                )
             )
 
         self.params.timeout = initial_timeout
@@ -305,7 +305,7 @@ class ApiComposer:
         ensemble = PipelineEnsemble(
             pipelines=pipelines,
             validation_metric=validation_metric,
-            ensemble_method=chunked_ensemble_config.ensemble_method.value,
+            ensemble_method=chunked_ensemble_config.ensemble_method,
             pipeline_infos=pipeline_infos,
             routing_context=routing_context,
             ensemble_params=chunked_ensemble_config.ensemble_params,

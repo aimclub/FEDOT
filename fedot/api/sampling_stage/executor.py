@@ -19,6 +19,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 @dataclass
 class SamplingStageOutput:
+    """Materialized result of sampling: transformed train data, metadata and optional routing state."""
+
     train_data: Union[InputData, InputDataList]
     metadata: Dict[str, Any]
     elapsed_seconds: float
@@ -199,6 +201,8 @@ class SamplingStageExecutor:
                                 provider: SamplingProvider,
                                 config: SamplingConfig,
                                 task_type: TaskTypesEnum) -> Dict[str, Any]:
+        # Subset sampling uses a cheap internal protocol first and only applies the selected ratio
+        # to the full train data after the quality drop stays within the configured threshold.
         train_split, valid_split = SamplingStageExecutor._split_for_protocol(train_data, config, task_type)
 
         baseline_score = SamplingStageExecutor._score_light_model(

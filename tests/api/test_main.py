@@ -2,9 +2,11 @@ import numpy as np
 import pytest
 
 from fedot import Fedot
+from fedot.api.sampling_stage.config import SamplingChunkingConfig
 from fedot.core.data.input_data.data import OutputData
 from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.common.enums import StateEnum
+from fedot.core.pipelines.ensembling.config import ChunkedEnsembleConfig, EnsembleMethod
 from fedot.core.pipelines.ensembling.pipeline_ensemble import PipelineEnsemble
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -16,7 +18,7 @@ class _StubPipeline(Pipeline):
         super().__init__()
         self.calls = []
 
-    def predict(self, test_data, output_mode='default'):
+    def predict(self, test_data, output_mode='default', predictions_cache=None, fold_id=None):
         self.calls.append(('predict', output_mode))
         return OutputData(
             idx=np.arange(2),
@@ -109,6 +111,86 @@ def test_main_facade_uses_service_rule_for_predict_proba_mode_selection():
         [[1.0], [2.0]]), probs_for_all_classes=True)
 
     assert model.current_pipeline.calls == [('predict', 'full_probs')]
+
+
+def test_main_facade_predict_skips_shared_auto_preprocessing_for_pipeline_ensemble():
+    model = Fedot(problem='classification', use_auto_preprocessing=True)
+    model.current_pipeline = PipelineEnsemble(
+        pipelines=[_StubPipeline()],
+        validation_metric='f1',
+    )
+    model.target = 'target'
+    model.data_processor.define_data = lambda **kwargs: type(
+        'Input',
+        (),
+        {
+            'task': Task(TaskTypesEnum.classification),
+            'idx': np.arange(2),
+            'features': np.array([[1.0], [2.0]]),
+            'target': None,
+            'data_type': DataTypesEnum.table,
+        },
+    )()
+
+    def fail_transform(*args, **kwargs):
+        raise AssertionError('Shared API preprocessing must not run for PipelineEnsemble predict path.')
+
+    model.data_processor.transform = fail_transform
+
+    prediction = model.predict(features=np.array([[1.0], [2.0]]))
+
+    assert prediction.shape == (2,)
+    assert model.current_pipeline.pipelines[0].calls == [('predict', 'labels'), ('predict', 'probs')]
+
+
+def test_log_applied_sampling_config_reports_full_applied_config():
+    model = Fedot(problem='classification')
+    captured = {'info': [], 'warning': []}
+    model.log.info = captured['info'].append
+    model.log.warning = captured['warning'].append
+
+    model._log_applied_config(
+        SamplingChunkingConfig(
+            strategy_kind='chunking',
+            strategy='rmt',
+            strategy_params={'n_partitions': 4},
+            random_state=7,
+        ),
+        label='sampling',
+    )
+
+    assert captured['info'] == [
+        "Applied sampling config: {'strategy_kind': 'chunking', 'provider': 'sampling_zoo', "
+        "'strategy': 'rmt', 'strategy_params': {'n_partitions': 4}, 'cap_max_timeout_share': 0.35, "
+        "'min_automl_time_minutes': 0.1, 'infinite_timeout_cap_minutes': 5.0, 'random_state': 7}"
+    ]
+    assert captured['warning'] == []
+
+
+def test_log_applied_chunked_ensemble_config_reports_full_applied_config():
+    model = Fedot(problem='classification')
+    captured = {'info': [], 'warning': []}
+    model.log.info = captured['info'].append
+    model.log.warning = captured['warning'].append
+
+    model._log_applied_config(
+        ChunkedEnsembleConfig(
+            validation_size=0.3,
+            validation_split_seed=11,
+            ensemble_method=EnsembleMethod.weighted,
+            ensemble_params={'temperature': 0.5},
+            batch_size=2048,
+            min_successful_chunks=2,
+        ),
+        label='chunked ensemble',
+    )
+
+    assert captured['info'] == [
+        "Applied chunked ensemble config: {'validation_size': 0.3, 'validation_split_seed': 11, "
+        "'ensemble_method': 'weighted', 'ensemble_params': {'temperature': 0.5}, "
+        "'batch_size': 2048, 'min_successful_chunks': 2}"
+    ]
+    assert captured['warning'] == []
 
 
 def test_main_facade_forecast_requires_time_series_task():
