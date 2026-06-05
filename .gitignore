@@ -89,9 +89,19 @@ sampling_zoo/
 # Codex
 .codex/
 
-# Result for AMLB experiments
+# Result for AMLB experiments (profiling/results handled separately below)
 **/results/
+!profiling/results/
 **/*.json
+# Profiling artifacts (track selected benchmark outputs explicitly)
+profiling/results/*
+!profiling/results/.gitkeep
+!profiling/results/cache_histogram_cpu_20260605_113808.png
+!profiling/results/cache_histogram_cuda_2_20260605_113808.png
+!profiling/results/td_creator_histogram_cpu_20260605_113558.png
+!profiling/results/td_creator_histogram_cuda_2_20260605_113558.png
+!profiling/results/cache_profile_20260605_113808.csv
+!profiling/results/td_creator_profile_20260605_113558.csv
 
 # Cache
 cache/
