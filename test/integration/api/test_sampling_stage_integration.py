@@ -340,16 +340,19 @@ def test_sampling_stage_does_not_persist_timeout_mutation(monkeypatch):
     train_data, _, _ = get_dataset(
         'classification', n_samples=100, n_features=6, iris_dataset=False)
 
-    def fake_sampling_stage(self):
-        self.params.timeout = 0.01
-        self.sampling_stage_metadata = {
-            'status': 'applied',
-            'rows_before': len(self.train_data.idx),
-            'rows_after': len(self.train_data.idx),
-        }
+    def fake_execute(self, train_data_input):
+        return SamplingStageOutput(
+            train_data=train_data_input,
+            metadata={
+                'status': 'applied',
+                'rows_before': len(train_data_input.idx),
+                'rows_after': len(train_data_input.idx),
+            },
+            elapsed_seconds=0.0,
+            updated_timeout_minutes=0.01,
+        )
 
-    monkeypatch.setattr(
-        Fedot, '_run_sampling_stage_if_necessary', fake_sampling_stage)
+    monkeypatch.setattr(SamplingStageExecutor, 'execute', fake_execute)
 
     model = Fedot(problem='classification',
                   timeout=0.2,
@@ -374,11 +377,16 @@ def test_sampling_stage_runs_when_predefined_model(monkeypatch):
 
     stage_was_run = {'value': False}
 
-    def mark_sampling_stage_run(self):
+    def fake_execute(self, train_data_input):
         stage_was_run['value'] = True
-        self.sampling_stage_metadata = {'status': 'applied'}
+        return SamplingStageOutput(
+            train_data=train_data_input,
+            metadata={'status': 'applied', 'rows_before': len(train_data_input.idx), 'rows_after': len(train_data_input.idx)},
+            elapsed_seconds=0.0,
+            updated_timeout_minutes=self.total_timeout_minutes,
+        )
 
-    monkeypatch.setattr(Fedot, '_run_sampling_stage_if_necessary', mark_sampling_stage_run)
+    monkeypatch.setattr(SamplingStageExecutor, 'execute', fake_execute)
 
     model = Fedot(problem='classification',
                   timeout=0.2,
@@ -397,7 +405,8 @@ def test_sampling_stage_runs_when_predefined_model(monkeypatch):
 
     assert pipeline is not None
     assert stage_was_run['value'] is True
-    assert model.sampling_stage_metadata == {'status': 'applied'}
+    assert model.sampling_stage_metadata is not None
+    assert model.sampling_stage_metadata['status'] == 'applied'
 
 
 def test_fail_fast_for_multimodal_input_with_sampling_stage():

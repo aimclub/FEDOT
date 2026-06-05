@@ -1,5 +1,6 @@
 import logging
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -14,6 +15,8 @@ from golem.visualisation.opt_viz_extra import visualise_pareto
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_run_planner import (
     FinalFitAction,
+    ChunkedEnsemblePlan,
+    SamplingStagePlan,
     plan_chunked_ensemble,
     plan_final_fit,
     plan_sampling_stage,
@@ -61,6 +64,15 @@ from fedot.utilities.memory import MemoryAnalytics
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
+
+
+@dataclass(frozen=True)
+class FitDataContext:
+    recommendations_for_data: Optional[dict]
+    sampling_stage_plan: SamplingStagePlan
+    chunked_ensemble_plan: ChunkedEnsemblePlan
+    ensemble_validation_data: Optional[InputData]
+    class_representatives: Optional[dict]
 
 
 class Fedot:
@@ -168,121 +180,233 @@ class Fedot:
         initial_timeout = self.params.timeout
 
         try:
+            fit_context, train_data = self._prepare_fit_context(features=features, target=target)
+            fit_context, train_data = self._apply_sampling_stage(fit_context, train_data)
+            self.train_data = train_data
+            self._obtain_pipeline(
+                fit_context=fit_context,
+                predefined_model=predefined_model,
+            )
+            self._finalize_fit_model_if_required(
+                fit_context=fit_context,
+                predefined_model=predefined_model,
+            )
+            self._merge_current_pipeline_preprocessors()
 
-            self.target = target
-            # here the main preprocessing
-            with fedot_composer_timer.launch_data_definition('fit'):
-                self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-                self.params.update_available_operations_by_preset(self.train_data)
+            if isinstance(self.current_pipeline, Pipeline):
+                self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
+            elif isinstance(self.current_pipeline, PipelineEnsemble):
+                self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
 
-                if self.params.get('use_input_preprocessing'):
-                    # Launch data analyser - it gives recommendations for data preprocessing
-                    recommendations_for_data, recommendations_for_params = \
-                        self.data_analyser.give_recommendations(input_data=self.train_data,
-                                                                input_params=self.params)
-                    self.data_processor.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                         recommendations=recommendations_for_data)
-                    self.params.accept_and_apply_recommendations(input_data=self.train_data,
-                                                                 recommendations=recommendations_for_params)
-                else:
-                    recommendations_for_data = None
-
-                self._init_remote_if_necessary()
-
-                if isinstance(self.train_data, InputData) and self.params.get('use_auto_preprocessing'):
-                    with fedot_composer_timer.launch_preprocessing():
-                        self.train_data = self.data_processor.fit_transform(self.train_data)
-
-                sampling_config = self.params.get('sampling_config') or {}
-                strategy_kind = sampling_config.get('strategy_kind')
-
-                sampling_stage_plan = plan_sampling_stage(
-                    initial_assumption=self.params.data.get('initial_assumption'),
-                    sampling_config_present=self.params.get('sampling_config') is not None,
-                )
-                ensemble_validation_data = None
-                class_representatives = None
-                chunked_ensemble_plan = plan_chunked_ensemble(
-                    should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
-                    strategy_kind=strategy_kind,
-                    task_type=self.params.task.task_type,
-                    chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
-                )
-                if chunked_ensemble_plan.should_use_chunked_ensemble:
-                    prepared_validation = prepare_chunked_ensemble_validation(
-                        train_data=self.train_data,
-                        plan=chunked_ensemble_plan,
-                    )
-                    self.train_data = prepared_validation.train_data
-                    ensemble_validation_data = prepared_validation.validation_data
-                    class_representatives = prepared_validation.class_representatives
-                if sampling_stage_plan.skip_metadata is not None:
-                    self.sampling_stage_metadata = sampling_stage_plan.skip_metadata
-                    self.log.message('Composition for AtomizedModel currently unavailable')
-                elif sampling_stage_plan.should_run_sampling_stage:
-                    self._run_sampling_stage_if_necessary()
-
-                with fedot_composer_timer.launch_fitting():
-                    if chunked_ensemble_plan.should_use_chunked_ensemble:
-                        chunked_ensemble_config = chunked_ensemble_plan.require_config()
-                        self.current_pipeline, self.best_models, self.history = \
-                            self.api_composer.obtain_ensemble_model(
-                                self.train_data,
-                                predefined_model=predefined_model,
-                                validation_data=ensemble_validation_data,
-                                class_representatives=class_representatives,
-                                api_preprocessor=self.data_processor.preprocessor,
-                                chunked_ensemble_config=chunked_ensemble_config,
-                                routing_context=self.sampling_routing_context,
-                            )
-                    elif predefined_model is not None:
-                        # Fit predefined model and return it without composing
-                        self.current_pipeline = PredefinedModel(
-                            predefined_model, self.train_data, self.log,
-                            use_input_preprocessing=self.params.get('use_input_preprocessing'),
-                            api_preprocessor=self.data_processor.preprocessor,
-                        ).fit()
-                    else:
-                        self.current_pipeline, self.best_models, self.history = \
-                            self.api_composer.obtain_model(self.train_data)
-
-                    if self.current_pipeline is None:
-                        raise ValueError('No models were found')
-
-                    if predefined_model is None or isinstance(self.current_pipeline, PipelineEnsemble):
-                        full_train_not_preprocessed = deepcopy(self.train_data)
-                        # Final training for a pipeline on full dataset or finalization for an ensemble.
-
-                        with fedot_composer_timer.launch_train_inference():
-                            final_fit_plan = plan_final_fit(
-                                history=self.history,
-                                pipeline_is_fitted=self.current_pipeline.is_fitted,
-                                is_pipeline_ensemble=isinstance(self.current_pipeline, PipelineEnsemble),
-                            )
-                            if final_fit_plan.action is FinalFitAction.fit_pipeline_on_full_data:
-                                self._fit_final_pipeline(
-                                    recommendations_for_data,
-                                    full_train_not_preprocessed,
-                                )
-                                self.log.message('Final pipeline was fitted')
-                            elif final_fit_plan.action is FinalFitAction.finalize_ensemble:
-                                self._finalize_pipeline_ensemble(validation_data=ensemble_validation_data)
-                                self.log.message('Pipeline ensemble was finalized')
-                            else:
-                                self.log.message('Already fitted initial pipeline is used')
-
-                # Merge API & pipelines encoders if it is required
-                self._merge_current_pipeline_preprocessors()
-
-                if isinstance(self.current_pipeline, Pipeline):
-                    self.log.message(f'Final pipeline: {graph_structure(self.current_pipeline)}')
-                else:
-                    self.log.message(f'Final pipeline ensemble: {len(self.current_pipeline.pipelines)} pipelines')
-
-                return self.current_pipeline
+            return self.current_pipeline
         finally:
             self.params.timeout = initial_timeout
             MemoryAnalytics.finish()
+
+    def _init_remote_if_necessary(self, train_data: Union[InputData, InputDataList]):
+        remote = RemoteEvaluator()
+        if remote.is_enabled and remote.remote_task_params is not None:
+            task = self.params.task
+            if task.task_type is TaskTypesEnum.ts_forecasting:
+                task_str = (f'Task(TaskTypesEnum.ts_forecasting, '
+                            f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))')
+            else:
+                task_str = f'Task({str(task.task_type)})'
+            remote.remote_task_params.task_type = task_str
+            remote.remote_task_params.is_multi_modal = isinstance(train_data, MultiModalData)
+
+            if isinstance(self.target, str) and remote.remote_task_params.target is None:
+                remote.remote_task_params.target = self.target
+
+    def _prepare_fit_context(self,
+                             features: FeaturesType,
+                             target: TargetType) -> Tuple[FitDataContext, Union[InputData, InputDataList]]:
+        self.target = target
+        with fedot_composer_timer.launch_data_definition('fit'):
+            train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
+            self.params.update_available_operations_by_preset(train_data)
+
+            if self.params.get('use_input_preprocessing'):
+                recommendations_for_data, recommendations_for_params = self.data_analyser.give_recommendations(
+                    input_data=train_data,
+                    input_params=self.params,
+                )
+                self.data_processor.accept_and_apply_recommendations(
+                    input_data=train_data,
+                    recommendations=recommendations_for_data,
+                )
+                self.params.accept_and_apply_recommendations(
+                    input_data=train_data,
+                    recommendations=recommendations_for_params,
+                )
+            else:
+                recommendations_for_data = None
+
+            self._init_remote_if_necessary(train_data)
+
+            if isinstance(train_data, InputData) and self.params.get('use_auto_preprocessing'):
+                with fedot_composer_timer.launch_preprocessing():
+                    train_data = self.data_processor.fit_transform(train_data)
+
+            sampling_config = self.params.get('sampling_config') or {}
+            sampling_stage_plan = plan_sampling_stage(
+                initial_assumption=self.params.data.get('initial_assumption'),
+                sampling_config_present=self.params.get('sampling_config') is not None,
+            )
+            chunked_ensemble_plan = plan_chunked_ensemble(
+                should_run_sampling_stage=sampling_stage_plan.should_run_sampling_stage,
+                strategy_kind=sampling_config.get('strategy_kind'),
+                task_type=self.params.task.task_type,
+                chunked_ensemble_config=self.params.get('chunked_ensemble_config'),
+            )
+
+            ensemble_validation_data = None
+            class_representatives = None
+            if chunked_ensemble_plan.should_use_chunked_ensemble:
+                prepared_validation = prepare_chunked_ensemble_validation(
+                    train_data=train_data,
+                    plan=chunked_ensemble_plan,
+                )
+                train_data = prepared_validation.train_data
+                ensemble_validation_data = prepared_validation.validation_data
+                class_representatives = prepared_validation.class_representatives
+
+        return FitDataContext(
+            recommendations_for_data=recommendations_for_data,
+            sampling_stage_plan=sampling_stage_plan,
+            chunked_ensemble_plan=chunked_ensemble_plan,
+            ensemble_validation_data=ensemble_validation_data,
+            class_representatives=class_representatives,
+        ), train_data
+
+    def _apply_sampling_stage(self,
+                              fit_context: FitDataContext,
+                              train_data: Union[InputData, InputDataList]) -> Tuple[
+                                  FitDataContext, Union[InputData, InputDataList]]:
+        if fit_context.sampling_stage_plan.skip_metadata is not None:
+            self.sampling_stage_metadata = fit_context.sampling_stage_plan.skip_metadata
+            self.log.message('Composition for AtomizedModel currently unavailable')
+            return fit_context, train_data
+
+        if not fit_context.sampling_stage_plan.should_run_sampling_stage:
+            return fit_context, train_data
+
+        sampling_config = self.params.get('sampling_config')
+        if sampling_config is None:
+            return fit_context, train_data
+
+        if not isinstance(train_data, InputData):
+            raise ValueError('Sampling stage supports only InputData in V1.')
+
+        self.log.message('Sampling stage started')
+        executor = SamplingStageExecutor(
+            sampling_config=sampling_config,
+            task_type=self.params.task.task_type,
+            total_timeout_minutes=self.params.timeout,
+            log=self.log,
+        )
+        stage_result = executor.execute(train_data)
+        self.sampling_stage_metadata = stage_result.metadata
+        self.sampling_routing_context = stage_result.routing_context
+
+        if self.params.timeout is not None:
+            self.params.timeout = stage_result.updated_timeout_minutes
+
+        self.log.message(
+            f'Sampling stage finished. Rows: {stage_result.metadata["rows_before"]} -> '
+            f'{stage_result.metadata["rows_after"]}. '
+            f'Updated timeout: {self.params.timeout} min.'
+        )
+        return fit_context, stage_result.train_data
+
+    def _obtain_pipeline(self,
+                         fit_context: FitDataContext,
+                         predefined_model: Union[str, Pipeline, None]):
+        with fedot_composer_timer.launch_fitting():
+            if fit_context.chunked_ensemble_plan.should_use_chunked_ensemble:
+                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_ensemble_model(
+                    self.train_data,
+                    predefined_model=predefined_model,
+                    validation_data=fit_context.ensemble_validation_data,
+                    class_representatives=fit_context.class_representatives,
+                    api_preprocessor=self.data_processor.preprocessor,
+                    chunked_ensemble_config=fit_context.chunked_ensemble_plan.require_config(),
+                    routing_context=self.sampling_routing_context,
+                )
+            elif predefined_model is not None:
+                self.current_pipeline = PredefinedModel(
+                    predefined_model,
+                    self.train_data,
+                    self.log,
+                    use_input_preprocessing=self.params.get('use_input_preprocessing'),
+                    api_preprocessor=self.data_processor.preprocessor,
+                ).fit()
+                self.best_models = ()
+                self.history = None
+            else:
+                self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                    self.train_data,
+                )
+
+            if self.current_pipeline is None:
+                raise ValueError('No models were found')
+
+    def _finalize_fit_model_if_required(self,
+                                        fit_context: FitDataContext,
+                                        predefined_model: Union[str, Pipeline, None]):
+        if predefined_model is not None and not isinstance(self.current_pipeline, PipelineEnsemble):
+            return
+
+        full_train_not_preprocessed = deepcopy(self.train_data)
+        with fedot_composer_timer.launch_train_inference():
+            final_fit_plan = plan_final_fit(
+                history=self.history,
+                pipeline_is_fitted=self.current_pipeline.is_fitted,
+                is_pipeline_ensemble=isinstance(self.current_pipeline, PipelineEnsemble),
+            )
+            if final_fit_plan.action is FinalFitAction.fit_pipeline_on_full_data:
+                self._fit_final_pipeline(
+                    fit_context.recommendations_for_data,
+                    full_train_not_preprocessed,
+                )
+                self.log.message('Final pipeline was fitted')
+            elif final_fit_plan.action is FinalFitAction.finalize_ensemble:
+                self._finalize_pipeline_ensemble(validation_data=fit_context.ensemble_validation_data)
+                self.log.message('Pipeline ensemble was finalized')
+            else:
+                self.log.message('Already fitted initial pipeline is used')
+
+    def _fit_final_pipeline(self,
+                            recommendations: Optional[dict],
+                            full_train_not_preprocessed: Union[InputData, MultiModalData]):
+        if recommendations is not None:
+            # if data was cut we need to refit pipeline on full data
+            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                 {k: v for k, v in recommendations.items()
+                                                                  if k != 'cut'})
+        self.current_pipeline.fit(
+            full_train_not_preprocessed,
+            n_jobs=self.params.n_jobs
+        )
+
+    def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
+        self.current_pipeline.finalize(validation_data=validation_data)
+
+    def _merge_current_pipeline_preprocessors(self):
+        if isinstance(self.current_pipeline, PipelineEnsemble):
+            for pipeline in self.current_pipeline.pipelines:
+                pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+                    api_preprocessor=deepcopy(self.data_processor.preprocessor),
+                    pipeline_preprocessor=pipeline.preprocessor,
+                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+                )
+            return
+
+        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
+            api_preprocessor=self.data_processor.preprocessor,
+            pipeline_preprocessor=self.current_pipeline.preprocessor,
+            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
+        )
 
     def fit_tensordata(self, tensor_data, predefined_model: Union[str, Pipeline] = None) -> Pipeline:
         fit_plan = build_tensordata_fit_plan(predefined_model)
@@ -814,78 +938,3 @@ class Fedot:
         # reset logging level for Singleton
         Log().reset_logging_level(logging_level)
         return default_log(prefix='FEDOT logger')
-
-    def _init_remote_if_necessary(self):
-        remote = RemoteEvaluator()
-        if remote.is_enabled and remote.remote_task_params is not None:
-            task = self.params.task
-            if task.task_type is TaskTypesEnum.ts_forecasting:
-                task_str = (f'Task(TaskTypesEnum.ts_forecasting, '
-                            f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))')
-            else:
-                task_str = f'Task({str(task.task_type)})'
-            remote.remote_task_params.task_type = task_str
-            remote.remote_task_params.is_multi_modal = isinstance(
-                self.train_data, MultiModalData)
-
-            if isinstance(self.target, str) and remote.remote_task_params.target is None:
-                remote.remote_task_params.target = self.target
-
-    def _run_sampling_stage_if_necessary(self):
-        sampling_config = self.params.get('sampling_config')
-        if sampling_config is None:
-            return
-
-        if not isinstance(self.train_data, InputData):
-            raise ValueError('Sampling stage supports only InputData in V1.')
-
-        self.log.message('Sampling stage started')
-        executor = SamplingStageExecutor(sampling_config=sampling_config,
-                                         task_type=self.params.task.task_type,
-                                         total_timeout_minutes=self.params.timeout,
-                                         log=self.log)
-        stage_result = executor.execute(self.train_data)
-        self.train_data = stage_result.train_data
-        self.sampling_stage_metadata = stage_result.metadata
-        self.sampling_routing_context = stage_result.routing_context
-
-        if self.params.timeout is not None:
-            self.params.timeout = stage_result.updated_timeout_minutes
-
-        self.log.message(
-            f'Sampling stage finished. Rows: {stage_result.metadata["rows_before"]} -> '
-            f'{stage_result.metadata["rows_after"]}. '
-            f'Updated timeout: {self.params.timeout} min.'
-        )
-
-    def _fit_final_pipeline(self,
-                            recommendations: Optional[dict],
-                            full_train_not_preprocessed: Union[InputData, MultiModalData]):
-        if recommendations is not None:
-            # if data was cut we need to refit pipeline on full data
-            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                 {k: v for k, v in recommendations.items()
-                                                                  if k != 'cut'})
-        self.current_pipeline.fit(
-            full_train_not_preprocessed,
-            n_jobs=self.params.n_jobs
-        )
-
-    def _finalize_pipeline_ensemble(self, validation_data: Optional[InputData] = None):
-        self.current_pipeline.finalize(validation_data=validation_data)
-
-    def _merge_current_pipeline_preprocessors(self):
-        if isinstance(self.current_pipeline, PipelineEnsemble):
-            for pipeline in self.current_pipeline.pipelines:
-                pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-                    api_preprocessor=deepcopy(self.data_processor.preprocessor),
-                    pipeline_preprocessor=pipeline.preprocessor,
-                    use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-                )
-            return
-
-        self.current_pipeline.preprocessor = BasePreprocessor.merge_preprocessors(
-            api_preprocessor=self.data_processor.preprocessor,
-            pipeline_preprocessor=self.current_pipeline.preprocessor,
-            use_auto_preprocessing=self.params.get('use_auto_preprocessing')
-        )
