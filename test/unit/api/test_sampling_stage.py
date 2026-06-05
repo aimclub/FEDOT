@@ -3,7 +3,11 @@ import pytest
 from sklearn.datasets import make_classification
 
 from fedot.api.sampling_stage.config import validate_sampling_config
-from fedot.api.sampling_stage.executor import SamplingStageExecutor
+from fedot.api.sampling_stage.executor import (
+    ChunkingSamplingExecutionStrategy,
+    SamplingStageExecutor,
+    SubsetSamplingExecutionStrategy,
+)
 from fedot.api.sampling_stage.providers import SamplingProvider, SamplingSubsetResult
 from fedot.core.data.input_data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -71,9 +75,11 @@ def test_dynamic_cap_budget_and_timeout_update():
     # min(10m * 0.4, 10m - 2m) = min(240s, 480s)
     assert budget == pytest.approx(240.0)
 
-    updated_timeout = SamplingStageExecutor._compute_updated_timeout(elapsed_seconds=120.0,
-                                                                     total_timeout_minutes=10.0,
-                                                                     min_automl_time_minutes=2.0)
+    updated_timeout = SubsetSamplingExecutionStrategy()._compute_updated_timeout(
+        elapsed_seconds=120.0,
+        total_timeout_minutes=10.0,
+        min_automl_time_minutes=2.0,
+    )
     assert updated_timeout == pytest.approx(8.0)
 
 
@@ -107,8 +113,8 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
                                      total_timeout_minutes=5.0,
                                      provider=FirstKProvider())
 
-    def fake_score(train_data, valid_data, task_type, random_state):
-        del valid_data, task_type, random_state
+    def fake_score(self, train_data, valid_data, context):
+        del self, valid_data, context
         size = len(train_data.idx)
         if size >= 70:
             return 1.0
@@ -116,7 +122,7 @@ def test_effective_size_selection_on_deterministic_scores(monkeypatch):
             return 0.97
         return 0.8
 
-    monkeypatch.setattr(SamplingStageExecutor, '_score_light_model', staticmethod(fake_score))
+    monkeypatch.setattr(SubsetSamplingExecutionStrategy, '_score_light_model', fake_score)
 
     result = executor.execute(data)
     assert result.metadata['selected_ratio'] == pytest.approx(0.5)
@@ -169,3 +175,21 @@ def test_sampling_config_rejects_non_dict_value():
 def test_sampling_config_rejects_invalid_validation_size_range():
     with pytest.raises(ValueError, match='validation_size'):
         validate_sampling_config({'strategy_kind': 'subset', 'validation_size': 1.0})
+
+
+def test_sampling_executor_uses_resolved_strategy_object_by_kind():
+    subset_executor = SamplingStageExecutor(
+        sampling_config={'strategy_kind': 'subset'},
+        task_type=TaskTypesEnum.classification,
+        total_timeout_minutes=5.0,
+        provider=FirstKProvider(),
+    )
+    chunking_executor = SamplingStageExecutor(
+        sampling_config={'strategy_kind': 'chunking'},
+        task_type=TaskTypesEnum.classification,
+        total_timeout_minutes=5.0,
+        provider=FirstKProvider(),
+    )
+
+    assert isinstance(subset_executor.execution_strategy, SubsetSamplingExecutionStrategy)
+    assert isinstance(chunking_executor.execution_strategy, ChunkingSamplingExecutionStrategy)
