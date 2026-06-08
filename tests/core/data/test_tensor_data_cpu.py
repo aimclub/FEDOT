@@ -261,23 +261,6 @@ def test_create_from_numpy_without_target():
     assert td.features.shape[1] == features.shape[1]
 
 
-# # TODO romankuklo: state='PREDICT' is not implemented yet
-# # def test_target_depends_state():
-# #     """
-# #     Test that target handling depends on the processing state, ensuring that in predict mode
-# #     no target is inferred or created and all input columns are treated as features.
-# #     """
-# #     features = torch.rand(100, 5)
-
-# #     td = TensorData.create(features, backend_name="cpu", state="predict")
-
-# #     assert isinstance(td, TensorData)
-# #     assert isinstance(td.features, torch.Tensor)
-# #     assert td.target is None
-# #     assert td.features.shape[0] == features.shape[0]
-# #     assert td.features.shape[1] == features.shape[1]
-
-
 @pytest.mark.unit
 def test_memory_count_cpu():
     """

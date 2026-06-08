@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 import torch
@@ -11,6 +13,7 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStepEnum,
 from fedot.preprocessing.methods.abstract import AbstractPreprocessingHandler
 from fedot.preprocessing.service.tabular_optional_service import OptionalTabularService
 from fedot.core.data.prepared_data.prepared_data import PreparedData
+from fedot.core.data.tensor_data.tensor_data import TensorData
 from fedot.core.data.tensor_data.tensor_data_creator import TensorDataCreator
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 from fedot.preprocessing.planner.optional_planner import build_optional_plan
@@ -77,7 +80,7 @@ def test_preprocessing_plan_imputation():
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(
         td, {PreprocessingStepEnum.imputation: None})
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[1, 1] == 5
 
 
@@ -100,7 +103,7 @@ def test_preprocessing_plan_mode_imputation():
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mode,
                                            "features_idx": [1],
                                             "step_args": None}]})
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[2, 1] == 2
 
 
@@ -122,7 +125,7 @@ def test_preprocessing_plan_mean_imputation():
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.mean,
                                            "features_idx": [1],
                                             "step_args": None}]})
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[1, 1] == 5
 
 
@@ -145,7 +148,7 @@ def test_preprocessing_plan_constant_imputation():
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.constant,
                                            "features_idx": [1],
                                             "step_args": {"constant": 3}}]})
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features[2, 1] == 3
 
 
@@ -167,7 +170,7 @@ def test_preprocessing_plan_delete_raw_imputation():
         PreprocessingStepEnum.imputation: [{"method": ImputationMethodEnum.delete_raw,
                                            "features_idx": [1],
                                             "step_args": None}]})
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[0] == 2
     assert preprocessed_data.target.shape[0] == 2
 
@@ -341,7 +344,7 @@ def test_imputation_scaling():
 
     preprocessed_data = service.fit_transform(td, strategy)
 
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
 
     result = preprocessed_data.features.numpy()
 
@@ -388,7 +391,7 @@ def test_encoding_autoscaling_imputation():
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, strategy)
 
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
 
     result = preprocessed_data.features.numpy()
 
@@ -445,7 +448,7 @@ def test_ohe_encoding_imputation_uses_original_indices():
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, strategy)
 
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[1] == 5
 
     result = preprocessed_data.features.numpy()
@@ -492,7 +495,7 @@ def test_ohe_encoding_imputation_uses_original_feature_names():
     service = OptionalTabularService()
     preprocessed_data = service.fit_transform(td, strategy)
 
-    assert isinstance(preprocessed_data, PreparedData)
+    assert isinstance(preprocessed_data, TensorData)
     assert preprocessed_data.features.shape[1] == 5
 
     result = preprocessed_data.features.numpy()
@@ -651,3 +654,136 @@ def test_custom_preprocessing():
         [10, 20, 0, 40, 50, 1000], dtype=np.float32), atol=1e-6)
     assert np.allclose(result[:, 2], np.array(
         [100, 200, 300, 10, 500, 600], dtype=np.float32), atol=1e-6)
+
+
+@pytest.mark.unit
+def test_optional_fit_predict_uses_train_trace_after_obligatory_predict():
+    train = np.array([
+        [0.0, 10.0, "A", 0.0],
+        [1.0, 10.0, "B", 1.0],
+        [2.0, np.nan, "C", 0.0],
+        [3.0, 13.0, "A", 2.0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, np.nan, "B"],
+        [5.0, 15.0, "A"],
+    ], dtype=object)
+
+    train_td = TensorDataCreator.create(train, backend_name="cpu")
+    service = OptionalTabularService()
+    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=fitted_td.trace_uuid,
+    )
+    predicted_td = service.transform(test_td)
+
+    assert isinstance(fitted_td, TensorData)
+    assert isinstance(predicted_td, TensorData)
+    assert predicted_td.trace_uuid == fitted_td.trace_uuid
+    assert predicted_td.features.shape == test_td.features.shape
+    assert predicted_td.features[0, 1] == 10.0
+    assert not torch.isnan(predicted_td.features[:, 1]).any()
+
+
+@pytest.mark.unit
+def test_optional_predict_restores_local_custom_handler_from_trace():
+    class CustomMaxPlusImputer(AbstractPreprocessingHandler):
+        def __init__(self, offset: float = 0.0):
+            self.offset = offset
+            self.features_idx = None
+            self.fill_value = None
+
+        def fit(self, data: PreparedData, features_idx):
+            self.features_idx = list(features_idx)
+            column = data.features[:, self.features_idx[0]]
+            valid = column[~torch.isnan(column)]
+            self.fill_value = valid.max() + self.offset
+            return self
+
+        def transform(self, data: PreparedData) -> PreparedData:
+            for col_idx in self.features_idx:
+                column = data.features[:, col_idx]
+                data.features[:, col_idx] = torch.where(
+                    torch.isnan(column),
+                    self.fill_value.to(device=data.features.device, dtype=data.features.dtype),
+                    column,
+                )
+            return data
+
+    train_features = np.array([
+        [1.0, 2.0],
+        [2.0, np.nan],
+        [3.0, 8.0],
+    ], dtype=np.float32)
+    train_target = np.array([0.0, 1.0, 0.0], dtype=np.float32)
+    test_features = np.array([
+        [4.0, np.nan],
+        [5.0, 10.0],
+    ], dtype=np.float32)
+
+    train_td = TensorDataCreator.create(train_features, target=train_target, backend_name="cpu")
+    service = OptionalTabularService()
+    fitted_td = service.fit_transform(train_td, {
+        PreprocessingStepEnum.custom: [{
+            "method": "max_plus",
+            "features_idx": [1],
+            "implementation": CustomMaxPlusImputer,
+            "step_args": {"offset": 2.0},
+        }]
+    })
+
+    test_td = TensorDataCreator.create(
+        test_features,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=fitted_td.trace_uuid,
+    )
+    predicted_td = service.transform(test_td)
+
+    assert predicted_td.trace_uuid == fitted_td.trace_uuid
+    assert predicted_td.features[0, 1] == 10.0
+    assert predicted_td.features[1, 1] == 10.0
+
+
+@pytest.mark.unit
+def test_optional_fit_predict_without_tensor_cache_keeps_trace_plan_and_model(isolated_cache_dir):
+    train = np.array([
+        [0.0, 10.0, "A", 0.0],
+        [1.0, 10.0, "B", 1.0],
+        [2.0, np.nan, "C", 0.0],
+        [3.0, 13.0, "A", 2.0],
+    ], dtype=object)
+    test = np.array([
+        [4.0, np.nan, "B"],
+        [5.0, 15.0, "A"],
+    ], dtype=object)
+
+    train_td = TensorDataCreator.create(train, backend_name="cpu", use_cache=False)
+    service = OptionalTabularService(use_cache=False)
+    fitted_td = service.fit_transform(train_td, {PreprocessingStepEnum.imputation: None})
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        state="predict",
+        without_target=True,
+        trace_uuid=fitted_td.trace_uuid,
+        use_cache=False,
+    )
+    predicted_td = service.transform(test_td)
+
+    with open(isolated_cache_dir / "traces" / f"{fitted_td.trace_uuid}.json", encoding="utf-8") as file:
+        trace = json.load(file)
+
+    optional_stage = next(stage for stage in trace["stages"] if stage["stage"] == "optional_preprocessing")
+    assert optional_stage["tensor_data_path"] is None
+    assert optional_stage["operation_path"].endswith(".pkl")
+    assert optional_stage["models"][0]["model_path"].endswith(".pkl")
+    assert predicted_td.trace_uuid == fitted_td.trace_uuid
+    assert not torch.isnan(predicted_td.features[:, 1]).any()

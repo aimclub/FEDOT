@@ -57,17 +57,19 @@ def auto_imputation_steps(data: TensorData):
 
         if len(data.categorical_idx) > 0:
             cat_nan_idx = list(set(nan_idx) & set(data.categorical_idx))
-            step = PreprocessingStep(
-                PreprocessingStepEnum.imputation, ImputationMethodEnum.mode, cat_nan_idx)
-            steps.append(step)
+            if len(cat_nan_idx) > 0:
+                step = PreprocessingStep(
+                    PreprocessingStepEnum.imputation, ImputationMethodEnum.mode, cat_nan_idx)
+                steps.append(step)
         else:
             cat_nan_idx = []
 
         if len(data.numerical_idx) > 0:
             num_nan_idx = list(set(nan_idx) & set(data.numerical_idx))
-            step = PreprocessingStep(
-                PreprocessingStepEnum.imputation, ImputationMethodEnum.median, num_nan_idx)
-            steps.append(step)
+            if len(num_nan_idx) > 0:
+                step = PreprocessingStep(
+                    PreprocessingStepEnum.imputation, ImputationMethodEnum.median, num_nan_idx)
+                steps.append(step)
         else:
             num_nan_idx = []
 

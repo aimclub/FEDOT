@@ -589,6 +589,51 @@ def test_preprocessing_fill_imputation_forward():
 
 
 @pytest.mark.unit
+def test_ts_optional_fit_predict_uses_cached_optional_stage():
+    train = np.array([
+        [1.0, 10.0, 0.0],
+        [2.0, np.nan, 1.0],
+        [3.0, 30.0, 0.0],
+    ], dtype=np.float32)
+    test = np.array([
+        [4.0, np.nan],
+        [5.0, 50.0],
+    ], dtype=np.float32)
+
+    train_td = TensorDataCreator.create(
+        train,
+        backend_name="cpu",
+        data_type="time_series",
+    )
+    service = OptionalTSService()
+    fitted_td = service.fit_transform(
+        train_td,
+        {
+            PreprocessingStepEnum.imputation: [{
+                "method": ImputationMethodEnum.ts_constant,
+                "features_idx": [1],
+                "step_args": {"constant": -5.0},
+            }]
+        },
+    )
+
+    test_td = TensorDataCreator.create(
+        test,
+        backend_name="cpu",
+        data_type="time_series",
+        state="predict",
+        without_target=True,
+        trace_uuid=fitted_td.trace_uuid,
+    )
+    predicted_td = service.transform(test_td)
+
+    assert predicted_td.trace_uuid == fitted_td.trace_uuid
+    assert predicted_td.features.shape == test_td.features.shape
+    assert predicted_td.features[0, 1] == -5.0
+    assert predicted_td.features[1, 1] == 50.0
+
+
+@pytest.mark.unit
 def test_preprocessing_fill_imputation_backward():
     """Test backward-fill imputation along the time axis.
 

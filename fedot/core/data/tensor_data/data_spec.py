@@ -71,8 +71,6 @@ class DataSpec:
     ts_forecast_horizon: Optional[int] = None
     ts_init_shape: Optional[Tuple[int]] = None
 
-    # TODO romankuklo: is predict needed?
-    # predict: TensorLike = None
     idx: IndexType = None
     idx_mapping: dict[int, int] = field(default_factory=dict)
 
@@ -84,6 +82,8 @@ class DataSpec:
     columns_to_drop: IndexType = None
     index_col: IndexType = None
     possible_idx_keywords: Optional[List[str]] = None
+    trace_uuid: Optional[str] = None
+    use_cache: bool = True
 
     def __post_init__(self):
         """

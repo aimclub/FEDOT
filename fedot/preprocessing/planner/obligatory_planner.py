@@ -9,7 +9,6 @@ from fedot.preprocessing.tools.preprocessor_types import (PreprocessingStep,
                                                           EncodingMethodEnum)
 from fedot.core.data.tensor_data.tools import get_idx_from_features_names, convert_idx_to_list
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.tools.index_mapping_tools import update_indices
 from fedot.preprocessing.planner.planner import PreprocessingPlan
 
 

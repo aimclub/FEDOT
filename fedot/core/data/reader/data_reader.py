@@ -1,12 +1,12 @@
-from typing import Any, Callable, ClassVar, List, Tuple
 import numpy as np
 import torch
 from dataclasses import dataclass
+from typing import Any
 
+from fedot.core.common.registry import Registry
 from fedot.core.data.tensor_data.rules import (
-    TensorDataCreatorNotFoundError,
+    DataReaderNotFoundError,
     build_tabular_file_load_plan,
-    resolve_registered_creator,
 )
 from fedot.core.data.tensor_data.tools import get_values_from_df
 from fedot.core.data.reader.tools import get_df_from_csv, read_arff_file
@@ -44,7 +44,7 @@ class DataReaderResult:
     features_names: IndexType = None
 
 
-class DataReader:
+class DataReader(Registry):
     """
     Registry of lightweight readers from raw inputs to arrays and names.
 
@@ -58,27 +58,8 @@ class DataReader:
     authoritative read output is always the returned :class:`DataReaderResult`.
     """
 
-    _creators: ClassVar[List[Tuple[Callable, Callable]]] = []
-
-    @classmethod
-    def register_creator(cls, predicate: Callable[[Any], bool]) -> Callable[[Callable], Callable]:
-        """
-        Register a reader function for a source type.
-
-        Registered readers are tried in registration order. Each reader must accept
-        ``(source_data, spec)`` and return a :class:`DataReaderResult`.
-
-        Args:
-            predicate: Function that returns ``True`` if the reader can handle the
-                given ``source_data``.
-
-        Returns:
-            Decorator that registers the reader function.
-        """
-        def decorator(func):
-            cls._creators.append((predicate, func))
-            return func
-        return decorator
+    not_found_error = DataReaderNotFoundError
+    not_found_message = 'No reading function registered for data type: {source_type}'
 
     @classmethod
     def read(cls, source_data, spec: DataSpec) -> DataReaderResult:
@@ -95,14 +76,34 @@ class DataReader:
             to copy into a :class:`~fedot.core.data.tensor_data.data_spec.DataSpec`.
 
         Raises:
-            TensorDataCreatorNotFoundError: If no registered reader matches
+            DataReaderNotFoundError: If no registered reader matches
                 ``source_data``.
         """
-        creator = resolve_registered_creator(cls._creators, source_data)
+        creator = cls.resolve_creator(source_data)
         return creator(source_data, spec)
 
 
-@DataReader.register_creator(lambda x: isinstance(x, torch.Tensor))
+def _is_torch(data: Any) -> bool:
+    return isinstance(data, torch.Tensor)
+
+
+def _is_array_runtime(data: Any) -> bool:
+    return isinstance(data, ARRAY_RUNTIME_TYPES)
+
+
+def _is_pandas_runtime(data: Any) -> bool:
+    return isinstance(data, PANDAS_RUNTIME_TYPES)
+
+
+def _is_csv_tsv_path(data: Any) -> bool:
+    return isinstance(data, str) and (data.endswith(".csv") or data.endswith(".tsv"))
+
+
+def _is_arff_path(data: Any) -> bool:
+    return isinstance(data, str) and data.endswith(".arff")
+
+
+@DataReader.register_creator(_is_torch)
 def from_torch(features: torch.Tensor, spec: DataSpec) -> DataReaderResult:
     """
     Read an already materialized torch tensor.
@@ -118,9 +119,7 @@ def from_torch(features: torch.Tensor, spec: DataSpec) -> DataReaderResult:
     return DataReaderResult(features=features, features_names=spec.features_names)
 
 
-@DataReader.register_creator(
-    lambda x: isinstance(x, ARRAY_RUNTIME_TYPES)
-)
+@DataReader.register_creator(_is_array_runtime)
 def from_numpy(features: ArrayType, spec: DataSpec) -> DataReaderResult:
     """
     Read a NumPy or CuPy array.
@@ -137,9 +136,7 @@ def from_numpy(features: ArrayType, spec: DataSpec) -> DataReaderResult:
     return DataReaderResult(features=features, features_names=spec.features_names)
 
 
-@DataReader.register_creator(
-    lambda x: isinstance(x, PANDAS_RUNTIME_TYPES)
-)
+@DataReader.register_creator(_is_pandas_runtime)
 def from_pandas(
         features: PandasType,
         spec: DataSpec) -> DataReaderResult:
@@ -163,9 +160,7 @@ def from_pandas(
     return DataReaderResult(features=features, features_names=features_names)
 
 
-@DataReader.register_creator(
-    lambda x: isinstance(x, str) and (x.endswith(".csv") or x.endswith(".tsv"))
-)
+@DataReader.register_creator(_is_csv_tsv_path)
 def from_csv_tsv(
     file_path: str, spec: DataSpec
 ) -> DataReaderResult:
@@ -209,9 +204,7 @@ def from_csv_tsv(
     return DataReaderResult(features=features, features_names=features_names)
 
 
-@DataReader.register_creator(
-    lambda x: isinstance(x, str) and x.endswith(".arff")
-)
+@DataReader.register_creator(_is_arff_path)
 def from_arff(
     source: str, spec: DataSpec
 ) -> DataReaderResult:

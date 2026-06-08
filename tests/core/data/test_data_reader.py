@@ -7,7 +7,7 @@ from fedot.core.backend.backend import Backend
 from fedot.core.data.reader.data_reader import DataReader, DataReaderResult
 from fedot.core.data.reader.tools import read_arff_file
 from fedot.core.data.tensor_data.data_spec import DataSpec
-from fedot.core.data.tensor_data.rules import TensorDataCreatorNotFoundError
+from fedot.core.data.tensor_data.rules import DataReaderNotFoundError
 
 
 class _FakeMeta:
@@ -133,5 +133,5 @@ def test_data_reader_read_arff_uses_read_arff_file(tmp_path, monkeypatch):
 def test_data_reader_unknown_source_raises():
     Backend().set('cpu')
 
-    with pytest.raises(TensorDataCreatorNotFoundError):
+    with pytest.raises(DataReaderNotFoundError):
         DataReader.read({'not': 'supported'}, DataSpec())

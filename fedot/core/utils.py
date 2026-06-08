@@ -15,6 +15,14 @@ from sklearn.model_selection import train_test_split
 
 from fedot.core.data.input_data.data import InputData
 
+from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+load_dotenv()
+
 DEFAULT_PARAMS_STUB = 'default_params'
 NESTED_PARAMS_LABEL = 'nested_space'
 
@@ -36,6 +44,50 @@ def default_fedot_data_dir() -> str:
         os.mkdir(default_data_path)
 
     return default_data_path
+
+
+def cache_dir() -> Path:
+    """
+    Return the cache directory path, creating it if necessary.
+
+    If `CACHE_PATH` is set in environment variables, it is used as the cache
+    directory path. Relative paths are resolved against the default FEDOT data
+    directory. If `CACHE_PATH` is not set, `<default_fedot_data_dir>/cache` is used.
+
+    Returns:
+        Path: Path to the cache directory.
+
+    Raises:
+        OSError: If the cache directory cannot be created or the path exists
+            but is not a directory.
+    """
+    default_data_dir = Path(default_fedot_data_dir())
+    env_cache_path = os.getenv("CACHE_PATH")
+
+    if env_cache_path:
+        cache_path = Path(env_cache_path).expanduser()
+
+        if not cache_path.is_absolute():
+            cache_path = default_data_dir / cache_path
+    else:
+        cache_path = default_data_dir / "cache"
+
+    if cache_path.exists():
+        if not cache_path.is_dir():
+            raise OSError(f"Cache path exists but is not a directory: {cache_path}")
+
+        logger.info(f"Cache directory already exists: {cache_path}")
+        return cache_path
+
+    try:
+        cache_path.mkdir(parents=True, exist_ok=False)
+    except OSError as ex:
+        raise OSError(f"Cannot create cache directory: {cache_path}") from ex
+
+    return cache_path
+
+
+CACHE_DIR = cache_dir()
 
 
 def labels_to_dummy_probs(prediction: np.array):

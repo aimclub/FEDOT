@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, Optional, Union, List
+from typing import Any, Optional, Union, List
 import logging
 
 from fedot.core.data.common.enums import StateEnum, TSOrientationEnum
@@ -102,12 +102,8 @@ class TensorDataRawConversionPlan:
     preprocessing_done: bool
 
 
-class TensorDataCreatorResolutionError(TypeError):
-    """Raised when a TensorData creator predicate returns a non-boolean result."""
-
-
-class TensorDataCreatorNotFoundError(ValueError):
-    """Raised when no TensorData creator matches the provided source."""
+class DataReaderNotFoundError(ValueError):
+    """Raised when no DataReader matches the provided source."""
 
 
 def normalize_backend_name(backend_name: str) -> str:
@@ -275,14 +271,6 @@ def normalize_tensordata_identity(
     )
 
 
-def validate_creator_predicate_result(predicate: Callable[[Any], bool], result: Any) -> bool:
-    if not isinstance(result, bool):
-        raise TensorDataCreatorResolutionError(
-            f'Predicate {predicate.__name__} must return bool, got {type(result)}'
-        )
-    return result
-
-
 def build_backend_plan(backend_name: str) -> TensorDataBackendPlan:
     return TensorDataBackendPlan(backend_name=normalize_backend_name(backend_name))
 
@@ -359,21 +347,4 @@ def build_raw_conversion_plan(backend_name: str) -> TensorDataRawConversionPlan:
     return TensorDataRawConversionPlan(
         should_try_cpu_fallback=normalized_backend_name != 'cpu',
         preprocessing_done=False
-    )
-
-
-def resolve_registered_creator(
-    creators: Iterable[tuple[Callable[[Any], bool], Callable]],
-    source_data: Any,
-) -> Callable:
-    for predicate, creator in creators:
-        result = validate_creator_predicate_result(
-            predicate=predicate,
-            result=predicate(source_data),
-        )
-        if result:
-            return creator
-
-    raise TensorDataCreatorNotFoundError(
-        f'No creator registered for input: {type(source_data)}'
     )
