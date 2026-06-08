@@ -4,6 +4,8 @@ Look at the structure provide below:
 
 simple - for new users
 
+benchmark - benchmark runners and reproducible experiment entrypoints
+
 advanced - for advanced users
 
 - simple
@@ -11,6 +13,8 @@ advanced - for advanced users
    - regression - devoted to solving basic regression tasks via API
    - time_series_forecasting - devoted to solving basic time series forecasting tasks via API
    - interpretable - shows how pipelines can be interpreted
+- benchmark
+   - AMLB benchmark entrypoint with FEDOT sampling stage and saved optimization visualizations
 - advanced
    - automl - shows how other autoML solutions can be compatible with FEDOT
    - decompose - examples devoted to decomposition

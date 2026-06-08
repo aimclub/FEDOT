@@ -35,7 +35,8 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            exc_is_expected = (isinstance(ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
+            exc_is_expected = (isinstance(
+                ex, sqlite3.DatabaseError) and 'disk is full' in str(ex))
             msg = 'Nodes can not be saved'
             if exc_is_expected:
                 self.log.warning(msg, exc_info=ex)
@@ -58,7 +59,8 @@ class OperationsCache(BaseCache):
         """
         try:
             nodes_lst = ensure_wrapped_in_sequence(nodes)
-            structural_ids = [_get_structural_id(node, fold_id) for node in nodes_lst]
+            structural_ids = [_get_structural_id(
+                node, fold_id) for node in nodes_lst]
             cached_ops = self._db.get_operations(structural_ids)
             for idx, cached_op in enumerate(cached_ops):
                 if cached_op is not None:
@@ -66,7 +68,8 @@ class OperationsCache(BaseCache):
                 else:
                     nodes_lst[idx].fitted_operation = None
         except Exception:
-            self.log.log_or_raise('info', ValueError('Cache can not be loaded.'))
+            self.log.log_or_raise(
+                'info', ValueError('Cache can not be loaded.'))
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """

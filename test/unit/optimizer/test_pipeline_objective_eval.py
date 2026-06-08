@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from golem.core.optimisers.fitness import SingleObjFitness
 
-from fedot.core.data.data import InputData
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -52,7 +52,8 @@ def actual_fitness(data_split, pipeline, metric):
     for (train_data, test_data) in data_split():
         pipeline.fit(train_data)
         metric_function = MetricsRepository.get_metric(metric)
-        metric_values.append(metric_function(pipeline=pipeline, reference_data=test_data))
+        metric_values.append(metric_function(
+            pipeline=pipeline, reference_data=test_data))
     mean_metric = np.mean(metric_values, axis=0)
     return SingleObjFitness(mean_metric)
 
@@ -73,7 +74,8 @@ def empty_datasource():
 )
 def test_pipeline_objective_evaluate_with_different_metrics(classification_dataset, pipeline):
     for metric in ClassificationMetricsEnum:
-        data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+        data_producer = DataSourceSplitter(
+            cv_folds=None).build(classification_dataset)
         check_pipeline = deepcopy(pipeline)
         objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric),
                                                    data_producer=data_producer)
@@ -81,7 +83,8 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
         act_fitness = actual_fitness(data_producer, check_pipeline, metric)
         assert fitness.valid
         assert fitness.value is not None
-        assert np.isclose(fitness.value, act_fitness.value, atol=1e-8), metric.name
+        assert np.isclose(fitness.value, act_fitness.value,
+                          atol=1e-8), metric.name
 
 
 @pytest.mark.parametrize(
@@ -91,19 +94,23 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
 def test_pipeline_objective_evaluate_with_different_metrics_with_str_labes(pipeline):
     for metric in ClassificationMetricsEnum:
         data_splitter = DataSourceSplitter()
-        data_split = data_splitter.build(classification_dataset_with_str_labels())
+        data_split = data_splitter.build(
+            classification_dataset_with_str_labels())
         check_pipeline = deepcopy(pipeline)
-        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
+        objective_eval = PipelineObjectiveEvaluate(
+            MetricsObjective(metric), data_split)
         fitness = objective_eval(pipeline)
         act_fitness = actual_fitness(data_split, check_pipeline, metric)
         assert fitness.valid
         assert fitness.value is not None
-        assert np.isclose(fitness.value, act_fitness.value, atol=1e-8), metric.name
+        assert np.isclose(fitness.value, act_fitness.value,
+                          atol=1e-8), metric.name
 
 
 def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset):
     pipeline = empty_pipeline()
-    data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+    data_producer = DataSourceSplitter(
+        cv_folds=None).build(classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
     objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric),
@@ -115,7 +122,8 @@ def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset)
 def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     pipeline = sample_pipeline()
 
-    data_producer = DataSourceSplitter(cv_folds=5).build(classification_dataset)
+    data_producer = DataSourceSplitter(
+        cv_folds=5).build(classification_dataset)
     metric = ClassificationMetricsEnum.logloss
 
     objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric),
@@ -132,14 +140,16 @@ def test_pipeline_objective_evaluate_with_empty_datasource(classification_datase
         data_split = empty_datasource
         metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-        objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metric), data_split)
+        objective_eval = PipelineObjectiveEvaluate(
+            MetricsObjective(metric), data_split)
         objective_eval(pipeline)
 
 
 def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset):
     pipeline = sample_pipeline()
 
-    data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+    data_producer = DataSourceSplitter(
+        cv_folds=None).build(classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
     time_constraint = datetime.timedelta(seconds=0.0001)
@@ -167,7 +177,8 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
     with pytest.raises(Exception):
         pipeline = sample_pipeline()
 
-        data_producer = DataSourceSplitter(cv_folds=None).build(classification_dataset)
+        data_producer = DataSourceSplitter(
+            cv_folds=None).build(classification_dataset)
         objective_eval = PipelineObjectiveEvaluate(MetricsObjective(metrics),
                                                    data_producer=data_producer)
         objective_eval(pipeline)
@@ -177,8 +188,10 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
 def test_pipeline_objective_evaluate_for_timeseries_cv(folds, actual_value):
     forecast_len, validation_blocks, time_series = configure_experiment()
     objective = MetricsObjective(RegressionMetricsEnum.MSE)
-    data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
+    data_producer = DataSourceSplitter(
+        folds, validation_blocks).build(time_series)
     simple_pipeline = get_simple_ts_pipeline()
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    objective_evaluate = PipelineObjectiveEvaluate(
+        objective, data_producer, validation_blocks=validation_blocks)
     metric_value = objective_evaluate.evaluate(simple_pipeline).value
     assert np.isclose(metric_value, actual_value)

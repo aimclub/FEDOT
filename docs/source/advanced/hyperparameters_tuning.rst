@@ -94,7 +94,7 @@ To initialize a tuner you can use ``TunerBuilder``.
 .. code-block:: python
 
     from fedot.core.repository.tasks import TaskTypesEnum, Task
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 
     task = Task(TaskTypesEnum.classification)
@@ -200,7 +200,7 @@ Specify metric to optimize using ``.with_metric()``.
     from copy import deepcopy
     from sklearn.metrics import mean_squared_error as mse
     from fedot.core.composer.metrics import QualityMetric
-    from fedot.core.data.data import InputData, OutputData
+    from fedot.core.data.input_data.data import InputData, OutputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.tasks import TaskTypesEnum, Task
 
@@ -226,7 +226,7 @@ Specify metric to optimize using ``.with_metric()``.
 
     from sklearn.metrics import mean_squared_error as mse
     from golem.core.dag.graph import Graph
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -374,7 +374,7 @@ Example for ``SimultaneousTuner``:
     from golem.core.tuning.simultaneous import SimultaneousTuner
     from hyperopt import hp
     from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.search_space import PipelineSearchSpace
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -462,7 +462,7 @@ Example for ``IOptTuner``:
 
     import datetime
     from golem.core.tuning.iopt_tuner import IOptTuner
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -514,7 +514,7 @@ Example for ``OptunaTuner``:
 .. code-block:: python
 
     from golem.core.tuning.optuna_tuner import OptunaTuner
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.metrics_repository import RegressionMetricsEnum
@@ -564,7 +564,7 @@ and obtain a list of tuned pipelines representing a pareto front after tuning.
 
     from typing import Iterable
     from golem.core.tuning.optuna_tuner import OptunaTuner
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline import Pipeline
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -600,7 +600,7 @@ Sequential tuning
 
     import datetime
     from golem.core.tuning.sequential import SequentialTuner
-    from fedot.core.data.data import InputData
+    from fedot.core.data.input_data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.metrics_repository import RegressionMetricsEnum

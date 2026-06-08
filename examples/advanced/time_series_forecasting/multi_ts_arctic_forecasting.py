@@ -27,7 +27,8 @@ def calculate_metrics(target, predicted):
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter']
+    primary_operations = ['lagged', 'smoothing',
+                          'diff_filter', 'gaussian_filter']
     secondary_operations = ['lagged', 'ridge', 'lasso', 'linear']
     return primary_operations, secondary_operations
 
@@ -62,14 +63,16 @@ def compose_pipeline(pipeline, train_data, task):
 
 def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     # separate data on test/train
-    train_data, test_data, task = prepare_data(forecast_length, is_multi_ts=is_multi_ts)
+    train_data, test_data, task = prepare_data(
+        forecast_length, is_multi_ts=is_multi_ts)
     # pipeline initialization
     pipeline = ts_complex_ridge_smoothing_pipeline()
     # pipeline fit and predict
     pipeline.fit(train_data)
     prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
     # metrics evaluation
-    rmse, mae = calculate_metrics(np.ravel(test_data.target), prediction_before)
+    rmse, mae = calculate_metrics(
+        np.ravel(test_data.target), prediction_before)
 
     # compose pipeline with initial approximation
     obtained_pipeline = compose_pipeline(pipeline, train_data, task)
@@ -79,7 +82,8 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
     # metrics evaluation
-    rmse_composing, mae_composing = calculate_metrics(np.ravel(test_data.target), predict_after)
+    rmse_composing, mae_composing = calculate_metrics(
+        np.ravel(test_data.target), predict_after)
 
     # tuning composed pipeline
     tuner = TunerBuilder(task)\
@@ -94,7 +98,8 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     prediction_after_tuning = obtained_pipeline_copy.predict(test_data)
     predict_after_tuning = np.ravel(np.array(prediction_after_tuning.predict))
     # metrics evaluation
-    rmse_tuning, mae_tuning = calculate_metrics(np.ravel(test_data.target), predict_after_tuning)
+    rmse_tuning, mae_tuning = calculate_metrics(
+        np.ravel(test_data.target), predict_after_tuning)
 
     # visualization of results
     if is_multi_ts:
@@ -104,8 +109,10 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     plt.plot(np.ravel(test_data.idx), np.ravel(test_data.target), label='test')
     plt.plot(np.ravel(train_data.idx), history, label='history')
     plt.plot(np.ravel(test_data.idx), prediction_before, label='prediction')
-    plt.plot(np.ravel(test_data.idx), predict_after, label='prediction_after_composing')
-    plt.plot(np.ravel(test_data.idx), predict_after_tuning, label='prediction_after_tuning')
+    plt.plot(np.ravel(test_data.idx), predict_after,
+             label='prediction_after_composing')
+    plt.plot(np.ravel(test_data.idx), predict_after_tuning,
+             label='prediction_after_tuning')
     plt.xlabel('Time step')
     plt.ylabel('Sea level')
     plt.legend()

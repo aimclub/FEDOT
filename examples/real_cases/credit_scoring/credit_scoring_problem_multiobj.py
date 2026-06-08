@@ -9,7 +9,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.real_cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposerRequirements
@@ -39,7 +39,8 @@ def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputDa
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               timeout: datetime.timedelta = datetime.timedelta(minutes=5),
+                               timeout: datetime.timedelta = datetime.timedelta(
+                                   minutes=5),
                                visualization=False):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
@@ -79,7 +80,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     composer.history.to_csv()
 
     if visualization:
-        results_visualization(composed_pipelines=pipelines_evo_composed, history=composer.history)
+        results_visualization(
+            composed_pipelines=pipelines_evo_composed, history=composer.history)
 
     pipelines_roc_auc = []
 
@@ -95,7 +97,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         nodes = pipeline_evo_composed.nodes
         for node_index, node in enumerate(nodes):
             if isinstance(node, PipelineNode) and node.is_primary:
-                pipeline_evo_composed = tuner.tune_node(pipeline_evo_composed, node_index)
+                pipeline_evo_composed = tuner.tune_node(
+                    pipeline_evo_composed, node_index)
 
         pipeline_evo_composed.fit(input_data=dataset_to_compose)
 
@@ -105,7 +108,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
         pipelines_roc_auc.append(roc_on_valid_evo_composed)
         if len(pipelines_evo_composed) > 1:
-            print(f'Composed ROC AUC of pipeline {pipeline_num + 1} is {round(roc_on_valid_evo_composed, 3)}')
+            print(
+                f'Composed ROC AUC of pipeline {pipeline_num + 1} is {round(roc_on_valid_evo_composed, 3)}')
 
         else:
             print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
@@ -117,4 +121,5 @@ if __name__ == '__main__':
     set_random_seed(12)
 
     full_path_train, full_path_test = get_scoring_data()
-    run_credit_scoring_problem(full_path_train, full_path_test, visualization=True)
+    run_credit_scoring_problem(
+        full_path_train, full_path_test, visualization=True)

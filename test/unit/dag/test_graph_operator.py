@@ -9,7 +9,8 @@ def get_pipeline() -> Pipeline:
     second_level_one = PipelineNode('qda', nodes_from=[third_level_one])
     second_level_two = PipelineNode('qda')
 
-    first_level_one = PipelineNode('knn', nodes_from=[second_level_one, second_level_two])
+    first_level_one = PipelineNode(
+        'knn', nodes_from=[second_level_one, second_level_two])
 
     root = PipelineNode(operation_type='logit', nodes_from=[first_level_one])
     pipeline = Pipeline(root)

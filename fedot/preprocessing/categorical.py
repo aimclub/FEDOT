@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.preprocessing.data_types import FEDOT_STR_NAN, TYPE_TO_ID
 
 
@@ -25,8 +25,10 @@ class BinaryCategoricalPreprocessor:
         """
         # TODO: Add log.message with binary ids
         if np.size(input_data.categorical_idx) != 0:
-            categorical_columns = input_data.features[:, input_data.categorical_idx].T
-            nan_matrix = pd.DataFrame(categorical_columns.T, columns=input_data.categorical_idx).isna().values.T
+            categorical_columns = input_data.features[:,
+                                                      input_data.categorical_idx].T
+            nan_matrix = pd.DataFrame(
+                categorical_columns.T, columns=input_data.categorical_idx).isna().values.T
             nuniques = np.array([
                 len(np.unique(col[~is_nan])) for col, is_nan in zip(categorical_columns, nan_matrix)
             ])
@@ -45,16 +47,19 @@ class BinaryCategoricalPreprocessor:
                         # There is column with binary categories and gaps
                         self.binary_features_with_nans.append(column_id)
                         binary_ids_to_convert.append(column_id)
-                        self._train_encoder(pd.Series(categorical_columns[i], name=column_id))
+                        self._train_encoder(
+                            pd.Series(categorical_columns[i], name=column_id))
 
                 elif column_nuniques <= 2:
                     # Column contains binary string feature
                     binary_ids_to_convert.append(column_id)
                     # Train encoder for current column
-                    self._train_encoder(pd.Series(categorical_columns[i], name=column_id))
+                    self._train_encoder(
+                        pd.Series(categorical_columns[i], name=column_id))
 
             # Remove binary columns from categorical_idx
-            input_data.categorical_idx = [idx for idx in input_data.categorical_idx if idx not in binary_ids_to_convert]
+            input_data.categorical_idx = [
+                idx for idx in input_data.categorical_idx if idx not in binary_ids_to_convert]
             input_data.categorical_idx = np.array(input_data.categorical_idx)
             self.binary_ids_to_convert = binary_ids_to_convert
 
@@ -108,7 +113,8 @@ class BinaryCategoricalPreprocessor:
             nan_idxs = np.flatnonzero(pd.isna(column))
             column[nan_idxs] = FEDOT_STR_NAN
             # Extend encoder classes if the column contains categories not previously encountered
-            encoder.classes_ = np.unique(np.concatenate((encoder.classes_, column)))
+            encoder.classes_ = np.unique(
+                np.concatenate((encoder.classes_, column)))
 
             converted = encoder.transform(column)
             if len(nan_idxs):

@@ -7,7 +7,7 @@ from scipy.special import boxcox, inv_boxcox
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.arima.model import ARIMA
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -210,7 +210,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
         self.handle_new_data(input_data)
         start_id = self.actual_ts_len
         end_id = start_id + forecast_length - 1
-        predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
+        predicted = self.model.get_prediction(
+            start=start_id, end=end_id).predicted_mean
 
         predict = np.array(predicted).reshape(1, -1)
         new_idx = np.arange(start_id, end_id + 1)
@@ -227,7 +228,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
         forecast_length = parameters.forecast_length
         idx = input_data.idx
         target = input_data.target
-        fitted_values = self.model.get_prediction(start=idx[0], end=idx[-1]).predicted_mean
+        fitted_values = self.model.get_prediction(
+            start=idx[0], end=idx[-1]).predicted_mean
         diff = int(self.actual_ts_len) - len(fitted_values)
         # If first elements skipped
         if diff != 0:

@@ -16,13 +16,15 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 def has_correct_operations_for_task(pipeline: Pipeline, task_type: Optional[TaskTypesEnum] = None):
     if task_type and task_type not in pipeline.root_node.operation.acceptable_task_types:
-        raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
+        raise ValueError(
+            f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
     return True
 
 
 def has_primary_nodes(pipeline: Pipeline):
     if not any(node for node in pipeline.nodes if (isinstance(node, PipelineNode) and node.is_primary)):
-        raise ValueError(f'{ERROR_PREFIX} Pipeline does not have primary nodes')
+        raise ValueError(
+            f'{ERROR_PREFIX} Pipeline does not have primary nodes')
     return True
 
 
@@ -55,7 +57,8 @@ def has_no_conflicts_with_data_flow(pipeline: Pipeline):
             if len(set(operation_names)) == 1:
                 # And if it is forbidden to combine them
                 if operation_names[0] in forbidden_parents_combination:
-                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
+                    raise ValueError(
+                        f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
     return True
 
 
@@ -80,15 +83,18 @@ def has_correct_data_connections(pipeline: Pipeline):
             if _node.operation.metadata.id != 'custom':
                 types &= set(_node.operation.metadata.output_types)
             if len(types) == 0:
-                raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
+                raise ValueError(
+                    f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
     """ Function checks the correctness of connection between nodes """
     task = Task(TaskTypesEnum.ts_forecasting)
-    ts_models = get_operations_for_task(task=task, mode='model', tags=["non_lagged"])
-    non_ts_models = sorted(list(set(get_operations_for_task(task=task, mode='model')).difference(set(ts_models))))
+    ts_models = get_operations_for_task(
+        task=task, mode='model', tags=["non_lagged"])
+    non_ts_models = sorted(list(set(get_operations_for_task(
+        task=task, mode='model')).difference(set(ts_models))))
 
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
@@ -122,16 +128,19 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: Pipeline):
             # Operation name in the current node
             current_operation = node.operation.operation_type
             if current_operation in limit_parents_count:
-                raise_error = limit_parents_count[current_operation] < len(node.nodes_from)
+                raise_error = limit_parents_count[current_operation] < len(
+                    node.nodes_from)
 
             # There are several parents for current node or at least 1
             if not raise_error:
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents:
-                    parents = set(parent.operation.operation_type for parent in node.nodes_from)
+                    parents = set(
+                        parent.operation.operation_type for parent in node.nodes_from)
                     raise_error = set(forbidden_parents) & parents
         if raise_error:
-            raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
+            raise ValueError(
+                f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
     return True
 
 
@@ -181,7 +190,8 @@ def get_wrong_links(ts_to_table_operations: list, ts_data_operations: list, non_
                                    for non_ts_model in non_ts_models}
 
     limit_ts_data_operations_parents = {
-        ts_data_op: ts_models + non_ts_models + non_ts_data_operations + ts_to_table_operations
+        ts_data_op: ts_models + non_ts_models +
+        non_ts_data_operations + ts_to_table_operations
         for ts_data_op in ts_data_operations}
     limit_non_ts_data_operations_parents = {non_ts_data_op: ts_data_operations
                                             for non_ts_data_op in non_ts_data_operations}
@@ -210,7 +220,8 @@ def get_parent_limits(ts_to_table_operations: list, ts_data_operations: list, no
 
     limit_decompose_parents_count = {'decompose': 1}
 
-    limit_parents_count = {**limit_ts_model_data_op_parents_count, **limit_decompose_parents_count}
+    limit_parents_count = {
+        **limit_ts_model_data_op_parents_count, **limit_decompose_parents_count}
     need_to_have_parent = [op for op in non_ts_data_operations]
     return limit_parents_count, need_to_have_parent
 
@@ -248,7 +259,8 @@ def has_correct_data_sources(pipeline: Pipeline):
                                      (isinstance(n, PipelineNode) and n.is_primary)]
 
     if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
-        raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
+        raise ValueError(
+            f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
     return True
 
 
@@ -260,7 +272,8 @@ def has_parent_contain_single_resample(pipeline: Pipeline):
             children_nodes = pipeline.node_children(node)
             for child_node in children_nodes:
                 if len(child_node.nodes_from) > 1:
-                    raise ValueError(f'{ERROR_PREFIX} Resample node is not single parent node for child operation')
+                    raise ValueError(
+                        f'{ERROR_PREFIX} Resample node is not single parent node for child operation')
 
     return True
 
@@ -273,12 +286,15 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
     Validation perform only for classification pipelines.
     """
 
-    classification_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification), mode='all')
-    pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
+    classification_operations = get_operations_for_task(
+        task=Task(TaskTypesEnum.classification), mode='all')
+    pipeline_operations = [
+        node.operation.operation_type for node in pipeline.nodes]
     pipeline_operations = set(pipeline_operations)
 
     number_of_unique_pipeline_operations = len(pipeline_operations)
-    pipeline_operations_for_classification = set(classification_operations).intersection(pipeline_operations)
+    pipeline_operations_for_classification = set(
+        classification_operations).intersection(pipeline_operations)
 
     if len(pipeline_operations_for_classification) == 0:
         return True
@@ -287,7 +303,8 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
         # There are no decompose operations in the pipeline
         if number_of_unique_pipeline_operations != len(pipeline_operations_for_classification):
             # There are operations in the pipeline that solve different tasks
-            __check_multitask_operation_location(pipeline, classification_operations)
+            __check_multitask_operation_location(
+                pipeline, classification_operations)
 
     return True
 
@@ -298,15 +315,18 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
     Validation perform only for classification pipelines.
     """
     error_message = f'{ERROR_PREFIX} After classification decompose it is required to use regression model'
-    pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
+    pipeline_operations = [
+        node.operation.operation_type for node in pipeline.nodes]
     if 'class_decompose' not in pipeline_operations:
         return True
 
-    regression_operations = get_operations_for_task(task=Task(TaskTypesEnum.regression), mode='all')
+    regression_operations = get_operations_for_task(
+        task=Task(TaskTypesEnum.regression), mode='all')
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:
-        parent_operations = [node.operation.operation_type for node in node.nodes_from]
+        parent_operations = [
+            node.operation.operation_type for node in node.nodes_from]
         if 'class_decompose' in parent_operations:
             # Check is this model for regression task
             if node.operation.operation_type not in regression_operations:
@@ -326,7 +346,8 @@ def __check_decompose_parent_position(nodes_to_check: list):
         model_parent = parents[0]
 
         if not isinstance(model_parent.operation, Model):
-            raise ValueError(f'{ERROR_PREFIX} For decompose operation Model as first parent is required')
+            raise ValueError(
+                f'{ERROR_PREFIX} For decompose operation Model as first parent is required')
 
 
 def __check_decomposer_has_two_parents(nodes_to_check: list):
@@ -361,13 +382,15 @@ def __check_multitask_operation_location(pipeline: Pipeline, operations_for_clas
     primary_operations = set(primary_operations)
     unique_primary_operations_number = len(primary_operations)
 
-    primary_operations_for_classification = set(operations_for_classification).intersection(primary_operations)
+    primary_operations_for_classification = set(
+        operations_for_classification).intersection(primary_operations)
 
     if unique_primary_operations_number != len(primary_operations_for_classification):
         # There are difference in tasks are in the primary nodes
         return True
     else:
-        raise ValueError(f'{ERROR_PREFIX} Current pipeline can not solve multitask problem')
+        raise ValueError(
+            f'{ERROR_PREFIX} Current pipeline can not solve multitask problem')
 
 
 def has_no_parallel_branches_with_filtering(pipeline: Pipeline):
@@ -378,9 +401,11 @@ def has_no_parallel_branches_with_filtering(pipeline: Pipeline):
     """
 
     filtering_parents_per_node = dict()
-    __node_branch_contains_filtering(node=pipeline.root_node, filtering_parents_per_node=filtering_parents_per_node)
+    __node_branch_contains_filtering(
+        node=pipeline.root_node, filtering_parents_per_node=filtering_parents_per_node)
     if any([val for val in filtering_parents_per_node.values() if val > 1]):
-        raise ValueError(f'{ERROR_PREFIX} Pipeline has parallel branches containing filtering operations')
+        raise ValueError(
+            f'{ERROR_PREFIX} Pipeline has parallel branches containing filtering operations')
 
     return True
 
@@ -390,7 +415,8 @@ def __node_branch_contains_filtering(node: LinkedGraphNode, filtering_parents_pe
         return False
 
     parents_with_filtering = sum(
-        [__node_branch_contains_filtering(parent_node, filtering_parents_per_node) for parent_node in node.nodes_from]
+        [__node_branch_contains_filtering(
+            parent_node, filtering_parents_per_node) for parent_node in node.nodes_from]
     )
     filtering_parents_per_node[node] = parents_with_filtering
 

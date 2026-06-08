@@ -9,7 +9,8 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task=None):
         self.models: List[str] = get_operations_for_task(task, mode='model')
-        self.data_operations: List[str] = get_operations_for_task(task, mode='data_operation')
+        self.data_operations: List[str] = get_operations_for_task(
+            task, mode='data_operation')
         super().__init__(task)
 
     def can_be_removed(self, node: OptNode) -> RemoveType:
@@ -37,11 +38,13 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
         is_model = operation_id in self.models
         similar_operations = self.models if is_model else self.data_operations
 
-        candidates = set.intersection(set(similar_operations), set(possible_operations))
+        candidates = set.intersection(
+            set(similar_operations), set(possible_operations))
 
         if 'lagged' in operation_id:
             # lagged transform can be replaced only to lagged
-            candidates = set.intersection({'lagged', 'sparse_lagged'}, set(possible_operations))
+            candidates = set.intersection(
+                {'lagged', 'sparse_lagged'}, set(possible_operations))
 
         if operation_id in candidates:
             # the change to the same node is not meaningful
@@ -62,7 +65,8 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
             return []
 
         parent_operations = [str(n.content['name']) for n in node.nodes_from]
-        candidates = set.intersection(set(self.data_operations), set(possible_operations))
+        candidates = set.intersection(
+            set(self.data_operations), set(possible_operations))
 
         if operation_id in candidates:
             candidates.remove(operation_id)

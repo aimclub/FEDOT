@@ -11,7 +11,7 @@ from tpot.export_utils import set_param_recursive  # NOQA
 
 from fedot.core.pipelines.pipeline import Pipeline  # NOQA
 from fedot.core.pipelines.node import PipelineNode  # NOQA
-from fedot.core.data.data import InputData  # NOQA
+from fedot.core.data.input_data.data import InputData  # NOQA
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):

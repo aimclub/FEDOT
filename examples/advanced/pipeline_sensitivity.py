@@ -8,8 +8,8 @@ from fedot.core.pipelines.pipeline_composer_requirements import PipelineComposer
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
 from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
@@ -105,7 +105,8 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
     pipeline.fit(train_data)
 
     if not result_path:
-        result_path = join(default_fedot_data_dir(), 'structural_analysis', f'{case_name}')
+        result_path = join(default_fedot_data_dir(),
+                           'structural_analysis', f'{case_name}')
         if not exists(result_path):
             makedirs(result_path)
 
@@ -123,7 +124,8 @@ def run_class_scoring_case(is_composed: bool, path_to_save=None):
     train_data, test_data = get_scoring_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(
+        ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'scoring_composed'
@@ -141,7 +143,8 @@ def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_kc2_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the pipeline quality assessment during composition
-    metric_function = MetricsRepository.get_metric(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = MetricsRepository.get_metric(
+        ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
         case = 'kc2_composed'

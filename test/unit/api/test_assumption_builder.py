@@ -6,8 +6,8 @@ import numpy as np
 from fedot.api.api_utils.assumptions.assumptions_builder \
     import UniModalAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -41,7 +41,8 @@ def pipeline_contains_any(pipeline: Pipeline, *operation_name: str) -> bool:
 
 
 def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
-    operations = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
+    operations = OperationTypesRepository(repo).suitable_operation(
+        task_type=task_type, data_type=data_type)
     return operations
 
 
@@ -67,23 +68,31 @@ def test_preprocessing_builder_no_data():
                                  'scaling')
 
     # have default preprocessing pipelines
-    assert PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline() is not None
-    assert PreprocessingBuilder(TaskTypesEnum.classification, DataTypesEnum.table).to_pipeline() is not None
-    assert PreprocessingBuilder(TaskTypesEnum.clustering, DataTypesEnum.table).to_pipeline() is not None
+    assert PreprocessingBuilder(
+        TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline() is not None
+    assert PreprocessingBuilder(
+        TaskTypesEnum.classification, DataTypesEnum.table).to_pipeline() is not None
+    assert PreprocessingBuilder(
+        TaskTypesEnum.clustering, DataTypesEnum.table).to_pipeline() is not None
 
     # have no default preprocessing pipelines without additional options
-    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).to_pipeline() is None
+    assert PreprocessingBuilder(
+        TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).to_pipeline() is None
 
 
 def test_preprocessing_builder_with_data():
     # TableTypesCorrector fills in .supplementary_data needed for preprocessing_builder
-    data_reg = TableTypesCorrector().convert_data_for_fit(get_small_regression_dataset()[0])
+    data_reg = TableTypesCorrector().convert_data_for_fit(
+        get_small_regression_dataset()[0])
     data_ts, _, _ = get_time_series()
 
-    assert pipeline_contains_all(preprocess(TaskTypesEnum.regression, data_reg), 'scaling')
+    assert pipeline_contains_all(preprocess(
+        TaskTypesEnum.regression, data_reg), 'scaling')
 
-    assert not pipeline_contains_one(preprocess(TaskTypesEnum.ts_forecasting, data_ts), 'simple_imputation')
-    assert not pipeline_contains_one(preprocess(TaskTypesEnum.ts_forecasting, data_ts), 'scaling')
+    assert not pipeline_contains_one(preprocess(
+        TaskTypesEnum.ts_forecasting, data_ts), 'simple_imputation')
+    assert not pipeline_contains_one(preprocess(
+        TaskTypesEnum.ts_forecasting, data_ts), 'scaling')
 
 
 def test_assumptions_builder_for_multimodal_data():
@@ -120,7 +129,8 @@ def test_assumptions_builder_suitable_available_operations_unidata():
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
 
-    impl_test_assumptions_builder_suitable_available_operations(task, train_input)
+    impl_test_assumptions_builder_suitable_available_operations(
+        task, train_input)
 
 
 def impl_test_assumptions_builder_suitable_available_operations(task, train_input, data_type=None):
@@ -128,7 +138,8 @@ def impl_test_assumptions_builder_suitable_available_operations(task, train_inpu
     are taken into account by AssumptionsBuilder. This is implementation part of the test. """
     if not data_type:
         data_type = train_input.data_type
-    available_operations = get_suitable_operations_for_task(task.task_type, data_type)
+    available_operations = get_suitable_operations_for_task(
+        task.task_type, data_type)
     assert available_operations
 
     default_builder = AssumptionsBuilder.get(train_input)

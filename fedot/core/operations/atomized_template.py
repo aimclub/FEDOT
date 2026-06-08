@@ -52,7 +52,8 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
         :return: absolute and relative paths to save nested JSON operation
         """
 
-        relative_path = os.path.join('fitted_operations', 'nested_' + str(self.operation_id))
+        relative_path = os.path.join(
+            'fitted_operations', 'nested_' + str(self.operation_id))
         absolute_path = os.path.join(path, relative_path)
 
         if not os.path.exists(absolute_path):
@@ -63,11 +64,14 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
     def export_operation(self, path: str):
         absolute_path = os.path.join(path, self.atomized_model_json_path)
         check_existing_path(absolute_path)
-        self.pipeline_template.export_pipeline(absolute_path, create_subdir=False)
+        self.pipeline_template.export_pipeline(
+            absolute_path, create_subdir=False)
 
     def import_json(self, operation_object: dict):
-        required_fields = ['operation_id', 'operation_type', 'nodes_from', 'atomized_model_json_path']
-        self._validate_json_operation_template(operation_object, required_fields)
+        required_fields = ['operation_id', 'operation_type',
+                           'nodes_from', 'atomized_model_json_path']
+        self._validate_json_operation_template(
+            operation_object, required_fields)
 
         self.operation_id = operation_object['operation_id']
         self.operation_type = operation_object['operation_type']

@@ -9,7 +9,7 @@ from golem.serializers.serializer import register_serializable
 if TYPE_CHECKING:
     from fedot.core.caching.predictions_cache import PredictionsCache
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
@@ -39,13 +39,16 @@ class Operation:
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
         if not params:
-            params = OperationParameters.from_operation_type(self.operation_type)
+            params = OperationParameters.from_operation_type(
+                self.operation_type)
         if isinstance(params, dict):
-            params = OperationParameters.from_operation_type(self.operation_type, **params)
+            params = OperationParameters.from_operation_type(
+                self.operation_type, **params)
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data')) \
             .correct(params.to_dict())
-        params_for_fit = OperationParameters.from_operation_type(self.operation_type, **params_for_fit)
+        params_for_fit = OperationParameters.from_operation_type(
+            self.operation_type, **params_for_fit)
         try:
             self._eval_strategy = \
                 _eval_strategy_for_task(self.operation_type,
@@ -71,9 +74,11 @@ class Operation:
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        operation_info = self.operations_repo.operation_info_by_id(self.operation_type)
+        operation_info = self.operations_repo.operation_info_by_id(
+            self.operation_type)
         if not operation_info:
-            raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
+            raise ValueError(
+                f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
     def fit(self,
@@ -92,7 +97,8 @@ class Operation:
         Returns:
             tuple: trained operation and prediction on train data
         """
-        self._init(data.task, params=params, n_samples_data=data.features.shape[0])
+        self._init(data.task, params=params,
+                   n_samples_data=data.features.shape[0])
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
@@ -156,7 +162,8 @@ class Operation:
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
+        self._init(data.task, output_mode=output_mode, params=params,
+                   n_samples_data=data.features.shape[0])
 
         prediction = None
         if is_fit_stage:
@@ -174,7 +181,8 @@ class Operation:
                         descriptive_id, output_mode, fold_id, prediction, is_fit=is_fit_stage)
         else:
             if predictions_cache is not None:
-                prediction = predictions_cache.load_node_prediction(descriptive_id, output_mode, fold_id)
+                prediction = predictions_cache.load_node_prediction(
+                    descriptive_id, output_mode, fold_id)
 
             if prediction is None:
                 prediction = self._eval_strategy.predict(
@@ -244,13 +252,17 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
         # Search the supplementary task types, that can be included in pipeline
         # which solves main task
-        globally_compatible_task_types = compatible_task_types(current_task_type)
+        globally_compatible_task_types = compatible_task_types(
+            current_task_type)
         globally_set = set(globally_compatible_task_types)
 
-        comp_types_acceptable_for_operation = sorted(list(set_acceptable_types.intersection(globally_set)))
+        comp_types_acceptable_for_operation = sorted(
+            list(set_acceptable_types.intersection(globally_set)))
         if len(comp_types_acceptable_for_operation) == 0:
-            raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
+            raise ValueError(
+                f'Operation {operation_type} can not be used as a part of {current_task_type}.')
         current_task_type = comp_types_acceptable_for_operation[0]
 
-    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
+    strategy = operations_repo.operation_info_by_id(
+        operation_type).current_strategy(current_task_type)
     return strategy

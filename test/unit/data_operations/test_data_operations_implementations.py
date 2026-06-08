@@ -6,13 +6,13 @@ import pytest
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
+from fedot.core.data.multimodal.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
     ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import ImputationImplementation
+    sklearn_transformations import ImputationImplementation, PCAImplementation, PolyFeaturesImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     CutImplementation, LaggedTransformationImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -129,7 +129,8 @@ def get_multivariate_time_series(mutli_ts=False):
 
 
 def get_nan_inf_data():
-    supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[float]] * 4)})
+    supp_data = SupplementaryData(
+        col_type_ids={'features': np.array([TYPE_TO_ID[float]] * 4)})
     train_input = InputData(
         idx=np.array([0, 1, 2, 3]),
         features=np.array([
@@ -186,7 +187,8 @@ def get_mixed_data(task=None, extended=False):
                              [7, '1', 1],
                              [8, '1', 1],
                              [9, '0', 0]], dtype=object)
-        feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
+        feature_type_ids = np.array(
+            [TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
         target_type_ids = np.array([TYPE_TO_ID[int]])
         supp_data = SupplementaryData(col_type_ids={'features': feature_type_ids,
                                                     'target': target_type_ids})
@@ -208,7 +210,8 @@ def get_nan_binary_data(task=None):
     Binary int columns must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
-    feature_type_ids = np.array([TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
+    feature_type_ids = np.array(
+        [TYPE_TO_ID[int], TYPE_TO_ID[str], TYPE_TO_ID[int]])
     supp_data = SupplementaryData(col_type_ids={'features': feature_type_ids})
     features = np.array([[1, '0', 0],
                          [np.nan, np.nan, np.nan],
@@ -236,7 +239,8 @@ def get_unbalanced_dataset(size=10, disbalance=0.4, target_dim=None):
     minor_size = round(size * disbalance)
     major_size = size - minor_size
 
-    features = np.array([[np.random.rand(), 'minor']] * minor_size + [[np.random.rand(), 'major']] * major_size)
+    features = np.array([[np.random.rand(), 'minor']] *
+                        minor_size + [[np.random.rand(), 'major']] * major_size)
     target = np.array([0] * minor_size + [1] * major_size)
 
     if target_dim == 2:
@@ -263,7 +267,8 @@ def data_with_binary_int_features_and_equal_categories():
     must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
-    supp_data = SupplementaryData(col_type_ids={'features': np.array([TYPE_TO_ID[int], TYPE_TO_ID[int]])})
+    supp_data = SupplementaryData(
+        col_type_ids={'features': np.array([TYPE_TO_ID[int], TYPE_TO_ID[int]])})
     task = Task(TaskTypesEnum.classification)
     features = np.array([[1, 10],
                          [np.nan, np.nan],
@@ -346,13 +351,15 @@ def test_ts_forecasting_cut_data_operation():
     operation_cut = CutImplementation(params=params)
 
     transformed_input = operation_cut.transform_for_fit(train_input)
-    assert train_input.idx.shape[0] == 2 * transformed_input.idx.shape[0] - horizon
+    assert train_input.idx.shape[0] == 2 * \
+        transformed_input.idx.shape[0] - horizon
 
 
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+    model_names = OperationTypesRepository(
+    ).operations_with_tag(tags=['smoothing'])
 
     for smoothing_operation in model_names:
         node_smoothing = PipelineNode(smoothing_operation)
@@ -388,7 +395,8 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
-    model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names = OperationTypesRepository().suitable_operation(
+        task_type=TaskTypesEnum.regression)
 
     for model_name in model_names:
         node_data_operation = PipelineNode(model_name)
@@ -530,7 +538,8 @@ def test_lagged_with_multivariate_time_series():
     correct_predict_output = np.array([[8, 9, 18, 19]])
 
     input_data = get_multivariate_time_series()
-    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2))
+    lagged = LaggedTransformationImplementation(
+        OperationParameters(window_size=2))
 
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
@@ -566,7 +575,8 @@ def test_lagged_with_multi_ts_type():
                                    [16., 17.]])
     correct_predict_output = np.array([[8, 9]])
     input_data = get_multivariate_time_series(mutli_ts=True)
-    lagged = LaggedTransformationImplementation(OperationParameters(window_size=2))
+    lagged = LaggedTransformationImplementation(
+        OperationParameters(window_size=2))
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
 
@@ -612,7 +622,8 @@ def test_poly_features_on_big_datasets():
      (1.5, 1, (12, 2)), (1.5, 2, (12, 2))]
 )
 def test_correctness_resample_operation_with_expand_minority(balance_ratio, target_dim, expected):
-    params = {'balance': 'expand_minority', 'replace': False, 'balance_ratio': balance_ratio}
+    params = {'balance': 'expand_minority',
+              'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(OperationParameters(**params))
 
     data = get_unbalanced_dataset(target_dim=target_dim)
@@ -627,7 +638,8 @@ def test_correctness_resample_operation_with_expand_minority(balance_ratio, targ
      (1.5, 1, (8, 2)), (1.5, 2, (8, 2))]
 )
 def test_correctness_resample_operation_with_reduce_majority(balance_ratio, target_dim, expected):
-    params = {'balance': 'reduce_majority', 'replace': False, 'balance_ratio': balance_ratio}
+    params = {'balance': 'reduce_majority',
+              'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(OperationParameters(**params))
 
     data = get_unbalanced_dataset(target_dim=target_dim)
@@ -650,7 +662,8 @@ def test_correctness_resample_operation_with_dynamic_replace_param(strategy, bal
     In case of expanding strategy it causes difficulties and needed to change replace param to True.
     It is required to avoid error in sklearn method, which cannot reuse data if replace is False.
     """
-    params = {'balance': strategy, 'replace': False, 'balance_ratio': balance_ratio}
+    params = {'balance': strategy, 'replace': False,
+              'balance_ratio': balance_ratio}
 
     resample = ResampleImplementation(OperationParameters(**params))
 
@@ -658,3 +671,58 @@ def test_correctness_resample_operation_with_dynamic_replace_param(strategy, bal
     resample.transform_for_fit(data)
 
     assert resample.replace == expected
+
+
+def test_pca_transform_initializes_feature_types_when_absent():
+    input_data = InputData(
+        idx=np.arange(0, 8),
+        features=np.array([
+            [0.1, 1.0, 2.0],
+            [0.2, 0.9, 2.1],
+            [0.3, 1.2, 1.9],
+            [0.4, 1.1, 2.2],
+            [0.5, 0.8, 2.3],
+            [0.6, 1.3, 2.4],
+            [0.7, 1.4, 2.5],
+            [0.8, 1.5, 2.6],
+        ], dtype=float),
+        target=np.array([[0], [1], [0], [1], [0], [1], [0], [1]]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    operation = PCAImplementation(OperationParameters(n_components=2))
+    operation.fit(input_data)
+    transformed = operation.transform(input_data)
+
+    assert transformed.supplementary_data.col_type_ids is not None
+    assert 'features' in transformed.supplementary_data.col_type_ids
+    assert transformed.supplementary_data.col_type_ids[
+        'features'].shape[0] == transformed.predict.shape[1]
+
+
+def test_poly_features_transform_initializes_feature_types_when_absent():
+    input_data = InputData(
+        idx=np.arange(0, 6),
+        features=np.array([
+            [1.0, 2.0, 3.0],
+            [2.0, 3.0, 4.0],
+            [3.0, 4.0, 5.0],
+            [4.0, 5.0, 6.0],
+            [5.0, 6.0, 7.0],
+            [6.0, 7.0, 8.0],
+        ], dtype=float),
+        target=np.array([[0], [1], [0], [1], [0], [1]]),
+        task=Task(TaskTypesEnum.classification),
+        data_type=DataTypesEnum.table,
+    )
+
+    operation = PolyFeaturesImplementation(
+        OperationParameters(degree=2, interaction_only=False))
+    operation.fit(input_data)
+    transformed = operation.transform(input_data)
+
+    assert transformed.supplementary_data.col_type_ids is not None
+    assert 'features' in transformed.supplementary_data.col_type_ids
+    assert transformed.supplementary_data.col_type_ids[
+        'features'].shape[0] == transformed.predict.shape[1]

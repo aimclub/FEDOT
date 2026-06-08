@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
@@ -86,11 +86,13 @@ class FedotClassificationStrategy(EvaluationStrategy):
         elif self.output_mode in ['probs', 'full_probs', 'default']:
             prediction = trained_operation.predict_proba(predict_data)
             if n_classes < 2:
-                raise ValueError('Data set contain only 1 target class. Please reformat your data.')
+                raise ValueError(
+                    'Data set contain only 1 target class. Please reformat your data.')
             elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:
                 prediction = prediction[:, 1]
         else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+            raise ValueError(
+                f'Output model {self.output_mode} is not supported')
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

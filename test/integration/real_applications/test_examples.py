@@ -22,7 +22,8 @@ from fedot.core.utils import fedot_project_root
 
 
 def test_multiclass_example():
-    file_path_train = fedot_project_root().joinpath('test/data/multiclass_classification.csv')
+    file_path_train = fedot_project_root().joinpath(
+        'test/data/multiclass_classification.csv')
 
     pipeline = get_model(file_path_train, cur_lead_time=timedelta(seconds=5))
     assert pipeline is not None
@@ -54,7 +55,8 @@ def test_exogenous_ts_example():
 def test_nemo_multiple_points_example():
     project_root_path = fedot_project_root()
     path = project_root_path.joinpath('test/data/ssh_points_grid_simple.csv')
-    exog_path = project_root_path.joinpath('test/data/ssh_nemo_points_grid_simple.csv')
+    exog_path = project_root_path.joinpath(
+        'test/data/ssh_nemo_points_grid_simple.csv')
     run_multiple_example(path_to_file=path,
                          path_to_exog_file=exog_path,
                          out_path=None,
@@ -87,7 +89,8 @@ def test_api_classification_example():
 
 def test_api_ts_forecasting_example():
     for _ in range(10):
-        forecast = run_ts_forecasting_example(dataset='salaries', timeout=2, with_tuning=False)
+        forecast = run_ts_forecasting_example(
+            dataset='salaries', timeout=2, with_tuning=False)
         assert forecast is not None
 
 
@@ -102,7 +105,8 @@ def test_api_explain_example():
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', with_tuning=False, timeout=2)
+    result = run_multi_modal_example(
+        file_path='examples/data/multimodal_wine.csv', with_tuning=False, timeout=2)
     assert result > 0.5
 
 

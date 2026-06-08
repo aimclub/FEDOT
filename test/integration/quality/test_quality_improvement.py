@@ -12,8 +12,10 @@ warnings.filterwarnings("ignore")
 
 def test_classification_quality_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath(
+        'examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath(
+        'examples/real_cases/data/scoring/scoring_test.csv')
 
     seed = 50
     problem = 'classification'
@@ -29,7 +31,8 @@ def test_classification_quality_improvement():
 
     expected_baseline_quality = 0.750
     baseline_model = Fedot(**common_params)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='bernb')
+    baseline_model.fit(features=train_data_path,
+                       target='target', predefined_model='bernb')
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
 
@@ -45,8 +48,10 @@ def test_classification_quality_improvement():
 
 def test_multiobjective_improvement():
     # input data initialization
-    train_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_train.csv')
-    test_data_path = fedot_project_root().joinpath('examples/real_cases/data/scoring/scoring_test.csv')
+    train_data_path = fedot_project_root().joinpath(
+        'examples/real_cases/data/scoring/scoring_train.csv')
+    test_data_path = fedot_project_root().joinpath(
+        'examples/real_cases/data/scoring/scoring_test.csv')
     problem = 'classification'
     seed = 50
 
@@ -68,7 +73,8 @@ def test_multiobjective_improvement():
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
 
-    quality_1_improved, quality_2_improved = check_improvement(auto_model.history)
+    quality_1_improved, quality_2_improved = check_improvement(
+        auto_model.history)
 
     assert auto_metrics[quality_metric_1] > 0.75
     assert auto_metrics[quality_metric_2] > 0.75

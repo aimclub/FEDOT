@@ -1,15 +1,20 @@
-import traceback
 from typing import List, Optional, Union
 
 from golem.core.log import default_log
+from pymonad.either import Left, Right
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_handler_rules import (
+    build_assumption_fit_error,
+    decide_preset,
+    resolve_initial_assumption,
+)
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
 from fedot.core.caching.operations_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.utilities.memory import MemoryAnalytics
 
@@ -41,14 +46,13 @@ class AssumptionsHandler:
             list of initial assumption pipelines
         """
 
-        if initial_assumption is None:
-            assumptions_builder = AssumptionsBuilder \
-                .get(self.data) \
-                .from_operations(available_operations)
-            initial_assumption = assumptions_builder.build(use_input_preprocessing=use_input_preprocessing)
-        elif isinstance(initial_assumption, Pipeline):
-            initial_assumption = [initial_assumption]
-        return initial_assumption
+        return resolve_initial_assumption(
+            initial_assumption,
+            builder=lambda: AssumptionsBuilder
+            .get(self.data)
+            .from_operations(available_operations)
+            .build(use_input_preprocessing=use_input_preprocessing),
+        )
 
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
@@ -63,6 +67,23 @@ class AssumptionsHandler:
         :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
         :param eval_n_jobs: number of jobs to fit the initial pipeline
         """
+        fit_result = self.try_fit_assumption(
+            pipeline=pipeline,
+            operations_cache=operations_cache,
+            preprocessing_cache=preprocessing_cache,
+            eval_n_jobs=eval_n_jobs,
+        )
+        if fit_result.is_left():
+            fit_error = fit_result.monoid[0] if getattr(
+                fit_result, 'monoid', None) else fit_result.value
+            self._raise_evaluating_exception(fit_error)
+        return fit_result.value
+
+    def try_fit_assumption(self,
+                           pipeline: Pipeline,
+                           operations_cache: Optional[OperationsCache] = None,
+                           preprocessing_cache: Optional[PreprocessingCache] = None,
+                           eval_n_jobs: int = -1):
         try:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
@@ -78,18 +99,20 @@ class AssumptionsHandler:
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
 
-            MemoryAnalytics.log(self.log, additional_info='fitting of the initial pipeline')
+            MemoryAnalytics.log(
+                self.log, additional_info='fitting of the initial pipeline')
+            return Right(pipeline)
 
         except Exception as ex:
-            self._raise_evaluating_exception(ex)
-        return pipeline
+            fit_error = build_assumption_fit_error(ex)
+            self.log.exception(
+                f'Initial pipeline fit was failed due to: {fit_error.cause}.')
+            return Left(fit_error)
 
-    def _raise_evaluating_exception(self, ex: Exception):
-        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
-        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
-        self.log.info(fit_failed_info)
-        print(traceback.format_exc())
-        raise ValueError(advice_info)
+    def _raise_evaluating_exception(self, fit_error):
+        message = getattr(fit_error, 'message', str(fit_error))
+        original_error = getattr(fit_error, 'exception', None)
+        raise ValueError(message) from original_error
 
     def propose_preset(self, preset: Union[str, None], timer: ApiTime, n_jobs: int) -> str:
         """
@@ -100,7 +123,13 @@ class AssumptionsHandler:
         :param n_jobs: n_jobs parameter
 
         """
-        if not preset or preset == 'auto':
-            preset = change_preset_based_on_initial_fit(timer, n_jobs)
-            self.log.message(f"Preset was changed to {preset} due to fit time estimation for initial model.")
-        return preset
+        decision = decide_preset(
+            preset=preset,
+            timer=timer,
+            n_jobs=n_jobs,
+            chooser=change_preset_based_on_initial_fit,
+        )
+        if decision.was_changed:
+            self.log.message(
+                f"Preset was changed to {decision.preset} due to fit time estimation for initial model.")
+        return decision.preset

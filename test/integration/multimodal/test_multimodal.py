@@ -1,7 +1,7 @@
 import pytest
 
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -31,7 +31,8 @@ def generate_multi_modal_pipeline(data: MultiModalData):
     node_text_clean = PipelineNode('text_clean', nodes_from=[ds_text])
     text_node = PipelineNode('tfidf', nodes_from=[node_text_clean])
 
-    pipeline = Pipeline(PipelineNode('logit', nodes_from=[numeric_node, image_node, text_node]))
+    pipeline = Pipeline(PipelineNode('logit', nodes_from=[
+                        numeric_node, image_node, text_node]))
 
     return pipeline
 

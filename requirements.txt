@@ -20,6 +20,7 @@ networkx>=2.4, !=2.7.*, !=2.8.1, !=2.8.2, !=2.8.3
 scikit-learn>=1.0.0, <1.7.0
 sktime==0.16.1; python_version < '3.10'
 sktime>=0.16.1; python_version >= '3.10'
+sentence-transformers==3.0.1
 
 # Analysis and optimizations
 hyperopt==0.2.7
@@ -32,6 +33,8 @@ pyvis==0.2.1
 seaborn>=0.9.0
 
 # Misc
+# hyperopt imports pkg_resources removed in setuptools>=81
+setuptools<81
 func_timeout==4.3.5
 joblib>=0.17.0
 requests>=2.0
@@ -39,7 +42,13 @@ typing>=3.7.0
 psutil>=5.9.2
 fsspec>=2024; python_version > '3.8'
 fsspec>=2024,<=2025.3.0; python_version <= '3.8'
+# PyPI release; git main requires Python 3.12+ (PEP 695 in monoid.py).
+pymonad==2.4.0
 
 # Tests
 pytest>=6.2.0
 testfixtures>=6.18.0
+
+# cupy-cuda12x==13.5.1
+# cudf-cu12==25.8.0
+# sentence-transformers==3.0.1

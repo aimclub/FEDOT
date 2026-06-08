@@ -1,0 +1,56 @@
+@startuml chunked_ensemble_composition_sequence
+title Chunked ensemble: external holdout composition and finalization
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+participant "Fedot.fit" as Fit
+participant "DataSourceSplitter" as Splitter
+participant "SamplingStageExecutor" as Sampling
+participant "SamplingZooProvider" as Provider
+participant "ApiComposer" as Composer
+participant "GPComposer" as GP
+participant "ComposerDataSourceContext\nexternal_holdout" as Holdout
+participant "PipelineEnsemble" as Ensemble
+participant "SamplingRoutingContext" as Routing
+
+Fit -> Splitter: build holdout split(train_data, validation_size)
+Splitter --> Fit: ensemble_train_data + common_validation_data
+
+Fit -> Sampling: execute(ensemble_train_data)
+Sampling -> Provider: sample(features, target, strategy_kind='chunking')
+Provider -> Provider: SamplingStrategyFactory.fit_transform(return_strategy=True)
+Provider --> Sampling: partitions + fitted strategy/predictor
+Sampling -> Routing: from_predictor(predictor, partition_names)
+Sampling --> Fit: InputDataList chunks + routing_context
+
+Fit -> Composer: obtain_ensemble_model(chunks, validation_data, routing_context)
+
+loop each chunk
+  Composer -> Holdout: build_external_holdout_context(chunk, common_validation_data)
+  Composer -> GP: compose_pipeline(chunk, data_source_context=Holdout)
+  GP -> Holdout: evaluate candidates on (chunk_train, common_validation)
+  GP --> Composer: selected pipeline + history
+  Composer -> Composer: final fit selected pipeline on chunk if needed
+  Composer -> Composer: predict common_validation_data
+  Composer -> Composer: calculate validation metrics and store pipeline_info
+end
+
+Composer -> Ensemble: new PipelineEnsemble(pipelines, pipeline_infos, routing_context)
+Composer --> Fit: PipelineEnsemble
+
+Fit -> Ensemble: finalize(common_validation_data)
+Ensemble -> Ensemble: drop unfitted pipelines
+Ensemble -> Ensemble: evaluate all non-empty pipeline subsets
+
+alt gated_weighted
+  Ensemble -> Routing: transform_features(validation_data)
+  Ensemble -> Routing: base_weights(validation_data, active_partition_names)
+  Ensemble -> Ensemble: train ConstrainedGatingRouter for candidate subset
+end
+
+Ensemble -> Ensemble: keep best subset by validation metric
+Ensemble --> Fit: finalized ensemble
+
+@enduml

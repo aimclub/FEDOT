@@ -24,7 +24,8 @@ LICENSE = 'BSD 3-Clause'
 
 def _readlines(*names: str, **kwargs) -> List[str]:
     encoding = kwargs.get('encoding', 'utf-8')
-    lines = Path(__file__).parent.joinpath(*names).read_text(encoding=encoding).splitlines()
+    lines = Path(__file__).parent.joinpath(
+        *names).read_text(encoding=encoding).splitlines()
     return list(map(str.strip, lines))
 
 
@@ -53,7 +54,7 @@ setuptools.setup(
     install_requires=_get_requirements('requirements.txt'),
     extras_require={
         key: _get_requirements(Path('other_requirements', f'{key}.txt'))
-        for key in ('docs', 'examples', 'extra', 'profilers')
+        for key in ('docs', 'examples', 'extra', 'profilers', 'sampling_zoo')
     },
     classifiers=[
         'License :: OSI Approved :: BSD License',

@@ -6,7 +6,8 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 @pytest.mark.parametrize('pipeline', (
-    PipelineBuilder().add_node('lagged', params={'window_size': 200}).add_node('cgru').build(),
+    PipelineBuilder().add_node('lagged', params={
+        'window_size': 200}).add_node('cgru').build(),
     cgru_pipeline(),
 ), ids=str)
 def test_cgru_forecasting(pipeline):

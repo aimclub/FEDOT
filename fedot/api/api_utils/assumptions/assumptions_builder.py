@@ -1,13 +1,18 @@
 from abc import abstractmethod
-from typing import List, Union, Optional, Set, Tuple
+from typing import List, Union, Optional, Tuple
 
 from golem.core.log import default_log
 
+from fedot.api.api_utils.assumptions.assumption_rules import (
+    build_operations_filter_decision,
+    default_repository_name_for_data,
+    normalize_assumption_data_type,
+)
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -22,23 +27,21 @@ class AssumptionsBuilder:
         self.logger = default_log(prefix='FEDOT logger')
         self.data = data
         self.repo = OperationTypesRepository(repository_name)
-        self.assumptions_generator = TaskAssumptions.for_task(self.data.task, self.repo)
+        self.assumptions_generator = TaskAssumptions.for_task(
+            self.data.task, self.repo)
 
     @staticmethod
     def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
         if not repository_name:
-            if data.data_type == DataTypesEnum.multi_ts:
-                # It is needed to use data operations also for multi_ts data
-                repository_name = 'all'
-            else:
-                repository_name = 'model'
+            repository_name = default_repository_name_for_data(data)
 
         if isinstance(data, InputData):
             cls = UniModalAssumptionsBuilder
         elif isinstance(data, MultiModalData):
             cls = MultiModalAssumptionsBuilder
         else:
-            raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
+            raise NotImplementedError(
+                f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
     @abstractmethod
@@ -73,14 +76,22 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
         if available_operations:
-            operations_for_task_and_data = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
-            operations_to_choose_from = set(operations_for_task_and_data).intersection(available_operations)
-            _check_operations_to_choose_from(self.data, self.data_type, operations_to_choose_from)
-            if operations_to_choose_from:
-                self.ops_filter = WhitelistOperationsFilter(available_operations, operations_to_choose_from)
+            operations_for_task_and_data = self.repo.suitable_operation(
+                self.data.task.task_type, self.data_type)
+            filter_decision = build_operations_filter_decision(
+                data=self.data,
+                data_type=self.data_type,
+                available_operations=available_operations,
+                suitable_operations=operations_for_task_and_data,
+            )
+            if filter_decision.allow_filtering:
+                self.ops_filter = WhitelistOperationsFilter(
+                    filter_decision.whitelist,
+                    filter_decision.sampling_choices,
+                )
             else:
                 # Don't filter pipelines as we're not able to create
-                # fallback pipelines without operations_to_choose_from.
+                # fallback pipelines without sampling choices.
                 # So, leave default dumb ops_filter.
                 self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
@@ -105,15 +116,18 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         super().__init__(data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, _) in zip(self.data.data_type, self.data.items()):
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
-        self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(_subbuilders)
+            _subbuilders.append(
+                (data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
+        self._subbuilders: Tuple[Tuple[str, UniModalAssumptionsBuilder]] = tuple(
+            _subbuilders)
 
     def from_operations(self, available_operations: Optional[List[str]] = None):
         for _, subbuilder in self._subbuilders:
-            # Performs specific filter on image data operations
-            if subbuilder.data_type is DataTypesEnum.image:
-                available_img_operations = ['data_source_img', 'cnn']
-                subbuilder.from_operations(available_img_operations)
+            # TS tensor modalities (incl. legacy ``image``) use time-series data source + conv models
+            if normalize_assumption_data_type(subbuilder.data_type) is DataTypesEnum.ts:
+                available_ts_tensor_operations = [
+                    'data_source_time_series', 'cnn']
+                subbuilder.from_operations(available_ts_tensor_operations)
         return self
 
     def to_builders(self, initial_node: Optional[PipelineNode] = None,
@@ -124,35 +138,24 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         for data_source_name, subbuilder in self._subbuilders:
             first_node = PipelineBuilder(use_input_preprocessing=use_input_preprocessing) \
                 .add_node(data_source_name).add_node(initial_node_operation).to_nodes()[0]
-            data_pipeline_alternatives = subbuilder.build(first_node, use_input_preprocessing=use_input_preprocessing)
+            data_pipeline_alternatives = subbuilder.build(
+                first_node, use_input_preprocessing=use_input_preprocessing)
             subpipelines.append(data_pipeline_alternatives)
 
         # TODO: fix this workaround during the improvement of multi-modality
         for i, subpipeline in enumerate(subpipelines):
             if (len(subpipeline) == 1 and len(subpipeline[0].nodes) == 1 and
-                    str(subpipeline[0].nodes[0]) in ['cnn', 'data_source_img']):
-                subpipelines[i] = [Pipeline(PipelineNode('cnn', nodes_from=[PipelineNode('data_source_img')]))]
+                    str(subpipeline[0].nodes[0]) in ['cnn', 'data_source_time_series', 'data_source_img']):
+                subpipelines[i] = [Pipeline(PipelineNode(
+                    'cnn', nodes_from=[PipelineNode('data_source_time_series')]))]
 
         # Then zip these alternatives together and add final node to get ensembles.
         ensemble_builders: List[PipelineBuilder] = []
         for pre_ensemble in zip(*subpipelines):
             ensemble_operation = self.assumptions_generator.ensemble_operation()
-            ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
+            ensemble_nodes = map(
+                lambda pipeline: pipeline.root_node, pre_ensemble)
             ensemble_builder = PipelineBuilder(*ensemble_nodes, use_input_preprocessing=use_input_preprocessing) \
                 .join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders
-
-
-def _check_operations_to_choose_from(data, data_type: DataTypesEnum, operations_to_choose_from: Set[str]):
-    """Since it is sometimes impossible to form a valid pipeline without some operations,
-     they are added to the set of operations for current task and data."""
-    if isinstance(data, MultiModalData):
-        if data_type is DataTypesEnum.image and 'data_source_img' not in operations_to_choose_from:
-            operations_to_choose_from.add('data_source_img')
-        if data_type is DataTypesEnum.text and 'data_source_text' not in operations_to_choose_from:
-            operations_to_choose_from.add('data_source_text')
-        if data_type is DataTypesEnum.table and 'data_source_table' not in operations_to_choose_from:
-            operations_to_choose_from.add('data_source_table')
-    if data_type is DataTypesEnum.image and 'cnn' not in operations_to_choose_from:
-        operations_to_choose_from.add('cnn')

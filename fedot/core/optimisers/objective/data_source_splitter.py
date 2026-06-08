@@ -4,13 +4,14 @@ from typing import Optional, Union
 from golem.core.log import default_log
 
 from fedot.core.constants import default_data_split_ratio_by_task
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup, _are_stratification_allowed
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup, _are_stratification_allowed
+from fedot.core.data.multimodal.multi_modal import MultiModalData
+from fedot.core.data.bridges.tensor_to_input import tensordata_to_input_data
 from fedot.core.optimisers.objective.data_objective_eval import DataSource
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
-from fedot.core.data.cv_folds import cv_generator
+from fedot.core.data.split.cv_folds import cv_generator
 
 
 class DataSourceSplitter:
@@ -47,9 +48,14 @@ class DataSourceSplitter:
         self.random_seed = random_seed
         self.log = default_log(self)
 
+    def build_tensordata(self, tensor_data) -> DataSource:
+        input_data = tensordata_to_input_data(tensor_data)
+        return self.build(input_data)
+
     def build(self, data: Union[InputData, MultiModalData]) -> DataSource:
         # define split_ratio
-        self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[data.task.task_type]
+        self.split_ratio = self.split_ratio or default_data_split_ratio_by_task[
+            data.task.task_type]
 
         # Check cv_folds
         if self.cv_folds is not None:
@@ -69,12 +75,14 @@ class DataSourceSplitter:
 
         # Check split_ratio
         if self.cv_folds is None and not (0 < self.split_ratio < 1):
-            raise ValueError(f'split_ratio is {self.split_ratio} but should be between 0 and 1')
+            raise ValueError(
+                f'split_ratio is {self.split_ratio} but should be between 0 and 1')
 
         if self.stratify:
             # check that stratification can be done
             # for cross validation split ratio is defined as validation_size / all_data_size
-            split_ratio = self.split_ratio if self.cv_folds is None else (1 - 1 / (self.cv_folds + 1))
+            split_ratio = self.split_ratio if self.cv_folds is None else (
+                1 - 1 / (self.cv_folds + 1))
             self.stratify = _are_stratification_allowed(data, split_ratio)
             if not self.stratify:
                 self.log.info("Stratificated splitting of data is disabled.")
@@ -105,6 +113,13 @@ class DataSourceSplitter:
     def _data_producer(train_data: InputData, test_data: InputData):
         yield train_data, test_data
 
+    @staticmethod
+    def build_holdout_producer_from_split(train_data: InputData, test_data: InputData) -> DataSource:
+        if RemoteEvaluator().is_enabled:
+            init_data_for_remote_execution(train_data)
+
+        return partial(DataSourceSplitter._data_producer, train_data, test_data)
+
     def _build_holdout_producer(self, data: InputData) -> DataSource:
         """
         Build trivial data producer for hold-out validation
@@ -118,10 +133,7 @@ class DataSourceSplitter:
                                                       shuffle=self.shuffle,
                                                       validation_blocks=self.validation_blocks)
 
-        if RemoteEvaluator().is_enabled:
-            init_data_for_remote_execution(train_data)
-
-        return partial(self._data_producer, train_data, test_data)
+        return self.build_holdout_producer_from_split(train_data, test_data)
 
     def _propose_cv_folds_and_validation_blocks(self, data, expected_window_size=20):
         data_shape = data.target.shape[0]
@@ -132,7 +144,8 @@ class DataSourceSplitter:
         if self.cv_folds is not None:
             max_test_size = data_shape / (self.cv_folds + 1)
             if forecast_length > max_test_size:
-                proposed_cv_folds_count = int((data_shape - forecast_length) // forecast_length)
+                proposed_cv_folds_count = int(
+                    (data_shape - forecast_length) // forecast_length)
                 if proposed_cv_folds_count >= 2:
                     self.log.info((f"Cross validation  with {self.cv_folds} folds cannot be provided"
                                    f" with forecast length {data.task.task_params.forecast_length}"
@@ -156,4 +169,5 @@ class DataSourceSplitter:
             test_share = 1 - self.split_ratio
         else:
             test_share = 1 / (self.cv_folds + 1)
-        self.validation_blocks = int(data_shape * test_share // forecast_length)
+        self.validation_blocks = int(
+            data_shape * test_share // forecast_length)

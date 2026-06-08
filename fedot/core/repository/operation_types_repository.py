@@ -5,14 +5,21 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 
-import numpy as np
 from golem.core.log import default_log
-from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
-from fedot.core.constants import AUTO_PRESET_NAME, BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import import_enums_from_str, import_strategy_from_str, read_field
+from fedot.core.repository.operation_query import (
+    OperationQuery,
+    RepositoryKind,
+    contains_preset,
+    contains_tags,
+    filter_operation_infos,
+    normalize_preset_name,
+    parse_repository_kind,
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.extensions.operation_rules import get_extension_operation_names, should_include_extensions
 
 EXTRA_TS_INSTALLED = True
 try:
@@ -24,7 +31,7 @@ except ModuleNotFoundError:
 if TYPE_CHECKING:
     from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
-AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
+AVAILABLE_REPO_NAMES = [kind.value for kind in RepositoryKind]
 
 
 @dataclass
@@ -33,7 +40,8 @@ class OperationMetaInfo:
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
     task_type: List[TaskTypesEnum]
-    supported_strategies: Union['EvaluationStrategy', Dict[str, 'EvaluationStrategy']]
+    supported_strategies: Union['EvaluationStrategy',
+                                Dict[str, 'EvaluationStrategy']]
     allowed_positions: List[str]
     tags: Optional[List[str]] = None
     presets: Optional[List[str]] = None
@@ -71,7 +79,8 @@ class OperationTypesRepository:
 
     __initialized_repositories__ = {}
     # The later the tag, the higher its priority in case of intersection
-    DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'custom_model', 'tree', 'boosting', 'ts_model', 'deep']
+    DEFAULT_MODEL_TAGS = ['linear', 'non_linear',
+                          'custom_model', 'tree', 'boosting', 'ts_model', 'deep']
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
         'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced',
@@ -89,7 +98,8 @@ class OperationTypesRepository:
     def __init__(self, operation_type: str = 'model'):
         self.log = default_log(self)
 
-        self._tags_excluded_by_default = ['non-default', 'expensive', 'deprecated']
+        self._tags_excluded_by_default = [
+            'non-default', 'expensive', 'deprecated']
         OperationTypesRepository.init_default_repositories()
 
         self.operation_type = operation_type
@@ -98,9 +108,12 @@ class OperationTypesRepository:
         self.default_tags = []
         if operation_type == 'all':
             for op_type in OperationTypesRepository.__repository_dict__.keys():
-                self.repository_name.append(OperationTypesRepository.__repository_dict__[op_type]['file'])
-                operations = OperationTypesRepository.__repository_dict__[op_type]['initialized_repo']
-                self.default_tags += OperationTypesRepository.__repository_dict__[op_type]['default_tags']
+                self.repository_name.append(
+                    OperationTypesRepository.__repository_dict__[op_type]['file'])
+                operations = OperationTypesRepository.__repository_dict__[
+                    op_type]['initialized_repo']
+                self.default_tags += OperationTypesRepository.__repository_dict__[
+                    op_type]['default_tags']
 
                 if operations is not None:
                     for operation in operations:
@@ -108,9 +121,12 @@ class OperationTypesRepository:
                             self._repo.append(operation)
 
         else:
-            self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
-            self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
-            self.default_tags = OperationTypesRepository.__repository_dict__[operation_type]['default_tags']
+            self.repository_name = OperationTypesRepository.__repository_dict__[
+                operation_type]['file']
+            self._repo = OperationTypesRepository.__repository_dict__[
+                operation_type]['initialized_repo']
+            self.default_tags = OperationTypesRepository.__repository_dict__[
+                operation_type]['default_tags']
 
     @classmethod
     def get_available_repositories(cls):
@@ -133,19 +149,23 @@ class OperationTypesRepository:
         cls.assign_repo('model', default_model_repo_file)
 
         # default data_operation repo
-        default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
+        default_data_operation_repo_file = cls.__repository_dict__[
+            'data_operation']['file']
         cls.assign_repo('data_operation', default_data_operation_repo_file)
 
     @classmethod
     def assign_repo(cls, operation_type: str, repo_file: str):
         if operation_type not in cls.__repository_dict__:
-            raise Warning(f'The {operation_type} is not supported. The model type will be set')
+            raise Warning(
+                f'The {operation_type} is not supported. The model type will be set')
 
         repo_path = create_repository_path(repo_file)
         if repo_file not in cls.__initialized_repositories__.keys():
-            cls.__initialized_repositories__[repo_file] = cls._initialise_repo(repo_path)
+            cls.__initialized_repositories__[
+                repo_file] = cls._initialise_repo(repo_path)
         cls.__repository_dict__[operation_type]['file'] = repo_file
-        cls.__repository_dict__[operation_type]['initialized_repo'] = cls.__initialized_repositories__[repo_file]
+        cls.__repository_dict__[
+            operation_type]['initialized_repo'] = cls.__initialized_repositories__[repo_file]
 
         return OperationTypesRepository(operation_type)
 
@@ -154,8 +174,10 @@ class OperationTypesRepository:
 
     def __exit__(self, type, value, traceback):
         self.repo_path = None
-        OperationTypesRepository.__repository_dict__[self.operation_type]['initialized_repo'] = None
-        default_model_repo_file = OperationTypesRepository.__repository_dict__['model']['file']
+        OperationTypesRepository.__repository_dict__[
+            self.operation_type]['initialized_repo'] = None
+        default_model_repo_file = OperationTypesRepository.__repository_dict__[
+            'model']['file']
         OperationTypesRepository.assign_repo('model', default_model_repo_file)
 
     def __repr__(self):
@@ -188,14 +210,19 @@ class OperationTypesRepository:
             metadata = metadata_json[properties['meta']]
 
             task_types = import_enums_from_str(metadata['tasks'])
-            input_type = import_enums_from_str(properties.get('input_type', metadata.get('input_type')))
-            output_type = import_enums_from_str(properties.get('output_type', metadata.get('output_type')))
+            input_type = import_enums_from_str(properties.get(
+                'input_type', metadata.get('input_type')))
+            output_type = import_enums_from_str(properties.get(
+                'output_type', metadata.get('output_type')))
 
             # Get available strategies for obtained metadata
-            supported_strategies = OperationTypesRepository.get_strategies_by_metadata(metadata)
+            supported_strategies = OperationTypesRepository.get_strategies_by_metadata(
+                metadata)
 
-            accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
-            forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
+            accepted_node_types = read_field(
+                metadata, 'accepted_node_types', ['any'])
+            forbidden_node_types = read_field(
+                metadata, 'forbidden_node_types', [])
 
             # Get tags for meta and for operation
             meta_tags = read_field(metadata, 'tags', [])
@@ -260,7 +287,8 @@ class OperationTypesRepository:
         if len(operations_with_id) > 1:
             raise ValueError('Several operations with same id in repository')
         if len(operations_with_id) == 0:
-            self.log.warning(f'Operation {operation_id} not found in the repository')
+            self.log.warning(
+                f'Operation {operation_id} not found in the repository')
             return None
         return operations_with_id[0]
 
@@ -293,36 +321,31 @@ class OperationTypesRepository:
             preset: return operations from desired preset
         """
 
-        if not forbidden_tags:
-            forbidden_tags = []
+        query = OperationQuery(
+            repository_kind=parse_repository_kind(self.operation_type),
+            task_type=task_type,
+            data_type=data_type,
+            tags=tuple(tags or ()),
+            forbidden_tags=tuple(forbidden_tags or ()),
+            preset=preset,
+            is_full_match=is_full_match,
+            default_excluded_tags=tuple(self._tags_excluded_by_default),
+            extra_ts_installed=EXTRA_TS_INSTALLED,
+        )
+        operations_info = filter_operation_infos(self._repo, query)
+        operation_names = [m.id for m in operations_info]
 
-        if not tags:
-            for excluded_default_tag in self._tags_excluded_by_default:
-                # Forbidden tags by default
-                forbidden_tags.append(excluded_default_tag)
+        if should_include_extensions(query.repository_kind):
+            operation_names.extend(
+                get_extension_operation_names(
+                    task_type=task_type,
+                    data_type=data_type,
+                    tags=tags,
+                    forbidden_tags=forbidden_tags,
+                )
+            )
 
-        no_task = task_type is None
-        operations_info = []
-        for o in self._repo:
-            is_desired_task = task_type in o.task_type or no_task
-            tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-            tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-            is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-            if is_desired_task and tags_good and tags_bad and is_desired_preset:
-                operations_info.append(o)
-
-        if data_type:
-            # ignore text and image data types: there are no operations with these `input_type`
-            ignore_data_type = data_type in [DataTypesEnum.text, DataTypesEnum.image]
-            if data_type == DataTypesEnum.ts:
-                valid_data_types = [DataTypesEnum.ts, DataTypesEnum.table]
-            else:
-                valid_data_types = ensure_wrapped_in_sequence(data_type)
-            if not ignore_data_type:
-                operations_info = [o for o in operations_info if
-                                   np.any([data_type in o.input_types for data_type in valid_data_types])]
-
-        return [m.id for m in operations_info]
+        return sorted(set(operation_names))
 
     @property
     def operations(self):
@@ -360,12 +383,15 @@ def get_visualization_tags_map() -> Dict[str, List[str]]:
     for repo_name in ('model', 'data_operation'):
         repo = OperationTypesRepository(repo_name)
         for operation in repo.operations:
-            tag = repo.get_first_suitable_operation_tag(operation.id, repo.default_tags)
-            operations_map[tag] = (operations_map.get(tag) or []) + [operation.id]
+            tag = repo.get_first_suitable_operation_tag(
+                operation.id, repo.default_tags)
+            operations_map[tag] = (
+                operations_map.get(tag) or []) + [operation.id]
     # Sort tags.
     tags_model = OperationTypesRepository.DEFAULT_MODEL_TAGS
     tags_data = OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
-    operations_map = {tag: operations_map[tag] for tag in tags_model + tags_data if tag in operations_map}
+    operations_map = {tag: operations_map[tag]
+                      for tag in tags_model + tags_data if tag in operations_map}
     return operations_map
 
 
@@ -385,22 +411,14 @@ def _is_operation_contains_tag(candidate_tags: List[str],
         bool: is there a match on the tags
     """
 
-    matches = (tag in operation_tags for tag in candidate_tags)
-    if is_full_match:
-        return all(matches)
-    else:
-        return any(matches)
+    return contains_tags(candidate_tags, operation_tags, is_full_match)
 
 
 def _is_operation_contains_preset(operation_presets: List[str], preset: str) -> bool:
     """Checking whether the operation is suitable for current preset
     """
 
-    if preset is None:
-        # None means that best_quality preset are using so return all operations
-        return True
-
-    return preset in operation_presets
+    return contains_preset(operation_presets, preset)
 
 
 def atomized_model_type():
@@ -434,26 +452,21 @@ def get_operations_for_task(task: Optional[Task], data_type: Optional[DataTypesE
         list:  operation aliases
     """
 
-    # Preset None means that all operations will be returned
-    if preset is not None:
-        if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
-            preset = None
+    normalized_preset = normalize_preset_name(preset)
+    task_type = task.task_type if task else None
 
     if task is not None and task.task_type is TaskTypesEnum.ts_forecasting and not EXTRA_TS_INSTALLED:
-        if not forbidden_tags:
-            forbidden_tags = []
         logging.log(100,
                     "Extra dependencies for time series forecasting are not installed. It can infuence the "
                     "performance. Please install it by 'pip install fedot[extra]'")
-        forbidden_tags.append('ts-extra')
-    task_type = task.task_type if task else None
-    if mode in AVAILABLE_REPO_NAMES:
-        repo = OperationTypesRepository(mode)
-        model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
-                                              preset=preset)
-        return model_types
-    else:
+
+    if mode not in AVAILABLE_REPO_NAMES:
         raise ValueError(f'Such mode "{mode}" is not supported')
+
+    repo = OperationTypesRepository(mode)
+    model_types = repo.suitable_operation(task_type, data_type=data_type, tags=tags, forbidden_tags=forbidden_tags,
+                                          preset=normalized_preset)
+    return model_types
 
 
 def get_operation_type_from_id(operation_id):
@@ -473,7 +486,8 @@ def _operation_name_without_postfix(operation_id):
     # if the operation id has custom postfix
     if postfix_sign in operation_id:
         if operation_id.count(postfix_sign) > 1:
-            raise ValueError(f'Incorrect number of postfixes in {operation_id}')
+            raise ValueError(
+                f'Incorrect number of postfixes in {operation_id}')
         return operation_id.split('/')[0]
     else:
         return operation_id
@@ -485,7 +499,8 @@ def load_repository(repo_path: str) -> dict:
         repository_json = json.load(repository_json_file)
 
     if 'base_repository' in repository_json:
-        base_repository_json_file = create_repository_path(repository_json['base_repository'])
+        base_repository_json_file = create_repository_path(
+            repository_json['base_repository'])
 
         with open(base_repository_json_file) as repository_json_file:
             base_repository_json = json.load(repository_json_file)

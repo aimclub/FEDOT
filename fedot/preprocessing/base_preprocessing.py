@@ -4,8 +4,8 @@ from typing import Dict, Union, TYPE_CHECKING
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData, OutputData
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation
@@ -15,6 +15,10 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 )
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector
+from fedot.preprocessing.preprocessing_rules import (
+    build_preprocessor_merge_plan,
+    iter_preprocessed_inputs,
+)
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from fedot.utilities.custom_errors import AbstractMethodNotImplementError
 
@@ -30,13 +34,15 @@ class BasePreprocessor(ABC):
     def __init__(self):
         # There was performed encoding for string target column or not
         self.target_encoders: Dict[str, LabelEncoder] = {}
-        self.features_encoders: Dict[str, Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
+        self.features_encoders: Dict[str,
+                                     Union[OneHotEncodingImplementation, LabelEncodingImplementation]] = {}
         self.use_label_encoder: bool = False
         self.features_imputers: Dict[str, ImputationImplementation] = {}
         self.ids_relevant_features: Dict[str, np.ndarray] = {}
 
         # Categorical preprocessor for binary categorical features
-        self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
+        self.binary_categorical_processors: Dict[str,
+                                                 BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
         self.main_target_source_name = None
 
@@ -216,8 +222,7 @@ class BasePreprocessor(ABC):
             data: data to be marked
             is_obligatory: was the data obligatorily or optionally preprocessed
         """
-        values = [data] if isinstance(data, InputData) else data.values()
-        for input_data in values:
+        for input_data in iter_preprocessed_inputs(data):
             if is_obligatory:
                 input_data.supplementary_data.obligatorily_preprocessed = True
             else:
@@ -238,23 +243,17 @@ class BasePreprocessor(ABC):
         Returns:
             merged preprocessor
         """
-        # If was used auto preprocessor
-        if use_auto_preprocessing:
-            # Take all obligatory data preprocessing from obtained pipelines
-            new_data_preprocessor = api_preprocessor
+        new_data_preprocessor = api_preprocessor
+        merge_plan = build_preprocessor_merge_plan(
+            use_auto_preprocessing=use_auto_preprocessing,
+            api_features_encoders=api_preprocessor.features_encoders,
+            api_features_imputers=api_preprocessor.features_imputers,
+        )
 
-        # If was used pipelines preprocessors
-        else:
-            # Take all obligatory data preprocessing from API
-            new_data_preprocessor = api_preprocessor
+        if merge_plan.take_pipeline_encoders:
+            new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
 
-            # Update optional preprocessing (take it from obtained pipeline)
-            if not new_data_preprocessor.features_encoders:
-                # Store features encoder from obtained pipeline because in API there are no encoding
-                new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
-
-            if not new_data_preprocessor.features_imputers:
-                # Same with Nan's imputers
-                new_data_preprocessor.features_imputers = pipeline_preprocessor.features_imputers
+        if merge_plan.take_pipeline_imputers:
+            new_data_preprocessor.features_imputers = pipeline_preprocessor.features_imputers
 
         return new_data_preprocessor

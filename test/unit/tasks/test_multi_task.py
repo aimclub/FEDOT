@@ -18,13 +18,16 @@ def test_multitask_pipeline_predict_correctly():
     multitask_pipeline = Pipeline(final_node)
 
     multitask_pipeline.fit(train_multimodal)
-    side_pipeline = multitask_pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
+    side_pipeline = multitask_pipeline.pipeline_for_side_task(
+        task_type=TaskTypesEnum.classification)
 
     # Replace the name of main "data source" in preprocessor
     side_pipeline.preprocessor.main_target_source_name = 'logit'
-    side_predict = np.ravel(side_pipeline.predict(test_multimodal, output_mode='labels').predict)
+    side_predict = np.ravel(side_pipeline.predict(
+        test_multimodal, output_mode='labels').predict)
     main_predict = multitask_pipeline.predict(test_multimodal).predict
 
-    assert np.array_equal(side_predict, np.array(['a_category', 'a_category', 'b_category', 'b_category']))
+    assert np.array_equal(side_predict, np.array(
+        ['a_category', 'a_category', 'b_category', 'b_category']))
     # Two source features and predicted class label as third
     assert multitask_pipeline.root_node.fitted_operation.n_features_in_ == 3

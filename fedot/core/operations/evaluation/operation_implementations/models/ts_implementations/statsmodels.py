@@ -10,7 +10,7 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.input_data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.operation_parameters import OperationParameters
@@ -63,7 +63,8 @@ class GLMImplementation(ModelImplementation):
 
     def fit(self, input_data):
         self.model = GLM(
-            exog=sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2),
+            exog=sm.add_constant(
+                input_data.idx.astype("float64")).reshape(-1, 2),
             endog=input_data.target.astype("float64").reshape(-1, 1),
             family=self.family_link
         ).fit(method="lbfgs")
@@ -78,7 +79,8 @@ class GLMImplementation(ModelImplementation):
             predictions = self.model.predict(np.concatenate([np.array([1]),
                                                              input_data.idx.astype("float64")]).reshape(-1, 2))
         else:
-            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+            predictions = self.model.predict(sm.add_constant(
+                input_data.idx.astype("float64")).reshape(-1, 2))
 
         start_id = old_idx[-1] - forecast_length + 1
         end_id = old_idx[-1]
@@ -99,7 +101,8 @@ class GLMImplementation(ModelImplementation):
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
         target = input_data.target
-        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+        predictions = self.model.predict(sm.add_constant(
+            input_data.idx.astype("float64")).reshape(-1, 2))
         _, predict = ts_to_table(idx=old_idx,
                                  time_series=predictions,
                                  window_size=forecast_length)
@@ -262,7 +265,8 @@ class ExpSmoothingImplementation(ModelImplementation):
                               error=self.params.get('error'),
                               trend=self.params.get('trend'),
                               seasonal=self.params.get('seasonal'),
-                              damped_trend=self.params.get('damped_trend') if self.params.get('trend') else None,
+                              damped_trend=self.params.get(
+                                  'damped_trend') if self.params.get('trend') else None,
                               seasonal_periods=self.seasonal_periods)
 
     def fit(self, input_data):
@@ -270,7 +274,8 @@ class ExpSmoothingImplementation(ModelImplementation):
 
         # check ets params according to statsmodels restrictions
         if self._check_and_correct_params(endog):
-            self.log.info(f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
+            self.log.info(
+                f'Changed the following ETSModel parameters: {self.params.changed_parameters}')
 
         try:
             with warnings.catch_warnings():
@@ -279,9 +284,11 @@ class ExpSmoothingImplementation(ModelImplementation):
                 # if convergence warning is caught, switch to default ETSModel
                 self.model.fit(disp=False)
         except ConvergenceWarning as e:
-            self.params.update(**{'error': 'add', 'trend': None, 'seasonal': None})
+            self.params.update(
+                **{'error': 'add', 'trend': None, 'seasonal': None})
             self._init_model(endog)
-            self.log.info(f'Switched to default ETSModel due to a convergence warning: {e}')
+            self.log.info(
+                f'Switched to default ETSModel due to a convergence warning: {e}')
         finally:
             self.model = self.model.fit(disp=False)
         return self.model
@@ -346,7 +353,8 @@ class ExpSmoothingImplementation(ModelImplementation):
             params_changed = True
 
         if self.params.get('seasonal'):
-            self.seasonal_periods = min(int(0.5 * (len(endog) - 1)), self.seasonal_periods)
+            self.seasonal_periods = min(
+                int(0.5 * (len(endog) - 1)), self.seasonal_periods)
             self.seasonal_periods = max(self.seasonal_periods, 1)
             self.params.update(**{'seasonal_periods': self.seasonal_periods})
             params_changed = True

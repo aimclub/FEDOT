@@ -105,7 +105,8 @@ def classification_isolation_forest_pipeline():
 
     """
     node_first = PipelineNode('scaling')
-    node_second = PipelineNode('isolation_forest_class', nodes_from=[node_first])
+    node_second = PipelineNode(
+        'isolation_forest_class', nodes_from=[node_first])
     node_final = PipelineNode('rf', nodes_from=[node_second])
     return Pipeline(node_final)
 
@@ -130,12 +131,15 @@ def classification_svc_complex_pipeline():
     svc_node_with_custom_params.parameters = dict(kernel='rbf', C=10,
                                                   gamma=1, cache_size=2000,
                                                   probability=True)
-    logit_secondary_node_2 = PipelineNode('logit', nodes_from=[svc_node_with_custom_params])
+    logit_secondary_node_2 = PipelineNode(
+        'logit', nodes_from=[svc_node_with_custom_params])
 
     knn_primary_node = PipelineNode('knn')
-    knn_secondary_node = PipelineNode('knn', nodes_from=[knn_primary_node, logit_secondary_node])
+    knn_secondary_node = PipelineNode(
+        'knn', nodes_from=[knn_primary_node, logit_secondary_node])
 
-    rf_node = PipelineNode('rf', nodes_from=[logit_secondary_node_2, knn_secondary_node])
+    rf_node = PipelineNode(
+        'rf', nodes_from=[logit_secondary_node_2, knn_secondary_node])
 
     preset_pipeline = Pipeline(rf_node)
 
@@ -157,7 +161,8 @@ def classification_three_depth_manual_pipeline():
     xgb_node_primary_second = PipelineNode('rf')
 
     qda_node_third = PipelineNode('qda', nodes_from=[xgb_node_primary_second])
-    knn_node_third = PipelineNode('knn', nodes_from=[logit_node_primary, xgb_node_primary])
+    knn_node_third = PipelineNode(
+        'knn', nodes_from=[logit_node_primary, xgb_node_primary])
 
     knn_root = PipelineNode('knn', nodes_from=[qda_node_third, knn_node_third])
 

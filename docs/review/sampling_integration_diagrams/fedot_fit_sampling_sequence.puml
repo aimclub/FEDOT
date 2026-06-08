@@ -1,0 +1,65 @@
+@startuml fedot_fit_sampling_sequence
+title Fedot.fit: orchestration sampling, validation holdout, composition
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor User
+participant "Fedot" as Fedot
+participant "plan_sampling_stage" as SamplingPlan
+participant "plan_chunked_ensemble" as EnsemblePlan
+participant "prepare_chunked_ensemble_validation" as ValidationPrep
+participant "SamplingStageExecutor" as Executor
+participant "ApiComposer" as Composer
+participant "PipelineEnsemble" as Ensemble
+
+User -> Fedot: fit(features, target, predefined_model?)
+Fedot -> Fedot: define InputData and apply API preprocessing
+Fedot -> SamplingPlan: plan_sampling_stage(initial_assumption, sampling_config_present)
+SamplingPlan --> Fedot: SamplingStagePlan
+
+Fedot -> EnsemblePlan: plan_chunked_ensemble(strategy_kind, task_type, config)
+EnsemblePlan --> Fedot: ChunkedEnsemblePlan
+
+alt chunking sampling with ensemble
+  Fedot -> ValidationPrep: prepare_chunked_ensemble_validation(train_data, plan)
+  ValidationPrep --> Fedot: train_data + common validation_data + class representatives
+end
+
+alt sampling disabled or skipped
+  Fedot -> Fedot: keep original/prepared train_data
+else subset sampling
+  Fedot -> Executor: execute(train_data)
+  Executor -> Executor: low-cost protocol selects effective ratio
+  Executor -> Executor: provider.sample(...) returns selected indices
+  Executor --> Fedot: reduced InputData + metadata + updated timeout
+else chunking sampling
+  Fedot -> Executor: execute(train_data)
+  Executor -> Executor: provider.sample(...) returns partitions
+  Executor -> Executor: convert partitions to InputDataList
+  Executor --> Fedot: InputDataList + metadata + routing_context? + updated timeout
+end
+
+alt chunked ensemble path
+  Fedot -> Composer: obtain_ensemble_model(InputDataList, validation_data, routing_context)
+  Composer --> Fedot: PipelineEnsemble + best_models + histories
+else predefined model path
+  Fedot -> Composer: PredefinedModel(...).fit()
+  Composer --> Fedot: Pipeline
+else regular AutoML path
+  Fedot -> Composer: obtain_model(train_data)
+  Composer --> Fedot: Pipeline + best_models + history
+end
+
+alt final pipeline
+  Fedot -> Fedot: fit final pipeline on train data
+else pipeline ensemble
+  Fedot -> Ensemble: finalize(validation_data)
+  Ensemble --> Fedot: fitted/pruned ensemble
+end
+
+Fedot -> Fedot: merge API and pipeline preprocessors
+Fedot --> User: fitted Pipeline or PipelineEnsemble
+
+@enduml

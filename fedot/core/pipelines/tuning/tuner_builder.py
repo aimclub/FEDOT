@@ -11,7 +11,7 @@ from golem.core.tuning.tuner_interface import BaseTuner
 from golem.utilities.data_structures import ensure_wrapped_in_sequence
 
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.metrics_objective import MetricsObjective
@@ -29,7 +29,8 @@ class TunerBuilder:
         self.cv_folds = None
         self.validation_blocks = None
         self.n_jobs = -1
-        self.metric: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(task.task_type)
+        self.metric: Sequence[MetricsEnum] = MetricByTask.get_default_quality_metrics(
+            task.task_type)
         self.iterations = DEFAULT_TUNING_ITERATIONS_NUMBER
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)
@@ -97,19 +98,23 @@ class TunerBuilder:
         self.additional_params.update(parameters)
         return self
 
-    def build(self, data: InputData) -> BaseTuner:
+    def _build_tuner(self, data_producer, validation_blocks: int) -> BaseTuner:
         if len(self.metric) > 1:
             if self.tuner_class in [OptunaTuner, IOptTuner]:
-                self.additional_params.update({'objectives_number': len(self.metric)})
+                self.additional_params.update(
+                    {'objectives_number': len(self.metric)})
             else:
-                raise ValueError('Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
-        objective = MetricsObjective(self.metric, is_multi_objective=len(self.metric) > 1)
-        data_splitter = DataSourceSplitter(self.cv_folds, validation_blocks=self.validation_blocks)
-        data_producer = data_splitter.build(data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
-                                                       time_constraint=self.eval_time_constraint,
-                                                       eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
-                                                       validation_blocks=data_splitter.validation_blocks)
+                raise ValueError(
+                    'Multi objective tuning applicable only for OptunaTuner and IOptTuner.')
+        objective = MetricsObjective(
+            self.metric, is_multi_objective=len(self.metric) > 1)
+        objective_evaluate = PipelineObjectiveEvaluate(
+            objective,
+            data_producer,
+            time_constraint=self.eval_time_constraint,
+            eval_n_jobs=self.n_jobs,  # because tuners are not parallelized
+            validation_blocks=validation_blocks,
+        )
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  adapter=self.adapter,
                                  iterations=self.iterations,
@@ -119,3 +124,15 @@ class TunerBuilder:
                                  n_jobs=self.n_jobs,
                                  **self.additional_params)
         return tuner
+
+    def build(self, data: InputData) -> BaseTuner:
+        data_splitter = DataSourceSplitter(
+            self.cv_folds, validation_blocks=self.validation_blocks)
+        data_producer = data_splitter.build(data)
+        return self._build_tuner(data_producer, data_splitter.validation_blocks)
+
+    def build_tensordata(self, tensor_data) -> BaseTuner:
+        data_splitter = DataSourceSplitter(
+            self.cv_folds, validation_blocks=self.validation_blocks)
+        data_producer = data_splitter.build_tensordata(tensor_data)
+        return self._build_tuner(data_producer, data_splitter.validation_blocks)

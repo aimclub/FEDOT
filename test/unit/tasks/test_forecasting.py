@@ -8,8 +8,8 @@ from scipy import stats
 from sklearn.metrics import mean_absolute_error
 
 from fedot.core.composer.metrics import root_mean_squared_error
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.input_data.data import InputData
+from fedot.core.data.split.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
     ARIMAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -88,7 +88,8 @@ def get_multiscale_pipeline(window_size1: int = 20, window_size2: int = 100):
     node_lagged_2.parameters = {'window_size': window_size2}
     node_ridge_2 = PipelineNode('ridge', nodes_from=[node_lagged_2])
 
-    node_final = PipelineNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
+    node_final = PipelineNode('linear', nodes_from=[
+                              node_ridge_1, node_ridge_2])
 
     pipeline = Pipeline(node_final)
 
@@ -118,7 +119,8 @@ def get_multiple_ts_pipeline():
     node_filter_second = PipelineNode('gaussian_filter')
     node_filter_second.parameters = {'sigma': 2}
 
-    node_lagged = PipelineNode('lagged', nodes_from=[node_filter_first, node_filter_second])
+    node_lagged = PipelineNode('lagged', nodes_from=[
+                               node_filter_first, node_filter_second])
     node_ridge = PipelineNode('ridge', nodes_from=[node_lagged])
     return Pipeline(node_ridge)
 
@@ -172,14 +174,16 @@ def test_simple_pipeline_forecast_correct():
     test_target = np.ravel(np.array(test_data.target))
     rmse_test = root_mean_squared_error(test_target, test_pred)
 
-    rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
+    rmse_threshold = _max_rmse_threshold_by_std(
+        test_data.target, is_strict=True)
 
     assert rmse_test < rmse_threshold
 
 
 def test_ar_do_correct_lags():
     train_data, test_data = get_ts_data(n_steps=80)
-    ar = AutoRegImplementation(OperationParameters(**{'lag_1': 70, 'lag_2': 80}))
+    ar = AutoRegImplementation(
+        OperationParameters(**{'lag_1': 70, 'lag_2': 80}))
     params = ar.get_params()
     old_params = deepcopy(params)
     ar.fit(train_data)
@@ -290,7 +294,8 @@ def test_ts_forecasting_with_multiple_series_in_lagged():
     """ Test pipeline predict correctly when lagged operation get several time series """
     horizon = 3
     n_steps = 50
-    train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
+    train_data, test_data = get_ts_data(
+        n_steps=n_steps + horizon, forecast_length=horizon)
 
     pipeline = get_multiple_ts_pipeline()
     pipeline.fit(train_data)

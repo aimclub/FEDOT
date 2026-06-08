@@ -1,0 +1,2 @@
+# Optional dependencies for Sampling Zoo integration (PyPI).
+sampling-zoo>=0.1.1

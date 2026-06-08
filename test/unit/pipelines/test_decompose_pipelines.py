@@ -4,7 +4,7 @@ import numpy as np
 
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.node import PipelineNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -28,7 +28,8 @@ def generate_pipeline_with_decomposition(primary_operation, secondary_operation)
 
     node_first = PipelineNode(primary_operation)
     node_second = PipelineNode(secondary_operation, nodes_from=[node_first])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_first])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[
+                                  node_second, node_first])
     node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
     node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
     full_pipeline = Pipeline(node_rf)
@@ -44,7 +45,8 @@ def generate_pipeline_with_filtering():
 
     node_scaling = PipelineNode('scaling')
     node_logit = PipelineNode('logit', nodes_from=[node_scaling])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_logit, node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[
+                                  node_logit, node_scaling])
     node_ransac = PipelineNode('ransac_lin_reg', nodes_from=[node_decompose])
     node_rfr = PipelineNode('rfr', nodes_from=[node_ransac])
     node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_logit])
@@ -59,10 +61,12 @@ def generate_cascade_decompose_pipeline():
 
     node_scaling = PipelineNode('scaling')
     node_second = PipelineNode('logit', nodes_from=[node_scaling])
-    node_decompose = PipelineNode('class_decompose', nodes_from=[node_second, node_scaling])
+    node_decompose = PipelineNode('class_decompose', nodes_from=[
+                                  node_second, node_scaling])
     node_rfr = PipelineNode('rfr', nodes_from=[node_decompose])
     node_rf = PipelineNode('rf', nodes_from=[node_rfr, node_second])
-    node_decompose_new = PipelineNode('class_decompose', nodes_from=[node_rf, node_scaling])
+    node_decompose_new = PipelineNode(
+        'class_decompose', nodes_from=[node_rf, node_scaling])
     node_rfr_2 = PipelineNode('rfr', nodes_from=[node_decompose_new])
     node_final = PipelineNode('logit', nodes_from=[node_rfr_2, node_rf])
     pipeline = Pipeline(node_final)
@@ -124,7 +128,8 @@ def test_finding_side_root_node():
     reg_root_node = 'rfr'
 
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
-    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
+    reg_pipeline = pipeline.pipeline_for_side_task(
+        task_type=TaskTypesEnum.regression)
 
     assert reg_pipeline.root_node.operation.operation_type == reg_root_node
 
@@ -139,7 +144,8 @@ def test_pipeline_for_side_task_predict():
     predicted_labels = pipeline.predict(test_data)
     preds = predicted_labels.predict
 
-    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
+    reg_pipeline = pipeline.pipeline_for_side_task(
+        task_type=TaskTypesEnum.regression)
     reg_predicted_labels = reg_pipeline.predict(test_data)
     reg_preds = reg_predicted_labels.predict
 
@@ -176,7 +182,8 @@ def test_order_by_data_flow_len_correct():
         data_output = data_node.predict(input_data)
 
         if tuple(data_output.predict.shape) != tuple(dec_output.predict.shape):
-            raise ValueError('Data parent is not identified correctly for the decompose operation')
+            raise ValueError(
+                'Data parent is not identified correctly for the decompose operation')
 
 
 def test_correctness_filter_pipeline_decomposition():

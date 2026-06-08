@@ -7,7 +7,7 @@ import golem.core.paths
 from golem.core.log import LoggerAdapter, default_log
 from golem.core.optimisers.opt_history_objects.opt_history import OptHistory
 
-from fedot.core.data.data import InputData
+from fedot.core.data.input_data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 
 DEFAULT_PATH = Path(golem.core.paths.default_data_dir())
@@ -29,12 +29,15 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
     """
 
     log = default_log(prefix='fedot.utilities.project_import_export')
-    absolute_folder_path, absolute_zip_path, folder_name, zip_name = _prepare_paths(zip_name)
+    absolute_folder_path, absolute_zip_path, folder_name, zip_name = _prepare_paths(
+        zip_name)
     _check_for_existing_project(absolute_folder_path, absolute_zip_path)
 
     # Converts python objects to files for compression
-    pipeline_path = os.path.join(absolute_folder_path, 'pipeline', 'pipeline.json')
-    pipeline.save(pipeline_path, is_datetime_in_path=False, create_subdir=False)
+    pipeline_path = os.path.join(
+        absolute_folder_path, 'pipeline', 'pipeline.json')
+    pipeline.save(pipeline_path, is_datetime_in_path=False,
+                  create_subdir=False)
     train_data.to_csv(absolute_folder_path.joinpath('train_data.csv'))
     test_data.to_csv(absolute_folder_path.joinpath('test_data.csv'))
     if opt_history is not None:
@@ -42,12 +45,14 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
 
     _copy_log_file(log_file_name, absolute_folder_path)
 
-    shutil.make_archive(base_name=absolute_zip_path.with_suffix(''), format='zip', root_dir=absolute_folder_path)
+    shutil.make_archive(base_name=absolute_zip_path.with_suffix(
+        ''), format='zip', root_dir=absolute_folder_path)
     folder_to_delete = DEFAULT_PROJECTS_PATH.joinpath(
         absolute_folder_path.relative_to(DEFAULT_PROJECTS_PATH).parts[0])
     shutil.rmtree(folder_to_delete)
 
-    log.info(f'The exported project was saved on the path: {absolute_zip_path}')
+    log.info(
+        f'The exported project was saved on the path: {absolute_zip_path}')
 
 
 def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputData, OptHistory]:

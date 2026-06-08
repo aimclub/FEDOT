@@ -1,14 +1,19 @@
-from functools import partial
-from inspect import signature
-from typing import Any, Dict, Tuple, Union
+﻿from typing import Any, Dict, Tuple, Union
 
-import numpy as np
 from golem.core.log import default_log
 
+from fedot.api.api_utils.recommendation_rules import (
+    RecommendationLimits,
+    build_recommendation_bundle,
+    build_safe_data_recommendations,
+    collect_meta_rule_recommendations,
+    estimate_size_cut_border,
+    should_use_label_encoding,
+)
 from fedot.core.composer.meta_rules import get_cv_folds_number, get_early_stopping_generations, get_recommended_preset
-from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import find_categorical_columns
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.input_data.data import InputData
+from fedot.preprocessing.data_preprocessing import find_categorical_columns
+from fedot.core.data.multimodal.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 meta_rules = [get_cv_folds_number,
@@ -54,12 +59,20 @@ class InputAnalyser:
                                               input_params=input_params)
         elif isinstance(input_data, InputData):
             if input_data.data_type in [DataTypesEnum.table, DataTypesEnum.text]:
-                recommendations_for_data = self._give_recommendations_for_data(input_data=input_data)
-                if 'use_meta_rules' in input_params and input_params['use_meta_rules']:
-                    recommendations_for_params = self._give_recommendations_with_meta_rules(input_data=input_data,
-                                                                                            input_params=input_params)
+                recommendation_bundle = build_recommendation_bundle(
+                    input_data=input_data,
+                    input_params=input_params,
+                    safe_mode=self.safe_mode,
+                    limits=self._limits(),
+                    categorical_detector=find_categorical_columns,
+                    meta_rules=meta_rules,
+                    log=self._log,
+                )
+                recommendations_for_data = recommendation_bundle.data
+                recommendations_for_params = recommendation_bundle.params
                 if 'label_encoded' in recommendations_for_data:
-                    recommendations_for_params['label_encoded'] = recommendations_for_data['label_encoded']
+                    self._log.info(
+                        'Switch categorical encoder to label encoder')
 
         return recommendations_for_data, recommendations_for_params
 
@@ -70,29 +83,20 @@ class InputAnalyser:
         :return : dict with str recommendations
         """
 
-        recommendations_for_data = {}
-        if self.safe_mode:
-            is_cut_needed, border = self.control_size(input_data)
-            if is_cut_needed:
-                recommendations_for_data['cut'] = {'border': border}
-            is_label_encoding_needed = self.control_categorical(input_data)
-            if is_label_encoding_needed:
-                self._log.info('Switch categorical encoder to label encoder')
-                recommendations_for_data['label_encoded'] = {}
-        return recommendations_for_data
+        return build_safe_data_recommendations(
+            input_data=input_data,
+            safe_mode=self.safe_mode,
+            limits=self._limits(),
+            categorical_detector=find_categorical_columns,
+        )
 
     def _give_recommendations_with_meta_rules(self, input_data: InputData, input_params: Dict):
-        recommendations = dict()
-        for rule in meta_rules:
-            if 'input_params' in signature(rule).parameters:
-                rule = partial(rule, input_params=input_params)
-            if 'input_data' in signature(rule).parameters:
-                rule = partial(rule, input_data=input_data)
-            cur_recommendation = rule(log=self._log)
-            # if there is recommendation to change parameter
-            if list(cur_recommendation.values())[0]:
-                recommendations.update(cur_recommendation)
-        return recommendations
+        return collect_meta_rule_recommendations(
+            input_data=input_data,
+            input_params=input_params,
+            rules=meta_rules,
+            log=self._log,
+        )
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:
         """
@@ -102,11 +106,8 @@ class InputAnalyser:
         :return : (is_cut_needed, border) is cutting is needed | if yes - border of cutting,
         """
 
-        if input_data.data_type == DataTypesEnum.table:
-            if input_data.features.shape[0] * input_data.features.shape[1] > self.max_size:
-                border = self.max_size // input_data.features.shape[1]
-                return True, border
-        return False, None
+        border = estimate_size_cut_border(input_data, self.max_size)
+        return border is not None, border
 
     def control_categorical(self, input_data: InputData) -> bool:
         """
@@ -115,7 +116,14 @@ class InputAnalyser:
         :param input_data: data for preprocessing
         """
 
-        categorical_ids, _ = find_categorical_columns(input_data.features)
-        # Counts unique categories for each feature, and then counts their number
-        uniques_cats = sum([len(np.unique(feature)) for feature in input_data.features[:, categorical_ids].astype(str)])
-        return uniques_cats > self.max_cat_cardinality
+        return should_use_label_encoding(
+            input_data=input_data,
+            max_cat_cardinality=self.max_cat_cardinality,
+            categorical_detector=find_categorical_columns,
+        )
+
+    def _limits(self) -> RecommendationLimits:
+        return RecommendationLimits(
+            max_size=self.max_size,
+            max_cat_cardinality=self.max_cat_cardinality,
+        )

@@ -12,7 +12,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 def mocked_path():
     test_data_path = str(os.path.dirname(__file__))
-    repo_json_file_path = os.path.join(test_data_path, '../../data/model_repository.json')
+    repo_json_file_path = os.path.join(
+        test_data_path, '../../data/model_repository.json')
     return repo_json_file_path
 
 
@@ -34,12 +35,14 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
 
 def test_search_in_repository_by_tag_correct():
     with OperationTypesRepository() as repo:
-        model_names = repo.operations_with_tag(tags=['simple', 'linear'], is_full_match=True)
+        model_names = repo.operations_with_tag(
+            tags=['simple', 'linear'], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
         assert len(model_names) > 0
 
         model_names = repo.operations_with_tag(tags=['simple', 'linear'])
-        assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge', 'polyfit'}.issubset(model_names)
+        assert {'linear', 'logit', 'knn', 'lda', 'lasso',
+                'ridge', 'polyfit'}.issubset(model_names)
         assert len(model_names) > 0
 
         model_names = repo.operations_with_tag(tags=['non_real_tag'])
@@ -91,7 +94,8 @@ def test_names_with_postfix():
 
 
 def test_operation_types_repository_repr():
-    repository = OperationTypesRepository().assign_repo('model', 'model_repository.json')
+    repository = OperationTypesRepository().assign_repo(
+        'model', 'model_repository.json')
 
     assert repository.__repr__() == 'OperationTypesRepository for model_repository.json'
 
@@ -101,7 +105,8 @@ def test_repositories_tags_consistency():
     for repository in (OperationTypesRepository('model'), OperationTypesRepository('data_operation')):
         for operation in repository.operations:
             if repository.get_first_suitable_operation_tag(operation.id) is None:
-                errors_found.append(f'{operation.id} in {repository} has no proper default tags!')
+                errors_found.append(
+                    f'{operation.id} in {repository} has no proper default tags!')
 
     assert not errors_found, '\n'.join(errors_found)
 
